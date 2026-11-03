@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { BaseFieldProps } from '@/types'
 import { cn } from '@/lib/utils'
 import { parseSelectOptions } from '@/lib/selectOptions'
-import { MultiSelect as ShadcnMultiSelect } from '@/components/ui/multi-select'
+import { MultiSelect as ShadcnMultiSelect } from '@/components/common/multi-select'
 
 const props = defineProps<BaseFieldProps>()
 const emit = defineEmits<{ 'update:modelValue': [value: unknown] }>()

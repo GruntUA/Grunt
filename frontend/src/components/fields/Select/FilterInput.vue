@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { parseSelectOptions } from '@/lib/selectOptions'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MultiSelect } from '@/components/ui/multi-select'
+import { MultiSelect } from '@/components/common/multi-select'
 import { MULTI_VALUE_OPS } from '@/core/api/docs'
 
 const props = defineProps<{

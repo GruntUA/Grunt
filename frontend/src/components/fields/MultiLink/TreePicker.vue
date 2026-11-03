@@ -6,7 +6,7 @@ import { Search, X } from '@lucide/vue'
 import { docsApi } from '@/core/api'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { TreeSelectNode, type TreeNode } from '@/components/ui/tree-select'
+import { TreeSelectNode, type TreeNode } from '@/components/common/tree-select'
 import {
   Dialog,
   DialogContent,

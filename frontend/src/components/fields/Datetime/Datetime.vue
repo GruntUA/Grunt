@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BaseFieldProps } from '@/types'
-import { DatePicker } from '@/components/ui/date-picker'
+import { DatePicker } from '@/components/common/date-picker'
 
 const props = defineProps<BaseFieldProps>()
 

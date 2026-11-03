@@ -7,8 +7,8 @@ import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { docsApi, metaApi } from '@/core/api'
 import { MULTI_VALUE_OPS } from '@/core/api/docs'
-import type { TreeNode } from '@/components/ui/tree-select'
-import { TreeSelect } from '@/components/ui/tree-select'
+import type { TreeNode } from '@/components/common/tree-select'
+import { TreeSelect } from '@/components/common/tree-select'
 import {
   Combobox, ComboboxAnchor, ComboboxGroup, ComboboxInput, ComboboxItem,
   ComboboxItemIndicator, ComboboxList, ComboboxTrigger,

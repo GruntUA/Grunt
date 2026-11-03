@@ -1903,7 +1903,7 @@ msgstr ""
 msgid "Choose a strong password"
 msgstr ""
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Choose a value from the tree"
 msgstr ""
 
@@ -1923,7 +1923,7 @@ msgstr ""
 msgid "Choose filters"
 msgstr ""
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Choose from list"
 msgstr ""
 
@@ -1967,7 +1967,7 @@ msgstr ""
 msgid "City (text)"
 msgstr ""
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue
 #: grunt/frontend/src/components/fields/Link/Link.vue
@@ -1987,7 +1987,7 @@ msgstr ""
 msgid "Clear cache"
 msgstr ""
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "Clear search"
@@ -2047,7 +2047,7 @@ msgstr ""
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue
 #: grunt/frontend/src/components/desk/GruntDialog.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
@@ -2100,7 +2100,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 #: grunt/frontend/src/components/views/DocSidebar.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelectNode.vue
 msgid "Collapse"
 msgstr ""
 
@@ -4294,8 +4294,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelectNode.vue
 msgid "Expand"
 msgstr ""
 
@@ -7039,7 +7039,7 @@ msgid "Native name"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Navigate"
 msgstr ""
 
@@ -7320,7 +7320,7 @@ msgstr ""
 msgid "No notifications"
 msgstr ""
 
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
 msgid "No options"
 msgstr ""
 
@@ -7541,8 +7541,8 @@ msgstr ""
 #: grunt/frontend/src/components/DocTypeCombobox.vue
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
@@ -9755,8 +9755,8 @@ msgstr ""
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
@@ -9842,7 +9842,7 @@ msgid ""
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Select"
 msgstr ""
 
@@ -13968,8 +13968,8 @@ msgid "— Do not import —"
 msgstr ""
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
 #: grunt/frontend/src/components/fields/Select/Select.vue
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue

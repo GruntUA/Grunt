@@ -1976,7 +1976,7 @@ msgstr "Оберіть, чим їх замінити, або видаліть б
 msgid "Choose a strong password"
 msgstr "Оберіть надійний пароль"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Choose a value from the tree"
 msgstr "Оберіть значення з дерева"
 
@@ -1996,7 +1996,7 @@ msgstr "Оберіть хоча б одну частину для резервн
 msgid "Choose filters"
 msgstr "Обрати фільтри"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Choose from list"
 msgstr "Обрати зі списку"
 
@@ -2040,7 +2040,7 @@ msgstr "Місто (довідник)"
 msgid "City (text)"
 msgstr "Місто (текст)"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue
 #: grunt/frontend/src/components/fields/Link/Link.vue
@@ -2060,7 +2060,7 @@ msgstr "Скинути фільтри"
 msgid "Clear cache"
 msgstr "Очистити кеш"
 
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "Clear search"
@@ -2120,7 +2120,7 @@ msgstr "Буфер обміну недоступний:"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue
 #: grunt/frontend/src/components/desk/GruntDialog.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
@@ -2175,7 +2175,7 @@ msgstr "Спільна робота"
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 #: grunt/frontend/src/components/views/DocSidebar.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelectNode.vue
 msgid "Collapse"
 msgstr "Згорнути"
 
@@ -4428,8 +4428,8 @@ msgstr "Вийти з повноекранного режиму"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelectNode.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelectNode.vue
 msgid "Expand"
 msgstr "Розгорнути"
 
@@ -7281,7 +7281,7 @@ msgid "Native name"
 msgstr "Рідна назва"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Navigate"
 msgstr "Навігація"
 
@@ -7570,7 +7570,7 @@ msgstr "Немає нових сповіщень"
 msgid "No notifications"
 msgstr "Немає сповіщень"
 
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
 msgid "No options"
 msgstr "Немає варіантів"
 
@@ -7801,8 +7801,8 @@ msgstr "Примітки"
 #: grunt/frontend/src/components/DocTypeCombobox.vue
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
@@ -10101,8 +10101,8 @@ msgstr "Пошук…"
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
@@ -10193,7 +10193,7 @@ msgstr ""
 "документа"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Select"
 msgstr "Вибрати"
 
@@ -14467,8 +14467,8 @@ msgid "— Do not import —"
 msgstr "— Не імпортувати —"
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue
-#: grunt/frontend/src/components/ui/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/ui/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
 #: grunt/frontend/src/components/fields/Select/Select.vue
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue

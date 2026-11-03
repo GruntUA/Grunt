@@ -28,7 +28,7 @@ declare module 'vue' {
     CollapsibleContent: typeof import('@/components/ui/collapsible')['CollapsibleContent']
     CollapsibleTrigger: typeof import('@/components/ui/collapsible')['CollapsibleTrigger']
     Combobox: typeof import('@/components/ui/combobox')['Combobox']
-    DatePicker: typeof import('@/components/ui/date-picker')['DatePicker']
+    DatePicker: typeof import('@/components/common/date-picker')['DatePicker']
     Dialog: typeof import('@/components/ui/dialog')['Dialog']
     DialogContent: typeof import('@/components/ui/dialog')['DialogContent']
     DialogFooter: typeof import('@/components/ui/dialog')['DialogFooter']
@@ -96,6 +96,6 @@ declare module 'vue' {
     Tooltip: typeof import('@/components/ui/tooltip')['Tooltip']
     TooltipContent: typeof import('@/components/ui/tooltip')['TooltipContent']
     TooltipTrigger: typeof import('@/components/ui/tooltip')['TooltipTrigger']
-    TreeSelect: typeof import('@/components/ui/tree-select')['TreeSelect']
+    TreeSelect: typeof import('@/components/common/tree-select')['TreeSelect']
   }
 }

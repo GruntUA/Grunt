@@ -9,7 +9,7 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
-import { TreeSelect } from '@/components/ui/tree-select'
+import { TreeSelect } from '@/components/common/tree-select'
 import { cn } from '@/lib/utils'
 import { useLinkField } from '@/core/composables/useLinkField'
 

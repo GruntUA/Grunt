@@ -30,17 +30,6 @@ def _node_runner(binary: str) -> list[str]:
     return [found]
 
 
-# Components that live in ui/ but are NOT in the shadcn-vue registry
-# (the registry returns 404 for these names) - custom framework compositions
-# that must never be passed to the CLI.
-_CUSTOM_COMPONENTS = frozenset(
-    {
-        "date-picker",
-        "multi-select",
-        "tree-select",
-    }
-)
-
 # The legacy style: under Tailwind v4 the CLI resolves it to new-york-v4.
 _LEGACY_STYLE = "new-york"
 
@@ -57,14 +46,10 @@ _SHADCN_CSS_IMPORT = '@import "shadcn-vue/tailwind.css";'
 
 
 def _installed_components(ui_dir: Path) -> list[str]:
-    """Return shadcn-vue component names present in ui/ (excluding custom ones)."""
+    """Return shadcn-vue component names present in ui/."""
     if not ui_dir.exists():
         return []
-    return sorted(
-        d.name
-        for d in ui_dir.iterdir()
-        if d.is_dir() and (d / "index.ts").exists() and d.name not in _CUSTOM_COMPONENTS
-    )
+    return sorted(d.name for d in ui_dir.iterdir() if d.is_dir() and (d / "index.ts").exists())
 
 
 def _in_registry(style: str) -> bool:
