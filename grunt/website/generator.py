@@ -19,8 +19,8 @@ add to the template context with ``async def get_web_context(self, context)``.
 A page served some other way (the CMS's ``WebPage`` and ``WebForm``) reports
 its URL with a controller ``@staticmethod get_web_url(doc) -> str | None`` instead.
 
-Pages without ``allow_guest_to_view`` are never served: the site has no login
-cookie, so a signed-in reader can't be told apart from a guest.
+Pages without ``allow_guest_to_view`` are never served: a page is rendered
+(and cached) the same for every reader.
 """
 
 import inspect

@@ -81,7 +81,7 @@ async def test_delete_creates_snapshot_and_restore_round_trips(ctx, setup_trash_
     assert len(snap["data"]["rows"]) == 2
 
     from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
-    from grunt.api.messages import ApplicationError
+    from grunt.errors import ApplicationError
 
     restored = await restore(snap["name"])
     await ctx.db._session().commit()
@@ -171,7 +171,7 @@ async def test_restore_with_name_taken_requires_allow_rename(ctx, setup_trash_do
     )[0]
 
     from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
-    from grunt.api.messages import ApplicationError
+    from grunt.errors import ApplicationError
 
     with pytest.raises(ApplicationError):
         await restore(snap["name"])

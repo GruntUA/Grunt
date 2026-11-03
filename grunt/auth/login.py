@@ -4,9 +4,15 @@ Every sign-in path - password (``login_api``), MFA second step
 (``mfa_login_api``), OIDC callback, WebAuthn assertion, any future provider -
 ends here so the response shape, the MFA gate and session tracking stay in a
 single implementation.
+
+A completed sign-in opens a UserSession and sets its refresh token as the
+session cookie on *response* (:mod:`grunt.auth.session_cookie`); the payload
+carries only the access token.
 """
 
 from typing import Any
+
+from fastapi import Response
 
 from grunt import _
 lazy from grunt.api.messages import throw
@@ -20,6 +26,7 @@ lazy from grunt.auth.service import (
     create_mfa_setup_token,
     create_mfa_token,
 )
+lazy from grunt.auth.session_cookie import set_session_cookie
 lazy from grunt.auth.users import (
     _auth_user_dump,
     clear_failed_attempts,
@@ -31,6 +38,7 @@ lazy from grunt.auth.users import (
 async def issue_login(
     user: User,
     *,
+    response: Response,
     ip_address: str | None = None,
     user_agent: str | None = None,
     device_id: str | None = None,
@@ -63,7 +71,6 @@ async def issue_login(
         # Not an error - the frontend shows a "waiting for approval" notice.
         return {
             "access_token": None,
-            "refresh_token": None,
             "mfa_token": None,
             "token_type": "bearer",
             "user": _auth_user_dump(user),
@@ -82,7 +89,6 @@ async def issue_login(
     if honor_mfa and await mfa_setup_required(user):
         return {
             "access_token": None,
-            "refresh_token": None,
             "mfa_token": create_mfa_setup_token(user),
             "token_type": "bearer",
             "user": _auth_user_dump(user),
@@ -93,7 +99,6 @@ async def issue_login(
     if honor_mfa and user.mfa_enabled:
         return {
             "access_token": None,
-            "refresh_token": None,
             "mfa_token": create_mfa_token(user),
             "token_type": "bearer",
             "user": _auth_user_dump(user),
@@ -113,10 +118,10 @@ async def issue_login(
         user.id, ip_address, user_agent, device_id=device_id, method=method
     )
     access_token = create_access_token(user, await access_token_minutes(), sid=sid)
+    await set_session_cookie(response, refresh_token)
 
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
         "mfa_token": None,
         "token_type": "bearer",
         "user": _auth_user_dump(user),

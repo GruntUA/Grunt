@@ -23,7 +23,7 @@ const app = createApp(App)
 app.use(pinia)
 // Kick off boot requests immediately - the router guard awaits the same
 // promises before resolving the first route.
-useAuthStore().prefetchMe()
+useAuthStore().restore()
 loadSiteConfig()
 app.use(router)
 app.use(i18n)

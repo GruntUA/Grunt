@@ -7,7 +7,7 @@ resolves names with ``getattr`` on that module.
 
 from typing import Any
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 
 import grunt
 from grunt import log
@@ -16,6 +16,7 @@ from grunt.auth.doctypes.UserSession.user_session import (
     client_ip,
     client_user_agent,
     end_session,
+    end_session_by_token,
     rotate_session,
 )
 from grunt.auth.impersonation import start_impersonation
@@ -30,6 +31,12 @@ from grunt.auth.service import (
     create_password_reset_token,
     verify_mfa_setup_token,
     verify_mfa_token,
+)
+from grunt.auth.session_cookie import (
+    clear_session_cookie,
+    same_origin,
+    session_token,
+    set_session_cookie,
 )
 from grunt.auth.users import (
     _apply_signup_approval,
@@ -93,7 +100,9 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
 
 
 @grunt.whitelist(allow_guest=True)
-async def login_api(email: str, password: str, request: Request | None = None) -> dict[str, Any]:
+async def login_api(
+    email: str, password: str, response: Response, request: Request | None = None
+) -> dict[str, Any]:
     """Authenticate a user and issue auth tokens or MFA challenge token."""
     try:
         user = await authenticate(email, password)
@@ -107,6 +116,7 @@ async def login_api(email: str, password: str, request: Request | None = None) -
 
     return await issue_login(
         user,
+        response=response,
         ip_address=client_ip(request),
         user_agent=client_user_agent(request),
         device_id=client_device_id(request),
@@ -118,6 +128,7 @@ async def login_api(email: str, password: str, request: Request | None = None) -
 async def mfa_login_api(
     mfa_token: str,
     code: str,
+    response: Response,
     request: Request | None = None,
 ) -> dict[str, Any]:
     """Verify MFA challenge token+code and issue full auth tokens."""
@@ -146,6 +157,7 @@ async def mfa_login_api(
     # honor_mfa=False: the second factor has just been proven here.
     return await issue_login(
         user,
+        response=response,
         ip_address=client_ip(request),
         user_agent=client_user_agent(request),
         device_id=client_device_id(request),
@@ -175,6 +187,7 @@ async def mfa_enroll_begin(mfa_token: str) -> dict[str, Any]:
 async def mfa_enroll_complete(
     mfa_token: str,
     code: str,
+    response: Response,
     request: Request | None = None,
 ) -> dict[str, Any]:
     """Login-time MFA enrollment, step 2: confirm the code, then sign in.
@@ -186,6 +199,7 @@ async def mfa_enroll_complete(
     user.mfa_enabled = True
     payload = await issue_login(
         user,
+        response=response,
         ip_address=client_ip(request),
         user_agent=client_user_agent(request),
         device_id=client_device_id(request),
@@ -248,8 +262,13 @@ async def update_me_api(
 
 
 @grunt.whitelist(allow_guest=True)
-async def refresh_api(refresh_token: str, request: Request | None = None) -> dict[str, Any]:
-    """Exchange a session's refresh token for a new access+refresh pair."""
+async def refresh_api(response: Response, request: Request | None = None) -> dict[str, Any]:
+    """A new access token for the browser's session (the session cookie), which
+    is rotated on the way."""
+
+    refresh_token = session_token(request)
+    if not refresh_token or not same_origin(request):
+        grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
     rotated = await rotate_session(refresh_token, client_ip(request))
     if rotated is None:
         grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
@@ -273,9 +292,10 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
             _("Your role requires two-factor authentication; sign in again"), "UNAUTHORIZED"
         )
 
+    if new_refresh_token:
+        await set_session_cookie(response, new_refresh_token)
     return {
         "access_token": create_access_token(user, await access_token_minutes(), sid=sid),
-        "refresh_token": new_refresh_token,
         "mfa_token": None,
         "token_type": "bearer",
         "user": _auth_user_dump(user),
@@ -283,12 +303,15 @@ async def refresh_api(refresh_token: str, request: Request | None = None) -> dic
     }
 
 
-@grunt.whitelist()
-async def logout_api() -> bool:
-    """End the current device's session (other devices stay signed in)."""
-    user = grunt.get_user()
-    if sid := user.data.get("_sid"):
-        await end_session(sid)
+@grunt.whitelist(allow_guest=True)
+async def logout_api(response: Response, request: Request | None = None) -> bool:
+    """End this browser's session (other devices stay signed in) and drop its cookie.
+
+    Works with an expired access token too: the session is found by the cookie.
+    """
+    if (refresh_token := session_token(request)) and same_origin(request):
+        await end_session_by_token(refresh_token)
+    clear_session_cookie(response)
     return True
 
 

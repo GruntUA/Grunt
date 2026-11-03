@@ -3,9 +3,9 @@
 import pytest
 from httpx2 import AsyncClient
 
-from grunt.api.messages import ApplicationError
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.service import create_access_token
+from grunt.errors import ApplicationError
 from grunt.site.settings import clear_settings_cache
 
 

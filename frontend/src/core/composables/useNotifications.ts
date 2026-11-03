@@ -5,6 +5,7 @@ import { useDialog } from '@/core/composables/useDialog'
 import { useTaskTracker } from '@/core/composables/useTaskTracker'
 import { useAudio } from '@/core/composables/useAudio'
 import { WebSocketChannel } from '@/core/ws/WebSocketChannel'
+import { accessToken } from '@/core/accessToken'
 import type { GruntNotification, RealtimeEvent } from '@/types'
 import i18n from '@/plugins/i18n'
 
@@ -47,7 +48,7 @@ userChannel.on('*', (msg) => {
 })
 
 function connectWs() {
-  if (!localStorage.getItem('grunt_token')) {
+  if (!accessToken.value) {
     return
   }
 

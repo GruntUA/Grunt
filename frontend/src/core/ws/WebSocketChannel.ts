@@ -2,6 +2,7 @@ import { ref } from 'vue'
 
 import { refreshSession } from '@/core/api/client'
 import { isJwtExpired } from '@/core/jwt'
+import { accessToken } from '@/core/accessToken'
 
 type EventHandler = (data: unknown) => void
 
@@ -25,9 +26,9 @@ export function buildWebSocketUrl(url: string): string {
   return `${proto}//${location.host}${url}`
 }
 
-/** `Sec-WebSocket-Protocol` offer carrying the stored JWT, or `undefined` without one. */
+/** `Sec-WebSocket-Protocol` offer carrying the access token, or `undefined` without one. */
 export function authProtocols(): string[] | undefined {
-  const token = localStorage.getItem('grunt_token')
+  const token = accessToken.value
   return token ? [AUTH_SUBPROTOCOL, token] : undefined
 }
 
@@ -87,7 +88,7 @@ export class WebSocketChannel {
       return
     }
 
-    const token = this.includeAuthToken ? localStorage.getItem('grunt_token') : null
+    const token = this.includeAuthToken ? accessToken.value : null
     if (this.includeAuthToken && !token) {
       this.disconnect()
       return

@@ -231,8 +231,8 @@ async def test_get_page_data_computes_all_widgets_by_name(ctx, widget_source):
 
 @pytest.mark.asyncio
 async def test_get_page_widget_data_overrides_period(ctx, widget_source):
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.dashboard import get_page_data, get_page_widget_data
+    from grunt.errors import ApplicationError
 
     await ctx.new_doc(
         "Page",
@@ -269,8 +269,8 @@ async def test_get_page_widget_data_overrides_period(ctx, widget_source):
 
 @pytest.mark.asyncio
 async def test_get_page_data_not_found_raises(ctx, widget_source):
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.dashboard import get_page_data
+    from grunt.errors import ApplicationError
 
     with pytest.raises(ApplicationError):
         await get_page_data("does-not-exist")

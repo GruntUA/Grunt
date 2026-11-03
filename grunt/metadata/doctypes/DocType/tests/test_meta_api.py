@@ -3,7 +3,7 @@ whitelisted methods)."""
 
 import pytest
 
-from grunt.api.messages import ApplicationError
+from grunt.errors import ApplicationError
 from grunt.i18n import translation_service, use_language
 
 SAMPLE_DOCTYPE = {

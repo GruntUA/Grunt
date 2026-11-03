@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Toggle } from '@/components/ui/toggle'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { accessToken } from '@/core/accessToken'
 
 const { t } = useI18n()
 
@@ -118,7 +119,7 @@ function printDoc() {
     fmt: 'html',
     autoprint: '1',
   })
-  const token = localStorage.getItem('grunt_token')
+  const token = accessToken.value
   if (token) params.set('token', token)
   window.open(`/api/v1/method/grunt.document.base.Document.print?${params.toString()}`, '_blank', 'noopener')
 }

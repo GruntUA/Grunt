@@ -19,6 +19,7 @@ import type { ActionsApi } from '@/core/actions'
 import { i18n, N_ } from '@/plugins/i18n'
 import type { DocType } from '@/types'
 import { createFormDashboard, type FormDashboardApi } from '@/core/scripting/formDashboard'
+import { accessToken } from '@/core/accessToken'
 
 // Types (the public client-script API lives in ./types)
 
@@ -194,7 +195,7 @@ export function createFormProxy(
       if (!name) return
       const params = new URLSearchParams({ doctype, doc_id: name, fmt: format })
       if (options.autoprint) params.set('autoprint', '1')
-      const token = localStorage.getItem('grunt_token')
+      const token = accessToken.value
       if (token) params.set('token', token)
       window.open(`/api/v1/method/grunt.document.base.Document.print?${params}`, '_blank', 'noopener')
     },
@@ -403,6 +404,8 @@ export function createGruntProxy(
         return data
       },
     },
+
+    fetch: appGrunt.fetch,
 
     throw(msg: string): never {
       throw new Error(msg)

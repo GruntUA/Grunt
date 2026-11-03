@@ -19,9 +19,9 @@ Flow:
    browser to ``data.url``.
 2. IdP redirects back to ``GET /api/v1/oauth/{provider}/callback?code=...``.
 3. This exchanges the code, finds/creates the local User, then **302-redirects
-   the browser back to the SPA** at ``{APP_URL}/login#access_token=...`` (tokens
-   in the URL fragment - never sent to a server). ``Login.vue`` consumes the
-   fragment, stores the pair and strips it from the URL.
+   the browser back to the SPA** at ``{APP_URL}/login#signed_in=1`` with the
+   session cookie set on the redirect. ``Login.vue`` sees the fragment and
+   picks up the session through ``refresh_api``.
 """
 
 import hmac
@@ -30,7 +30,6 @@ from urllib.parse import urlencode
 from fastapi import Request, Response
 from fastapi.responses import RedirectResponse
 
-from grunt.api.messages import ApplicationError
 from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
 from grunt.auth import providers as auth_providers
@@ -38,6 +37,7 @@ from grunt.auth.doctypes.UserSession.user_session import client_device_id, clien
 from grunt.auth.login import issue_login
 from grunt.auth.providers.base import AuthFlowContext
 from grunt.config import settings
+from grunt.errors import ApplicationError
 
 router = GruntRouter(prefix="", tags=["oauth"], optional_auth=True)
 
@@ -95,6 +95,7 @@ async def oauth_callback(
     if not _state_matches(request, state):
         return _spa_redirect({"error": "invalid_state"})
 
+    redirect = _spa_redirect({"signed_in": "1"})
     try:
         prov = auth_providers.get(provider)
         ctx = AuthFlowContext(
@@ -107,6 +108,7 @@ async def oauth_callback(
         user = await prov.complete(ctx)
         payload = await issue_login(
             user,
+            response=redirect,
             ip_address=ctx.ip_address,
             user_agent=ctx.user_agent,
             device_id=ctx.device_id,
@@ -115,11 +117,10 @@ async def oauth_callback(
     except ApplicationError as exc:
         return _spa_redirect({"error": exc.code})
 
+    if payload.get("approval_pending"):
+        return _spa_redirect({"approval_pending": "1"})
     if payload["mfa_required"]:
         return _spa_redirect({"mfa_token": payload["mfa_token"], "mfa_required": "1"})
-    return _spa_redirect(
-        {
-            "access_token": payload["access_token"],
-            "refresh_token": payload["refresh_token"],
-        }
-    )
+    # The session is in the cookie set on the redirect; the SPA gets its access
+    # token from refresh_api.
+    return redirect

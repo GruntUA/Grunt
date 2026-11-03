@@ -123,10 +123,8 @@ async function consumeExternalRedirect() {
     router.push({ name: 'mfa-verify', query: { token: p.get('mfa_token') } })
     return
   }
-  const at = p.get('access_token')
-  const rt = p.get('refresh_token')
-  if (at && rt) {
-    await auth.setSession(at, rt)
+  // The OAuth callback set the session cookie on its redirect.
+  if (p.get('signed_in') && (await auth.refresh())) {
     router.push(afterLoginTarget())
   }
 }

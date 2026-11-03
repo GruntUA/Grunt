@@ -23,6 +23,18 @@
       "hidden": true
     },
     {
+      "fieldname": "previous_token_hash",
+      "label": "Previous token hash",
+      "fieldtype": "Data",
+      "hidden": true
+    },
+    {
+      "fieldname": "rotated_at",
+      "label": "Token rotated at",
+      "fieldtype": "Datetime",
+      "hidden": true
+    },
+    {
       "fieldname": "device_id",
       "label": "Device ID",
       "fieldtype": "Data",
@@ -67,7 +79,8 @@
       "delete": true,
       "match": "user == user",
       "hidden_fields": [
-        "refresh_token_hash"
+        "refresh_token_hash",
+        "previous_token_hash"
       ]
     }
   ]

@@ -143,25 +143,19 @@ router.beforeEach(async (to) => {
   await loadSiteConfig()
 
   const auth = useAuthStore()
+  // The session cookie (or this tab's impersonation) turned into an access
+  // token and a profile - once per page load.
+  await auth.restore()
 
   // Already-authenticated visitor hits the login page directly (e.g. via a
   // bookmark or /login link) - send them straight to the desk instead of
-  // showing the form again. isLoggedIn only checks token presence; fetchMe
-  // confirms the token is still valid server-side (and clears it on 401/403).
+  // showing the form again.
   if ((to.name === 'login' || to.name === 'register') && auth.isLoggedIn) {
-    if (!auth.user) await auth.fetchMe()
-    if (auth.isLoggedIn) {
-      rememberLoginRedirect(to.query.redirect)
-      return afterLoginTarget()
-    }
+    rememberLoginRedirect(to.query.redirect)
+    return afterLoginTarget()
   }
 
   if (to.meta.public) return true
-  if (!auth.isLoggedIn) return loginLocation(to.fullPath)
-  if (!auth.user) await auth.fetchMe()
-  // fetchMe clears a stale session (expired refresh token, 401/403 on whoami) -
-  // go to the login page now instead of rendering the protected page, letting
-  // its API calls fail and only then bouncing to /login from the 401 handler.
   if (!auth.isLoggedIn) return loginLocation(to.fullPath)
 
   // A singleton's only document lives at /app/<ws>/<DocType>; a long

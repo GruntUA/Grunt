@@ -50,8 +50,8 @@ async def test_table_info_reports_physical_table(ctx, probe_doctype):
 
 @pytest.mark.asyncio
 async def test_table_info_rejects_virtual_doctype(ctx):
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.meta import save_doctype, table_info
+    from grunt.errors import ApplicationError
 
     await save_doctype(
         doctype_data={

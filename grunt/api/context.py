@@ -90,7 +90,13 @@ def add_message(message: str, title: str = "", msg_type: str = "info") -> None:
         msgs.append({"message": message, "title": title, "type": msg_type})
 
 
-def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, require=None):
+def whitelist(
+    allow_guest: bool = False,
+    *,
+    roles: list[str] | None = None,
+    require=None,
+    session_cookie: bool = False,
+):
     """Decorator to mark a function as whitelisted for API access.
 
     ``roles``/``require`` are enforced on every call - via the HTTP dispatcher
@@ -108,11 +114,17 @@ def whitelist(allow_guest: bool = False, *, roles: list[str] | None = None, requ
 
     A 403 is raised before the function body runs either way - there is no
     call path that skips the check, unlike gating done only in the dispatcher.
+
+    ``session_cookie=True`` lets a GET call without an access token sign in
+    with the browser's session cookie - for a read-only method a public site
+    page calls (an «Edit» button). Never for a method that changes anything:
+    the cookie goes along with requests other sites trigger.
     """
 
     def _tag(fn, *, allow_guest: bool, roles: list[str] | None, require) -> None:
         fn._whitelisted = True
         fn._allow_guest = allow_guest
+        fn._session_cookie = session_cookie
         fn._required_roles = roles
         fn._require_check = require
 

@@ -1,6 +1,7 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 
 import { WebSocketChannel, openChannelCount } from '@/core/ws/WebSocketChannel'
+import { accessToken } from '@/core/accessToken'
 
 const refreshSession = vi.hoisted(() => vi.fn())
 vi.mock('@/core/api/client', () => ({ refreshSession }))
@@ -63,13 +64,13 @@ describe('WebSocketChannel', () => {
     vi.useFakeTimers()
     MockWebSocket.instances = []
     vi.stubGlobal('WebSocket', MockWebSocket as unknown as typeof WebSocket)
-    localStorage.setItem('grunt_token', 'test-token')
+    accessToken.value = 'test-token'
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
     vi.useRealTimers()
-    localStorage.clear()
+    accessToken.value = null
     globalThis.WebSocket = originalWebSocket
   })
 
@@ -84,9 +85,9 @@ describe('WebSocketChannel', () => {
   })
 
   it('renews an expired access token before connecting', async () => {
-    localStorage.setItem('grunt_token', jwt(-60))
+    accessToken.value = jwt(-60)
     refreshSession.mockImplementation(async () => {
-      localStorage.setItem('grunt_token', jwt(900))
+      accessToken.value = jwt(900)
       return true
     })
     const channel = new WebSocketChannel({ url: '/api/v1/ws/user' })
@@ -96,11 +97,11 @@ describe('WebSocketChannel', () => {
     await vi.waitFor(() => expect(MockWebSocket.instances).toHaveLength(1))
 
     expect(refreshSession).toHaveBeenCalledOnce()
-    expect(MockWebSocket.instances[0]!.protocols?.[1]).toBe(localStorage.getItem('grunt_token'))
+    expect(MockWebSocket.instances[0]!.protocols?.[1]).toBe(accessToken.value)
   })
 
   it('does not connect when the token cannot be renewed', async () => {
-    localStorage.setItem('grunt_token', jwt(-60))
+    accessToken.value = jwt(-60)
     refreshSession.mockResolvedValue(false)
     const channel = new WebSocketChannel({ url: '/api/v1/ws/user' })
 

@@ -190,12 +190,10 @@ async function _refreshPreview(frm) {
 
   _setStatus(__('Updating…'))
 
-  const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }
-  if (token) headers['Authorization'] = 'Bearer ' + token
 
   try {
-    const resp = await fetch(`/api/v1/docs/${encodeURIComponent(doctype)}/print-preview`, {
+    const resp = await grunt.fetch(`/api/v1/docs/${encodeURIComponent(doctype)}/print-preview`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ template }),
@@ -224,12 +222,10 @@ async function _openInNewTab(frm) {
   const template = frm.get_value('template')
   if (!doctype || !template) return
 
-  const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }
-  if (token) headers['Authorization'] = 'Bearer ' + token
 
   try {
-    const resp = await fetch(`/api/v1/docs/${encodeURIComponent(doctype)}/print-preview`, {
+    const resp = await grunt.fetch(`/api/v1/docs/${encodeURIComponent(doctype)}/print-preview`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ template }),

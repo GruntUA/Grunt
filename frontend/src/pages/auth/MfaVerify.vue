@@ -61,7 +61,7 @@ async function handleEnroll() {
   loading.value = true
   try {
     const data = await authApi.mfaEnrollComplete(mfaToken, code.value)
-    await authStore.setSession(data.access_token, data.refresh_token)
+    authStore.adoptLogin(data)
     backupCodes.value = data.backup_codes || []
   } catch (e: any) {
     error.value = e?.response?.data?.detail || e?.message || t('Invalid code. Try again.')
@@ -83,12 +83,7 @@ async function handleVerify() {
   try {
     const data = await authApi.verifyMfaLogin(mfaToken, code.value)
 
-    // Complete login in store
-    authStore.token = data.access_token
-    authStore.refreshToken = data.refresh_token
-    authStore.user = data.user
-    localStorage.setItem('grunt_token', data.access_token)
-    localStorage.setItem('grunt_refresh_token', data.refresh_token)
+    authStore.adoptLogin(data)
 
     toast.success(t('Welcome!'))
     setTimeout(() => {

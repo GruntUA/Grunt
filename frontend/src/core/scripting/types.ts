@@ -224,6 +224,11 @@ export interface GruntProxy {
     put: (url: string, data?: unknown) => Promise<unknown>
     delete: (url: string) => Promise<unknown>
   }
+  /**
+   * `fetch` signed in as the current user, for a raw response (a file, HTML);
+   * an expired access token is renewed and the request sent once more.
+   */
+  fetch: (input: string, init?: RequestInit) => Promise<Response>
   throw: (msg: string) => never
   confirm: (msg: string, title?: string) => Promise<boolean>
   msgprint: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => Promise<void>

@@ -20,8 +20,9 @@ from grunt.api.context import (
     set_session,
     set_user,
 )
-from grunt.api.messages import ApplicationError, msgprint, throw
+from grunt.api.messages import msgprint, throw
 from grunt.app import GruntDB
+from grunt.errors import ApplicationError
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 

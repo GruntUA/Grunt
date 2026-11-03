@@ -113,7 +113,7 @@ async def test_unshare_revokes_access(ctx, boxes, db_session, engine):
 @pytest.mark.asyncio
 async def test_only_writers_can_share(ctx, boxes, db_session, engine):
     import grunt
-    from grunt.api.messages import ApplicationError
+    from grunt.errors import ApplicationError
 
     a, _ = boxes
     await _share(ctx, a, "Read")  # bob can read A, not write it
@@ -136,7 +136,7 @@ async def test_only_writers_can_share(ctx, boxes, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_share_to_unknown_user_rejected(ctx, boxes):
-    from grunt.api.messages import ApplicationError
+    from grunt.errors import ApplicationError
 
     a, _ = boxes
     with pytest.raises((ApplicationError, HTTPException)):

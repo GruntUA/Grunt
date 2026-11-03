@@ -36,12 +36,10 @@ async function _runTest(frm) {
     || [...document.querySelectorAll('button')].find(b => b.textContent.trim() === __('Test'))
   if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + __('Sending…') }
 
-  const token = localStorage.getItem('grunt_token')
   const headers = { 'Content-Type': 'application/json' }
-  if (token) headers['Authorization'] = 'Bearer ' + token
 
   try {
-    const resp = await fetch(`/api/v1/webhooks/outgoing/${encodeURIComponent(id)}/test`, {
+    const resp = await grunt.fetch(`/api/v1/webhooks/outgoing/${encodeURIComponent(id)}/test`, {
       method: 'POST',
       headers,
     })
@@ -152,12 +150,9 @@ async function _loadLogs(frm) {
 
   body.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px">' + __('Loading…') + '</div>'
 
-  const token = localStorage.getItem('grunt_token')
-  const headers = token ? { 'Authorization': 'Bearer ' + token } : {}
-
   try {
     const url = `/api/v1/docs/WebhookLog?filter[webhook]=${encodeURIComponent(id)}&sort_by=created_at&sort_order=desc&per_page=30`
-    const resp = await fetch(url, { headers })
+    const resp = await grunt.fetch(url)
     const json = await resp.json()
     const logs = json?.data?.items ?? json?.data ?? []
 

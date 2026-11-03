@@ -8,7 +8,8 @@
  */
 
 import { toast } from '@/core/composables/useToast'
-import client from '@/core/api/client'
+import client, { refreshSession } from '@/core/api/client'
+import { accessToken } from '@/core/accessToken'
 import { useDialog } from '@/core/composables/useDialog'
 import type { MsgprintOptions, PromptOptions, DialogOptions } from '@/core/composables/useDialog'
 import i18n from '@/plugins/i18n'
@@ -91,6 +92,24 @@ export const grunt = {
       const e = err as { response?: { data?: { detail?: string } } }
       throw new Error(e?.response?.data?.detail || 'Server error', { cause: err })
     }
+  },
+
+  /**
+   * `fetch` signed in as the current user - for a raw response (a file, HTML)
+   * where `grunt.call` doesn't fit. An expired access token is renewed and the
+   * request sent once more.
+   *
+   * @example
+   * const res = await grunt.fetch('/api/v1/method/app.api.download', { method: 'POST' })
+   */
+  async fetch(input: string, init: RequestInit = {}): Promise<Response> {
+    const send = () => {
+      const headers = new Headers(init.headers)
+      if (accessToken.value) headers.set('Authorization', `Bearer ${accessToken.value}`)
+      return fetch(input, { ...init, headers })
+    }
+    const res = await send()
+    return res.status === 401 && (await refreshSession()) ? send() : res
   },
 
   throw(msg: string): never {

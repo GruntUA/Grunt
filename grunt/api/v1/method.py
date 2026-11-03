@@ -14,6 +14,7 @@ from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
+lazy from grunt.auth.session_cookie import cookie_user
 lazy from grunt.errors import forbidden
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
@@ -115,24 +116,34 @@ async def _invoke_with_context(
     method: Any,
     args: dict[str, Any],
     request: Request,
+    response: Response,
     session: AsyncSession,
     engine: AsyncEngine,
     token: str | None,
 ):
     """Set grunt context and call the method."""
     allow_guest = getattr(method, "_allow_guest", False)
+    # Only a read: the cookie also rides along on requests other sites trigger.
+    by_cookie = getattr(method, "_session_cookie", False) and request.method in ("GET", "HEAD")
 
     # Authenticate user manually using the core logic but passing the token
 
     user = None
     try:
-        if allow_guest:
+        if allow_guest or (by_cookie and not token):
             user = await optional_user(token=token, session=session)
         else:
             user = await get_current_user(request=request, token=token, session=session)
     except HTTPException:
         if not allow_guest:
             raise
+    if user is None and by_cookie:
+        async with grunt.context(session, engine):
+            user = await cookie_user(request)
+        if user is None and not allow_guest:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail=_("Authentication required")
+            )
 
     # Activate context
     async with grunt.context(session, engine, user):
@@ -146,9 +157,12 @@ async def _invoke_with_context(
         # Methods reached through this dispatcher are called with kwargs only, so
         # a ``request: Request`` parameter never gets FastAPI's native injection.
         # Supply the raw request for methods that ask for it (e.g. building
-        # absolute links from the caller's real Host behind a proxy).
+        # absolute links from the caller's real Host behind a proxy), and the
+        # response for those that set cookies on it (the session endpoints).
         if "request" in sig.parameters and "request" not in args:
             args["request"] = request
+        if "response" in sig.parameters:
+            args["response"] = response
 
         missing = [
             p.name
@@ -181,6 +195,7 @@ async def _invoke_with_context(
 async def run_method_get(
     path: str,
     request: Request,
+    response: Response,
     session: AsyncSession = Depends(get_session),
     engine: AsyncEngine = Depends(get_engine_dep),
     token: str | None = Depends(_oauth2_scheme_optional),
@@ -191,7 +206,7 @@ async def run_method_get(
     # Process query params: parse JSON strings and convert numeric types
     args = _process_params(dict(request.query_params), method)
 
-    result = await _invoke_with_context(method, args, request, session, engine, token)
+    result = await _invoke_with_context(method, args, request, response, session, engine, token)
     if isinstance(result, Response):
         return result
 
@@ -202,6 +217,7 @@ async def run_method_get(
 async def run_method_post(
     path: str,
     request: Request,
+    response: Response,
     session: AsyncSession = Depends(get_session),
     engine: AsyncEngine = Depends(get_engine_dep),
     token: str | None = Depends(_oauth2_scheme_optional),
@@ -225,7 +241,7 @@ async def run_method_post(
             # calls made via POST with no payload, not an error: debug, not exception.
             log.debug("method.no_body_or_form", path=path)
 
-    result = await _invoke_with_context(method, args, request, session, engine, token)
+    result = await _invoke_with_context(method, args, request, response, session, engine, token)
     if isinstance(result, Response):
         return result
 

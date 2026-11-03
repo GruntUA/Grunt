@@ -85,8 +85,8 @@ async def test_search_invalid_token(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_search_q_is_required(ctx):
     """global_search without q → ApplicationError."""
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.search import global_search
+    from grunt.errors import ApplicationError
 
     with pytest.raises(ApplicationError):
         await global_search(q="")
@@ -95,8 +95,8 @@ async def test_search_q_is_required(ctx):
 @pytest.mark.asyncio
 async def test_search_q_empty_string_rejected(ctx):
     """global_search with empty q → ApplicationError."""
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.search import global_search
+    from grunt.errors import ApplicationError
 
     with pytest.raises(ApplicationError):
         await global_search(q="")
@@ -105,8 +105,8 @@ async def test_search_q_empty_string_rejected(ctx):
 @pytest.mark.asyncio
 async def test_search_limit_above_max_rejected(ctx):
     """global_search limit > 50 → ApplicationError."""
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.search import global_search
+    from grunt.errors import ApplicationError
 
     with pytest.raises(ApplicationError):
         await global_search(q="x", limit=51)
@@ -115,8 +115,8 @@ async def test_search_limit_above_max_rejected(ctx):
 @pytest.mark.asyncio
 async def test_search_limit_zero_rejected(ctx):
     """global_search limit=0 → ApplicationError."""
-    from grunt.api.messages import ApplicationError
     from grunt.api.v1.search import global_search
+    from grunt.errors import ApplicationError
 
     with pytest.raises(ApplicationError):
         await global_search(q="x", limit=0)

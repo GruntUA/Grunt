@@ -2,8 +2,8 @@
 
 import pytest
 
-from grunt.api.messages import ApplicationError
 from grunt.auth.password_policy import enforce_password_policy
+from grunt.errors import ApplicationError
 from grunt.site.settings import clear_settings_cache
 
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { accessToken } from '@/core/accessToken'
 
 // Mocks
 
@@ -38,7 +39,6 @@ const fakeUser = {
 
 const fakeTokenResponse = {
   access_token: 'fake-access-token',
-  refresh_token: 'fake-refresh-token',
   token_type: 'bearer',
   user: fakeUser,
 }
@@ -48,12 +48,21 @@ function envelope<T>(data: T) {
   return { success: true, data }
 }
 
+function jwt(expInSeconds: number): string {
+  const exp = Math.floor(Date.now() / 1000) + expInSeconds
+  return `h.${btoa(JSON.stringify({ exp }))}.s`
+}
+
+const REFRESH = '/api/v1/method/grunt.auth.doctypes.User.user.refresh_api'
+
 // Tests
 
 describe('useAuthStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    accessToken.value = null
     localStorage.clear()
+    sessionStorage.clear()
     mockPost.mockReset()
     mockGet.mockReset()
     mockPatch.mockReset()
@@ -64,12 +73,49 @@ describe('useAuthStore', () => {
       const auth = useAuthStore()
       expect(auth.isLoggedIn).toBe(false)
     })
+  })
 
-    it('reads token from localStorage', () => {
-      localStorage.setItem('grunt_token', 'stored-token')
+  describe('restore', () => {
+    it('turns the session cookie into an access token and a profile', async () => {
+      mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
-      expect(auth.token).toBe('stored-token')
+      await auth.restore()
+      expect(mockPost).toHaveBeenCalledWith(REFRESH)
+      expect(auth.token).toBe('fake-access-token')
+      expect(auth.user?.email).toBe('admin@grunt.local')
+    })
+
+    it('stays signed out without a session', async () => {
+      mockPost.mockRejectedValueOnce({ response: { status: 401 } })
+      const auth = useAuthStore()
+      await auth.restore()
+      expect(auth.isLoggedIn).toBe(false)
+      expect(mockGet).not.toHaveBeenCalled()
+    })
+
+    it('offline, signs in with the cached profile', async () => {
+      mockPost.mockRejectedValueOnce({ request: {} }) // no response: network down
+      mockGet.mockResolvedValueOnce({ data: envelope(fakeUser) })
+      const auth = useAuthStore()
+      await auth.restore()
+      expect(auth.token).toBeNull()
+      expect(auth.user?.email).toBe('admin@grunt.local')
       expect(auth.isLoggedIn).toBe(true)
+    })
+
+    it("resumes this tab's impersonation", async () => {
+      const token = jwt(600)
+      sessionStorage.setItem('grunt_impersonation', JSON.stringify({
+        token,
+        by: { email: 'boss@grunt.local', full_name: 'Boss' },
+      }))
+      mockGet.mockResolvedValueOnce({ data: envelope({ ...fakeUser, email: 'member@grunt.local' }) })
+      const auth = useAuthStore()
+      await auth.restore()
+      expect(mockPost).not.toHaveBeenCalled()
+      expect(auth.token).toBe(token)
+      expect(auth.isImpersonating).toBe(true)
+      expect(auth.user?.email).toBe('member@grunt.local')
     })
   })
 
@@ -80,19 +126,18 @@ describe('useAuthStore', () => {
       await auth.login('admin@grunt.local', 'password')
       expect(auth.isLoggedIn).toBe(true)
       expect(auth.token).toBe('fake-access-token')
-      expect(auth.refreshToken).toBe('fake-refresh-token')
       expect(auth.user?.email).toBe('admin@grunt.local')
     })
 
-    it('persists tokens to localStorage', async () => {
+    it('keeps no token in storage', async () => {
       mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('admin@grunt.local', 'password')
-      expect(localStorage.getItem('grunt_token')).toBe('fake-access-token')
-      expect(localStorage.getItem('grunt_refresh_token')).toBe('fake-refresh-token')
+      expect(localStorage.length).toBe(0)
+      expect(sessionStorage.length).toBe(0)
     })
 
-    it('sends form-encoded body', async () => {
+    it('posts the credentials', async () => {
       mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('user@test.com', 'pass123')
@@ -111,7 +156,7 @@ describe('useAuthStore', () => {
   })
 
   describe('logout', () => {
-    it('clears state and localStorage', async () => {
+    it('clears state', async () => {
       mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })
       const auth = useAuthStore()
       await auth.login('admin@grunt.local', 'password')
@@ -120,7 +165,6 @@ describe('useAuthStore', () => {
       expect(auth.isLoggedIn).toBe(false)
       expect(auth.token).toBeNull()
       expect(auth.user).toBeNull()
-      expect(localStorage.getItem('grunt_token')).toBeNull()
     })
 
     it('clears state even if logout API fails', async () => {
@@ -134,26 +178,17 @@ describe('useAuthStore', () => {
   })
 
   describe('refresh', () => {
-    it('returns true and updates tokens on success', async () => {
-      localStorage.setItem('grunt_refresh_token', 'old-refresh')
-      mockPost.mockResolvedValueOnce({
-        data: envelope({ ...fakeTokenResponse, access_token: 'new-access', refresh_token: 'new-refresh' }),
-      })
+    it('returns true and updates the token on success', async () => {
+      mockPost.mockResolvedValueOnce({ data: envelope({ ...fakeTokenResponse, access_token: 'new-access' }) })
       const auth = useAuthStore()
       const ok = await auth.refresh()
       expect(ok).toBe(true)
+      expect(mockPost).toHaveBeenCalledWith(REFRESH)
       expect(auth.token).toBe('new-access')
-      expect(auth.refreshToken).toBe('new-refresh')
-    })
-
-    it('returns false when no refresh token stored', async () => {
-      const auth = useAuthStore()
-      const ok = await auth.refresh()
-      expect(ok).toBe(false)
     })
 
     it('returns false and logs out on 401 response', async () => {
-      localStorage.setItem('grunt_refresh_token', 'expired-token')
+      accessToken.value = jwt(-60)
       mockPost.mockRejectedValueOnce({ response: { status: 401 } })
       const auth = useAuthStore()
       const ok = await auth.refresh()
@@ -161,47 +196,43 @@ describe('useAuthStore', () => {
       expect(auth.token).toBeNull()
     })
 
-    it('adopts the pair another tab already refreshed instead of reusing the spent token', async () => {
-      localStorage.setItem('grunt_token', 'expired-access')
-      localStorage.setItem('grunt_refresh_token', 'spent-refresh')
+    it('keeps the session on a network error', async () => {
+      const stale = jwt(-60)
+      accessToken.value = stale
+      mockPost.mockRejectedValueOnce({ request: {} })
       const auth = useAuthStore()
+      expect(await auth.refresh()).toBe(false)
+      expect(auth.token).toBe(stale)
+    })
 
-      // Another tab rotates the tokens while this one is waiting.
-      const exp = Math.floor(Date.now() / 1000) + 600
-      const fresh = `h.${btoa(JSON.stringify({ exp }))}.s`
-      localStorage.setItem('grunt_token', fresh)
-      localStorage.setItem('grunt_refresh_token', 'fresh-refresh')
-
-      const ok = await auth.refresh()
-      expect(ok).toBe(true)
+    it('does not renew an impersonation token', async () => {
+      sessionStorage.setItem('grunt_impersonation', JSON.stringify({
+        token: jwt(600),
+        by: { email: 'boss@grunt.local', full_name: 'Boss' },
+      }))
+      mockGet.mockResolvedValueOnce({ data: envelope(fakeUser) })
+      const auth = useAuthStore()
+      await auth.restore()
+      expect(await auth.refresh()).toBe(false)
       expect(mockPost).not.toHaveBeenCalled()
-      expect(auth.token).toBe(fresh)
-      expect(auth.refreshToken).toBe('fresh-refresh')
     })
   })
 
   describe('fetchMe', () => {
     it('populates user on success', async () => {
-      localStorage.setItem('grunt_token', 'valid-token')
-      localStorage.setItem('grunt_refresh_token', 'valid-refresh-token')
+      accessToken.value = 'valid-token'
       mockGet.mockResolvedValueOnce({ data: fakeUser })
       const auth = useAuthStore()
       await auth.fetchMe()
       expect(auth.user?.email).toBe('admin@grunt.local')
     })
 
-    it('logs out on fetch failure', async () => {
-      localStorage.setItem('grunt_token', 'bad-token')
-      mockGet.mockRejectedValueOnce(new Error('Unauthorized'))
+    it('logs out on 401', async () => {
+      accessToken.value = 'bad-token'
+      mockGet.mockRejectedValueOnce({ response: { status: 401 } })
       const auth = useAuthStore()
       await auth.fetchMe()
       expect(auth.isLoggedIn).toBe(false)
-    })
-
-    it('does nothing when no token', async () => {
-      const auth = useAuthStore()
-      await auth.fetchMe()
-      expect(mockGet).not.toHaveBeenCalled()
     })
   })
 })

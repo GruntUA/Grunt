@@ -17,7 +17,7 @@ import io
 import pytest
 from httpx2 import AsyncClient
 
-from grunt.api.messages import ApplicationError
+from grunt.errors import ApplicationError
 from grunt.reports.doctypes.Report.report import export_xlsx as export_report_xlsx
 from grunt.reports.doctypes.Report.report import run as run_report
 

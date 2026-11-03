@@ -79,11 +79,10 @@ async def test_sign_in_only_from_allowed_network(ctx, client: AsyncClient):
 @pytest.mark.asyncio
 async def test_refresh_from_disallowed_address_ends_session(ctx, client: AsyncClient):
     await _setup(ctx, "10.0.0.0/8")
-    rt = (await _login(client, "10.1.2.3")).json()["data"]["refresh_token"]
+    assert (await _login(client, "10.1.2.3")).status_code == 200
 
-    r = await client.post(
-        f"{M}.refresh_api", json={"refresh_token": rt}, headers={"X-Real-IP": "203.0.113.9"}
-    )
+    # The session cookie from the login is in the client's jar.
+    r = await client.post(f"{M}.refresh_api", headers={"X-Real-IP": "203.0.113.9"})
     assert r.status_code == 401
 
 

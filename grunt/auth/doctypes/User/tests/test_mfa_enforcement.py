@@ -96,5 +96,6 @@ async def test_refresh_ends_session_once_role_requires_mfa(ctx, client: AsyncCli
 
     await _require_mfa_for_system_manager(ctx)
 
-    r = await client.post(f"{M}.refresh_api", json={"refresh_token": data["refresh_token"]})
+    # The session cookie from the login is in the client's jar.
+    r = await client.post(f"{M}.refresh_api")
     assert r.status_code == 401

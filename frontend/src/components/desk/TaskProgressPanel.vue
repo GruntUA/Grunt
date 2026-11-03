@@ -11,6 +11,7 @@ import { formatFileSize } from '@/core/fileUtils'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Spinner } from '@/components/ui/spinner'
+import { accessToken } from '@/core/accessToken'
 
 const { t } = useI18n()
 
@@ -25,7 +26,7 @@ const { height } = useElementSize(panel, undefined, { box: 'border-box' })
 watch(height, (h) => { tracker.panelHeight.value = panel.value ? h : 0 })
 
 onMounted(() => {
-  if (localStorage.getItem('grunt_token')) void tracker.restore()
+  if (accessToken.value) void tracker.restore()
 })
 
 // A missed `task_done` (WebSocket reconnect) would leave a task spinning forever:

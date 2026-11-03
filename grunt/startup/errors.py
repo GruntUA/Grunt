@@ -14,9 +14,8 @@ from jinja2 import Environment
 from pydantic import ValidationError
 
 from grunt import _, log
-from grunt.api.messages import ApplicationError
 from grunt.config import settings
-from grunt.errors import error_body
+from grunt.errors import ApplicationError, error_body
 from grunt.logging_config import mark_logged
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "website" / "templates"

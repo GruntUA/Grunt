@@ -77,11 +77,11 @@ async function _runImport(frm) {
   })
 
   try {
-    const resp = await fetch(
+    const resp = await grunt.fetch(
       `/api/v1/method/grunt.api.v1.data_import.run_import_job`,
       {
         method: 'POST',
-        headers: _authHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data_import_id: id }),
       }
     )
@@ -218,13 +218,6 @@ function _updateProgressBar(el, pct, processed, total) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function _authHeaders() {
-  const token = localStorage.getItem('grunt_token')
-  const h = { 'Content-Type': 'application/json' }
-  if (token) h['Authorization'] = 'Bearer ' + token
-  return h
-}
 
 function _findBtn(label) {
   return [...document.querySelectorAll('button')].find(b => b.textContent.trim() === label) ?? null

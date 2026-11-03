@@ -32,6 +32,16 @@ response is byte-for-byte identical to `login_api` — including the
 `mfa_required` gate. `login_api`, `mfa_login_api` and the OIDC callback all use
 the same helper; there is no second token-minting code path.
 
+A completed sign-in opens a `UserSession` and puts its refresh token in the
+HttpOnly `grunt_session` cookie (`Path=/`, `SameSite=Lax`); the JSON payload
+carries only the short-lived `access_token`, which the SPA keeps in memory.
+`refresh_api` reads the cookie, rotates it and returns a new access token (the
+replaced token still refreshes for 30 s — the Desk and an app's own frontend
+share the cookie); `logout_api` ends the session and clears the cookie. The API
+itself authenticates by `Authorization: Bearer` only — the cookie is accepted
+just by the session endpoints and by GET methods marked
+`@grunt.whitelist(session_cookie=True)`.
+
 ## The contract
 
 ```python
@@ -60,10 +70,10 @@ class AuthProvider(ABC):
 
 * **`redirect`** — `begin` returns `{"redirect_url": ...}`; the browser
   navigates away. For OIDC the IdP calls back to
-  `/api/v1/oauth/{provider}/callback`, which 302-redirects into the SPA at
-  `{APP_URL}/login#access_token=…&refresh_token=…` (or `#mfa_required=1&mfa_token=…`,
-  or `#error=…`). `Login.vue` reads the fragment, adopts the pair via
-  `auth.setSession()` and strips it from the URL.
+  `/api/v1/oauth/{provider}/callback`, which sets the session cookie and
+  302-redirects into the SPA at `{APP_URL}/login#signed_in=1` (or
+  `#mfa_required=1&mfa_token=…`, or `#error=…`). `Login.vue` reads the
+  fragment and gets its access token from the cookie with `auth.refresh()`.
 * **`challenge`** — `begin` returns an opaque payload for a browser API
   (`navigator.credentials.get`); its result is posted straight to `complete`.
 

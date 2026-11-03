@@ -6,6 +6,7 @@ import jwt
 import pytest
 from httpx2 import AsyncClient
 
+from grunt.auth.session_cookie import SESSION_COOKIE
 from grunt.config import settings as cfg
 
 _M = "/api/v1/method/grunt.auth.doctypes"
@@ -40,11 +41,18 @@ async def _login(
         headers["Cookie"] = f"grunt_device={device}"
     resp = await client.post(_LOGIN, json={"email": EMAIL, "password": PASSWORD}, headers=headers)
     assert resp.status_code == 200, resp.text
-    return resp.json()["data"]
+    data = resp.json()["data"]
+    assert "refresh_token" not in data
+    return {**data, "refresh_token": resp.cookies[SESSION_COOKIE]}
 
 
-async def _refresh(client: AsyncClient, refresh_token: str):
-    return await client.post(_REFRESH, json={"refresh_token": refresh_token})
+def _cookie(refresh_token: str) -> dict[str, str]:
+    # An explicit Cookie header overrides the client's jar (the last login's).
+    return {"Cookie": f"{SESSION_COOKIE}={refresh_token}"}
+
+
+async def _refresh(client: AsyncClient, refresh_token: str, **headers: str):
+    return await client.post(_REFRESH, headers={**_cookie(refresh_token), **headers})
 
 
 def _sid(access_token: str) -> str:
@@ -96,9 +104,37 @@ async def test_refresh_rotates_token_and_keeps_session(ctx, client: AsyncClient,
     new = resp.json()["data"]
 
     assert _sid(new["access_token"]) == _sid(data["access_token"])
-    assert new["refresh_token"] != data["refresh_token"]
-    # The used token is single-use.
+    rotated = resp.cookies[SESSION_COOKIE]
+    assert rotated != data["refresh_token"]
+    assert (await _refresh(client, rotated)).status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_rotated_token_has_grace_window(ctx, client: AsyncClient, account):
+    data = await _login(client)
+    assert (await _refresh(client, data["refresh_token"])).status_code == 200
+
+    # A second client of the same browser refreshing at the same moment: an
+    # access token, but no cookie - the browser keeps the first rotation's.
+    late = await _refresh(client, data["refresh_token"])
+    assert late.status_code == 200, late.text
+    assert _sid(late.json()["data"]["access_token"]) == _sid(data["access_token"])
+    assert SESSION_COOKIE not in late.cookies
+
+    stale = datetime.now(UTC) - timedelta(minutes=5)
+    await ctx.db.set_value("UserSession", _sid(data["access_token"]), "rotated_at", stale)
+    await ctx.db._session().commit()
     assert (await _refresh(client, data["refresh_token"])).status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_refresh_needs_same_origin_cookie(ctx, client: AsyncClient, account):
+    data = await _login(client)
+    client.cookies.clear()
+    assert (await client.post(_REFRESH)).status_code == 401
+    resp = await _refresh(client, data["refresh_token"], Origin="https://evil.example")
+    assert resp.status_code == 401
+    assert (await _refresh(client, data["refresh_token"], Origin="http://test")).status_code == 200
 
 
 @pytest.mark.asyncio
@@ -106,8 +142,9 @@ async def test_logout_ends_only_this_device(ctx, client: AsyncClient, account):
     laptop = await _login(client, ua="Laptop")
     phone = await _login(client, ua="Phone")
 
-    resp = await client.post(_LOGOUT, headers=_auth(laptop))
+    resp = await client.post(_LOGOUT, headers=_cookie(laptop["refresh_token"]))
     assert resp.status_code == 200, resp.text
+    assert 'grunt_session=""' in resp.headers["set-cookie"]
 
     assert (await _refresh(client, laptop["refresh_token"])).status_code == 401
     assert (await _refresh(client, phone["refresh_token"])).status_code == 200
@@ -198,7 +235,7 @@ async def test_same_browser_reuses_its_session(ctx, client: AsyncClient, account
 @pytest.mark.asyncio
 async def test_signed_out_browser_reopens_its_session(ctx, client: AsyncClient, account):
     first = await _login(client, device=LAPTOP)
-    resp = await client.post(_LOGOUT, headers=_auth(first))
+    resp = await client.post(_LOGOUT, headers=_cookie(first["refresh_token"]))
     assert resp.status_code == 200, resp.text
 
     again = await _login(client, device=LAPTOP)

@@ -19,10 +19,10 @@
     </div>
 </header>
 <script>
-    // JWT lives only in localStorage (not a cookie), so SSR can't know the auth
-    // state at render time — decide client-side, same key the SPA auth store uses.
+    // Pages may be cached alike for every reader — the script-readable
+    // grunt_signed_in cookie (set with the session) tells a signed-in one.
     (function () {
-        var authed = !!localStorage.getItem('grunt_token');
+        var authed = /(?:^|; )grunt_signed_in=1/.test(document.cookie);
         document.getElementById(authed ? 'gr-nav-auth' : 'gr-nav-guest').style.display = 'inline-block';
     })();
 </script>

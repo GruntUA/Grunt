@@ -37,6 +37,8 @@ from grunt.site.settings import get_setting
 DEVICE_COOKIE = "grunt_device"
 _DEVICE_ID = re.compile(r"[0-9a-f]{32}")
 DEFAULT_LOGIN_HISTORY = 20
+#: How long the refresh token a rotation replaced still refreshes (see rotate_session).
+ROTATION_GRACE_SECONDS = 30
 
 
 class UserSession(Document):
@@ -44,6 +46,8 @@ class UserSession(Document):
 
     # "user" field: read it as self.data["user"] - self.user is the session user.
     refresh_token_hash: str | None
+    previous_token_hash: str | None
+    rotated_at: datetime | None
     device_id: str | None
     ip_address: str | None
     user_agent: str | None
@@ -134,6 +138,8 @@ async def open_session(
     user_agent = (user_agent or "")[:512]
     values: dict[str, Any] = {
         "refresh_token_hash": _hash(refresh_token),
+        "previous_token_hash": "",
+        "rotated_at": None,
         "ip_address": ip_address or "",
         "user_agent": user_agent,
         "last_active_at": now,
@@ -184,36 +190,79 @@ async def open_session(
 async def rotate_session(
     refresh_token: str,
     ip_address: str | None,
-) -> tuple[str, str, str] | None:
+) -> tuple[str, str | None, str] | None:
     """Swap a refresh token for a new one. Returns ``(sid, refresh_token, user_id)``.
+
+    The token rotated away last stays good for :data:`ROTATION_GRACE_SECONDS`:
+    two clients of one browser (tabs, the Desk and an app's own frontend) share
+    the session cookie and may refresh at once. The late one gets ``None`` for
+    the token - a new access token, but no new cookie, so the browser keeps the
+    token the first refresh set.
 
     None when the token is unknown, revoked, or its session went idle past
     ``session_timeout``. An idle session isn't closed here - the caller turns
     None into an error, which rolls the request back; ``deactivate_expired``
     closes it on the next login or session listing.
     """
+    token_hash = _hash(refresh_token)
+    fields = ["name", "user", "last_active_at", "refresh_token_hash", "rotated_at"]
+    now = datetime.now(UTC)
     async with grunt.system_context(grunt.get_session()):
         rows = await grunt.db.get_all(
             "UserSession",
-            filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
-            fields=["name", "user", "last_active_at"],
+            filters={"refresh_token_hash": token_hash, "is_active": True},
+            fields=fields,
+            limit=1,
+        ) or await grunt.db.get_all(
+            "UserSession",
+            filters={"previous_token_hash": token_hash, "is_active": True},
+            fields=fields,
             limit=1,
         )
         if not rows:
             return None
+        row = rows[0]
 
-        sid = rows[0]["name"]
-        now = datetime.now(UTC)
-        last = _as_utc(rows[0].get("last_active_at"))
+        last = _as_utc(row.get("last_active_at"))
         if last is None or last + timedelta(minutes=await session_ttl_minutes()) < now:
             return None
 
-        new_token = secrets.token_hex(32)
-        values: dict[str, Any] = {"refresh_token_hash": _hash(new_token), "last_active_at": now}
+        values: dict[str, Any] = {"last_active_at": now}
         if ip_address:
             values["ip_address"] = ip_address
-        await grunt.db.set_value("UserSession", sid, values)
-    return sid, new_token, rows[0]["user"]
+        new_token: str | None = None
+        if row["refresh_token_hash"] == token_hash:
+            new_token = secrets.token_hex(32)
+            values.update(
+                refresh_token_hash=_hash(new_token),
+                previous_token_hash=token_hash,
+                rotated_at=now,
+            )
+        else:
+            rotated = _as_utc(row.get("rotated_at"))
+            if rotated is None or rotated + timedelta(seconds=ROTATION_GRACE_SECONDS) < now:
+                return None
+        await grunt.db.set_value("UserSession", row["name"], values)
+    return row["name"], new_token, row["user"]
+
+
+async def session_user(refresh_token: str) -> str | None:
+    """The user of the active, not idle session holding *refresh_token* - read
+    only, the token is not rotated."""
+
+    async with grunt.system_context(grunt.get_session()):
+        rows = await grunt.db.get_all(
+            "UserSession",
+            filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
+            fields=["user", "last_active_at"],
+            limit=1,
+        )
+    if not rows:
+        return None
+    last = _as_utc(rows[0].get("last_active_at"))
+    if last is None or last + timedelta(minutes=await session_ttl_minutes()) < datetime.now(UTC):
+        return None
+    return rows[0]["user"]
 
 
 async def end_session(sid: str) -> None:
@@ -221,6 +270,20 @@ async def end_session(sid: str) -> None:
 
     async with grunt.system_context(grunt.get_session()):
         await grunt.db.set_value("UserSession", sid, "is_active", False)
+
+
+async def end_session_by_token(refresh_token: str) -> None:
+    """Revoke the session holding *refresh_token* (sign-out by the session cookie)."""
+
+    async with grunt.system_context(grunt.get_session()):
+        rows = await grunt.db.get_all(
+            "UserSession",
+            filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
+            pluck="name",
+            limit=1,
+        )
+        for sid in rows:
+            await grunt.db.set_value("UserSession", sid, "is_active", False)
 
 
 async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:

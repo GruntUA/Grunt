@@ -99,7 +99,7 @@ async def test_comment_notifies_follower(ctx, box, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_cannot_follow_unreadable_document(ctx, box, db_session, engine):
-    from grunt.api.messages import ApplicationError
+    from grunt.errors import ApplicationError
 
     with pytest.raises((ApplicationError, HTTPException)):
         await _follow(db_session, engine, box, make_user(BOB, roles=[]))
@@ -107,7 +107,7 @@ async def test_cannot_follow_unreadable_document(ctx, box, db_session, engine):
 
 @pytest.mark.asyncio
 async def test_duplicate_follow_rejected(ctx, box, db_session, engine):
-    from grunt.api.messages import ApplicationError
+    from grunt.errors import ApplicationError
 
     await _follow(db_session, engine, box)
     with pytest.raises((ApplicationError, HTTPException)):

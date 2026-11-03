@@ -3,6 +3,7 @@ import { markServerReachable } from '@/core/composables/useNetworkStatus'
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import i18n from '@/plugins/i18n'
 import { loginLocation } from '@/core/loginRedirect'
+import { accessToken } from '@/core/accessToken'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
@@ -48,10 +49,8 @@ function isPublicAuthPath(pathname: string): boolean {
 
 // Request interceptor: attach Authorization header + current UI language
 client.interceptors.request.use(async (config) => {
-  const { useAuthStore } = await import('@/stores/auth')
-  const auth = useAuthStore()
-  if (auth.token) {
-    config.headers.Authorization = `Bearer ${auth.token}`
+  if (accessToken.value) {
+    config.headers.Authorization = `Bearer ${accessToken.value}`
   }
   try {
     const { i18n } = await import('@/plugins/i18n')
@@ -65,7 +64,7 @@ client.interceptors.request.use(async (config) => {
 // Track whether a refresh is in flight to avoid parallel refresh loops
 let _refreshing: Promise<boolean> | null = null
 
-/** Swap the refresh token for a new access token; concurrent callers (the 401
+/** A new access token for the session cookie; concurrent callers (the 401
  * interceptor, WebSocket channels) share one attempt. */
 export function refreshSession(): Promise<boolean> {
   if (!_refreshing) {
@@ -127,14 +126,14 @@ client.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthEndpoint && !originalConfig._retried) {
       originalConfig._retried = true
 
-      // An impersonation session has no refresh token - a 401 means it expired
+      // An impersonation session cannot be refreshed - a 401 means it expired
       // or was rejected. Restore the System Manager's own session and retry once.
       {
         const { useAuthStore } = await import('@/stores/auth')
         const auth = useAuthStore()
         if (auth.isImpersonating) {
           await auth.stopImpersonation()
-          const restored = localStorage.getItem('grunt_token')
+          const restored = accessToken.value
           if (restored) {
             originalConfig.headers.Authorization = `Bearer ${restored}`
             return client(originalConfig)
@@ -149,7 +148,7 @@ client.interceptors.response.use(
       const ok = await refreshSession()
       if (ok) {
         // Retry original request with new token
-        const newToken = localStorage.getItem('grunt_token')
+        const newToken = accessToken.value
         if (newToken) originalConfig.headers.Authorization = `Bearer ${newToken}`
         return client(originalConfig)
       }

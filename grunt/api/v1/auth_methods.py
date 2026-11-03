@@ -14,7 +14,7 @@ Redirect-style providers (OIDC) also keep their dedicated callback routes in
 
 from typing import Any
 
-from fastapi import Body, Depends, Request
+from fastapi import Body, Depends, Request, Response
 
 from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
@@ -62,6 +62,7 @@ async def begin(
 async def complete(
     name: str,
     request: Request,
+    response: Response,
     payload: dict[str, Any] | None = _Payload,
     user: User | None = Depends(optional_user),
 ) -> dict:
@@ -71,6 +72,7 @@ async def complete(
     return ok(
         await issue_login(
             authed,
+            response=response,
             ip_address=ctx.ip_address,
             user_agent=ctx.user_agent,
             device_id=ctx.device_id,

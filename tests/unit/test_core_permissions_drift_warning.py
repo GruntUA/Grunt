@@ -153,6 +153,4 @@ async def test_studio_update_keeps_baseline(ctx, db_session, engine):
     )
     await doctype_registry.update(edited, db_session, engine)
 
-    assert _roles(doctype_registry._doctypes["StudioTarget"].permissions_base) == [
-        "System Manager"
-    ]
+    assert _roles(doctype_registry._doctypes["StudioTarget"].permissions_base) == ["System Manager"]

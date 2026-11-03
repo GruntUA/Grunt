@@ -478,13 +478,17 @@ def _drop_sqlite_inline_constraints(connection: Any, table_name: str, names: lis
     create_tmp = re.sub(
         rf'^CREATE TABLE\s+"?{re.escape(table_name)}"?', f'CREATE TABLE "{tmp}"', sql, count=1
     )
-    extras = connection.execute(
-        text(
-            "SELECT sql FROM sqlite_master WHERE tbl_name = :t "
-            "AND type IN ('index', 'trigger') AND sql IS NOT NULL"
-        ),
-        {"t": table_name},
-    ).scalars().all()
+    extras = (
+        connection.execute(
+            text(
+                "SELECT sql FROM sqlite_master WHERE tbl_name = :t "
+                "AND type IN ('index', 'trigger') AND sql IS NOT NULL"
+            ),
+            {"t": table_name},
+        )
+        .scalars()
+        .all()
+    )
     try:
         with connection.begin_nested():
             connection.execute(text(create_tmp))

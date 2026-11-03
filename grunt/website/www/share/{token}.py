@@ -5,7 +5,7 @@ from fastapi import HTTPException
 import grunt
 from grunt import _
 from grunt.website.doc_layout import FlatField, build_tabs, fmt_dt
-lazy from grunt.api.messages import ApplicationError
+lazy from grunt.errors import ApplicationError
 lazy from grunt.api.v1.share import get_shared_document
 
 
