@@ -150,7 +150,7 @@ def ui_update(components: tuple[str, ...]) -> None:
         return
 
     click.echo(f"── Updating {len(targets)} component(s): {', '.join(targets)}")
-    code = _shadcn(app_dir, ["add", *targets, "--overwrite"])
+    code = _shadcn(app_dir, ["add", *targets, "--overwrite", "--yes"])
     if code != 0:
         raise click.ClickException(f"shadcn-vue exited with code {code}")
 
