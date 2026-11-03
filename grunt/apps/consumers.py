@@ -222,6 +222,8 @@ def _sidebar_sections(value: list[dict[str, Any]], ctx: LoadContext) -> None:
                     doctypes=tuple(spec.get("doctypes") or ()),
                     roles=tuple(spec.get("roles") or ()),
                     app=ctx.app_name,
+                    placement=spec.get("placement") or "section",
+                    order=int(spec.get("order", 50)),
                 )
             )
             log.debug("sidebar.section.registered", section=spec["name"], app=ctx.app_name)

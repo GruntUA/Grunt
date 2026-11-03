@@ -149,7 +149,8 @@ class DocumentMetaRPCMixin:
         """Return the whole document-sidebar payload in one round-trip.
 
         Bundles assignees, shares, tags, the current user's bookmark, what
-        the user may add (``perms``) and the apps' ``sidebar_sections``, so
+        the user may add (``perms``) and the ``sidebar_sections`` rows
+        (``properties`` and ``sections``, see grunt.document.sidebar), so
         the desk sidebar needs a single request instead of one per section.
         """
 
@@ -252,7 +253,7 @@ class DocumentMetaRPCMixin:
             "share": await can(doctype, "write", doc),
             "tag": await can("DocTag", "create"),
         }
-        sections = await collect_sections(doctype, doc_id, doc)
+        collected = await collect_sections(doctype, doc_id, doc)
 
         bookmark = dict(bookmarks[0]) if bookmarks else None
         if bookmark and bookmark.get("created_at"):
@@ -307,7 +308,8 @@ class DocumentMetaRPCMixin:
             "follow": {"name": str(follows[0]["name"])} if follows else None,
             "people": people,
             "perms": perms,
-            "sections": sections,
+            "properties": collected["properties"],
+            "sections": collected["sections"],
             "reminders": [
                 {
                     "name": str(r["name"]),

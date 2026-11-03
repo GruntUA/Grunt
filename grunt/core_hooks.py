@@ -69,3 +69,26 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_read": ["grunt.activity.record_view"],
     },
 }
+
+# The property list at the top of the document sidebar (grunt.document.sidebar).
+# An app adds rows to it with placement="properties", or replaces one by name.
+sidebar_sections: list[dict] = [
+    {
+        "name": "status",
+        "method": "grunt.document.sidebar.status_rows",
+        "placement": "properties",
+        "order": 0,
+    },
+    {
+        "name": "id",
+        "method": "grunt.document.sidebar.id_row",
+        "placement": "properties",
+        "order": 10,
+    },
+    {
+        "name": "web_page",
+        "method": "grunt.document.sidebar.web_page_row",
+        "placement": "properties",
+        "order": 20,
+    },
+]

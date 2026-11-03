@@ -306,7 +306,8 @@ renders at the top of the first tab.
 
 Add rows to the document sidebar without writing any Vue. A section is a
 function that returns `label → value` rows; the desk draws every section the
-same way, under the built-in ones.
+same way. The framework fills the property list at the top of the sidebar
+(status, workflow state, ID, website page) through this same hook.
 
 ```python title="my_crm/hooks.py"
 sidebar_sections = [
@@ -334,8 +335,28 @@ async def deal_totals(doctype: str, doc_id: str, doc: dict) -> list[dict]:
 
 The document has already passed the read check. Return `None` or `[]` to hide
 the section. `link` is a desk path (opened in place) or a URL (new tab);
-`indicator` (green, red, orange, yellow, blue, gray) shows the value as a
-coloured badge. A section that raises is logged and skipped.
+`external: True` opens a `/` path in a new tab too (a website page, not a desk
+route). `indicator` (green, red, orange, yellow, blue, gray, success, danger…)
+shows the value as a coloured badge, `copy: True` adds a copy button,
+`mono: True` uses a monospace font, `tooltip` shows on hover. A section that
+raises is logged and skipped.
+
+**Placement and order.** By default a section gets its own heading below the
+built-in blocks (`"placement": "section"`). With `"placement": "properties"`
+its rows join the property list at the top, without a heading. `"order"`
+(default 50, lower first) sorts sections and property rows; the core rows are
+`status` (0), `id` (10) and `web_page` (20):
+
+```python title="my_crm/hooks.py"
+sidebar_sections = [
+    # Between the status and the ID.
+    {"name": "tier", "method": "my_crm.sidebar.tier", "placement": "properties", "order": 5},
+    # Same name as a core row - replaces it.
+    {"name": "id", "method": "my_crm.sidebar.customer_no", "placement": "properties", "order": 10},
+]
+```
+
+The sidebar reloads after every save, so the rows follow the document.
 
 ## First-steps checklists
 

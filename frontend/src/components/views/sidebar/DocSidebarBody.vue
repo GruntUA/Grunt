@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed, ref } from 'vue'
-import { AlarmClock, Bell, Bookmark, Check, Copy, ExternalLink, Printer, X } from '@lucide/vue'
+import { computed, watch } from 'vue'
+import { AlarmClock, Bell, Bookmark, Printer, X } from '@lucide/vue'
 import type { DocType, GruntDocument } from '@/types'
 import type { PresenceUser } from '@/core/composables/usePresence'
 import { useDocSidebar } from './useDocSidebar'
 import { useToast } from '@/core/composables/useToast'
 import { useDialog } from '@/core/composables/useDialog'
 import { formatDateTime, formatFull, formatRelative } from '@/core/datetime'
-import { resolveStatusBadge, statusBadgeFor, statusToneClass } from '@/core/status'
-import { RouterLink } from 'vue-router'
 import SidebarImage from './SidebarImage.vue'
 import SidebarPeople from './SidebarPeople.vue'
 import SidebarTags from './SidebarTags.vue'
 import SidebarMilestones from './SidebarMilestones.vue'
 import SidebarPersonCard from './SidebarPersonCard.vue'
+import SidebarRows from './SidebarRows.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '@/components/ui/item'
@@ -56,42 +54,13 @@ const image = computed(() => {
 })
 const isBookmarked = computed(() => !!sb.bundle.value.bookmark)
 const isFollowing = computed(() => !!sb.bundle.value.follow)
-// Set by the server while the document is a public page (web view, WebPage, WebForm).
-const webUrl = computed(() => {
-  const url = props.document.__web_url
-  return typeof url === 'string' && url ? url : null
-})
-const webPath = computed(() => {
-  if (!webUrl.value) return ''
-  try {
-    return new URL(webUrl.value, window.location.origin).pathname
-  } catch {
-    return webUrl.value
-  }
-})
-
-// Status badges
-const statusBadge = computed(() => resolveStatusBadge(props.doctype, props.document))
-// Workflow state, when it lives in a field other than the status one (otherwise
-// the badge above already is the state). The form hides that field; its
-// transitions are in the form header.
-const workflowBadge = computed(() => {
-  const field = props.doctype.workflow_state_field
-  if (!field || field === (props.doctype.status_field || 'status')) return null
-  return statusBadgeFor(props.doctype, props.document[field])
-})
-
-// Copy id
-const copied = ref(false)
-async function copyId() {
-  try {
-    await navigator.clipboard.writeText(props.document.name)
-    copied.value = true
-    setTimeout(() => (copied.value = false), 1500)
-  } catch {
-    toast.error(t('Could not copy'))
-  }
-}
+// Status, ID, web page and app rows come from the server - refresh them once the document is saved.
+watch(
+  () => props.document.modified_at,
+  (now, before) => {
+    if (before && now !== before) sb.reload()
+  },
+)
 
 // Who / when rows
 const people = computed(() => [
@@ -168,60 +137,8 @@ function printDoc() {
     />
 
     <template v-if="!isNew">
-    <!-- Properties -->
-    <dl class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-2.5">
-      <template v-if="statusBadge">
-        <dt class="text-muted-foreground">{{ t('Status') }}</dt>
-        <dd>
-          <Badge variant="outline" :class="statusBadge.class">
-            {{ statusBadge.label }}
-          </Badge>
-        </dd>
-      </template>
-
-      <template v-if="workflowBadge">
-        <dt class="text-muted-foreground">{{ t('State') }}</dt>
-        <dd>
-          <Badge variant="outline" :class="workflowBadge.class">
-            {{ workflowBadge.label }}
-          </Badge>
-        </dd>
-      </template>
-
-      <dt class="text-muted-foreground">ID</dt>
-      <dd class="flex min-w-0 items-center gap-1">
-        <code class="truncate font-mono text-xs">{{ document.name }}</code>
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button variant="ghost" size="icon-xs" class="text-muted-foreground" :aria-label="t('Copy ID')" @click="copyId">
-              <Check v-if="copied" class="text-success" />
-              <Copy v-else />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{{ copied ? t('Copied') : t('Copy ID') }}</TooltipContent>
-        </Tooltip>
-      </dd>
-
-      <template v-if="webUrl">
-        <dt class="text-muted-foreground">{{ t('On website') }}</dt>
-        <dd class="min-w-0">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <a
-                :href="webUrl"
-                target="_blank"
-                rel="noopener"
-                class="group flex items-center gap-1 rounded-sm outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50"
-              >
-                <span class="truncate font-mono text-xs">{{ webPath }}</span>
-                <ExternalLink class="size-3 shrink-0 text-muted-foreground group-hover:text-primary" />
-              </a>
-            </TooltipTrigger>
-            <TooltipContent class="max-w-80 break-all">{{ webUrl }}</TooltipContent>
-          </Tooltip>
-        </dd>
-      </template>
-    </dl>
+    <!-- Properties: sidebar_sections with placement "properties" (core + apps) -->
+    <SidebarRows v-if="sb.bundle.value.properties?.length" :rows="sb.bundle.value.properties" />
 
     <!-- Who / when: full width so long names fit -->
     <ItemGroup class="-mx-2 gap-0.5">
@@ -285,19 +202,7 @@ function printDoc() {
         <Separator />
         <section class="flex flex-col gap-2">
           <h3 class="text-sm font-medium">{{ sec.label }}</h3>
-          <dl class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-1.5">
-            <template v-for="(row, i) in sec.rows" :key="i">
-              <dt class="text-muted-foreground">{{ row.label }}</dt>
-              <dd class="min-w-0 truncate">
-                <component :is="row.link ? (row.link.startsWith('/') ? RouterLink : 'a') : 'span'"
-                  v-bind="row.link ? (row.link.startsWith('/') ? { to: row.link } : { href: row.link, target: '_blank', rel: 'noopener' }) : {}"
-                  :class="row.link && 'hover:text-primary hover:underline'">
-                  <Badge v-if="row.indicator" variant="outline" :class="statusToneClass(row.indicator)">{{ row.value }}</Badge>
-                  <template v-else>{{ row.value ?? '' }}</template>
-                </component>
-              </dd>
-            </template>
-          </dl>
+          <SidebarRows :rows="sec.rows" />
         </section>
       </template>
     </template>

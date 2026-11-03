@@ -137,21 +137,33 @@ export interface SidebarBundle {
   milestones?: SidebarMilestone[]
   /** What the current user may add here - the checks the add endpoints enforce. */
   perms?: { assign: boolean; share: boolean; tag: boolean }
-  /** Apps' `sidebar_sections` that apply to this document and have rows. */
+  /** `sidebar_sections` rows with placement "properties" - the list at the top (core: status, ID, web page). */
+  properties?: SidebarRow[]
+  /** `sidebar_sections` with placement "section" that apply to this document and have rows. */
   sections?: SidebarSection[]
+}
+
+/** One label -> value row of the sidebar (grunt.document.sidebar). */
+export interface SidebarRow {
+  label: string
+  value?: string | number
+  /** Desk path (`/app/...`) or a full URL. */
+  link?: string
+  /** Open a `/` path in a new tab - a website page, not a desk route. */
+  external?: boolean
+  /** Status colour (green, red, orange, success, danger, ...) - the value shows as a badge. */
+  indicator?: string
+  /** Show a copy-to-clipboard button. */
+  copy?: boolean
+  /** Monospace value (ids, paths, codes). */
+  mono?: boolean
+  tooltip?: string
 }
 
 export interface SidebarSection {
   name: string
   label: string
-  rows: {
-    label: string
-    value?: string | number
-    /** Desk path (`/app/...`) or a full URL. */
-    link?: string
-    /** Status colour: green, red, orange, yellow, blue, gray. */
-    indicator?: string
-  }[]
+  rows: SidebarRow[]
 }
 
 // Maps FilterBar display operators to backend query suffixes
