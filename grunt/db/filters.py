@@ -46,8 +46,9 @@ FILTER_OPS = (
 
 # Filter-bar ("display") operator -> ``FILTER_OPS`` suffix. The vocabulary of
 # report conditions and saved list filters; the frontend twin is FILTER_OPS in
-# frontend/src/core/filterOps.ts (tests/unit/test_filter_ops_sync.py). The
-# frontend also has ``child_of`` - expanded by list queries, not here.
+# frontend/src/core/filterOps.ts (tests/unit/test_filter_ops_sync.py).
+# ``child_of`` is not a ``build_clauses`` operator: callers expand it to the
+# subtree first (grunt.document.query.expand_child_of_filters).
 DISPLAY_OPS: dict[str, str] = {
     "=": "eq",
     "!=": "ne",
@@ -61,6 +62,7 @@ DISPLAY_OPS: dict[str, str] = {
     "not in": "nin",
     "is set": "is",
     "is not set": "is",
+    "child_of": "child_of",
 }
 
 

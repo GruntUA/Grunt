@@ -70,10 +70,7 @@ const conditions = ref<Condition[]>([])
 const sortBy = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const rowLimit = ref<number | undefined>(undefined)
-// Report conditions run through grunt.db (grunt/reports/list_options.py) - no `child_of` there.
-const OPERATORS = (Object.keys(FILTER_OPS) as FilterOp[])
-    .filter(op => op !== 'child_of')
-    .map(op => ({ value: op, label: opLabel(op, t, true) }))
+const OPERATORS = (Object.keys(FILTER_OPS) as FilterOp[]).map(op => ({ value: op, label: opLabel(op, t, true) }))
 const DATE_GROUPS = [
     { value: 'none', label: t('Exact date') },
     { value: 'day', label: t('By day') },

@@ -25,13 +25,12 @@ def _frontend_suffixes() -> set[str]:
 
 
 def test_display_ops_match_frontend():
-    frontend = _frontend_ops()
-    assert frontend.pop("child_of") == "child_of"  # list queries only
-    assert frontend == DISPLAY_OPS
+    assert _frontend_ops() == DISPLAY_OPS
 
 
 def test_display_ops_are_known_backend_ops():
-    assert set(DISPLAY_OPS.values()) <= set(FILTER_OPS) & set(_CLAUSES)
+    # child_of is expanded to __in before build_clauses (expand_child_of_filters).
+    assert set(DISPLAY_OPS.values()) - {"child_of"} <= set(FILTER_OPS) & set(_CLAUSES)
 
 
 def test_frontend_key_splitting_knows_every_backend_op():

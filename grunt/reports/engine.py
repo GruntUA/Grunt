@@ -14,6 +14,7 @@ from grunt import _, log
 from grunt.db.buckets import DATE_BUCKETS, date_bucket
 from grunt.db.filters import build_clauses
 from grunt.db.session import get_engine as _engine_factory
+from grunt.document.query import expand_child_of_filters
 from grunt.errors import not_found
 from grunt.io.exporters.sanitize import escape_formula
 from grunt.permissions.query import apply_permission_filter
@@ -328,15 +329,23 @@ class ReportEngine:
         # ``field__gte`` / ``__like`` / ``__ne`` / … ; a bare ``field`` means
         # equality. Empty values are dropped so an untouched filter is a no-op.
 
-        active_filters = {k: v for k, v in filters.items() if v not in (None, "", [])}
-        for clause in build_clauses(table, active_filters, dt):
-            stmt = stmt.where(clause)
+        # ``field__child_of`` is not a grunt.db operator - expanded to the
+        # subtree (``field__in=…``) first, as list queries do.
+
+        async def where(filter_dict: dict[str, Any]) -> None:
+            nonlocal stmt
+            if any(k.endswith("__child_of") for k in filter_dict):
+                filter_dict = await expand_child_of_filters(session, dt.doc, filter_dict)
+            for clause in build_clauses(table, filter_dict, dt):
+                stmt = stmt.where(clause)
+
+        await where({k: v for k, v in filters.items() if v not in (None, "", [])})
 
         # Fixed report conditions (always on, unlike the viewer's filters).
+        # Drill-down below gets them unexpanded - the list URL carries child_of.
         conditions = compile_conditions(report.get("conditions"))
         for condition in conditions:
-            for clause in build_clauses(table, condition, dt):
-                stmt = stmt.where(clause)
+            await where(condition)
 
         # Row-level security
 

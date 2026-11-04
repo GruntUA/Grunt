@@ -39,7 +39,7 @@ export const FILTER_OPS = {
   'not in': { backend: 'nin', label: N_('Is none of'), multi: true },
   'is set': { backend: 'is', label: N_('Is set'), fixedValue: 'set' },
   'is not set': { backend: 'is', label: N_('Is empty'), fixedValue: 'not set' },
-  // Expanded to the subtree (`field__in=…`) by list queries, not by grunt.db.
+  // Expanded to the subtree (`field__in=…`) by list queries and reports, not by grunt.db.
   'child_of': { backend: 'child_of', label: N_('Descendant of') },
 } as const satisfies Record<string, OpDef>
 

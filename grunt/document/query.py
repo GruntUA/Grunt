@@ -14,7 +14,7 @@ lazy from grunt.metadata.doctype import DocType
 # actual question when grepping. Import from grunt.db.filters directly instead.
 
 
-async def _expand_child_of_filters(
+async def expand_child_of_filters(
     session: Any,
     dt: DocType,
     filters: dict[str, str],

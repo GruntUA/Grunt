@@ -29,7 +29,7 @@ from grunt.document.formula import evaluate_read_formulas
 from grunt.document.in_memory import build_response
 from grunt.document.meta import Meta
 from grunt.document.multi_link import MultiLinkService
-from grunt.document.query import _apply_search, _expand_child_of_filters
+from grunt.document.query import _apply_search, expand_child_of_filters
 from grunt.document.registry import document_registry
 from grunt.document.relations import _resolve_attach_labels, _resolve_link_labels
 from grunt.document.serde import serialize_datetimes
@@ -320,7 +320,7 @@ async def table_list(
 
     # Expand tree-aware child_of operators before applying filters
     if filters and any(k.endswith("__child_of") for k in filters):
-        filters = await _expand_child_of_filters(session, dt.doc, filters)
+        filters = await expand_child_of_filters(session, dt.doc, filters)
 
     up_conds = await build_conditions(table, user, dt.doc)
 
@@ -452,7 +452,7 @@ async def table_count(
     table = dt.table
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, filters, table)
     if filters and any(k.endswith("__child_of") for k in filters):
-        filters = await _expand_child_of_filters(session, dt.doc, filters)
+        filters = await expand_child_of_filters(session, dt.doc, filters)
 
     up_conds = await build_conditions(table, user, dt.doc)
     count_q = await _apply_where(

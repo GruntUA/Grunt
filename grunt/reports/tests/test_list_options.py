@@ -109,3 +109,62 @@ async def test_relative_date_condition(ctx, sales):
 async def test_unknown_sort_column_is_ignored(ctx, sales):
     res = await _run(ctx, columns=[_col("region")], sort_by="region; DROP TABLE x", row_limit=2)
     assert res["meta"]["rows"] == 2
+
+
+RPT_NODE = {
+    "name": "RptNode",
+    "label": "Rpt Node",
+    "module": "core",
+    "is_tree": True,
+    "tree_parent_field": "parent_node",
+    "tree_title_field": "title",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
+        {"fieldname": "parent_node", "label": "Parent", "fieldtype": "Link", "options": "RptNode"},
+    ],
+    "permissions": [{"role": "System Manager", "read": True, "create": True}],
+}
+
+RPT_ITEM = {
+    "name": "RptItem",
+    "label": "Rpt Item",
+    "module": "core",
+    "fields": [
+        {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+        {"fieldname": "node", "label": "Node", "fieldtype": "Link", "options": "RptNode"},
+    ],
+    "permissions": [{"role": "System Manager", "read": True, "create": True}],
+}
+
+
+@pytest.mark.asyncio
+async def test_child_of_in_filters_and_conditions(ctx):
+    """`child_of` narrows a report to the subtree - in the viewer's filters and in
+    fixed conditions; drill-down keeps the unexpanded child_of for the list URL."""
+    await save_doctype(doctype_data={**RPT_NODE, "__is_new": True})
+    await save_doctype(doctype_data={**RPT_ITEM, "__is_new": True})
+    root = await ctx.new_doc("RptNode", {"title": "A"})
+    child = await ctx.new_doc("RptNode", {"title": "B", "parent_node": root["name"]})
+    other = await ctx.new_doc("RptNode", {"title": "C"})
+    for title, node in (("in A", root), ("in B", child), ("in C", other)):
+        await ctx.new_doc("RptItem", {"title": title, "node": node["name"]})
+    await ctx.db._session().commit()
+
+    async def run(report, filters):
+        res = await report_engine._run_list_report(
+            "RptItem", report, filters, ctx.get_user(), ctx.db._session()
+        )
+        return res, sorted(r["title"] for r in res["data"])
+
+    _, titles = await run({"columns": [_col("title")]}, {"node__child_of": root["name"]})
+    assert titles == ["in A", "in B"]
+
+    res, _ = await run(
+        {
+            "columns": [_col("node"), _col("title", aggregation="count")],
+            "conditions": [{"fieldname": "node", "op": "child_of", "value": root["name"]}],
+        },
+        {},
+    )
+    assert sorted(r["node"] for r in res["data"]) == sorted([root["name"], child["name"]])
+    assert res["meta"]["drilldown"]["conditions"] == {"node__child_of": root["name"]}

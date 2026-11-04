@@ -8,7 +8,7 @@ from typing import Any
 
 import grunt
 from grunt import _, log
-from grunt.document.query import _expand_child_of_filters
+from grunt.document.query import expand_child_of_filters
 from grunt.metadata.widget import WIDGET_PERIOD_DAYS, get_widget_type_class
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.widget_compute import _widget_report_series
@@ -187,7 +187,7 @@ async def _compute_widget_data(
     # queries; grunt.db.aggregate would silently drop it, so expand it here.
 
     session = grunt.get_session()
-    expanded = await _expand_child_of_filters(session, dt.doc, base_filters)
+    expanded = await expand_child_of_filters(session, dt.doc, base_filters)
     data = await cls.compute(widget, dt, doctype_name, since, until, days, expanded)
     # The list URL can't carry `__in`, so drill-down gets the original child_of back.
     if isinstance(data, dict) and isinstance(data.get("filters"), dict):
