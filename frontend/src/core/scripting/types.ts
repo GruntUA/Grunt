@@ -69,6 +69,10 @@ export interface FormProxy {
   readonly is_loading: boolean
   /** The form has at least one field the user can type into. */
   readonly has_editable_fields: boolean
+  /** The form has tours (FormTour) the user may take. */
+  readonly has_tours: boolean
+  /** Start a form tour - the named one, or the first available. */
+  start_tour: (name?: string) => void
   /** Ask for confirmation, then delete the document. */
   delete: () => void
   /** Open a copy of this document as a new one. */

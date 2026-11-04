@@ -8,13 +8,11 @@
  * The form resets it before every `on_load`; `permanent` comments and headlines survive.
  *
  * ```js
- * grunt.ui.form.on('Invoice', {
- *   on_load(frm) {
- *     if (frm.doc.outstanding > 0) frm.dashboard.set_headline('Не оплачено', 'red')
- *     frm.dashboard.add_indicator(`Сума: ${frm.doc.total}`, 'green')
- *     frm.dashboard.add_progress('Оплата', frm.doc.paid / frm.doc.total * 100)
- *   },
- * })
+ * function on_load(frm) {
+ *   if (frm.doc.outstanding > 0) frm.dashboard.set_headline('Не оплачено', 'red')
+ *   frm.dashboard.add_indicator(`Сума: ${frm.doc.total}`, 'green')
+ *   frm.dashboard.add_progress('Оплата', frm.doc.paid / frm.doc.total * 100)
+ * }
  * ```
  */
 
@@ -165,7 +163,7 @@ export interface FormDashboardApi {
 /** Lets DocConnections read badge overrides without threading props through FormRenderer. */
 export const FORM_DASHBOARD: InjectionKey<FormDashboardState> = Symbol('formDashboard')
 
-// Standard progress classes -> indicator colours
+// Bootstrap-style progress / alert classes -> indicator colours
 const PROGRESS_CLASS_COLOR: Record<string, string> = {
   'progress-bar-success': 'green',
   'progress-bar-warning': 'orange',
@@ -173,12 +171,24 @@ const PROGRESS_CLASS_COLOR: Record<string, string> = {
   'progress-bar-info': 'blue',
 }
 
-// Standard alert classes -> indicator colours
 const ALERT_CLASS_COLOR: Record<string, string> = {
   'alert-success': 'green',
   'alert-warning': 'orange',
   'alert-danger': 'red',
   'alert-info': 'blue',
+}
+
+const DOCSTATUS = ['Draft', 'Submitted', 'Cancelled']
+
+/** Named parts clear_section() accepts besides a section's name or label. */
+const CLEARABLE: Record<string, (s: FormDashboardState) => void> = {
+  chart: (s) => { s.graph = null },
+  graph: (s) => { s.graph = null },
+  heatmap: (s) => { s.heatmap = null },
+  progress: (s) => { s.progress = [] },
+  transactions: (s) => { s.transactions = [] },
+  connections: (s) => { s.transactions = [] },
+  indicators: (s) => { s.indicators = [] },
 }
 
 const clamp = (n: number) => Math.max(0, Math.min(100, Number(n) || 0))
@@ -217,12 +227,9 @@ export function createFormDashboard(): FormDashboardApi {
     state,
 
     set_headline(html, color = 'blue', permanent = false) {
-      const resolvedColor = ALERT_CLASS_COLOR[color] || color
-      state.headline = { html, color: resolvedColor, permanent }
+      state.headline = { html, color: ALERT_CLASS_COLOR[color] || color, permanent }
     },
-    set_headline_alert(html, color = 'blue', permanent = false) {
-      api.set_headline(html, color, permanent)
-    },
+    set_headline_alert: (...args) => api.set_headline(...args),
     clear_headline() {
       state.headline = null
     },
@@ -244,9 +251,7 @@ export function createFormDashboard(): FormDashboardApi {
       if (i >= 0) state.progress[i] = bar
       else state.progress.push(bar)
     },
-    show_progress(title, percent, message) {
-      api.add_progress(title, percent, message)
-    },
+    show_progress: (...args) => api.add_progress(...args),
 
     render_graph(args) {
       const datasets = args.data?.datasets ?? []
@@ -291,43 +296,24 @@ export function createFormDashboard(): FormDashboardApi {
       return name
     },
     clear_section(name) {
-      const lower = name.toLowerCase()
-      if (lower === 'chart' || lower === 'graph') {
-        state.graph = null
-      } else if (lower === 'heatmap') {
-        state.heatmap = null
-      } else if (lower === 'progress') {
-        state.progress = []
-      } else if (lower === 'transactions' || lower === 'connections') {
-        state.transactions = []
-      } else if (lower === 'indicators') {
-        state.indicators = []
-      } else {
-        state.sections = state.sections.filter((s) => s.name !== name && s.label !== name)
-      }
+      const clear = CLEARABLE[name.toLowerCase()]
+      if (clear) clear(state)
+      else state.sections = state.sections.filter((s) => s.name !== name && s.label !== name)
     },
 
     set_badge_count(link_doctype, open_count, count) {
       state.badges[link_doctype] = { open_count, count }
     },
-    set_badge_count_for_external_link(link_doctype, open_count, count) {
-      api.set_badge_count(link_doctype, open_count, count)
-    },
+    set_badge_count_for_external_link: (...args) => api.set_badge_count(...args),
 
     set_docstatus_icon(status) {
-      if (typeof status === 'number') {
-        if (status === 0) state.docstatus_icon = 'Draft'
-        else if (status === 1) state.docstatus_icon = 'Submitted'
-        else if (status === 2) state.docstatus_icon = 'Cancelled'
-        else state.docstatus_icon = String(status)
-      } else {
-        state.docstatus_icon = status ? String(status) : null
-      }
+      state.docstatus_icon = typeof status === 'number'
+        ? DOCSTATUS[status] ?? String(status)
+        : status ? String(status) : null
     },
 
     add_comment(html, color = 'blue', permanent = false) {
-      const resolvedColor = ALERT_CLASS_COLOR[color] || color
-      state.comments.push({ html, color: resolvedColor, permanent })
+      state.comments.push({ html, color: ALERT_CLASS_COLOR[color] || color, permanent })
     },
     clear_comment() {
       state.comments = []

@@ -13,7 +13,7 @@ import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { grunt as appGrunt } from '@/core/grunt'
 import { appUrl } from '@/core/workspaceUrl'
-import type { ComponentDialogOptions, DialogSize } from '@/core/composables/useDialog'
+import type { ComponentDialogOptions } from '@/core/composables/useDialog'
 import { appDialog } from '@/core/appDialogs'
 import type { ActionsApi } from '@/core/actions'
 import { i18n, N_ } from '@/plugins/i18n'
@@ -251,14 +251,14 @@ const NO_ACTIONS: ActionsApi<any> = {
  */
 export function createGruntProxy(
   callbacks: {
-    msgprint?: (msgOrOpts: string | { message: string; title?: string; indicator?: string }) => Promise<void>
-    confirm?: (msg: string, title?: string) => Promise<boolean>
-    showAlert?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
-    prompt?: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
-    warn?: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
-    form?: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize }) => Promise<Record<string, unknown> | null>
-    select?: (opts: Record<string, unknown>) => Promise<unknown>
-    showProgress?: (title: string, count: number, total: number, description?: string) => void
+    msgprint?: GruntProxy['msgprint']
+    confirm?: GruntProxy['confirm']
+    showAlert?: GruntProxy['show_alert']
+    prompt?: GruntProxy['prompt']
+    warn?: GruntProxy['warn']
+    form?: GruntProxy['form']
+    select?: GruntProxy['select']
+    showProgress?: GruntProxy['show_progress']
     component?: (opts: ComponentDialogOptions) => Promise<unknown>
     navigateTo?: (href: string, inNewTab: boolean) => void
   } = {},
@@ -350,15 +350,16 @@ export function createGruntProxy(
     routeOptions = null
   }
 
-  return {
+  const proxy: GruntProxy = {
     get session() {
-      const u = useAuthStore().user
+      const auth = useAuthStore()
+      const u = auth.user
       return {
         user: u?.email ?? 'guest@grunt.local',
         full_name: u?.full_name ?? 'Guest',
         roles: u?.roles ?? [],
         has_password: u?.has_password ?? true,
-        impersonated_by: useAuthStore().impersonatedBy,
+        impersonated_by: auth.impersonatedBy,
       }
     },
 
@@ -427,9 +428,7 @@ export function createGruntProxy(
     },
 
     show_alert(msg: string, type?: 'success' | 'error' | 'info' | 'warning') {
-      if (callbacks.showAlert) {
-        callbacks.showAlert(msg, type)
-      }
+      callbacks.showAlert?.(msg, type)
     },
 
     async prompt(labelOrOpts, title?) {
@@ -448,17 +447,11 @@ export function createGruntProxy(
     },
 
     async form(opts) {
-      if (callbacks.form) {
-        return callbacks.form(opts)
-      }
-      return null
+      return callbacks.form ? callbacks.form(opts) : null
     },
 
     async select(opts) {
-      if (callbacks.select) {
-        return callbacks.select(opts as Record<string, unknown>) as any
-      }
-      return null
+      return callbacks.select ? callbacks.select(opts) : null
     },
 
     show_progress(title: string, count: number, total: number, description?: string) {
@@ -485,7 +478,7 @@ export function createGruntProxy(
       const uploaded: import('@/core/api/files').FileItem[] = []
       for (const [i, file] of picked.entries()) {
         if (picked.length > 1) {
-          this.show_progress(translate(N_('Uploading files')), i, picked.length, file.name)
+          proxy.show_progress(translate(N_('Uploading files')), i, picked.length, file.name)
         }
         try {
           uploaded.push(
@@ -498,11 +491,11 @@ export function createGruntProxy(
           )
         } catch (err) {
           const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-          this.show_alert(`${file.name}: ${detail ?? translate(N_('Upload failed'))}`, 'error')
+          proxy.show_alert(`${file.name}: ${detail ?? translate(N_('Upload failed'))}`, 'error')
         }
       }
       if (picked.length > 1) {
-        this.show_progress(translate(N_('Uploading files')), picked.length, picked.length)
+        proxy.show_progress(translate(N_('Uploading files')), picked.length, picked.length)
       }
       return uploaded
     },
@@ -516,7 +509,7 @@ export function createGruntProxy(
     },
 
     on_progress(cb: (data: { processed: number; total: number; message?: string }) => void): () => void {
-      return this.onMessage('import_progress', cb as (data: unknown) => void)
+      return proxy.onMessage('import_progress', cb as (data: unknown) => void)
     },
 
     get route_options() {
@@ -567,6 +560,7 @@ export function createGruntProxy(
 
     health: appGrunt.health,
   }
+  return proxy
 }
 
 /** Dispatch a WS message to all listeners registered via grunt.onMessage. */
@@ -618,6 +612,40 @@ function scriptBody(doctype: string, entry: ClientScriptEntry, call: string): st
 }
 
 /**
+ * Run *handler* from every client script of *doctype*: each script is compiled
+ * with *params* as its scope (plus `grunt` and `__`) and, if it defines a
+ * function named *handler*, that function is called with *args* (names from
+ * *params*). Script errors are logged, not thrown. Stops at the first result
+ * *stop* accepts and returns true then.
+ */
+async function runHandler(
+  doctype: string,
+  handler: string,
+  params: Record<string, unknown>,
+  args: string[],
+  gruntProxy: GruntProxy,
+  stop?: (result: unknown) => boolean,
+): Promise<boolean> {
+  const scripts = await loadClientScripts(doctype)
+  const scope = { ...params, grunt: gruntProxy, __: translate }
+  const names = Object.keys(scope)
+  const call = `if (typeof ${handler} === 'function') { return ${handler}(${args.join(', ')}); }`
+  for (const entry of scripts) {
+    let result: unknown
+    try {
+      // eslint-disable-next-line no-new-func -- client scripts are code by design
+      const fn = new Function(...names, scriptBody(doctype, entry, call))
+      result = await fn(...names.map((n) => scope[n as keyof typeof scope]))
+    } catch (err) {
+      console.warn(`[ClientScript] Error in "${entry.name}" (${handler}):`, err)
+      continue
+    }
+    if (stop?.(result)) return true
+  }
+  return false
+}
+
+/**
  * Execute all client scripts for a DocType, filtering by event.
  *
  * Scripts should define handler functions matching the event name:
@@ -634,41 +662,20 @@ export async function executeClientScripts(
   event: ClientScriptEvent,
   frm: FormProxy,
   gruntProxy: GruntProxy,
-  changedField?: string
+  changedField?: string,
 ): Promise<boolean> {
-  const scripts = await loadClientScripts(doctype)
-  if (!scripts.length) return true
-
-  for (const entry of scripts) {
-    try {
-      // Create a function scope with cur_frm and grunt
-      // eslint-disable-next-line no-new-func -- client scripts are code by design
-      const fn = new Function(
-        'cur_frm',
-        'frm',
-        'grunt',
-        '__',
-        scriptBody(
-          doctype,
-          entry,
-          `if (typeof ${event} === 'function') {\n` +
-          `  return ${event}(cur_frm${event === 'on_change' ? `, '${changedField ?? ''}'` : ''});\n` +
-          `}`,
-        ),
-      )
-
-      const result = await fn(frm, frm, gruntProxy, translate)
-
-      // For validate event, false = cancel
-      if (event === 'validate' && result === false) {
-        return false
-      }
-    } catch (err) {
-      console.warn(`[ClientScript] Error in "${entry.name}" (${event}):`, err)
-    }
-  }
-
-  return true
+  // The changed field rides in under a reserved name: a script's own top-level
+  // `const fieldname` would clash with a parameter called that.
+  const args = event === 'on_change' ? ['cur_frm', '__changed_field'] : ['cur_frm']
+  const cancelled = await runHandler(
+    doctype,
+    event,
+    { cur_frm: frm, frm, __changed_field: changedField ?? '' },
+    args,
+    gruntProxy,
+    (result) => event === 'validate' && result === false,
+  )
+  return !cancelled
 }
 
 // ListView setup
@@ -688,9 +695,9 @@ export function createListViewProxy(
     exportWith?: (exporterId: string) => void
     customizeQuickFilters?: () => void
     createReport?: () => void
-    setFilters?: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string; displayValue?: string }>) => void
-    setQuickFilterValue?: (id: string, value: string) => void
-    setQuickFilters?: (values: Record<string, string>) => void
+    setFilters?: ListViewProxy['set_filters']
+    setQuickFilterValue?: ListViewProxy['set_quick_filter_value']
+    setQuickFilters?: ListViewProxy['set_quick_filters']
   } = {},
   actions: ActionsApi<ListViewProxy> = NO_ACTIONS,
 ): ListViewProxy {
@@ -736,23 +743,7 @@ export async function executeListSetup(
   listview: ListViewProxy,
   gruntProxy: GruntProxy,
 ): Promise<void> {
-  const scripts = await loadClientScripts(doctype)
-  if (!scripts.length) return
-
-  for (const entry of scripts) {
-    try {
-      // eslint-disable-next-line no-new-func -- client scripts are code by design
-      const fn = new Function(
-        'listview',
-        'grunt',
-        '__',
-        scriptBody(doctype, entry, `if (typeof setup_list === 'function') { return setup_list(listview); }`),
-      )
-      await fn(listview, gruntProxy, translate)
-    } catch (err) {
-      console.warn(`[ClientScript] Error in "${entry.name}" (setup_list):`, err)
-    }
-  }
+  await runHandler(doctype, 'setup_list', { listview }, ['listview'], gruntProxy)
 }
 
 /**
@@ -773,26 +764,5 @@ export async function executeListQuickFilterOnChange(
   gruntProxy: GruntProxy,
   change: ListQuickFilterChange,
 ): Promise<void> {
-  const scripts = await loadClientScripts(doctype)
-  if (!scripts.length) return
-
-  for (const entry of scripts) {
-    try {
-      // eslint-disable-next-line no-new-func -- client scripts are code by design
-      const fn = new Function(
-        'listview',
-        'grunt',
-        'change',
-        '__',
-        scriptBody(
-          doctype,
-          entry,
-          `if (typeof on_quick_filter_change === 'function') { return on_quick_filter_change(listview, change); }`,
-        ),
-      )
-      await fn(listview, gruntProxy, change, translate)
-    } catch (err) {
-      console.warn(`[ClientScript] Error in "${entry.name}" (on_quick_filter_change):`, err)
-    }
-  }
+  await runHandler(doctype, 'on_quick_filter_change', { listview, change }, ['listview', 'change'], gruntProxy)
 }
