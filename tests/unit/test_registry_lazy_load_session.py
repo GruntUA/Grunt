@@ -52,3 +52,26 @@ async def test_lazy_load_falls_back_to_site_manager_without_context():
 
     dt = await doctype_registry._lazy_load("DoesNotExistAnywhere")
     assert dt is None
+
+
+@pytest.mark.asyncio
+async def test_list_all_loads_lazy_through_ambient_session(ctx, db_session, engine, monkeypatch):
+    """list_all() — те саме: друге з'єднання чекало на запис викликача (SQLite,
+    BEGIN IMMEDIATE) і мовчки віддавало неповний реєстр."""
+    from grunt.metadata.doctype import DocType
+    from grunt.metadata.registry import doctype_registry
+    from grunt.site.manager import site_manager
+
+    dt_in = DocType(name="ListAllTarget", label="List All Target", module="test", fields=[])
+    await doctype_registry.register(dt_in, db_session, engine)
+    await db_session.commit()
+    doctype_registry.forget("ListAllTarget")  # знову лише ім'я — довантажиться ліниво
+    doctype_registry._known_names.add("ListAllTarget")
+
+    def _fail_if_called(*args, **kwargs):
+        raise AssertionError("list_all() must reuse the ambient session")
+
+    monkeypatch.setattr(site_manager, "get_session_maker", _fail_if_called)
+
+    names = {dt.name for dt in await doctype_registry.list_all()}
+    assert "ListAllTarget" in names

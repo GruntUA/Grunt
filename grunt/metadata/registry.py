@@ -386,8 +386,18 @@ class DocTypeRegistry:
         return list(self._doctypes.values())
 
     async def _load_lazy(self) -> None:
-        """Load the remaining lazy DocTypes of the active site."""
+        """Load the remaining lazy DocTypes of the active site.
+
+        Like :meth:`_lazy_load`, prefers the ambient session: a second
+        connection would wait for the caller's own write lock on SQLite
+        (``BEGIN IMMEDIATE``) - after a write in the same request ``list_all``
+        stalled for the busy timeout and returned a partial registry.
+        """
         try:
+            active_session = _session_ctx.get()
+            if active_session is not None:
+                await self.load_all(active_session)
+                return
             site_name = site_manager.get_active_site()
             maker = site_manager.get_session_maker(site_name)
             async with maker() as session:
