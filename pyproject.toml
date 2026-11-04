@@ -15,7 +15,7 @@ dependencies = [
     "uvicorn[standard]>=0.54.0",
     "click>=8.5.0",
     # Database (core — SQLAlchemy multi-DB)
-    "sqlalchemy[asyncio]>=2.1.6",
+    "sqlalchemy[asyncio]>=2.1.8",
     "alembic>=1.20.1",
     "aiosqlite>=0.22.1",       # SQLite async driver (dev/testing)
     # Validation
@@ -27,7 +27,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "python-multipart>=0.0.33",
     "pyotp>=2.10.0",              # MFA / TOTP
-    "authlib>=1.9.3",            # OIDC / OAuth login providers
+    "authlib>=1.9.4",            # OIDC / OAuth login providers
     "webauthn>=3.0.1",           # passkeys / WebAuthn
     # Logging
     "structlog>=26.1.0",
@@ -52,7 +52,7 @@ dependencies = [
     "shevchenko>=1.0.0",
     "pymorphy3>=2.0.6",
     "pymorphy3-dicts-uk>=2.4.1.1.1663094765",
-    "restrictedpython>=8.5",
+    "restrictedpython>=9.0",
     "polib>=1.2.0",              # PO/POT read/write for `grunt i18n` (i18n/extract.py)
     "pillow>=13.0.0",           # image compression and thumbnails (grunt/storage/)
     "pypdfium2>=5.14.0",
