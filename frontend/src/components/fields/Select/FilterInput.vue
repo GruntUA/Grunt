@@ -5,7 +5,7 @@ import type { DocField } from '@/types'
 import { parseSelectOptions } from '@/lib/selectOptions'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MultiSelect } from '@/components/common/multi-select'
-import { MULTI_VALUE_OPS } from '@/core/api/docs'
+import { MULTI_VALUE_OPS } from '@/core/filterOps'
 
 const props = defineProps<{
   field: DocField

@@ -1,5 +1,6 @@
 import client from './client'
 import type { ActiveFilter, GruntDocument, StandardListResponse } from '@/types'
+import { filterKey } from '@/core/filterOps'
 
 export interface WorkflowTransitionItem {
   action: string
@@ -180,35 +181,6 @@ export function isAssignmentPlaceholder(description: string | null | undefined):
   return ASSIGNMENT_PLACEHOLDER_RE.test((description ?? '').trim())
 }
 
-export const OP_MAP: Record<string, string> = {
-  '=': 'eq', '!=': 'ne', 'like': 'ilike', 'not like': 'nlike',
-  '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte',
-  'child_of': 'child_of',
-  'is set': 'is', 'is not set': 'is',
-  'in': 'in', 'not in': 'nin',
-}
-
-/** Operators whose value is a comma-separated list (`field__in=a,b`). */
-export const MULTI_VALUE_OPS = ['in', 'not in']
-
-/** Operators without a user-entered value - the value is fixed and sent as `field__is=<value>`. */
-export const NO_VALUE_OPS: Record<string, string> = { 'is set': 'set', 'is not set': 'not set' }
-
-/** Backend `field__op` + value -> display operator (inverse of OP_MAP; `is` splits by value). */
-export function displayOp(backendOp: string, value: string): string {
-  if (backendOp === 'is') return value === 'set' ? 'is set' : 'is not set'
-  return Object.keys(OP_MAP).find(k => OP_MAP[k] === backendOp) ?? '='
-}
-
-/** Convert ActiveFilter[] to raw backend filter object: { "fieldname__op": "value" } */
-export function filtersToRaw(filters: ActiveFilter[]): Record<string, string> {
-  const raw: Record<string, string> = {}
-  for (const f of filters) {
-    raw[`${f.fieldname}__${OP_MAP[f.op] ?? 'eq'}`] = f.value
-  }
-  return raw
-}
-
 /** A node from the tree RPCs: `name`, the parent/title columns, `has_children` (children lists only). */
 export interface TreeNode {
   name: string
@@ -278,8 +250,7 @@ export const docsApi = {
       filterParams[`quick_filter[${k}]`] = v
     }
     for (const f of filters) {
-      const backendOp = OP_MAP[f.op] ?? 'eq'
-      filterParams[`filter[${f.fieldname}__${backendOp}]`] = f.value
+      filterParams[`filter[${filterKey(f.fieldname, f.op)}]`] = f.value
     }
     for (const [k, v] of Object.entries(rawFilters)) {
       filterParams[`filter[${k}]`] = v
@@ -395,8 +366,7 @@ export const docsApi = {
     // the same key - merge fast filters first so filters can override them.
     const merged: Record<string, string> = { ...(params?.quickFilters ?? {}) }
     for (const f of params?.filters ?? []) {
-      const backendOp = OP_MAP[f.op] ?? 'eq'
-      merged[`${f.fieldname}__${backendOp}`] = f.value
+      merged[filterKey(f.fieldname, f.op)] = f.value
     }
     const queryParams: Record<string, string> = { doctype }
     if (params?.as_of) queryParams.as_of = params.as_of

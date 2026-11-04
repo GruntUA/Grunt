@@ -6,7 +6,7 @@ import type { AcceptableValue } from 'reka-ui'
 import type { DocField } from '@/types'
 import type { LinkSearchItem } from '@/core/api/docs'
 import { docsApi, metaApi } from '@/core/api'
-import { MULTI_VALUE_OPS } from '@/core/api/docs'
+import { MULTI_VALUE_OPS } from '@/core/filterOps'
 import type { TreeNode } from '@/components/common/tree-select'
 import { TreeSelect } from '@/components/common/tree-select'
 import {

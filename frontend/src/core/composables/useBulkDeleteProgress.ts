@@ -1,6 +1,7 @@
 import { onUnmounted, ref, type Ref } from 'vue'
 import type { QueryClient } from '@tanstack/vue-query'
-import { docsApi, filtersToRaw } from '@/core/api/docs'
+import { docsApi } from '@/core/api/docs'
+import { filtersToRaw } from '@/core/filterOps'
 import type { ActiveFilter } from '@/types'
 
 interface UseBulkDeleteProgressParams {

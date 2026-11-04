@@ -5,6 +5,7 @@ import { useRouter, useRoute } from 'vue-router'
 import api from '@/core/api/client'
 import { metaApi } from '@/core/api/meta'
 import { reportsApi } from '@/core/api/reports'
+import { FILTER_OPS, NO_VALUE_OPS, opLabel, type FilterOp } from '@/core/filterOps'
 import type { ReportChartConfig, ReportChartType } from '@/types'
 import {
     Plus, Search, Save, Play, Trash2, ChevronRight,
@@ -69,21 +70,10 @@ const conditions = ref<Condition[]>([])
 const sortBy = ref('')
 const sortOrder = ref<'asc' | 'desc'>('asc')
 const rowLimit = ref<number | undefined>(undefined)
-const OPERATORS = [
-    { value: '=', label: '=' },
-    { value: '!=', label: '≠' },
-    { value: '>', label: '>' },
-    { value: '<', label: '<' },
-    { value: '>=', label: '≥' },
-    { value: '<=', label: '≤' },
-    { value: 'like', label: t('contains') },
-    { value: 'not like', label: t('does not contain') },
-    { value: 'in', label: t('one of (comma-separated)') },
-    { value: 'not in', label: t('none of') },
-    { value: 'is set', label: t('is set') },
-    { value: 'is not set', label: t('is empty') },
-]
-const NO_VALUE_OPS = new Set(['is set', 'is not set'])
+// Report conditions run through grunt.db (grunt/reports/list_options.py) - no `child_of` there.
+const OPERATORS = (Object.keys(FILTER_OPS) as FilterOp[])
+    .filter(op => op !== 'child_of')
+    .map(op => ({ value: op, label: opLabel(op, t, true) }))
 const DATE_GROUPS = [
     { value: 'none', label: t('Exact date') },
     { value: 'day', label: t('By day') },
@@ -364,7 +354,7 @@ const displayFields = computed(() => {
                                         <SelectItem v-for="o in OPERATORS" :key="o.value" :value="o.value">{{ o.label }}</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <Input v-if="!NO_VALUE_OPS.has(cond.op)" v-model="cond.value" :placeholder="t('Value')" class="h-7 text-xs flex-1" />
+                                <Input v-if="!(cond.op in NO_VALUE_OPS)" v-model="cond.value" :placeholder="t('Value')" class="h-7 text-xs flex-1" />
                             </div>
                         </div>
                         <Button variant="outline" size="sm" class="w-full" @click="addCondition">

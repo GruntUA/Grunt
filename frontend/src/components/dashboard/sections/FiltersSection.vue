@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { X } from '@lucide/vue'
 import type { ActiveFilter, DocType } from '@/types'
 import { useDocTypeStore } from '@/stores/doctype'
-import { OP_MAP, displayOp, filtersToRaw } from '@/core/api/docs'
+import { OP_MAP, displayOp, filtersToRaw, splitFilterKey } from '@/core/filterOps'
 import { useWidgetPropertyEditor } from '@/core/composables/useWidgetPropertyEditor'
 import FilterBar from '@/components/views/FilterBar.vue'
 import { isReportSourced } from './widgetHelpers'
@@ -36,7 +36,7 @@ const split = computed(() => {
   const editable: ActiveFilter[] = []
   const kept: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(raw.value)) {
-    const [fieldname, backendOp = 'eq'] = key.split('__')
+    const [fieldname, backendOp] = splitFilterKey(key)
     const field = dt.value?.fields.find(f => f.fieldname === fieldname)
     const list = Array.isArray(value) && (backendOp === 'in' || backendOp === 'nin')
     const scalar = typeof value === 'string' || typeof value === 'number'

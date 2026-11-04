@@ -4,18 +4,13 @@
  */
 import type { RouteLocationRaw } from 'vue-router'
 import { docUrl } from '@/core/workspaceUrl'
-
-/** Report filter-key suffix -> list-view URL operator (see OP_MAP in core/api/docs.ts). */
-const URL_OP: Record<string, string> = {
-    '': 'eq', eq: 'eq', ne: 'ne', like: 'ilike', ilike: 'ilike', nlike: 'nlike',
-    gt: 'gt', lt: 'lt', gte: 'gte', lte: 'lte', child_of: 'child_of', is: 'is',
-    in: 'in', nin: 'nin',
-}
+import { OP_MAP, displayOpOrNull, splitFilterKey } from '@/core/filterOps'
 
 export function addUrlFilters(query: Record<string, string>, filters: Record<string, unknown>) {
     for (const [key, value] of Object.entries(filters)) {
-        const [field, op = ''] = key.split('__')
-        const urlOp = URL_OP[op]
+        const [field, op] = splitFilterKey(key)
+        const display = displayOpOrNull(op)
+        const urlOp = display && OP_MAP[display]
         // The list URL can't express isnull / booleans - such a condition just
         // doesn't narrow the drill-down list. in / nin lists travel as CSV.
         if (!urlOp || typeof value === 'boolean') continue

@@ -2,7 +2,7 @@ import { watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import type { RouteLocationNormalizedLoaded, Router } from 'vue-router'
 import type { DocType } from '@/types'
-import { OP_MAP, displayOp } from '@/core/api/docs'
+import { displayOp, filterKey, splitFilterKey } from '@/core/filterOps'
 
 interface UseListRouteSyncOptions {
   route: RouteLocationNormalizedLoaded
@@ -47,8 +47,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
       if (k.startsWith('filter[')) delete query[k]
     })
     options.activeFilters.value.forEach(f => {
-      const backendOp = OP_MAP[f.op] ?? 'eq'
-      query[`filter[${f.fieldname}__${backendOp}]`] = f.value
+      query[`filter[${filterKey(f.fieldname, f.op)}]`] = f.value
     })
 
     // Fast filters
@@ -99,10 +98,7 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     Object.entries(options.route.query).forEach(([key, value]) => {
       const match = key.match(/^filter\[(.+)\]$/)
       if (match && value) {
-        const fullKey = match[1]
-        const parts = fullKey.split('__')
-        const fieldname = parts[0]
-        const backendOp = parts[1] || 'eq'
+        const [fieldname, backendOp] = splitFilterKey(match[1])
 
         const field = options.dt.value?.fields.find(f => f.fieldname === fieldname)
         const label = field?.label || fieldname

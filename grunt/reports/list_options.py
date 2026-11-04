@@ -13,23 +13,7 @@ import re
 from datetime import date, timedelta
 from typing import Any
 
-# Filter-bar operator -> build_clauses key suffix.
-_OP_SUFFIX = {
-    "=": "",
-    "!=": "__ne",
-    ">": "__gt",
-    "<": "__lt",
-    ">=": "__gte",
-    "<=": "__lte",
-    "like": "__ilike",
-    "not like": "__nlike",
-    "in": "__in",
-    "not in": "__nin",
-    "is set": "__is",
-    "is not set": "__is",
-}
-OPERATORS = tuple(_OP_SUFFIX)
-
+from grunt.db.filters import DISPLAY_OPS
 
 _RELATIVE_DATE = re.compile(r"^today(?:([+-])(\d+))?$", re.IGNORECASE)
 
@@ -49,7 +33,7 @@ def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str
     out: list[dict[str, Any]] = []
     for c in conditions or []:
         field, op = c.get("fieldname"), c.get("op") or "="
-        if not field or op not in _OP_SUFFIX:
+        if not field or op not in DISPLAY_OPS:
             continue
         if op in ("is set", "is not set"):
             out.append({f"{field}__is": "not set" if op == "is not set" else "set"})
@@ -62,5 +46,5 @@ def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str
             value = _resolve_value(value)
         if value in (None, "", []):
             continue
-        out.append({f"{field}{_OP_SUFFIX[op]}": value})
+        out.append({f"{field}__{DISPLAY_OPS[op]}": value})
     return out

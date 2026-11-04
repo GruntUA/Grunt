@@ -1,5 +1,5 @@
 import type { Exporter, ExportContext } from './registry'
-import { filtersToRaw } from '@/core/api/docs'
+import { filtersToRaw } from '@/core/filterOps'
 import { N_ } from '@/plugins/i18n'
 import { useAuthStore } from '@/stores/auth'
 

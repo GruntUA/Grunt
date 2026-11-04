@@ -44,6 +44,26 @@ FILTER_OPS = (
 )
 
 
+# Filter-bar ("display") operator -> ``FILTER_OPS`` suffix. The vocabulary of
+# report conditions and saved list filters; the frontend twin is FILTER_OPS in
+# frontend/src/core/filterOps.ts (tests/unit/test_filter_ops_sync.py). The
+# frontend also has ``child_of`` - expanded by list queries, not here.
+DISPLAY_OPS: dict[str, str] = {
+    "=": "eq",
+    "!=": "ne",
+    ">": "gt",
+    "<": "lt",
+    ">=": "gte",
+    "<=": "lte",
+    "like": "ilike",
+    "not like": "nlike",
+    "in": "in",
+    "not in": "nin",
+    "is set": "is",
+    "is not set": "is",
+}
+
+
 def split_key(key: str) -> tuple[str, str]:
     """``"amount__gte"`` -> ``("amount", "gte")``; no known suffix -> ``(key, "eq")``.
 

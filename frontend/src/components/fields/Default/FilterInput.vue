@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import type { DocField } from '@/types'
 import { Input } from '@/components/ui/input'
-import { MULTI_VALUE_OPS } from '@/core/api/docs'
+import { MULTI_VALUE_OPS } from '@/core/filterOps'
 
 const { t } = useI18n()
 

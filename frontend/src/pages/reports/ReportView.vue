@@ -19,15 +19,9 @@ import FilterBar from '@/components/views/FilterBar.vue'
 import ReportChart from '@/components/reports/ReportChart.vue'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { appUrl } from '@/core/workspaceUrl'
+import { filterKey } from '@/core/filterOps'
 
 const { t } = useI18n()
-
-/** Frontend display operator -> backend filter-key suffix (see grunt/db/api.py build_clauses). */
-const OP_SUFFIX: Record<string, string> = {
-    '=': '', '!=': '__ne', 'like': '__like', 'not like': '__nlike',
-    '>': '__gt', '<': '__lt', '>=': '__gte', '<=': '__lte', 'child_of': '__child_of',
-    'is set': '__is', 'is not set': '__is', 'in': '__in', 'not in': '__nin',
-}
 
 const props = defineProps<{
     workspaceName: string
@@ -86,7 +80,7 @@ function onFiltersChange(active: ActiveFilter[]) {
     const next: Record<string, any> = {}
     for (const f of active) {
         if (f.value === '' || f.value == null) continue
-        next[`${f.fieldname}${OP_SUFFIX[f.op] ?? ''}`] = f.value
+        next[filterKey(f.fieldname, f.op)] = f.value
     }
     filters.value = next
     fetchReport()

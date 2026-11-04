@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { N_ } from '@/plugins/i18n'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Filter, X, Bookmark, Plus } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
 import { isFilterableType } from '@/core/fieldRegistry'
-import { MULTI_VALUE_OPS, NO_VALUE_OPS } from '@/core/api/docs'
+import { MULTI_VALUE_OPS, NO_VALUE_OPS, opLabel } from '@/core/filterOps'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
@@ -189,26 +188,6 @@ function emitChange() {
   emit('change', activeFilters.value)
 }
 
-const OP_LABELS: Record<string, string> = {
-  '=': N_('Equals'),
-  '!=': N_('Not equals'),
-  'like': N_('Contains'),
-  'not like': N_('Does not contain'),
-  'is not set': N_('Is empty'),
-  'is set': N_('Is set'),
-  '>': N_('Greater than'),
-  '<': N_('Less than'),
-  '>=': N_('Greater than or equal'),
-  '<=': N_('Less than or equal'),
-  'child_of': N_('Descendant of'),
-  'in': N_('Is one of'),
-  'not in': N_('Is none of'),
-}
-
-function opLabel(op: string): string {
-  return OP_LABELS[op] ? t(OP_LABELS[op]) : op
-}
-
 function toggleFilter(event: Event) {
   if (isFilterOpen.value) { isFilterOpen.value = false; return }
   filterAnchorEl.value = event.currentTarget as HTMLElement
@@ -269,7 +248,7 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
                 <SelectItem
                   v-for="op in getFilterConfig(fieldFor(row.fieldname)?.fieldtype ?? '_default').operators"
                   :key="op" :value="op"
-                >{{ opLabel(op) }}</SelectItem>
+                >{{ opLabel(op, t) }}</SelectItem>
               </SelectContent>
             </Select>
 
