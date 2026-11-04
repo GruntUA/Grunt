@@ -10,6 +10,7 @@ import click
 from sqlalchemy import func, inspect, select
 
 lazy import grunt
+lazy from grunt.api import typegen
 lazy from grunt.apps.deps import app_updates, install_app_packages, uninstall_app_package
 lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import (
@@ -633,6 +634,37 @@ def app_list(site: str | None):
     click.echo(f"Site: {target_site}")
     for a in apps:
         click.echo(f"  • {a}")
+
+
+@app_group.command("types")
+@click.argument("names", nargs=-1)
+@click.option("--check", is_flag=True, help="Write nothing; exit 1 when a file is out of date.")
+def app_types(names: tuple[str, ...], check: bool):
+    """Regenerate the typed `grunt.call` registry (methods.generated.d.ts).
+
+    Reads every @grunt.whitelist method of the app - path, parameters, return
+    annotation - so client scripts get the method names autocompleted, the
+    arguments checked and the result typed. Without NAMES, all apps.
+    """
+    apps_dir = _apps_dir()
+    targets = list(names) or sorted(
+        d.name for d in apps_dir.iterdir() if d.is_dir() and is_app(d) and (d / d.name).is_dir()
+    )
+    stale = []
+    for name in targets:
+        app_dir = apps_dir / name
+        if not (app_dir / name).is_dir():
+            raise click.ClickException(f"App {name!r} not found in {apps_dir}")
+        r = typegen.generate(app_dir, write=not check)
+        if not r.methods and not r.changed:
+            continue
+        mark = ("✗ out of date" if check else "✓ updated") if r.changed else "· up to date"
+        click.echo(f"  {mark:14} {name:20} {r.methods:4} methods  {r.path.relative_to(apps_dir)}")
+        if r.changed:
+            stale.append(name)
+    if check and stale:
+        click.echo(f"Run: grunt app types {' '.join(stale)}", err=True)
+        raise SystemExit(1)
 
 
 @app_group.command("doctor")

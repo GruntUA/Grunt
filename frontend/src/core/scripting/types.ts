@@ -1,3 +1,7 @@
+// The core's method registry - a global script (no exports), so it can't be
+// imported; the reference makes every program using these types load it.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="./methods.generated.d.ts" />
 /**
  * Public types of the client-script API (`frm`, `listview`, `grunt`).
  * Re-exported from `executor.ts`, which implements them.
@@ -9,6 +13,36 @@ import type { DocPerms } from '@/core/permissions'
 import type { FormDashboardApi } from '@/core/scripting/formDashboard'
 import type { DocType } from '@/types'
 
+declare global {
+  /**
+   * Whitelisted server methods by path: `{ args, result }` of each, generated
+   * from the Python signatures by `grunt app types` into `methods.generated.d.ts`
+   * (the core's next to this file, an app's in its package). Apps add theirs
+   * by declaring this interface again.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- filled by declaration merging
+  interface GruntMethods {}
+}
+
+/** A whitelisted method path known to the registry. */
+export type MethodName = keyof GruntMethods & string
+export type MethodArgs<M extends MethodName> = GruntMethods[M]['args']
+export type MethodResult<M extends MethodName> = GruntMethods[M]['result']
+/** `args` may be left out when the method has no required parameter. */
+type ArgsParam<M extends MethodName> = object extends MethodArgs<M>
+  ? [args?: MethodArgs<M>]
+  : [args: MethodArgs<M>]
+type ArgsField<M extends MethodName> = object extends MethodArgs<M>
+  ? { args?: MethodArgs<M> }
+  : { args: MethodArgs<M> }
+/**
+ * A path *not* in the registry (another app's method, a dynamic name). A
+ * registered one only lands here when its typed overload rejected the
+ * arguments - the brand names the cause in the compiler's message.
+ */
+type UnknownMethod<S extends string> = S &
+  (S extends MethodName ? { readonly '⚠ arguments do not match this method (see GruntMethods)': true } : unknown)
+
 /** Callback registered via frm.set_query - returns filters for a link field. */
 export type LinkQueryFn = (
   doc: Record<string, unknown>,
@@ -17,7 +51,9 @@ export type LinkQueryFn = (
 /** Form proxy exposed to client scripts as `cur_frm`. */
 export interface FormProxy {
   doctype: string
-  doc: Record<string, unknown>
+  /** The document's values - dynamic per DocType, hence `any` (scripts read them freely). */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see above
+  doc: Record<string, any>
   fields: Record<string, unknown>[]
   /** The DocType definition (flags such as `is_signable`, views, …); null until loaded. */
   readonly meta: DocType | null
@@ -211,15 +247,23 @@ export interface GruntProxy {
    * Both signatures are supported:
    * ```js
    * // Positional
-   * grunt.call('hrm.hrm.api.get_positions_by_department', { department: doc.department })
+   * grunt.call('hrm.api.get_positions_by_department', { department: doc.department })
    *
    * // Object-style
-   * grunt.call({ method: 'hrm.hrm.api.get_positions_by_department', args: { department: doc.department } })
+   * grunt.call({ method: 'hrm.api.get_positions_by_department', args: { department: doc.department } })
    * ```
+   *
+   * A method in the `GruntMethods` registry (`grunt app types`) gets its
+   * arguments checked and its result typed; any other path resolves to `any`
+   * (or `grunt.call<MyShape>(…)` in TypeScript).
    */
   call: {
-    (method: string, args?: Record<string, unknown>): Promise<unknown>
-    (opts: { method: string; args?: Record<string, unknown> }): Promise<unknown>
+    <M extends MethodName>(method: M, ...args: ArgsParam<M>): Promise<MethodResult<M>>
+    <M extends MethodName>(opts: { method: M } & ArgsField<M>): Promise<MethodResult<M>>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped methods: the caller knows the shape
+    <T = any, S extends string = string>(method: UnknownMethod<S>, args?: Record<string, unknown>): Promise<T>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- as above
+    <T = any, S extends string = string>(opts: { method: UnknownMethod<S>; args?: Record<string, unknown> }): Promise<T>
   }
   /** Raw HTTP helpers for arbitrary API calls. */
   api: {
@@ -239,7 +283,8 @@ export interface GruntProxy {
   show_alert: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void
   prompt: (labelOrOpts: string | { label: string; fieldtype?: string; title?: string }, title?: string) => Promise<string | null>
   warn: (title: string, message: string, primaryLabel?: string) => Promise<boolean>
-  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize; buttons?: unknown[] }) => Promise<Record<string, unknown> | null>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the dialog's values: dynamic per field list
+  form: (opts: { title: string; fields: unknown[]; primaryLabel?: string; size?: DialogSize; buttons?: unknown[] }) => Promise<Record<string, any> | null>
   /** Selectable list/table dialog. Resolves with picked row(s) or null. */
   select: (opts: {
     title: string
