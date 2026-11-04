@@ -38,6 +38,7 @@ from pathlib import Path
 from typing import Any
 
 lazy from grunt import log
+lazy from grunt.document.base import BaseDocument
 
 #: Parameters the dispatcher fills itself (``api/v1/method.py``).
 _INJECTED = {"self", "cls", "request", "response"}
@@ -122,7 +123,12 @@ class _Emitter:
         if _is_response(tp):
             # A file / redirect - `grunt.call` hands back no JSON for these.
             return "unknown"
-        if typing.is_typeddict(tp) or dataclasses.is_dataclass(tp) or _is_pydantic(tp):
+        if (
+            typing.is_typeddict(tp)
+            or dataclasses.is_dataclass(tp)
+            or _is_pydantic(tp)
+            or _is_document(tp)
+        ):
             return self._named(tp)
         return "any"
 
@@ -158,10 +164,13 @@ class _Emitter:
             sig = inspect.signature(fn)
         except TypeError, ValueError:
             return "Record<string, unknown>"
+        from grunt.api.v1.method import server_only_params
+
         hints = _hints(fn)
+        server_only = server_only_params(fn)
         fields, extra = [], False
         for p in sig.parameters.values():
-            if p.name in _INJECTED or p.kind is p.VAR_POSITIONAL:
+            if p.name in _INJECTED or p.name in server_only or p.kind is p.VAR_POSITIONAL:
                 continue
             if p.kind is p.VAR_KEYWORD:
                 extra = True
@@ -186,8 +195,61 @@ def _is_pydantic(tp: type) -> bool:
     )
 
 
+def _is_document(tp: type) -> bool:
+    return issubclass(tp, BaseDocument)
+
+
+#: Columns every document row has (``metadata/compiler.py``), before its fields.
+_DOC_COLUMNS: list[tuple[str, Any]] = [
+    ("name", str),
+    ("owner", str),
+    ("created_at", datetime.datetime | None),
+    ("modified_at", datetime.datetime | None),
+    ("modified_by", str | None),
+]
+
+
+def _document_fields(tp: type) -> list[tuple[str, Any, bool]]:
+    """A controller as the dispatcher sends it - ``doc.as_dict()``.
+
+    The fields are the controller's annotations (the block ``grunt doctype
+    sync-types`` writes from the DocType JSON, plus those of app mixins);
+    the framework's own attributes (``data``, ``user``, ``session``…) are not
+    part of the JSON. A field hidden from the caller by permissions is left out
+    of the response, though typed as present.
+    """
+    import annotationlib
+
+    doctype = getattr(tp, "doctype", None)
+    doctype = doctype if isinstance(doctype, str) else tp.__name__
+    hints = _hints(tp)
+    out: list[tuple[str, Any, bool]] = [("doctype", typing.Literal[doctype], True)]
+    seen = {"doctype"}
+    for name, ann in _DOC_COLUMNS:
+        out.append((name, ann, True))
+        seen.add(name)
+    for cls in reversed(tp.__mro__):
+        if cls is object or cls.__module__.startswith("grunt.document"):
+            continue
+        try:
+            own = annotationlib.get_annotations(cls, format=annotationlib.Format.FORWARDREF)
+        except Exception:
+            continue
+        for name in own:
+            if name in seen or name.startswith("_"):
+                continue
+            ann = hints.get(name, Any)
+            if typing.get_origin(ann) is typing.ClassVar:
+                continue
+            seen.add(name)
+            out.append((name, ann, True))
+    return out
+
+
 def _fields(tp: type) -> list[tuple[str, Any, bool]]:
-    """``(name, type, required)`` of a TypedDict, dataclass or pydantic model."""
+    """``(name, type, required)`` of a TypedDict, dataclass, pydantic model or controller."""
+    if _is_document(tp):
+        return _document_fields(tp)
     if typing.is_typeddict(tp):
         hints = typing.get_type_hints(tp)
         required: frozenset[str] = getattr(tp, "__required_keys__", frozenset())

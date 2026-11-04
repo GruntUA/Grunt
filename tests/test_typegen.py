@@ -173,3 +173,43 @@ def test_core_registry_is_up_to_date():
     """Changed a whitelisted method of the core? Run `grunt app types grunt`."""
     core = Path(typegen.__file__).resolve().parents[2]
     assert not typegen.generate(core, write=False).changed, "run: grunt app types grunt"
+
+
+CONTROLLER = """
+import grunt
+from grunt.document.base import Document
+
+
+class Ticket(Document):
+    # begin: auto-generated types
+    subject: str  # Subject
+    priority: int | None  # Priority
+    rows: list[dict]  # Table: TicketRow
+    # end: auto-generated types
+
+
+@grunt.whitelist()
+async def get_ticket(name: str) -> Ticket: ...
+
+
+@grunt.whitelist()
+async def my_tickets() -> list[Ticket]: ...
+"""
+
+
+def test_controller_result_is_its_doctype_json(tmp_path, monkeypatch):
+    pkg = tmp_path / "tg_ctrl_app" / "tg_ctrl_app"
+    pkg.mkdir(parents=True)
+    (pkg / "__init__.py").write_text("")
+    (pkg / "api.py").write_text(textwrap.dedent(CONTROLLER))
+    monkeypatch.syspath_prepend(str(tmp_path / "tg_ctrl_app"))
+    text = _render(tmp_path / "tg_ctrl_app")
+
+    assert "result: GruntApi.tg_ctrl_app.Ticket }" in _entry(text, "tg_ctrl_app.api.get_ticket")
+    assert "result: GruntApi.tg_ctrl_app.Ticket[] }" in _entry(text, "tg_ctrl_app.api.my_tickets")
+    body = next(line for line in text.splitlines() if "interface Ticket" in line)
+    assert body.startswith('  interface Ticket { doctype: "Ticket"; name: string; owner: string;')
+    assert "subject: string; priority: number | null; rows: Record<string, any>[] }" in body
+    # The framework's attributes are not part of the JSON
+    for internal in ("data:", "user:", "session:", "engine:", "doc_before_save", "input_data"):
+        assert internal not in body

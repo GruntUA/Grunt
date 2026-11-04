@@ -167,13 +167,13 @@ interface GruntMethods {
   /** Test an assignment rule against a sample document. */
   "grunt.assignment.doctypes.AssignmentRule.assignment_rule.test_rule": { args: { rule_id: string; test_doc: Record<string, any> }; result: Record<string, any> }
   /** Create a new API key for the current user. */
-  "grunt.auth.doctypes.ApiKey.api_key.create_api_key": { args: { label: string; expires_at?: string | null; allowed_ips?: string | null; user?: any }; result: Record<string, any> }
+  "grunt.auth.doctypes.ApiKey.api_key.create_api_key": { args: { label: string; expires_at?: string | null; allowed_ips?: string | null }; result: Record<string, any> }
   /** List API keys (secrets are never returned). */
-  "grunt.auth.doctypes.ApiKey.api_key.list_api_keys": { args: { user?: any }; result: Record<string, any>[] }
+  "grunt.auth.doctypes.ApiKey.api_key.list_api_keys": { args: {}; result: Record<string, any>[] }
   /** Permanently revoke (delete) an API key. */
-  "grunt.auth.doctypes.ApiKey.api_key.revoke_api_key": { args: { key_id: string; user?: any }; result: boolean }
+  "grunt.auth.doctypes.ApiKey.api_key.revoke_api_key": { args: { key_id: string }; result: boolean }
   /** Update label, active state, allowed IPs, or expiry of a key. */
-  "grunt.auth.doctypes.ApiKey.api_key.update_api_key": { args: { key_id: string; label?: string | null; is_active?: boolean | null; expires_at?: string | null; allowed_ips?: string | null; user?: any }; result: Record<string, any> }
+  "grunt.auth.doctypes.ApiKey.api_key.update_api_key": { args: { key_id: string; label?: string | null; is_active?: boolean | null; expires_at?: string | null; allowed_ips?: string | null }; result: Record<string, any> }
   /** Approve a pending registration - the user can now sign in. System Manager only. Roles: System Manager. */
   "grunt.auth.doctypes.User.user.approve_user_api": { args: { user_id: string }; result: boolean }
   /** Confirm MFA setup for the current user. */

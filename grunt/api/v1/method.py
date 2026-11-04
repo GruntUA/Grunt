@@ -1,6 +1,8 @@
+import functools
 import importlib
 import inspect
 import json
+import typing
 from inspect import iscoroutinefunction
 from typing import Any
 
@@ -15,6 +17,7 @@ from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
 lazy from grunt.auth.session_cookie import cookie_user
+lazy from grunt.document.base import BaseDocument
 lazy from grunt.errors import forbidden
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
@@ -65,6 +68,47 @@ def _process_params(params: dict[str, str], method: Any = None) -> dict[str, Any
         else:
             args[key] = val
     return args
+
+
+def _documents_as_dicts(value: Any) -> Any:
+    """Replace every controller in *value* with its JSON (``doc.as_dict()``).
+
+    A whitelisted method may return a ``Document`` - alone or inside a dict /
+    list - instead of calling ``as_dict()`` itself. Encoded as a plain object,
+    a controller would ship its internals (``user`` with its secrets,
+    ``session``, ``doc_before_save``…) under ``data`` instead of its fields.
+    Containers are rebuilt only where a controller sits.
+    """
+    if isinstance(value, BaseDocument):
+        return value.as_dict()
+    if isinstance(value, dict):
+        changed = {k: v2 for k, v in value.items() if (v2 := _documents_as_dicts(v)) is not v}
+        return {**value, **changed} if changed else value
+    if isinstance(value, list | tuple):
+        items = [_documents_as_dicts(v) for v in value]
+        return items if any(a is not b for a, b in zip(items, value, strict=True)) else value
+    return value
+
+
+def _mentions_document(annotation: Any) -> bool:
+    if inspect.isclass(annotation) and issubclass(annotation, BaseDocument):
+        return True
+    return any(_mentions_document(a) for a in typing.get_args(annotation))
+
+
+@functools.cache
+def server_only_params(method: Any) -> frozenset[str]:
+    """Parameters typed as a controller (``user: User | None = None``).
+
+    They are for Python callers, who hand over a loaded ``Document``; a request
+    can only send JSON, which would reach the method as a dict posing as one.
+    The dispatcher refuses them (and `grunt app types` leaves them out).
+    """
+    try:
+        hints = typing.get_type_hints(inspect.unwrap(method))
+    except Exception:
+        return frozenset()
+    return frozenset(n for n, a in hints.items() if n != "return" and _mentions_document(a))
 
 
 def get_whitelisted_method(method_path: str) -> Any:
@@ -154,6 +198,13 @@ async def _invoke_with_context(
 
         sig = inspect.signature(method)
 
+        if forged := sorted(server_only_params(method) & args.keys()):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=_("Parameters %(items)s cannot be passed in a request")
+                % {"items": ", ".join(forged)},
+            )
+
         # Methods reached through this dispatcher are called with kwargs only, so
         # a ``request: Request`` parameter never gets FastAPI's native injection.
         # Supply the raw request for methods that ask for it (e.g. building
@@ -181,6 +232,7 @@ async def _invoke_with_context(
         # returned verbatim - FileResponse/StreamingResponse, already signed.
         if isinstance(result, Response):
             return result
+        result = _documents_as_dicts(result)
         # The signer walks dict/list/str. A method that returns some other
         # object (e.g. a Pydantic model) carrying a private-file URL would
         # otherwise ship it unsigned; reduce it to primitives first (the result
