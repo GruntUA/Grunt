@@ -124,6 +124,7 @@ function on_load(frm) {
         placement: 'menu',
         group: 'document',
         order: 300,
+        shortcut: 'Mod+Shift+D',
         visible: (f) => _saved(f) && f.perm.create,
         action: (f) => f.duplicate(),
     })

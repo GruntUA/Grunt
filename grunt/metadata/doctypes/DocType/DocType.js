@@ -47,144 +47,130 @@ const VIEWS = [
     ['map', 'Map', ({ geo }) => geo.length > 0],
 ]
 
-/**
- * Refresh title_field, image_field, and status_field options based on current fields list.
- * title_field / status_field — all non-layout fields; image_field — only
- * Image/Attach fields; kanban_column_field — only Select fields.
- */
+// Field-type groups offered by the field pickers below.
+const LAYOUT_TYPES = ['Tab', 'Section', 'Column', 'HTML', 'Heading']
+const GROUPS = {
+    image: ['Image', 'Attach', 'AttachImage'],
+    select: ['Select'],
+    link: ['Link'],
+    date: ['Date', 'Datetime'],
+    number: ['Float', 'Int', 'Percent'],
+    text: ['Data', 'LongText', 'Select', 'Link', 'Code', 'JSON'],
+    check: ['Check'],
+    geo: ['Geolocation'],
+}
+
+// Picker field -> group of fields it may point at ('all' = any non-layout field).
+const PICKERS = {
+    title_field: 'all',
+    search_fields: 'text',
+    image_field: 'image',
+    status_field: 'all',
+    kanban_column_field: 'select',
+    tree_parent_field: 'link',
+    tree_title_field: 'all',
+    tree_as_of_date_field: 'date',
+    tree_sort_by: 'all',
+    gantt_start_field: 'date',
+    gantt_end_field: 'date',
+    gantt_title_field: 'all',
+    gantt_progress_field: 'number',
+    gantt_color_field: 'select',
+    gantt_dependencies_field: 'all',
+    calendar_date_field: 'date',
+    calendar_end_date_field: 'date',
+    calendar_title_field: 'all',
+    is_published_field: 'check',
+    retention_date_field: 'date',
+}
+
+const opt = names => '\n' + names.join('\n')
+
+/** Refresh the options of every field picker (and default_view) from the fields table. */
 function _refresh_field_selects(frm) {
-    const LAYOUT_TYPES = new Set(['Tab', 'Section', 'Column', 'HTML', 'Heading'])
-    const IMAGE_TYPES = new Set(['Image', 'Attach', 'AttachImage'])
-    const DATE_TYPES = new Set(['Date', 'Datetime'])
-    const NUMBER_TYPES = new Set(['Float', 'Int', 'Percent'])
-    const TEXT_TYPES = new Set(['Data', 'LongText', 'Select', 'Link', 'Code', 'JSON'])
+    const named = (frm.doc.fields || []).filter(f => f.fieldname)
+    const pick = types => named.filter(f => types.includes(f.fieldtype)).map(f => f.fieldname)
 
-    const fields = frm.doc.fields || []
-    const named = fields.filter(f => f.fieldname)
-    const pick = pred => named.filter(pred).map(f => f.fieldname)
+    const by = { all: named.filter(f => !LAYOUT_TYPES.includes(f.fieldtype)).map(f => f.fieldname) }
+    for (const [group, types] of Object.entries(GROUPS)) by[group] = pick(types)
 
-    const allFieldnames = pick(f => !LAYOUT_TYPES.has(f.fieldtype))
-    const imageFieldnames = pick(f => IMAGE_TYPES.has(f.fieldtype))
-    const selectFieldnames = pick(f => f.fieldtype === 'Select')
-    const linkFieldnames = pick(f => f.fieldtype === 'Link')
-    const dateFieldnames = pick(f => DATE_TYPES.has(f.fieldtype))
-    const numberFieldnames = pick(f => NUMBER_TYPES.has(f.fieldtype))
-    const textFieldnames = pick(f => TEXT_TYPES.has(f.fieldtype))
-    const checkFieldnames = pick(f => f.fieldtype === 'Check')
+    for (const [picker, group] of Object.entries(PICKERS)) {
+        frm.set_df_property(picker, 'options', opt(by[group]))
+    }
+    frm.set_df_property('sort_field', 'options', opt([...by.all, 'name', 'created_at', 'modified_at']))
 
-    const opt = names => '\n' + names.join('\n')
-    frm.set_df_property('title_field', 'options', opt(allFieldnames))
-    frm.set_df_property('sort_field', 'options', opt([...allFieldnames, 'name', 'created_at', 'modified_at']))
-    frm.set_df_property('search_fields', 'options', opt(textFieldnames))
-    frm.set_df_property('image_field', 'options', opt(imageFieldnames))
-    frm.set_df_property('status_field', 'options', opt(allFieldnames))
-    frm.set_df_property('kanban_column_field', 'options', opt(selectFieldnames))
-    frm.set_df_property('tree_parent_field', 'options', opt(linkFieldnames))
-    frm.set_df_property('tree_title_field', 'options', opt(allFieldnames))
-    frm.set_df_property('tree_as_of_date_field', 'options', opt(dateFieldnames))
-    frm.set_df_property('tree_sort_by', 'options', opt(allFieldnames))
-    frm.set_df_property('gantt_start_field', 'options', opt(dateFieldnames))
-    frm.set_df_property('gantt_end_field', 'options', opt(dateFieldnames))
-    frm.set_df_property('gantt_title_field', 'options', opt(allFieldnames))
-    frm.set_df_property('gantt_progress_field', 'options', opt(numberFieldnames))
-    frm.set_df_property('gantt_color_field', 'options', opt(selectFieldnames))
-    frm.set_df_property('gantt_dependencies_field', 'options', opt(allFieldnames))
-    frm.set_df_property('calendar_date_field', 'options', opt(dateFieldnames))
-    frm.set_df_property('calendar_end_date_field', 'options', opt(dateFieldnames))
-    frm.set_df_property('calendar_title_field', 'options', opt(allFieldnames))
-    frm.set_df_property('is_published_field', 'options', opt(checkFieldnames))
-    frm.set_df_property('retention_date_field', 'options', opt(dateFieldnames))
-
-    const available = { doc: frm.doc, selects: selectFieldnames, dates: dateFieldnames,
-        geo: pick(f => f.fieldtype === 'Geolocation') }
+    const available = { doc: frm.doc, selects: by.select, dates: by.date, geo: by.geo }
     const views = VIEWS.filter(([, , usable]) => usable(available))
     frm.set_df_property('default_view', 'options', opt(views.map(([value, icon]) => `${value}|${icon}`)))
 }
 
+/**
+ * Installed apps with their modules. The script is re-evaluated on every event,
+ * so the cache lives on window to survive between on_load and on_change.
+ */
+async function _get_apps() {
+    if (!window._dtAppsCache?.length) {
+        const result = await grunt.api.get('/api/v1/docs/GruntInstalledApp')
+        window._dtAppsCache = result?.data || []
+    }
+    return window._dtAppsCache
+}
+
+function _set_module_options(frm, app) {
+    frm.set_df_property('module', 'options', (app?.modules || []).join('\n'))
+    frm.set_df_property('module', 'description', '')
+}
+
 async function on_load(frm) {
-    // Populate title_field / image_field selects from current fields
     _refresh_field_selects(frm)
 
-    // Load apps and populate selects
+    let apps
     try {
-        const result = await grunt.api.get('/api/v1/docs/GruntInstalledApp')
-        const apps = result?.data || []
-        window._dtAppsCache = apps
-
-        // Populate app options
-        const appOptions = apps.map(a => a.name).join('\n')
-        frm.set_df_property('app', 'options', appOptions)
-
-        // For existing docs — reverse-lookup app from current module
-        const currentModule = frm.get_value('module')
-        if (currentModule) {
-            const matchingApp = apps.find(a => (a.modules || []).includes(currentModule))
-            if (matchingApp) {
-                frm.set_value('app', matchingApp.name)
-                frm.set_df_property('module', 'options', (matchingApp.modules || []).join('\n'))
-                frm.set_df_property('module', 'description', '')
-            }
-        }
-
-        // For new docs, make app and module required
-        if (frm.is_new) {
-            frm.toggle_reqd('app', true)
-            frm.toggle_reqd('module', true)
-        }
+        apps = await _get_apps()
     } catch (e) {
         grunt.show_alert(__('Could not load the list of apps'), 'error')
+        return
+    }
+    frm.set_df_property('app', 'options', apps.map(a => a.name).join('\n'))
+
+    // Existing doc: reverse-lookup the app from its module
+    const module = frm.get_value('module')
+    const app = module && apps.find(a => (a.modules || []).includes(module))
+    if (app) {
+        frm.set_value('app', app.name)
+        _set_module_options(frm, app)
+    }
+
+    if (frm.is_new) {
+        frm.toggle_reqd('app', true)
+        frm.toggle_reqd('module', true)
     }
 }
 
 async function on_change(frm, fieldname) {
-    // Refresh field selects whenever the fields table changes
-    if (fieldname === 'fields' || fieldname === 'is_tree') {
-        _refresh_field_selects(frm)
-        return
-    }
-
-    if (fieldname === 'status_field') {
-        _seed_status_indicators(frm)
-        return
-    }
-
+    if (fieldname === 'fields' || fieldname === 'is_tree') return _refresh_field_selects(frm)
+    if (fieldname === 'status_field') return _seed_status_indicators(frm)
     if (fieldname !== 'app') return
 
-    const selectedApp = frm.get_value('app')
-
-    // Clear module when app is deselected
-    if (!selectedApp) {
+    const selected = frm.get_value('app')
+    if (!selected) {
         frm.set_df_property('module', 'options', '')
         frm.set_value('module', '')
         return
     }
 
-    let apps = window._dtAppsCache
-    if (!apps || !apps.length) {
-        try {
-            const result = await grunt.api.get('/api/v1/docs/GruntInstalledApp')
-            apps = result?.data || []
-            window._dtAppsCache = apps
-        } catch (e) {
-            return
-        }
+    let apps
+    try {
+        apps = await _get_apps()
+    } catch (e) {
+        return
     }
-
-    const app = apps.find(a => a.name === selectedApp)
+    const app = apps.find(a => a.name === selected)
     if (app) {
-        // Clear module selection, update options, remove hint
         frm.set_value('module', '')
-        frm.set_df_property('module', 'options', (app.modules || []).join('\n'))
-        frm.set_df_property('module', 'description', '')
+        _set_module_options(frm, app)
     }
 }
-
-// Export for the executor
-window.doc_type_on_load = on_load
-window.doc_type_on_change = on_change
-
-if (typeof on_load === 'function') { window.on_load = on_load }
-if (typeof on_change === 'function') { window.on_change = on_change }
 
 /** @param {ListViewProxy} listview */
 function setup_list(listview) {
