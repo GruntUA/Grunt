@@ -112,7 +112,7 @@ export function createFormProxy(
     meta?: () => DocType | null
   } = {},
   isNew: boolean = false,
-  actions: ActionsApi<FormProxy> = NO_ACTIONS,
+  actions: ActionsApi<FormProxy> = noActions(),
   dashboard: FormDashboardApi = createFormDashboard(),
 ): FormProxy {
   const state = (): FormProxyState =>
@@ -237,13 +237,15 @@ export function createFormProxy(
 }
 
 /** Placeholder until a registry is attached (tests, detached proxies). */
-const NO_ACTIONS: ActionsApi<any> = {
-  add: () => {},
-  update: () => {},
-  remove: () => {},
-  get: () => undefined,
-  list: () => [],
-  run: async () => {},
+function noActions<C>(): ActionsApi<C> {
+  return {
+    add: () => {},
+    update: () => {},
+    remove: () => {},
+    get: () => undefined,
+    list: () => [],
+    run: async () => {},
+  }
 }
 
 /**
@@ -699,7 +701,7 @@ export function createListViewProxy(
     setQuickFilterValue?: ListViewProxy['set_quick_filter_value']
     setQuickFilters?: ListViewProxy['set_quick_filters']
   } = {},
-  actions: ActionsApi<ListViewProxy> = NO_ACTIONS,
+  actions: ActionsApi<ListViewProxy> = noActions(),
 ): ListViewProxy {
   const state = (): ListViewState =>
     callbacks.state?.() ?? {

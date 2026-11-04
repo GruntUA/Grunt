@@ -1,14 +1,16 @@
-import type {
-  FormProxy as _FormProxy,
-  GruntProxy as _GruntProxy,
-  ScriptButtonOptions as _ScriptButtonOptions,
-} from '../../grunt/frontend/src/core/scripting/executor'
+// Editor types for this app's client scripts (`<DocType>.js`): the framework's
+// public client-script API, so `/** @param {FormProxy} frm */` autocompletes.
+// `@/…` inside it resolves through `paths` in jsconfig.json.
+import type * as Api from '../../grunt/frontend/src/core/scripting/types'
 
 declare global {
-  type FormProxy = _FormProxy
-  type GruntProxy = _GruntProxy
-  type ScriptButtonOptions = _ScriptButtonOptions
-  const grunt: _GruntProxy
+  type FormProxy = Api.FormProxy
+  type ListViewProxy = Api.ListViewProxy
+  type ListQuickFilterChange = Api.ListQuickFilterChange
+  type GruntProxy = Api.GruntProxy
+  const grunt: Api.GruntProxy
+  /** UI translation (and an extraction marker); `{name}` placeholders take *params*. */
+  const __: (text: string, params?: Record<string, unknown>) => string
 }
 
 export {}

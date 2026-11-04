@@ -5,11 +5,14 @@
     "moduleResolution": "Bundler",
     "allowJs": true,
     "checkJs": false,
-    "baseUrl": "."
+    "paths": {
+      "@/*": ["../grunt/frontend/src/*"]
+    }
   },
   "include": [
     "{{ module }}/**/*.js",
-    "{{ module }}/**/*.d.ts"
+    "{{ module }}/**/*.d.ts",
+    "../grunt/frontend/src/vite-env.d.ts"
   ],
   "exclude": [
     "**/__pycache__/**",
