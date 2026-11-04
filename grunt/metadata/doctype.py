@@ -163,6 +163,7 @@ class DocTypeMapView(BaseModel):
     color_field: str | None = None  # field whose value drives marker color
     color_map: dict[str, str] | None = None  # { value: '#hex' } mapping for color_field
     default_color: str | None = None  # fallback marker color
+    icon_field: str | None = None  # field holding a lucide icon name for the marker
 
 
 # Status indicators
