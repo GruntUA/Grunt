@@ -244,29 +244,53 @@ def _is_whitelist_decorator(node: ast.expr) -> bool:
 
 
 def _candidate_modules(package_dir: Path, package: str) -> list[str]:
-    """Modules with a ``@whitelist`` decorator - only those get imported."""
-    found = []
+    """Modules that define a ``@whitelist`` method or import from one that does.
+
+    Only those get imported. The second kind re-exports a method under its own
+    path (``…User.user.approve_user_api`` from ``grunt.auth.user_api``), which
+    the dispatcher resolves just as well.
+    """
+    decorated: set[str] = set()
+    imports: dict[str, set[str]] = {}
     for file in sorted(package_dir.rglob("*.py")):
         rel = file.relative_to(package_dir)
         if _SKIP_DIRS & set(rel.parts):
             continue
+        parts = [package, *rel.with_suffix("").parts]
+        is_pkg = parts[-1] == "__init__"
+        if is_pkg:
+            parts.pop()
+        name = ".".join(parts)
         source = file.read_text(encoding="utf-8", errors="replace")
-        if "whitelist" not in source:
-            continue
         try:
             tree = ast.parse(source)
         except SyntaxError:
             continue
-        if any(
-            isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef)
-            and any(_is_whitelist_decorator(d) for d in n.decorator_list)
-            for n in ast.walk(tree)
-        ):
-            parts = [package, *rel.with_suffix("").parts]
-            if parts[-1] == "__init__":
-                parts.pop()
-            found.append(".".join(parts))
-    return found
+        sources = set()
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.ImportFrom)
+                and node.module is not None
+                or (isinstance(node, ast.ImportFrom) and node.level)
+            ):
+                sources.add(_absolute(node, parts if is_pkg else parts[:-1]))
+            elif (
+                "whitelist" in source
+                and isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+                and any(_is_whitelist_decorator(d) for d in node.decorator_list)
+            ):
+                decorated.add(name)
+        imports[name] = sources
+    reexporting = {n for n, src in imports.items() if n not in decorated and src & decorated}
+    return sorted(decorated | reexporting)
+
+
+def _absolute(node: ast.ImportFrom, package_parts: list[str]) -> str:
+    """The module an ``from … import`` reads, with relative levels resolved."""
+    if not node.level:
+        return node.module or ""
+    base = package_parts[: len(package_parts) - (node.level - 1)]
+    return ".".join([*base, node.module] if node.module else base)
 
 
 def _whitelisted(value: Any) -> Any:
@@ -289,6 +313,12 @@ def collect_methods(package_dir: Path, package: str) -> list[Method]:
             continue
         for name, obj in vars(module).items():
             if getattr(obj, "__module__", None) != mod_name:
+                # Re-exported from elsewhere in the app: a valid path too.
+                fn = _whitelisted(obj)
+                if fn and not inspect.isclass(obj) and obj.__module__.startswith(f"{package}."):
+                    methods.setdefault(
+                        f"{mod_name}.{name}", Method(f"{mod_name}.{name}", fn, mod_name)
+                    )
                 continue
             if fn := _whitelisted(obj):
                 methods[f"{mod_name}.{name}"] = Method(f"{mod_name}.{name}", fn, mod_name)
