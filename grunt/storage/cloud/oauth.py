@@ -23,7 +23,7 @@ import json
 import re
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, TypedDict
 from urllib.parse import urlencode
 
 import httpx2
@@ -155,8 +155,20 @@ async def save_token(remote: dict[str, Any], token: str) -> str:
 # RPC
 
 
+class TokenSaved(TypedDict):
+    #: The connected account's label (email / login), shown in the remote's form.
+    account: str
+
+
+class AuthorizeLink(TypedDict):
+    #: The provider's consent page to open.
+    url: str
+    #: Where the provider sends the user back (must match its app settings).
+    redirect_uri: str
+
+
 @whitelist(roles=["System Manager"])
-async def set_token(name: str, token: str) -> dict[str, Any]:
+async def set_token(name: str, token: str) -> TokenSaved:
     """Store a token pasted from ``rclone authorize``."""
     remote = await load_remote(name)
     try:
@@ -168,7 +180,7 @@ async def set_token(name: str, token: str) -> dict[str, Any]:
 
 
 @whitelist(roles=["System Manager"])
-async def authorize(name: str, request: Request | None = None) -> dict[str, str]:
+async def authorize(name: str, request: Request | None = None) -> AuthorizeLink:
     """The provider's sign-in URL for *name* (needs its own client id/secret)."""
     remote = await load_remote(name)
     endpoints = get_provider(remote.get("provider")).oauth

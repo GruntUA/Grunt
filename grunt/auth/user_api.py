@@ -22,7 +22,14 @@ from grunt.auth.doctypes.UserSession.user_session import (
 from grunt.auth.impersonation import start_impersonation
 from grunt.auth.ip_policy import sign_in_ip_allowed
 from grunt.auth.login import issue_login
-from grunt.auth.mfa import begin_mfa_setup, check_mfa_code, confirm_mfa_setup, mfa_setup_required
+from grunt.auth.mfa import (
+    MfaConfirmed,
+    MfaSetup,
+    begin_mfa_setup,
+    check_mfa_code,
+    confirm_mfa_setup,
+    mfa_setup_required,
+)
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.service import (
     access_token_minutes,
@@ -178,7 +185,7 @@ async def _user_for_mfa_setup(mfa_token: str) -> User:
 
 
 @grunt.whitelist(allow_guest=True)
-async def mfa_enroll_begin(mfa_token: str) -> dict[str, Any]:
+async def mfa_enroll_begin(mfa_token: str) -> MfaSetup:
     """Login-time MFA enrollment, step 1: a fresh TOTP secret + QR code."""
     return await begin_mfa_setup(await _user_for_mfa_setup(mfa_token))
 
@@ -467,13 +474,13 @@ async def _current_user_doc() -> User:
 
 
 @grunt.whitelist()
-async def setup_mfa() -> dict[str, Any]:
+async def setup_mfa() -> MfaSetup:
     """Start MFA setup for the current user."""
     return await begin_mfa_setup(await _current_user_doc())
 
 
 @grunt.whitelist()
-async def confirm_mfa(code: str) -> dict[str, Any]:
+async def confirm_mfa(code: str) -> MfaConfirmed:
     """Confirm MFA setup for the current user."""
     return {"backup_codes": await confirm_mfa_setup(await _current_user_doc(), code)}
 

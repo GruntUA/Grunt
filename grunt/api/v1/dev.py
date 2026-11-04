@@ -5,6 +5,7 @@ from typing import Any
 import grunt
 from grunt.config import settings
 from grunt.db.profiler import (
+    ProfilerSettings,
     clear_buffers,
     get_recent_requests,
     get_settings,
@@ -62,7 +63,7 @@ async def clear_profiler() -> bool:
 
 
 @grunt.whitelist(roles=["System Manager"])
-async def get_profiler_settings() -> dict[str, Any]:
+async def get_profiler_settings() -> ProfilerSettings:
     """Return current profiler runtime settings."""
     _require_profiler()
 
@@ -76,7 +77,7 @@ async def update_profiler_settings(
     slow_request_db_ms: float | None = None,
     slow_request_ms: float | None = None,
     n1_threshold: int | None = None,
-) -> dict[str, Any]:
+) -> ProfilerSettings:
     """Update profiler thresholds at runtime."""
     _require_profiler()
 

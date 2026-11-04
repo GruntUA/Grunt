@@ -6,6 +6,7 @@ import aiosmtplib
 
 import grunt
 from grunt import _, log
+from grunt.api.results import Outcome
 from grunt.email.service import SMTP_PASSWORD_MASK, EmailService, smtp_connect_kwargs
 
 
@@ -23,7 +24,7 @@ async def test_smtp_connection(
     smtp_user: str | None = None,
     smtp_password: str | None = None,
     account_id: str | None = None,
-) -> dict[str, Any]:
+) -> Outcome:
     """Attempt SMTP connect+login without sending a message.
 
     When ``account_id`` is given and no fresh password was typed, the stored
@@ -45,7 +46,7 @@ async def test_smtp_connection(
 
 
 @grunt.whitelist(roles=["System Manager"])
-async def send_test_email(account_id: str, recipient: str) -> dict[str, Any]:
+async def send_test_email(account_id: str, recipient: str) -> Outcome:
     """Send a short test message through a saved EmailAccount.
 
     Uses the stored SMTP settings (the caller is System Manager, so the

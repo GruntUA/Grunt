@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 
 import grunt
 from grunt import _, whitelist
+from grunt.api.results import Queued
 from grunt.backups import _NAME, backups_dir
 from grunt.backups.tasks import backup_now as task
 from grunt.config import settings
@@ -54,7 +55,7 @@ async def download(file: str, exp: int, sig: str) -> FileResponse:
 @whitelist(roles=["System Manager"])
 async def backup_now(
     with_database: bool = True, with_files: bool = True, with_config: bool = True
-) -> dict:
+) -> Queued:
     """Queue a backup of the chosen parts (the worker makes it; it shows up in the list)."""
     if not (with_database or with_files or with_config):
         raise HTTPException(status_code=400, detail=_("Choose at least one part to back up"))

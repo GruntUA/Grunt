@@ -190,9 +190,11 @@ def _fields(tp: type) -> list[tuple[str, Any, bool]]:
     """``(name, type, required)`` of a TypedDict, dataclass or pydantic model."""
     if typing.is_typeddict(tp):
         hints = typing.get_type_hints(tp)
-        return [(k, v, k in tp.__required_keys__) for k, v in hints.items()]
+        required: frozenset[str] = getattr(tp, "__required_keys__", frozenset())
+        return [(k, v, k in required) for k, v in hints.items()]
     if _is_pydantic(tp):
-        return [(k, f.annotation, f.is_required()) for k, f in tp.model_fields.items()]
+        model_fields = getattr(tp, "model_fields", {})
+        return [(k, f.annotation, f.is_required()) for k, f in model_fields.items()]
     hints = _hints(tp)
     return [
         (f.name, hints.get(f.name, Any), True)  # serialised: every field is present
@@ -260,6 +262,8 @@ def _candidate_modules(package_dir: Path, package: str) -> list[str]:
         is_pkg = parts[-1] == "__init__"
         if is_pkg:
             parts.pop()
+        if not all(p.isidentifier() for p in parts):
+            continue  # not importable by a dotted path (`www/share/{token}/`)
         name = ".".join(parts)
         source = file.read_text(encoding="utf-8", errors="replace")
         try:
@@ -268,11 +272,7 @@ def _candidate_modules(package_dir: Path, package: str) -> list[str]:
             continue
         sources = set()
         for node in ast.walk(tree):
-            if (
-                isinstance(node, ast.ImportFrom)
-                and node.module is not None
-                or (isinstance(node, ast.ImportFrom) and node.level)
-            ):
+            if isinstance(node, ast.ImportFrom):
                 sources.add(_absolute(node, parts if is_pkg else parts[:-1]))
             elif (
                 "whitelist" in source

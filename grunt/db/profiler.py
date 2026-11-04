@@ -23,7 +23,7 @@ from collections.abc import AsyncGenerator, Callable, Generator
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from dataclasses import asdict, dataclass, field
-from typing import Any, TypeVar
+from typing import Any, TypedDict, TypeVar
 
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -97,8 +97,25 @@ class _ProfilerSettings:
 _settings = _ProfilerSettings()
 
 
-def get_settings() -> dict:
-    return asdict(_settings)
+class ProfilerSettings(TypedDict):
+    """``_ProfilerSettings`` as the RPC returns it (same fields)."""
+
+    enabled: bool
+    threshold_ms: float
+    slow_request_db_ms: float
+    slow_request_ms: float
+    n1_threshold: int
+
+
+def get_settings() -> ProfilerSettings:
+    s = _settings
+    return {
+        "enabled": s.enabled,
+        "threshold_ms": s.threshold_ms,
+        "slow_request_db_ms": s.slow_request_db_ms,
+        "slow_request_ms": s.slow_request_ms,
+        "n1_threshold": s.n1_threshold,
+    }
 
 
 def set_enabled(enabled: bool) -> None:

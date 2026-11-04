@@ -8,6 +8,7 @@ import contextlib
 import hashlib
 import json
 import os
+from typing import TypedDict
 
 import pyotp
 from fastapi import HTTPException
@@ -91,7 +92,19 @@ async def mfa_setup_required(user: User) -> bool:
     return bool(enforcing)
 
 
-async def begin_mfa_setup(user: User) -> dict:
+class MfaSetup(TypedDict):
+    #: Base32 TOTP secret, for manual entry in an authenticator app.
+    secret: str
+    #: The same secret as an otpauth:// QR code (inline SVG markup).
+    qr_svg: str
+
+
+class MfaConfirmed(TypedDict):
+    #: One-time recovery codes - shown once, never retrievable again.
+    backup_codes: list[str]
+
+
+async def begin_mfa_setup(user: User) -> MfaSetup:
     """Generate a new TOTP secret, store it (unconfirmed), and return setup info."""
     # Prevent overwriting if already enabled
     if user.mfa_enabled:

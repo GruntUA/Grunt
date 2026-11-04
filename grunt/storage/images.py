@@ -29,6 +29,7 @@ lazy from PIL import Image, ImageOps
 
 import grunt
 from grunt import _, log, whitelist
+from grunt.api.results import Queued
 from grunt.site.settings import get_setting
 lazy from grunt.progress import Progress
 lazy from grunt.storage import files
@@ -232,7 +233,7 @@ async def compress_existing(
 
 
 @whitelist(roles=["System Manager"])
-async def start_compression() -> dict:
+async def start_compression() -> Queued:
     """Queue :func:`compress_existing` for the whole site (System Settings →
     Files); whoever started it follows it in the task panel."""
 

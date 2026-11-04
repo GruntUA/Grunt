@@ -43,10 +43,14 @@ type ArgsField<M extends MethodName> = object extends MethodArgs<M>
 type UnknownMethod<S extends string> = S &
   (S extends MethodName ? { readonly '⚠ arguments do not match this method (see GruntMethods)': true } : unknown)
 
-/** Callback registered via frm.set_query - returns filters for a link field. */
+/**
+ * Callback registered via frm.set_query - returns filters for a link field
+ * (`{}` / `{ filters: undefined }` for none).
+ */
 export type LinkQueryFn = (
-  doc: Record<string, unknown>,
-) => { filters: Record<string, string | string[]> } | Record<string, string | string[]>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the document's values, as on frm.doc
+  doc: Record<string, any>,
+) => { filters?: Record<string, string | string[]> } | Record<string, string | string[]>
 
 /** Form proxy exposed to client scripts as `cur_frm`. */
 export interface FormProxy {
@@ -299,7 +303,8 @@ export interface GruntProxy {
     maxHeight?: string
     fields?: unknown[]
     buttons?: unknown[]
-  }) => Promise<Record<string, unknown>[] | Record<string, unknown> | null>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- the caller's own rows
+  }) => Promise<Record<string, any>[] | Record<string, any> | null>
   show_progress: (title: string, count: number, total: number, description?: string) => void
   /**
    * Open an app's dialog component (bench/apps/<app>/desk/dialogs/<Name>.vue).
