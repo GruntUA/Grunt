@@ -1,0 +1,6 @@
+{# Shown over a page opened with ?preview=1 (grunt.website.preview) - included by every site's _base.html. #}
+{% if page_preview %}
+<div role="status" style="position: sticky; top: 0; z-index: 1000; padding: 0.5rem 1rem; background: #fef3c7; color: #78350f; border-bottom: 1px solid #f59e0b; font: 500 0.875rem/1.4 system-ui, sans-serif; text-align: center;">
+    {{ _("Preview — this page is not published yet. Only signed-in users with access can see it.") }}
+</div>
+{% endif %}

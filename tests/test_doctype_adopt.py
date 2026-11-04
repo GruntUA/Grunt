@@ -5,6 +5,7 @@ import json
 import pytest
 
 from grunt.metadata.doctype import DocType
+from grunt.metadata.field import DocField
 from grunt.testkit import write_app_manifest
 
 OLD_TABLE = "grunt_oldapp_adopt_target"
@@ -50,7 +51,7 @@ async def _owned_by_oldapp(db_session, engine):
         label="Old",
         module="oldapp",
         app="oldapp",
-        fields=[{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+        fields=[DocField(fieldname="title", label="Title", fieldtype="Data")],
     )
     await doctype_registry.register(dt, db_session, engine)
     await db_session.commit()

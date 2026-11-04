@@ -44,6 +44,20 @@ function evalCondition(expr: string, doc: Record<string, unknown>): boolean {
   }
 }
 
+/**
+ * Open a URL returned by an action (`open_url`) - a file to download or a page.
+ * Only http(s) and site-relative URLs. After the awaited request the browser may
+ * block the new tab as a popup; then the URL opens in this tab (a file just downloads).
+ */
+export function openUrl(url: string): void {
+  const target = new URL(url, window.location.href)
+  if (target.protocol !== 'https:' && target.protocol !== 'http:') {
+    console.warn('[doc-action] open_url ignored:', url)
+    return
+  }
+  if (!window.open(target.href, '_blank', 'noopener')) window.location.assign(target.href)
+}
+
 export function useDocActions(options: UseDocActionsOptions) {
   let registered: string[] = []
 
@@ -112,6 +126,7 @@ export function useDocActions(options: UseDocActionsOptions) {
         }
       }
       toast.success(payload.message || `${label}: ${t('done')}`)
+      if (payload.open_url) openUrl(String(payload.open_url))
       if (payload.refresh !== false) await options.reload()
     } catch (err: unknown) {
       const detail =

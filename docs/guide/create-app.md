@@ -274,7 +274,9 @@ doc_actions = ["my_crm.actions"]
 
 The handler receives the document as a plain `dict` (`doc["doctype"]` and
 `doc["name"]` are always set). Return a `dict` (`message` is toasted,
-`refresh` != `False` reloads the form, `copy` is written to the clipboard), a
+`refresh` != `False` reloads the form, `copy` is written to the clipboard,
+`open_url` - an http(s) or site-relative URL - is opened in a new tab, e.g. a
+file to download), a
 bare string, or nothing. A binding row may override `label` / `group` /
 `variant` and add a JS `condition` (evaluated against `doc` on the client) to
 show the button conditionally.

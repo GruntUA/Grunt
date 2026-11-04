@@ -343,7 +343,9 @@ class GruntDB:
             return [row[0] for row in rows]
         docs = [dict(row._mapping) for row in rows]
         if multilinks:
-            await self._attach_multilinks(dt.name, docs, multilinks, keep_name="name" in fields)
+            await self._attach_multilinks(
+                dt.name, docs, multilinks, keep_name="name" in (fields or ())
+            )
         return docs
 
     async def _attach_multilinks(

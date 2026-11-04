@@ -53,6 +53,9 @@ from grunt.search.service import search_index_service
 from grunt.site.manager import current_site
 from grunt.startup.doctypes import _find_doctype_dirs
 lazy from grunt.apps.loader import load_app
+lazy from grunt.auth.doctypes.UserSession.user_session import open_session
+lazy from grunt.auth.session_cookie import SESSION_COOKIE
+lazy from grunt.auth.users import create_user
 
 settings.rate_limit_enabled = False
 
@@ -243,3 +246,17 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         "client": client,
         "ctx": ctx,
     }
+
+
+async def signed_in_cookie(email: str, roles: tuple[str, ...] = ()) -> str:
+    """A browser signed in as a new user with exactly *roles*: the ``Cookie``
+    header it sends - for site pages that know their reader (a preview).
+    Needs an active grunt context (the ``ctx`` fixture)."""
+
+    user = await create_user(email, "Str0ngPass", "Test", "Reader", None)
+    assert user.id is not None
+    # Explicitly: the first user of a database becomes a System Manager.
+    await grunt.save_doc("User", user.id, {"roles": [{"role_name": r} for r in roles]})
+    _sid, token = await open_session(user.id, None, None)
+    await grunt.db._session().commit()
+    return f"{SESSION_COOKIE}={token}"

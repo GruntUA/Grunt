@@ -9,7 +9,9 @@ A DocType opts in with ``has_web_view`` + ``allow_guest_to_view`` and a
 * ``<doc route>`` is the document's ``route`` field when the DocType has one
   (filled from the title on save, see :func:`fill_route`), else its name.
 
-``is_published_field`` (a Check field) gates which documents have a page.
+``is_published_field`` (a Check field) gates which documents have a page; an
+unpublished one is shown with ``?preview=1`` to a signed-in reader who may read
+it (:mod:`grunt.website.preview`).
 
 Rendering: ``<doctype dir>/templates/<Name>.html`` when the DocType ships one
 (resolved in its app's www/ environment, so it can extend the app's
@@ -17,7 +19,8 @@ Rendering: ``<doctype dir>/templates/<Name>.html`` when the DocType ships one
 add to the template context with ``async def get_web_context(self, context)``.
 
 A page served some other way (the CMS's ``WebPage`` and ``WebForm``) reports
-its URL with a controller ``@staticmethod get_web_url(doc) -> str | None`` instead.
+its URL with a controller ``@staticmethod get_web_url(doc) -> str | None`` instead,
+and the preview URL of a draft with ``get_preview_url(doc)``.
 
 Pages without ``allow_guest_to_view`` are never served: a page is rendered
 (and cached) the same for every reader.
@@ -41,6 +44,13 @@ lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 lazy from grunt.document.registry import document_registry
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.website.doc_layout import build_tabs
+lazy from grunt.website.preview import (
+    PREVIEW_URL_KEY,
+    find_unpublished,
+    finish_preview,
+    preview_reader,
+    preview_url,
+)
 lazy from grunt.website.router import page_context, website_registry
 
 WEB_URL_KEY = "__web_url"
@@ -86,27 +96,41 @@ def doc_route(dt: Any, doc: dict[str, Any]) -> str:
     return str((_has_field(dt, ROUTE_FIELD) and doc.get(ROUTE_FIELD)) or doc.get("name") or "")
 
 
+def _page_url(dt: Any, doc: dict[str, Any]) -> str | None:
+    route = doc_route(dt, doc)
+    return f"{route_prefix(dt)}/{quote(route)}" if is_public(dt) and route else None
+
+
 def web_url(dt: Any, doc: dict[str, Any]) -> str | None:
     """The public URL of *doc*, or ``None`` while it has no page."""
-    if not is_public(dt) or not is_published(dt, doc):
-        return None
-    route = doc_route(dt, doc)
-    return f"{route_prefix(dt)}/{quote(route)}" if route else None
+    return _page_url(dt, doc) if is_published(dt, doc) else None
+
+
+def draft_preview_url(dt: Any, doc: dict[str, Any]) -> str | None:
+    """The preview URL of an unpublished *doc* of a web view DocType."""
+    url = None if is_published(dt, doc) else _page_url(dt, doc)
+    return preview_url(url) if url else None
 
 
 async def with_web_url(doctype: str, doc: Any) -> Any:
-    """*doc* (an API response dict) with ``__web_url`` added when it has a page."""
+    """*doc* (an API response dict) with ``__web_url`` added when it has a page,
+    or ``__preview_url`` while it is a draft of one."""
 
     if not isinstance(doc, dict):
         return doc
-    custom = getattr(document_registry.get(doctype), "get_web_url", None)
+    controller = document_registry.get(doctype)
+    custom = getattr(controller, "get_web_url", None)
     if custom is not None:
         url = custom(doc)
+        preview = getattr(controller, "get_preview_url", lambda _doc: None)(doc)
     else:
         dt = await grunt.get_meta(doctype)
         url = web_url(dt, doc) if dt is not None else None
+        preview = draft_preview_url(dt, doc) if dt is not None else None
     if url:
         doc[WEB_URL_KEY] = url
+    elif preview:
+        doc[PREVIEW_URL_KEY] = preview
     return doc
 
 
@@ -137,10 +161,11 @@ async def fill_route(dt: Any, row: dict[str, Any], session: Any) -> None:
 # Serving
 
 
-async def _find_page(path: str) -> tuple[Any, str | None] | None:
+async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | None:
     """``(DocType, document name)`` for a page *path*. The name is ``None`` when
     *path* is under a web view DocType's prefix but no published document is
-    there; ``None`` overall when no DocType claims the path."""
+    there (and no draft the reader may preview); ``None`` overall when no
+    DocType claims the path."""
 
     claimed = None
     for dt in await doctype_registry.list_all():
@@ -157,6 +182,10 @@ async def _find_page(path: str) -> tuple[Any, str | None] | None:
         rows = await grunt.db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
         if rows:
             return dt, rows[0]["name"]
+        if dt.is_published_field and (
+            name := await find_unpublished(request, dt.name, {key: route})
+        ):
+            return dt, name
         claimed = claimed or dt
     return (claimed, None) if claimed else None
 
@@ -189,7 +218,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
 
     path = request.url.path.rstrip("/")
     async with grunt.context(session, user=SYSTEM_USER):
-        found = await _find_page(path)
+        found = await _find_page(request, path)
         if found is None:
             return None
         dt, name = found
@@ -229,7 +258,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
                 await _apply(hook(controller, context), context)
 
         # Templates query too (website_menu) - render inside the grunt context.
-        return await _render(dt, context)
+        return await _render(request, dt, context)
 
 
 async def _apply(result: Any, context: dict[str, Any]) -> None:
@@ -240,7 +269,7 @@ async def _apply(result: Any, context: dict[str, Any]) -> None:
         context.update(result)
 
 
-async def _render(dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
+async def _render(request: Request, dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
 
     dt_dir = document_registry.doctype_dir(dt.name)
     template_dir = dt_dir / "templates" if dt_dir else None
@@ -256,8 +285,13 @@ async def _render(dt: Any, context: dict[str, Any]) -> HTMLResponse | None:
     template_name = context.get("template_name") or (
         f"{dt.name}.html" if custom else "web_view.html"
     )
+    context["page_preview"] = preview_reader(request) is not None
     html = await env.get_template(template_name).render_async(**context)
-    return HTMLResponse(content=html, status_code=context.get("status_code") or 200)
+    headers: dict[str, str] = {}
+    html = await finish_preview(request, html, headers)
+    return HTMLResponse(
+        content=html, status_code=context.get("status_code") or 200, headers=headers
+    )
 
 
 async def sitemap_urls() -> list[tuple[str, Any]]:

@@ -166,7 +166,7 @@ def build_clauses(table: Any, filters: dict[str, Any], meta: Any = None) -> list
         fieldname, op = split_key(key)
         col = table.c.get(fieldname)
         if col is None:
-            if fieldname in multilinks:
+            if meta is not None and fieldname in multilinks:
                 clause = _multilink_clause(meta.name, table, fieldname, op, value)
                 if clause is not None:
                     clauses.append(clause)

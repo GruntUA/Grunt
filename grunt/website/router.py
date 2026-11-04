@@ -25,6 +25,7 @@ lazy from grunt.site.manager import site_manager
 lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.files import image_srcset, sized_url
 lazy from grunt.website.generator import _template_envs, render_doc_page, sitemap_urls
+lazy from grunt.website.preview import finish_preview, preview_reader
 lazy from grunt.website.spa import spa_assets
 
 # www/*.py controllers by path: (mtime, module)
@@ -285,6 +286,7 @@ async def render_page(
 
     template_name = context.get("template_name") or page.template_name
     template = env.get_template(template_name)
+    context["page_preview"] = preview_reader(request) is not None
     # Templates query too (website_menu) - render inside the grunt context.
     async with grunt.context(session, user=SYSTEM_USER):
         html = await template.render_async(**context)
@@ -297,6 +299,8 @@ async def render_page(
     cache_seconds = int(context.get("cache_seconds") or 0)
     if cache_seconds > 0 and status_code == 200 and request.method in ("GET", "HEAD"):
         headers["Cache-Control"] = f"public, max-age={cache_seconds}"
+    async with grunt.context(session, user=SYSTEM_USER):
+        html = await finish_preview(request, html, headers)
     return HTMLResponse(
         content=html,
         status_code=status_code,

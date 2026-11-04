@@ -72,6 +72,7 @@ def test_mixins_registered_after_load_recompose():
     reg.register_mixins({"Asset": f"{MOD}.AuditMixin"}, app="audit")  # reload: no duplicate
 
     cls = reg.get("Asset")
+    assert issubclass(cls, AssetBase)
     assert cls.describe(object.__new__(cls)) == ["audit", "base"]
 
 
@@ -80,6 +81,7 @@ def test_broken_mixin_is_skipped():
     reg.register_mixins({"Asset": [f"{MOD}.Missing", "nomodule.X", f"{MOD}.AuditMixin"]}, app="a")
 
     cls = reg.get("Asset")
+    assert issubclass(cls, AssetBase)
     assert cls.describe(object.__new__(cls)) == ["audit", "base"]
 
 

@@ -14960,3 +14960,15 @@ msgstr "В роботі"
 msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "Preview on website"
+msgstr "Попередній перегляд на сайті"
+
+#: grunt/grunt/document/sidebar.py
+msgid "Not published - open preview"
+msgstr "Не опубліковано — відкрити попередній перегляд"
+
+#: grunt/grunt/website/templates/_preview_banner.html
+msgid "Preview — this page is not published yet. Only signed-in users with access can see it."
+msgstr "Попередній перегляд — сторінку ще не опубліковано. Її бачать лише користувачі, що увійшли й мають доступ."

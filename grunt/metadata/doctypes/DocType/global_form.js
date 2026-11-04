@@ -83,6 +83,18 @@ function on_load(frm) {
         visible: (f) => _saved(f) && !!f.doc.__web_url,
         action: (f) => window.open(f.doc.__web_url, '_blank', 'noopener'),
     })
+    // `__preview_url` — instead, while the document is a draft of such a page
+    // (grunt.website.preview).
+    actions.add({
+        id: 'web_preview',
+        label: __('Preview on website'),
+        icon: 'eye',
+        placement: 'menu',
+        group: 'print',
+        order: 211,
+        visible: (f) => _saved(f) && !!f.doc.__preview_url,
+        action: (f) => window.open(f.doc.__preview_url, '_blank', 'noopener'),
+    })
     actions.add({
         id: 'edit_doctype',
         label: __('Edit DocType'),

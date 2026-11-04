@@ -100,6 +100,10 @@ def doc_action(
         async def recalc_depreciation(doc: dict, *, args: dict) -> dict:
             ...
             return {"message": "Готово", "refresh": True}
+
+    Result keys: ``message`` (toast), ``refresh`` (``False`` - don't reload the
+    form), ``copy`` (text for the clipboard), ``open_url`` (http(s) or
+    site-relative URL opened in a new tab - a page or a file to download).
     """
 
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:

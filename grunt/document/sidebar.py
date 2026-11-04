@@ -42,6 +42,7 @@ from grunt import _, log
 from grunt.permissions.roles import user_has_roles
 lazy from grunt.i18n.service import translation_service
 lazy from grunt.website.generator import WEB_URL_KEY, with_web_url
+lazy from grunt.website.preview import PREVIEW_URL_KEY
 lazy from grunt.workflow.registry import get_active_workflow
 
 _ROW_KEYS = ("label", "value", "link", "external", "indicator", "copy", "mono", "tooltip")
@@ -142,18 +143,23 @@ def id_row(doctype: str, doc_id: str, doc: Any) -> list[dict[str, Any]]:
 
 
 async def web_page_row(doctype: str, doc_id: str, doc: Any) -> list[dict[str, Any]]:
-    """Where the document is published (web view, WebPage, WebForm)."""
+    """Where the document is published (web view, WebPage, WebForm) - or, for
+    a draft of a page, where to preview it."""
     # A copy: with_web_url adds the key in place.
-    url = (await with_web_url(doctype, dict(getattr(doc, "data", doc)))).get(WEB_URL_KEY)
-    if not url:
+    urls = await with_web_url(doctype, dict(getattr(doc, "data", doc)))
+    if url := urls.get(WEB_URL_KEY):
+        label, value = _("On website"), url
+    elif url := urls.get(PREVIEW_URL_KEY):
+        label, value = _("Preview"), _("Not published - open preview")
+    else:
         return []
     return [
         {
-            "label": _("On website"),
-            "value": url,
+            "label": label,
+            "value": value,
             "link": url,
             "external": True,
-            "mono": True,
+            "mono": url == value,
             "tooltip": url,
         }
     ]

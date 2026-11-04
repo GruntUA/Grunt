@@ -3,6 +3,8 @@ pages at ``/<web_route>/<route>`` (grunt.website.generator)."""
 
 import pytest
 
+from grunt.testkit import signed_in_cookie
+
 ARTICLE = {
     "name": "WebArticle",
     "label": "Web Article",
@@ -31,7 +33,7 @@ async def _article_doctype(ctx, **extra):
     await ctx.db._session().commit()
 
 
-async def _get(session, path: str) -> str:
+async def _respond(session, path: str, query: str = "", cookie: str | None = None):
     """Render *path* the way the website catch-all does (it opens its own
     site session, which can't see the test database)."""
     from starlette.requests import Request
@@ -42,13 +44,17 @@ async def _get(session, path: str) -> str:
         "type": "http",
         "method": "GET",
         "path": path,
-        "query_string": b"",
-        "headers": [],
+        "query_string": query.encode(),
+        "headers": [(b"cookie", cookie.encode())] if cookie else [],
         "scheme": "http",
         "server": ("test", 80),
         "root_path": "",
     }
-    resp = await render_page_by_route(Request(scope), session)
+    return await render_page_by_route(Request(scope), session)
+
+
+async def _get(session, path: str, query: str = "", cookie: str | None = None) -> str:
+    resp = await _respond(session, path, query, cookie)
     return bytes(resp.body).decode() if resp is not None else ""
 
 
@@ -168,3 +174,60 @@ async def test_missing_page_uses_controller_not_found_hook(ctx, db_session, monk
     monkeypatch.setitem(document_registry._controllers, "WebArticle", WebArticle)
     body = await _get(db_session, "/articles/draft-story")
     assert "<h1>Nothing here</h1>" in body
+
+
+# Preview of a draft (grunt.website.preview)
+
+BANNER = 'role="status"'
+
+
+@pytest.mark.asyncio
+async def test_editor_previews_a_draft(ctx, db_session):
+    await _article_doctype(ctx)
+    await _article(ctx, "Draft story", body="<p>Coming soon</p>")
+    cookie = await signed_in_cookie("editor@grunt.example.com", ("System Manager",))
+
+    resp = await _respond(db_session, "/articles/draft-story", "preview=1", cookie)
+
+    assert resp is not None and resp.status_code == 200
+    body = bytes(resp.body).decode()
+    assert "Coming soon" in body
+    assert BANNER in body
+    assert resp.headers["cache-control"] == "private, no-store"
+    assert resp.headers["x-robots-tag"] == "noindex"
+
+
+@pytest.mark.asyncio
+async def test_draft_preview_needs_read_access(ctx, db_session):
+    await _article_doctype(ctx)
+    await _article(ctx, "Draft story")
+    stranger = await signed_in_cookie("stranger@grunt.example.com")
+
+    assert await _get(db_session, "/articles/draft-story", "preview=1") == ""
+    assert await _get(db_session, "/articles/draft-story", "preview=1", stranger) == ""
+    assert await _get(db_session, "/articles/draft-story", "preview=1", "grunt_session=junk") == ""
+
+
+@pytest.mark.asyncio
+async def test_published_page_ignores_preview_flag(ctx, db_session):
+    await _article_doctype(ctx)
+    await _article(ctx, "Spring fair", published=1)
+    cookie = await signed_in_cookie("editor@grunt.example.com", ("System Manager",))
+
+    resp = await _respond(db_session, "/articles/spring-fair", "preview=1", cookie)
+
+    assert resp is not None and BANNER not in bytes(resp.body).decode()
+    assert "cache-control" not in resp.headers
+
+
+@pytest.mark.asyncio
+async def test_api_response_carries_preview_url_for_a_draft(ctx, client, auth_headers):
+    await _article_doctype(ctx)
+    live = await _article(ctx, "Live", published=1)
+    draft = await _article(ctx, "Draft")
+
+    live_resp = await client.get(f"/api/v1/docs/WebArticle/{live['name']}", headers=auth_headers)
+    draft_resp = await client.get(f"/api/v1/docs/WebArticle/{draft['name']}", headers=auth_headers)
+
+    assert "__preview_url" not in live_resp.json()["data"]
+    assert draft_resp.json()["data"]["__preview_url"] == "/articles/draft?preview=1"
