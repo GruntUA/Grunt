@@ -468,3 +468,117 @@ async def test_search_skips_doctype_without_table(ctx):
     data = await global_search(q="щось")
     # No error = success
     assert isinstance(data, list)
+
+
+# ── Term semantics, ranking, FTS index consistency ────────────────────────
+
+PERSON_DOCTYPE = {
+    "name": "ПошукОсоба",
+    "label": "Особа",
+    "module": "test",
+    "fields": [
+        {"fieldname": "first_name", "label": "Імʼя", "fieldtype": "Data"},
+        {"fieldname": "last_name", "label": "Прізвище", "fieldtype": "Data"},
+        {"fieldname": "full_name", "label": "ПІБ", "fieldtype": "Data"},
+        {"fieldname": "note", "label": "Примітка", "fieldtype": "LongText"},
+    ],
+    "title_field": "full_name",
+    "search_fields": ["first_name", "last_name"],
+    "autoname": "prompt",
+    "permissions": [{"role": "All", "read": True, "write": True, "create": True, "delete": True}],
+}
+
+
+async def _people(ctx) -> None:
+    await create_and_sync(ctx, PERSON_DOCTYPE)
+    for name, first, last, note in [
+        ("P-1", "Іван", "Петренко", ""),
+        ("P-2", "Петро", "Іваненко", ""),
+        ("P-3", "Олена", "Сидоренко", "згадка: Петренко"),
+        ("P-4", "Марко", "Знижка_50%", ""),
+    ]:
+        await create_doc(
+            ctx,
+            "ПошукОсоба",
+            {
+                "name": name,
+                "first_name": first,
+                "last_name": last,
+                "full_name": f"{first} {last}",
+                "note": note,
+            },
+        )
+
+
+@pytest.mark.asyncio
+async def test_global_search_all_terms_any_order_prefix(ctx):
+    """Every term must match, in any order, as a word prefix, case-insensitively."""
+    from grunt.api.v1.search import global_search
+
+    await _people(ctx)
+    names = {r["name"] for r in await global_search(q="петренко ІВАН")}
+    assert names == {"P-1"}
+    names = {r["name"] for r in await global_search(q="петр", doctype="ПошукОсоба")}
+    assert {"P-1", "P-2", "P-3"} <= names
+
+
+@pytest.mark.asyncio
+async def test_global_search_ranks_title_hits_first(ctx):
+    from grunt.api.v1.search import global_search
+
+    await _people(ctx)
+    results = await global_search(q="Петренко", doctype="ПошукОсоба")
+    assert [r["name"] for r in results][:2] == ["P-1", "P-3"]
+
+
+@pytest.mark.asyncio
+async def test_global_search_index_follows_update_and_delete(ctx):
+    from grunt.api.v1.search import global_search
+
+    await _people(ctx)
+    await ctx.save_doc("ПошукОсоба", "P-2", {"full_name": "Петро Коваль", "last_name": "Коваль"})
+    await ctx.db._session().commit()
+
+    assert not await global_search(q="Іваненко", doctype="ПошукОсоба")
+    assert [r["name"] for r in await global_search(q="Коваль")] == ["P-2"]
+
+    await ctx.delete_doc("ПошукОсоба", "P-2")
+    await ctx.db._session().commit()
+    assert not await global_search(q="Коваль")
+
+
+@pytest.mark.asyncio
+async def test_fts_table_rebuilt_when_out_of_sync(ctx):
+    """ensure_table() refills the FTS5 table if it drifted from the index."""
+    from sqlalchemy import text
+
+    from grunt.api.v1.search import global_search
+    from grunt.search.service import search_index_service
+
+    await _people(ctx)
+    session = ctx.db._session()
+    if session.bind.dialect.name != "sqlite":
+        pytest.skip("FTS5 companion table is SQLite-only")
+    await session.execute(text("DELETE FROM grunt_search_fts"))
+    await session.commit()
+    assert not await global_search(q="Сидоренко")
+
+    await search_index_service.ensure_table(ctx.get_engine())
+    assert [r["name"] for r in await global_search(q="Сидоренко")] == ["P-3"]
+
+
+@pytest.mark.asyncio
+async def test_list_search_terms_across_fields_and_title(ctx):
+    """List search: terms split across fields, title_field searched, % literal."""
+    await _people(ctx)
+
+    rows = await ctx.get_list("ПошукОсоба", search="петренко іван", fields=["name"])
+    assert [r["name"] for r in rows] == ["P-1"]
+
+    # full_name is only the title_field, not in search_fields.
+    rows = await ctx.get_list("ПошукОсоба", search="Олена Сидоренко", fields=["name"])
+    assert [r["name"] for r in rows] == ["P-3"]
+
+    rows = await ctx.get_list("ПошукОсоба", search="50%", fields=["name"])
+    assert [r["name"] for r in rows] == ["P-4"]
+    assert not await ctx.get_list("ПошукОсоба", search="5_%", fields=["name"])

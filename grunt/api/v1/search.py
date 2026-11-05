@@ -7,6 +7,9 @@ from grunt import _
 from grunt.permissions.rbac import permission_checker
 from grunt.search.service import search_index_service
 
+_OVERFETCH = 4
+_MAX_FETCH = 200
+
 
 @grunt.whitelist()
 async def global_search(
@@ -23,10 +26,12 @@ async def global_search(
     if limit > 50:
         grunt.throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
 
+    # Over-fetch: results of DocTypes the user can't read are dropped below,
+    # and they must not eat into the page the user asked for.
     raw = await search_index_service.search(
         session=grunt.get_session(),
         q=q,
-        limit=limit,
+        limit=limit if doctype else min(limit * _OVERFETCH, _MAX_FETCH),
         doctype=doctype,
     )
 
@@ -49,6 +54,8 @@ async def global_search(
                     allowed_doctypes[dt_name] = False
 
         if allowed_doctypes.get(dt_name):
+            if len(results) >= limit:
+                break
             results.append(
                 {
                     "doctype": r["doctype"],

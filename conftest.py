@@ -20,7 +20,7 @@ from grunt.main import app
 from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
-from grunt.site.manager import current_site
+from grunt.site.manager import attach_sqlite_functions, current_site
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False
@@ -41,6 +41,7 @@ _TEST_SITE = "__pytest__"
 TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
 
 test_engine = create_async_engine(TEST_DB_URL, echo=False, json_serializer=to_json)
+attach_sqlite_functions(test_engine)  # same lower()/uk_sort_key as sites
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
 

@@ -59,14 +59,14 @@ async def test_mysql_branch_uses_bound_parameter_not_string_interpolation(db_ses
     raw_sql = str(stmt)
     assert _INJECTION_PAYLOAD not in raw_sql
 
-    # And SQLAlchemy's own literal-bind rendering (used only for this
-    # assertion, never for real execution) properly escapes the embedded
-    # quote by doubling it, so "OR 1=1" never becomes a bare SQL keyword
-    # sequence outside the string literal it was submitted in.
+    # Defence in depth: the boolean-mode query is rebuilt from word
+    # characters only (grunt.search.terms.mysql_boolean_query), so the quote
+    # and the comment marker never even reach the bound value.
     compiled_with_params_visible = str(
         stmt.compile(dialect=mysql.dialect(), compile_kwargs={"literal_binds": True})
     )
-    assert "''" in compiled_with_params_visible  # embedded quote doubled/escaped
+    assert "AGAINST ('+OR* +\"1 1\"' IN BOOLEAN MODE)" in compiled_with_params_visible
+    assert "--" not in compiled_with_params_visible
 
 
 def test_reference_vulnerable_pattern_is_actually_dangerous():

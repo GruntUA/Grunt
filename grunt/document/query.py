@@ -6,6 +6,7 @@ from sqlalchemy import or_, select
 
 import grunt
 from grunt.document.meta import Meta
+from grunt.search.terms import current_dialect, like_term, match_terms
 lazy from grunt.metadata.doctype import DocType
 
 # Filter-clause building lives in grunt.db.filters.apply_filters - this module
@@ -73,11 +74,10 @@ async def expand_child_of_filters(
     return result
 
 
-async def _link_field_search_condition(
-    dt: DocType, field: Any, table: Any, search: str
-) -> Any | None:
-    """Build a search condition for a Link field: match by the *linked*
-    document's title/search fields, not the raw id stored in the column.
+async def _linked_search_columns(field: Any) -> tuple[Any, list[Any]] | None:
+    """Resolve the *linked* table and its identifier columns (name, title,
+    search fields) for a Link field, so a search matches what the user sees
+    rather than the raw id stored in the column.
 
     Returns ``None`` if the linked DocType can't be resolved (e.g. options
     missing) - the caller then falls back to matching the raw column.
@@ -92,23 +92,25 @@ async def _link_field_search_condition(
 
     linked_table = linked_dt.table
     linked_cols = [linked_table.c.name]
-    title_field = linked_dt.title_field
-    if title_field and title_field != "name":
-        col = linked_table.c.get(title_field)
+    seen = {"name"}
+    for fname in [linked_dt.title_field, *(linked_dt.search_fields or [])]:
+        if not fname or fname in seen:
+            continue
+        col = linked_table.c.get(fname)
         if col is not None:
             linked_cols.append(col)
-    for fname in linked_dt.search_fields or []:
-        col = linked_table.c.get(fname)
-        if col is not None and col.name not in {c.name for c in linked_cols}:
-            linked_cols.append(col)
-
-    like = f"%{search}%"
-    subquery = select(linked_table.c.name).where(or_(*[c.ilike(like) for c in linked_cols]))
-    return table.c[field.fieldname].in_(subquery)
+            seen.add(fname)
+    return linked_table, linked_cols
 
 
 async def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any:
-    """Apply full-text search conditions to a statement.
+    """Apply the list-view search box to a statement.
+
+    Searched columns: ``name``, the ``title_field`` and every declared
+    ``search_fields`` entry. The query is split into terms; a row matches
+    when every term is found in some searched column (see
+    :mod:`grunt.search.terms`), so «Іван Петренко» finds a row whose first
+    and last name are separate fields.
 
     Link fields in ``search_fields`` are matched against the *linked*
     document's title/search fields rather than the raw id stored in the
@@ -116,20 +118,31 @@ async def _apply_search(query: Any, table: Any, dt: DocType, search: str) -> Any
     not its internal id.
     """
     meta = Meta(dt)
-    conditions = [table.c.name.ilike(f"%{search}%")]
-    if dt.search_fields:
-        for fname in dt.search_fields:
-            if fname == "name":
+    dialect = current_dialect()
+    direct_cols: list[Any] = [table.c.name]
+    link_targets: list[tuple[Any, Any, list[Any]]] = []
+    seen = {"name"}
+    for fname in [dt.title_field, *(dt.search_fields or [])]:
+        if not fname or fname in seen:
+            continue
+        seen.add(fname)
+        col = table.c.get(fname)
+        if col is None:
+            continue
+        field = meta.get_field(fname)
+        if field is not None and field.has_trait("link"):
+            resolved = await _linked_search_columns(field)
+            if resolved is not None:
+                link_targets.append((col, *resolved))
                 continue
-            col = table.c.get(fname)
-            if col is None:
-                continue
-            field = meta.get_field(fname)
-            if field is not None and field.has_trait("link"):
-                link_condition = await _link_field_search_condition(dt, field, table, search)
-                if link_condition is not None:
-                    conditions.append(link_condition)
-                    continue
-            conditions.append(col.ilike(f"%{search}%"))
+        direct_cols.append(col)
 
-    return query.where(or_(*conditions))
+    def term_condition(term: str) -> Any:
+        conditions = [like_term(c, term, dialect) for c in direct_cols]
+        for col, linked_table, linked_cols in link_targets:
+            linked_match = or_(*(like_term(c, term, dialect) for c in linked_cols))
+            conditions.append(col.in_(select(linked_table.c.name).where(linked_match)))
+        return or_(*conditions)
+
+    condition = match_terms(search, term_condition)
+    return query if condition is None else query.where(condition)

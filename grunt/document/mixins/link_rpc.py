@@ -13,7 +13,7 @@ Provides a dedicated search API optimised for Link field dropdowns:
 
 from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 
 import grunt
 from grunt import _
@@ -21,6 +21,7 @@ from grunt.errors import not_found
 from grunt.local import require_user
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
+from grunt.search.terms import match_columns, session_dialect
 lazy from grunt.document.base import controller_class
 
 
@@ -43,16 +44,17 @@ async def _identifier_search(
     allowed = {c for c in cols_needed if c in table.c}
 
     stmt = select(*[table.c[c] for c in cols_needed if c in table.c])
-    if query:
-        like = f"%{query}%"
-        stmt = stmt.where(or_(*[table.c[c].ilike(like) for c in allowed]))
+    session = grunt.get_session()
+    condition = match_columns(query, [table.c[c] for c in allowed], session_dialect(session))
+    if condition is not None:
+        stmt = stmt.where(condition)
     for key, value in (filters or {}).items():
         base = key.split("__", 1)[0]
         if base in allowed:
             stmt = stmt.where(table.c[base] == value)
     stmt = stmt.limit(per_page)
 
-    result = await grunt.get_session().execute(stmt)
+    result = await session.execute(stmt)
     return [dict(r._mapping) for r in result]
 
 

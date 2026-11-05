@@ -11,6 +11,7 @@ from typing import Any
 
 from grunt.db.filters import as_list, is_truthy, split_key
 from grunt.document.base import DocumentList
+from grunt.search.terms import matches_text
 
 
 def _contains(raw: Any, val: Any) -> bool:
@@ -93,9 +94,9 @@ def apply_sort(rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
 
 
 def apply_search(rows: list[dict], search: str, fields: list[str]) -> list[dict]:
-    """Keep rows where *search* appears (case-insensitive) in any of *fields*."""
-    q = search.lower()
-    return [r for r in rows if any(q in str(r.get(f) or "").lower() for f in fields)]
+    """Keep rows where every term of *search* appears (case-insensitive) in
+    one of *fields* - the same semantics as the SQL list search."""
+    return [r for r in rows if matches_text(search, (r.get(f) for f in fields))]
 
 
 def build_response(

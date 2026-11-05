@@ -25,13 +25,14 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import literal, or_, select
+from sqlalchemy import literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 import grunt
 from grunt import _, log
 from grunt.document.registry import document_registry
+from grunt.search.terms import match_columns, session_dialect
 lazy from grunt.db.filters import apply_filters
 lazy from grunt.document.base import Document
 
@@ -354,7 +355,9 @@ class TreeService:
                 if col is not None:
                     search_cols.append(col)
                     seen.add(fname)
-            filtered_q = filtered_q.where(or_(*(col.ilike(f"%{search}%") for col in search_cols)))
+            search_condition = match_columns(search, search_cols, session_dialect(session))
+            if search_condition is not None:
+                filtered_q = filtered_q.where(search_condition)
 
         # Controller hook: list_filter_extra - allows DocType controllers
         # (e.g. in app code) to inject extra WHERE clauses without touching

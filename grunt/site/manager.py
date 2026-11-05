@@ -44,6 +44,35 @@ def _uk_sort_key(s: str) -> str:
     return "".join(out)
 
 
+def _unicode_lower(s: Any) -> Any:
+    return s.lower() if isinstance(s, str) else s
+
+
+def register_sqlite_functions(dbapi_conn: Any) -> None:
+    """Register Grunt's SQL functions on a raw SQLite connection.
+
+    * ``uk_sort_key()`` - Ukrainian alphabetical sort key.
+    * ``lower()`` - overrides SQLite's ASCII-only built-in with a
+      Unicode-aware version so that ILIKE (which compiles to
+      ``lower(x) LIKE lower(y)``) works for Cyrillic.
+
+    Every SQLite engine - site engines and test engines alike - must call
+    this on connect, otherwise search behaves differently under test.
+    """
+    dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key, deterministic=True)
+    dbapi_conn.create_function("lower", 1, _unicode_lower, deterministic=True)
+
+
+def attach_sqlite_functions(engine: AsyncEngine) -> None:
+    """Call :func:`register_sqlite_functions` on every new connection of *engine*."""
+    if engine.dialect.name != "sqlite":
+        return
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def _on_connect(dbapi_conn: Any, _connection_record: Any) -> None:
+        register_sqlite_functions(dbapi_conn)
+
+
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
 
@@ -258,13 +287,7 @@ class SiteManager:
                         # (INCREMENTAL = pages freed lazily, no full-file rewrite)
                         cursor.execute("PRAGMA auto_vacuum=INCREMENTAL")
                         cursor.close()
-                        dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key)
-                        # Override SQLite's built-in lower() with a Unicode-aware version
-                        # so that ILIKE (which compiles to lower(x) LIKE lower(y)) works
-                        # correctly for Cyrillic/Ukrainian characters.
-                        dbapi_conn.create_function(
-                            "lower", 1, lambda s: s.lower() if isinstance(s, str) else s
-                        )
+                        register_sqlite_functions(dbapi_conn)
 
                 @event.listens_for(engine.sync_engine, "begin")
                 def _on_sqlite_begin(conn):

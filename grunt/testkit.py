@@ -50,7 +50,7 @@ from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import app_extensions, apply_extensions
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
-from grunt.site.manager import current_site
+from grunt.site.manager import attach_sqlite_functions, current_site
 from grunt.startup.doctypes import _find_doctype_dirs
 lazy from grunt.apps.loader import load_app
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
@@ -124,6 +124,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
 
     test_db_url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
     test_engine = create_async_engine(test_db_url, echo=False, json_serializer=to_json)
+    attach_sqlite_functions(test_engine)  # same lower()/uk_sort_key as sites
     TestSessionLocal = async_sessionmaker(  # noqa: N806 - sessionmaker factory, PascalCase by convention
         test_engine, class_=AsyncSession, expire_on_commit=False
     )
