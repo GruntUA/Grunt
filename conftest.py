@@ -1,7 +1,6 @@
 """Shared test fixtures — single test engine and session override."""
 
 import logging
-import os
 
 import pytest
 from httpx2 import ASGITransport, AsyncClient
@@ -22,6 +21,7 @@ from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_c
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.site.manager import current_site
+from grunt.testkit import bind_test_site, worker_database_url
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False
@@ -39,11 +39,12 @@ _TEST_SITE = "__pytest__"
 #   TEST_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/grunt_test pytest
 #   TEST_DATABASE_URL=mysql+aiomysql://user:pass@localhost/grunt_test pytest
 
-TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
+TEST_DB_URL = worker_database_url()  # an xdist worker gets its own server database
 
 test_engine = create_async_engine(TEST_DB_URL, echo=False, json_serializer=to_json)
 dialect_for(test_engine).attach_functions(test_engine)  # same lower()/uk_sort_key as sites
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+bind_test_site(test_engine, TestSessionLocal)
 
 
 async def override_get_session():

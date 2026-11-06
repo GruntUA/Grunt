@@ -60,7 +60,14 @@ class Dialect(ABC):
     def __repr__(self) -> str:
         return f"<{type(self).__name__}>"
 
+    #: The database is a local file (no server, no separate databases on it).
+    file_based: ClassVar[bool] = False
+
     # ── Engine ──────────────────────────────────────────────────────────────
+
+    async def create_database(self, url: Any, name: str) -> None:
+        """Create database *name* on the server *url* points at, unless it exists."""
+        raise NotImplementedError(f"“{self.name}” has no server-side databases")
 
     def resolve_url(self, url: str, base_dir: Path) -> str:
         """Make a site-relative URL absolute (only file-based backends care)."""

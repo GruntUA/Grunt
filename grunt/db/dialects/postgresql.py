@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy import Table, func, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
 from grunt.db.dialects.base import Dialect
@@ -17,6 +18,21 @@ lazy from grunt.backups import MAX_COMPRESSION_LEVEL, BackupError
 
 class PostgresDialect(Dialect):
     name = "postgresql"
+
+    async def create_database(self, url: Any, name: str) -> None:
+        # CREATE DATABASE can't run in a transaction and has no IF NOT EXISTS
+        engine = create_async_engine(url, isolation_level="AUTOCOMMIT")
+        try:
+            async with engine.connect() as conn:
+                exists = await conn.scalar(
+                    text("SELECT 1 FROM pg_database WHERE datname = :n"), {"n": name}
+                )
+                if not exists:
+                    quoted = conn.dialect.identifier_preparer.quote(name)
+                    await conn.execute(text(f"CREATE DATABASE {quoted}"))
+        finally:
+            await engine.dispose()
+
     compaction_scope = "table"
 
     def engine_kwargs(self) -> dict[str, Any]:

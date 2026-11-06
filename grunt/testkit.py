@@ -18,6 +18,7 @@ Usage, in the app's ``tests/conftest.py``::
     globals().update(make_app_fixtures(Path(__file__).parent.parent, "tsnap"))
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -28,6 +29,7 @@ from typing import Any
 import pytest
 import pytest_asyncio
 from httpx2 import ASGITransport, AsyncClient
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -51,7 +53,7 @@ from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import app_extensions, apply_extensions
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
-from grunt.site.manager import current_site
+from grunt.site.manager import current_site, site_manager
 from grunt.startup.doctypes import _find_doctype_dirs
 lazy from grunt.apps.loader import load_app
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
@@ -106,6 +108,38 @@ def _app_doctype_dirs(app_dir: Path) -> list[Path]:
     return [d for m in modules if (d := app_dir / m / "doctypes").is_dir()]
 
 
+def bind_test_site(engine: AsyncEngine, session_maker: async_sessionmaker[AsyncSession]) -> None:
+    """Make the test site ``__pytest__`` use the test engine everywhere.
+
+    Code that opens its own session outside a request (server scripts, the
+    error log, background tasks) goes through ``site_manager``; left alone it
+    would open ``sites/__pytest__/grunt.db`` - a real file on a dev machine,
+    a missing one in CI. The site folder itself must exist (storage checks).
+    """
+    site_manager.engines[_TEST_SITE] = engine
+    site_manager.session_makers[_TEST_SITE] = session_maker
+    (site_manager.sites_dir / _TEST_SITE).mkdir(parents=True, exist_ok=True)
+
+
+def worker_database_url() -> str:
+    """``TEST_DATABASE_URL`` (in-memory SQLite by default) for this test process.
+
+    Under pytest-xdist each worker gets its own database on a server backend
+    (``grunt_test`` → ``grunt_test_gw0``, created if missing): the fixtures
+    create and drop every table around each test, so workers sharing one
+    database break each other's tables ("relation does not exist", deadlocks).
+    """
+    url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
+    worker = os.environ.get("PYTEST_XDIST_WORKER")
+    dialect = dialect_for(url)
+    if not worker or dialect.file_based:
+        return url
+    parsed = make_url(url)
+    name = f"{parsed.database}_{worker}"
+    asyncio.run(dialect.create_database(parsed, name))
+    return parsed.set(database=name).render_as_string(hide_password=False)
+
+
 def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     """Build the standard (setup_db, db_session, engine, ctx, client) fixture set
     for an external app's test suite.
@@ -123,12 +157,12 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         if str(path) not in sys.path:
             sys.path.insert(0, str(path))
 
-    test_db_url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
-    test_engine = create_async_engine(test_db_url, echo=False, json_serializer=to_json)
+    test_engine = create_async_engine(worker_database_url(), echo=False, json_serializer=to_json)
     dialect_for(test_engine).attach_functions(test_engine)  # same lower()/uk_sort_key as sites
     TestSessionLocal = async_sessionmaker(  # noqa: N806 - sessionmaker factory, PascalCase by convention
         test_engine, class_=AsyncSession, expire_on_commit=False
     )
+    bind_test_site(test_engine, TestSessionLocal)
 
     async def override_get_session():
         async with TestSessionLocal() as session:

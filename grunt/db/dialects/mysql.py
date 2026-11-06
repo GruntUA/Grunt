@@ -4,6 +4,7 @@ from typing import Any
 
 from sqlalchemy import String, Table, cast, func, literal, text
 from sqlalchemy.dialects.mysql import insert as mysql_insert
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
 from grunt.db.dialects.base import Dialect
@@ -17,6 +18,18 @@ _SIZE_SQL = (
 
 class MysqlDialect(Dialect):
     name = "mysql"
+
+    async def create_database(self, url: Any, name: str) -> None:
+        engine = create_async_engine(url)
+        try:
+            async with engine.begin() as conn:
+                quoted = conn.dialect.identifier_preparer.quote(name)
+                await conn.execute(
+                    text(f"CREATE DATABASE IF NOT EXISTS {quoted} CHARACTER SET utf8mb4")
+                )
+        finally:
+            await engine.dispose()
+
     compaction_scope = "table"
 
     def engine_kwargs(self) -> dict[str, Any]:

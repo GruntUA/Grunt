@@ -66,6 +66,7 @@ def register_sqlite_functions(dbapi_conn: Any) -> None:
 
 class SqliteDialect(Dialect):
     name = "sqlite"
+    file_based = True
     can_alter_column_type = False
     vacuum_sql = "VACUUM"
     compaction_scope = "database"  # VACUUM rewrites the whole file, not one table
