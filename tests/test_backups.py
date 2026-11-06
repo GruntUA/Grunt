@@ -12,6 +12,7 @@ from sqlalchemy.engine import make_url
 
 import grunt.backups as backups
 from grunt.backups import api, tasks
+from grunt.db.dialects import SqliteDialect
 
 SITE = "backup.test"
 
@@ -254,7 +255,7 @@ async def test_cancelled_backup_leaves_nothing_behind(site):
 async def test_parts_are_made_quickest_first(site, monkeypatch):
     order = []
     real_sqlite, real_files, real_copy = (
-        backups._backup_sqlite,
+        SqliteDialect.dump,
         backups._backup_files,
         backups.shutil.copyfile,
     )
@@ -271,7 +272,7 @@ async def test_parts_are_made_quickest_first(site, monkeypatch):
         order.append("config")
         return real_copy(src, dst)
 
-    monkeypatch.setattr(backups, "_backup_sqlite", sqlite)
+    monkeypatch.setattr(SqliteDialect, "dump", sqlite)
     monkeypatch.setattr(backups, "_backup_files", files)
     monkeypatch.setattr(backups.shutil, "copyfile", copy)
     await backups.create_backup(SITE)
@@ -315,6 +316,7 @@ async def test_backup_is_refused_without_disk_space(site, monkeypatch):
 async def test_space_needed_follows_the_latest_set(site):
     first = await backups.create_backup(SITE)
     # _space_needed only sizes the steps - the make callable is never run.
-    steps = [(10**9, backups.backups_dir(SITE) / "20990101-000000-files.tar.zst", lambda p: None)]
+    dest = backups.backups_dir(SITE) / "20990101-000000-files.tar.zst"
+    steps = [backups._Step(10**9, 10**9, dest, lambda p: None)]
     assert backups._space_needed(steps, first, 0) == int(first.size("files") * 1.1)
     assert backups._space_needed(steps, None, 0) == int(10**9 * 1.1)

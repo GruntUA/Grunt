@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-06 (крок 1 — пошук перенесено)
+Оновлено: 2026-11-06 (крок 1 — межа діалектів без винятків)
 
 ---
 
@@ -80,8 +80,15 @@
 - MySQL: FULLTEXT-індекс тепер зветься `grunt_search_idx_ft` (був `idx_ft_content`) —
   на наявній MySQL-базі з'явиться другий, старий можна видалити.
 
+Зроблено (2026-11-06, бекапи):
+- `Dialect.dump_suffix / dump_estimate / dump / restore_dump`: знімок SQLite (backup API +
+  `quick_check` + zstd) — у `sqlite.py`, `pg_dump`/`pg_restore` — у `postgresql.py`; MySQL —
+  `BackupError` як і раніше;
+- `grunt/backups` лишився оркестратором (набір, прогрес, місце, лок, ротація); крок набору —
+  `_Step(read, space, dest, make)`, оцінка місця не змінилась;
+- **тест межі без винятків** — `NOT_YET_MOVED` прибрано.
+
 Лишилось:
-- `backups/__init__.py` → `dialect.backup()/restore()`;
 - `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
 - `_friendly_integrity_error` → `dialect.parse_integrity_error`;
 - PG у CI: прибрати `continue-on-error` після першого зеленого прогону.

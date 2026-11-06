@@ -1,5 +1,8 @@
 """PostgreSQL."""
 
+import shutil
+import subprocess
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Table, func, text
@@ -8,6 +11,8 @@ from sqlalchemy.sql.dml import Insert
 
 from grunt.db.dialects.base import Dialect
 from grunt.db.dialects.fulltext import FullText, FullTextSpec, PostgresTsvector
+from grunt.i18n import _
+lazy from grunt.backups import MAX_COMPRESSION_LEVEL, BackupError
 
 
 class PostgresDialect(Dialect):
@@ -64,3 +69,38 @@ class PostgresDialect(Dialect):
             "dead_tuples": int(dead or 0),
             "reclaim_scope": "table",
         }
+
+    # ── Backups ─────────────────────────────────────────────────────────────
+
+    dump_suffix = ".pgdump"
+
+    @staticmethod
+    def _libpq_url(url: Any) -> str:
+        return url.set(drivername="postgresql").render_as_string(hide_password=False)
+
+    def dump(self, url: Any, dest: Path, level: int, progress: Any) -> None:
+        """``pg_dump -Fc`` with zstd (pg_dump 16+); its size is unknown up front."""
+        if not shutil.which("pg_dump"):
+            raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
+        level = min(max(level, 1), MAX_COMPRESSION_LEVEL)
+        progress.set(stage=_("Dumping the database"))  # pg_dump reports no progress
+        subprocess.run(
+            ["pg_dump", "-Fc", f"--compress=zstd:{level}", "-f", str(dest), self._libpq_url(url)],
+            check=True,
+        )
+
+    def restore_dump(self, url: Any, src: Path, aside: Path) -> None:
+        if not shutil.which("pg_restore"):
+            raise BackupError(_("pg_restore not found; install the PostgreSQL client"))
+        subprocess.run(
+            [
+                "pg_restore",
+                "--clean",
+                "--if-exists",
+                "--no-owner",
+                "-d",
+                self._libpq_url(url),
+                str(src),
+            ],
+            check=True,
+        )

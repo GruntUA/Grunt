@@ -8,13 +8,15 @@ PostgreSQL-like behaviour several backends share: ``lower()`` for sorting,
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any, ClassVar, NamedTuple
 
 from sqlalchemy import Table, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
 
 from grunt.db.dialects.fulltext import FullText, FullTextSpec
+from grunt.i18n import _
+lazy from grunt.backups import BackupError
 
 LIKE_ESCAPE = "\\"
 
@@ -26,6 +28,17 @@ def escape_like(term: str) -> str:
         .replace("%", LIKE_ESCAPE + "%")
         .replace("_", LIKE_ESCAPE + "_")
     )
+
+
+class DumpEstimate(NamedTuple):
+    """What a database dump costs, known before it is made (bytes)."""
+
+    #: What the dump reads - the progress bar's measure (0 - unknown, stage only).
+    read: int = 0
+    #: Upper bound of the dump file on disk.
+    output: int = 0
+    #: Extra disk needed only while the dump is made (e.g. an uncompressed copy).
+    scratch: int = 0
 
 
 class Dialect(ABC):
@@ -136,3 +149,27 @@ class Dialect(ABC):
         """On-disk size of a table: ``table_bytes``, ``index_bytes``, ``total_bytes``,
         ``reclaimable_bytes``, ``reclaim_scope``, ``size_supported`` - best effort."""
         return {}
+
+    # ── Backups (orchestrated by ``grunt.backups``) ─────────────────────────
+
+    #: File suffix of a database dump in a backup set; ``None`` - not supported.
+    dump_suffix: ClassVar[str | None] = None
+
+    def dump_estimate(self, url: Any) -> DumpEstimate:
+        """Sizes of a dump of the database at *url* (see :class:`DumpEstimate`)."""
+        return DumpEstimate()
+
+    def dump(self, url: Any, dest: Path, level: int, progress: Any) -> None:
+        """Write a consistent dump of the database at *url* to *dest*.
+
+        *level* - zstd compression level; *progress* - a ``grunt.progress.Progress``
+        advanced in :attr:`DumpEstimate.read` bytes. Raises ``BackupError``.
+        """
+        raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": self.name})
+
+    def restore_dump(self, url: Any, src: Path, aside: Path) -> None:
+        """Replace the database at *url* with the dump *src*. The server must be stopped.
+
+        Whatever the backend can move away (a database file) goes to *aside*.
+        """
+        raise BackupError(_("Restoring %(backend)s is not supported") % {"backend": self.name})

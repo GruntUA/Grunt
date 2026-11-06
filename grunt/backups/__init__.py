@@ -3,10 +3,9 @@
 One backup is a *set* of files sharing an id (``20260923-020000``) in
 ``sites/<site>/backups/``:
 
-* ``<id>-database.sqlite.zst`` - SQLite: an online snapshot through SQLite's
-  backup API (consistent under WAL, unlike copying the file), checked with
-  ``PRAGMA quick_check`` before it is kept; or ``<id>-database.pgdump`` -
-  PostgreSQL ``pg_dump -Fc``;
+* ``<id>-database<suffix>`` - the database dump, made by the site's dialect
+  (``Dialect.dump``): ``.sqlite.zst`` - an online SQLite snapshot checked with
+  ``PRAGMA quick_check``; ``.pgdump`` - PostgreSQL ``pg_dump -Fc``;
 * ``<id>-files.tar.zst`` - the site's ``uploads/`` - only what is on this
   disk: files moved to cloud storage are kept there, not in the set;
 * ``<id>-config.env`` - the site ``.env`` (SECRET_KEY, DB credentials - a
@@ -24,17 +23,16 @@ import fcntl
 import os
 import re
 import shutil
-import sqlite3
-import subprocess
 import tarfile
-import tempfile
 from collections.abc import Callable, Sequence
 from compression import zstd
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import NamedTuple
 
 from grunt import _, log
+from grunt.db.dialects import dialect_for
 from grunt.progress import Progress
 from grunt.site.manager import site_manager
 
@@ -85,12 +83,6 @@ def _db_url(site: str):
     return site_manager.get_engine(site).url
 
 
-def _sqlite_path(url) -> Path:
-    if not url.database:  # in-memory SQLite - no file to back up or restore
-        raise BackupError(_("The SQLite database has no file to back up"))
-    return Path(url.database)
-
-
 # Listing / rotation
 
 
@@ -135,56 +127,6 @@ def zstd_options(level: int) -> dict:
     if workers > 1 and zstd.CompressionParameter.nb_workers.bounds()[1] > 0:
         options[zstd.CompressionParameter.nb_workers] = workers
     return options
-
-
-def _backup_sqlite(db_path: Path, dest: Path, level: int, progress: Progress) -> None:
-    with tempfile.TemporaryDirectory(dir=dest.parent, prefix=".", suffix=".part") as tmp:
-        snapshot = Path(tmp) / "snapshot.sqlite"
-        src = sqlite3.connect(db_path)
-        dst = sqlite3.connect(snapshot)
-        base = progress.done
-        page_size = src.execute("PRAGMA page_size").fetchone()[0]
-
-        def copied(_status: int, remaining: int, total: int) -> None:
-            progress.set(done=base + (total - remaining) * page_size)
-
-        try:
-            progress.set(stage=_("Copying the database"))
-            # consistent snapshot, readers/writers keep working between the steps
-            src.backup(dst, pages=4096, progress=copied)
-            progress.set(stage=_("Checking the database copy"))
-            result = dst.execute("PRAGMA quick_check").fetchone()[0]
-        finally:
-            dst.close()
-            src.close()
-        if result != "ok":
-            raise BackupError(
-                _("The database snapshot is corrupted: %(result)s") % {"result": result}
-            )
-        progress.set(done=base + snapshot.stat().st_size, stage=_("Compressing the database"))
-        with (
-            snapshot.open("rb") as fin,
-            zstd.open(dest, "wb", options=zstd_options(level)) as fout,
-        ):
-            while chunk := fin.read(1024 * 1024):
-                fout.write(chunk)
-                progress.advance(len(chunk))
-
-
-def _libpq_url(url) -> str:
-    return url.set(drivername="postgresql").render_as_string(hide_password=False)
-
-
-def _backup_postgres(url, dest: Path, level: int, progress: Progress) -> None:
-    if not shutil.which("pg_dump"):
-        raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
-    level = min(max(level, 1), MAX_COMPRESSION_LEVEL)
-    progress.set(stage=_("Dumping the database"))  # pg_dump reports no progress
-    # compress=zstd needs pg_dump 16+.
-    subprocess.run(
-        ["pg_dump", "-Fc", f"--compress=zstd:{level}", "-f", str(dest), _libpq_url(url)],
-        check=True,
-    )
 
 
 class _CountingReader:
@@ -275,20 +217,27 @@ def _exclusive(site: str):
 _SPACE_MARGIN = 1.1
 
 
-def _space_needed(steps: Sequence[tuple[int, Path, Callable[[Path], object]]], latest, sqlite_size):
+class _Step(NamedTuple):
+    """One part of a set: bytes it reads (the bar), bytes it may take on disk,
+    its final path and how to make it (into the path it is given)."""
+
+    read: int
+    space: int
+    dest: Path
+    make: Callable[[Path], object]
+
+
+def _space_needed(steps: Sequence[_Step], latest: BackupSet | None, scratch: int) -> int:
     """Bytes the new set needs on disk: as big as the latest set of the same parts
-    (or what it reads, if there is none), plus the SQLite snapshot that lives
-    uncompressed while it is being compressed."""
+    (or the steps' own estimate, if there is none), plus *scratch* - what a part
+    needs only while it is made (an uncompressed SQLite snapshot)."""
     need = 0
-    for size, dest, _make in steps:
-        match = _NAME.match(dest.name)
-        assert match is not None, dest.name  # create_backup names every part to fit
+    for step in steps:
+        match = _NAME.match(step.dest.name)
+        assert match is not None, step.dest.name  # create_backup names every part to fit
         kind = match.group(2)
-        if latest and kind in latest.files:
-            need += latest.size(kind)
-        else:
-            need += size // 2 if kind == "database" else size  # a SQLite file counts twice
-    return int((need + sqlite_size) * _SPACE_MARGIN)
+        need += latest.size(kind) if latest and kind in latest.files else step.space
+    return int((need + scratch) * _SPACE_MARGIN)
 
 
 def _check_space(out: Path, need: int) -> None:
@@ -327,63 +276,63 @@ def _create_backup_sync(
     backup_id = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     out = backups_dir(site)
     url = _db_url(site)
-    backend = url.get_backend_name()
+    dialect = dialect_for(url)
     uploads = site_dir(site) / "uploads"
     with_files = with_files and uploads.is_dir()
 
-    if with_database and backend not in ("sqlite", "postgresql"):
-        raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": backend})
+    if with_database and dialect.dump_suffix is None:
+        raise BackupError(_("Backups of %(backend)s are not supported") % {"backend": dialect.name})
     env = site_dir(site) / ".env"
 
-    # Quickest first - (bytes read, final path, make it): the config is a copy
-    # of one small file; the database and the files go by size. The bar is
-    # measured in those bytes: a SQLite file twice (snapshot, then compressing
-    # it), every uploaded file; pg_dump's size is unknown - it shows its stage only.
+    # Quickest first, by the bytes each part reads: the config is a copy of one
+    # small file; the database and the files go by size. The bar is measured in
+    # those bytes (a SQLite file twice - snapshot, then compressing it; every
+    # uploaded file); a pg_dump's size is unknown - it shows its stage only.
     progress.set(stage=_("Preparing"))
-    steps: list[tuple[int, Path, Callable[[Path], object]]] = []
-    sqlite_size = 0
+    steps: list[_Step] = []
+    scratch = 0
     if with_config and env.exists():
         steps.append(
-            (0, out / f"{backup_id}-config.env", lambda part: _backup_config(env, part, progress))
-        )
-    if with_database and backend == "sqlite":
-        db_path = _sqlite_path(url)
-        sqlite_size = db_path.stat().st_size
-        steps.append(
-            (
-                2 * sqlite_size,
-                out / f"{backup_id}-database.sqlite.zst",
-                lambda part: _backup_sqlite(db_path, part, level, progress),
+            _Step(
+                0,
+                0,
+                out / f"{backup_id}-config.env",
+                lambda part: _backup_config(env, part, progress),
             )
         )
-    if with_database and backend == "postgresql":
+    if with_database:
+        estimate = dialect.dump_estimate(url)
+        scratch = estimate.scratch
         steps.append(
-            (
-                0,
-                out / f"{backup_id}-database.pgdump",
-                lambda part: _backup_postgres(url, part, level, progress),
+            _Step(
+                estimate.read,
+                estimate.output,
+                out / f"{backup_id}-database{dialect.dump_suffix}",
+                lambda part: dialect.dump(url, part, level, progress),
             )
         )
     if with_files:
+        size = _tree_size(uploads)
         steps.append(
-            (
-                _tree_size(uploads),
+            _Step(
+                size,
+                size,
                 out / f"{backup_id}-files.tar.zst",
                 lambda part: _backup_files(uploads, part, level, progress),
             )
         )
-    steps.sort(key=lambda step: step[0])  # stable: the config stays ahead of a pg_dump
-    progress.set(total=sum(size for size, _dest, _make in steps), steps=len(steps))
+    steps.sort(key=lambda step: step.read)  # stable: the config stays ahead of a pg_dump
+    progress.set(total=sum(step.read for step in steps), steps=len(steps))
 
     _remove_stale_parts(out)
     backups = list_backups(site)
-    _check_space(out, _space_needed(steps, backups[0] if backups else None, sqlite_size))
+    _check_space(out, _space_needed(steps, backups[0] if backups else None, scratch))
     made: list[Path] = []  # the final paths; each is written as its _part() first
     try:
-        for step, (_size, dest, make) in enumerate(steps, 1):
-            progress.set(step=step)
-            made.append(dest)
-            make(_part(dest))
+        for number, step in enumerate(steps, 1):
+            progress.set(step=number)
+            made.append(step.dest)
+            step.make(_part(step.dest))
         for path in made:
             os.chmod(_part(path), 0o600)
         for path in made:  # the set appears in the list only once it is complete
@@ -449,44 +398,7 @@ def restore_backup(site: str, backup: BackupSet, *, with_files: bool = False) ->
     aside.mkdir(mode=0o700)
     url = _db_url(site)
 
-    if url.get_backend_name() == "sqlite":
-        db_path = _sqlite_path(url)
-        restored = aside / "restored.sqlite"
-        with zstd.open(backup.files["database"], "rb") as fin, restored.open("wb") as fout:
-            shutil.copyfileobj(fin, fout, length=1024 * 1024)
-        check = sqlite3.connect(restored)
-        try:
-            result = check.execute("PRAGMA quick_check").fetchone()[0]
-        finally:
-            check.close()
-        if result != "ok":
-            raise BackupError(
-                _("The database backup is corrupted: %(result)s") % {"result": result}
-            )
-        for suffix in ("", "-wal", "-shm"):
-            current = Path(f"{db_path}{suffix}")
-            if current.exists():
-                shutil.move(current, aside / current.name)
-        shutil.move(restored, db_path)
-    elif url.get_backend_name() == "postgresql":
-        if not shutil.which("pg_restore"):
-            raise BackupError(_("pg_restore not found; install the PostgreSQL client"))
-        subprocess.run(
-            [
-                "pg_restore",
-                "--clean",
-                "--if-exists",
-                "--no-owner",
-                "-d",
-                _libpq_url(url),
-                str(backup.files["database"]),
-            ],
-            check=True,
-        )
-    else:
-        raise BackupError(
-            _("Restoring %(backend)s is not supported") % {"backend": url.get_backend_name()}
-        )
+    dialect_for(url).restore_dump(url, backup.files["database"], aside)
 
     if with_files and "files" in backup.files:
         uploads = site_dir(site) / "uploads"
