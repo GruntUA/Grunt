@@ -30,6 +30,7 @@ from grunt.api.v1.ws import manager
 from grunt.apps.deps import app_packages
 from grunt.apps.manifest import is_app
 from grunt.backups import list_backups
+from grunt.db.dialects import dialect_for
 from grunt.i18n import N_, _
 from grunt.i18n.jinja import install as install_i18n
 from grunt.metadata.compiler import get_table_name
@@ -96,35 +97,23 @@ def _session():
 
 async def check_database() -> list[Row]:
     session = _session()
-    dialect = session.get_bind().dialect.name
+    dialect = dialect_for(session.get_bind())
     started = time.perf_counter()
-    if dialect == "sqlite":
-        version = (await session.execute(text("select sqlite_version()"))).scalar()
-    else:
-        version = (await session.execute(text("select version()"))).scalar()
+    version = await dialect.server_version(session)
     latency = (time.perf_counter() - started) * 1000
     rows = [
         row(
             _("Database"),
             _("Connection"),
             OK if latency < 200 else WARNING,
-            f"{dialect} {str(version).split(' on ')[0]} · {latency:.0f} {_('ms')}",
+            f"{dialect.name} {version.split(' on ')[0]} · {latency:.0f} {_('ms')}",
             "" if latency < 200 else _("Slow database response."),
         )
     ]
-    size = await _database_size(session, dialect)
+    size = await dialect.database_size(session)
     if size is not None:
         rows.append(row(_("Database"), _("Size"), INFO, human_size(size)))
     return rows
-
-
-async def _database_size(session, dialect: str) -> int | None:
-    if dialect == "sqlite":
-        path = session.bind.url.database
-        return Path(path).stat().st_size if path and Path(path).exists() else None
-    if dialect == "postgresql":
-        return (await session.execute(text("select pg_database_size(current_database())"))).scalar()
-    return None
 
 
 async def largest_tables() -> list[Row]:

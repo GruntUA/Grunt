@@ -55,9 +55,9 @@ def test_like_term_uses_native_like_for_ascii_on_sqlite():
 
 
 def test_match_columns_ands_terms_and_ors_columns():
-    sql = str(match_columns("a b", [column("x"), column("y")]))
+    sql = str(match_columns("a b", [column("x"), column("y")], "postgresql"))
     assert sql.count(" OR ") == 2 and " AND " in sql
-    assert match_columns("   ", [column("x")]) is None
+    assert match_columns("   ", [column("x")], "postgresql") is None
 
 
 def test_matches_text_every_term_in_some_value():

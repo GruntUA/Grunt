@@ -25,14 +25,14 @@ from typing import Any
 from sqlalchemy import and_, or_
 from sqlalchemy.sql.elements import ColumnElement
 
-lazy import grunt
+from grunt.db.dialects import dialect_for
+from grunt.db.dialects.base import LIKE_ESCAPE, escape_like  # noqa: F401 - re-exported
 
 #: Hard cap on terms in one query - keeps a pasted paragraph from
 #: becoming a 200-way AND of LIKE scans.
 MAX_TERMS = 8
 
 _WORD_RE = re.compile(r"[^\W_]+")
-_LIKE_ESCAPE = "\\"
 
 
 def split_terms(query: str | None) -> list[str]:
@@ -52,29 +52,13 @@ def word_parts(term: str) -> list[str]:
     return _WORD_RE.findall(term)
 
 
-def escape_like(term: str) -> str:
-    """Escape LIKE wildcards so *term* matches literally."""
-    return (
-        term.replace(_LIKE_ESCAPE, _LIKE_ESCAPE * 2)
-        .replace("%", _LIKE_ESCAPE + "%")
-        .replace("_", _LIKE_ESCAPE + "_")
-    )
+def like_term(col: Any, term: str, dialect: Any) -> ColumnElement:
+    """Case-insensitive ``col`` contains ``term`` condition (``Dialect.like_contains``).
 
-
-def like_term(col: Any, term: str, dialect: str | None = None) -> ColumnElement:
-    """Case-insensitive ``col`` contains ``term`` condition.
-
-    On SQLite ``ILIKE`` compiles to ``lower(col) LIKE lower(?)`` and Grunt
-    overrides ``lower()`` with a Python function (SQLite's own is ASCII-only),
-    which costs a Python call per row. For an ASCII-only term the native
-    ``LIKE`` is already case-insensitive *and* correct - a non-ASCII
-    character in the column can never equal an ASCII pattern character - so
-    the common searches for codes, numbers and e-mails stay in C.
+    *dialect* - anything :func:`~grunt.db.dialects.dialect_for` accepts
+    (a session, engine, backend name or the dialect itself).
     """
-    pattern = f"%{escape_like(term)}%"
-    if dialect == "sqlite" and term.isascii():
-        return col.like(pattern, escape=_LIKE_ESCAPE)
-    return col.ilike(pattern, escape=_LIKE_ESCAPE)
+    return dialect_for(dialect).like_contains(col, term)
 
 
 def match_terms(
@@ -95,7 +79,7 @@ def match_terms(
 def match_columns(
     query: str | None,
     columns: Iterable[Any],
-    dialect: str | None = None,
+    dialect: Any,
 ) -> ColumnElement | None:
     """Every term of *query* must be found in at least one of *columns*."""
     cols = list(columns)
@@ -108,23 +92,6 @@ def matches_text(query: str | None, values: Iterable[Any]) -> bool:
     """Python counterpart of :func:`match_columns` for in-memory rows."""
     haystack = [str(v).casefold() for v in values if v is not None and v != ""]
     return all(any(t.casefold() in h for h in haystack) for t in split_terms(query))
-
-
-def session_dialect(session: Any) -> str | None:
-    """Best-effort dialect name of a session/engine/connection (``None`` if unknown)."""
-    dialect = getattr(session, "dialect", None)
-    if dialect is None:
-        bind = getattr(session, "bind", None)
-        dialect = getattr(bind, "dialect", None)
-    return getattr(dialect, "name", None)
-
-
-def current_dialect() -> str | None:
-    """Dialect of the active request session, or ``None`` outside of one."""
-    try:
-        return session_dialect(grunt.get_session())
-    except Exception:
-        return None
 
 
 # ── Full-text engine query renderers ────────────────────────────────────────

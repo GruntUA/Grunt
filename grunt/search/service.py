@@ -41,6 +41,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession
 
 from grunt import log
+from grunt.db.dialects import dialect_for
 from grunt.document.meta import Meta
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
@@ -48,7 +49,6 @@ from grunt.search.terms import (
     fts5_query,
     match_columns,
     mysql_boolean_query,
-    session_dialect,
     tsquery,
 )
 lazy from grunt.metadata.doctype import DocType
@@ -148,8 +148,8 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
 
 
 def _dialect(engine_or_session: Any) -> str:
-    """Return the dialect name for an engine or session."""
-    return session_dialect(engine_or_session) or "sqlite"
+    """Return the dialect name for an engine or session (raises when unknown)."""
+    return dialect_for(engine_or_session).name
 
 
 def _fts_title(title: str | None, doc_name: str | None) -> str:

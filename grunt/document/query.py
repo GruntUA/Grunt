@@ -5,8 +5,9 @@ from typing import Any
 from sqlalchemy import or_, select
 
 import grunt
+from grunt.db.dialects import current_dialect
 from grunt.document.meta import Meta
-from grunt.search.terms import current_dialect, like_term, match_terms
+from grunt.search.terms import like_term, match_terms
 lazy from grunt.metadata.doctype import DocType
 
 # Filter-clause building lives in grunt.db.filters.apply_filters - this module

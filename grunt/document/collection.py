@@ -48,7 +48,7 @@ from grunt.permissions.rbac import permission_checker
 from grunt.permissions.user_permissions import build_conditions, get_user_permissions_for
 from grunt.search.service import search_index_service
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.site.manager import text_sort_expr
+lazy from grunt.db.dialects import dialect_for
 
 _CURSOR_SEP = "||"  # separator unlikely to appear in sort values
 
@@ -147,14 +147,13 @@ def _resolve_sort(
 ) -> tuple[Any, Any]:
     """Return ``(sort_col, order_by_expr)`` for the requested sort field.
 
-    Text-typed columns get a dialect-aware collation (``text_sort_expr``) so
+    Text-typed columns get a dialect-aware collation (``Dialect.text_sort``) so
     sorting is locale-correct; other types sort on the raw column.
     """
     sort_col = table.c.get(sort_by, table.c.modified_at)
     col_type = str(sort_col.type).upper()
     if any(t in col_type for t in _TEXT_SQL_TYPES):
-        dialect_name = session.bind.dialect.name if session.bind else "sqlite"
-        sort_expr = text_sort_expr(sort_col, dialect_name)
+        sort_expr = dialect_for(session).text_sort(sort_col)
     else:
         sort_expr = sort_col
     order_by_expr = sort_expr.asc() if sort_order == "asc" else sort_expr.desc()

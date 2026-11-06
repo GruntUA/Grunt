@@ -32,7 +32,7 @@ from sqlalchemy.sql import Select
 import grunt
 from grunt import _, log
 from grunt.document.registry import document_registry
-from grunt.search.terms import match_columns, session_dialect
+from grunt.search.terms import match_columns
 lazy from grunt.db.filters import apply_filters
 lazy from grunt.document.base import Document
 
@@ -355,7 +355,7 @@ class TreeService:
                 if col is not None:
                     search_cols.append(col)
                     seen.add(fname)
-            search_condition = match_columns(search, search_cols, session_dialect(session))
+            search_condition = match_columns(search, search_cols, session)
             if search_condition is not None:
                 filtered_q = filtered_q.where(search_condition)
 

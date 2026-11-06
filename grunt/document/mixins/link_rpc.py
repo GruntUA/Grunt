@@ -21,7 +21,7 @@ from grunt.errors import not_found
 from grunt.local import require_user
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
-from grunt.search.terms import match_columns, session_dialect
+from grunt.search.terms import match_columns
 lazy from grunt.document.base import controller_class
 
 
@@ -45,7 +45,7 @@ async def _identifier_search(
 
     stmt = select(*[table.c[c] for c in cols_needed if c in table.c])
     session = grunt.get_session()
-    condition = match_columns(query, [table.c[c] for c in allowed], session_dialect(session))
+    condition = match_columns(query, [table.c[c] for c in allowed], session)
     if condition is not None:
         stmt = stmt.where(condition)
     for key, value in (filters or {}).items():

@@ -21,6 +21,7 @@ lazy from grunt.apps.required import (
     dependents,
 )
 lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
+lazy from grunt.db.dialects import dialect_for
 lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
 lazy from grunt.metadata.extensions import extensions_for_site, revert_properties
 lazy from grunt.metadata.field import is_physical_fieldtype
@@ -494,11 +495,11 @@ async def _do_uninstall(
         await _drop_app_tables(eng, plan)
         await _drop_extension_columns(eng, ext_fields)
 
-        if vacuum and eng.dialect.name == "sqlite":
+        if vacuum and (vacuum_sql := dialect_for(eng).vacuum_sql):
             # VACUUM не має SQLAlchemy-еквівалента і вимагає autocommit
             async with eng.connect() as conn:
                 conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
-                await conn.exec_driver_sql("VACUUM")
+                await conn.exec_driver_sql(vacuum_sql)
     finally:
         current_site.reset(token)
 

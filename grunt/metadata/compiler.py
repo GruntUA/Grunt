@@ -1,4 +1,3 @@
-import re
 from typing import Any
 
 from sqlalchemy import (
@@ -17,6 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import _, log
+from grunt.db.dialects import dialect_for
 from grunt.db.types import UtcDateTime
 from grunt.metadata.field import NON_PHYSICAL_FIELDS, get_storage_class
 from grunt.utils.strings import to_snake_case
@@ -336,7 +336,7 @@ def _sync_columns(insp: Any, connection: Any, table: Table) -> int:
                     .values({col.name: col.info["backfill_default"]})
                 )
 
-        elif connection.dialect.name != "sqlite" and _type_changed(
+        elif dialect_for(connection).can_alter_column_type and _type_changed(
             col.type, existing_col_map[col.name], connection.dialect
         ):
             # Varchar reduction safety: skip if existing data would be truncated
@@ -386,7 +386,7 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
         str(c.name): c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
     }
     uq_prefix = f"uq_{table.name}_"
-    is_sqlite = connection.dialect.name == "sqlite"
+    dialect = dialect_for(connection)
     changes = 0
 
     for name, uq in desired_uq.items():
@@ -398,9 +398,10 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
             where_nonempty = " AND ".join(f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols)
 
             # Safety: raise with details if non-empty data has duplicates
+            concat_ids = dialect.group_concat_sql("name")
             dup_rows = connection.execute(
                 text(
-                    f"SELECT {cols_sql}, GROUP_CONCAT(name) as ids, COUNT(*) as cnt "
+                    f"SELECT {cols_sql}, {concat_ids} as ids, COUNT(*) as cnt "
                     f'FROM "{table.name}" '
                     f"WHERE {where_nonempty} "
                     f"GROUP BY {cols_sql} HAVING COUNT(*) > 1"
@@ -410,7 +411,7 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
                 duplicates = [
                     {
                         "value": row[0] if len(uq_cols) == 1 else tuple(row[: len(uq_cols)]),
-                        "ids": row[-2],  # GROUP_CONCAT(name)
+                        "ids": row[-2],  # group_concat(name)
                     }
                     for row in dup_rows
                 ]
@@ -432,83 +433,16 @@ def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
     inline: list[str] = []
     for name in existing_uq:
         if name and name.startswith(uq_prefix) and name not in desired_uq:
-            if is_sqlite:
-                if name not in unique_indexes:
-                    # Declared inline in CREATE TABLE - DROP INDEX can't reach it.
-                    inline.append(name)
-                    continue
-                connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
-            else:
-                # Index may have been created via CREATE UNIQUE INDEX or ADD CONSTRAINT
-                try:
-                    connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
-                except Exception:
-                    connection.execute(
-                        text(f'ALTER TABLE "{table.name}" DROP CONSTRAINT IF EXISTS "{name}"')
-                    )
+            if not dialect.drop_unique_index(
+                connection, table.name, name, is_index=name in unique_indexes
+            ):
+                inline.append(name)
+                continue
             log.info("compiler.unique_dropped", table=table.name, constraint=name)
             changes += 1
     if inline:
-        changes += _drop_sqlite_inline_constraints(connection, table.name, sorted(inline))
+        changes += dialect.drop_inline_unique(connection, table.name, sorted(inline))
     return changes
-
-
-def _drop_sqlite_inline_constraints(connection: Any, table_name: str, names: list[str]) -> int:
-    """Drop named constraints declared inside SQLite's CREATE TABLE.
-
-    SQLite has no ``DROP CONSTRAINT``: the table is rebuilt from its own stored
-    ``CREATE TABLE`` minus those clauses (so every column, type and the other
-    constraints stay as they are), rows copied over, indexes and triggers
-    recreated. Done in a savepoint - on any failure nothing changes and the
-    constraint is reported instead.
-    """
-    sql = connection.execute(
-        text("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = :t"),
-        {"t": table_name},
-    ).scalar_one()
-    for name in names:
-        clause = re.compile(rf',\s*CONSTRAINT\s+"?{re.escape(name)}"?\s+UNIQUE\s*\([^)]*\)')
-        sql, found = clause.subn("", sql)
-        if not found:
-            for n in names:
-                log.warning("compiler.unique_inline_not_dropped", table=table_name, constraint=n)
-            return 0
-
-    tmp = f"{table_name}__rebuild"
-    create_tmp = re.sub(
-        rf'^CREATE TABLE\s+"?{re.escape(table_name)}"?', f'CREATE TABLE "{tmp}"', sql, count=1
-    )
-    extras = (
-        connection.execute(
-            text(
-                "SELECT sql FROM sqlite_master WHERE tbl_name = :t "
-                "AND type IN ('index', 'trigger') AND sql IS NOT NULL"
-            ),
-            {"t": table_name},
-        )
-        .scalars()
-        .all()
-    )
-    try:
-        with connection.begin_nested():
-            connection.execute(text(create_tmp))
-            connection.execute(text(f'INSERT INTO "{tmp}" SELECT * FROM "{table_name}"'))
-            connection.execute(text(f'DROP TABLE "{table_name}"'))
-            connection.execute(text(f'ALTER TABLE "{tmp}" RENAME TO "{table_name}"'))
-            for statement in extras:
-                connection.execute(text(statement))
-    except Exception as exc:
-        for name in names:
-            log.warning(
-                "compiler.unique_inline_not_dropped",
-                table=table_name,
-                constraint=name,
-                error=str(exc),
-            )
-        return 0
-    for name in names:
-        log.info("compiler.unique_dropped", table=table_name, constraint=name, rebuilt=True)
-    return len(names)
 
 
 def _sync_indexes(insp: Any, connection: Any, table: Table) -> int:

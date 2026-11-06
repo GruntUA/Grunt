@@ -11,7 +11,8 @@ lazy from openpyxl.cell import Cell
 
 import grunt
 from grunt import _, log
-from grunt.db.buckets import DATE_BUCKETS, date_bucket
+from grunt.db.buckets import DATE_BUCKETS
+from grunt.db.dialects import dialect_for
 from grunt.db.filters import build_clauses
 from grunt.db.session import get_engine as _engine_factory
 from grunt.document.query import expand_child_of_filters
@@ -277,7 +278,7 @@ class ReportEngine:
             "max": func.max,
         }
 
-        dialect = session.get_bind().dialect.name
+        dialect = dialect_for(session.get_bind())
         # "none" (the builder's "no aggregation") is not an aggregation.
         has_aggregation = any((c.get("aggregation") or "").lower() in agg_map for c in col_defs)
         select_cols = []
@@ -305,7 +306,7 @@ class ReportEngine:
                 # optionally by period for a date column.
                 bucket = col_def.get("date_group")
                 if bucket in DATE_BUCKETS:
-                    expr = date_bucket(sa_col, bucket, dialect)
+                    expr = dialect.date_bucket(sa_col, bucket)
                     date_groups[fn] = bucket
                     fieldtype = "Data"
                     select_cols.append(expr.label(fn))

@@ -1,12 +1,9 @@
 import json
-import unicodedata
-from contextlib import suppress
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
 
 import dotenv
-from sqlalchemy import event, func
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -16,86 +13,13 @@ from sqlalchemy.ext.asyncio import (
 
 from grunt import log
 from grunt.config import settings
-from grunt.db.write_intent import begin_statement
+from grunt.db.dialects import dialect_for
 from grunt.document.serde import to_json
 lazy from grunt.db.profiler import attach_query_profiler
 lazy from grunt.monitoring.perf import attach_sql_counter
 
-_UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
-_UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
-
-
-def _uk_sort_key(s: str) -> str:
-    """Return a sort key string that respects Ukrainian alphabetical order.
-
-    Maps each Ukrainian letter to a code point in the Private Use Area
-    (U+E000+) so that comparison of resulting strings gives correct
-    Ukrainian alphabetical order, regardless of Unicode code points.
-    """
-    if not s:
-        return ""
-    out = []
-    for ch in unicodedata.normalize("NFC", s).casefold():
-        pos = _UK_ORDER.get(ch)
-        if pos is not None:
-            out.append(chr(0xE000 + pos))  # Private Use Area, keeps uk order
-        else:
-            out.append(ch)
-    return "".join(out)
-
-
-def _unicode_lower(s: Any) -> Any:
-    return s.lower() if isinstance(s, str) else s
-
-
-def register_sqlite_functions(dbapi_conn: Any) -> None:
-    """Register Grunt's SQL functions on a raw SQLite connection.
-
-    * ``uk_sort_key()`` - Ukrainian alphabetical sort key.
-    * ``lower()`` - overrides SQLite's ASCII-only built-in with a
-      Unicode-aware version so that ILIKE (which compiles to
-      ``lower(x) LIKE lower(y)``) works for Cyrillic.
-
-    Every SQLite engine - site engines and test engines alike - must call
-    this on connect, otherwise search behaves differently under test.
-    """
-    dbapi_conn.create_function("uk_sort_key", 1, _uk_sort_key, deterministic=True)
-    dbapi_conn.create_function("lower", 1, _unicode_lower, deterministic=True)
-
-
-def attach_sqlite_functions(engine: AsyncEngine) -> None:
-    """Call :func:`register_sqlite_functions` on every new connection of *engine*."""
-    if engine.dialect.name != "sqlite":
-        return
-
-    @event.listens_for(engine.sync_engine, "connect")
-    def _on_connect(dbapi_conn: Any, _connection_record: Any) -> None:
-        register_sqlite_functions(dbapi_conn)
-
-
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
-
-
-def text_sort_expr(col: Any, dialect_name: str) -> Any:
-    """Return a dialect-aware sort expression for text columns.
-
-    * SQLite - uses the custom ``uk_sort_key()`` SQLite function registered
-                at connect time, which maps Ukrainian letters to Private Use
-                Area code points for correct alphabetical ordering.
-    * PostgreSQL - ``col COLLATE "C"`` with lower() for a portable fallback.
-                   For full Ukrainian ordering install the ``uk_UA`` ICU
-                   collation and use ``col.collate('uk-x-icu')``.
-    * MySQL - ``CONVERT(col USING utf8mb4) COLLATE utf8mb4_unicode_ci``
-                gives good case-insensitive, accent-sensitive ordering.
-    """
-
-    if dialect_name == "sqlite":
-        return func.uk_sort_key(col)
-    if dialect_name == "mysql":
-        return func.lower(col)
-    # postgresql and everything else
-    return func.lower(col)
 
 
 _UNSET = object()
@@ -226,13 +150,7 @@ class SiteManager:
         db_url = env_vars.get("DATABASE_URL", "")
 
         if db_url:
-            # Resolve relative SQLite paths relative to the site directory
-            if "sqlite" in db_url and "///." in db_url:
-                # e.g. "sqlite+aiosqlite:///./grunt.db" -> dialect + "./grunt.db"
-                dialect, _, rel_path = db_url.partition("///")
-                abs_path = (self.sites_dir / site_name / rel_path).resolve()
-                return f"{dialect}///{abs_path}"
-            return db_url
+            return dialect_for(db_url).resolve_url(db_url, self.sites_dir / site_name)
 
         # Fallback to local sqlite db in the site folder
         site_db_path = (self.sites_dir / site_name / "grunt.db").resolve()
@@ -243,56 +161,15 @@ class SiteManager:
         if site_name not in self.engines:
             db_url = self.get_database_url(site_name)
 
-            engine_kwargs: dict[str, Any] = {"echo": settings.database_echo, "pool_pre_ping": True}
-            if "postgresql" in db_url:
-                engine_kwargs.update({"pool_size": 20, "max_overflow": 10})
-            elif "mysql" in db_url:
-                engine_kwargs.update(
-                    {
-                        "pool_size": 20,
-                        "max_overflow": 10,
-                        "connect_args": {"charset": "utf8mb4"},
-                    }
-                )
-            elif "sqlite" in db_url:
-                # A real (small) pool instead of NullPool: NullPool opens a brand
-                # new aiosqlite connection - a new background thread plus the
-                # connect-time PRAGMAs below - on every single checkout, which
-                # showed up as tens of ms hiding inside the profiler's "BEGIN"
-                # span on every request. WAL mode lets several connections read
-                # concurrently, and connect_args timeout is SQLite's busy_timeout
-                # for the rare writer/writer contention, so pooling is safe here.
-                engine_kwargs.update(
-                    {"pool_size": 5, "max_overflow": 5, "connect_args": {"timeout": 30}}
-                )
-
+            dialect = dialect_for(db_url)
+            engine_kwargs: dict[str, Any] = {
+                "echo": settings.database_echo,
+                "pool_pre_ping": True,
+                **dialect.engine_kwargs(),
+            }
             # to_json: документи тримають date/Decimal, а типовий json.dumps їх не вміє
             engine = create_async_engine(db_url, json_serializer=to_json, **engine_kwargs)
-
-            if "sqlite" in db_url:
-
-                @event.listens_for(engine.sync_engine, "connect")
-                def _on_sqlite_connect(dbapi_conn, _connection_record):
-                    # Hand transaction control fully to SQLAlchemy: pysqlite/aiosqlite's
-                    # own implicit BEGIN/COMMIT heuristics otherwise race with
-                    # SAVEPOINT (session.begin_nested()) boundaries, causing stray
-                    # implicit commits (and, under WAL, real fsync stalls) exactly
-                    # at nested-transaction points.
-                    dbapi_conn.isolation_level = None
-                    with suppress(Exception):
-                        cursor = dbapi_conn.cursor()
-                        cursor.execute("PRAGMA journal_mode=WAL")
-                        cursor.execute("PRAGMA synchronous=NORMAL")
-                        # Automatically return freed pages to the OS over time
-                        # (INCREMENTAL = pages freed lazily, no full-file rewrite)
-                        cursor.execute("PRAGMA auto_vacuum=INCREMENTAL")
-                        cursor.close()
-                        register_sqlite_functions(dbapi_conn)
-
-                @event.listens_for(engine.sync_engine, "begin")
-                def _on_sqlite_begin(conn):
-                    # IMMEDIATE for work that will write - see grunt/db/write_intent.py.
-                    conn.exec_driver_sql(begin_statement())
+            dialect.setup_engine(engine)
 
             attach_sql_counter(engine)
 

@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
-from grunt.db.buckets import DATE_BUCKETS, date_bucket
+from grunt.db.buckets import DATE_BUCKETS
+from grunt.db.dialects import Dialect, dialect_for
 from grunt.db.filters import apply_filters, build_clauses
 from grunt.errors import not_found
 from grunt.local import _session_ctx
@@ -53,7 +54,7 @@ def _build_aggregation_column(table: Any, fn_name: str, field_name: str | None) 
     raise ValueError(f"Unsupported aggregation function: {fn_name}")
 
 
-def _build_group_by_column(table: Any, gb: str, dialect: str) -> tuple[Any, Any]:
+def _build_group_by_column(table: Any, gb: str, dialect: Dialect) -> tuple[Any, Any]:
     """Build (select_expr, group_by_expr) for one ``group_by`` entry.
 
     Supports a bare column name, ``date(field)`` (calendar day), or a period
@@ -65,7 +66,7 @@ def _build_group_by_column(table: Any, gb: str, dialect: str) -> tuple[Any, Any]
     if m:
         fn, field = m.group(1).lower(), m.group(2).strip()
         expr = (
-            func.date(table.c[field]) if fn == "date" else date_bucket(table.c[field], fn, dialect)
+            func.date(table.c[field]) if fn == "date" else dialect.date_bucket(table.c[field], fn)
         )
         return expr.label(gb), expr
     col = table.c[gb]
@@ -549,7 +550,7 @@ class GruntDB:
         if isinstance(group_by, str):
             group_by = [group_by]
 
-        dialect = self._session().get_bind().dialect.name
+        dialect = dialect_for(self._session().get_bind())
         for gb in group_by or []:
             select_expr, group_expr = _build_group_by_column(table, gb, dialect)
             select_exprs.append(select_expr)

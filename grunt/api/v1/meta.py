@@ -7,6 +7,7 @@ import sqlalchemy as sa
 import grunt
 from grunt import _, log
 from grunt.actions import enrich_doctype_actions
+from grunt.db.dialects import dialect_for
 from grunt.document.validators import list_validators as _list
 from grunt.errors import not_found
 from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
@@ -167,37 +168,6 @@ async def sync_doctype(name: str) -> dict[str, Any]:
     return {"name": dt.name, "table_name": get_table_name(dt.module, dt.name)}
 
 
-def _compaction_footprint_bytes(conn: Any, table_name: str, dialect: str) -> int | None:
-    """Bytes that a compaction of *table_name* can shrink, measured before/after.
-
-    Matches the scope of the command ``compact_table`` runs for each dialect:
-    the whole database file for SQLite (``VACUUM`` is file-wide), the single
-    relation for PostgreSQL/MySQL. Returns None when the dialect is unknown.
-    """
-
-    if dialect == "sqlite":
-        page_count = int(conn.execute(sa.text("PRAGMA page_count")).scalar() or 0)
-        page_size = int(conn.execute(sa.text("PRAGMA page_size")).scalar() or 0)
-        return page_count * page_size
-    if dialect == "postgresql":
-        return int(
-            conn.execute(sa.text("SELECT pg_total_relation_size(:t)"), {"t": table_name}).scalar()
-            or 0
-        )
-    if dialect in ("mysql", "mariadb"):
-        row = conn.execute(
-            sa.text(
-                "SELECT data_length, index_length FROM information_schema.tables "
-                "WHERE table_schema = DATABASE() AND table_name = :t"
-            ),
-            {"t": table_name},
-        ).first()
-        if row:
-            return int((row[0] or 0) + (row[1] or 0))
-        return 0
-    return None
-
-
 @grunt.whitelist(roles=["System Manager"])
 async def compact_table(name: str) -> dict[str, Any]:
     """Compact a DocType's backing table and report how much space was freed.
@@ -222,21 +192,9 @@ async def compact_table(name: str) -> dict[str, Any]:
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
     engine = grunt.get_engine()
-    dialect = engine.dialect.name
-
-    if dialect == "sqlite":
-        command, scope = "VACUUM", "database"
-    elif dialect == "postgresql":
-        scope = "table"
-        command = None  # built below with a properly quoted identifier
-    elif dialect in ("mysql", "mariadb"):
-        scope = "table"
-        command = None
-    else:
-        grunt.throw(
-            _("Compaction is not supported for the “%(dialect)s” database") % {"dialect": dialect},
-            "VALIDATION_ERROR",
-        )
+    backend = dialect_for(engine)
+    dialect = engine.dialect.name  # as reported - "mariadb" stays "mariadb"
+    scope = backend.compaction_scope
 
     result: dict[str, Any] = {
         "doctype": dt.name,
@@ -253,17 +211,11 @@ async def compact_table(name: str) -> dict[str, Any]:
             grunt.throw(_("The table has not been created in the database yet"), "VALIDATION_ERROR")
 
         quoted = conn.dialect.identifier_preparer.quote(table_name)
-        cmd = command
-        if cmd is None:
-            cmd = (
-                f"VACUUM (FULL, ANALYZE) {quoted}"
-                if dialect == "postgresql"
-                else f"OPTIMIZE TABLE {quoted}"
-            )
+        cmd = backend.compaction_command(quoted)
 
-        before = _compaction_footprint_bytes(conn, table_name, dialect)
+        before = backend.compaction_footprint(conn, table_name)
         conn.exec_driver_sql(cmd)
-        after = _compaction_footprint_bytes(conn, table_name, dialect)
+        after = backend.compaction_footprint(conn, table_name)
 
         result["command"] = cmd
         result["before_bytes"] = before
@@ -305,7 +257,8 @@ async def table_info(name: str) -> dict[str, Any]:
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
     engine = grunt.get_engine()
-    dialect = engine.dialect.name
+    backend = dialect_for(engine)
+    dialect = engine.dialect.name  # as reported - "mariadb" stays "mariadb"
 
     info: dict[str, Any] = {
         "doctype": dt.name,
@@ -327,70 +280,7 @@ async def table_info(name: str) -> dict[str, Any]:
         info["exists"] = True
         info["row_count"] = conn.execute(sa.text(f'SELECT COUNT(*) FROM "{table_name}"')).scalar()
 
-        if dialect == "sqlite":
-            try:
-                page_size = int(conn.execute(sa.text("PRAGMA page_size")).scalar() or 0)
-                idx_names = [
-                    r[0]
-                    for r in conn.execute(
-                        sa.text(
-                            "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = :t"
-                        ),
-                        {"t": table_name},
-                    )
-                ]
-                rows = conn.execute(
-                    sa.text(
-                        "SELECT name, SUM(pgsize) FROM dbstat WHERE name IN :names GROUP BY name"
-                    ).bindparams(sa.bindparam("names", expanding=True)),
-                    {"names": [table_name, *idx_names]},
-                ).all()
-                by_name = {r[0]: int(r[1] or 0) for r in rows}
-                tbytes = by_name.get(table_name, 0)
-                ibytes = sum(by_name.get(n, 0) for n in idx_names)
-                info["table_bytes"] = tbytes
-                info["index_bytes"] = ibytes
-                info["total_bytes"] = tbytes + ibytes
-                info["size_supported"] = True
-                # SQLite VACUUM works on the whole database file, not one table.
-                freelist = int(conn.execute(sa.text("PRAGMA freelist_count")).scalar() or 0)
-                info["reclaimable_bytes"] = freelist * page_size
-                info["reclaim_scope"] = "database"
-            except Exception:
-                log.debug("table_info.dbstat_unavailable", table=table_name)
-        elif dialect == "postgresql":
-            row = conn.execute(
-                sa.text(
-                    "SELECT pg_table_size(:t), pg_indexes_size(:t), pg_total_relation_size(:t)"
-                ),
-                {"t": table_name},
-            ).one()
-            info["table_bytes"] = int(row[0])
-            info["index_bytes"] = int(row[1])
-            info["total_bytes"] = int(row[2])
-            info["size_supported"] = True
-            dead = conn.execute(
-                sa.text("SELECT n_dead_tup FROM pg_stat_user_tables WHERE relname = :t"),
-                {"t": table_name},
-            ).scalar()
-            info["dead_tuples"] = int(dead or 0)
-            info["reclaim_scope"] = "table"
-        elif dialect in ("mysql", "mariadb"):
-            row = conn.execute(
-                sa.text(
-                    "SELECT data_length, index_length, data_free "
-                    "FROM information_schema.tables "
-                    "WHERE table_schema = DATABASE() AND table_name = :t"
-                ),
-                {"t": table_name},
-            ).first()
-            if row:
-                info["table_bytes"] = int(row[0] or 0)
-                info["index_bytes"] = int(row[1] or 0)
-                info["total_bytes"] = int((row[0] or 0) + (row[1] or 0))
-                info["reclaimable_bytes"] = int(row[2] or 0)
-                info["reclaim_scope"] = "table"
-                info["size_supported"] = True
+        info.update(backend.table_storage(conn, table_name))
 
     async with engine.connect() as aconn:
         await aconn.run_sync(_collect)
