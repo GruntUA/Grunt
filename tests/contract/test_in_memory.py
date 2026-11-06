@@ -61,3 +61,14 @@ async def test_sort_in_memory_empties_last(rows, field, order, empty):
 async def test_search_in_memory(rows, q, expected):
     found = apply_search(rows, q, ["title", "note"])
     assert {r["name"] for r in found} == expected
+
+
+def test_like_wildcards_take_linear_time():
+    """A filter value is user input: many % on a long row must not backtrack
+    exponentially (a regex of .* groups did) and block the worker."""
+    import time
+
+    rows = [{"name": "x", "note": "a" * 5000}]
+    started = time.perf_counter()
+    assert apply_filters(rows, {"note__ilike": "a%" * 30 + "b"}) == []
+    assert time.perf_counter() - started < 1

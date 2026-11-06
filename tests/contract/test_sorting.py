@@ -66,3 +66,27 @@ async def test_cursor_pages_join_into_the_whole_list(ctx, dataset, field, order)
         if cursor is None:
             break
     assert paged == whole
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("order", ["asc", "desc"])
+async def test_cursor_by_name_with_mixed_case(ctx, dataset, order):
+    """Names equal but for case sort together; code points break the tie - the
+    same order on every backend, and a cursor never skips or repeats one."""
+    for name in ("abd", "ABC", "Abd", "abc"):
+        await ctx.new_doc("ContractGroup", {"name": name, "label": name})
+    await ctx.db._session().commit()
+
+    kwargs = {"fields": ["name"], "order_by": "name", "order": order}
+    whole = [r["name"] for r in await ctx.get_list("ContractGroup", limit=100, **kwargs)]
+    expected = ["ABC", "abc", "Abd", "abd", "G1", "G2", "G3"]
+    assert whole == (expected if order == "asc" else expected[::-1])
+
+    paged: list[str] = []
+    cursor = None
+    for _ in range(10):
+        result = await ctx.get_list("ContractGroup", limit=2, cursor=cursor, **kwargs)
+        paged += [r["name"] for r in result]
+        if (cursor := result.meta["next_cursor"]) is None:
+            break
+    assert paged == whole

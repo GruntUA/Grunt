@@ -142,16 +142,16 @@ def _resolve_sort(
 ) -> tuple[Any, list[Any]]:
     """Return ``(sort_col, order_by_clauses)`` for the requested sort field.
 
-    The dialect's sort rule (``Dialect.sort_key`` / ``order_by``): text in
-    case ignored, empty values last either way. ``name`` breaks
-    ties, so the order - and a cursor into it - is always the same.
+    The dialect's sort rule (``Dialect.sort_key`` / ``order_by``): text case
+    ignored, empty values last either way. ``name`` by code points breaks ties
+    (also between ``abc`` and ``ABC`` when sorting by name), so the order - and
+    a cursor into it - is always the same, on every backend.
     """
     sort_col = table.c.get(sort_by, table.c.modified_at)
     dialect = dialect_for(session)
     descending = sort_order != "asc"
     clauses = dialect.sort(sort_col, descending=descending)
-    if sort_col is not table.c.name:
-        clauses += dialect.order_by(table.c.name, descending=descending)
+    clauses += dialect.order_by(dialect.exact(table.c.name), descending=descending)
     return sort_col, clauses
 
 
@@ -192,9 +192,8 @@ def _keyset(
 ) -> Any:
     """Rows after (cursor_val, cursor_id) in the list order."""
     descending = sort_order != "asc"
-    beyond_id = table.c.name < cursor_id if descending else table.c.name > cursor_id
-    if sort_col is table.c.name:
-        return beyond_id
+    name = dialect.exact(table.c.name)
+    beyond_id = name < cursor_id if descending else name > cursor_id
     key = dialect.sort_key(sort_col)
     if cursor_val is None:  # within the empties - they come last, ordered by name
         return and_(sort_col.is_(None), beyond_id)

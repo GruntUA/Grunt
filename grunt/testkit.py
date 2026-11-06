@@ -315,7 +315,13 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         if str(path) not in sys.path:
             sys.path.insert(0, str(path))
 
-    test_engine = create_async_engine(worker_database_url(), echo=False, json_serializer=to_json)
+    test_url = worker_database_url()
+    test_engine = create_async_engine(
+        test_url,
+        echo=False,
+        json_serializer=to_json,
+        connect_args=dialect_for(test_url).connect_args(test_url),
+    )
     dialect_for(test_engine).attach_functions(test_engine)  # same Unicode lower() as sites
     TestSessionLocal = async_sessionmaker(  # noqa: N806 - sessionmaker factory, PascalCase by convention
         test_engine, class_=AsyncSession, expire_on_commit=False

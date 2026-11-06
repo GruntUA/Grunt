@@ -93,6 +93,11 @@ class Dialect(ABC):
         """Extra ``create_async_engine`` arguments for a site engine."""
         return {}
 
+    def connect_args(self, url: Any) -> dict[str, Any]:
+        """Driver connect arguments every engine needs (site, tests, CLI) -
+        e.g. a UTC session. *url* tells the driver."""
+        return {}
+
     def setup_engine(self, engine: AsyncEngine) -> None:
         """Connection-level setup of a site engine (listeners, session settings)."""
         self.attach_functions(engine)
@@ -107,6 +112,11 @@ class Dialect(ABC):
         """Sort key of a text column: case ignored, then Unicode code point order -
         the same on every backend and in memory (no language-specific rules)."""
         return func.lower(col)
+
+    def exact(self, col: Any) -> Any:
+        """*col* compared by code points, whatever the database's collation - for
+        a deterministic tie-breaker (``abc`` vs ``ABC``) the same on every backend."""
+        return col
 
     def sort_key(self, col: Any) -> Any:
         """What *col* sorts by - :meth:`text_sort` for text, the column otherwise."""
@@ -132,17 +142,9 @@ class Dialect(ABC):
     def fulltext(self, spec: FullTextSpec) -> FullText:
         """The backend's native full-text engine over *spec* (see ``fulltext.py``)."""
 
-    def in_utc(self, column: Any) -> Any:
-        """*column*'s value as UTC wall-clock time, for date arithmetic/formatting.
-
-        Every datetime in Grunt is UTC; a backend that formats a timestamp in
-        the session's time zone must say UTC explicitly.
-        """
-        return column
-
     def calendar_date(self, column: Any) -> Any:
-        """The (UTC) calendar day of a date or datetime *column*."""
-        return func.date(self.in_utc(column))
+        """The calendar day of a date or datetime *column* (UTC - see :meth:`connect_args`)."""
+        return func.date(column)
 
     @abstractmethod
     def date_bucket(self, column: Any, bucket: str) -> Any:

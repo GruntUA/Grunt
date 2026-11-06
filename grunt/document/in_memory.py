@@ -6,7 +6,6 @@ virtual DocType's list view filters like any other.
 """
 
 import math
-import re
 from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
@@ -54,12 +53,35 @@ def _compare(test: Callable[[Any, Any], bool]) -> Callable[[Any, Any], bool]:
     return match
 
 
+def _wildcard_match(text: str, pattern: str) -> bool:
+    """Whole *text* against a LIKE *pattern* (``%`` any run, ``_`` one character).
+
+    Linear backtracking - only to the last ``%`` - so ``%a%a%a…`` on a long
+    row costs O(len(text) * len(pattern)), not the exponential time a regex
+    of ``.*`` groups can take (a filter value is user input).
+    """
+    t = p = 0
+    star_p = star_t = -1
+    while t < len(text):
+        if p < len(pattern) and pattern[p] == "%":
+            star_p, star_t = p, t
+            p += 1
+        elif p < len(pattern) and (pattern[p] == "_" or pattern[p] == text[t]):
+            t += 1
+            p += 1
+        elif star_p >= 0:
+            star_t += 1
+            t, p = star_t, star_p + 1
+        else:
+            return False
+    return all(ch == "%" for ch in pattern[p:])
+
+
 def _like(raw: Any, val: Any) -> bool:
     """SQL ``ILIKE '%val%'``: ``%`` and ``_`` are wildcards, case ignored."""
     if raw is None:
         return False
-    pattern = "".join(".*" if ch == "%" else "." if ch == "_" else re.escape(ch) for ch in str(val))
-    return re.search(pattern, str(_iso(raw)), re.IGNORECASE | re.DOTALL) is not None
+    return _wildcard_match(str(_iso(raw)).lower(), f"%{str(val).lower()}%")
 
 
 def _in(raw: Any, val: Any) -> bool:

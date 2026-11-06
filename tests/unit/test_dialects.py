@@ -357,3 +357,22 @@ def test_tsvector_constants_are_literals_not_parameters():
     # A bound "simple" can't match the GIN index expression under a generic plan
     assert not compiled.params
     assert "'simple'::regconfig" in str(compiled)
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("postgresql+asyncpg://u@h/db", {"server_settings": {"timezone": "UTC"}}),
+        ("postgresql+psycopg://u@h/db", {"options": "-c timezone=UTC"}),
+        ("sqlite+aiosqlite://", {}),
+    ],
+)
+def test_postgres_sessions_are_utc(url, expected):
+    # to_char()/date() of a timestamp follow the session's TimeZone
+    assert dialect_for(url).connect_args(url) == expected
+
+
+def test_exact_compares_code_points_on_postgres():
+    pg = _sql(PostgresDialect().exact(_t.c.title), postgresql.dialect())
+    assert pg == 't.title COLLATE "C"'
+    assert _sql(SqliteDialect().exact(_t.c.title), sqlite.dialect()) == "t.title"

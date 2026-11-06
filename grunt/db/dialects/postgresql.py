@@ -7,9 +7,9 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import DateTime, Table, func, literal_column, text
+from sqlalchemy import String, Table, func, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.engine import URL
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
@@ -86,6 +86,18 @@ class PostgresDialect(Dialect):
     def engine_kwargs(self) -> dict[str, Any]:
         return {"pool_size": 20, "max_overflow": 10}
 
+    def connect_args(self, url: Any) -> dict[str, Any]:
+        # Every datetime in Grunt is UTC. to_char()/date() of a timestamp follow
+        # the session's TimeZone (a server in Europe/Kyiv puts 2025-12-31 23:00
+        # UTC into 2026) - so the session is UTC, set at connect time: right for
+        # timestamptz and naive timestamp columns alike, no per-query conversion.
+        driver = make_url(str(url)).get_driver_name()
+        if driver == "asyncpg":
+            return {"server_settings": {"timezone": "UTC"}}
+        if driver.startswith("psycopg"):
+            return {"options": "-c timezone=UTC"}
+        return {}
+
     async def empty_tables(self, conn: Any, names: list[str]) -> None:
         # One statement for all; a lock held by a stray connection fails fast
         # instead of hanging the run.
@@ -96,6 +108,9 @@ class PostgresDialect(Dialect):
         await conn.execute(
             text(f"TRUNCATE {', '.join(quote(n) for n in names)} RESTART IDENTITY CASCADE")
         )
+
+    def exact(self, col: Any) -> Any:
+        return col.collate("C") if isinstance(col.type, String) else col
 
     def text_sort(self, col: Any) -> Any:
         # Code point order whatever the database's collation (en_US, uk_UA... order
@@ -112,18 +127,9 @@ class PostgresDialect(Dialect):
     def fulltext(self, spec: FullTextSpec) -> FullText:
         return PostgresTsvector(spec)
 
-    def in_utc(self, column: Any) -> Any:
-        # to_char()/date() of a timestamptz use the session's TimeZone - a
-        # server in Europe/Kyiv puts 2025-12-31 23:00 UTC into 2026.
-        col_type = getattr(column, "type", None)
-        # UtcDateTime is a TypeDecorator - look at what it decorates
-        if isinstance(getattr(col_type, "impl_instance", col_type), DateTime):
-            return func.timezone(literal_column("'UTC'"), column)
-        return column
-
     def date_bucket(self, column: Any, bucket: str) -> Any:
         fmt = {"day": "YYYY-MM-DD", "month": "YYYY-MM", "quarter": 'YYYY-"Q"Q', "year": "YYYY"}
-        return func.to_char(self.in_utc(column), fmt[bucket])
+        return func.to_char(column, fmt[bucket])
 
     async def database_size(self, session: Any) -> int | None:
         return (await session.execute(text("select pg_database_size(current_database())"))).scalar()
