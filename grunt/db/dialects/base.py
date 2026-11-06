@@ -10,8 +10,11 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, ClassVar
 
-from sqlalchemy import func, text
+from sqlalchemy import Table, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.sql.dml import Insert
+
+from grunt.db.dialects.fulltext import FullText, FullTextSpec
 
 LIKE_ESCAPE = "\\"
 
@@ -71,6 +74,14 @@ class Dialect(ABC):
     def like_contains(self, col: Any, term: str) -> Any:
         """Case-insensitive ``col`` contains ``term``."""
         return col.ilike(f"%{escape_like(term)}%", escape=LIKE_ESCAPE)
+
+    @abstractmethod
+    def upsert(self, table: Table, row: dict[str, Any], key: list[str]) -> Insert:
+        """INSERT of *row* that updates the other columns when *key* already exists."""
+
+    @abstractmethod
+    def fulltext(self, spec: FullTextSpec) -> FullText:
+        """The backend's native full-text engine over *spec* (see ``fulltext.py``)."""
 
     @abstractmethod
     def date_bucket(self, column: Any, bucket: str) -> Any:

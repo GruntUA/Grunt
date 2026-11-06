@@ -2,9 +2,12 @@
 
 from typing import Any
 
-from sqlalchemy import func, text
+from sqlalchemy import Table, func, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.sql.dml import Insert
 
 from grunt.db.dialects.base import Dialect
+from grunt.db.dialects.fulltext import FullText, FullTextSpec, PostgresTsvector
 
 
 class PostgresDialect(Dialect):
@@ -18,6 +21,15 @@ class PostgresDialect(Dialect):
         # Portable lower(); for full Ukrainian ordering install the ICU
         # collation and sort on ``col.collate("uk-x-icu")``.
         return func.lower(col)
+
+    def upsert(self, table: Table, row: dict[str, Any], key: list[str]) -> Insert:
+        stmt = pg_insert(table).values(**row)
+        return stmt.on_conflict_do_update(
+            index_elements=key, set_={k: v for k, v in row.items() if k not in key}
+        )
+
+    def fulltext(self, spec: FullTextSpec) -> FullText:
+        return PostgresTsvector(spec)
 
     def date_bucket(self, column: Any, bucket: str) -> Any:
         fmt = {"day": "YYYY-MM-DD", "month": "YYYY-MM", "quarter": 'YYYY-"Q"Q', "year": "YYYY"}

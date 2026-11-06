@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-06 (крок 1 — частково)
+Оновлено: 2026-11-06 (крок 1 — пошук перенесено)
 
 ---
 
@@ -67,9 +67,20 @@
   дає 403 під xdist, окремо проходить), engine живих сайтів dev2/lagoo (WAL, `uk_sort_key`,
   кириличний `lower`). **На Postgres не перевірено** — локально PG немає, чекаємо CI.
 
+Зроблено (2026-11-06, пошук):
+- `Dialect.upsert(table, row, key)` — `ON CONFLICT` (SQLite/PG) / `ON DUPLICATE KEY` (MySQL);
+  на SQLite замість delete+insert;
+- `grunt/db/dialects/fulltext.py`: `FullTextSpec` (таблиця + key/title/label/content) і
+  `Dialect.fulltext(spec)` → `SqliteFts5` / `PostgresTsvector` / `MysqlFulltext` з єдиним
+  `ensure / write / delete / clear / match`; `match()` → `None` = fallback на LIKE;
+- `search/service.py` більше не знає СУБД; FTS5-колонка зберегла назву `idx_id` — таблиці
+  на наявних сайтах працюють без перебудови (перевірено на dev2, 31 тис. записів);
+- індекс `grunt_search_idx_doctype` тепер на всіх СУБД (був лише на PG), створюється
+  `checkfirst`; на PG — уже не `CONCURRENTLY`;
+- MySQL: FULLTEXT-індекс тепер зветься `grunt_search_idx_ft` (був `idx_ft_content`) —
+  на наявній MySQL-базі з'явиться другий, старий можна видалити.
+
 Лишилось:
-- `search/service.py` (FTS5 / tsvector / MySQL FULLTEXT, upsert) → `dialect.fts_*`,
-  `dialect.upsert` — **після коміту поточної роботи над пошуком**;
 - `backups/__init__.py` → `dialect.backup()/restore()`;
 - `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
 - `_friendly_integrity_error` → `dialect.parse_integrity_error`;
