@@ -58,7 +58,10 @@ async def load_remote(name: str) -> dict[str, Any]:
 async def backup_remotes() -> list[dict[str, Any]]:
     """Enabled remotes that receive backups."""
     return await grunt.db.get_all(
-        "StorageRemote", filters={"enabled": True, "use_for_backups": True}, fields=["*"], limit=None
+        "StorageRemote",
+        filters={"enabled": True, "use_for_backups": True},
+        fields=["*"],
+        limit=None,
     )
 
 
