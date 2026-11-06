@@ -56,6 +56,14 @@ class MysqlDialect(Dialect):
         fmt = {"day": "%Y-%m-%d", "month": "%Y-%m", "year": "%Y"}
         return func.date_format(column, fmt[bucket])
 
+    def text_sort(self, col: Any) -> Any:
+        # The default utf8mb4 collations order linguistically - compare code points
+        return func.lower(col).collate("utf8mb4_bin")
+
+    def order_by(self, expr: Any, *, descending: bool = False) -> list[Any]:
+        # No NULLS LAST in MySQL: sort on "is it NULL" first
+        return [expr.is_(None).asc(), expr.desc() if descending else expr.asc()]
+
     def group_concat_sql(self, expr: str) -> str:
         return f"GROUP_CONCAT({expr})"
 

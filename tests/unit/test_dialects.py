@@ -68,9 +68,12 @@ def test_sqlite_resolves_relative_url_against_site_dir(tmp_path: Path):
     assert PostgresDialect().resolve_url("postgresql://h/db", tmp_path) == "postgresql://h/db"
 
 
-def test_text_sort_uses_uk_sort_key_on_sqlite_only():
-    assert "uk_sort_key" in _sql(SqliteDialect().text_sort(_t.c.title), sqlite.dialect())
-    assert "lower" in _sql(PostgresDialect().text_sort(_t.c.title), postgresql.dialect())
+def test_text_sort_is_lower_everywhere():
+    # No language-specific collation: case ignored, then code points
+    assert _sql(SqliteDialect().text_sort(_t.c.title), sqlite.dialect()) == "lower(t.title)"
+    # PostgreSQL: whatever the database's collation (en_US orders linguistically)
+    pg = _sql(PostgresDialect().text_sort(_t.c.title), postgresql.dialect())
+    assert pg == 'lower(t.title) COLLATE "C"'
 
 
 def test_like_contains_keeps_ascii_in_native_like_on_sqlite():

@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Table, func, text
+from sqlalchemy import DateTime, Table, func, literal_column, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -98,9 +98,10 @@ class PostgresDialect(Dialect):
         )
 
     def text_sort(self, col: Any) -> Any:
-        # Portable lower(); for full Ukrainian ordering install the ICU
-        # collation and sort on ``col.collate("uk-x-icu")``.
-        return func.lower(col)
+        # Code point order whatever the database's collation (en_US, uk_UA... order
+        # linguistically, and each differently) - "C" exists on every server.
+        # lower() itself still follows the database, so Cyrillic lowercases.
+        return func.lower(col).collate("C")
 
     def upsert(self, table: Table, row: dict[str, Any], key: list[str]) -> Insert:
         stmt = pg_insert(table).values(**row)
@@ -111,9 +112,18 @@ class PostgresDialect(Dialect):
     def fulltext(self, spec: FullTextSpec) -> FullText:
         return PostgresTsvector(spec)
 
+    def in_utc(self, column: Any) -> Any:
+        # to_char()/date() of a timestamptz use the session's TimeZone - a
+        # server in Europe/Kyiv puts 2025-12-31 23:00 UTC into 2026.
+        col_type = getattr(column, "type", None)
+        # UtcDateTime is a TypeDecorator - look at what it decorates
+        if isinstance(getattr(col_type, "impl_instance", col_type), DateTime):
+            return func.timezone(literal_column("'UTC'"), column)
+        return column
+
     def date_bucket(self, column: Any, bucket: str) -> Any:
         fmt = {"day": "YYYY-MM-DD", "month": "YYYY-MM", "quarter": 'YYYY-"Q"Q', "year": "YYYY"}
-        return func.to_char(column, fmt[bucket])
+        return func.to_char(self.in_utc(column), fmt[bucket])
 
     async def database_size(self, session: Any) -> int | None:
         return (await session.execute(text("select pg_database_size(current_database())"))).scalar()

@@ -47,7 +47,7 @@ _TEST_SITE = "__pytest__"
 TEST_DB_URL = worker_database_url()  # an xdist worker gets its own server database
 
 test_engine = create_async_engine(TEST_DB_URL, echo=False, json_serializer=to_json)
-dialect_for(test_engine).attach_functions(test_engine)  # same lower()/uk_sort_key as sites
+dialect_for(test_engine).attach_functions(test_engine)  # same Unicode lower() as sites
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 bind_test_site(test_engine, TestSessionLocal)
 test_schema = TestSchema(test_engine)

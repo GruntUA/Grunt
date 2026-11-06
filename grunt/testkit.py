@@ -316,7 +316,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
             sys.path.insert(0, str(path))
 
     test_engine = create_async_engine(worker_database_url(), echo=False, json_serializer=to_json)
-    dialect_for(test_engine).attach_functions(test_engine)  # same lower()/uk_sort_key as sites
+    dialect_for(test_engine).attach_functions(test_engine)  # same Unicode lower() as sites
     TestSessionLocal = async_sessionmaker(  # noqa: N806 - sessionmaker factory, PascalCase by convention
         test_engine, class_=AsyncSession, expire_on_commit=False
     )

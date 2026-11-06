@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-06 (крок 1 готовий, PostgreSQL у CI блокує)
+Оновлено: 2026-11-06 (кроки 1–2 готові)
 
 ---
 
@@ -43,12 +43,12 @@
 
 ## Кроки
 
-### 1. `grunt/db/dialects/` — 🔨
+### 1. `grunt/db/dialects/` — ✅ (дрібні залишки — у «Лишилось»)
 
 Зроблено (2026-11-06):
 - пакет `grunt/db/dialects/` (`base`, `sqlite`, `postgresql`, `mysql`),
   `dialect_for(obj)` — з рядка, URL, engine, connection, session;
-- налаштування engine (pool, PRAGMA, `BEGIN IMMEDIATE`, `uk_sort_key`/`lower`) —
+- налаштування engine (pool, PRAGMA, `BEGIN IMMEDIATE`, Unicode `lower`) —
   з `site/manager.py` у `SqliteDialect.setup_engine`; відносний шлях SQLite — `resolve_url`;
 - вирази: `text_sort` (було `text_sort_expr`), `date_bucket` (було `db/buckets.py`,
   лишився сумісний обгортковий `date_bucket`), `like_contains` (ASCII-LIKE на SQLite);
@@ -141,9 +141,30 @@ URL сайту → параметри libpq для `pg_dump`/`pg_restore` (`ssl`
 psycopg (`pgcode`/`diag`) в `integrity_violation`; `dialect_name` питає `get_bind()` у сесії без
 `.bind`; окремі повідомлення для FK/CHECK/NOT NULL без колонки; лапки таблиці з діалекту в `table_info`.
 
-### 2. Contract-тести — ⏳
-Один набір тестів CRUD/фільтрів/сортування/агрегацій/пошуку, що проганяється на SQLite,
-Postgres і фейковому `VirtualStore`. PG у CI — блокує.
+### 2. Contract-тести — ✅ (2026-11-06)
+
+`tests/contract/`: один набір даних (`ContractItem`/`ContractGroup`: Data, Int, Currency, Check,
+Date, Datetime, Select, Link, MultiLink, кирилиця, `NULL` і `''`) і кейси, записані як контракт.
+CI проганяє їх на SQLite і PostgreSQL; `test_in_memory.py` — ті самі кейси через
+`grunt.document.in_memory` (віртуальні DocType). 170 кейсів, зелені на обох СУБД.
+
+Правила, які контракт фіксує (і що довелось виправити):
+- **сортування**: текст — `lower()` за кодами Unicode, **без правил окремих мов** (рішення
+  2026-11-06: дані бувають різними мовами впереміш; мовні колації — не справа ядра). На PG
+  `lower(col) COLLATE "C"` — інакше порядок залежить від колації бази (`en_US`, `uk_UA` сортують
+  по-своєму), MySQL — `utf8mb4_bin`, SQLite — свій Unicode `lower()`, in-memory — `str.lower()`.
+  **Порожні (NULL) в кінці** в обидва боки (`Dialect.sort_key/order_by/sort`, MySQL — емуляція);
+  `name` розв'язує рівні значення; те саме в дереві, звітах, `get_all`, агрегатах;
+- **курсорна пагінація** йде тим самим порядком (раніше: сира колонка проти ключа абетки,
+  значення курсора — рядок, обрив на `NULL`; на PG 7 з 10 кейсів давали пропуски/дублі/помилку);
+- **фільтри**: число рядком з query string (`qty__gt=5`, CSV в `__in`) — числом (PG не порівнював
+  `int` з `'5'`); `__like` не враховує регістр на всіх СУБД (як завжди на SQLite);
+  `__like/__ilike` — **шаблон** (`%`, `_` працюють: додатки передають `%…%`), а пошук у списку й
+  глобальний — **текст** (`%`, `_` буквально);
+- **бакети дат** Datetime — в UTC (`Dialect.in_utc`, `calendar_date`): на PG `to_char`/`date()`
+  брали часовий пояс сесії — 2025-12-31 23:00 UTC потрапляло в 2026;
+- **in-memory** = SQL: типізоване порівняння (числа, Check, дати), NULL не підходить під
+  порівняння, `%`/`_` у like, той самий порядок тексту, порожні в кінці.
 
 ### 3. `Query` AST — ⏳
 `db/filters.py` розбирає вхідні дані в нейтральний `Query`; права (user permissions,

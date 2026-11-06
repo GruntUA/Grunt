@@ -7,17 +7,17 @@ document. Single-document CRUD lives on
 """
 
 import base64
+import json
 import math
-from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import and_, func, literal, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
-from grunt.db.filters import apply_filters
+from grunt.db.filters import apply_filters, typed_value
 from grunt.document.base import (
     Document,
     DocumentList,
@@ -50,23 +50,18 @@ from grunt.search.service import search_index_service
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.db.dialects import dialect_for
 
-_CURSOR_SEP = "||"  # separator unlikely to appear in sort values
-
-_TEXT_SQL_TYPES = frozenset({"TEXT", "VARCHAR", "CHAR", "CLOB", "STRING", "NVARCHAR", "NCHAR"})
-
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:
-    """Encode (sort_value, id) into a safe opaque cursor string."""
-    sort_str = sort_val.isoformat() if isinstance(sort_val, datetime) else str(sort_val)
-    raw = f"{sort_str}{_CURSOR_SEP}{doc_id}"
+    """Encode (sort_value, id) into an opaque cursor; the value keeps its JSON type
+    (a number stays a number, NULL stays NULL)."""
+    raw = json.dumps([sort_val, doc_id], default=str, ensure_ascii=False)
     return base64.urlsafe_b64encode(raw.encode()).decode()
 
 
-def _decode_cursor(cursor: str) -> tuple[str, str]:
-    """Decode cursor -> (sort_value_str, doc_id)."""
-    raw = base64.urlsafe_b64decode(cursor.encode()).decode()
-    sort_str, doc_id = raw.rsplit(_CURSOR_SEP, 1)
-    return sort_str, doc_id
+def _decode_cursor(cursor: str) -> tuple[Any, str]:
+    """Decode a cursor -> (sort_value, doc_id)."""
+    sort_val, doc_id = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
+    return sort_val, str(doc_id)
 
 
 # List
@@ -144,20 +139,20 @@ async def _apply_where(
 
 def _resolve_sort(
     session: AsyncSession, table: Any, sort_by: str, sort_order: str
-) -> tuple[Any, Any]:
-    """Return ``(sort_col, order_by_expr)`` for the requested sort field.
+) -> tuple[Any, list[Any]]:
+    """Return ``(sort_col, order_by_clauses)`` for the requested sort field.
 
-    Text-typed columns get a dialect-aware collation (``Dialect.text_sort``) so
-    sorting is locale-correct; other types sort on the raw column.
+    The dialect's sort rule (``Dialect.sort_key`` / ``order_by``): text in
+    case ignored, empty values last either way. ``name`` breaks
+    ties, so the order - and a cursor into it - is always the same.
     """
     sort_col = table.c.get(sort_by, table.c.modified_at)
-    col_type = str(sort_col.type).upper()
-    if any(t in col_type for t in _TEXT_SQL_TYPES):
-        sort_expr = dialect_for(session).text_sort(sort_col)
-    else:
-        sort_expr = sort_col
-    order_by_expr = sort_expr.asc() if sort_order == "asc" else sort_expr.desc()
-    return sort_col, order_by_expr
+    dialect = dialect_for(session)
+    descending = sort_order != "asc"
+    clauses = dialect.sort(sort_col, descending=descending)
+    if sort_col is not table.c.name:
+        clauses += dialect.order_by(table.c.name, descending=descending)
+    return sort_col, clauses
 
 
 def _apply_pagination(
@@ -168,33 +163,21 @@ def _apply_pagination(
     cursor: str | None,
     page: int,
     per_page: int,
+    dialect: Any,
 ) -> Any:
     """Apply cursor (keyset) or offset pagination to *query*.
 
     Cursor mode avoids a slow OFFSET scan on large tables; an invalid cursor
-    is logged and ignored (falls back to an unfiltered first page).
+    is logged and ignored (falls back to an unfiltered first page). The keyset
+    follows the order of :func:`_resolve_sort` exactly: the same sort key,
+    empty values last, ``name`` breaking ties.
     """
     if cursor:
         try:
-            sort_str, cursor_id = _decode_cursor(cursor)
-            try:
-                cursor_val: Any = datetime.fromisoformat(sort_str)
-            except ValueError:
-                cursor_val = sort_str
-
-            from sqlalchemy import and_, or_
-
-            if sort_order == "asc":
-                keyset = or_(
-                    sort_col > cursor_val,
-                    and_(sort_col == cursor_val, table.c.name > cursor_id),
-                )
-            else:
-                keyset = or_(
-                    sort_col < cursor_val,
-                    and_(sort_col == cursor_val, table.c.name < cursor_id),
-                )
-            query = query.where(keyset)
+            cursor_val, cursor_id = _decode_cursor(cursor)
+            query = query.where(
+                _keyset(table, sort_col, sort_order, cursor_val, cursor_id, dialect)
+            )
         except Exception:
             log.warning("list_documents.invalid_cursor", cursor=cursor)
 
@@ -202,6 +185,22 @@ def _apply_pagination(
     if not cursor:
         query = query.offset((page - 1) * per_page)
     return query
+
+
+def _keyset(
+    table: Any, sort_col: Any, sort_order: str, cursor_val: Any, cursor_id: str, dialect: Any
+) -> Any:
+    """Rows after (cursor_val, cursor_id) in the list order."""
+    descending = sort_order != "asc"
+    beyond_id = table.c.name < cursor_id if descending else table.c.name > cursor_id
+    if sort_col is table.c.name:
+        return beyond_id
+    key = dialect.sort_key(sort_col)
+    if cursor_val is None:  # within the empties - they come last, ordered by name
+        return and_(sort_col.is_(None), beyond_id)
+    value = dialect.sort_key(literal(typed_value(sort_col, cursor_val), type_=sort_col.type))
+    beyond = key < value if descending else key > value
+    return or_(beyond, and_(key == value, beyond_id), sort_col.is_(None))
 
 
 async def _finalize_rows(
@@ -229,11 +228,10 @@ def _build_next_cursor(rows: list[dict[Any, Any]], per_page: int, sort_by: str) 
     if not rows or len(rows) != per_page:
         return None
     last = rows[-1]
-    sort_raw = last.get(sort_by)
     last_id = str(last.get("name", ""))
-    if sort_raw is not None and last_id:
-        return _encode_cursor(sort_raw, last_id)
-    return None
+    if not last_id or (sort_by != "name" and sort_by not in last):
+        return None  # the sort value isn't in the rows (not among *fields*)
+    return _encode_cursor(last.get(sort_by), last_id)
 
 
 async def list_documents(
@@ -340,9 +338,11 @@ async def table_list(
         count_result = await session.execute(count_q)
         total = count_result.scalar() or 0
 
-    sort_col, order_by_expr = _resolve_sort(session, table, sort_by, sort_order)
-    query = query.order_by(order_by_expr)
-    query = _apply_pagination(query, table, sort_col, sort_order, cursor, page, per_page)
+    sort_col, order_by = _resolve_sort(session, table, sort_by, sort_order)
+    query = query.order_by(*order_by)
+    query = _apply_pagination(
+        query, table, sort_col, sort_order, cursor, page, per_page, dialect_for(session)
+    )
 
     result = await session.execute(query)
     rows: list[dict[Any, Any]] = [dict(r._mapping) for r in result]

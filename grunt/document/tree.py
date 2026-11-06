@@ -31,6 +31,7 @@ from sqlalchemy.sql import Select
 
 import grunt
 from grunt import _, log
+from grunt.db.dialects import dialect_for
 from grunt.document.registry import document_registry
 from grunt.search.terms import match_columns
 lazy from grunt.db.filters import apply_filters
@@ -164,14 +165,15 @@ class TreeService:
         if scope is not None:
             stmt = stmt.where(table.c.name.in_(scope))
 
+        dialect = dialect_for(session)
         sort_col = table.c.get(sort_by) if sort_by else None
         if sort_col is not None:
-            stmt = stmt.order_by(sort_col.desc() if sort_order == "desc" else sort_col.asc())
+            stmt = stmt.order_by(*dialect.sort(sort_col, descending=sort_order == "desc"))
         else:
             # Preserve historic behavior when no valid sort field is resolved.
             title_sa = table.c.get(title_col) or table.c.get("name")
             if title_sa is not None:
-                stmt = stmt.order_by(title_sa.asc())
+                stmt = stmt.order_by(*dialect.sort(title_sa))
 
         stmt = stmt.limit(limit)
         result = await session.execute(stmt)

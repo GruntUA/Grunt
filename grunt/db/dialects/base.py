@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, ClassVar, Literal, NamedTuple
 
-from sqlalchemy import Table, func, text
+from sqlalchemy import String, Table, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
 
@@ -104,8 +104,21 @@ class Dialect(ABC):
     # ── Expressions ─────────────────────────────────────────────────────────
 
     def text_sort(self, col: Any) -> Any:
-        """Locale-friendly sort expression for a text column."""
+        """Sort key of a text column: case ignored, then Unicode code point order -
+        the same on every backend and in memory (no language-specific rules)."""
         return func.lower(col)
+
+    def sort_key(self, col: Any) -> Any:
+        """What *col* sorts by - :meth:`text_sort` for text, the column otherwise."""
+        return self.text_sort(col) if isinstance(col.type, String) else col
+
+    def order_by(self, expr: Any, *, descending: bool = False) -> list[Any]:
+        """ORDER BY clauses for *expr*: empty (NULL) values last, both ways."""
+        return [(expr.desc() if descending else expr.asc()).nulls_last()]
+
+    def sort(self, col: Any, *, descending: bool = False) -> list[Any]:
+        """ORDER BY clauses sorting by *col* - :meth:`sort_key` + :meth:`order_by`."""
+        return self.order_by(self.sort_key(col), descending=descending)
 
     def like_contains(self, col: Any, term: str) -> Any:
         """Case-insensitive ``col`` contains ``term``."""
@@ -118,6 +131,18 @@ class Dialect(ABC):
     @abstractmethod
     def fulltext(self, spec: FullTextSpec) -> FullText:
         """The backend's native full-text engine over *spec* (see ``fulltext.py``)."""
+
+    def in_utc(self, column: Any) -> Any:
+        """*column*'s value as UTC wall-clock time, for date arithmetic/formatting.
+
+        Every datetime in Grunt is UTC; a backend that formats a timestamp in
+        the session's time zone must say UTC explicitly.
+        """
+        return column
+
+    def calendar_date(self, column: Any) -> Any:
+        """The (UTC) calendar day of a date or datetime *column*."""
+        return func.date(self.in_utc(column))
 
     @abstractmethod
     def date_bucket(self, column: Any, bucket: str) -> Any:

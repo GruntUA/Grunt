@@ -4,7 +4,6 @@ import re
 import shutil
 import sqlite3
 import tempfile
-import unicodedata
 from compression import zstd
 from contextlib import closing, suppress
 from pathlib import Path
@@ -34,28 +33,6 @@ _SQLITE_COLUMNS_FAILED = re.compile(
 )
 _SQLITE_CHECK_FAILED = re.compile(r"CHECK constraint failed:\s*(\w+)")
 
-_UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
-_UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
-
-
-def uk_sort_key(s: str) -> str:
-    """Return a sort key string that respects Ukrainian alphabetical order.
-
-    Maps each Ukrainian letter to a code point in the Private Use Area
-    (U+E000+) so that comparison of resulting strings gives correct
-    Ukrainian alphabetical order, regardless of Unicode code points.
-    """
-    if not s:
-        return ""
-    out = []
-    for ch in unicodedata.normalize("NFC", s).casefold():
-        pos = _UK_ORDER.get(ch)
-        if pos is not None:
-            out.append(chr(0xE000 + pos))  # Private Use Area, keeps uk order
-        else:
-            out.append(ch)
-    return "".join(out)
-
 
 def _unicode_lower(s: Any) -> Any:
     return s.lower() if isinstance(s, str) else s
@@ -64,15 +41,14 @@ def _unicode_lower(s: Any) -> Any:
 def register_sqlite_functions(dbapi_conn: Any) -> None:
     """Register Grunt's SQL functions on a raw SQLite connection.
 
-    * ``uk_sort_key()`` - Ukrainian alphabetical sort key.
     * ``lower()`` - overrides SQLite's ASCII-only built-in with a
       Unicode-aware version so that ILIKE (which compiles to
-      ``lower(x) LIKE lower(y)``) works for Cyrillic.
+      ``lower(x) LIKE lower(y)``) and sorting (``Dialect.text_sort``) work for
+      Cyrillic and other non-ASCII text the way they do on PostgreSQL.
 
     Every SQLite engine - site engines and test engines alike - must have
     these, otherwise search behaves differently under test.
     """
-    dbapi_conn.create_function("uk_sort_key", 1, uk_sort_key, deterministic=True)
     dbapi_conn.create_function("lower", 1, _unicode_lower, deterministic=True)
 
 
@@ -132,10 +108,6 @@ class SqliteDialect(Dialect):
             register_sqlite_functions(dbapi_conn)
 
     # ── Expressions ─────────────────────────────────────────────────────────
-
-    def text_sort(self, col: Any) -> Any:
-        # uk_sort_key() is registered on every connection (see setup_engine)
-        return func.uk_sort_key(col)
 
     def like_contains(self, col: Any, term: str) -> Any:
         # ILIKE compiles to ``lower(col) LIKE lower(?)`` and Grunt overrides
