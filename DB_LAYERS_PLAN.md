@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-06 (крок 1 — межа діалектів без винятків)
+Оновлено: 2026-11-06 (крок 1 готовий, PostgreSQL у CI блокує)
 
 ---
 
@@ -95,9 +95,27 @@
   на PG: NOT NULL не розпізнавався; колонку unique брало хибно (`core_web_article_route`
   замість `route`); дубль DocType у registry давав 500 замість 409.
 
+Зроблено (2026-11-06, PostgreSQL зелений):
+- тести: окрема база на xdist-воркер (`testkit.worker_database_url`, `Dialect.create_database`),
+  `bind_test_site` (сайт `__pytest__` — тестовий engine і тимчасова тека сайтів),
+  `hold_task_queue` (`.kiq()` у тестах нікуди не шле — ні в dev-Redis, ні in-process);
+- `CheckBool` (`db/types.py`) для Check-полів: `1` / `"0"` / `"true"` → `bool` у порівняннях
+  і записі, `is_(True)` → `IS true`. Закрило `boolean = integer` на PG;
+- пошук на PG: дефіси → пробіли перед `to_tsvector` (індекс `grunt_search_idx_ts2`);
+- бекапи (рев'ю CodeRabbit): пароль PG через `PGPASSWORD`, збої `pg_dump`/`pg_restore` і
+  битий архів — `BackupError`, відкат файлів SQLite, якщо підміна бази не вдалась;
+- CI: `fsync`/`synchronous_commit`/`full_page_writes` off для тестового PG;
+  **`continue-on-error` прибрано — PostgreSQL тепер блокує, як SQLite**
+  (перший зелений прогін: 1819 passed, 0 failed; локально 1843/1844).
+- Локальний PostgreSQL для тестів: `pgserver` (Python 3.12, `uv run --no-project --python 3.12
+  --with pgserver`), `TEST_DATABASE_URL=postgresql+asyncpg://postgres@/grunt_test?host=<pgdata>`.
+
 Лишилось:
 - `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
-- PG у CI: прибрати `continue-on-error` після першого зеленого прогону.
+- restore на PG не зберігає поточну базу в `aside` (CodeRabbit, #96) — знімати `pg_dump`
+  поточної бази перед `pg_restore`;
+- нестабільні тести прав (`test_file_access`, `test_file_references`, `test_mfa_enforcement`,
+  `test_offline_sync`) — під навантаженням інколи 403/чужий рядок; розібрати окремо.
 
 ### 2. Contract-тести — ⏳
 Один набір тестів CRUD/фільтрів/сортування/агрегацій/пошуку, що проганяється на SQLite,
