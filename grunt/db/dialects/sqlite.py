@@ -16,11 +16,23 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
 
 from grunt import log
-from grunt.db.dialects.base import LIKE_ESCAPE, Dialect, DumpEstimate, escape_like
+from grunt.db.dialects.base import (
+    LIKE_ESCAPE,
+    ConstraintViolation,
+    Dialect,
+    DumpEstimate,
+    escape_like,
+)
 from grunt.db.dialects.fulltext import FullText, FullTextSpec, SqliteFts5
 from grunt.db.write_intent import begin_statement
 from grunt.i18n import _
 lazy from grunt.backups import BackupError, zstd_options
+
+# "NOT NULL constraint failed: t.c", "UNIQUE constraint failed: t.a, t.b"
+_SQLITE_COLUMNS_FAILED = re.compile(
+    r"(NOT NULL|UNIQUE) constraint failed:\s*([\w.]+(?:,\s*[\w.]+)*)"
+)
+_SQLITE_CHECK_FAILED = re.compile(r"CHECK constraint failed:\s*(\w+)")
 
 _UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
 _UK_ORDER = {ch: i for i, ch in enumerate(_UK_ALPHABET)}
@@ -224,6 +236,22 @@ class SqliteDialect(Dialect):
         for name in names:
             log.info("compiler.unique_dropped", table=table_name, constraint=name, rebuilt=True)
         return len(names)
+
+    # ── Errors ──────────────────────────────────────────────────────────────
+
+    def integrity_violation(self, exc: Exception) -> ConstraintViolation | None:
+        message = str(getattr(exc, "orig", None) or exc)
+        if m := _SQLITE_COLUMNS_FAILED.search(message):
+            qualified = [c.strip() for c in m.group(2).split(",") if c.strip()]
+            table = qualified[0].rpartition(".")[0] or None
+            columns = tuple(c.rpartition(".")[2] for c in qualified)
+            kind = "not_null" if m.group(1) == "NOT NULL" else "unique"
+            return ConstraintViolation(kind, table, columns)
+        if "FOREIGN KEY constraint failed" in message:
+            return ConstraintViolation("foreign_key")
+        if m := _SQLITE_CHECK_FAILED.search(message):
+            return ConstraintViolation("check", constraint=m.group(1))
+        return None
 
     # ── Maintenance ─────────────────────────────────────────────────────────
 

@@ -166,3 +166,134 @@ def test_fulltext_match_falls_back_when_nothing_to_tokenize():
     base = select(_idx.c.ref)
     for dialect in (SqliteDialect(), PostgresDialect(), MysqlDialect()):
         assert _ft(dialect).match(None, base, "-- %%") is None
+
+
+# ── integrity_violation ─────────────────────────────────────────────────────
+
+
+def _sqlite_error(*statements: str) -> Exception:
+    import sqlite3
+
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE t (name TEXT PRIMARY KEY, route TEXT NOT NULL, a TEXT, b TEXT)")
+    conn.execute('CREATE UNIQUE INDEX "uq_t_route" ON t (route)')
+    conn.execute("CREATE UNIQUE INDEX uq_ab ON t (a, b)")
+    conn.execute("INSERT INTO t VALUES ('x', 'r', '1', '2')")
+    try:
+        for statement in statements:
+            conn.execute(statement)
+    except sqlite3.IntegrityError as exc:
+        return exc
+    raise AssertionError("no IntegrityError")
+
+
+def test_sqlite_violations_from_real_errors():
+    from sqlalchemy.exc import IntegrityError
+
+    d = SqliteDialect()
+    nn = d.integrity_violation(_sqlite_error("INSERT INTO t (name) VALUES ('y')"))
+    assert nn == ("not_null", "t", ("route",), None)
+
+    dup = _sqlite_error("INSERT INTO t VALUES ('y', 'r', NULL, NULL)")
+    wrapped = IntegrityError("INSERT ...", {}, dup)  # as SQLAlchemy raises it
+    assert d.integrity_violation(wrapped) == ("unique", "t", ("route",), None)
+
+    pair = d.integrity_violation(_sqlite_error("INSERT INTO t VALUES ('y', 's', '1', '2')"))
+    assert pair is not None and pair.columns == ("a", "b") and pair.column is None
+
+    assert d.integrity_violation(Exception("disk I/O error")) is None
+
+
+class _AsyncpgError(Exception):
+    """What asyncpg raises (the cause of SQLAlchemy's DBAPI error)."""
+
+    def __init__(self, message, **fields):
+        super().__init__(message)
+        for key, value in fields.items():
+            setattr(self, key, value)
+
+
+def _pg(message, sqlstate, **fields):
+    from sqlalchemy.exc import IntegrityError
+
+    native = _AsyncpgError(message, sqlstate=sqlstate, **fields)
+    orig = Exception(f"<class 'asyncpg.exceptions.X'>: {message}")
+    orig.sqlstate = sqlstate  # type: ignore[attr-defined]
+    orig.__cause__ = native
+    return IntegrityError("INSERT ...", {}, orig)
+
+
+def test_postgres_violations_from_asyncpg_fields():
+    d = PostgresDialect()
+    nn = d.integrity_violation(
+        _pg(
+            'null value in column "route" of relation "t" violates not-null constraint',
+            "23502",
+            column_name="route",
+            table_name="t",
+        )
+    )
+    assert nn is not None and nn.kind == "not_null" and nn.column == "route"
+
+    dup = d.integrity_violation(
+        _pg(
+            'duplicate key value violates unique constraint "uq_grunt_core_web_article_route"',
+            "23505",
+            constraint_name="uq_grunt_core_web_article_route",
+            table_name="grunt_core_web_article",
+            detail="Key (route)=(/a) already exists.",
+        )
+    )
+    assert dup is not None and dup.kind == "unique" and dup.column == "route"
+    assert dup.constraint == "uq_grunt_core_web_article_route"
+
+
+def test_postgres_violation_falls_back_to_the_message():
+    d = PostgresDialect()
+    nn = d.integrity_violation(
+        _pg('null value in column "route" of relation "t" violates not-null constraint', "23502")
+    )
+    assert nn is not None and (nn.column, nn.table) == ("route", "t")
+    pk = d.integrity_violation(
+        _pg(
+            'duplicate key value violates unique constraint "t_pkey"\n'
+            "DETAIL:  Key (name)=(x) already exists.",
+            "23505",
+        )
+    )
+    assert pk is not None and (pk.column, pk.constraint) == ("name", "t_pkey")
+    assert d.integrity_violation(_pg("deadlock detected", "40P01")) is None
+
+
+def test_mysql_violations_from_error_codes():
+    from sqlalchemy.exc import IntegrityError
+
+    d = MysqlDialect()
+    nn = d.integrity_violation(
+        IntegrityError("", {}, Exception(1048, "Column 'route' cannot be null"))
+    )
+    assert nn is not None and nn.column == "route"
+    dup = d.integrity_violation(
+        IntegrityError("", {}, Exception(1062, "Duplicate entry '/a' for key 't.uq_t_route'"))
+    )
+    assert dup == ("unique", "t", (), "uq_t_route")
+
+
+def test_friendly_error_names_the_field_on_every_backend():
+    from grunt.db.errors import _unique_column
+
+    pg = PostgresDialect().integrity_violation(
+        _pg(
+            'duplicate key value violates unique constraint "uq_grunt_core_web_article_route"',
+            "23505",
+            table_name="grunt_core_web_article",
+        )
+    )
+    # No column reported - read off the uq_<table>_<field> index name, whole field
+    assert _unique_column(pg) == "route"
+    from sqlalchemy.exc import IntegrityError
+
+    my = MysqlDialect().integrity_violation(
+        IntegrityError("", {}, Exception(1062, "Duplicate entry 'x' for key 't.uq_t_route_name'"))
+    )
+    assert _unique_column(my) == "route_name"

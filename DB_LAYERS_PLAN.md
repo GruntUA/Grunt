@@ -88,9 +88,15 @@
   `_Step(read, space, dest, make)`, оцінка місця не змінилась;
 - **тест межі без винятків** — `NOT_YET_MOVED` прибрано.
 
+Зроблено (2026-11-06, помилки цілісності):
+- `Dialect.integrity_violation(exc)` → `ConstraintViolation(kind, table, columns, constraint)`:
+  SQLite — текст, Postgres — SQLSTATE + поля asyncpg (fallback на текст), MySQL — коди помилок;
+- `db/errors.friendly_integrity_error(exc, dt, bind)` — без регулярок драйверів. Виправлено
+  на PG: NOT NULL не розпізнавався; колонку unique брало хибно (`core_web_article_route`
+  замість `route`); дубль DocType у registry давав 500 замість 409.
+
 Лишилось:
 - `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
-- `_friendly_integrity_error` → `dialect.parse_integrity_error`;
 - PG у CI: прибрати `continue-on-error` після першого зеленого прогону.
 
 ### 2. Contract-тести — ⏳

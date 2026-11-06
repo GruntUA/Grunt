@@ -8,7 +8,7 @@ PostgreSQL-like behaviour several backends share: ``lower()`` for sorting,
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, ClassVar, NamedTuple
+from typing import Any, ClassVar, Literal, NamedTuple
 
 from sqlalchemy import Table, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -28,6 +28,21 @@ def escape_like(term: str) -> str:
         .replace("%", LIKE_ESCAPE + "%")
         .replace("_", LIKE_ESCAPE + "_")
     )
+
+
+class ConstraintViolation(NamedTuple):
+    """What an ``IntegrityError`` broke, told apart from the driver's wording."""
+
+    kind: Literal["not_null", "unique", "foreign_key", "check"]
+    table: str | None = None
+    columns: tuple[str, ...] = ()
+    #: Constraint or index name, when the backend reports one.
+    constraint: str | None = None
+
+    @property
+    def column(self) -> str | None:
+        """The one column involved, ``None`` for none or several."""
+        return self.columns[0] if len(self.columns) == 1 else None
 
 
 class DumpEstimate(NamedTuple):
@@ -134,6 +149,12 @@ class Dialect(ABC):
     def drop_inline_unique(self, connection: Any, table_name: str, names: list[str]) -> int:
         """Drop unique constraints declared inside CREATE TABLE (rebuild-only backends)."""
         return 0
+
+    # ── Errors ──────────────────────────────────────────────────────────────
+
+    @abstractmethod
+    def integrity_violation(self, exc: Exception) -> ConstraintViolation | None:
+        """What *exc* (an ``IntegrityError`` or the driver's own) violated; ``None`` - unknown."""
 
     # ── Maintenance ─────────────────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 """PostgreSQL."""
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -10,10 +11,16 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
-from grunt.db.dialects.base import Dialect
+from grunt.db.dialects.base import ConstraintViolation, Dialect
 from grunt.db.dialects.fulltext import FullText, FullTextSpec, PostgresTsvector
 from grunt.i18n import _
 lazy from grunt.backups import MAX_COMPRESSION_LEVEL, BackupError
+
+_PG_KINDS = {"23502": "not_null", "23505": "unique", "23503": "foreign_key", "23514": "check"}
+_PG_NOT_NULL_COLUMN = re.compile(r'null value in column "([^"]+)"')
+_PG_KEY_COLUMNS = re.compile(r"Key \(([^)]+)\)=")
+_PG_CONSTRAINT = re.compile(r'constraint "([^"]+)"')
+_PG_RELATION = re.compile(r'relation "([^"]+)"')
 
 
 class PostgresDialect(Dialect):
@@ -85,6 +92,34 @@ class PostgresDialect(Dialect):
             "dead_tuples": int(dead or 0),
             "reclaim_scope": "table",
         }
+
+    # ── Errors ──────────────────────────────────────────────────────────────
+
+    def integrity_violation(self, exc: Exception) -> ConstraintViolation | None:
+        # SQLAlchemy's asyncpg adapter keeps the SQLSTATE on the DBAPI error and
+        # the asyncpg exception (column_name, constraint_name, ...) as its cause.
+        orig = getattr(exc, "orig", None) or exc
+        native = orig.__cause__ or orig
+        code = getattr(orig, "sqlstate", None) or getattr(native, "sqlstate", None)
+        kind = _PG_KINDS.get(str(code))
+        if kind is None:
+            return None
+        message = f"{orig}\n{getattr(native, 'detail', '') or ''}"
+
+        column = getattr(native, "column_name", None)
+        if column is None and kind == "not_null":
+            column = m.group(1) if (m := _PG_NOT_NULL_COLUMN.search(message)) else None
+        columns: tuple[str, ...] = (column,) if column else ()
+        if not columns and (m := _PG_KEY_COLUMNS.search(message)):
+            columns = tuple(c.strip().strip('"') for c in m.group(1).split(","))
+
+        constraint = getattr(native, "constraint_name", None)
+        if constraint is None and (m := _PG_CONSTRAINT.search(message)):
+            constraint = m.group(1)
+        table = getattr(native, "table_name", None)
+        if table is None and (m := _PG_RELATION.search(message)):
+            table = m.group(1)
+        return ConstraintViolation(kind, table, columns, constraint)  # type: ignore[arg-type]
 
     # ── Backups ─────────────────────────────────────────────────────────────
 
