@@ -21,7 +21,12 @@ from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_c
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.site.manager import current_site
-from grunt.testkit import bind_test_site, hold_task_queue, worker_database_url
+from grunt.testkit import (
+    bind_test_site,
+    hold_task_queue,
+    isolate_from_redis,
+    worker_database_url,
+)
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False
@@ -46,6 +51,7 @@ dialect_for(test_engine).attach_functions(test_engine)  # same lower()/uk_sort_k
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 bind_test_site(test_engine, TestSessionLocal)
 hold_task_queue()
+isolate_from_redis()
 
 
 async def override_get_session():
@@ -157,6 +163,8 @@ async def setup_db():
         async with test_engine.begin() as conn:
             await conn.run_sync(compiled_metadata.drop_all)
             await conn.run_sync(SA_METADATA.drop_all)
+        # Not in either MetaData - left alone, the search index outlives the test
+        await search_index_service.drop_table(test_engine)
 
         # Remove dynamic doctype tables from the compiled-table MetaData; next
         # test's setup_db rebuilds them from scratch.

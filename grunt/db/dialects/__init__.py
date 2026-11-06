@@ -46,6 +46,12 @@ def dialect_name(obj: Any) -> str | None:
     sa_dialect = getattr(obj, "dialect", None)
     if sa_dialect is None:
         sa_dialect = getattr(getattr(obj, "bind", None), "dialect", None)
+    if sa_dialect is None and callable(get_bind := getattr(obj, "get_bind", None)):
+        # A session routed through get_bind() (binds per table) has no .bind
+        try:
+            sa_dialect = getattr(get_bind(), "dialect", None)
+        except Exception:  # an unbound session - nothing to tell
+            sa_dialect = None
     return getattr(sa_dialect, "name", None)
 
 

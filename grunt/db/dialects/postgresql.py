@@ -25,19 +25,58 @@ _PG_CONSTRAINT = re.compile(r'constraint "([^"]+)"')
 _PG_RELATION = re.compile(r'relation "([^"]+)"')
 
 
+#: Connection parameters libpq (pg_dump, pg_restore) understands - kept as they are.
+_LIBPQ_PARAMS = frozenset(
+    {
+        "host",
+        "hostaddr",
+        "port",
+        "sslmode",
+        "sslrootcert",
+        "sslcert",
+        "sslkey",
+        "sslcrl",
+        "sslnegotiation",
+        "channel_binding",
+        "gssencmode",
+        "application_name",
+        "options",
+        "connect_timeout",
+        "target_session_attrs",
+        "keepalives",
+        "keepalives_idle",
+    }
+)
+#: asyncpg's ``ssl=`` values -> libpq ``sslmode``.
+_ASYNCPG_SSL = {"true": "require", "false": "disable", "on": "require", "off": "disable"}
+
+
+def _libpq_query(query: Any) -> dict[str, Any]:
+    """The site URL's query, as libpq takes it: ``ssl`` (asyncpg) becomes
+    ``sslmode``, driver-only options (``prepared_statement_cache_size``, ...)
+    are dropped - libpq refuses a URI with a parameter it doesn't know."""
+    out = {k: v for k, v in query.items() if k in _LIBPQ_PARAMS}
+    if "ssl" in query and "sslmode" not in out:
+        ssl = str(query["ssl"]).lower()
+        out["sslmode"] = _ASYNCPG_SSL.get(ssl, ssl)
+    return out
+
+
 class PostgresDialect(Dialect):
     name = "postgresql"
 
-    async def create_database(self, url: Any, name: str) -> None:
+    async def create_database(self, url: Any, name: str, *, replace: bool = False) -> None:
         # CREATE DATABASE can't run in a transaction and has no IF NOT EXISTS
         engine = create_async_engine(url, isolation_level="AUTOCOMMIT")
         try:
             async with engine.connect() as conn:
+                quoted = conn.dialect.identifier_preparer.quote(name)
+                if replace:
+                    await conn.execute(text(f"DROP DATABASE IF EXISTS {quoted} WITH (FORCE)"))
                 exists = await conn.scalar(
                     text("SELECT 1 FROM pg_database WHERE datname = :n"), {"n": name}
                 )
                 if not exists:
-                    quoted = conn.dialect.identifier_preparer.quote(name)
                     await conn.execute(text(f"CREATE DATABASE {quoted}"))
         finally:
             await engine.dispose()
@@ -98,27 +137,37 @@ class PostgresDialect(Dialect):
     # ── Errors ──────────────────────────────────────────────────────────────
 
     def integrity_violation(self, exc: Exception) -> ConstraintViolation | None:
-        # SQLAlchemy's asyncpg adapter keeps the SQLSTATE on the DBAPI error and
-        # the asyncpg exception (column_name, constraint_name, ...) as its cause.
+        # Where the driver puts the details: SQLAlchemy's asyncpg adapter keeps
+        # the SQLSTATE on the DBAPI error and the asyncpg exception (column_name,
+        # constraint_name, ...) as its cause; psycopg 2/3 have ``pgcode`` /
+        # ``sqlstate`` and the fields on ``diag``. The message is the last resort.
         orig = getattr(exc, "orig", None) or exc
         native = orig.__cause__ or orig
-        code = getattr(orig, "sqlstate", None) or getattr(native, "sqlstate", None)
+        diag = getattr(orig, "diag", None)
+
+        def field(name: str, diag_name: str | None = None) -> Any:
+            for source in (native, orig):
+                if (value := getattr(source, name, None)) is not None:
+                    return value
+            return getattr(diag, diag_name or name, None) if diag is not None else None
+
+        code = field("sqlstate") or field("pgcode")
         kind = _PG_KINDS.get(str(code))
         if kind is None:
             return None
-        message = f"{orig}\n{getattr(native, 'detail', '') or ''}"
+        message = f"{orig}\n{field('detail', 'message_detail') or ''}"
 
-        column = getattr(native, "column_name", None)
+        column = field("column_name")
         if column is None and kind == "not_null":
             column = m.group(1) if (m := _PG_NOT_NULL_COLUMN.search(message)) else None
         columns: tuple[str, ...] = (column,) if column else ()
         if not columns and (m := _PG_KEY_COLUMNS.search(message)):
             columns = tuple(c.strip().strip('"') for c in m.group(1).split(","))
 
-        constraint = getattr(native, "constraint_name", None)
+        constraint = field("constraint_name")
         if constraint is None and (m := _PG_CONSTRAINT.search(message)):
             constraint = m.group(1)
-        table = getattr(native, "table_name", None)
+        table = field("table_name")
         if table is None and (m := _PG_RELATION.search(message)):
             table = m.group(1)
         return ConstraintViolation(kind, table, columns, constraint)  # type: ignore[arg-type]
@@ -145,7 +194,7 @@ class PostgresDialect(Dialect):
             host=url.host,
             port=url.port,
             database=url.database,
-            query=url.query,
+            query=_libpq_query(url.query),
         )
         env = dict(os.environ)
         if url.password:

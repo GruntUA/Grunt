@@ -123,6 +123,12 @@ class SearchIndexService:
             await conn.run_sync(lambda c: _doctype_index.create(c, checkfirst=True))
         await self._fulltext(engine).ensure(engine)
 
+    async def drop_table(self, engine: AsyncEngine) -> None:
+        """Remove the index table and the full-text engine's objects (tests start clean)."""
+        await self._fulltext(engine).drop(engine)
+        async with engine.begin() as conn:
+            await conn.run_sync(_INDEX_META.drop_all, checkfirst=True)
+
     async def index_document(
         self,
         session: AsyncSession,

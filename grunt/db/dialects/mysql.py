@@ -25,11 +25,13 @@ _SIZE_SQL = (
 class MysqlDialect(Dialect):
     name = "mysql"
 
-    async def create_database(self, url: Any, name: str) -> None:
+    async def create_database(self, url: Any, name: str, *, replace: bool = False) -> None:
         engine = create_async_engine(url)
         try:
             async with engine.begin() as conn:
                 quoted = conn.dialect.identifier_preparer.quote(name)
+                if replace:
+                    await conn.execute(text(f"DROP DATABASE IF EXISTS {quoted}"))
                 await conn.execute(
                     text(f"CREATE DATABASE IF NOT EXISTS {quoted} CHARACTER SET utf8mb4")
                 )

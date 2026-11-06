@@ -129,6 +129,21 @@ def bind_test_site(engine: AsyncEngine, session_maker: async_sessionmaker[AsyncS
     site_manager.session_makers[_TEST_SITE] = session_maker
 
 
+def isolate_from_redis() -> None:
+    """Keep tests off Redis - the caches, the rate limiter and the cache bus.
+
+    Keys are built from the site name, and every test process (each xdist
+    worker) runs the same site ``__pytest__``: through one Redis they would
+    read each other's cached documents (a user's roles from another worker's
+    test) - and the dev server's Redis on a dev machine. CI has no Redis;
+    without it here too, local runs behave like CI. ``REDIS_URL`` comes from
+    ``.env`` and the task broker is already built by the time a conftest runs:
+    its sends are held by :func:`hold_task_queue`; everything else checks the
+    setting when it is used.
+    """
+    settings.redis_url = None
+
+
 #: Background tasks sent (``.kiq()``) during the test run - see :func:`hold_task_queue`.
 sent_tasks: list[Any] = []
 
@@ -154,19 +169,21 @@ def hold_task_queue() -> None:
 def worker_database_url() -> str:
     """``TEST_DATABASE_URL`` (in-memory SQLite by default) for this test process.
 
-    Under pytest-xdist each worker gets its own database on a server backend
-    (``grunt_test`` → ``grunt_test_gw0``, created if missing): the fixtures
-    create and drop every table around each test, so workers sharing one
-    database break each other's tables ("relation does not exist", deadlocks).
+    On a server backend each test process gets its own database, made afresh
+    for the run (``grunt_test`` → ``grunt_test_gw0`` under pytest-xdist,
+    ``grunt_test_main`` without it): the fixtures create and drop every table
+    around each test, so workers sharing one database break each other's
+    tables ("relation does not exist", deadlocks), and whatever an interrupted
+    run left behind must not reach the next one - as in CI, where the database
+    is always new. The URL's own database only serves to connect.
     """
     url = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
-    worker = os.environ.get("PYTEST_XDIST_WORKER")
     dialect = dialect_for(url)
-    if not worker or dialect.file_based:
+    if dialect.file_based:
         return url
     parsed = make_url(url)
-    name = f"{parsed.database}_{worker}"
-    asyncio.run(dialect.create_database(parsed, name))
+    name = f"{parsed.database}_{os.environ.get('PYTEST_XDIST_WORKER', 'main')}"
+    asyncio.run(dialect.create_database(parsed, name, replace=True))
     return parsed.set(database=name).render_as_string(hide_password=False)
 
 
@@ -194,6 +211,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     )
     bind_test_site(test_engine, TestSessionLocal)
     hold_task_queue()
+    isolate_from_redis()
 
     async def override_get_session():
         async with TestSessionLocal() as session:
@@ -278,6 +296,8 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
             async with test_engine.begin() as conn:
                 await conn.run_sync(compiled_metadata.drop_all)
                 await conn.run_sync(SA_METADATA.drop_all)
+            # Not in either MetaData - left alone, the search index outlives the test
+            await search_index_service.drop_table(test_engine)
 
             to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
             for name in to_remove:

@@ -25,7 +25,17 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import Select, Table, bindparam, column, func, select, table, text
+from sqlalchemy import (
+    Select,
+    Table,
+    bindparam,
+    column,
+    func,
+    literal_column,
+    select,
+    table,
+    text,
+)
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from grunt import log
@@ -74,6 +84,10 @@ class FullText(ABC):
     async def clear(self, session: Any) -> None:
         """Empty the index - for engines with a side table."""
         return None  # the index lives on the table itself
+
+    async def drop(self, engine: AsyncEngine) -> None:
+        """Remove the engine's own objects (side tables) - indexes go with the table."""
+        return None
 
 
 # ── SQLite FTS5 ─────────────────────────────────────────────────────────────
@@ -165,6 +179,10 @@ class SqliteFts5(FullText):
             "content": row.get(s.content) or "",
         }
 
+    async def drop(self, engine: AsyncEngine) -> None:
+        async with engine.begin() as conn:
+            await conn.execute(text(f"DROP TABLE IF EXISTS {self.fts_name}"))
+
     async def write(self, session: Any, rows: list[Mapping[str, Any]]) -> None:
         if not rows or not self._available(session):
             return
@@ -206,9 +224,16 @@ class PostgresTsvector(FullText):
     _INDEX_VERSION = 2
 
     def _vector(self, col: str) -> Any:
-        # Must match the GIN index expression exactly for the index to be used.
+        # Must match the GIN index expression exactly for the index to be used -
+        # the constants as SQL literals, not bound parameters: asyncpg prepares
+        # statements, and a generic plan can't match "$1" against the index.
         return func.to_tsvector(
-            "simple", func.translate(func.coalesce(self.t.c[col], ""), "-", " ")
+            literal_column("'simple'::regconfig"),
+            func.translate(
+                func.coalesce(self.t.c[col], literal_column("''")),
+                literal_column("'-'"),
+                literal_column("' '"),
+            ),
         )
 
     async def ensure(self, engine: AsyncEngine) -> None:

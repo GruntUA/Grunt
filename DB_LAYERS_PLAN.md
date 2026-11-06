@@ -114,8 +114,26 @@
 - `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
 - restore на PG не зберігає поточну базу в `aside` (CodeRabbit, #96) — знімати `pg_dump`
   поточної бази перед `pg_restore`;
-- нестабільні тести прав (`test_file_access`, `test_file_references`, `test_mfa_enforcement`,
-  `test_offline_sync`) — під навантаженням інколи 403/чужий рядок; розібрати окремо.
+- (CodeRabbit, #96) `CREATE INDEX CONCURRENTLY` пошуку, що впав, лишає невалідний індекс —
+  `ensure` його пропускає; відрізнити від того, що будується зараз в іншому процесі, і перебудувати;
+- (CodeRabbit, #96) MySQL: дубль DocType (`PRIMARY`) у registry не стає 409 — `integrity_violation`
+  MySQL не повертає колонку для PK.
+
+Ізоляція тестів (2026-11-06) — **нестабільних тестів більше немає** (2× SQLite 1852/1852,
+2× PG 1851/1851 паралельно):
+- причина «плаваючих» 403/чужих рядків/зайвого System Manager — **спільний Redis** між
+  xdist-воркерами (і з dev-сервером): `doc_cache`/`query_cache`/шина кешу з ключами від сайту
+  `__pytest__`, однакового в усіх воркерах. `testkit.isolate_from_redis()` — тести без Redis, як CI;
+- `grunt_search_index` не видалявся між тестами (немає в жодній MetaData) — teardown тепер
+  `search_index_service.drop_table()` (з FTS5-таблицею);
+- серверна тестова база перестворюється на старті прогону (`_gw0`…, без xdist — `_main`;
+  `Dialect.create_database(replace=True)`) — залишки перерваного прогону не потрапляють у наступний.
+
+Зроблено за другим рев'ю CodeRabbit (2026-11-06): у виразі tsvector константи — SQL-літерали
+(з параметрами загальний план asyncpg не бачив GIN-індекс: `Seq Scan`, перевірено на PG 16);
+URL сайту → параметри libpq для `pg_dump`/`pg_restore` (`ssl`→`sslmode`, драйверні відкидаються);
+psycopg (`pgcode`/`diag`) в `integrity_violation`; `dialect_name` питає `get_bind()` у сесії без
+`.bind`; окремі повідомлення для FK/CHECK/NOT NULL без колонки; лапки таблиці з діалекту в `table_info`.
 
 ### 2. Contract-тести — ⏳
 Один набір тестів CRUD/фільтрів/сортування/агрегацій/пошуку, що проганяється на SQLite,

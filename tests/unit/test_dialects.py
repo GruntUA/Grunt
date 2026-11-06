@@ -297,3 +297,60 @@ def test_friendly_error_names_the_field_on_every_backend():
         IntegrityError("", {}, Exception(1062, "Duplicate entry 'x' for key 't.uq_t_route_name'"))
     )
     assert _unique_column(my) == "route_name"
+
+
+def test_postgres_violation_from_psycopg_diag():
+    from types import SimpleNamespace
+
+    from sqlalchemy.exc import IntegrityError
+
+    orig = Exception('null value in column "route" violates not-null constraint')
+    orig.pgcode = "23502"  # type: ignore[attr-defined]  # psycopg2; psycopg 3 says sqlstate
+    orig.diag = SimpleNamespace(  # type: ignore[attr-defined]
+        column_name="route", constraint_name=None, table_name="t", message_detail=None
+    )
+    v = PostgresDialect().integrity_violation(IntegrityError("", {}, orig))
+    assert v == ("not_null", "t", ("route",), None)
+
+
+def test_routed_session_tells_its_dialect():
+    from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+    from sqlalchemy.orm import Session
+
+    engine = create_async_engine("sqlite+aiosqlite://")
+
+    class Routed(Session):  # binds per table - no .bind of its own
+        def get_bind(self, mapper=None, clause=None, **kw):
+            return engine.sync_engine
+
+    assert isinstance(dialect_for(AsyncSession(sync_session_class=Routed)), SqliteDialect)
+
+
+@pytest.mark.parametrize(
+    ("message", "status"),
+    [
+        ("FOREIGN KEY constraint failed", 409),
+        ("CHECK constraint failed: positive", 422),
+        ("NOT NULL constraint failed: t.route", 422),
+    ],
+)
+def test_friendly_error_follows_the_violation_kind(message, status):
+    import sqlite3
+
+    from sqlalchemy.exc import IntegrityError
+
+    from grunt.db.errors import friendly_integrity_error
+
+    exc = IntegrityError("", {}, sqlite3.IntegrityError(message))
+    http = friendly_integrity_error(exc, None, "sqlite")
+    assert http.status_code == status
+    assert "unique" not in str(http.detail)
+
+
+def test_tsvector_constants_are_literals_not_parameters():
+    from sqlalchemy.dialects import postgresql
+
+    compiled = _ft(PostgresDialect())._vector("content").compile(dialect=postgresql.dialect())
+    # A bound "simple" can't match the GIN index expression under a generic plan
+    assert not compiled.params
+    assert "'simple'::regconfig" in str(compiled)

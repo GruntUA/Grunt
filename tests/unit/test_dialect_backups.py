@@ -95,3 +95,15 @@ def test_sqlite_failed_swap_puts_the_live_database_back(tmp_path, monkeypatch):
     assert db.exists() and not (aside / "grunt.db").exists()
     with sqlite3.connect(db) as conn:
         assert conn.execute("SELECT v FROM t").fetchone() == ("live",)
+
+
+def test_postgres_client_gets_libpq_parameters_only(pg_tools, tmp_path):
+    calls, _ = pg_tools
+    url = make_url(
+        "postgresql+asyncpg://grunt:s3cret@db.local/site"
+        "?ssl=require&prepared_statement_cache_size=0&application_name=grunt"
+    )
+    PostgresDialect().dump(url, tmp_path / "x.pgdump", 9, Progress("", user=None))
+    conninfo = make_url(calls[0]["args"][-1])
+    # ssl (asyncpg) -> sslmode (libpq); driver-only options dropped
+    assert dict(conninfo.query) == {"sslmode": "require", "application_name": "grunt"}

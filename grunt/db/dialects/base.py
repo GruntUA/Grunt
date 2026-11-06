@@ -80,8 +80,9 @@ class Dialect(ABC):
 
     # ── Engine ──────────────────────────────────────────────────────────────
 
-    async def create_database(self, url: Any, name: str) -> None:
-        """Create database *name* on the server *url* points at, unless it exists."""
+    async def create_database(self, url: Any, name: str, *, replace: bool = False) -> None:
+        """Create database *name* on the server *url* points at, unless it exists -
+        or, with *replace*, drop it first (connections to it are closed)."""
         raise NotImplementedError(f"“{self.name}” has no server-side databases")
 
     def resolve_url(self, url: str, base_dir: Path) -> str:
