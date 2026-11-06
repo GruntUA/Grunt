@@ -278,7 +278,8 @@ async def table_info(name: str) -> dict[str, Any]:
         if not conn.dialect.has_table(conn, table_name):
             return
         info["exists"] = True
-        info["row_count"] = conn.execute(sa.text(f'SELECT COUNT(*) FROM "{table_name}"')).scalar()
+        quoted = conn.dialect.identifier_preparer.quote(table_name)  # "t" / `t` on MySQL
+        info["row_count"] = conn.execute(sa.text(f"SELECT COUNT(*) FROM {quoted}")).scalar()
 
         info.update(backend.table_storage(conn, table_name))
 

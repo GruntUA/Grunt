@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-06 (крок 1 — пошук перенесено)
+Оновлено: 2026-11-06 (крок 1 готовий, PostgreSQL у CI блокує)
 
 ---
 
@@ -80,11 +80,66 @@
 - MySQL: FULLTEXT-індекс тепер зветься `grunt_search_idx_ft` (був `idx_ft_content`) —
   на наявній MySQL-базі з'явиться другий, старий можна видалити.
 
+Зроблено (2026-11-06, бекапи):
+- `Dialect.dump_suffix / dump_estimate / dump / restore_dump`: знімок SQLite (backup API +
+  `quick_check` + zstd) — у `sqlite.py`, `pg_dump`/`pg_restore` — у `postgresql.py`; MySQL —
+  `BackupError` як і раніше;
+- `grunt/backups` лишився оркестратором (набір, прогрес, місце, лок, ротація); крок набору —
+  `_Step(read, space, dest, make)`, оцінка місця не змінилась;
+- **тест межі без винятків** — `NOT_YET_MOVED` прибрано.
+
+Зроблено (2026-11-06, помилки цілісності):
+- `Dialect.integrity_violation(exc)` → `ConstraintViolation(kind, table, columns, constraint)`:
+  SQLite — текст, Postgres — SQLSTATE + поля asyncpg (fallback на текст), MySQL — коди помилок;
+- `db/errors.friendly_integrity_error(exc, dt, bind)` — без регулярок драйверів. Виправлено
+  на PG: NOT NULL не розпізнавався; колонку unique брало хибно (`core_web_article_route`
+  замість `route`); дубль DocType у registry давав 500 замість 409.
+
+Зроблено (2026-11-06, PostgreSQL зелений):
+- тести: окрема база на xdist-воркер (`testkit.worker_database_url`, `Dialect.create_database`),
+  `bind_test_site` (сайт `__pytest__` — тестовий engine і тимчасова тека сайтів),
+  `hold_task_queue` (`.kiq()` у тестах нікуди не шле — ні в dev-Redis, ні in-process);
+- `CheckBool` (`db/types.py`) для Check-полів: `1` / `"0"` / `"true"` → `bool` у порівняннях
+  і записі, `is_(True)` → `IS true`. Закрило `boolean = integer` на PG;
+- пошук на PG: дефіси → пробіли перед `to_tsvector` (індекс `grunt_search_idx_ts2`);
+- бекапи (рев'ю CodeRabbit): пароль PG через `PGPASSWORD`, збої `pg_dump`/`pg_restore` і
+  битий архів — `BackupError`, відкат файлів SQLite, якщо підміна бази не вдалась;
+- CI: `fsync`/`synchronous_commit`/`full_page_writes` off для тестового PG;
+  **`continue-on-error` прибрано — PostgreSQL тепер блокує, як SQLite**
+  (перший зелений прогін: 1819 passed, 0 failed; локально 1843/1844).
+- Локальний PostgreSQL для тестів: `pgserver` (Python 3.12, `uv run --no-project --python 3.12
+  --with pgserver`), `TEST_DATABASE_URL=postgresql+asyncpg://postgres@/grunt_test?host=<pgdata>`.
+
 Лишилось:
-- `backups/__init__.py` → `dialect.backup()/restore()`;
 - `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
-- `_friendly_integrity_error` → `dialect.parse_integrity_error`;
-- PG у CI: прибрати `continue-on-error` після першого зеленого прогону.
+- restore на PG не зберігає поточну базу в `aside` (CodeRabbit, #96) — знімати `pg_dump`
+  поточної бази перед `pg_restore`;
+- (CodeRabbit, #96) `CREATE INDEX CONCURRENTLY` пошуку, що впав, лишає невалідний індекс —
+  `ensure` його пропускає; відрізнити від того, що будується зараз в іншому процесі, і перебудувати;
+- (CodeRabbit, #96) MySQL: дубль DocType (`PRIMARY`) у registry не стає 409 — `integrity_violation`
+  MySQL не повертає колонку для PK.
+
+Ізоляція тестів (2026-11-06) — **нестабільних тестів більше немає** (2× SQLite 1852/1852,
+2× PG 1851/1851 паралельно):
+- причина «плаваючих» 403/чужих рядків/зайвого System Manager — **спільний Redis** між
+  xdist-воркерами (і з dev-сервером): `doc_cache`/`query_cache`/шина кешу з ключами від сайту
+  `__pytest__`, однакового в усіх воркерах. `testkit.isolate_from_redis()` — тести без Redis, як CI;
+- `grunt_search_index` не видалявся між тестами (немає в жодній MetaData) — teardown тепер
+  `search_index_service.drop_table()` (з FTS5-таблицею);
+- серверна тестова база перестворюється на старті прогону (`_gw0`…, без xdist — `_main`;
+  `Dialect.create_database(replace=True)`) — залишки перерваного прогону не потрапляють у наступний.
+
+Швидкість тестів (2026-11-06): `testkit.TestSchema` — схема створюється раз на воркер, між
+тестами таблиці лише чистяться (`Dialect.empty_tables`: PG — один `TRUNCATE`, інші — `DELETE`).
+DDL тесту відстежується: створені ним таблиці видаляються після нього, а зміна базової схеми
+(ALTER/індекс/DROP/перекомпільована таблиця) чи нерозпізнаний DDL — повне перестворення.
+Локально `-n 4`: SQLite 207 → 85 с, PostgreSQL 272 → 100 с, без падінь.
+
+Зроблено за другим рев'ю CodeRabbit (2026-11-06): у виразі tsvector константи — SQL-літерали
+(з параметрами загальний план asyncpg не бачив GIN-індекс: `Seq Scan`, перевірено на PG 16);
+URL сайту → параметри libpq для `pg_dump`/`pg_restore` (`ssl`→`sslmode`, драйверні відкидаються);
+psycopg (`pgcode`/`diag`) в `integrity_violation`; `dialect_name` питає `get_bind()` у сесії без
+`.bind`; окремі повідомлення для FK/CHECK/NOT NULL без колонки; лапки таблиці з діалекту в `table_info`.
 
 ### 2. Contract-тести — ⏳
 Один набір тестів CRUD/фільтрів/сортування/агрегацій/пошуку, що проганяється на SQLite,

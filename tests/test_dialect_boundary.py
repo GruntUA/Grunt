@@ -1,8 +1,7 @@
 """Backend differences live in ``grunt/db/dialects/`` only (DB_LAYERS_PLAN.md, step 1).
 
 Elsewhere code asks ``dialect_for(x)`` and calls a method instead of comparing
-the backend name. ``NOT_YET_MOVED`` lists files still to be migrated - it may
-only shrink.
+the backend name - no exceptions.
 """
 
 import re
@@ -23,10 +22,6 @@ FORBIDDEN = re.compile(
     )
 )
 
-NOT_YET_MOVED = {
-    "backups/__init__.py",  # backup()/restore() per backend
-}
-
 
 def _offenders() -> dict[str, list[str]]:
     found: dict[str, list[str]] = {}
@@ -45,14 +40,8 @@ def _offenders() -> dict[str, list[str]]:
 
 
 def test_backend_names_are_compared_only_in_dialects():
-    stray = {rel: hits for rel, hits in _offenders().items() if rel not in NOT_YET_MOVED}
+    stray = _offenders()
     assert not stray, (
         "Backend-specific branches belong on a Dialect (grunt/db/dialects/):\n"
         + "\n".join(f"  {rel}:{hit}" for rel, hits in stray.items() for hit in hits)
     )
-
-
-def test_not_yet_moved_list_is_current():
-    """A migrated file must leave NOT_YET_MOVED, so the list keeps shrinking."""
-    clean = NOT_YET_MOVED - set(_offenders())
-    assert not clean, f"No longer branch on the backend - remove from NOT_YET_MOVED: {clean}"

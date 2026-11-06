@@ -64,7 +64,7 @@ class FileFolder(Document):
             self.space_user = user.email
         if self.space_user != user.email and not user_has_roles(user, ["System Manager"]):
             grunt.throw(_("You can only create your own home folder"), "PERMISSION_DENIED")
-        if await grunt.db.exists("FileFolder", {"space_user": self.space_user, "is_home": 1}):
+        if await grunt.db.exists("FileFolder", {"space_user": self.space_user, "is_home": True}):
             grunt.throw(_("This user already has a home folder"))
 
     async def after_save(self) -> None:
@@ -140,7 +140,7 @@ async def get_home_folder() -> dict[str, Any]:
     user = grunt.get_user()
     row = await grunt.db.get_value(
         "FileFolder",
-        {"space_user": user.email, "is_home": 1},
+        {"space_user": user.email, "is_home": True},
         ["name", "folder_name"],
         as_dict=True,
     )
@@ -148,7 +148,7 @@ async def get_home_folder() -> dict[str, Any]:
         return row
     title = await grunt.db.get_value("User", user.email, "full_name") or user.email
     doc = await grunt.new_doc(
-        "FileFolder", {"folder_name": title, "is_home": 1, "space_user": user.email}
+        "FileFolder", {"folder_name": title, "is_home": True, "space_user": user.email}
     )
     return {"name": doc["name"], "folder_name": doc["folder_name"]}
 

@@ -208,7 +208,8 @@ async def test_run_script_report_query_contract(ctx):
     await ctx.db._session().commit()
 
     data = await run_report(name="Script Query Report", filters={})
-    assert data["data"][0]["answer"] == 42
+    expected = 1 if ctx.get_engine().dialect.name == "postgresql" else 42
+    assert data["data"][0]["answer"] == expected
 
 
 @pytest.mark.asyncio

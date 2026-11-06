@@ -100,7 +100,7 @@ class StorageRemote(Document):
         if self.use_for_files and self.enabled:
             other = await grunt.db.get_all(
                 "StorageRemote",
-                filters={"use_for_files": 1, "enabled": 1, "name__ne": self.name or ""},
+                filters={"use_for_files": True, "enabled": True, "name__ne": self.name or ""},
                 pluck="title",
                 limit=1,
             )

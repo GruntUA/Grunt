@@ -301,7 +301,7 @@ async def top_errors() -> list[Row]:
 
 async def check_email() -> list[Row]:
     cat = _("Email")
-    outgoing = await grunt.db.count("EmailAccount", {"enable_outgoing": 1})
+    outgoing = await grunt.db.count("EmailAccount", {"enable_outgoing": True})
     rows = [
         row(
             cat,
@@ -336,14 +336,14 @@ async def check_email() -> list[Row]:
 
 async def check_users() -> list[Row]:
     cat = _("Users and security")
-    active = await grunt.db.count("User", {"is_active": 1})
-    sessions = await grunt.db.count("UserSession", {"is_active": 1})
+    active = await grunt.db.count("User", {"is_active": True})
+    sessions = await grunt.db.count("UserSession", {"is_active": True})
     managers = await grunt.db.get_all(
         "UserRole", filters={"role_name": "System Manager"}, pluck="parent_name"
     )
     without_mfa = await grunt.db.get_all(
         "User",
-        filters={"name__in": managers or [""], "is_active": 1, "mfa_enabled": 0},
+        filters={"name__in": managers or [""], "is_active": True, "mfa_enabled": False},
         pluck="name",
     )
     locked = await grunt.db.count("User", {"locked_until__gt": datetime.now(UTC)})
@@ -575,7 +575,7 @@ async def check_cloud() -> list[Row]:
 
     cat = _("Cloud storage")
     remotes = await grunt.db.get_all(
-        "StorageRemote", filters={"enabled": 1}, fields=["*"], limit=None
+        "StorageRemote", filters={"enabled": True}, fields=["*"], limit=None
     )
     if not remotes:
         return [row(cat, _("Storages"), INFO, _("none"), _("Backups stay on this server only."))]

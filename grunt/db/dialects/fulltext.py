@@ -25,7 +25,17 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import Select, Table, bindparam, column, func, select, table, text
+from sqlalchemy import (
+    Select,
+    Table,
+    bindparam,
+    column,
+    func,
+    literal_column,
+    select,
+    table,
+    text,
+)
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from grunt import log
@@ -74,6 +84,10 @@ class FullText(ABC):
     async def clear(self, session: Any) -> None:
         """Empty the index - for engines with a side table."""
         return None  # the index lives on the table itself
+
+    async def drop(self, engine: AsyncEngine) -> None:
+        """Remove the engine's own objects (side tables) - indexes go with the table."""
+        return None
 
 
 # ── SQLite FTS5 ─────────────────────────────────────────────────────────────
@@ -165,6 +179,10 @@ class SqliteFts5(FullText):
             "content": row.get(s.content) or "",
         }
 
+    async def drop(self, engine: AsyncEngine) -> None:
+        async with engine.begin() as conn:
+            await conn.execute(text(f"DROP TABLE IF EXISTS {self.fts_name}"))
+
     async def write(self, session: Any, rows: list[Mapping[str, Any]]) -> None:
         if not rows or not self._available(session):
             return
@@ -197,19 +215,40 @@ class SqliteFts5(FullText):
 
 
 class PostgresTsvector(FullText):
+    """GIN ``tsvector`` index. Hyphens are turned into spaces before parsing:
+    PostgreSQL's parser reads ``УН-2024-001`` as ``ун``, ``-2024``, ``-001``
+    (signed numbers), so a search for ``2024`` would miss it. FTS5 splits on
+    the hyphen anyway - both backends find the same documents."""
+
+    #: Bumped whenever the indexed expression changes - the old index is dropped.
+    _INDEX_VERSION = 2
+
     def _vector(self, col: str) -> Any:
-        # Must match the GIN index expression exactly for the index to be used.
-        return func.to_tsvector("simple", func.coalesce(self.t.c[col], ""))
+        # Must match the GIN index expression exactly for the index to be used -
+        # the constants as SQL literals, not bound parameters: asyncpg prepares
+        # statements, and a generic plan can't match "$1" against the index.
+        return func.to_tsvector(
+            literal_column("'simple'::regconfig"),
+            func.translate(
+                func.coalesce(self.t.c[col], literal_column("''")),
+                literal_column("'-'"),
+                literal_column("' '"),
+            ),
+        )
 
     async def ensure(self, engine: AsyncEngine) -> None:
+        name = self.spec.name
         # CONCURRENTLY cannot run inside a transaction block
         async with engine.connect() as conn:
             conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+            for old in range(1, self._INDEX_VERSION):
+                suffix = "" if old == 1 else str(old)
+                await conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}_idx_ts{suffix}"))
             await conn.execute(
                 text(
-                    f"CREATE INDEX CONCURRENTLY IF NOT EXISTS {self.spec.name}_idx_ts "
-                    f'ON "{self.t.name}" '
-                    f"USING GIN (to_tsvector('simple', coalesce({self.spec.content}, '')))"
+                    f"CREATE INDEX CONCURRENTLY IF NOT EXISTS {name}_idx_ts{self._INDEX_VERSION} "
+                    f"ON \"{self.t.name}\" USING GIN (to_tsvector('simple', "
+                    f"translate(coalesce({self.spec.content}, ''), '-', ' ')))"
                 )
             )
 

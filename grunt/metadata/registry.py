@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt import _, log
 from grunt.cache import bus
+from grunt.db.dialects import dialect_for
 from grunt.local import _session_ctx
 from grunt.metadata import store
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
@@ -658,7 +659,13 @@ class DocTypeRegistry:
             await session.flush()
         except IntegrityError as exc:
             # DB-level fallback for race conditions / stale cache.
-            if f"{store.meta_table().name}.name" in str(exc):
+            violation = dialect_for(session).integrity_violation(exc)
+            if (
+                violation
+                and violation.kind == "unique"
+                and violation.column == "name"
+                and violation.table in (None, store.meta_table().name)
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=_("DocType “%(doctype)s” already exists") % {"doctype": doctype.name},

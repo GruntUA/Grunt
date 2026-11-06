@@ -398,7 +398,7 @@ class DocumentLifecycleMixin:
             await self._run_lifecycle_hooks("after_insert", "after_save")
             await self._after_insert(dt)
         except IntegrityError as exc:
-            raise friendly_integrity_error(exc, dt.doc) from exc
+            raise friendly_integrity_error(exc, dt.doc, self.session) from exc
         finally:
             self._reset_grunt_context(tokens)
 
@@ -506,7 +506,7 @@ class DocumentLifecycleMixin:
             await self._after_update(dt, result)
             await self._fire_write_hooks("after_update", result)
         except IntegrityError as exc:
-            raise friendly_integrity_error(exc, dt.doc) from exc
+            raise friendly_integrity_error(exc, dt.doc, self.session) from exc
         finally:
             if transition_token is not None:
                 _active.reset(transition_token)

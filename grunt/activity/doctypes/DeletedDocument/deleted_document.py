@@ -97,7 +97,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
             "DeletedDocument",
             name,
             {
-                "restored": 1,
+                "restored": True,
                 "restored_at": datetime.now(UTC),
                 "restored_to": created["name"],
             },

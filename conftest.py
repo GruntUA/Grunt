@@ -1,7 +1,6 @@
 """Shared test fixtures — single test engine and session override."""
 
 import logging
-import os
 
 import pytest
 from httpx2 import ASGITransport, AsyncClient
@@ -18,10 +17,16 @@ from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.document.serde import to_json
 from grunt.main import app
-from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
+from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry
-from grunt.search.service import search_index_service
 from grunt.site.manager import current_site
+from grunt.testkit import (
+    TestSchema,
+    bind_test_site,
+    hold_task_queue,
+    isolate_from_redis,
+    worker_database_url,
+)
 
 # Disable rate limiting for tests
 settings.rate_limit_enabled = False
@@ -39,11 +44,15 @@ _TEST_SITE = "__pytest__"
 #   TEST_DATABASE_URL=postgresql+asyncpg://user:pass@localhost/grunt_test pytest
 #   TEST_DATABASE_URL=mysql+aiomysql://user:pass@localhost/grunt_test pytest
 
-TEST_DB_URL = os.environ.get("TEST_DATABASE_URL", "sqlite+aiosqlite://")
+TEST_DB_URL = worker_database_url()  # an xdist worker gets its own server database
 
 test_engine = create_async_engine(TEST_DB_URL, echo=False, json_serializer=to_json)
 dialect_for(test_engine).attach_functions(test_engine)  # same lower()/uk_sort_key as sites
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+bind_test_site(test_engine, TestSessionLocal)
+test_schema = TestSchema(test_engine)
+hold_task_queue()
+isolate_from_redis()
 
 
 async def override_get_session():
@@ -86,14 +95,6 @@ async def setup_db():
 
         _clear_workflow_cache()
 
-        # Remove previously compiled dynamic doctype tables from this test
-        # process's compiled-table MetaData (kept separate from SA_METADATA,
-        # which only ever holds fixed-shape infra tables like MULTI_LINK_TABLE).
-        compiled_metadata = get_compiled_metadata()
-        to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
-        for name in to_remove:
-            compiled_metadata.remove(compiled_metadata.tables[name])
-
         # Compile and create core doctype tables from JSON files, and register in doctype_registry
         import json
 
@@ -112,10 +113,10 @@ async def setup_db():
                 logging.getLogger(__name__).warning(
                     "Failed to load or compile doctype from %s: %s", _dt_file, exc
                 )
-        async with test_engine.begin() as conn:
-            await conn.run_sync(SA_METADATA.create_all)
-            await conn.run_sync(compiled_metadata.create_all)
-        await search_index_service.ensure_table(test_engine)
+        # The schema is made once; tables keep their compiled Table objects
+        # (compile_doctype_to_table returns them from its cache) and are just
+        # emptied - see grunt.testkit.TestSchema.
+        await test_schema.prepare()
 
         # Seed a permissive SystemSettings row so the production password /
         # registration policy (grunt/auth/password_policy.py, register gate) does
@@ -152,15 +153,7 @@ async def setup_db():
 
         yield
 
-        async with test_engine.begin() as conn:
-            await conn.run_sync(compiled_metadata.drop_all)
-            await conn.run_sync(SA_METADATA.drop_all)
-
-        # Remove dynamic doctype tables from the compiled-table MetaData; next
-        # test's setup_db rebuilds them from scratch.
-        to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
-        for name in to_remove:
-            compiled_metadata.remove(compiled_metadata.tables[name])
+        await test_schema.finish()  # drops it only if this test changed it
     finally:
         current_site.reset(site_token)
 

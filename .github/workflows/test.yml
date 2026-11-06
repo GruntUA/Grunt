@@ -51,8 +51,6 @@ jobs:
             url: "sqlite+aiosqlite://"
           - db: postgres
             url: "postgresql+asyncpg://grunt:grunt@localhost:5432/grunt_test"
-    # PostgreSQL support is not verified yet - report, do not block.
-    continue-on-error: ${{ matrix.db == 'postgres' }}
 
     services:
       postgres:
@@ -80,6 +78,18 @@ jobs:
           enable-cache: true
 
       - run: uv sync --locked --all-extras
+
+      # Test data is thrown away, and every test creates and drops all DocType
+      # tables - durability (an fsync per commit) only slows that DDL down.
+      # All three settings take effect on reload, no restart needed.
+      - name: Tune PostgreSQL for tests
+        if: matrix.db == 'postgres'
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U grunt -d grunt_test -v ON_ERROR_STOP=1 \
+            -c "ALTER SYSTEM SET fsync = off" \
+            -c "ALTER SYSTEM SET synchronous_commit = off" \
+            -c "ALTER SYSTEM SET full_page_writes = off" \
+            -c "SELECT pg_reload_conf()"
 
       - name: pytest
         env:

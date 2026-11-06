@@ -1,13 +1,20 @@
 """MySQL / MariaDB."""
 
+import re
 from typing import Any
 
 from sqlalchemy import String, Table, cast, func, literal, text
 from sqlalchemy.dialects.mysql import insert as mysql_insert
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
-from grunt.db.dialects.base import Dialect
+from grunt.db.dialects.base import ConstraintViolation, Dialect
 from grunt.db.dialects.fulltext import FullText, FullTextSpec, MysqlFulltext
+
+# error code -> kind; "Column 'x' cannot be null", "Duplicate entry 'v' for key 't.uq_t_x'"
+_MYSQL_KINDS = {1048: "not_null", 1062: "unique", 1451: "foreign_key", 1452: "foreign_key"}
+_MYSQL_NULL_COLUMN = re.compile(r"Column '([^']+)' cannot be null")
+_MYSQL_DUP_KEY = re.compile(r"for key '([^']+)'")
 
 _SIZE_SQL = (
     "SELECT data_length, index_length, data_free FROM information_schema.tables "
@@ -17,6 +24,20 @@ _SIZE_SQL = (
 
 class MysqlDialect(Dialect):
     name = "mysql"
+
+    async def create_database(self, url: Any, name: str, *, replace: bool = False) -> None:
+        engine = create_async_engine(url)
+        try:
+            async with engine.begin() as conn:
+                quoted = conn.dialect.identifier_preparer.quote(name)
+                if replace:
+                    await conn.execute(text(f"DROP DATABASE IF EXISTS {quoted}"))
+                await conn.execute(
+                    text(f"CREATE DATABASE IF NOT EXISTS {quoted} CHARACTER SET utf8mb4")
+                )
+        finally:
+            await engine.dispose()
+
     compaction_scope = "table"
 
     def engine_kwargs(self) -> dict[str, Any]:
@@ -57,3 +78,20 @@ class MysqlDialect(Dialect):
             "reclaim_scope": "table",
             "size_supported": True,
         }
+
+    # ── Errors ──────────────────────────────────────────────────────────────
+
+    def integrity_violation(self, exc: Exception) -> ConstraintViolation | None:
+        orig = getattr(exc, "orig", None) or exc
+        args = getattr(orig, "args", ())
+        kind = _MYSQL_KINDS.get(args[0]) if args and isinstance(args[0], int) else None
+        if kind is None:
+            return None
+        message = str(args[1]) if len(args) > 1 else str(orig)
+        if kind == "not_null":
+            m = _MYSQL_NULL_COLUMN.search(message)
+            return ConstraintViolation(kind, columns=(m.group(1),) if m else ())
+        if kind == "unique" and (m := _MYSQL_DUP_KEY.search(message)):
+            table, _, key = m.group(1).rpartition(".")  # MySQL 8: "table.key"
+            return ConstraintViolation(kind, table or None, constraint=key)
+        return ConstraintViolation(kind)  # type: ignore[arg-type]
