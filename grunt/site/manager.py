@@ -167,6 +167,11 @@ class SiteManager:
                 "pool_pre_ping": True,
                 **dialect.engine_kwargs(),
             }
+            if connect_args := dialect.connect_args(db_url):
+                engine_kwargs["connect_args"] = {
+                    **engine_kwargs.get("connect_args", {}),
+                    **connect_args,
+                }
             # to_json: документи тримають date/Decimal, а типовий json.dumps їх не вміє
             engine = create_async_engine(db_url, json_serializer=to_json, **engine_kwargs)
             dialect.setup_engine(engine)

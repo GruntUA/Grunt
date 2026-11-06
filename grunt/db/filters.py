@@ -13,6 +13,7 @@ none of them, ``__is`` / ``__isnull`` - having any link at all.
 import operator
 from collections.abc import Callable
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import String, and_, cast, exists, false, or_
@@ -124,6 +125,27 @@ def _year_clause(col: Any, value: Any) -> Any:
     return and_(col >= lo, col < hi)
 
 
+_NUMBER_TYPES = (int, float, Decimal)
+
+
+def typed_value(col: Any, value: Any) -> Any:
+    """A number typed as a string (a query string, a CSV list) as a number for a
+    numeric column - SQLite compares either way, PostgreSQL refuses ``int = '5'``.
+    A value that isn't a number stays as it is."""
+    if not isinstance(value, str):
+        return value
+    try:
+        python_type = col.type.python_type
+    except NotImplementedError:
+        return value
+    if python_type not in _NUMBER_TYPES:
+        return value
+    try:
+        return python_type(value.strip())
+    except ValueError, ArithmeticError:
+        return value
+
+
 def _as_text(col: Any) -> Any:
     """LIKE needs a string column - a number or date is matched by its text."""
     return col if isinstance(col.type, String) else cast(col, String)
@@ -138,7 +160,8 @@ _CLAUSES: dict[str, Callable[[Any, Any], Any]] = {
     "lt": operator.lt,
     "lte": operator.le,
     "lte_or_null": lambda col, v: or_(col <= v, col.is_(None)),
-    "like": lambda col, v: _as_text(col).like(f"%{v}%"),
+    # like ignores case like ilike - as SQLite always did; PostgreSQL's LIKE wouldn't
+    "like": lambda col, v: _as_text(col).ilike(f"%{v}%"),
     "ilike": lambda col, v: _as_text(col).ilike(f"%{v}%"),
     "nlike": lambda col, v: or_(col.is_(None), ~_as_text(col).ilike(f"%{v}%")),
     "in": lambda col, v: col.in_(as_list(v)),
@@ -193,6 +216,10 @@ def build_clauses(table: Any, filters: dict[str, Any], meta: Any = None) -> list
                 if clause is not None:
                     clauses.append(clause)
             continue
+        if op in ("in", "nin"):
+            value = [typed_value(col, v) for v in as_list(value)]
+        elif op not in ("like", "ilike", "nlike", "is", "isnull", "year"):
+            value = typed_value(col, value)
         clauses.append(_CLAUSES[op](col, value))
     return clauses
 

@@ -7,9 +7,9 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Table, func, text
+from sqlalchemy import String, Table, func, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.engine import URL
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
@@ -86,6 +86,18 @@ class PostgresDialect(Dialect):
     def engine_kwargs(self) -> dict[str, Any]:
         return {"pool_size": 20, "max_overflow": 10}
 
+    def connect_args(self, url: Any) -> dict[str, Any]:
+        # Every datetime in Grunt is UTC. to_char()/date() of a timestamp follow
+        # the session's TimeZone (a server in Europe/Kyiv puts 2025-12-31 23:00
+        # UTC into 2026) - so the session is UTC, set at connect time: right for
+        # timestamptz and naive timestamp columns alike, no per-query conversion.
+        driver = make_url(str(url)).get_driver_name()
+        if driver == "asyncpg":
+            return {"server_settings": {"timezone": "UTC"}}
+        if driver.startswith("psycopg"):
+            return {"options": "-c timezone=UTC"}
+        return {}
+
     async def empty_tables(self, conn: Any, names: list[str]) -> None:
         # One statement for all; a lock held by a stray connection fails fast
         # instead of hanging the run.
@@ -97,10 +109,14 @@ class PostgresDialect(Dialect):
             text(f"TRUNCATE {', '.join(quote(n) for n in names)} RESTART IDENTITY CASCADE")
         )
 
+    def exact(self, col: Any) -> Any:
+        return col.collate("C") if isinstance(col.type, String) else col
+
     def text_sort(self, col: Any) -> Any:
-        # Portable lower(); for full Ukrainian ordering install the ICU
-        # collation and sort on ``col.collate("uk-x-icu")``.
-        return func.lower(col)
+        # Code point order whatever the database's collation (en_US, uk_UA... order
+        # linguistically, and each differently) - "C" exists on every server.
+        # lower() itself still follows the database, so Cyrillic lowercases.
+        return func.lower(col).collate("C")
 
     def upsert(self, table: Table, row: dict[str, Any], key: list[str]) -> Insert:
         stmt = pg_insert(table).values(**row)

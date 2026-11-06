@@ -66,7 +66,9 @@ def _build_group_by_column(table: Any, gb: str, dialect: Dialect) -> tuple[Any, 
     if m:
         fn, field = m.group(1).lower(), m.group(2).strip()
         expr = (
-            func.date(table.c[field]) if fn == "date" else dialect.date_bucket(table.c[field], fn)
+            dialect.calendar_date(table.c[field])
+            if fn == "date"
+            else dialect.date_bucket(table.c[field], fn)
         )
         return expr.label(gb), expr
     col = table.c[gb]
@@ -331,7 +333,9 @@ class GruntDB:
         if sort_col is None:
             sort_col = table.c.get("created_at")
         if sort_col is not None:
-            stmt = stmt.order_by(sort_col.asc() if order == "asc" else sort_col.desc())
+            stmt = stmt.order_by(
+                *dialect_for(self._session()).sort(sort_col, descending=order != "asc")
+            )
 
         if limit is not None:
             stmt = stmt.limit(limit)
@@ -589,7 +593,7 @@ class GruntDB:
                 if col is None:
                     raise ValueError(f"Invalid order_by: {order_by!r}")
                 expr = col
-            stmt = stmt.order_by(expr.desc() if str(order).lower() == "desc" else expr.asc())
+            stmt = stmt.order_by(*dialect.sort(expr, descending=str(order).lower() == "desc"))
 
         if limit is not None:
             stmt = stmt.limit(limit)

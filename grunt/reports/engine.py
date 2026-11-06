@@ -363,7 +363,7 @@ class ReportEngine:
         descending = (report.get("sort_order") or "asc").lower() == "desc"
         if sort_by in order_exprs:
             expr = order_exprs[sort_by]
-            stmt = stmt.order_by(expr.desc() if descending else expr.asc())
+            stmt = stmt.order_by(*dialect.sort(expr, descending=descending))
         elif group_by_cols:
             stmt = stmt.order_by(*group_by_cols)
 
