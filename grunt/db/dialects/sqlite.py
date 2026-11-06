@@ -6,7 +6,7 @@ import sqlite3
 import tempfile
 import unicodedata
 from compression import zstd
-from contextlib import suppress
+from contextlib import closing, suppress
 from pathlib import Path
 from typing import Any
 
@@ -326,23 +326,22 @@ class SqliteDialect(Dialect):
         db_path = self._db_path(url)
         with tempfile.TemporaryDirectory(dir=dest.parent, prefix=".", suffix=".part") as tmp:
             snapshot = Path(tmp) / "snapshot.sqlite"
-            src = sqlite3.connect(db_path)
-            dst = sqlite3.connect(snapshot)
             base = progress.done
-            page_size = src.execute("PRAGMA page_size").fetchone()[0]
+            # closing(): sqlite3's own context manager commits, it doesn't close
+            with (
+                closing(sqlite3.connect(db_path)) as src,
+                closing(sqlite3.connect(snapshot)) as dst,
+            ):
+                page_size = src.execute("PRAGMA page_size").fetchone()[0]
 
-            def copied(_status: int, remaining: int, total: int) -> None:
-                progress.set(done=base + (total - remaining) * page_size)
+                def copied(_status: int, remaining: int, total: int) -> None:
+                    progress.set(done=base + (total - remaining) * page_size)
 
-            try:
                 progress.set(stage=_("Copying the database"))
                 # consistent snapshot, readers/writers keep working between the steps
                 src.backup(dst, pages=4096, progress=copied)
                 progress.set(stage=_("Checking the database copy"))
                 result = dst.execute("PRAGMA quick_check").fetchone()[0]
-            finally:
-                dst.close()
-                src.close()
             if result != "ok":
                 raise BackupError(
                     _("The database snapshot is corrupted: %(result)s") % {"result": result}
@@ -359,19 +358,40 @@ class SqliteDialect(Dialect):
     def restore_dump(self, url: Any, src: Path, aside: Path) -> None:
         db_path = self._db_path(url)
         restored = aside / "restored.sqlite"
-        with zstd.open(src, "rb") as fin, restored.open("wb") as fout:
-            shutil.copyfileobj(fin, fout, length=1024 * 1024)
-        check = sqlite3.connect(restored)
         try:
-            result = check.execute("PRAGMA quick_check").fetchone()[0]
-        finally:
-            check.close()
+            with zstd.open(src, "rb") as fin, restored.open("wb") as fout:
+                shutil.copyfileobj(fin, fout, length=1024 * 1024)
+            with closing(sqlite3.connect(restored)) as check:
+                result = check.execute("PRAGMA quick_check").fetchone()[0]
+        except (zstd.ZstdError, sqlite3.DatabaseError) as exc:
+            result = str(exc)
         if result != "ok":
             raise BackupError(
                 _("The database backup is corrupted: %(result)s") % {"result": result}
             )
-        for suffix in ("", "-wal", "-shm"):
-            current = Path(f"{db_path}{suffix}")
-            if current.exists():
-                shutil.move(current, aside / current.name)
-        shutil.move(restored, db_path)
+
+        # The live database (and its WAL) goes aside; on any failure it comes back.
+        moved: list[tuple[Path, Path]] = []
+        try:
+            for suffix in ("", "-wal", "-shm"):
+                current = Path(f"{db_path}{suffix}")
+                if current.exists():
+                    shutil.move(current, aside / current.name)
+                    moved.append((aside / current.name, current))
+            shutil.move(restored, db_path)
+        except OSError as exc:
+            try:
+                for kept, original in reversed(moved):
+                    shutil.move(kept, original)
+            except OSError:
+                raise BackupError(
+                    _(
+                        "The restore failed and the database could not be put back: "
+                        "it is in %(aside)s"
+                    )
+                    % {"aside": str(aside)}
+                ) from exc
+            raise BackupError(
+                _("The restore failed, the database was left as it was: %(error)s")
+                % {"error": str(exc)}
+            ) from exc

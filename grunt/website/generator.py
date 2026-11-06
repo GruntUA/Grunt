@@ -178,7 +178,7 @@ async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | No
         key = ROUTE_FIELD if _has_field(dt, ROUTE_FIELD) else "name"
         filters: dict[str, Any] = {key: route}
         if dt.is_published_field:
-            filters[dt.is_published_field] = 1
+            filters[dt.is_published_field] = True
         rows = await grunt.db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
         if rows:
             return dt, rows[0]["name"]
@@ -301,7 +301,7 @@ async def sitemap_urls() -> list[tuple[str, Any]]:
     for dt in await doctype_registry.list_all():
         if not is_public(dt) or not dt.index_web_pages_for_search:
             continue
-        filters = {dt.is_published_field: 1} if dt.is_published_field else None
+        filters = {dt.is_published_field: True} if dt.is_published_field else None
         extra = (ROUTE_FIELD, dt.is_published_field)
         fields = ["name", "modified_at", *[f for f in extra if f and _has_field(dt, f)]]
         rows = await grunt.db.get_all(dt.name, filters=filters, fields=fields, limit=None)

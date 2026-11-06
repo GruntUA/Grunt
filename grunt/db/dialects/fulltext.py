@@ -197,19 +197,33 @@ class SqliteFts5(FullText):
 
 
 class PostgresTsvector(FullText):
+    """GIN ``tsvector`` index. Hyphens are turned into spaces before parsing:
+    PostgreSQL's parser reads ``УН-2024-001`` as ``ун``, ``-2024``, ``-001``
+    (signed numbers), so a search for ``2024`` would miss it. FTS5 splits on
+    the hyphen anyway - both backends find the same documents."""
+
+    #: Bumped whenever the indexed expression changes - the old index is dropped.
+    _INDEX_VERSION = 2
+
     def _vector(self, col: str) -> Any:
         # Must match the GIN index expression exactly for the index to be used.
-        return func.to_tsvector("simple", func.coalesce(self.t.c[col], ""))
+        return func.to_tsvector(
+            "simple", func.translate(func.coalesce(self.t.c[col], ""), "-", " ")
+        )
 
     async def ensure(self, engine: AsyncEngine) -> None:
+        name = self.spec.name
         # CONCURRENTLY cannot run inside a transaction block
         async with engine.connect() as conn:
             conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+            for old in range(1, self._INDEX_VERSION):
+                suffix = "" if old == 1 else str(old)
+                await conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}_idx_ts{suffix}"))
             await conn.execute(
                 text(
-                    f"CREATE INDEX CONCURRENTLY IF NOT EXISTS {self.spec.name}_idx_ts "
-                    f'ON "{self.t.name}" '
-                    f"USING GIN (to_tsvector('simple', coalesce({self.spec.content}, '')))"
+                    f"CREATE INDEX CONCURRENTLY IF NOT EXISTS {name}_idx_ts{self._INDEX_VERSION} "
+                    f"ON \"{self.t.name}\" USING GIN (to_tsvector('simple', "
+                    f"translate(coalesce({self.spec.content}, ''), '-', ' ')))"
                 )
             )
 

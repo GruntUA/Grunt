@@ -38,11 +38,11 @@ async def assign_spaces(*, apply: bool, fallback_owner: str | None = None) -> di
 
     async def home_of(email: str) -> str:
         if email not in homes:
-            name = await grunt.db.get_value("FileFolder", {"space_user": email, "is_home": 1})
+            name = await grunt.db.get_value("FileFolder", {"space_user": email, "is_home": True})
             if not name and apply:
                 title = await grunt.db.get_value("User", email, "full_name") or email
                 doc = await grunt.new_doc(
-                    "FileFolder", {"folder_name": title, "is_home": 1, "space_user": email}
+                    "FileFolder", {"folder_name": title, "is_home": True, "space_user": email}
                 )
                 name = doc["name"]
             homes[email] = name or f"<home of {email}>"

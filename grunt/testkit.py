@@ -19,10 +19,13 @@ Usage, in the app's ``tests/conftest.py``::
 """
 
 import asyncio
+import atexit
 import json
 import logging
 import os
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -109,16 +112,43 @@ def _app_doctype_dirs(app_dir: Path) -> list[Path]:
 
 
 def bind_test_site(engine: AsyncEngine, session_maker: async_sessionmaker[AsyncSession]) -> None:
-    """Make the test site ``__pytest__`` use the test engine everywhere.
+    """Make the test site ``__pytest__`` use the test engine and a throwaway folder.
 
     Code that opens its own session outside a request (server scripts, the
     error log, background tasks) goes through ``site_manager``; left alone it
     would open ``sites/__pytest__/grunt.db`` - a real file on a dev machine,
-    a missing one in CI. The site folder itself must exist (storage checks).
+    a missing one in CI. The sites folder is a temporary one owned by the test
+    process (the bench's own may be absent or not writable - a bare checkout),
+    removed at exit; the site folder in it exists for storage checks.
     """
+    sites_dir = Path(tempfile.mkdtemp(prefix="grunt-test-sites-"))
+    atexit.register(shutil.rmtree, sites_dir, ignore_errors=True)
+    site_manager.sites_dir = sites_dir
+    (sites_dir / _TEST_SITE).mkdir()
     site_manager.engines[_TEST_SITE] = engine
     site_manager.session_makers[_TEST_SITE] = session_maker
-    (site_manager.sites_dir / _TEST_SITE).mkdir(parents=True, exist_ok=True)
+
+
+#: Background tasks sent (``.kiq()``) during the test run - see :func:`hold_task_queue`.
+sent_tasks: list[Any] = []
+
+
+def hold_task_queue() -> None:
+    """Keep ``.kiq()`` from dispatching anything while tests run.
+
+    Without it a task goes to the real Redis of a dev machine (a running dev
+    worker may pick it up) or, with no ``REDIS_URL`` as in CI, runs in-process
+    right away - concurrently with the test that queued it and with the next
+    test's table drop (an e-mail queue run reclaiming a row the test is
+    checking, "no such table"). Sent messages land in :data:`sent_tasks`;
+    a test that needs a task to run calls it directly or patches its ``kiq``.
+    """
+    from grunt.tasks.broker import broker
+
+    async def _hold(message: Any) -> None:
+        sent_tasks.append(message)
+
+    broker.kick = _hold  # type: ignore[method-assign]
 
 
 def worker_database_url() -> str:
@@ -163,6 +193,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         test_engine, class_=AsyncSession, expire_on_commit=False
     )
     bind_test_site(test_engine, TestSessionLocal)
+    hold_task_queue()
 
     async def override_get_session():
         async with TestSessionLocal() as session:

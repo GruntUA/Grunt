@@ -2,6 +2,8 @@
 
 import pytest
 
+from grunt.db.dialects import dialect_for
+
 TABLE_INFO_DOCTYPE = {
     "name": "StorageProbe",
     "label": "Storage Probe",
@@ -31,10 +33,11 @@ async def test_table_info_reports_physical_table(ctx, probe_doctype):
     await ctx.db._session().commit()
 
     info = await table_info(name="StorageProbe")
+    engine = ctx.get_engine()
 
     assert info["doctype"] == "StorageProbe"
     assert info["table_name"] == "grunt_core_storage_probe"
-    assert info["dialect"] == "sqlite"
+    assert info["dialect"] == engine.dialect.name
     assert info["exists"] is True
     assert info["row_count"] == 3
 
@@ -43,7 +46,7 @@ async def test_table_info_reports_physical_table(ctx, probe_doctype):
         assert info["table_bytes"] >= 0
         assert info["index_bytes"] >= 0
         assert info["total_bytes"] == info["table_bytes"] + info["index_bytes"]
-        assert info["reclaim_scope"] == "database"
+        assert info["reclaim_scope"] == dialect_for(engine).compaction_scope
     else:
         assert info["total_bytes"] is None
 
@@ -85,9 +88,11 @@ async def test_compact_table_reports_freed_space(ctx, probe_doctype):
 
     before = await table_info(name="StorageProbe")
     result = await compact_table(name="StorageProbe")
+    dialect = dialect_for(ctx.get_engine())
+    quoted = ctx.get_engine().dialect.identifier_preparer.quote("grunt_core_storage_probe")
 
-    assert result["command"] == "VACUUM"
-    assert result["scope"] == "database"
+    assert result["command"] == dialect.compaction_command(quoted)
+    assert result["scope"] == dialect.compaction_scope
     assert result["before_bytes"] >= result["after_bytes"] >= 0
     assert result["freed_bytes"] == result["before_bytes"] - result["after_bytes"]
     assert result["freed_bytes"] > 0

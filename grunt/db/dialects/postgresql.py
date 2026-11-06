@@ -1,5 +1,6 @@
 """PostgreSQL."""
 
+import os
 import re
 import shutil
 import subprocess
@@ -8,6 +9,7 @@ from typing import Any
 
 from sqlalchemy import Table, func, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
@@ -126,32 +128,47 @@ class PostgresDialect(Dialect):
     dump_suffix = ".pgdump"
 
     @staticmethod
-    def _libpq_url(url: Any) -> str:
-        return url.set(drivername="postgresql").render_as_string(hide_password=False)
+    def _run_client(tool: str, args: list[str], url: Any) -> None:
+        """Run a PostgreSQL client tool against *url*; a failure is a ``BackupError``.
+
+        The password goes in ``PGPASSWORD``, never in the arguments - those are
+        visible to every local user in the process list and end up in errors.
+        """
+        if not shutil.which(tool):
+            raise BackupError(
+                _("%(tool)s not found; install the PostgreSQL client") % {"tool": tool}
+            )
+        # URL.set(password=None) keeps the password - build the URL without it
+        conninfo = URL.create(
+            "postgresql",
+            username=url.username,
+            host=url.host,
+            port=url.port,
+            database=url.database,
+            query=url.query,
+        )
+        env = dict(os.environ)
+        if url.password:
+            env["PGPASSWORD"] = str(url.password)
+        result = subprocess.run(
+            [tool, *args, conninfo.render_as_string(hide_password=False)],
+            env=env,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            error = (result.stderr or "").strip().splitlines()[-1:] or [str(result.returncode)]
+            raise BackupError(_("%(tool)s failed: %(error)s") % {"tool": tool, "error": error[0]})
 
     def dump(self, url: Any, dest: Path, level: int, progress: Any) -> None:
         """``pg_dump -Fc`` with zstd (pg_dump 16+); its size is unknown up front."""
-        if not shutil.which("pg_dump"):
-            raise BackupError(_("pg_dump not found; install the PostgreSQL client"))
         level = min(max(level, 1), MAX_COMPRESSION_LEVEL)
         progress.set(stage=_("Dumping the database"))  # pg_dump reports no progress
-        subprocess.run(
-            ["pg_dump", "-Fc", f"--compress=zstd:{level}", "-f", str(dest), self._libpq_url(url)],
-            check=True,
-        )
+        self._run_client("pg_dump", ["-Fc", f"--compress=zstd:{level}", "-f", str(dest)], url)
 
     def restore_dump(self, url: Any, src: Path, aside: Path) -> None:
-        if not shutil.which("pg_restore"):
-            raise BackupError(_("pg_restore not found; install the PostgreSQL client"))
-        subprocess.run(
-            [
-                "pg_restore",
-                "--clean",
-                "--if-exists",
-                "--no-owner",
-                "-d",
-                self._libpq_url(url),
-                str(src),
-            ],
-            check=True,
+        # The database URL goes last as a positional dbname, so -d takes it.
+        self._run_client(
+            "pg_restore", ["--clean", "--if-exists", "--no-owner", str(src), "-d"], url
         )

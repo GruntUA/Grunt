@@ -143,5 +143,5 @@ async def _publish(ids: set[str], user: Any) -> None:
         if not r.get("is_public") and await permission_checker.check(user, meta, "read", r)
     ]
     if readable:
-        await grunt.db.bulk_update("File", {"name__in": readable}, {"is_public": 1})
+        await grunt.db.bulk_update("File", {"name__in": readable}, {"is_public": True})
         log.debug("storage.files_published", count=len(readable))

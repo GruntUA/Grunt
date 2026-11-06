@@ -357,7 +357,7 @@ async def list_colleagues_api() -> list[dict[str, Any]]:
     what a picker shows (sharing, assigning) - no roles, no account state."""
     rows = await grunt.db.get_all(
         "User",
-        filters={"is_active": 1},
+        filters={"is_active": True},
         fields=["name", "email", "full_name", "avatar"],
         order_by="full_name",
         limit=10_000,

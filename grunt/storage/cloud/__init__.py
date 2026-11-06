@@ -58,14 +58,14 @@ async def load_remote(name: str) -> dict[str, Any]:
 async def backup_remotes() -> list[dict[str, Any]]:
     """Enabled remotes that receive backups."""
     return await grunt.db.get_all(
-        "StorageRemote", filters={"enabled": 1, "use_for_backups": 1}, fields=["*"], limit=None
+        "StorageRemote", filters={"enabled": True, "use_for_backups": True}, fields=["*"], limit=None
     )
 
 
 async def files_remote() -> dict[str, Any] | None:
     """The enabled remote old files are moved to, if any (there is at most one)."""
     rows = await grunt.db.get_all(
-        "StorageRemote", filters={"enabled": 1, "use_for_files": 1}, fields=["*"], limit=1
+        "StorageRemote", filters={"enabled": True, "use_for_files": True}, fields=["*"], limit=1
     )
     return rows[0] if rows else None
 

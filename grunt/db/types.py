@@ -24,7 +24,8 @@ document holds its dates as ISO strings, so a hook that copies one back into
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import Date, DateTime
+from sqlalchemy import Boolean, Date, DateTime, false, true
+from sqlalchemy.sql import operators
 from sqlalchemy.types import TypeDecorator
 
 
@@ -61,3 +62,43 @@ class UtcDateTime(TypeDecorator):
         if isinstance(value, datetime) and value.tzinfo is None:
             return value.replace(tzinfo=UTC)
         return value
+
+
+_FALSE_STRINGS = frozenset({"", "0", "false", "no", "off"})
+
+
+class CheckBool(TypeDecorator):
+    """A ``Boolean`` (Check field) that also binds ``1`` / ``0`` and their strings.
+
+    Code and query strings say ``{"is_active": 1}`` or ``"true"``; SQLite takes
+    that as is, PostgreSQL does not (``operator does not exist: boolean =
+    integer`` in a WHERE, asyncpg's "expected bool" in a write). Values are
+    turned into a real ``bool`` on the way in - in comparisons too, since a
+    value compared with this column is bound with this type.
+    """
+
+    impl = Boolean
+    cache_ok = True
+
+    class Comparator(TypeDecorator.Comparator):
+        def operate(self, op: Any, *other: Any, **kwargs: Any) -> Any:
+            # ``IS`` takes a constant, not a parameter: ``col.is_(True)`` must
+            # render ``IS true`` (as for a plain Boolean) - ``IS $1`` is a
+            # syntax error on PostgreSQL.
+            if op in (operators.is_, operators.is_not) and other:
+                value = other[0]
+                if isinstance(value, bool):
+                    other = (true() if value else false(), *other[1:])
+            return super().operate(op, *other, **kwargs)
+
+    comparator_factory = Comparator  # pyright: ignore[reportAssignmentType] - SQLAlchemy's documented override
+
+    def process_bind_param(self, value: Any, dialect: Any) -> Any:
+        if value is None or isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() not in _FALSE_STRINGS
+        return bool(value)
+
+    def coerce_compared_value(self, op: Any, value: Any) -> Any:
+        return self
