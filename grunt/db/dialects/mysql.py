@@ -2,9 +2,12 @@
 
 from typing import Any
 
-from sqlalchemy import String, cast, func, literal, text
+from sqlalchemy import String, Table, cast, func, literal, text
+from sqlalchemy.dialects.mysql import insert as mysql_insert
+from sqlalchemy.sql.dml import Insert
 
 from grunt.db.dialects.base import Dialect
+from grunt.db.dialects.fulltext import FullText, FullTextSpec, MysqlFulltext
 
 _SIZE_SQL = (
     "SELECT data_length, index_length, data_free FROM information_schema.tables "
@@ -18,6 +21,13 @@ class MysqlDialect(Dialect):
 
     def engine_kwargs(self) -> dict[str, Any]:
         return {"pool_size": 20, "max_overflow": 10, "connect_args": {"charset": "utf8mb4"}}
+
+    def upsert(self, table: Table, row: dict[str, Any], key: list[str]) -> Insert:
+        stmt = mysql_insert(table).values(**row)
+        return stmt.on_duplicate_key_update(**{k: v for k, v in row.items() if k not in key})
+
+    def fulltext(self, spec: FullTextSpec) -> FullText:
+        return MysqlFulltext(spec)
 
     def date_bucket(self, column: Any, bucket: str) -> Any:
         if bucket == "quarter":

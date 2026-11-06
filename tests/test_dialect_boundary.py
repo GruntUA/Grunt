@@ -24,7 +24,6 @@ FORBIDDEN = re.compile(
 )
 
 NOT_YET_MOVED = {
-    "search/service.py",  # FTS5 / tsvector / FULLTEXT, upsert
     "backups/__init__.py",  # backup()/restore() per backend
 }
 

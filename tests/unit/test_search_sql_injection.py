@@ -20,6 +20,7 @@ import pytest
 from sqlalchemy import Select, func, select, text
 from sqlalchemy.dialects import mysql
 
+from grunt.db.dialects import MysqlDialect
 from grunt.search.service import SearchIndexService, _search_index_table
 
 _INJECTION_PAYLOAD = "' OR 1=1 -- "
@@ -44,7 +45,7 @@ async def test_mysql_branch_uses_bound_parameter_not_string_interpolation(db_ses
         return _Result()
 
     with (
-        patch("grunt.search.service._dialect", return_value="mysql"),
+        patch("grunt.search.service.dialect_for", return_value=MysqlDialect()),
         patch.object(db_session, "execute", side_effect=_fake_execute),
     ):
         result = await svc.search(db_session, _INJECTION_PAYLOAD)

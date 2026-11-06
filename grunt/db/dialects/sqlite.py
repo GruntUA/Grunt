@@ -6,11 +6,14 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Integer, String, bindparam, cast, event, func, text
+from sqlalchemy import Integer, String, Table, bindparam, cast, event, func, text
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.sql.dml import Insert
 
 from grunt import log
 from grunt.db.dialects.base import LIKE_ESCAPE, Dialect, escape_like
+from grunt.db.dialects.fulltext import FullText, FullTextSpec, SqliteFts5
 from grunt.db.write_intent import begin_statement
 
 _UK_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"
@@ -125,6 +128,15 @@ class SqliteDialect(Dialect):
         if term.isascii():
             return col.like(f"%{escape_like(term)}%", escape=LIKE_ESCAPE)
         return super().like_contains(col, term)
+
+    def upsert(self, table: Table, row: dict[str, Any], key: list[str]) -> Insert:
+        stmt = sqlite_insert(table).values(**row)
+        return stmt.on_conflict_do_update(
+            index_elements=key, set_={k: v for k, v in row.items() if k not in key}
+        )
+
+    def fulltext(self, spec: FullTextSpec) -> FullText:
+        return SqliteFts5(spec)
 
     def date_bucket(self, column: Any, bucket: str) -> Any:
         if bucket == "quarter":
