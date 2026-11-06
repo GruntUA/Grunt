@@ -5492,6 +5492,20 @@ msgstr "Сховати чеклист"
 msgid "Hide from global feed"
 msgstr "Приховати із загальної стрічки"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "In global search"
+msgstr "У глобальному пошуку"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Index documents for the global search (Ctrl+K). Turn off for plumbing, "
+"telemetry and large reference directories — list and Link field search keep "
+"working"
+msgstr ""
+"Індексувати документи для глобального пошуку (Ctrl+K). Вимкніть для службових "
+"записів, телеметрії та великих довідників — пошук у списку й полях Link "
+"працюватиме як і раніше"
+
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
 msgstr "Високий"

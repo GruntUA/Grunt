@@ -31,6 +31,7 @@ from grunt.metadata.permission import DocPermission
 from grunt.permissions.rbac import invalidate_permission_cache
 from grunt.site.manager import current_site, site_manager
 lazy from grunt.document.meta import Meta
+lazy from grunt.search.service import is_indexable, search_index_service
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
@@ -47,6 +48,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "is_virtual",
         "is_tree",
         "is_log",
+        "in_global_search",
         "track_seen",
         "track_views",
         "track_activity",
@@ -704,6 +706,9 @@ class DocTypeRegistry:
         invalidate_table_cache(doctype.name)
         invalidate_permission_cache(doctype.name)
         await sync_table(doctype, async_engine, session=session)
+        if not is_indexable(doctype) and (previous is None or is_indexable(previous)):
+            # Switched out of the global search (in_global_search off, is_log on...).
+            await search_index_service.remove_doctype(session, doctype.name)
         self._doctypes[doctype.name] = doctype
         self._index_add(doctype.name)
         bus.publish(_CHANGED, name=doctype.name)

@@ -1193,7 +1193,8 @@ msgstr ""
 msgid "Authentication cancelled"
 msgstr ""
 
-#: grunt/grunt/api/context.py grunt/grunt/auth/providers/webauthn.py
+#: grunt/grunt/api/context.py grunt/grunt/api/v1/method.py
+#: grunt/grunt/auth/providers/webauthn.py
 msgid "Authentication required"
 msgstr ""
 
@@ -2047,8 +2048,8 @@ msgstr ""
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue
 #: grunt/frontend/src/components/desk/GruntDialog.vue
-#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
 msgstr ""
@@ -2404,7 +2405,7 @@ msgstr ""
 msgid "Contacts"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Contains"
 msgstr ""
 
@@ -2465,7 +2466,7 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useToast.ts
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarRows.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 msgid "Copied"
 msgstr ""
@@ -2487,15 +2488,12 @@ msgstr ""
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarRows.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 #: grunt/frontend/src/components/fields/Code/CodeView.vue
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "Copy"
-msgstr ""
-
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
-msgid "Copy ID"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.js
@@ -2548,7 +2546,7 @@ msgstr ""
 msgid "Could not check for updates: %(error)s"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarRows.vue
 msgid "Could not copy"
 msgstr ""
 
@@ -3291,7 +3289,7 @@ msgstr ""
 msgid "Deprecated"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Descendant of"
 msgstr ""
 
@@ -3688,7 +3686,7 @@ msgstr ""
 msgid "Documents of “%(doctype)s” cannot be repeated"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Does not contain"
 msgstr ""
 
@@ -4147,7 +4145,7 @@ msgstr ""
 msgid "Entered"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Equals"
 msgstr ""
 
@@ -5144,11 +5142,11 @@ msgstr ""
 msgid "Gray"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Greater than"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Greater than or equal"
 msgstr ""
 
@@ -5642,6 +5640,10 @@ msgstr ""
 msgid "In filters"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "In global search"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "In list view"
 msgstr ""
@@ -5686,6 +5688,13 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Increase indent"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Index documents for the global search (Ctrl+K). Turn off for plumbing, "
+"telemetry and large reference directories — list and Link field search keep "
+"working"
 msgstr ""
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
@@ -5909,15 +5918,15 @@ msgstr ""
 msgid "Invite users"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is empty"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is none of"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is one of"
 msgstr ""
 
@@ -5925,7 +5934,7 @@ msgstr ""
 msgid "Is published field"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is set"
 msgstr ""
 
@@ -6273,11 +6282,11 @@ msgstr ""
 msgid "Less"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Less than"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Less than or equal"
 msgstr ""
 
@@ -7461,7 +7470,7 @@ msgid ""
 "MB"
 msgstr ""
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Not equals"
 msgstr ""
 
@@ -7514,6 +7523,10 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr ""
 
+#: grunt/grunt/document/sidebar.py
+msgid "Not published - open preview"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
 msgstr ""
@@ -7541,11 +7554,11 @@ msgstr ""
 #: grunt/frontend/src/components/DocTypeCombobox.vue
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
-#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue
 #: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue
@@ -7706,7 +7719,7 @@ msgstr ""
 msgid "On track"
 msgstr ""
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/grunt/document/sidebar.py
 msgid "On website"
 msgstr ""
 
@@ -8124,6 +8137,10 @@ msgstr ""
 msgid "Parameters"
 msgstr ""
 
+#: grunt/grunt/api/v1/method.py
+msgid "Parameters %(items)s cannot be passed in a request"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Parent field"
 msgstr ""
@@ -8400,9 +8417,20 @@ msgstr ""
 msgid "Preset name"
 msgstr ""
 
+#: grunt/grunt/document/sidebar.py
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Preview"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "Preview on website"
+msgstr ""
+
+#: grunt/grunt/website/templates/_preview_banner.html
+msgid ""
+"Preview — this page is not published yet. Only signed-in users with access "
+"can see it."
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
@@ -8415,6 +8443,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 msgid "Previous period"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgid "Previous token hash"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
@@ -9356,11 +9388,11 @@ msgid "Run `grunt app deps`. Missing:"
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
-msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
+msgid "Run `grunt update`."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
-msgid "Run `grunt update`."
+msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
@@ -9755,10 +9787,10 @@ msgstr ""
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue
-#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 msgid "Search…"
 msgstr ""
@@ -10603,10 +10635,10 @@ msgid ""
 "menu"
 msgstr ""
 
-#: grunt/grunt/geo/doctypes/Region/Region.json
+#: grunt/grunt/document/sidebar.py
 #: grunt/grunt/monitoring/templates/system_health.html
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/grunt/geo/doctypes/Region/Region.json
 msgid "State"
 msgstr ""
 
@@ -10622,6 +10654,7 @@ msgstr ""
 msgid "States & transitions"
 msgstr ""
 
+#: grunt/grunt/document/sidebar.py
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
@@ -10637,7 +10670,6 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Status"
 msgstr ""
 
@@ -11840,6 +11872,10 @@ msgstr ""
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Token"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgid "Token rotated at"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
@@ -13108,10 +13144,6 @@ msgstr ""
 msgid "contain an uppercase letter"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "contains"
-msgstr ""
-
 #: grunt/grunt/document/mixins/collaboration_rpc.py
 msgid "content is required"
 msgstr ""
@@ -13176,10 +13208,6 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/ToDo/to_do.py
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 msgid "document"
-msgstr ""
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "does not contain"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useDocActions.ts
@@ -13292,14 +13320,6 @@ msgstr ""
 #: grunt/frontend/src/pages/studio/builder/sections/FormulaSection.vue
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "is active"
-msgstr ""
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "is empty"
-msgstr ""
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "is set"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -13432,10 +13452,6 @@ msgstr ""
 msgid "none"
 msgstr ""
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "none of"
-msgstr ""
-
 #: grunt/grunt/monitoring/health.py
 msgid "not checked"
 msgstr ""
@@ -13482,10 +13498,6 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "offline"
-msgstr ""
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "one of (comma-separated)"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -13968,9 +13980,9 @@ msgid "— Do not import —"
 msgstr ""
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue
+#: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
 #: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
-#: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
 #: grunt/frontend/src/components/fields/Select/Select.vue
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue
 msgid "— Select —"

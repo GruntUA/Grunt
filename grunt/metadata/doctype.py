@@ -259,6 +259,9 @@ class DocType(BaseModel):
     is_virtual: bool = False  # True -> no DB table, data from controller
     is_tree: bool = False  # True -> hierarchical; requires tree_view.parent_field
     is_log: bool = False  # True -> operational log, excluded from global search index
+    # False -> documents stay out of the global search index (plumbing,
+    # telemetry, big reference directories); list & Link search are unaffected.
+    in_global_search: bool = True
     # Documents older than this (by retention_date_field, default created_at)
     # are deleted by the nightly retention job (grunt.tasks.retention).
     # is_log DocTypes fall back to SystemSettings.log_retention_days -> 30.

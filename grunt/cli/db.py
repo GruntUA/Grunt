@@ -18,6 +18,7 @@ lazy from grunt.metadata.compiler import SA_METADATA, sync_table
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.monitoring.health import human_size
+lazy from grunt.search.service import search_index_service
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import (
     load_core_doctypes,
@@ -84,6 +85,8 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     click.echo("  [1/4] Infrastructure tables (SA_METADATA)...")
                     async with eng.begin() as conn:
                         await conn.run_sync(SA_METADATA.create_all)
+                    if not dry_run:
+                        await search_index_service.ensure_table(eng)
 
                     # 2. Alembic history - schema/data patches for existing sites.
                     #    Fresh site -> stamp head; existing -> upgrade. Not
@@ -152,6 +155,14 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             except Exception as e:
                                 failed.append(f"{site_name}: {dt.name}")
                                 click.echo(f"    [error] {dt.name}: {e}", err=True)
+
+                        # Global search index: drop DocTypes switched out of it
+                        # (in_global_search off, is_log, deleted) - incl. ones
+                        # flipped in core/app JSON, which bypass registry.update.
+                        if not dry_run:
+                            purged = await search_index_service.purge_excluded(session, all_dts)
+                            if purged:
+                                click.echo(f"    search index: removed {purged} entries")
 
                         await session.commit()
 

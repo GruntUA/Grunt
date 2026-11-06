@@ -582,3 +582,80 @@ async def test_list_search_terms_across_fields_and_title(ctx):
     rows = await ctx.get_list("ПошукОсоба", search="50%", fields=["name"])
     assert [r["name"] for r in rows] == ["P-4"]
     assert not await ctx.get_list("ПошукОсоба", search="5_%", fields=["name"])
+
+
+# ── in_global_search flag, purge, row-level permissions ───────────────────
+
+
+@pytest.mark.asyncio
+async def test_in_global_search_false_is_not_indexed(ctx):
+    from grunt.api.v1.search import global_search
+
+    await create_and_sync(ctx, {**SIMPLE_DOCTYPE, "name": "Поза", "in_global_search": False})
+    await create_doc(ctx, "Поза", {"name": "П-1", "title": "Невидимий довідник"})
+    assert not await global_search(q="Невидимий")
+    # List search is unaffected.
+    assert await ctx.get_list("Поза", search="Невидимий")
+
+
+@pytest.mark.asyncio
+async def test_switching_off_purges_existing_entries(ctx):
+    from grunt.api.v1.meta import get_doctype, save_doctype
+    from grunt.api.v1.search import global_search
+    from grunt.search.service import search_index_service
+
+    await create_and_sync(ctx, {**SIMPLE_DOCTYPE, "name": "Вимикач"})
+    await create_doc(ctx, "Вимикач", {"name": "В-1", "title": "Зникаючий запис"})
+    assert await global_search(q="Зникаючий")
+
+    current = await get_doctype(name="Вимикач")
+    await save_doctype(doctype_data={**current, "in_global_search": False})
+    await ctx.db._session().commit()
+    assert not await global_search(q="Зникаючий")
+
+    # purge_excluded (run by `grunt migrate`) also drops stale entries.
+    from sqlalchemy import insert, select
+
+    from grunt.search.service import _search_index_table
+
+    await ctx.db._session().execute(
+        insert(_search_index_table).values(
+            idx_id="Вимикач:X", doctype="Вимикач", doc_id="X", content_raw="x"
+        )
+    )
+    from grunt.metadata.registry import doctype_registry
+
+    all_dts = await doctype_registry.list_all()
+    assert await search_index_service.purge_excluded(ctx.db._session(), all_dts) >= 1
+    left = await ctx.db._session().execute(
+        select(_search_index_table.c.idx_id).where(_search_index_table.c.doctype == "Вимикач")
+    )
+    assert left.first() is None
+
+
+@pytest.mark.asyncio
+async def test_global_search_respects_row_level_match(ctx, db_session, engine):
+    """A match-scoped role sees only the rows it could open, not all titles."""
+    import grunt
+    from grunt.api.v1.search import global_search
+    from tests.support import make_user
+
+    await create_and_sync(
+        ctx,
+        {
+            **SIMPLE_DOCTYPE,
+            "name": "СвоїЗаписи",
+            "permissions": [
+                {"role": "System Manager", "read": True, "write": True, "create": True},
+                {"role": "Author", "read": True, "create": True, "match": "owner == user"},
+            ],
+        },
+    )
+    bob = "bob@example.com"
+    await ctx.new_doc("User", {"email": bob, "first_name": "B", "last_name": "Ob"})
+    await create_doc(ctx, "СвоїЗаписи", {"name": "С-адмін", "title": "Конфіденційна нотатка"})
+    async with grunt.context(db_session, engine, make_user(bob, roles=["Author"])):
+        await grunt.new_doc("СвоїЗаписи", {"name": "С-боб", "title": "Конфіденційна чернетка"})
+        await db_session.commit()
+        names = {r["name"] for r in await global_search(q="Конфіденційна")}
+    assert names == {"С-боб"}

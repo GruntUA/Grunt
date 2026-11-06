@@ -3,8 +3,7 @@
 from typing import Any
 
 import grunt
-from grunt import _
-from grunt.permissions.rbac import permission_checker
+from grunt import _, log
 from grunt.search.service import search_index_service
 
 _OVERFETCH = 4
@@ -26,46 +25,58 @@ async def global_search(
     if limit > 50:
         grunt.throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
 
-    # Over-fetch: results of DocTypes the user can't read are dropped below,
-    # and they must not eat into the page the user asked for.
+    # Over-fetch: hits the user may not read are dropped below, and they must
+    # not eat into the page the user asked for.
     raw = await search_index_service.search(
         session=grunt.get_session(),
         q=q,
-        limit=limit if doctype else min(limit * _OVERFETCH, _MAX_FETCH),
+        limit=min(limit * _OVERFETCH, _MAX_FETCH),
         doctype=doctype,
     )
 
-    user = grunt.get_user()
-
-    # Check read permission per doctype
-    allowed_doctypes: dict[str, bool] = {}
-    results = []
-
+    # One permission-checked read per DocType in the hits: grunt.get_list
+    # applies the DocType-level read check *and* every row-level rule
+    # (owner/match permissions, User Permissions, list_filter_extra), so a
+    # user only ever sees titles of documents they could open.
+    ids_by_doctype: dict[str, list[str]] = {}
     for r in raw:
-        dt_name = r["doctype"]
-        if dt_name not in allowed_doctypes:
-            dt = await grunt.get_meta(dt_name)
-            if dt is None:
-                allowed_doctypes[dt_name] = False
-            else:
-                try:
-                    allowed_doctypes[dt_name] = await permission_checker.check(user, dt, "read")
-                except Exception:
-                    allowed_doctypes[dt_name] = False
+        ids_by_doctype.setdefault(r["doctype"], []).append(r["doc_id"])
+    readable: dict[str, set[str]] = {
+        dt_name: await _readable_ids(dt_name, ids) for dt_name, ids in ids_by_doctype.items()
+    }
 
-        if allowed_doctypes.get(dt_name):
-            if len(results) >= limit:
-                break
-            results.append(
-                {
-                    "doctype": r["doctype"],
-                    "name": r["doc_id"],
-                    "display_title": r.get("title") or r.get("doc_name", ""),
-                    "module": r.get("module", ""),
-                }
-            )
+    results = []
+    for r in raw:
+        if r["doc_id"] not in readable[r["doctype"]]:
+            continue
+        results.append(
+            {
+                "doctype": r["doctype"],
+                "name": r["doc_id"],
+                "display_title": r.get("title") or r.get("doc_name", ""),
+                "module": r.get("module", ""),
+            }
+        )
+        if len(results) >= limit:
+            break
 
     return results
+
+
+async def _readable_ids(doctype: str, ids: list[str]) -> set[str]:
+    """The subset of *ids* the current user may read (empty on any denial)."""
+    try:
+        rows = await grunt.get_list(
+            doctype,
+            filters={"name__in": ids},
+            fields=["name"],
+            limit=len(ids),
+            include_total=False,
+        )
+    except Exception as e:
+        log.debug("global_search.doctype_skipped", doctype=doctype, reason=str(e))
+        return set()
+    return {str(row["name"]) for row in rows}
 
 
 @grunt.whitelist(roles=["System Manager"])

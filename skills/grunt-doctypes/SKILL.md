@@ -38,7 +38,8 @@ description: Довідник по всіх типах полів, налашт�
 | `autoname` | str | Правило генерації `name` — див. grunt-naming |
 | `title_field` | str | Яке поле відображається як заголовок (default: `"name"`) |
 | `image_field` | str | Поле Image/Attach для аватара в списку |
-| `search_fields` | list[str] | Поля для full-text пошуку |
+| `search_fields` | list[str] | Поля пошуку в списку й Link-полі (`name` і `title_field` — завжди); кожне слово запиту має знайтися в якомусь полі |
+| `in_global_search` | bool | `false` — не індексувати для глобального пошуку Ctrl+K (службові записи, телеметрія, великі довідники). Default `true` |
 | `track_changes` | bool | Зберігати версії документа (default: `true`) |
 | `default_view` | str | `"list"` / `"kanban"` / `"calendar"` / `"tree"` / `"map"` |
 | `is_child` | bool | Дочірня таблиця (для `Table` поля). Власних прав не має: рядок читається, коли читається батьківський документ; змінюється лише збереженням батька |

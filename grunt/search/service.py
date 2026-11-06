@@ -107,6 +107,11 @@ _FTS_SEARCH_SQL = f"""
 """
 
 
+def is_indexable(dt: DocType) -> bool:
+    """True if *dt*'s documents belong in the global search index."""
+    return not (dt.is_child or dt.is_virtual or dt.is_log) and dt.in_global_search
+
+
 def _fts_rowid(idx_id: str) -> int:
     """Stable signed 64-bit rowid for an index entry (VACUUM-proof, unlike rowid)."""
     digest = hashlib.blake2b(idx_id.encode(), digest_size=8).digest()
@@ -247,7 +252,7 @@ class SearchIndexService:
         doc: dict[str, Any],
     ) -> None:
         """Upsert a document into the search index."""
-        if dt.is_child or dt.is_virtual or dt.is_log:
+        if not is_indexable(dt):
             return
 
         doc_id = str(doc.get("name") or "")
@@ -350,6 +355,33 @@ class SearchIndexService:
         except Exception:
             log.warning("search_index.remove_bulk_failed", doctype=doctype, count=len(doc_ids))
 
+    async def remove_doctype(self, session: AsyncSession, doctype: str) -> int:
+        """Drop every index entry of *doctype*. Returns the number removed."""
+        t = _search_index_table
+        idx_ids = list(
+            (await session.execute(select(t.c.idx_id).where(t.c.doctype == doctype))).scalars()
+        )
+        if not idx_ids:
+            return 0
+        await session.execute(delete(t).where(t.c.doctype == doctype))
+        it = iter(idx_ids)
+        while chunk := list(islice(it, _CHUNK)):
+            await self._fts_delete(session, chunk)
+        log.info("search_index.doctype_removed", doctype=doctype, count=len(idx_ids))
+        return len(idx_ids)
+
+    async def purge_excluded(self, session: AsyncSession, doctypes: list[DocType]) -> int:
+        """Remove entries of DocTypes that are no longer indexable (or no longer
+        exist) - e.g. after ``in_global_search`` was switched off or a DocType
+        became ``is_log``. Returns the number of entries removed."""
+        keep = {dt.name for dt in doctypes if is_indexable(dt)}
+        t = _search_index_table
+        indexed = (await session.execute(select(t.c.doctype).distinct())).scalars()
+        removed = 0
+        for name in [n for n in indexed if n not in keep]:
+            removed += await self.remove_doctype(session, name)
+        return removed
+
     async def search(
         self,
         session: AsyncSession,
@@ -451,7 +483,7 @@ class SearchIndexService:
         count = 0
         all_doctypes = await doctype_registry.list_all()
         for dt in all_doctypes:
-            if dt.is_child or dt.is_virtual or dt.is_log:
+            if not is_indexable(dt):
                 continue
             try:
                 table = compile_doctype_to_table(dt)

@@ -2,6 +2,7 @@
   "name": "DocLink",
   "label": "Document Link",
   "module": "document",
+  "in_global_search": false,
   "track_changes": false,
   "table_name": "grunt_doc_link",
   "hide_from_activity_feed": true,

@@ -155,6 +155,13 @@
       "description": "Fields for full-text search in the list view (name is added automatically)"
     },
     {
+      "fieldname": "in_global_search",
+      "label": "In global search",
+      "fieldtype": "Check",
+      "default": 1,
+      "description": "Index documents for the global search (Ctrl+K). Turn off for plumbing, telemetry and large reference directories — list and Link field search keep working"
+    },
+    {
       "fieldname": "sec_service",
       "label": "System",
       "fieldtype": "Section",
