@@ -104,5 +104,7 @@ class MysqlDialect(Dialect):
             return ConstraintViolation(kind, columns=(m.group(1),) if m else ())
         if kind == "unique" and (m := _MYSQL_DUP_KEY.search(message)):
             table, _, key = m.group(1).rpartition(".")  # MySQL 8: "table.key"
-            return ConstraintViolation(kind, table or None, constraint=key)
+            return ConstraintViolation(
+                kind, table or None, constraint=key, primary_key=key == "PRIMARY"
+            )
         return ConstraintViolation(kind)  # type: ignore[arg-type]

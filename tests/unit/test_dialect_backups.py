@@ -48,9 +48,26 @@ def test_postgres_client_failure_is_a_backup_error(pg_tools, tmp_path):
         PostgresDialect().dump(PG_URL, tmp_path / "x.pgdump", 9, Progress("", user=None))
 
 
+def test_postgres_restore_keeps_the_current_database_aside(pg_tools, tmp_path):
+    calls, _ = pg_tools
+    PostgresDialect().restore_dump(PG_URL, tmp_path / "x.pgdump", tmp_path)
+
+    (dump, restore) = (call["args"] for call in calls)
+    assert dump[0] == "pg_dump" and str(tmp_path / "database.pgdump") in dump
+    assert restore[0] == "pg_restore" and "--single-transaction" in restore
+
+
+def test_postgres_restore_stops_when_the_aside_dump_fails(pg_tools, tmp_path):
+    calls, outcome = pg_tools
+    outcome.update(returncode=1, stderr="pg_dump: error: disk full\n")
+    with pytest.raises(BackupError, match="disk full"):
+        PostgresDialect().restore_dump(PG_URL, tmp_path / "x.pgdump", tmp_path)
+    assert [call["args"][0] for call in calls] == ["pg_dump"]
+
+
 def test_postgres_missing_client_is_a_backup_error(monkeypatch, tmp_path):
     monkeypatch.setattr(shutil, "which", lambda tool: None)
-    with pytest.raises(BackupError, match="pg_restore"):
+    with pytest.raises(BackupError, match="pg_dump not found"):
         PostgresDialect().restore_dump(PG_URL, tmp_path / "x.pgdump", tmp_path)
 
 

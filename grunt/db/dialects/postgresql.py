@@ -244,7 +244,17 @@ class PostgresDialect(Dialect):
         self._run_client("pg_dump", ["-Fc", f"--compress=zstd:{level}", "-f", str(dest)], url)
 
     def restore_dump(self, url: Any, src: Path, aside: Path) -> None:
+        """Dump the current database to *aside*, then restore *src* in one transaction.
+
+        The database can't be moved away like a file, so the pre-restore copy is a
+        ``pg_dump`` (fast, low compression). ``--single-transaction`` means a dump
+        that fails half-way is rolled back instead of leaving a half-cleaned database.
+        """
+        current = aside / f"database{self.dump_suffix}"
+        self._run_client("pg_dump", ["-Fc", "--compress=zstd:1", "-f", str(current)], url)
         # The database URL goes last as a positional dbname, so -d takes it.
         self._run_client(
-            "pg_restore", ["--clean", "--if-exists", "--no-owner", str(src), "-d"], url
+            "pg_restore",
+            ["--clean", "--if-exists", "--no-owner", "--single-transaction", str(src), "-d"],
+            url,
         )

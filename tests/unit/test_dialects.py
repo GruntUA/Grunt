@@ -195,11 +195,11 @@ def test_sqlite_violations_from_real_errors():
 
     d = SqliteDialect()
     nn = d.integrity_violation(_sqlite_error("INSERT INTO t (name) VALUES ('y')"))
-    assert nn == ("not_null", "t", ("route",), None)
+    assert nn == ("not_null", "t", ("route",), None, False)
 
     dup = _sqlite_error("INSERT INTO t VALUES ('y', 'r', NULL, NULL)")
     wrapped = IntegrityError("INSERT ...", {}, dup)  # as SQLAlchemy raises it
-    assert d.integrity_violation(wrapped) == ("unique", "t", ("route",), None)
+    assert d.integrity_violation(wrapped) == ("unique", "t", ("route",), None, False)
 
     pair = d.integrity_violation(_sqlite_error("INSERT INTO t VALUES ('y', 's', '1', '2')"))
     assert pair is not None and pair.columns == ("a", "b") and pair.column is None
@@ -279,7 +279,27 @@ def test_mysql_violations_from_error_codes():
     dup = d.integrity_violation(
         IntegrityError("", {}, Exception(1062, "Duplicate entry '/a' for key 't.uq_t_route'"))
     )
-    assert dup == ("unique", "t", (), "uq_t_route")
+    assert dup == ("unique", "t", (), "uq_t_route", False)
+
+
+def test_mysql_primary_key_columns_come_from_the_table():
+    from sqlalchemy import Column, MetaData, String, Table
+    from sqlalchemy.exc import IntegrityError
+
+    table = Table("t", MetaData(), Column("name", String, primary_key=True), Column("v", String))
+    pk = MysqlDialect().integrity_violation(
+        IntegrityError("", {}, Exception(1062, "Duplicate entry 'x' for key 't.PRIMARY'"))
+    )
+    assert pk is not None and pk.primary_key and pk.columns_in(table) == ("name",)
+    # MySQL 5.7 - no table prefix
+    old = MysqlDialect().integrity_violation(
+        IntegrityError("", {}, Exception(1062, "Duplicate entry 'x' for key 'PRIMARY'"))
+    )
+    assert old is not None and old.columns_in(table) == ("name",)
+    other = MysqlDialect().integrity_violation(
+        IntegrityError("", {}, Exception(1062, "Duplicate entry 'x' for key 't.uq_t_v'"))
+    )
+    assert other is not None and other.columns_in(table) == ()
 
 
 def test_friendly_error_names_the_field_on_every_backend():
@@ -313,7 +333,7 @@ def test_postgres_violation_from_psycopg_diag():
         column_name="route", constraint_name=None, table_name="t", message_detail=None
     )
     v = PostgresDialect().integrity_violation(IntegrityError("", {}, orig))
-    assert v == ("not_null", "t", ("route",), None)
+    assert v == ("not_null", "t", ("route",), None, False)
 
 
 def test_routed_session_tells_its_dialect():

@@ -660,11 +660,12 @@ class DocTypeRegistry:
         except IntegrityError as exc:
             # DB-level fallback for race conditions / stale cache.
             violation = dialect_for(session).integrity_violation(exc)
+            table = store.meta_table()
             if (
                 violation
                 and violation.kind == "unique"
-                and violation.column == "name"
-                and violation.table in (None, store.meta_table().name)
+                and violation.columns_in(table) == ("name",)
+                and violation.table in (None, table.name)
             ):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,

@@ -567,6 +567,74 @@ async def test_fts_table_rebuilt_when_out_of_sync(ctx):
     assert [r["name"] for r in await global_search(q="Сидоренко")] == ["P-3"]
 
 
+async def _pg_search_index(conn):
+    """(indisvalid, definition) of the PostgreSQL search index, or None."""
+    from sqlalchemy import text
+
+    row = (
+        await conn.execute(
+            text(
+                "SELECT i.indisvalid, pg_get_indexdef(i.indexrelid) FROM pg_index i "
+                "JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = 'grunt_search_idx_ts2'"
+            )
+        )
+    ).first()
+    return tuple(row) if row else None
+
+
+async def _leave_invalid_pg_search_index(ctx):
+    """A failed CREATE INDEX CONCURRENTLY under the search index's name."""
+    from sqlalchemy import text
+    from sqlalchemy.exc import DBAPIError
+
+    await _people(ctx)
+    if ctx.db._session().bind.dialect.name != "postgresql":
+        pytest.skip("CREATE INDEX CONCURRENTLY is PostgreSQL-only")
+    async with ctx.get_engine().connect() as conn:
+        conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+        await conn.execute(text("DROP INDEX IF EXISTS grunt_search_idx_ts2"))
+        with pytest.raises(DBAPIError):  # doctype repeats - the unique build fails
+            await conn.execute(
+                text(
+                    "CREATE UNIQUE INDEX CONCURRENTLY grunt_search_idx_ts2 "
+                    "ON grunt_search_index (doctype)"
+                )
+            )
+        assert (await _pg_search_index(conn))[0] is False
+
+
+@pytest.mark.asyncio
+async def test_pg_invalid_search_index_is_rebuilt(ctx):
+    from grunt.api.v1.search import global_search
+    from grunt.search.service import search_index_service
+
+    await _leave_invalid_pg_search_index(ctx)
+    await search_index_service.ensure_table(ctx.get_engine())
+
+    async with ctx.get_engine().connect() as conn:
+        valid, definition = await _pg_search_index(conn)
+    assert valid is True and "to_tsvector" in definition
+    assert [r["name"] for r in await global_search(q="Сидоренко")] == ["P-3"]
+
+
+@pytest.mark.asyncio
+async def test_pg_search_index_build_in_another_process_is_left_alone(ctx):
+    from sqlalchemy import text
+
+    from grunt.search.service import search_index_service
+
+    await _leave_invalid_pg_search_index(ctx)
+    key = "hashtext('grunt_search_idx_ts2')"
+    async with ctx.get_engine().connect() as other:
+        await other.execute(text(f"SELECT pg_advisory_lock({key})"))
+        try:
+            await search_index_service.ensure_table(ctx.get_engine())
+            assert (await _pg_search_index(other))[0] is False  # not dropped under the builder
+        finally:
+            await other.execute(text(f"SELECT pg_advisory_unlock({key})"))
+        await other.commit()
+
+
 @pytest.mark.asyncio
 async def test_list_search_terms_across_fields_and_title(ctx):
     """List search: terms split across fields, title_field searched, % literal."""

@@ -38,11 +38,20 @@ class ConstraintViolation(NamedTuple):
     columns: tuple[str, ...] = ()
     #: Constraint or index name, when the backend reports one.
     constraint: str | None = None
+    #: The primary key was violated, its columns unnamed (MySQL reports only ``PRIMARY``).
+    primary_key: bool = False
 
     @property
     def column(self) -> str | None:
         """The one column involved, ``None`` for none or several."""
         return self.columns[0] if len(self.columns) == 1 else None
+
+    def columns_in(self, table: Any) -> tuple[str, ...]:
+        """The columns involved, those of *table*'s primary key when the backend
+        named only the key."""
+        if self.columns or not self.primary_key:
+            return self.columns
+        return tuple(c.name for c in table.primary_key.columns)
 
 
 class DumpEstimate(NamedTuple):

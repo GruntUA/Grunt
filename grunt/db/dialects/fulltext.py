@@ -237,20 +237,48 @@ class PostgresTsvector(FullText):
         )
 
     async def ensure(self, engine: AsyncEngine) -> None:
+        """Build the GIN index ``CONCURRENTLY``; rebuild one left invalid by a failed build.
+
+        A failed ``CREATE INDEX CONCURRENTLY`` leaves an invalid index behind, and
+        ``IF NOT EXISTS`` would then skip it forever. An index being built right now
+        is invalid too - so builds take an advisory lock: whoever holds it is building,
+        and an invalid index found while holding it is a leftover to drop.
+        """
         name = self.spec.name
+        index = f"{name}_idx_ts{self._INDEX_VERSION}"
         # CONCURRENTLY cannot run inside a transaction block
         async with engine.connect() as conn:
             conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
-            for old in range(1, self._INDEX_VERSION):
-                suffix = "" if old == 1 else str(old)
-                await conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}_idx_ts{suffix}"))
-            await conn.execute(
-                text(
-                    f"CREATE INDEX CONCURRENTLY IF NOT EXISTS {name}_idx_ts{self._INDEX_VERSION} "
-                    f"ON \"{self.t.name}\" USING GIN (to_tsvector('simple', "
-                    f"translate(coalesce({self.spec.content}, ''), '-', ' ')))"
+            lock = text("SELECT pg_try_advisory_lock(hashtext(:key))").bindparams(key=index)
+            if not await conn.scalar(lock):
+                return  # another process is building it
+            try:
+                for old in range(1, self._INDEX_VERSION):
+                    suffix = "" if old == 1 else str(old)
+                    await conn.execute(
+                        text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}_idx_ts{suffix}")
+                    )
+                valid = await conn.scalar(
+                    text(
+                        "SELECT i.indisvalid FROM pg_index i "
+                        "JOIN pg_class c ON c.oid = i.indexrelid "
+                        "WHERE c.relname = :index AND pg_table_is_visible(c.oid)"
+                    ).bindparams(index=index)
                 )
-            )
+                if valid is False:
+                    await conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {index}"))
+                await conn.execute(
+                    text(
+                        f"CREATE INDEX CONCURRENTLY IF NOT EXISTS {index} "
+                        f"ON \"{self.t.name}\" USING GIN (to_tsvector('simple', "
+                        f"translate(coalesce({self.spec.content}, ''), '-', ' ')))"
+                    )
+                )
+            finally:
+                # pooled connections outlive the call - the session lock must go
+                await conn.execute(
+                    text("SELECT pg_advisory_unlock(hashtext(:key))").bindparams(key=index)
+                )
 
     def match(self, session: Any, base: Select, q: str) -> Select | None:
         pg_query = tsquery(q)

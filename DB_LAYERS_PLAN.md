@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-06 (кроки 1–2 готові)
+Оновлено: 2026-11-07 (кроки 1–2 готові, залишки кроку 1 закрито)
 
 ---
 
@@ -110,14 +110,18 @@
 - Локальний PostgreSQL для тестів: `pgserver` (Python 3.12, `uv run --no-project --python 3.12
   --with pgserver`), `TEST_DATABASE_URL=postgresql+asyncpg://postgres@/grunt_test?host=<pgdata>`.
 
+Зроблено (2026-11-07, залишки CodeRabbit #96):
+- restore на PG: перед `pg_restore` — `pg_dump` поточної бази в `aside/database.pgdump`
+  (zstd:1); `pg_restore --single-transaction` — битий архів відкочується, база як була
+  (перевірено на живому PG);
+- пошук на PG: `ensure` бере advisory lock (`pg_try_advisory_lock(hashtext(<індекс>))`) —
+  не взяв → індекс будує інший процес, не чіпаємо; взяв, а індекс `indisvalid = false` →
+  залишок збою, `DROP INDEX CONCURRENTLY` і будуємо знову;
+- MySQL: `ConstraintViolation.primary_key` (ключ `PRIMARY`) + `columns_in(table)` — колонки PK
+  з таблиці; registry порівнює `columns_in(meta_table) == ("name",)` → дубль DocType = 409.
+
 Лишилось:
-- `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису);
-- restore на PG не зберігає поточну базу в `aside` (CodeRabbit, #96) — знімати `pg_dump`
-  поточної бази перед `pg_restore`;
-- (CodeRabbit, #96) `CREATE INDEX CONCURRENTLY` пошуку, що впав, лишає невалідний індекс —
-  `ensure` його пропускає; відрізнити від того, що будується зараз в іншому процесі, і перебудувати;
-- (CodeRabbit, #96) MySQL: дубль DocType (`PRIMARY`) у registry не стає 409 — `integrity_violation`
-  MySQL не повертає колонку для PK.
+- `write_intent.py` — переїде в крок 5 (маршрутизація читання/запису).
 
 Ізоляція тестів (2026-11-06) — **нестабільних тестів більше немає** (2× SQLite 1852/1852,
 2× PG 1851/1851 паралельно):
