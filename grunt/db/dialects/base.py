@@ -147,6 +147,12 @@ class Dialect(ABC):
                 )
         return True
 
+    async def empty_tables(self, conn: Any, names: list[str]) -> None:
+        """Delete every row of the tables *names* - their schema stays (tests)."""
+        quote = conn.dialect.identifier_preparer.quote
+        for name in names:
+            await conn.execute(text(f"DELETE FROM {quote(name)}"))
+
     def drop_inline_unique(self, connection: Any, table_name: str, names: list[str]) -> int:
         """Drop unique constraints declared inside CREATE TABLE (rebuild-only backends)."""
         return 0

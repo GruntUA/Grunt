@@ -86,6 +86,17 @@ class PostgresDialect(Dialect):
     def engine_kwargs(self) -> dict[str, Any]:
         return {"pool_size": 20, "max_overflow": 10}
 
+    async def empty_tables(self, conn: Any, names: list[str]) -> None:
+        # One statement for all; a lock held by a stray connection fails fast
+        # instead of hanging the run.
+        if not names:
+            return
+        quote = conn.dialect.identifier_preparer.quote
+        await conn.execute(text("SET LOCAL lock_timeout = '5s'"))
+        await conn.execute(
+            text(f"TRUNCATE {', '.join(quote(n) for n in names)} RESTART IDENTITY CASCADE")
+        )
+
     def text_sort(self, col: Any) -> Any:
         # Portable lower(); for full Ukrainian ordering install the ICU
         # collation and sort on ``col.collate("uk-x-icu")``.

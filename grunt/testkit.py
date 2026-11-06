@@ -23,6 +23,7 @@ import atexit
 import json
 import logging
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -32,6 +33,7 @@ from typing import Any
 import pytest
 import pytest_asyncio
 from httpx2 import ASGITransport, AsyncClient
+from sqlalchemy import event, inspect, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -129,6 +131,115 @@ def bind_test_site(engine: AsyncEngine, session_maker: async_sessionmaker[AsyncS
     site_manager.session_makers[_TEST_SITE] = session_maker
 
 
+# DDL statements and the table each one touches; any other DDL is "unknown".
+_DDL_TABLE = re.compile(
+    r"^\s*(?:"
+    r"(?:CREATE|ALTER|DROP)\s+(?:VIRTUAL\s+|TEMP(?:ORARY)?\s+)?TABLE\s+(?:IF\s+(?:NOT\s+)?EXISTS\s+)?"
+    r"|CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+NOT\s+EXISTS\s+)?\S+\s+ON\s+(?:ONLY\s+)?"
+    r')[`"]?(\w+)[`"]?',
+    re.IGNORECASE,
+)
+_DDL = ("CREATE", "ALTER", "DROP")
+
+
+class TestSchema:
+    """The test database's schema - made once, emptied between tests.
+
+    Creating and dropping every DocType table around each test cost more than
+    most tests themselves (~200 ms on SQLite, ~280 ms on PostgreSQL); emptying
+    them takes a fraction of that. The DDL a test runs is watched:
+
+    * tables it created (its own DocTypes) are dropped after it - the rest of
+      the schema stays;
+    * if it changed a table of the schema (ALTER, an index, DROP, a recompiled
+      Table in the MetaData) or ran DDL whose table can't be told, the whole
+      schema is dropped and the next test gets a fresh one, as before.
+    """
+
+    __test__ = False  # not a test class, despite the name
+
+    def __init__(self, engine: AsyncEngine) -> None:
+        self.engine = engine
+        self._tables: dict[str, int] | None = None  # name -> id(Table) as created
+        self._db_tables: set[str] = set()  # what the database holds then (search index too)
+        self._touched: set[str] = set()
+        self._unknown_ddl = False
+        self._own = False
+        event.listen(engine.sync_engine, "before_cursor_execute", self._watch)
+
+    def _watch(self, conn: Any, cursor: Any, statement: str, *args: Any) -> None:
+        if self._own or not statement.lstrip()[:6].upper().startswith(_DDL):
+            return
+        if m := _DDL_TABLE.match(statement):
+            self._touched.add(m.group(1))
+        else:
+            self._unknown_ddl = True
+
+    @staticmethod
+    def _snapshot() -> dict[str, int]:
+        return {
+            name: id(table)
+            for metadata in (SA_METADATA, get_compiled_metadata())
+            for name, table in metadata.tables.items()
+        }
+
+    async def prepare(self) -> None:
+        """Before a test, once its DocTypes are compiled: make the schema if there
+        is none, else empty every table."""
+        self._own = True
+        try:
+            if self._tables is None:
+                async with self.engine.begin() as conn:
+                    await conn.run_sync(SA_METADATA.create_all)
+                    await conn.run_sync(get_compiled_metadata().create_all)
+                await search_index_service.ensure_table(self.engine)
+                async with self.engine.connect() as conn:
+                    self._db_tables = set(
+                        await conn.run_sync(lambda c: inspect(c).get_table_names())
+                    )
+                self._tables = self._snapshot()
+            else:
+                async with self.engine.begin() as conn:
+                    await dialect_for(conn).empty_tables(conn, list(self._tables))
+                    await search_index_service.empty(conn)
+        finally:
+            self._own = False
+        self._touched.clear()
+        self._unknown_ddl = False
+
+    async def finish(self) -> None:
+        """After a test: drop the tables it created; drop the whole schema if it
+        changed the schema's own."""
+        metadata = get_compiled_metadata()
+        current = self._snapshot()
+        base = self._tables
+        changed = (
+            base is None
+            or self._unknown_ddl
+            or bool(self._touched & (base.keys() | self._db_tables))
+            or any(current.get(name) != table_id for name, table_id in base.items())
+        )
+        self._own = True
+        try:
+            if changed:
+                async with self.engine.begin() as conn:
+                    await conn.run_sync(metadata.drop_all)
+                    await conn.run_sync(SA_METADATA.drop_all)
+                await search_index_service.drop_table(self.engine)
+                self._tables = None
+            elif self._touched:
+                async with self.engine.begin() as conn:
+                    quote = conn.dialect.identifier_preparer.quote
+                    for name in self._touched:
+                        await conn.execute(text(f"DROP TABLE IF EXISTS {quote(name)}"))
+        finally:
+            self._own = False
+        # The test's own tables leave the MetaData too (with or without DDL).
+        keep = set() if changed or base is None else base.keys()
+        for name in [t for t in metadata.tables if t.startswith("grunt_") and t not in keep]:
+            metadata.remove(metadata.tables[name])
+
+
 def isolate_from_redis() -> None:
     """Keep tests off Redis - the caches, the rate limiter and the cache bus.
 
@@ -210,6 +321,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         test_engine, class_=AsyncSession, expire_on_commit=False
     )
     bind_test_site(test_engine, TestSessionLocal)
+    test_schema = TestSchema(test_engine)
     hold_task_queue()
     isolate_from_redis()
 
@@ -257,11 +369,6 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         try:
             doctype_registry.reset()
 
-            compiled_metadata = get_compiled_metadata()
-            to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
-            for name in to_remove:
-                compiled_metadata.remove(compiled_metadata.tables[name])
-
             dt_dirs = [*_find_doctype_dirs(), *(d for a in app_dirs for d in _app_doctype_dirs(a))]
             dt_files = sorted(f for d in dt_dirs for f in d.glob("**/*.json"))
             # Fields the apps add to each other's (and core) DocTypes, as `migrate` merges them.
@@ -286,22 +393,11 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
                 document_registry.index_external_app_controllers(path)
             await load_dependencies()
 
-            async with test_engine.begin() as conn:
-                await conn.run_sync(SA_METADATA.create_all)
-                await conn.run_sync(compiled_metadata.create_all)
-            await search_index_service.ensure_table(test_engine)
+            await test_schema.prepare()  # made once, then just emptied
 
             yield
 
-            async with test_engine.begin() as conn:
-                await conn.run_sync(compiled_metadata.drop_all)
-                await conn.run_sync(SA_METADATA.drop_all)
-            # Not in either MetaData - left alone, the search index outlives the test
-            await search_index_service.drop_table(test_engine)
-
-            to_remove = [t for t in compiled_metadata.tables if t.startswith("grunt_")]
-            for name in to_remove:
-                compiled_metadata.remove(compiled_metadata.tables[name])
+            await test_schema.finish()  # drops it only if this test changed it
         finally:
             current_site.reset(site_token)
 
