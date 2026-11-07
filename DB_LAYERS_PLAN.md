@@ -281,6 +281,50 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
 `storage: "sql" | "sql:<alias>" | "virtual" | "http:<connector>"`. Ядро перевіряє
 `capabilities` і відповідає 400 замість падіння на SQL.
 
+**Інвентаризація (2026-11-07):** сховище вже є, але в контролері: `BaseDocument` має
+`load_from_db / db_insert / db_update / db_delete / get_list / get_count`; `Document`
+перевизначає їх SQL-ом (`mixins/read.py`, `write.py`), 12 віртуальних контролерів — своїми
+`apply_filters/apply_sort/apply_search/build_response`. Права для них — обхід `_readable_rows`
+(до 5000 рядків, `permission_checker.check` кожного). `dt.is_virtual` — ~40 перевірок; решта коду
+бере `dt.table` і на віртуальному падає. `grunt.db.*` — ~900 викликів напряму в SQL.
+
+**Рішення (погоджено 2026-11-07):**
+- `storage` зараз лише `"sql" | "virtual"`; `sql:<alias>` — у кроці 5 (з'єднання), `http:` — коли
+  з'явиться живий конектор;
+- `grunt.db.*` теж іде через `store_for` — для не-SQL зрозуміла помилка `capabilities`;
+- **сумісність не зберігаємо**: старий API віртуальних контролерів (`get_list`/`get_count`/
+  `load_from_db`/`db_*` на контролері) прибирається, `ControllerStore` не робимо — усі контролери
+  (і `translate`) переходять на Store;
+- невідомі поля у фільтрах → 400 — окремим PR після 4a.
+
+**Дизайн:**
+- `grunt/query/query.py` — `Query(doctype, where, fields, sort, limit, offset, after, search,
+  group_by, aggregates)`, `Sort(field, descending)`; `after = (значення, name)` — keyset;
+- `grunt/query/run.py` — `fetch / count / aggregate / page(query, *, user=… | ignore_permissions=True)`:
+  рівно одне з двох, інакше `TypeError`; права (`read_predicate`) додаються тут;
+- `grunt/store/` — `Store` (протокол), `SqlStore(meta, session)`, `store_for(meta)`;
+  `VirtualStore` — контролер дає `rows()`, фільтри/сортування/пошук/права — `evaluate`;
+- вузол `Raw(clause)` — `list_filter_extra` (лише SQL; `evaluate` → помилка).
+
+**Порядок:**
+- 4a. ✅ (2026-11-07, не закомічено) `Query` + `run` + `SqlStore.fetch/count/aggregate`; на них — `table_list`/`table_count`,
+  `grunt.db.get_all/get_value/get_values/exists/count/aggregate`, фасад `grunt.get_all/aggregate`
+  (параметр `predicate` у `grunt.db` прибрано). Поведінка не змінюється.
+  Зроблено: `grunt/query/{query,run}.py`, `grunt/store/{base,sql,__init__}.py`; `db.api.list_query` /
+  `aggregate_query` — `Query` з аргументів `grunt.db`; пошук у списку — `store.sql.search_condition`
+  (з `document/query.py`), DSL агрегатів — `store.sql.parse_aggregation/group_field`; вузол `Raw`
+  (`list_filter_extra`). `run.*` без `user=`/`ignore_permissions=True` (або з обома) → `TypeError`.
+  **Відхилення:** MultiLink-поле в `fields` списку (`get_list`) тепер повертає список назв, як у
+  `grunt.db.get_all` (раніше мовчки випадало); `grunt.db.get_all` теж розв'язує рівні значення за `name`.
+  `field_years` лишився прямим SQL (`capabilities` — у 4d). Перевірено: ruff, pyright 0;
+  SQLite 2081+, PG 2089/0.
+- 4b. Протокол `Store`, `store_for`; читання/запис одного документа — у `SqlStore`; методи
+  сховища з контролерів прибрано.
+- 4c. `VirtualStore`, усі віртуальні контролери на ньому; `_readable_rows` зникає.
+- 4d. Перевірки `capabilities` у точках входу (звіти, aggregate, tree, rename, bulk, fetch,
+  `grunt.db.*`); вузол `Search`.
+- 4e. Поле `storage`, `is_virtual` — похідне; міграція JSON.
+
 ### 5. Connections + UnitOfWork + outbox — ⏳
 Іменовані з'єднання сайту (`default`, `replica`, зовнішні), write_intent → маршрутизація
 читання/запису. Явний UnitOfWork. Побічні ефекти (індекс пошуку, вебхуки, сповіщення,

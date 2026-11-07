@@ -3,7 +3,7 @@
 Run with: pytest tests/unit/test_api.py -v
 """
 
-from unittest.mock import ANY, AsyncMock, Mock, PropertyMock, patch
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -26,6 +26,7 @@ from grunt.errors import ApplicationError
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 from grunt.query.nodes import Cmp
+from grunt.query.query import Query
 
 db = GruntDB()
 
@@ -334,8 +335,9 @@ class TestGruntAppLayerPermissions:
             mock_db_exists.assert_awaited_once_with("Invoice", {"name": "INV-001"})
 
     @pytest.mark.asyncio
-    async def test_get_all_uses_db_get_all_with_hooks(self, setup_context):
-        """grunt.get_all should run hooks and fetch rows directly via grunt.db.get_all."""
+    async def test_get_all_runs_query_as_user_with_hooks(self, setup_context):
+        """grunt.get_all runs the hooks and the query through ``run.fetch`` as the
+        current user - row-level permissions are applied there."""
 
         class InvoiceModel:
             doctype = "Invoice"
@@ -352,6 +354,7 @@ class TestGruntAppLayerPermissions:
         dt.fields = []
         dt.is_virtual = False
         rows = [{"name": "INV-001", "status": "Draft"}]
+        query = Query("Invoice", where=Cmp("status", "eq", "Draft"))
 
         with (
             patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
@@ -359,16 +362,9 @@ class TestGruntAppLayerPermissions:
                 "grunt.permissions.rbac.permission_checker.require",
                 new_callable=AsyncMock,
             ) as mock_require,
-            patch.object(
-                grunt.db, "get_all", new_callable=AsyncMock, return_value=rows
-            ) as mock_db_get_all,
+            patch("grunt.app.document_api.list_query", return_value=query) as mock_list_query,
+            patch("grunt.query.run.fetch", new_callable=AsyncMock, return_value=rows) as mock_fetch,
             patch("grunt.app.document_api.fire", new_callable=AsyncMock) as mock_fire,
-            patch(
-                "grunt.app.document_api.read_predicate",
-                new_callable=AsyncMock,
-                return_value=Cmp("owner", "eq", "u@x"),
-            ),
-            patch("grunt.document.meta.Meta.table", new_callable=PropertyMock),
         ):
             result = await grunt.get_all(
                 InvoiceModel,
@@ -383,19 +379,18 @@ class TestGruntAppLayerPermissions:
             assert len(result) == 1
             assert result[0].doctype == "Invoice"
             assert mock_require.await_count == 1
-            mock_db_get_all.assert_awaited_once_with(
-                "Invoice",
+            mock_list_query.assert_called_once_with(
+                ANY,
                 filters={"status": "Draft"},
                 fields=["name", "status"],
                 limit=10,
                 offset=10,
                 order_by="modified_at",
                 order="desc",
-                predicate=ANY,
             )
-            # Row-level permission predicate (match rules, shares) is applied.
-            assert mock_db_get_all.await_args is not None
-            assert mock_db_get_all.await_args.kwargs["predicate"] == Cmp("owner", "eq", "u@x")
+            mock_fetch.assert_awaited_once_with(query, user=ANY)
+            assert mock_fetch.await_args is not None
+            assert mock_fetch.await_args.kwargs["user"] is not None
             assert mock_fire.await_count == 2
 
 

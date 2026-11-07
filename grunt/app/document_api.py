@@ -23,16 +23,16 @@ from grunt.permissions.guards import (
     write_guard,
 )
 from grunt.permissions.rbac import permission_checker
-from grunt.query.nodes import TRUE
 from grunt.workflow.engine import workflow_engine
 lazy from grunt.cache.document_cache import DocumentCache
 lazy from grunt.cache.query_cache import QueryCache
 lazy from grunt.db import GruntDB
-lazy from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
+lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
-lazy from grunt.permissions.query import read_predicate
+lazy from grunt.query import run
 lazy from grunt.query.parse import FILTER_OPS
+lazy from grunt.store.sql import group_field, parse_aggregation
 lazy from grunt.workflow.registry import get_active_workflow
 
 
@@ -488,17 +488,19 @@ class DocumentAPI:
         # Same row-level gate get_list applies (match rules, User Permissions,
         # shares). Without it get_all would return every row the doctype-level
         # read grant allows, ignoring `match`.
-        predicate = TRUE if dt.doc.is_virtual else await read_predicate(dt.table, user, dt.doc)
-        rows = await self.db.get_all(
-            doctype,
+        query = list_query(
+            dt,
             filters=filters,
             fields=fields,
             limit=limit,
             offset=offset,
             order_by=order_by,
             order=order,
-            predicate=predicate,
         )
+        if dt.doc.is_virtual:
+            rows = await run.fetch(query, ignore_permissions=True)
+        else:
+            rows = await run.fetch(query, user=user)
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
@@ -646,11 +648,10 @@ class DocumentAPI:
         aggregations = aggregations or {"count": "count()"}
         referenced: set[str] = set()
         for gb in group_by:
-            m = _GROUP_FN_RE.match(gb.strip())
-            referenced.add(m.group(2).strip() if m else gb.strip())
+            referenced.add(group_field(gb))
         for expr in (aggregations or {}).values():
             try:
-                field = _parse_aggregation_expr(expr)[1]
+                field = parse_aggregation(expr)[1]
             except ValueError as e:
                 raise unprocessable(str(e)) from None
             if field and field != "*":
@@ -669,19 +670,18 @@ class DocumentAPI:
                 % {"fields": ", ".join(sorted(referenced & hidden))}
             )
 
-        predicate = await read_predicate(dt.table, user, dt.doc)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="aggregate")
+        query = aggregate_query(
+            dt,
+            filters=filters,
+            group_by=group_by,
+            aggregations=aggregations,
+            limit=limit,
+            order_by=order_by,
+            order=order,
+        )
         try:
-            rows = await self.db.aggregate(
-                doctype,
-                filters=filters,
-                group_by=group_by or None,
-                aggregations=aggregations,
-                limit=limit,
-                order_by=order_by,
-                order=order,
-                predicate=predicate,
-            )
+            rows = await run.aggregate(query, user=user)
         except ValueError as e:
             raise unprocessable(str(e)) from None
         await fire("after_read", doctype=doctype, user=user, data=rows, method="aggregate")

@@ -1,78 +1,68 @@
 """Grunt database API helpers."""
 
-import re
 from typing import Any, Literal, cast, overload
 
-from sqlalchemy import CursorResult, func, select, update
+from sqlalchemy import CursorResult, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
-from grunt.db.buckets import DATE_BUCKETS
-from grunt.db.dialects import Dialect, dialect_for
 from grunt.errors import not_found
 from grunt.local import _session_ctx
+from grunt.query import run
 from grunt.query.nodes import TRUE, Expr, and_, conjuncts, or_
+from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.multi_link import MultiLinkService
-lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
-
-# "sum(amount)" / "count()" - see _parse_aggregation_expr.
-_AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")
-# "month(created_at)" / "date(due)" - see _build_group_by_column.
-_GROUP_FN_RE = re.compile(rf"^(date|{'|'.join(DATE_BUCKETS)})\((.+)\)$", re.IGNORECASE)
 
 
-def _parse_aggregation_expr(expr: str) -> tuple[str, str | None]:
-    """Parse an ``aggregations`` DSL string into (function name, field name).
-
-    ``field name`` is None for ``count()``/``count`` (no field required).
-    Raises ValueError for anything that doesn't match ``fn(field)`` / ``fn``.
-    """
-    m = _AGG_EXPR_RE.match(expr.strip().lower())
-    if not m:
-        raise ValueError(f"Invalid aggregation expression: {expr}")
-    fn_name, field = m.groups()
-    return fn_name, (field.strip() if field else None)
-
-
-def _build_aggregation_column(table: Any, fn_name: str, field_name: str | None) -> Any:
-    """Build the SQLAlchemy aggregate-function column for a parsed DSL entry."""
-    if fn_name == "count":
-        return func.count()
-    if not field_name or field_name == "*":
-        raise ValueError(f"Function {fn_name} requires a field name.")
-    if fn_name == "sum":
-        return func.sum(table.c[field_name])
-    if fn_name == "avg":
-        return func.avg(table.c[field_name])
-    if fn_name == "min":
-        return func.min(table.c[field_name])
-    if fn_name == "max":
-        return func.max(table.c[field_name])
-    raise ValueError(f"Unsupported aggregation function: {fn_name}")
+def list_query(
+    dt: Any,
+    *,
+    filters: str | dict[str, Any] | None = None,
+    or_filters: dict[str, Any] | None = None,
+    fields: list[str] | None = None,
+    limit: int | None = None,
+    offset: int = 0,
+    order_by: str | None = None,
+    order: str = "desc",
+) -> Query:
+    """A :class:`Query` from ``grunt.db``-style arguments: *filters* ANDed,
+    *or_filters* ORed (unknown columns skipped in both), sorted by *order_by*
+    (``modified_at`` by default)."""
+    table = dt.table
+    any_of = conjuncts(filter_expr(or_filters, table, dt)) if or_filters else ()
+    return Query(
+        dt.name,
+        where=and_(filter_expr(filters, table, dt), or_(*any_of) if any_of else TRUE),
+        fields=tuple(fields) if fields else None,
+        sort=Sort(order_by or "modified_at", descending=order != "asc"),
+        limit=limit,
+        offset=offset,
+    )
 
 
-def _build_group_by_column(table: Any, gb: str, dialect: Dialect) -> tuple[Any, Any]:
-    """Build (select_expr, group_by_expr) for one ``group_by`` entry.
-
-    Supports a bare column name, ``date(field)`` (calendar day), or a period
-    bucket ``day(field)`` / ``month(field)`` / ``quarter(field)`` /
-    ``year(field)`` labelled ``2026-09-23`` / ``2026-09`` / ``2026-Q3`` / ``2026``.
-    """
-    gb = gb.strip()
-    m = _GROUP_FN_RE.match(gb)
-    if m:
-        fn, field = m.group(1).lower(), m.group(2).strip()
-        expr = (
-            dialect.calendar_date(table.c[field])
-            if fn == "date"
-            else dialect.date_bucket(table.c[field], fn)
-        )
-        return expr.label(gb), expr
-    col = table.c[gb]
-    return col.label(gb), col
+def aggregate_query(
+    dt: Any,
+    *,
+    filters: dict[str, Any] | None = None,
+    group_by: str | list[str] | None = None,
+    aggregations: dict[str, str] | None = None,
+    limit: int | None = None,
+    order_by: str | None = None,
+    order: str = "desc",
+) -> Query:
+    """A :class:`Query` for :meth:`Store.aggregate` from ``grunt.db.aggregate`` arguments."""
+    groups = [group_by] if isinstance(group_by, str) else list(group_by or [])
+    return Query(
+        dt.name,
+        where=filter_expr(filters, dt.table, dt),
+        group_by=tuple(groups),
+        aggregates=tuple((aggregations or {}).items()),
+        sort=Sort(order_by, descending=str(order).lower() == "desc") if order_by else None,
+        limit=limit,
+    )
 
 
 class GruntDB:
@@ -95,21 +85,11 @@ class GruntDB:
         return s
 
     @staticmethod
-    def _predicate(
-        table: Any,
-        dt: Any,
-        filters: str | dict[str, Any] | None,
-        or_filters: dict[str, Any] | None = None,
-        predicate: Expr = TRUE,
-    ) -> Expr:
-        """*filters* ANDed, *or_filters* ORed (unknown columns skipped in both),
-        and the caller's *predicate* (row-level rules) - one expression."""
-        any_of = conjuncts(filter_expr(or_filters, table, dt)) if or_filters else ()
-        return and_(
-            filter_expr(filters, table, dt),
-            or_(*any_of) if any_of else TRUE,
-            predicate,
-        )
+    async def _meta(doctype: str) -> Any:
+        dt = await grunt.get_meta(doctype)
+        if dt is None:
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        return dt
 
     @staticmethod
     def _require_filter(expr: Expr, doctype: str, action: str) -> None:
@@ -186,32 +166,32 @@ class GruntDB:
 
         Returns ``None`` when no document matches (or no requested field exists).
         """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        table = dt.table
+        dt = await self._meta(doctype)
 
-        async def _fetch_row(columns: list[Any]) -> Any:
-            stmt = await where(select(*columns), filter_expr(filters, table, dt), table, dt.name)
-            stmt = stmt.limit(1)
-            return (await self._session().execute(stmt)).first()
+        async def first(fields: list[str] | None) -> dict[str, Any] | None:
+            query = Query(
+                doctype,
+                where=filter_expr(filters, dt.table, dt),
+                fields=tuple(fields) if fields else None,
+                limit=1,
+            )
+            rows = await run.fetch(query, ignore_permissions=True, session=self._session())
+            return rows[0] if rows else None
 
         # Whole-document fetch (``"*"``) - always returns an attribute-dict.
         if fieldname == "*":
-            row = await _fetch_row([table])
-            return AttrDict(row._mapping) if row is not None else None
+            row = await first(None)
+            return AttrDict(row) if row is not None else None
 
         single = isinstance(fieldname, str)
         fields = [fieldname] if single else list(fieldname)
-        present = [f for f in fields if f in table.c]
+        present = [f for f in fields if f in dt.table.c]
         if not present:
             return None
 
-        row = await _fetch_row([table.c[f] for f in present])
-        if row is None:
+        values = await first(present)
+        if values is None:
             return None
-        values = dict(zip(present, row, strict=False))
-
         if as_dict:
             return AttrDict({f: values.get(f) for f in fields})
         if single:
@@ -261,15 +241,10 @@ class GruntDB:
         filters: str | dict[str, Any],
     ) -> str | None:
         """Return the document name if a match exists, else ``None``."""
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        table = dt.table
-        stmt = await where(select(table.c.name), filter_expr(filters, table, dt), table, dt.name)
-        stmt = stmt.limit(1)
-        result = await self._session().execute(stmt)
-        row = result.first()
-        return row[0] if row else None
+        dt = await self._meta(doctype)
+        query = Query(doctype, where=filter_expr(filters, dt.table, dt), fields=("name",), limit=1)
+        rows = await run.fetch(query, ignore_permissions=True, session=self._session())
+        return rows[0]["name"] if rows else None
 
     @overload
     async def get_all(
@@ -284,7 +259,6 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-        predicate: Expr = ...,
     ) -> list[Any]: ...
 
     @overload
@@ -300,7 +274,6 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-        predicate: Expr = ...,
     ) -> list[dict[str, Any]]: ...
 
     async def get_all(
@@ -315,87 +288,29 @@ class GruntDB:
         offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
-        predicate: Expr = TRUE,
     ) -> list[dict[str, Any]] | list[Any]:
         """Fetch a list of documents as plain dicts.
 
-        No permission checks on its own - ``grunt.get_all`` is the
-        permission-aware variant. ``predicate`` lets a caller narrow the
-        rows (row-level rules: ``grunt.permissions.query.read_predicate``)
-        before sort/pagination, the same way ``aggregate`` does. A MultiLink
+        No permission checks - ``grunt.get_all`` is the permission-aware
+        variant (both are :func:`grunt.query.run.fetch`). A MultiLink
         field in ``fields`` comes back as a list of linked names (one extra
         query for the whole page).
         """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        table = dt.table
-
-        select_fields = [pluck] if pluck else fields
-        multilinks = (
-            [f.fieldname for f in dt.get_multilink_fields() if f.fieldname in fields]
-            if fields and not pluck
-            else []
+        dt = await self._meta(doctype)
+        query = list_query(
+            dt,
+            filters=filters,
+            or_filters=or_filters,
+            fields=[pluck] if pluck else fields,
+            limit=limit,
+            offset=offset,
+            order_by=order_by,
+            order=order,
         )
-        if select_fields:
-            cols = [table.c[f] for f in select_fields if f in table.c]
-            if multilinks and "name" not in select_fields:
-                cols.append(table.c.name)  # key for the MultiLink values, dropped below
-            stmt = select(*cols) if cols else select(table)
-        else:
-            stmt = select(table)
-
-        stmt = await where(
-            stmt, self._predicate(table, dt, filters, or_filters, predicate), table, dt.name
-        )
-
-        sort_col = table.c.get(order_by or "modified_at")
-        if sort_col is None:
-            sort_col = table.c.get("created_at")
-        if sort_col is not None:
-            stmt = stmt.order_by(
-                *dialect_for(self._session()).sort(sort_col, descending=order != "asc")
-            )
-
-        if limit is not None:
-            stmt = stmt.limit(limit)
-        if offset:
-            stmt = stmt.offset(offset)
-        result = await self._session().execute(stmt)
-        rows = result.fetchall()
-
+        rows = await run.fetch(query, ignore_permissions=True, session=self._session())
         if pluck:
-            return [row[0] for row in rows]
-        docs = [dict(row._mapping) for row in rows]
-        if multilinks:
-            await self._attach_multilinks(
-                dt.name, docs, multilinks, keep_name="name" in (fields or ())
-            )
-        return docs
-
-    async def _attach_multilinks(
-        self, doctype: str, docs: list[dict[str, Any]], fieldnames: list[str], *, keep_name: bool
-    ) -> None:
-        """Set ``doc[field]`` to its linked names (in ``idx`` order) for each MultiLink field."""
-        values: dict[tuple[str, str], list[str]] = {}
-        names = [d["name"] for d in docs]
-        ml = MULTI_LINK_TABLE
-        for start in range(0, len(names), 500):
-            result = await self._session().execute(
-                select(ml.c.parent_name, ml.c.parent_field, ml.c.link_name)
-                .where(
-                    ml.c.parent_doctype == doctype,
-                    ml.c.parent_field.in_(fieldnames),
-                    ml.c.parent_name.in_(names[start : start + 500]),
-                )
-                .order_by(ml.c.parent_name, ml.c.parent_field, ml.c.idx)
-            )
-            for parent, field, link in result.fetchall():
-                values.setdefault((parent, field), []).append(link)
-        for doc in docs:
-            name = doc["name"] if keep_name else doc.pop("name")
-            for field in fieldnames:
-                doc[field] = values.get((name, field), [])
+            return [row.get(pluck) for row in rows]
+        return rows
 
     async def get_values(
         self,
@@ -404,21 +319,15 @@ class GruntDB:
         fieldnames: list[str],
     ) -> dict[str, Any] | None:
         """Return multiple field values from the first matching document."""
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        table = dt.table
-        cols = [table.c[f] for f in fieldnames if f in table.c]
-        if not cols:
+        dt = await self._meta(doctype)
+        present = [f for f in fieldnames if f in dt.table.c]
+        if not present:
             return None
-
-        stmt = await where(select(*cols), filter_expr(filters, table, dt), table, dt.name)
-        stmt = stmt.limit(1)
-        result = await self._session().execute(stmt)
-        row = result.first()
-        if row is None:
-            return None
-        return dict(zip(fieldnames, row, strict=False))
+        query = Query(
+            doctype, where=filter_expr(filters, dt.table, dt), fields=tuple(present), limit=1
+        )
+        rows = await run.fetch(query, ignore_permissions=True, session=self._session())
+        return {f: rows[0].get(f) for f in present} if rows else None
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
@@ -456,14 +365,9 @@ class GruntDB:
         or_filters: dict[str, Any] | None = None,
     ) -> int:
         """Count documents matching optional filters (``or_filters`` - as in get_all)."""
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        table = dt.table
-        stmt = select(func.count()).select_from(table)
-        stmt = await where(stmt, self._predicate(table, dt, filters, or_filters), table, dt.name)
-        result = await self._session().execute(stmt)
-        return result.scalar() or 0
+        dt = await self._meta(doctype)
+        query = list_query(dt, filters=filters, or_filters=or_filters)
+        return await run.count(query, ignore_permissions=True, session=self._session())
 
     async def delete(
         self,
@@ -548,68 +452,22 @@ class GruntDB:
         limit: int | None = None,
         order_by: str | None = None,
         order: str = "desc",
-        predicate: Expr = TRUE,
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc).
 
         No permission checks - ``grunt.aggregate`` is the permission-aware
-        variant. ``predicate`` narrows the rows (row-level rules) before
-        grouping.
+        variant. ``group_by`` entries may bucket a date: ``date(field)``,
+        ``day/month/quarter/year(field)``. ``order_by`` - a group or an
+        aggregation label, or a column.
         """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        table = dt.table
-
-        select_exprs: list[Any] = []
-        group_by_exprs: list[Any] = []
-        # label -> expression, so order_by can be resolved to a real construct
-        # instead of being interpolated into raw SQL.
-        labeled: dict[str, Any] = {}
-
-        if isinstance(group_by, str):
-            group_by = [group_by]
-
-        dialect = dialect_for(self._session().get_bind())
-        for gb in group_by or []:
-            select_expr, group_expr = _build_group_by_column(table, gb, dialect)
-            select_exprs.append(select_expr)
-            group_by_exprs.append(group_expr)
-            labeled[gb.strip()] = select_expr
-
-        for label, agg_expr in (aggregations or {}).items():
-            fn_name, field_name = _parse_aggregation_expr(agg_expr)
-            labeled_col = _build_aggregation_column(table, fn_name, field_name).label(label)
-            select_exprs.append(labeled_col)
-            labeled[label] = labeled_col
-
-        if not select_exprs:
-            select_exprs = [func.count().label("count")]
-
-        # Explicit FROM: with no group_by/filter columns referenced, a bare
-        # select(func.count()) has no FROM clause and returns a single row.
-        stmt = select(*select_exprs).select_from(table)
-        stmt = await where(stmt, and_(filter_expr(filters, table, dt), predicate), table, dt.name)
-
-        if group_by_exprs:
-            stmt = stmt.group_by(*group_by_exprs)
-
-        if order_by:
-            # Resolve to a real construct (selected label or table column).
-            # Never interpolate the caller's string into SQL: order_by reaches
-            # here from app code and scripts, so a raw text() would be an
-            # injection point.
-            key = order_by.strip()
-            expr = labeled.get(key)
-            if expr is None:
-                col = table.c.get(key)
-                if col is None:
-                    raise ValueError(f"Invalid order_by: {order_by!r}")
-                expr = col
-            stmt = stmt.order_by(*dialect.sort(expr, descending=str(order).lower() == "desc"))
-
-        if limit is not None:
-            stmt = stmt.limit(limit)
-
-        result = await self._session().execute(stmt)
-        return [dict(r._mapping) for r in result.all()]
+        dt = await self._meta(doctype)
+        query = aggregate_query(
+            dt,
+            filters=filters,
+            group_by=group_by,
+            aggregations=aggregations,
+            limit=limit,
+            order_by=order_by,
+            order=order,
+        )
+        return await run.aggregate(query, ignore_permissions=True, session=self._session())
