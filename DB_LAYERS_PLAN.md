@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-07 (кроки 1–3, 4a, 4b+4c готові; далі 4d — capabilities у точках входу)
+Оновлено: 2026-11-07 (кроки 1–3, 4a–4d готові; далі 4e — поле `storage`)
 
 ---
 
@@ -366,8 +366,18 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   зміні DocType більше не перезаписує поля.
   Перевірено: ruff, pyright 0; SQLite 2087/0, PG 2088/0; translate 31, vitest 328, lagoo 20,
   hromada_it 42, opendata 76, crystal_finance 40.
-- 4d. Перевірки `capabilities` у точках входу (звіти, aggregate, tree, rename, bulk, fetch,
-  `grunt.db.*`); вузол `Search`.
+- 4d. ✅ (2026-11-07, не закомічено) Перевірки `capabilities` у точках входу.
+  Зроблено: capability `SQL` (рядки — SQL-таблиця: сирі умови, звіти з JOIN, дерева, бакети років,
+  сирий запис `grunt.db`, кеш списків) у `SqlStore` і `DocTypeStore`; `supports(meta, cap)` — без
+  сесії (атрибут класу). Звіти й дерево без `SQL` → 400 з назвою DocType; `field_years` → `[]`;
+  `list_filter_extra` — лише для таблиць; кеш `get_list`/`count` — лише `SQL`; `grunt.aggregate` —
+  `AGGREGATE`, колонки з `meta.columns`; `grunt.get_all` для віртуальних тепер з правами.
+  `grunt.db`: `get_doc`/`get_single_value` віртуального — зі сховища; сирий запис (`set_value`,
+  `delete`, `bulk_update`, `insert_one`, `insert_many`) без `SQL` → 422.
+  **Відхилення:** вузол `Search` не потрібен — `VirtualStore` сам виконує пошук (`Query.search`).
+  Решта `is_virtual` (схема, CLI, retention, AutoRepeat, ServiceLevel, кошик, посилання на файли,
+  health) означає «є своя таблиця в основній базі» — переходить у 4e (`storage`).
+  Перевірено: ruff, pyright 0; SQLite 2089/0, PG 2090/0.
 - 4e. Поле `storage`, `is_virtual` — похідне; міграція JSON.
 
 ### 5. Connections + UnitOfWork + outbox — ⏳

@@ -309,3 +309,52 @@ async def test_shared_virtual_document_is_listed(ctx, db_session, engine):
             assert rows.meta["total"] == 2
     finally:
         document_registry._controllers.pop("VirtualSharedNote", None)
+
+
+@pytest.mark.asyncio
+async def test_raw_reads_come_from_the_store(ctx, notes):
+    """``grunt.db`` reads go through the store too - no table needed."""
+    import grunt
+
+    assert (await grunt.db.get_doc(DOCTYPE, "b"))["title"] == "Beta"
+    assert await grunt.db.get_doc(DOCTYPE, "missing") is None
+    assert await grunt.db.get_value(DOCTYPE, "c", "rank") == 3
+    assert await grunt.db.count(DOCTYPE, {"rank__gte": 2}) == 2
+    assert await grunt.db.exists(DOCTYPE, {"title": "Alpha"}) == "a"
+    assert await grunt.db.get_all(DOCTYPE, order_by="rank", order="asc", pluck="name") == [
+        "a",
+        "b",
+        "c",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_table_only_work_is_refused_clearly(ctx, notes):
+    """What needs a SQL table answers with an error naming the DocType - not a
+    crash on a table that isn't there."""
+    import grunt
+    from grunt.reports.engine import report_engine
+
+    async def status(call) -> int:
+        with pytest.raises(HTTPException) as exc:
+            await call
+        return exc.value.status_code
+
+    assert await status(grunt.db.set_value(DOCTYPE, "a", "title", "x")) == 422
+    assert await status(grunt.db.bulk_update(DOCTYPE, {"name": "a"}, {"title": "x"})) == 422
+    assert await status(grunt.db.delete(DOCTYPE, {"name": "a"})) == 422
+    assert await status(grunt.db.insert_one(DOCTYPE, {"name": "z"})) == 422
+    assert await status(ctx.aggregate(DOCTYPE, group_by="title")) == 422
+    assert (
+        await status(
+            report_engine._run_list_report(
+                DOCTYPE,
+                {"columns": [{"fieldname": "title", "label": "T"}]},
+                {},
+                ctx.get_user(),
+                ctx.get_session(),
+            )
+        )
+        == 400
+    )
+    assert NOTES["a"]["title"] == "Alpha"

@@ -33,6 +33,10 @@ REFERENCES = "references"
 HISTORY = "history"
 #: Batched SQL work over many rows at once (bulk delete in one statement).
 BULK = "bulk"
+#: The rows are a SQL table: raw conditions (``list_filter_extra``), reports
+#: and their joins, trees, year buckets, ``grunt.db``'s raw writes - and list
+#: caches, since the rows change only through the document pipeline.
+SQL = "sql"
 
 
 class Store:
@@ -138,6 +142,7 @@ __all__ = [
     "HISTORY",
     "INSERT",
     "REFERENCES",
+    "SQL",
     "UPDATE",
     "Store",
 ]

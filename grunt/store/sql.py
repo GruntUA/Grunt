@@ -28,6 +28,7 @@ from grunt.store.base import (
     HISTORY,
     INSERT,
     REFERENCES,
+    SQL,
     UPDATE,
     Store,
 )
@@ -160,7 +161,7 @@ class SqlStore(Store):
     """The rows of *meta*'s DocType in its table, read and written in *session*:
     child tables, MultiLink values and aggregates with them."""
 
-    capabilities = frozenset({INSERT, UPDATE, DELETE, AGGREGATE, REFERENCES, HISTORY, BULK})
+    capabilities = frozenset({INSERT, UPDATE, DELETE, AGGREGATE, REFERENCES, HISTORY, BULK, SQL})
 
     def __init__(self, meta: Any, session: AsyncSession) -> None:
         super().__init__(meta, session)

@@ -44,7 +44,7 @@ from grunt.query import run
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
-from grunt.store import BULK, REFERENCES, Unavailable, store_for
+from grunt.store import BULK, REFERENCES, SQL, Unavailable, store_for, supports
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -72,7 +72,7 @@ async def _resolve_list_filter_extra(
     """The controller's ``list_filter_extra`` clause as a ``Raw`` node (``TRUE``
     when it has none) - a SQL condition, so only a table's list takes one."""
     hook = document_registry.get(dt.name).list_filter_extra
-    if hook.__func__ is Document.list_filter_extra.__func__:
+    if hook.__func__ is Document.list_filter_extra.__func__ or not supports(dt, SQL):
         return q.TRUE
     clause = await hook(session, filters or {}, dt.table)
     return q.TRUE if clause is None else q.Raw(clause)
@@ -249,7 +249,7 @@ async def field_years(
         )
     field = dt.get_field(fieldname)
     if (
-        dt.is_virtual
+        not supports(dt, SQL)
         or field is None
         or field.fieldtype
         not in (

@@ -19,6 +19,7 @@ from grunt.store.base import (
     HISTORY,
     INSERT,
     REFERENCES,
+    SQL,
     UPDATE,
     Store,
 )
@@ -33,6 +34,12 @@ def store_class(meta: Any) -> type[Store]:
     if cls is not None:
         return cls
     return Store if meta.is_virtual else SqlStore
+
+
+def supports(meta: Any, capability: str) -> bool:
+    """Whether *meta*'s store can do *capability* - without a session (a class
+    attribute), so a check before any work costs nothing."""
+    return capability in store_class(meta).capabilities
 
 
 def store_for(meta: Any, session: AsyncSession | None = None) -> Store:
@@ -50,6 +57,7 @@ __all__ = [
     "HISTORY",
     "INSERT",
     "REFERENCES",
+    "SQL",
     "UPDATE",
     "SqlStore",
     "Store",
@@ -57,4 +65,5 @@ __all__ = [
     "VirtualStore",
     "store_class",
     "store_for",
+    "supports",
 ]

@@ -22,13 +22,14 @@ class TestStorageDefaults:
     @pytest.mark.asyncio
     async def test_writes_are_405(self):
         store = _store()
-        for write in (
-            store.insert({"name": "42"}, input={}, user=None),  # type: ignore[arg-type]
-            store.update("42", {}, before={"name": "42"}, input={}, user=None),  # type: ignore[arg-type]
-            store.delete("42", before={"name": "42"}),
-        ):
+        writes = (
+            lambda: store.insert({"name": "42"}, input={}, user=None),  # type: ignore[arg-type]
+            lambda: store.update("42", {}, before={"name": "42"}, input={}, user=None),  # type: ignore[arg-type]
+            lambda: store.delete("42", before={"name": "42"}),
+        )
+        for write in writes:
             with pytest.raises(HTTPException) as exc:
-                await write
+                await write()
             assert exc.value.status_code == 405
 
     @pytest.mark.asyncio

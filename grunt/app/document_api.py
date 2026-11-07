@@ -32,6 +32,7 @@ lazy from grunt.document.base import Document, DocumentList, load_document, new_
 lazy from grunt.document.registry import document_registry
 lazy from grunt.query import run
 lazy from grunt.query.parse import FILTER_OPS
+lazy from grunt.store import AGGREGATE, SQL, supports
 lazy from grunt.store.sql import group_field, parse_aggregation
 lazy from grunt.workflow.registry import get_active_workflow
 
@@ -396,12 +397,12 @@ class DocumentAPI:
         )
 
         result = None
-        # Virtual doctypes read from a controller-owned source (ring buffer, external
-        # API, ...) that can mutate outside create/update/delete - the only paths
-        # that invalidate this cache (_invalidate_list_cache). Caching them risks
-        # serving a stale snapshot forever, so they're never cache-eligible here.
+        # Only rows that change through create/update/delete - the paths that
+        # invalidate this cache (_invalidate_list_cache) - are cached: a store
+        # outside SQL (ring buffer, external API, ...) changes on its own, and a
+        # cached snapshot of it could go stale forever.
         cache_eligible = (
-            settings.query_cache_enabled and not dt.is_virtual and self._is_read_only_doctype(dt)
+            settings.query_cache_enabled and supports(dt, SQL) and self._is_read_only_doctype(dt)
         )
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
@@ -497,10 +498,7 @@ class DocumentAPI:
             order_by=order_by,
             order=order,
         )
-        if dt.doc.is_virtual:
-            rows = await run.fetch(query, ignore_permissions=True)
-        else:
-            rows = await run.fetch(query, user=user)
+        rows = await run.fetch(query, user=user)
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
@@ -596,9 +594,9 @@ class DocumentAPI:
         user = require_user()
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
-        # A virtual DocType's source changes outside the pipeline - never cached.
+        # A store outside SQL changes outside the pipeline - never cached.
         dt = await grunt.get_meta(doctype)
-        if settings.query_cache_enabled and cache is not None and dt and not dt.is_virtual:
+        if settings.query_cache_enabled and cache is not None and dt and supports(dt, SQL):
             cache_key = cache.build_count_key(
                 doctype=doctype, user_email=getattr(user, "email", ""), filters=filters
             )
@@ -641,7 +639,7 @@ class DocumentAPI:
         """
 
         dt, user, hidden = await read_guard(doctype)
-        if dt.doc.is_virtual:
+        if not supports(dt, AGGREGATE):
             raise unprocessable(_("“%(doctype)s” has no table to aggregate") % {"doctype": doctype})
 
         group_by = [group_by] if isinstance(group_by, str) else list(group_by or [])
@@ -660,7 +658,7 @@ class DocumentAPI:
             field, _sep, op = key.rpartition("__")
             referenced.add(field if field and op in FILTER_OPS else key)
 
-        columns = set(dt.table.c.keys())
+        columns = dt.columns
         unknown = sorted(referenced - columns)
         if unknown:
             raise unprocessable(_("Unknown fields: %(fields)s") % {"fields": ", ".join(unknown)})

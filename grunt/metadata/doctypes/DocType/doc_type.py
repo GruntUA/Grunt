@@ -14,7 +14,7 @@ from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
-from grunt.store import AGGREGATE, DELETE, INSERT, UPDATE, SqlStore, Store
+from grunt.store import AGGREGATE, DELETE, INSERT, SQL, UPDATE, SqlStore, Store
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -47,7 +47,7 @@ class DocTypeStore(SqlStore):
     any table; a single definition is read from the row's JSON and written
     through the registry, which validates it and syncs its physical table."""
 
-    capabilities = frozenset({INSERT, UPDATE, DELETE, AGGREGATE})
+    capabilities = frozenset({INSERT, UPDATE, DELETE, AGGREGATE, SQL})
 
     @property
     def columns(self) -> frozenset[str] | None:

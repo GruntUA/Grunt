@@ -7,12 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
-from grunt.errors import not_found
+from grunt.errors import not_found, unprocessable
 from grunt.local import _session_ctx
 from grunt.query import run
 from grunt.query.nodes import TRUE, Expr, and_, conjuncts, or_
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
+from grunt.store import SQL, store_for, supports
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.multi_link import MultiLinkService
 
@@ -88,6 +89,17 @@ class GruntDB:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        return dt
+
+    async def _table_meta(self, doctype: str, action: str) -> Any:
+        """*doctype*'s meta for a raw table write - refused for a store outside
+        SQL (its rows aren't a table; the document pipeline writes them)."""
+        dt = await self._meta(doctype)
+        if not supports(dt, SQL):
+            raise unprocessable(
+                _("“%(doctype)s” has no table: grunt.db.%(action)s works on table rows only")
+                % {"doctype": doctype, "action": action}
+            )
         return dt
 
     @staticmethod
@@ -208,9 +220,7 @@ class GruntDB:
 
         A MultiLink field takes a list of linked names and replaces its junction rows.
         """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._table_meta(doctype, "set_value")
         table = dt.table
         values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
         multilinks = {f.fieldname: f for f in dt.get_multilink_fields() if f.fieldname in values}
@@ -332,9 +342,10 @@ class GruntDB:
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._meta(doctype)
+        if not supports(dt, SQL):
+            doc = await store_for(dt, self._session()).get(dt.name, expand=[])
+            return None if doc is None else doc.get(fieldname)
         table = dt.table
         col = table.c.get(fieldname)
         if col is None:
@@ -348,11 +359,12 @@ class GruntDB:
         """Return a single document by name, or ``None`` if not found.
 
         Low-level - no permission guards. Use ``grunt.get_doc`` for
-        authenticated reads with RBAC enforcement.
+        authenticated reads with RBAC enforcement. A document outside SQL comes
+        from its store.
         """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._meta(doctype)
+        if not supports(dt, SQL):
+            return await store_for(dt, self._session()).get(name, expand=[])
         table = dt.table
         stmt = select(table).where(table.c.name == name).limit(1)
         result = await self._session().execute(stmt)
@@ -379,9 +391,7 @@ class GruntDB:
         if not filters:
             raise ValueError("grunt.db.delete requires at least one filter.")
 
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._table_meta(doctype, "delete")
         table = dt.table
 
         expr = filter_expr(filters, dt.columns, dt)
@@ -399,9 +409,7 @@ class GruntDB:
         Caller is responsible for providing required standard fields
         (`name`, timestamps, owner, etc.) when needed.
         """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._table_meta(doctype, "insert_one")
         table = dt.table
         await self._session().execute(table.insert().values(**values))
         await self._session().flush()
@@ -411,9 +419,7 @@ class GruntDB:
         if not rows:
             return 0
 
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._table_meta(doctype, "insert_many")
         table = dt.table
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
@@ -426,9 +432,7 @@ class GruntDB:
         values: dict[str, Any],
     ) -> int:
         """Update multiple rows matching exact-match filters and flush session."""
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        dt = await self._table_meta(doctype, "bulk_update")
         table = dt.table
 
         update_values = {k: v for k, v in values.items() if k in table.c}

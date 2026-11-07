@@ -24,6 +24,7 @@ from grunt.query.sql import filter_expr, where
 from grunt.reports.joins import report_source
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
+from grunt.store import SQL, supports
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -258,6 +259,11 @@ class ReportEngine:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        if not supports(dt, SQL):
+            raise HTTPException(
+                status_code=400,
+                detail=_("“%(doctype)s” has no table to report on") % {"doctype": doctype},
+            )
         table = dt.table
 
         # Permission check
