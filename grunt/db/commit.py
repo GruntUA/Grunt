@@ -10,6 +10,11 @@ returns, best-effort: an error is logged, never raised into the request.
 
 The queue lives in the session, in memory: a process that dies between the
 commit and the call loses it. What must not be lost goes to the outbox.
+
+*fn* runs after the request may have closed its session: gather what it needs
+from the database before, and let it only tell (a cache, a socket, a queue).
+Work that reads the database, or calls out to a remote server, goes to the
+outbox (:mod:`grunt.outbox`) - delivered by a worker in its own session.
 """
 
 import asyncio

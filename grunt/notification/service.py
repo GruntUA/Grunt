@@ -12,8 +12,9 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
-from grunt import log
+from grunt import log, outbox
 from grunt.api.v1.ws import manager
+from grunt.db.commit import on_commit
 
 
 class NotificationService:
@@ -243,13 +244,14 @@ class NotificationService:
                     url = f"/app/{app}/{doctype}/{doc_id}"
             except Exception:
                 url = "/"
-        # Send Web Push (best-effort)
-        try:
-            from grunt.webpush.service import webpush_service
+        # Web Push through the outbox: sent after the commit (the notification it
+        # opens is then there to read; a rollback pushes nothing), by a worker in
+        # its own session - the push service may be slow to answer.
+        from grunt.webpush.service import deliver_push
 
-            await webpush_service.send_push(user, subject, message, url=url or "/")
-        except Exception:
-            log.exception("suppressed_error")
+        await outbox.put(
+            deliver_push, {"user": user, "subject": subject, "body": message, "url": url or "/"}
+        )
 
         return notif_name
 
@@ -402,22 +404,25 @@ class NotificationService:
         subject: str,
         recipients: list[str],
     ) -> None:
-        """Send WebSocket notification to connected users."""
-        for recipient in recipients:
-            try:
-                await manager.send_to_user(
-                    recipient,
-                    {
-                        "event": "notification",
-                        "data": {
-                            "subject": subject,
-                            "ref_doctype": doctype,
-                            "doc_id": str(doc.get("name", "")),
-                        },
-                    },
-                )
-            except Exception:
-                log.warning("notification.ws_send_error", recipient=recipient)
+        """Tell the connected recipients - after the commit, so the bell's reload
+        finds the new notification."""
+        payload = {
+            "event": "notification",
+            "data": {
+                "subject": subject,
+                "ref_doctype": doctype,
+                "doc_id": str(doc.get("name", "")),
+            },
+        }
+
+        async def send() -> None:
+            for recipient in recipients:
+                try:
+                    await manager.send_to_user(recipient, payload)
+                except Exception:
+                    log.warning("notification.ws_send_error", recipient=recipient)
+
+        on_commit(send)
 
 
 notification_service = NotificationService()

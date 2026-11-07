@@ -7,6 +7,7 @@ Runs against a real local Redis (database 15); skipped without one.
 
 import asyncio
 import json
+import os
 
 import pytest
 import redis.asyncio as aioredis
@@ -23,7 +24,15 @@ from grunt.site.manager import current_site
 from grunt.tasks import scheduler
 from grunt.utils.redis import shared
 
-REDIS_URL = "redis://localhost:6379/15"
+
+def _database() -> int:
+    """A Redis database of this xdist worker's own (15, 14, ...): every test here
+    flushes it, and one worker's flush must not wipe another's keys."""
+    worker = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
+    return 15 - int(worker.removeprefix("gw") or 0) % 8
+
+
+REDIS_URL = f"redis://localhost:6379/{_database()}"
 
 
 async def _redis_up() -> bool:

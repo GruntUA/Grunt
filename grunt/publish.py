@@ -29,6 +29,11 @@ Usage in app hooks::
         event="system_update",
         message="Систему буде перезавантажено через 5 хвилин",
     )
+
+A realtime message announces a change, so it waits for the commit
+(:func:`grunt.db.commit.on_commit`): sent earlier, the client reloads the old
+row - or a row a rollback takes back. Outside a transaction it goes at once.
+Live progress goes through :mod:`grunt.progress`, which doesn't wait.
 """
 
 from typing import Any, Literal
@@ -36,6 +41,7 @@ from typing import Any, Literal
 import grunt
 from grunt import _, log
 from grunt.api.v1.ws import manager
+from grunt.db.commit import on_commit
 
 MessageType = Literal["success", "error", "info", "warning"]
 
@@ -135,10 +141,13 @@ async def publish(
     if message is not None:
         payload["data"]["message"] = message
 
-    try:
-        await manager.send_to_user(user, payload)
-    except Exception:
-        log.debug("publish.ws_send_failed", user=user, ws_event=event)
+    async def send() -> None:
+        try:
+            await manager.send_to_user(user, payload)
+        except Exception:
+            log.debug("publish.ws_send_failed", user=user, ws_event=event)
+
+    on_commit(send)
 
 
 async def broadcast(
@@ -166,10 +175,13 @@ async def broadcast(
     if message is not None:
         payload["data"]["message"] = message
 
-    try:
-        await manager.broadcast_all_users(payload)
-    except Exception:
-        log.debug("publish.broadcast_failed", ws_event=event)
+    async def send() -> None:
+        try:
+            await manager.broadcast_all_users(payload)
+        except Exception:
+            log.debug("publish.broadcast_failed", ws_event=event)
+
+    on_commit(send)
 
 
 async def publish_channel(
@@ -197,10 +209,14 @@ async def publish_channel(
         data: Arbitrary payload dict.
     """
     full_channel = f"public:{channel}"
-    try:
-        await manager.broadcast(full_channel, event, data or {})
-    except Exception:
-        log.debug("publish.channel_failed", channel=channel, ws_event=event)
+
+    async def send() -> None:
+        try:
+            await manager.broadcast(full_channel, event, data or {})
+        except Exception:
+            log.debug("publish.channel_failed", channel=channel, ws_event=event)
+
+    on_commit(send)
 
 
 async def msgprint(

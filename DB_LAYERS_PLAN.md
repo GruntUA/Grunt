@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-07 (кроки 1–4 готові; далі 5 — Connections + UnitOfWork + outbox)
+Оновлено: 2026-11-08 (кроки 1–5 готові; далі 6 — схема)
 
 ---
 
@@ -392,7 +392,7 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   Перевірено: ruff, pyright 0; SQLite 2091/0, PG 2092/0; vitest 328; translate 31, lagoo 20,
   hromada_it 42, opendata 76, crystal_finance 40. Тест міграції 0019.
 
-### 5. Connections + UnitOfWork + outbox — ⏳
+### 5. Connections + UnitOfWork + outbox — ✅ (2026-11-08; з'єднання/replica відкладено)
 Іменовані з'єднання сайту (`default`, `replica`, зовнішні), write_intent → маршрутизація
 читання/запису. Явний UnitOfWork. Побічні ефекти (індекс пошуку, вебхуки, сповіщення,
 push) — через outbox після commit.
@@ -441,7 +441,19 @@ push) — через outbox після commit.
   пропуск), закриває транзакцію перед HTTP, пише `WebhookLog` кожної спроби й комітить його до
   повтору. «Тестова доставка» лишилась синхронною. Тести: `tests/test_outbox.py` (11, SQLite і PG).
   Вебхуків на dev2/lagoo немає — до `grunt migrate` нічого не впаде.
-- 5d. Push і realtime — через `on_commit`.
+- 5d. ✅ (2026-11-08, не закомічено) Push і realtime — після commit.
+  Зроблено: `grunt.publish` / `broadcast` / `publish_channel` — через `on_commit` (поза транзакцією —
+  одразу); дзвіночок сповіщень (`_broadcast_ws`), стрічка активності (дані — у транзакції, у
+  WebSocket — після commit), перехід workflow — `on_commit`. **Web push — через outbox**
+  (`deliver_push`): він читає підписки й ключі VAPID і ходить на зовнішній сервер, тож має йти у
+  власній сесії воркера, а не з колбека після commit (сесія запиту тоді може вже закриватись — це
+  правило записано в `grunt.db.commit`). Прогрес (`grunt.progress`, масові операції, імпорт,
+  `publish_progress`, перевірка здоров'я) лишився наживо — він не про зміну стану.
+  Заодно: `tests/test_multi_worker.py` — своя база Redis на xdist-воркер (усі ділили DB 15 і
+  `flushdb` одного воркера стирав ключі іншого — плаваючі падіння presence/leader).
+  Тести: `tests/test_realtime_after_commit.py`.
+  Перевірено (5a–5d): ruff, pyright 0; SQLite 2112/0, PG 2113/0 (двічі, без плаваючих); lagoo 20,
+  crystal_finance 40, inventory 28, translate 31, hromada_it 42, opendata 76.
 
 ### 6. Схема — ⏳
 Компілятор видає бажану схему, мігратор діалекту її застосовує. Для `ReadOnlySqlStore`

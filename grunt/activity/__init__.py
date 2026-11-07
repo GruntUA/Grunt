@@ -4,6 +4,7 @@ from typing import Any
 import grunt
 import grunt as _grunt
 from grunt import _, log
+from grunt.db.commit import on_commit
 from grunt.document.titles import resolve_reference_titles
 from grunt.document.versioning import _SKIP_FIELDS
 from grunt.metadata.registry import doctype_registry
@@ -139,8 +140,9 @@ async def _broadcast_activity(
     the REST feed (``list_activity``) - so a live-pushed entry never flashes a
     raw doc_id/email while the feed's own re-fetch would have shown a name.
     """
+    from grunt.api.v1.ws import manager
+
     try:
-        from grunt.api.v1.ws import manager
         from grunt.document.titles import resolve_reference_titles
 
         titles = await resolve_reference_titles([(doctype, doc_id)])
@@ -161,27 +163,33 @@ async def _broadcast_activity(
             pass
 
         created_at = doc.get("created_at")
+        payload = {
+            "name": doc.get("name"),
+            "ref_doctype": doctype,
+            "doc_id": doc_id,
+            "title": title,
+            "action": action,
+            "user": user_email,
+            "user_name": user_name,
+            "created_at": created_at.isoformat()
+            if isinstance(created_at, datetime)
+            else str(created_at or ""),
+        }
+    except Exception:
+        log.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
+        return
+
+    async def send() -> None:
         # "site" is the authenticated site-wide channel. Never "public:site" -
         # that endpoint takes no token, which would stream user emails and
         # document ids to anyone who knows the URL.
-        await manager.broadcast(
-            "site",
-            "activity",
-            {
-                "name": doc.get("name"),
-                "ref_doctype": doctype,
-                "doc_id": doc_id,
-                "title": title,
-                "action": action,
-                "user": user_email,
-                "user_name": user_name,
-                "created_at": created_at.isoformat()
-                if isinstance(created_at, datetime)
-                else str(created_at or ""),
-            },
-        )
-    except Exception:
-        log.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
+        try:
+            await manager.broadcast("site", "activity", payload)
+        except Exception:
+            log.debug("activity.broadcast_failed", doctype=doctype, doc_id=doc_id)
+
+    # After the commit - the feed's own re-fetch then finds the entry.
+    on_commit(send)
 
 
 async def log_activity(
