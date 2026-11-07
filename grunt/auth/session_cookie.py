@@ -20,9 +20,10 @@ from urllib.parse import urlsplit
 from fastapi import Request, Response
 
 from grunt.config import settings
-lazy from grunt.auth.doctypes.User.user import User, get_auth_context_user
+lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.doctypes.UserSession.user_session import session_user
 lazy from grunt.auth.service import session_ttl_minutes
+lazy from grunt.auth.users import get_auth_context_user
 
 SESSION_COOKIE = "grunt_session"
 SIGNED_IN_COOKIE = "grunt_signed_in"

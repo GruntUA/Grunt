@@ -13,7 +13,7 @@ from fastapi import HTTPException
 import grunt
 from grunt.i18n import _
 lazy from grunt.activity.milestones import history as milestone_history
-lazy from grunt.auth.doctypes.User.user import get_users_by_emails
+lazy from grunt.auth.users import get_users_by_emails
 lazy from grunt.document import collection
 lazy from grunt.document.links import link_service
 lazy from grunt.document.sidebar import collect_sections

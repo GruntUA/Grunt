@@ -22,7 +22,7 @@ PASSWORD = "Str0ngPass"
 
 @pytest.fixture
 async def account(ctx):
-    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user(EMAIL, PASSWORD, "Sess", "Ion", None)

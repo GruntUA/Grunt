@@ -57,7 +57,7 @@ def _point_site_manager_at_test_db(monkeypatch, db_session, engine):
 @pytest.fixture
 async def _secret(ctx):
     from grunt.api.v1.meta import save_doctype
-    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.users import create_user
 
     await save_doctype(doctype_data={**SECRET, "__is_new": True})
     owner = await create_user("owner@grunt.example.com", "", "T", "U", None)
@@ -100,7 +100,7 @@ async def test_virtual_doctype_room_checks_the_stored_document(ctx, _point_site_
     everyone) - and a document the store doesn't have is not readable."""
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.ws import _ws_user_can_read
-    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.users import create_user
     from grunt.document.base import Document
     from grunt.document.registry import document_registry
     from grunt.store import VirtualStore

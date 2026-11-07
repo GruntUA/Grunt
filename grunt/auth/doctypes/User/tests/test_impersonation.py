@@ -3,7 +3,7 @@
 import pytest
 from httpx2 import AsyncClient
 
-from grunt.auth.doctypes.User.user import create_user
+from grunt.auth.users import create_user
 
 _START = "/api/v1/method/grunt.auth.doctypes.User.user.start_impersonation_api"
 _STOP = "/api/v1/method/grunt.auth.doctypes.User.user.stop_impersonation_api"

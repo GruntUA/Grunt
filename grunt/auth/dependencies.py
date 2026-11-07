@@ -10,11 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import grunt
 from grunt import _, log
 from grunt.api.context import set_user
-from grunt.auth.doctypes.User.user import (
-    User,
-    get_auth_context_user,
-)
+from grunt.auth.doctypes.User.user import User
 from grunt.auth.service import decode_access_token
+from grunt.auth.users import get_auth_context_user
 from grunt.db.session import get_engine, get_session
 from grunt.i18n.middleware import apply_user_language
 from grunt.local import _messages_ctx

@@ -17,7 +17,7 @@ from typing import Any
 import grunt
 from grunt import _, log
 from grunt.tasks.broker import retryable_task
-lazy from grunt.auth.doctypes.User.user import get_auth_context_user
+lazy from grunt.auth.users import get_auth_context_user
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
 lazy from grunt.tasks.doctypes.AutoRepeat.auto_repeat import AutoRepeat

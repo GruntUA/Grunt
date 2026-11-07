@@ -24,7 +24,7 @@ async def bearer_whoami() -> str:
 
 @pytest.fixture
 async def session(ctx, client: AsyncClient) -> str:
-    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(EMAIL, PASSWORD, "Cookie", "Jar", None)

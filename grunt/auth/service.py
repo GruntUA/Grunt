@@ -11,8 +11,9 @@ import jwt
 
 from grunt.config import settings
 lazy import grunt
-lazy from grunt.auth.doctypes.User.user import User, hash_password
+lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.doctypes.UserSession.user_session import end_all_sessions
+lazy from grunt.auth.users import hash_password
 lazy from grunt.site.settings import get_setting
 
 # JWT

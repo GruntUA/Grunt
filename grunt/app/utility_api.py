@@ -6,6 +6,7 @@ from grunt.local import require_user
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.tasks.doc_method import enqueue_doc_method
+from grunt.tasks.enqueue import enqueue
 from grunt.utils.templates import render_template as _render_template
 lazy from grunt.document.meta import Meta
 
@@ -36,6 +37,14 @@ class UtilityAPI:
             method=method,
             kwargs=kwargs,
         )
+
+    def enqueue(self, task: Any, /, *args: Any, **kwargs: Any) -> None:
+        """Send a background *task* once the current transaction commits - the
+        worker then sees what this request wrote, and a rollback sends nothing::
+
+            grunt.enqueue(rebuild_index_task, doctype="Invoice")
+        """
+        enqueue(task, *args, **kwargs)
 
     async def get_meta(self, doctype: str) -> Meta | None:
         """Return the :class:`~grunt.document.meta.Meta` wrapper, or ``None``

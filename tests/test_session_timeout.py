@@ -17,13 +17,13 @@ async def _set_timeout(ctx, minutes: int | None) -> None:
 
 @pytest.mark.asyncio
 async def test_access_token_is_short_and_capped_by_timeout(ctx):
-    from grunt.auth.doctypes.User.user import create_user
     from grunt.auth.service import (
         ACCESS_TOKEN_MAX_MINUTES,
         access_token_minutes,
         create_access_token,
         session_ttl_minutes,
     )
+    from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user("ttl@grunt.example.com", "correct-horse", "T", "L", None)

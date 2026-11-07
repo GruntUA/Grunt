@@ -223,7 +223,8 @@ async def test_count_respects_permissions(ctx):
     `match` filter as the list view — a non-privileged user counting `User`
     sees only their own row, not everyone's."""
     import grunt
-    from grunt.auth.doctypes.User.user import User, create_user
+    from grunt.auth.doctypes.User.user import User
+    from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user("boss@grunt.example.com", "Str0ngPass", "Boss", "One", None)

@@ -25,10 +25,11 @@ lazy from webauthn.helpers.structs import (
 import grunt
 from grunt import _, log
 from grunt.api.messages import throw
-from grunt.auth.doctypes.User.user import User, get_user_by_email, get_user_by_id
+from grunt.auth.doctypes.User.user import User
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
+from grunt.auth.users import get_user_by_email, get_user_by_id
 from grunt.config import settings
 lazy from grunt.utils.http import public_base_url
 

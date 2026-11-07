@@ -3,8 +3,8 @@
 import pytest
 from httpx2 import AsyncClient
 
-from grunt.auth.doctypes.User.user import create_user
 from grunt.auth.service import verify_challenge_token
+from grunt.auth.users import create_user
 
 _METHODS = "/api/v1/auth/methods"
 

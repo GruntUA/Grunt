@@ -5,8 +5,8 @@ import pyotp
 import pytest
 from httpx2 import AsyncClient
 
-from grunt.auth.doctypes.User.user import create_user, get_user_by_email
 from grunt.auth.service import create_mfa_token
+from grunt.auth.users import create_user, get_user_by_email
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "root@grunt.example.com"

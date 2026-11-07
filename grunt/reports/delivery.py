@@ -18,7 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
-from grunt.auth.doctypes.User.user import SYSTEM_USER, User, get_user_by_email
+from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+from grunt.auth.users import get_user_by_email
 from grunt.email.service import email_service
 from grunt.reports.engine import report_engine
 from grunt.site.manager import site_manager
