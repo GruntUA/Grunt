@@ -8,6 +8,7 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
+    Text,
     UniqueConstraint,
     inspect,
     text,
@@ -24,7 +25,7 @@ lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.registry import _resolve_site_key
 
 # SA MetaData for fixed-shape infrastructure tables that never vary by
-# DocType or by site (currently just MULTI_LINK_TABLE below). Kept as a
+# DocType or by site (MULTI_LINK_TABLE, OUTBOX_TABLE below). Kept as a
 # single shared MetaData/name since nothing here is ever tenant-specific.
 SA_METADATA = MetaData()
 
@@ -129,6 +130,28 @@ MULTI_LINK_TABLE = Table(
         "parent_field",
         "idx",
     ),
+    extend_existing=True,
+)
+
+
+# Outbox - side effects written with the change they announce, delivered
+# after the commit (grunt.outbox).
+
+OUTBOX_TABLE = Table(
+    "grunt_core_outbox",
+    SA_METADATA,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    # Dotted path of the async function that delivers the message.
+    Column("handler", String(255), nullable=False),
+    Column("payload", JSON, nullable=False),
+    Column("attempts", Integer, nullable=False, default=0),
+    # Not before this - a retry waits out its backoff.
+    Column("due_at", UtcDateTime(), nullable=False),
+    # A delivery in progress holds the row until then (a crashed one lets go).
+    Column("claimed_until", UtcDateTime(), nullable=True),
+    Column("last_error", Text, nullable=True),
+    Column("created_at", UtcDateTime(), nullable=False),
+    Index("ix_grunt_core_outbox_due_at", "due_at"),
     extend_existing=True,
 )
 

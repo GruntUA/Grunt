@@ -429,8 +429,18 @@ push) — через outbox після commit.
   Заодно: імпорти `create_user`/`get_user_by_email`/… — з `grunt.auth.users`, а не через повторний
   експорт у `User/user.py` (Pylance `reportPrivateImportUsage`; ядро, тести, lagoo, crystal_finance,
   inventory).
-- 5c. Outbox для вебхуків: рядок `grunt_outbox` у тій самій транзакції; worker доставляє з повторами
-  й backoff, пише `WebhookLog`; «тестова доставка» — синхронна.
+- 5c. ✅ (2026-11-08, не закомічено) Outbox для вебхуків.
+  Зроблено: таблиця `grunt_core_outbox` (`OUTBOX_TABLE` у `SA_METADATA` — створюється `grunt migrate`
+  через `create_all`, як `grunt_core_multi_link`); `grunt/outbox.py`: `put(handler, payload)` — рядок у
+  поточній транзакції + kick задачі `deliver` після commit (один на транзакцію); `deliver_due` —
+  claim рядка (`claimed_until`, 5 хв — упалий запуск відпускає), виклик обробника (функція модуля за
+  dotted path), видалення; помилка → `attempts`+1, `due_at` += backoff (30 с · 2ⁿ, до 6 год),
+  `last_error`; після `MAX_ATTEMPTS` (8) — `log.error` і рядок прибрано. Планувальник — `deliver`
+  щохвилини (повтори, залишки). Вебхуки: `fire()` лише кладе в outbox `deliver_webhook` (назва
+  вебхука, подія, тіло на момент події); обробник бере поточні налаштування (вимкнений/видалений —
+  пропуск), закриває транзакцію перед HTTP, пише `WebhookLog` кожної спроби й комітить його до
+  повтору. «Тестова доставка» лишилась синхронною. Тести: `tests/test_outbox.py` (11, SQLite і PG).
+  Вебхуків на dev2/lagoo немає — до `grunt migrate` нічого не впаде.
 - 5d. Push і realtime — через `on_commit`.
 
 ### 6. Схема — ⏳
