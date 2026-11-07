@@ -23,15 +23,16 @@ from grunt.permissions.guards import (
     write_guard,
 )
 from grunt.permissions.rbac import permission_checker
+from grunt.query.nodes import TRUE
 from grunt.workflow.engine import workflow_engine
 lazy from grunt.cache.document_cache import DocumentCache
 lazy from grunt.cache.query_cache import QueryCache
 lazy from grunt.db import GruntDB
 lazy from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
-lazy from grunt.db.filters import FILTER_OPS
 lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
-lazy from grunt.permissions.query import apply_permission_filter
+lazy from grunt.permissions.query import read_predicate
+lazy from grunt.query.parse import FILTER_OPS
 lazy from grunt.workflow.registry import get_active_workflow
 
 
@@ -484,12 +485,10 @@ class DocumentAPI:
             method="get_all",
         )
 
-        async def _scope(stmt: Any, table: Any) -> Any:
-            # Same row-level gate get_list applies (match rules, User
-            # Permissions, shares). Without it get_all would return every
-            # row the doctype-level read grant allows, ignoring `match`.
-            return await apply_permission_filter(stmt, table, user, dt.doc)
-
+        # Same row-level gate get_list applies (match rules, User Permissions,
+        # shares). Without it get_all would return every row the doctype-level
+        # read grant allows, ignoring `match`.
+        predicate = TRUE if dt.doc.is_virtual else await read_predicate(dt.table, user, dt.doc)
         rows = await self.db.get_all(
             doctype,
             filters=filters,
@@ -498,7 +497,7 @@ class DocumentAPI:
             offset=offset,
             order_by=order_by,
             order=order,
-            scope=None if dt.doc.is_virtual else _scope,
+            predicate=predicate,
         )
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
@@ -670,9 +669,7 @@ class DocumentAPI:
                 % {"fields": ", ".join(sorted(referenced & hidden))}
             )
 
-        async def scope(stmt: Any, table: Any) -> Any:
-            return await apply_permission_filter(stmt, table, user, dt.doc)
-
+        predicate = await read_predicate(dt.table, user, dt.doc)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="aggregate")
         try:
             rows = await self.db.aggregate(
@@ -683,7 +680,7 @@ class DocumentAPI:
                 limit=limit,
                 order_by=order_by,
                 order=order,
-                scope=scope,
+                predicate=predicate,
             )
         except ValueError as e:
             raise unprocessable(str(e)) from None

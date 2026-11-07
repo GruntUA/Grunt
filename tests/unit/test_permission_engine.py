@@ -7,19 +7,19 @@ Three collaborating pieces, previously in three separate files:
   (``evaluate``).
 * ``grunt.permissions.access.RoleAccess`` — "is this user exempt from
   checks" and "which permission rows match their roles".
-* ``grunt.permissions.query.apply_permission_filter`` — row-level ``match``
-  SQL filter, which composes the two above.
+* ``grunt.permissions.query.read_predicate`` — the row-level predicate,
+  which composes the two above.
 """
 
 import pytest
-from sqlalchemy import Column, MetaData, String, Table, false, select
+from sqlalchemy import Column, MetaData, String, Table
 
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
-from grunt.permissions.query import apply_permission_filter
-from grunt.query.nodes import Cmp
+from grunt.permissions.query import read_predicate
+from grunt.query.nodes import FALSE, TRUE, Cmp, Or
 from tests.support import make_user
 lazy from grunt.auth.doctypes.User.user import User
 
@@ -235,56 +235,46 @@ class TestRoleAccess:
         assert access.user_roles == frozenset({"Employee", "Viewer"})
 
 
-# ── apply_permission_filter (composes the two above) ─────────────────────
+# ── read_predicate (composes the two above) ──────────────────────────────
 
 
-class TestApplyPermissionFilter:
+class TestReadPredicate:
     async def test_system_user_unfiltered(self):
         dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, _system_user(), dt)
-        assert query.whereclause is None
+        assert await read_predicate(_TABLE, _system_user(), dt) == TRUE
 
     async def test_no_permissions_defined_denies_all_rows(self):
-        """Deny-by-default: no permission rows means no role matched, so the
-        query is filtered to zero rows rather than left unfiltered."""
+        """Deny-by-default: no permission rows means no role matched, so no
+        row is readable rather than every row."""
         dt = DocType(name="Closed", label="Closed", module="test", fields=[])
         user = _user("bob@example.com", roles=["Employee"])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-        expected = select(_TABLE).where(false()).whereclause
-        assert query.whereclause is not None
-        assert expected is not None
-        assert query.whereclause.compare(expected)
+        assert await read_predicate(_TABLE, user, dt) == FALSE
 
     async def test_rule_without_match_is_unrestricted(self):
         dt = _doctype([{"role": "Employee", "read": True}])
         user = _user("bob@example.com", roles=["Employee"])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-        assert query.whereclause is None
+        assert await read_predicate(_TABLE, user, dt) == TRUE
 
     async def test_owner_eq_user_filters_to_own_rows(self):
         dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
         user = _user("alice@example.com", roles=["Employee"])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-        assert query.whereclause is not None
-        assert "alice@example.com" in str(query.compile(compile_kwargs={"literal_binds": True}))
+        assert await read_predicate(_TABLE, user, dt) == Cmp("owner", "eq", "alice@example.com")
 
     async def test_unparseable_match_fails_closed_not_open(self):
-        """Regression: an expression the mini-parser can't translate used to make
-        apply_permission_filter treat the rule as unrestricted (return everything).
-        It must instead exclude all rows for that rule rather than leak them.
+        """Regression: an expression the mini-parser can't translate used to
+        be treated as unrestricted (return everything). It must instead
+        exclude all rows for that rule rather than leak them.
         """
         dt = _doctype(
             [{"role": "Employee", "read": True, "match": "owner == user and status == 'Open'"}]
         )
         user = _user("alice@example.com", roles=["Employee"])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-        assert query.whereclause is not None
+        assert await read_predicate(_TABLE, user, dt) == FALSE
 
     async def test_no_matching_role_fails_closed(self):
         dt = _doctype([{"role": "Manager", "read": True, "match": "owner == user"}])
         user = _user("bob@example.com", roles=["Employee"])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-        assert query.whereclause is not None
+        assert await read_predicate(_TABLE, user, dt) == FALSE
 
     async def test_two_match_rules_or_together(self):
         """Several read rules with a translatable ``match`` widen access (OR):
@@ -296,7 +286,6 @@ class TestApplyPermissionFilter:
             ]
         )
         user = _user("alice@example.com", roles=["Employee"])
-        query = await apply_permission_filter(select(_TABLE), _TABLE, user, dt)
-        sql = str(query.compile(compile_kwargs={"literal_binds": True}))
-        assert " OR " in sql.upper()
-        assert "alice@example.com" in sql and "Published" in sql
+        assert await read_predicate(_TABLE, user, dt) == Or(
+            (Cmp("owner", "eq", "alice@example.com"), Cmp("status", "eq", "Published"))
+        )

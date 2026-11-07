@@ -1,9 +1,11 @@
-"""Row-level security query filters."""
+"""Row-level security as a query predicate - ``read_predicate``.
+
+Read paths AND it onto their filters (``grunt.query.sql.where``); a raw,
+unpermissioned read is one that never asks for it.
+"""
 
 from sqlalchemy import Table
-from sqlalchemy.sql import Select
 
-import grunt
 from grunt import log
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.child import child_predicate, is_child
@@ -11,34 +13,10 @@ from grunt.permissions.match import PermissionMatch
 from grunt.permissions.reference import reference_predicates
 from grunt.permissions.shares import shared_predicate
 from grunt.permissions.user_permissions import user_permission_predicate
-from grunt.query.compile_sql import to_sql
-from grunt.query.nodes import TRUE, Expr, and_, linked_doctypes, or_
+from grunt.query.nodes import TRUE, Expr, and_, or_
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
-
-
-async def apply_permission_filter(
-    query: Select,
-    table: Table,
-    user: User,
-    doctype: DocType | Meta,
-) -> Select:
-    """Restrict *query* to the rows *user* may read - :func:`read_predicate` as SQL.
-
-    Callers must not add User Permissions again: they are part of the predicate.
-    A wrapper until every read path builds a ``Query`` (DB_LAYERS_PLAN.md, step 3c).
-    """
-    expr = await read_predicate(table, user, doctype)
-    if expr == TRUE:
-        return query
-    tables: dict[str, Table] = {}
-    for name in linked_doctypes(expr):
-        meta = await grunt.get_meta(name)
-        if meta is None:  # a predicate only names DocTypes it just loaded
-            raise LookupError(f"DocType {name!r} disappeared while filtering")
-        tables[name] = meta.table
-    return query.where(to_sql(expr, table, doctype=doctype.name, tables=tables))
 
 
 async def read_predicate(table: Table, user: User, doctype: DocType | Meta) -> Expr:

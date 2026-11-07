@@ -17,8 +17,10 @@ from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
 from grunt.errors import not_found
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.guards import write_guard
-from grunt.permissions.query import apply_permission_filter
+from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
+from grunt.query.nodes import TRUE
+from grunt.query.sql import where
 
 
 async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
@@ -66,8 +68,8 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
 
     user = grunt.get_user()
     table = dt.table
-    scope = await apply_permission_filter(select(table.c.name), table, user, dt.doc)
-    return None if scope.whereclause is None else scope
+    readable = await read_predicate(table, user, dt.doc)
+    return None if readable == TRUE else await where(select(table.c.name), readable, table, dt.name)
 
 
 def _parse_iso_day(raw: str | None) -> str | None:

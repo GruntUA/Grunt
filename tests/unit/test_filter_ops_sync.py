@@ -1,12 +1,11 @@
 """The filter-operator vocabulary is declared twice - ``DISPLAY_OPS`` in
-grunt/db/filters.py and ``FILTER_OPS`` in frontend/src/core/filterOps.ts.
+grunt/query/parse.py and ``FILTER_OPS`` in frontend/src/core/filterOps.ts.
 These tests keep the two in step and check report conditions use it."""
 
 import re
 from pathlib import Path
 
-from grunt.db.filters import DISPLAY_OPS, FILTER_OPS, split_key
-from grunt.query.parse import parse_filters
+from grunt.query.parse import DISPLAY_OPS, FILTER_OPS, parse_filters, split_key
 from grunt.reports.list_options import compile_conditions
 
 FILTER_OPS_TS = Path(__file__).parents[2] / "frontend/src/core/filterOps.ts"
@@ -30,7 +29,7 @@ def test_display_ops_match_frontend():
 
 
 def test_display_ops_are_known_backend_ops():
-    # child_of is expanded to __in before build_clauses (expand_child_of_filters).
+    # child_of is expanded to __in before parsing (expand_child_of_filters).
     assert set(DISPLAY_OPS.values()) - {"child_of"} <= set(FILTER_OPS)
 
 

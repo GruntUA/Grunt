@@ -1,19 +1,19 @@
 """Grunt database API helpers."""
 
 import re
-from collections.abc import Awaitable, Callable
 from typing import Any, Literal, cast, overload
 
-from sqlalchemy import CursorResult, Select, Table, func, or_, select, update
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _
 from grunt.db.buckets import DATE_BUCKETS
 from grunt.db.dialects import Dialect, dialect_for
-from grunt.db.filters import apply_filters, build_clauses
 from grunt.errors import not_found
 from grunt.local import _session_ctx
+from grunt.query.nodes import TRUE, Expr, and_, conjuncts, or_
+from grunt.query.sql import filter_expr, where
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.multi_link import MultiLinkService
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
@@ -94,6 +94,32 @@ class GruntDB:
             raise RuntimeError("grunt.db: no active session — are you inside a request or hook?")
         return s
 
+    @staticmethod
+    def _predicate(
+        table: Any,
+        dt: Any,
+        filters: str | dict[str, Any] | None,
+        or_filters: dict[str, Any] | None = None,
+        predicate: Expr = TRUE,
+    ) -> Expr:
+        """*filters* ANDed, *or_filters* ORed (unknown columns skipped in both),
+        and the caller's *predicate* (row-level rules) - one expression."""
+        any_of = conjuncts(filter_expr(or_filters, table, dt)) if or_filters else ()
+        return and_(
+            filter_expr(filters, table, dt),
+            or_(*any_of) if any_of else TRUE,
+            predicate,
+        )
+
+    @staticmethod
+    def _require_filter(expr: Expr, doctype: str, action: str) -> None:
+        """A bulk write whose filters all name unknown columns would hit every row."""
+        if expr == TRUE:
+            raise ValueError(
+                f"grunt.db.{action}({doctype!r}): no filter names a column - refusing to "
+                "touch every row"
+            )
+
     @overload
     async def get_value(
         self,
@@ -166,7 +192,8 @@ class GruntDB:
         table = dt.table
 
         async def _fetch_row(columns: list[Any]) -> Any:
-            stmt = apply_filters(select(*columns), table, filters, dt).limit(1)
+            stmt = await where(select(*columns), filter_expr(filters, table, dt), table, dt.name)
+            stmt = stmt.limit(1)
             return (await self._session().execute(stmt)).first()
 
         # Whole-document fetch (``"*"``) - always returns an attribute-dict.
@@ -238,8 +265,7 @@ class GruntDB:
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
-        stmt = select(table.c.name)
-        stmt = apply_filters(stmt, table, filters, dt)
+        stmt = await where(select(table.c.name), filter_expr(filters, table, dt), table, dt.name)
         stmt = stmt.limit(1)
         result = await self._session().execute(stmt)
         row = result.first()
@@ -258,7 +284,7 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-        scope: Callable[[Select, Table], Awaitable[Select]] | None = ...,
+        predicate: Expr = ...,
     ) -> list[Any]: ...
 
     @overload
@@ -274,7 +300,7 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-        scope: Callable[[Select, Table], Awaitable[Select]] | None = ...,
+        predicate: Expr = ...,
     ) -> list[dict[str, Any]]: ...
 
     async def get_all(
@@ -289,15 +315,16 @@ class GruntDB:
         offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
-        scope: Callable[[Select, Table], Awaitable[Select]] | None = None,
+        predicate: Expr = TRUE,
     ) -> list[dict[str, Any]] | list[Any]:
         """Fetch a list of documents as plain dicts.
 
         No permission checks on its own - ``grunt.get_all`` is the
-        permission-aware variant. ``scope`` lets a caller narrow the
-        statement (row-level rules) before sort/pagination, the same way
-        ``aggregate`` does. A MultiLink field in ``fields`` comes back as a
-        list of linked names (one extra query for the whole page).
+        permission-aware variant. ``predicate`` lets a caller narrow the
+        rows (row-level rules: ``grunt.permissions.query.read_predicate``)
+        before sort/pagination, the same way ``aggregate`` does. A MultiLink
+        field in ``fields`` comes back as a list of linked names (one extra
+        query for the whole page).
         """
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -318,16 +345,9 @@ class GruntDB:
         else:
             stmt = select(table)
 
-        if filters:
-            stmt = apply_filters(stmt, table, filters, dt)
-
-        if or_filters:
-            or_clauses = build_clauses(table, or_filters, dt)
-            if or_clauses:
-                stmt = stmt.where(or_(*or_clauses))
-
-        if scope is not None:
-            stmt = await scope(stmt, table)
+        stmt = await where(
+            stmt, self._predicate(table, dt, filters, or_filters, predicate), table, dt.name
+        )
 
         sort_col = table.c.get(order_by or "modified_at")
         if sort_col is None:
@@ -392,8 +412,7 @@ class GruntDB:
         if not cols:
             return None
 
-        stmt = select(*cols)
-        stmt = apply_filters(stmt, table, filters, dt)
+        stmt = await where(select(*cols), filter_expr(filters, table, dt), table, dt.name)
         stmt = stmt.limit(1)
         result = await self._session().execute(stmt)
         row = result.first()
@@ -442,12 +461,7 @@ class GruntDB:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         stmt = select(func.count()).select_from(table)
-        if filters:
-            stmt = apply_filters(stmt, table, filters, dt)
-        if or_filters:
-            or_clauses = build_clauses(table, or_filters, dt)
-            if or_clauses:
-                stmt = stmt.where(or_(*or_clauses))
+        stmt = await where(stmt, self._predicate(table, dt, filters, or_filters), table, dt.name)
         result = await self._session().execute(stmt)
         return result.scalar() or 0
 
@@ -465,8 +479,9 @@ class GruntDB:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
-        stmt = table.delete()
-        stmt = apply_filters(stmt, table, filters, dt)
+        expr = filter_expr(filters, table, dt)
+        self._require_filter(expr, doctype, "delete")
+        stmt = await where(table.delete(), expr, table, dt.name)
 
         result = await self._session().execute(stmt)
         await self._session().flush()
@@ -515,8 +530,9 @@ class GruntDB:
         if not update_values:
             return 0
 
-        stmt = update(table).values(**update_values)
-        stmt = apply_filters(stmt, table, filters, dt)
+        expr = filter_expr(filters, table, dt)
+        self._require_filter(expr, doctype, "bulk_update")
+        stmt = await where(update(table).values(**update_values), expr, table, dt.name)
 
         result = await self._session().execute(stmt)
         await self._session().flush()
@@ -532,13 +548,13 @@ class GruntDB:
         limit: int | None = None,
         order_by: str | None = None,
         order: str = "desc",
-        scope: Callable[[Select, Table], Awaitable[Select]] | None = None,
+        predicate: Expr = TRUE,
     ) -> list[dict[str, Any]]:
         """Fetch aggregated data (GROUP BY, SUM, COUNT, etc).
 
         No permission checks - ``grunt.aggregate`` is the permission-aware
-        variant. ``scope`` lets it narrow the statement (row-level rules)
-        before grouping.
+        variant. ``predicate`` narrows the rows (row-level rules) before
+        grouping.
         """
         dt = await grunt.get_meta(doctype)
         if dt is None:
@@ -573,10 +589,7 @@ class GruntDB:
         # Explicit FROM: with no group_by/filter columns referenced, a bare
         # select(func.count()) has no FROM clause and returns a single row.
         stmt = select(*select_exprs).select_from(table)
-        if filters:
-            stmt = apply_filters(stmt, table, filters, dt)
-        if scope is not None:
-            stmt = await scope(stmt, table)
+        stmt = await where(stmt, and_(filter_expr(filters, table, dt), predicate), table, dt.name)
 
         if group_by_exprs:
             stmt = stmt.group_by(*group_by_exprs)

@@ -3,9 +3,9 @@
  *
  * A *display* operator (`'='`, `'like'`, `'is set'`) is what the filter bar,
  * report conditions and saved filters store; the backend gets it as a
- * filter-key suffix: `{ "amount__gte": 5 }` (see grunt/db/filters.py).
+ * filter-key suffix: `{ "amount__gte": 5 }` (see grunt/query/parse.py).
  *
- * Backend mirror of this table: `DISPLAY_OPS` in grunt/db/filters.py
+ * Backend mirror of this table: `DISPLAY_OPS` in grunt/query/parse.py
  * (tests/unit/test_filter_ops_sync.py keeps the two in step).
  *
  * Which operators a field type offers is decided in core/filterRegistry.ts.
@@ -60,7 +60,7 @@ export const NO_VALUE_OPS: Record<string, string> = Object.fromEntries(
 )
 
 /**
- * Every suffix the backend understands (grunt/db/filters.py FILTER_OPS plus
+ * Every suffix the backend understands (grunt/query/parse.py FILTER_OPS plus
  * `child_of`), longest first so `__lte_or_null` wins over `__lte`.
  */
 const BACKEND_SUFFIXES = [
@@ -73,7 +73,7 @@ const BACKEND_ALIASES: Record<string, string> = { like: 'ilike', neq: 'ne' }
 
 /**
  * `"amount__gte"` -> `["amount", "gte"]`; no known suffix -> `[key, "eq"]`.
- * Same rule as `split_key` in grunt/db/filters.py: a field named `foo__bar` stays whole.
+ * Same rule as `split_key` in grunt/query/parse.py: a field named `foo__bar` stays whole.
  */
 export function splitFilterKey(key: string): [string, string] {
   for (const op of BACKEND_SUFFIXES) {

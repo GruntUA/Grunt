@@ -16,12 +16,12 @@ from typing import Any
 
 import grunt
 from grunt import _
-from grunt.db.filters import split_key
 from grunt.document.base import BaseDocument, DocumentList
 from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
 from grunt.errors import not_found
 from grunt.i18n import N_
 from grunt.monitoring.perf import HIST_FIELDS, percentile
+from grunt.query.parse import split_key
 
 DEFAULT_PERIOD_DAYS = 7
 # Below this many calls in either period the change is noise, not a trend.

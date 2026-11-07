@@ -1,21 +1,24 @@
-"""Unit tests for operator-aware filter building in ``grunt.db.filters``.
+"""Unit tests for operator-aware filters: ``grunt.query.sql.filter_expr`` compiled
+by ``grunt.query.compile_sql.to_sql``.
 
-These exercise ``apply_filters`` against a real SQLAlchemy table so the
+These exercise filters against a real SQLAlchemy table so the
 compiled SQL is checked directly — in particular that the list-level parser
 supports the same operators as the ``grunt.db`` count path (regression: the
 ``nin`` operator was silently dropped, so ``get_list`` and ``count`` disagreed).
 
-``document/query.py`` used to have its own near-identical ``_apply_filters``
-wrapping the same ``build_clauses`` — now the document layer imports this one
-directly (see grunt.document.collection/tree/bulk_ops), so there's a single
-implementation, not two that could drift apart again.
+Every read path (``grunt.db``, document lists, trees, reports) goes through
+``filter_expr``, and virtual DocTypes evaluate the same expression in memory -
+one implementation, not several that could drift apart again.
 """
 
 import pytest
 from sqlalchemy import Column, Date, Integer, MetaData, String, Table, select
 
-from grunt.db.filters import FILTER_OPS, apply_filters, build_clauses, split_key
 from grunt.document.in_memory import apply_filters as filter_rows
+from grunt.query.compile_sql import to_sql
+from grunt.query.nodes import TRUE
+from grunt.query.parse import FILTER_OPS, is_truthy, split_key
+from grunt.query.sql import filter_expr
 
 _META = MetaData()
 _TABLE = Table(
@@ -31,7 +34,10 @@ _TABLE = Table(
 
 
 def _sql(filters: dict) -> str:
-    stmt = apply_filters(select(_TABLE.c.doctype), _TABLE, filters)
+    expr = filter_expr(filters, _TABLE)
+    stmt = select(_TABLE.c.doctype)
+    if expr != TRUE:
+        stmt = stmt.where(to_sql(expr, _TABLE))
     return str(stmt.compile(compile_kwargs={"literal_binds": True}))
 
 
@@ -119,21 +125,9 @@ class TestApplyFilters:
         # No clause should be added for a column that does not exist.
         assert "WHERE" not in _sql({"missing__nin": ["a"]})
 
-    def test_apply_filters_matches_build_clauses(self):
-        # apply_filters is a thin where()-applying wrapper around
-        # build_clauses — same WHERE output either way.
-        f = {"doctype__nin": ["A", "B"], "status": "Open"}
-        via_apply_filters = _sql(f)
-        clauses = build_clauses(_TABLE, f)
-        stmt = select(_TABLE.c.doctype)
-        for c in clauses:
-            stmt = stmt.where(c)
-        via_build_clauses = str(stmt.compile(compile_kwargs={"literal_binds": True}))
-        assert via_apply_filters == via_build_clauses
-
 
 class TestInMemoryInFilter:
-    """In-memory apply_filters mirrors build_clauses' in / nin operand parsing."""
+    """In-memory filtering parses in / nin operands like SQL does."""
 
     ROWS = [{"s": "A"}, {"s": "B"}, {"s": "C"}]
 
@@ -178,7 +172,7 @@ def test_every_operator_is_handled_by_sql_and_virtual(op):
     """FILTER_OPS is the one list both backends are driven by — each operator
     must yield a SQL clause *and* be implemented for in-memory rows."""
     value = "set" if op == "is" else "1"
-    assert len(build_clauses(_TABLE, {f"qty__{op}": value})) == 1
+    assert filter_expr({f"qty__{op}": value}, _TABLE) != TRUE
     filter_rows([{"qty": 1}], {f"qty__{op}": value})
 
 
@@ -189,8 +183,6 @@ def test_virtual_rejects_unknown_operator():
 
 @pytest.mark.parametrize("value", ["yes", "true", "1", True, "no", "false", "0", False])
 def test_virtual_isnull_reads_value_like_sql(value):
-    from grunt.db.filters import is_truthy
-
     rows = [{"qty": None}, {"qty": 1}]
     expected = [rows[0]] if is_truthy(value) else [rows[1]]
     assert filter_rows(rows, {"qty__isnull": value}) == expected

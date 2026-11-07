@@ -18,7 +18,7 @@ Not applied to System Manager. When SystemSettings
 ``apply_strict_user_permissions`` is on, a restricted ``allow`` with no Link
 field on the target DocType (or a NULL value) blocks rather than passes.
 
-Wired into ``apply_permission_filter`` (lists / counts / link search / reports)
+Wired into ``read_predicate`` (lists / counts / link search / reports)
 and ``PermissionChecker.check`` (single-document read / write / delete); the
 write path also checks the *new* values of a created / updated document, so a
 restricted user cannot insert or move a record outside their scope.

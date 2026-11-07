@@ -13,7 +13,7 @@ import re
 from datetime import date, timedelta
 from typing import Any
 
-from grunt.db.filters import DISPLAY_OPS
+from grunt.query.parse import DISPLAY_OPS
 
 _RELATIVE_DATE = re.compile(r"^today(?:([+-])(\d+))?$", re.IGNORECASE)
 
@@ -28,7 +28,7 @@ def _resolve_value(value: Any) -> Any:
 
 
 def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
-    """Each condition as a one-key ``build_clauses`` filter (keys may repeat across
+    """Each condition as a one-key filter dict (``grunt.query.parse``) (keys may repeat across
     conditions - e.g. a date range - so they are not merged into one dict)."""
     out: list[dict[str, Any]] = []
     for c in conditions or []:

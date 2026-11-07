@@ -10,10 +10,8 @@ from grunt.document.meta import Meta
 from grunt.search.terms import like_term, match_terms
 lazy from grunt.metadata.doctype import DocType
 
-# Filter-clause building lives in grunt.db.filters.apply_filters - this module
-# used to have a second, same-named function here that just wrapped
-# build_clauses() again, which made "which apply_filters is this?" an
-# actual question when grepping. Import from grunt.db.filters directly instead.
+# Filters become a query predicate in grunt.query.sql.filter_expr (parsed by
+# grunt.query.parse) - no filter building lives here.
 
 
 async def expand_child_of_filters(

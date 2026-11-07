@@ -174,7 +174,7 @@ CI проганяє їх на SQLite і PostgreSQL; `test_in_memory.py` — ті
   порівняння, `%`/`_` у like, той самий порядок тексту, порожні в кінці. LIKE — лінійне
   зіставлення, не regex: `%a%a%…` з `.*`-групами давав експоненційний бектрекінг (ReDoS, #97).
 
-### 3. `Query` AST — ⏳ (дизайн погоджено 2026-11-07; 3a ✅, 3b ✅)
+### 3. `Query` AST — ✅ 3a–3c (2026-11-07); 3d — після кроку 4
 
 `db/filters.py` розбирає вхідні дані в нейтральний `Query`; права (user permissions,
 shares, власник) — вузли AST; `SqlStore` компілює в SQLAlchemy. Звіти/Query Builder
@@ -247,8 +247,20 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   `link.field != v` = «не серед рядків, де `field == v`» (порожнє поле цілі — підходить, порожній Link — ні).
   Тести: `_UP_CACHE` чиститься між тестами (`conftest.setup_db`) — кеш User Permissions за email
   протікав між тестами на одному воркері (плаваюче падіння `test_permission_engine`).
-- 3c. `list_documents` / `get_all` / `count` / `aggregate` / tree / звіти будують `Query` і йдуть через
+- 3c. ✅ (2026-11-07) `list_documents` / `get_all` / `count` / `aggregate` / tree / звіти будують `Query` і йдуть через
   `run`; обгортки `apply_filters`/`apply_permission_filter` зникають.
+  Зроблено: `grunt/query/sql.py` — `filter_expr(filters, table, meta)` і `where(stmt, expr, table, doctype)`
+  (довантажує таблиці `Linked`) — **єдиний шлях фільтрів і прав у WHERE**. `grunt/db/filters.py` видалено
+  (`DISPLAY_OPS`, `FILTER_OPS`, `split_key`… — у `grunt.query.parse`, `typed_value` — у `compile_sql`);
+  `apply_permission_filter` видалено — лишився `read_predicate`. `grunt.db.get_all/aggregate`: колбек
+  `scope` → `predicate: Expr` (фасад передає `read_predicate`). `collection`, `tree`/`tree_rpc`, звіти —
+  `where(…, and_(read_predicate, filter_expr))`.
+  Заодно: `grunt.db.delete` / `bulk_update` з фільтрами лише на невідомі колонки (одруківка) тепер
+  `ValueError`, а не операція над **усіма** рядками (раніше невідомий ключ мовчки зникав).
+  **Відхилення:** окремого об'єкта `Query` + `run` ще немає — без Store йому нема споживача, а
+  сортування/курсор/групування поки в місцях виклику. Переноситься в крок 4: `Store.list(query)` —
+  там він і з'явиться разом з `capabilities`. `list_filter_extra` і пошук у списку лишились
+  SQL-умовами після предиката (вузли `Raw`/`Search` — теж у кроці 4, коли VirtualStore має їх відхиляти).
 - 3d. (після кроку 4) JOIN з правами для звітів/Query Builder — `Linked` з полями цілі.
 
 ### 4. Store protocol — ⏳

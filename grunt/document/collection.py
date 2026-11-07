@@ -17,7 +17,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
-from grunt.db.filters import apply_filters, typed_value
 from grunt.document.base import (
     Document,
     DocumentList,
@@ -43,9 +42,12 @@ from grunt.document.update_side_effects import (
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.access import RoleAccess
-from grunt.permissions.query import apply_permission_filter
+from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.user_permissions import get_user_permissions_for
+from grunt.query import nodes as q
+from grunt.query.compile_sql import typed_value
+from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.db.dialects import dialect_for
@@ -120,13 +122,12 @@ async def _apply_where(
 
     Shared by the data query and the COUNT query so the two can never drift
     out of sync with each other - including which rows count() reports as
-    the pagination total. User Permissions come with ``apply_permission_filter``.
+    the pagination total. Row-level rules and filters are one predicate.
     """
-    query = await apply_permission_filter(query, table, user, dt.doc)
+    readable = await read_predicate(table, user, dt.doc)
+    query = await where(query, q.and_(readable, filter_expr(filters, table, dt)), table, dt.name)
     if extra_clause is not None:
         query = query.where(extra_clause)
-    if filters:
-        query = apply_filters(query, table, filters, dt)
     if search:
         query = await _apply_search(query, table, dt.doc, search)
     return query

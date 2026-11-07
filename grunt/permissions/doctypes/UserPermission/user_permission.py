@@ -5,7 +5,7 @@ Link field) to *for_value* of DocType *allow*. Multiple rows for the same
 ``allow`` widen the allowed set (OR); different ``allow`` types narrow it (AND).
 
 Enforcement lives in :mod:`grunt.permissions.user_permissions`, wired into
-``apply_permission_filter`` (lists / counts / link search / reports) and
+``read_predicate`` (lists / counts / link search / reports) and
 ``PermissionChecker.check`` (single-document read / write / delete).
 """
 

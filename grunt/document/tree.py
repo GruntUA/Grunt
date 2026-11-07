@@ -34,8 +34,8 @@ from grunt import _, log
 from grunt.db.dialects import dialect_for
 from grunt.document.registry import document_registry
 from grunt.search.terms import match_columns
-lazy from grunt.db.filters import apply_filters
 lazy from grunt.document.base import Document
+lazy from grunt.query.sql import filter_expr, where
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
 #
@@ -339,7 +339,7 @@ class TreeService:
         # scoped only to the nodes already present in this subtree.
         tree_ids = [r["name"] for r in all_rows]
         filtered_q = select(table.c.name)
-        filtered_q = apply_filters(filtered_q, table, filters, dt)
+        filtered_q = await where(filtered_q, filter_expr(filters, table, dt), table, dt and dt.name)
 
         if search:
             candidate_fields: list[str] = []

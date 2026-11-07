@@ -3,7 +3,7 @@
 ``permission = "Read"`` grants read (and select); ``"Write"`` also grants write.
 Shares only *add* access on top of role permissions (see
 :meth:`grunt.permissions.rbac.PermissionChecker.check` and
-:func:`grunt.permissions.query.apply_permission_filter`); they never grant
+:func:`grunt.permissions.query.read_predicate`); they never grant
 create or delete, and never apply to a different document.
 """
 

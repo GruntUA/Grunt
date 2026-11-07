@@ -1,7 +1,7 @@
 """Role-based access facts for a (doctype, user) pair.
 
 `PermissionChecker.check()`/`.hidden_fields()` (rbac.py) and
-`apply_permission_filter()` (query.py) each independently re-derived the same
+`read_predicate()` (query.py) each independently re-derived the same
 thing: which `DocPermission` rows a user's roles actually match. Wrapping
 that here means the three call sites can't drift the way `PermissionMatch`'s
 two evaluation modes already had.
@@ -39,7 +39,7 @@ class RoleAccess:
         """True when a matching permission grants ``read`` with no row ``match`` -
         the user may read every row, not just a filtered subset.
 
-        ``apply_permission_filter()`` and the Link/tree picker gates both need to
+        ``read_predicate()`` and the Link/tree picker gates both need to
         tell "reads everything" apart from "reads only rows matching an
         expression"; ``check(user, dt, "read")`` can't, because with ``doc=None``
         it skips ``match`` and answers True for a row-scoped grant too.

@@ -3,7 +3,7 @@
 Run with: pytest tests/unit/test_api.py -v
 """
 
-from unittest.mock import ANY, AsyncMock, Mock, patch
+from unittest.mock import ANY, AsyncMock, Mock, PropertyMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -25,6 +25,7 @@ from grunt.app import GruntDB
 from grunt.errors import ApplicationError
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
+from grunt.query.nodes import Cmp
 
 db = GruntDB()
 
@@ -362,6 +363,12 @@ class TestGruntAppLayerPermissions:
                 grunt.db, "get_all", new_callable=AsyncMock, return_value=rows
             ) as mock_db_get_all,
             patch("grunt.app.document_api.fire", new_callable=AsyncMock) as mock_fire,
+            patch(
+                "grunt.app.document_api.read_predicate",
+                new_callable=AsyncMock,
+                return_value=Cmp("owner", "eq", "u@x"),
+            ),
+            patch("grunt.document.meta.Meta.table", new_callable=PropertyMock),
         ):
             result = await grunt.get_all(
                 InvoiceModel,
@@ -384,11 +391,11 @@ class TestGruntAppLayerPermissions:
                 offset=10,
                 order_by="modified_at",
                 order="desc",
-                scope=ANY,
+                predicate=ANY,
             )
-            # Row-level permission filter (match rules, shares) is applied.
+            # Row-level permission predicate (match rules, shares) is applied.
             assert mock_db_get_all.await_args is not None
-            assert callable(mock_db_get_all.await_args.kwargs["scope"])
+            assert mock_db_get_all.await_args.kwargs["predicate"] == Cmp("owner", "eq", "u@x")
             assert mock_fire.await_count == 2
 
 

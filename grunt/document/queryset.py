@@ -12,7 +12,7 @@ it does not build SQL itself::
 
 Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gte``,
 ``__lt``, ``__lte``, ``__in``, ``__nin``, ``__like``, ``__ilike``, ``__isnull``, ``__ne``)
-- they are passed straight through to ``build_clauses``, nothing extra to learn.
+- they are passed straight through to ``grunt.query.parse``, nothing extra to learn.
 """
 
 from typing import Any

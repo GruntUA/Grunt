@@ -13,13 +13,13 @@ import grunt
 from grunt import _, log
 from grunt.db.buckets import DATE_BUCKETS
 from grunt.db.dialects import dialect_for
-from grunt.db.filters import build_clauses
 from grunt.db.session import get_engine as _engine_factory
 from grunt.document.query import expand_child_of_filters
 from grunt.errors import not_found
 from grunt.io.exporters.sanitize import escape_formula
-from grunt.permissions.query import apply_permission_filter
+from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
+from grunt.query.sql import filter_expr, where
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
 lazy from grunt.auth.doctypes.User.user import User
@@ -332,24 +332,23 @@ class ReportEngine:
         # ``field__child_of`` is not a grunt.db operator - expanded to the
         # subtree (``field__in=…``) first, as list queries do.
 
-        async def where(filter_dict: dict[str, Any]) -> None:
+        async def add_filters(filter_dict: dict[str, Any]) -> None:
             nonlocal stmt
             if any(k.endswith("__child_of") for k in filter_dict):
                 filter_dict = await expand_child_of_filters(session, dt.doc, filter_dict)
-            for clause in build_clauses(table, filter_dict, dt):
-                stmt = stmt.where(clause)
+            stmt = await where(stmt, filter_expr(filter_dict, table, dt), table, dt.name)
 
-        await where({k: v for k, v in filters.items() if v not in (None, "", [])})
+        await add_filters({k: v for k, v in filters.items() if v not in (None, "", [])})
 
         # Fixed report conditions (always on, unlike the viewer's filters).
         # Drill-down below gets them unexpanded - the list URL carries child_of.
         conditions = compile_conditions(report.get("conditions"))
         for condition in conditions:
-            await where(condition)
+            await add_filters(condition)
 
         # Row-level security
 
-        stmt = await apply_permission_filter(stmt, table, user, dt)
+        stmt = await where(stmt, await read_predicate(table, user, dt), table, dt.name)
 
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)

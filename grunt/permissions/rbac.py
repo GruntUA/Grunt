@@ -121,7 +121,7 @@ class PermissionChecker:
             break
 
         # Row-level User Permissions narrow the role grant for a specific doc.
-        # (doc=None list/count checks are filtered in apply_permission_filter.)
+        # (doc=None list/count checks are filtered by read_predicate.)
         if result and doc is not None and not await doc_passes(user, doctype, doc):
             result = False
 
