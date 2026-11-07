@@ -174,10 +174,60 @@ CI проганяє їх на SQLite і PostgreSQL; `test_in_memory.py` — ті
   порівняння, `%`/`_` у like, той самий порядок тексту, порожні в кінці. LIKE — лінійне
   зіставлення, не regex: `%a%a%…` з `.*`-групами давав експоненційний бектрекінг (ReDoS, #97).
 
-### 3. `Query` AST — ⏳
+### 3. `Query` AST — ⏳ (дизайн, чекає погодження)
+
 `db/filters.py` розбирає вхідні дані в нейтральний `Query`; права (user permissions,
 shares, власник) — вузли AST; `SqlStore` компілює в SQLAlchemy. Звіти/Query Builder
 (JOIN з правами, IDEAS 2.2) будуються над AST.
+
+**Що є зараз (інвентаризація 2026-11-07):**
+- фільтри: `build_clauses`/`apply_filters` (~20 викликів: `db/api.py` ×8, `collection`, `tree`,
+  `reports/engine`, монітори) одразу дають SQLAlchemy; `in_memory.py` — друга реалізація тих
+  самих операторів на Python (контракт тримає їх однаковими, але це дві копії);
+- права: `apply_permission_filter` склеює SQL з п'яти джерел — `match` (`PermissionMatch.to_sql`),
+  reference (`inherit_permission_from`), child, shares (`SharedWith`), User Permissions; перевірка
+  одного документа (`rbac.check`, `PermissionMatch.evaluate`, `doc_passes`) — окрема Python-логіка;
+- **знайдено (2026-11-07):** User Permissions кожен виклик додавав сам (`build_conditions`), а
+  `grunt.get_all` і `grunt.aggregate` — забули: показували рядки, які `get_list` ховав.
+  Виправлено: `apply_permission_filter` сам додає User Permissions, окремі виклики прибрано
+  (`collection`, `tree_rpc`, `reports/engine`, `reference`), тест `test_get_all_and_aggregate_are_restricted`.
+  Саме цей клас помилок («крок прав, який треба не забути») AST має прибрати.
+
+**Дизайн.** Пакет `grunt/query/` (шар 2 — над Store, не в `db/`):
+
+- `nodes.py` — незмінні dataclass-вузли, що знають лише назви полів DocType, не колонки:
+  - `Cmp(field, op, value)` — `eq ne gt gte lt lte`; значення вже типізоване за полем Meta;
+  - `Like(field, pattern, negate)` — шаблон `%`/`_`, регістр не враховується;
+  - `In(field, values, negate)`, `Empty(field, negate)` (`is set` — NULL або `''` для тексту),
+    `Null(field, negate)`, `Range(field, lo, hi)` (`__year` → півінтервал, індекс працює);
+  - `And / Or / Not`, `TRUE / FALSE`;
+  - `Linked(field, Query)` — значення поля серед `name` іншого запиту: `match` через Link
+    (`team.region == user`), shares (`name IN SharedWith…`), reference, child — усе це один вузол;
+  - `MultiLink(field, values | None, negate)`; `Search(text, fields)` — пошук у списку;
+  - `Raw(clause)` — лазівка для `list_filter_extra` контролерів (SQL-only; VirtualStore → 400).
+- `Query(doctype, where, fields, sort, group_by, aggregates, limit, offset, after)` — `after`
+  замість курсора-рядка; порядок (порожні в кінці, `name` розв'язує рівні) — властивість Query.
+- `parse.py` — `filters → Expr` (теперішній `split_key`/`typed_value`, але типізація за полем Meta,
+  тож in-memory отримує ту саму). Невідомі поля — пропускаються, як зараз (змінити на 400 — у кроці 4).
+- `permissions.read_predicate(user, meta) → Expr` замість `apply_permission_filter`: усі асинхронні
+  довантаження (значення User Permissions, корені shares, дерева, `DISTINCT` reference) — тут,
+  результат — чистий Expr. Fail-closed = `FALSE`.
+- **Одна точка**: `secure(query, user) = query.where(And(query.where, read_predicate(user, meta)))`;
+  виконавець (`run(session, query, as_user=…)`) приймає лише Query — пропустити права неможливо,
+  «сирий» шлях (`ignore_permissions`) — явний аргумент.
+- `compile_sql.py` — `Expr → SQLAlchemy` через `Dialect` (сортування, `like_contains`, `exact`,
+  keyset); `evaluate.py` — `Expr → bool` для dict: замінює `in_memory.apply_filters` і
+  поступово — перевірку одного документа (`doc_passes`, `match`), тож список і `get_doc`
+  відповідають одним предикатом. `Linked` в evaluate — через довантаження (як `evaluate_doc`).
+
+**Порядок (кожен — окремий зелений PR, контракт `tests/contract/` — сітка безпеки):**
+- 3a. Вузли + `parse` + `compile_sql`; `build_clauses` = `compile(parse(…))`; `in_memory` → `evaluate`
+  (прибирає другу копію операторів). Поведінка не змінюється.
+- 3b. `PermissionMatch.to_expr`, `read_predicate`; `apply_permission_filter` = `compile(read_predicate)`
+  (тимчасова обгортка). Контракт-кейси на права (match, shares, reference, child, UP) на обох СУБД.
+- 3c. `list_documents` / `get_all` / `count` / `aggregate` / tree / звіти будують `Query` і йдуть через
+  `run`; обгортки `apply_filters`/`apply_permission_filter` зникають.
+- 3d. (після кроку 4) JOIN з правами для звітів/Query Builder — `Linked` з полями цілі.
 
 ### 4. Store protocol — ⏳
 `Store` (`get/list/insert/update/delete/aggregate` + `capabilities`). `SqlStore` обгортає

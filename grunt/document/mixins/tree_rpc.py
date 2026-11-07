@@ -9,7 +9,7 @@ RPC: grunt.document.base.Document.move_tree_node - re-parent a node
 from datetime import date
 from typing import Any
 
-from sqlalchemy import and_, select
+from sqlalchemy import select
 
 import grunt
 from grunt import _
@@ -19,7 +19,6 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.guards import write_guard
 from grunt.permissions.query import apply_permission_filter
 from grunt.permissions.rbac import permission_checker
-from grunt.permissions.user_permissions import build_conditions
 
 
 async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
@@ -68,9 +67,6 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
     user = grunt.get_user()
     table = dt.table
     scope = await apply_permission_filter(select(table.c.name), table, user, dt.doc)
-    up_conds = await build_conditions(table, user, dt.doc)
-    if up_conds:
-        scope = scope.where(and_(*up_conds))
     return None if scope.whereclause is None else scope
 
 

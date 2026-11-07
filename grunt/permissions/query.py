@@ -9,12 +9,32 @@ from grunt.permissions.child import child_conditions, is_child
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.reference import reference_conditions
 from grunt.permissions.shares import shared_names_clause
+from grunt.permissions.user_permissions import build_conditions
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
 
 
 async def apply_permission_filter(
+    query: Select,
+    table: Table,
+    user: User,
+    doctype: DocType | Meta,
+) -> Select:
+    """Restrict *query* to the rows *user* may read - every row-level rule in one place.
+
+    Role ``match`` rules, inherited access, child rows and shares (see
+    :func:`_role_and_share_filter`), then User Permissions ANDed on top - they
+    narrow shared documents too. Callers must not add User Permissions again:
+    ones that had to remember it separately (``grunt.get_all``,
+    ``grunt.aggregate``) didn't, and showed rows the list hid.
+    """
+    query = await _role_and_share_filter(query, table, user, doctype)
+    user_permissions = await build_conditions(table, user, doctype)
+    return query.where(and_(*user_permissions)) if user_permissions else query
+
+
+async def _role_and_share_filter(
     query: Select,
     table: Table,
     user: User,

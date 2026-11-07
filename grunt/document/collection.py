@@ -45,7 +45,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.query import apply_permission_filter
 from grunt.permissions.rbac import permission_checker
-from grunt.permissions.user_permissions import build_conditions, get_user_permissions_for
+from grunt.permissions.user_permissions import get_user_permissions_for
 from grunt.search.service import search_index_service
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.db.dialects import dialect_for
@@ -115,19 +115,14 @@ async def _apply_where(
     search: str | None,
     extra_clause: Any | None,
     user: Any,
-    user_permission_conditions: list[Any] | None = None,
 ) -> Any:
     """Apply row-level permissions, the controller clause, filters, and search.
 
     Shared by the data query and the COUNT query so the two can never drift
     out of sync with each other - including which rows count() reports as
-    the pagination total. ``user_permission_conditions`` (from
-    ``grunt.permissions.user_permissions.build_conditions``) is resolved by the
-    async caller and passed in because it needs a DB round-trip.
+    the pagination total. User Permissions come with ``apply_permission_filter``.
     """
     query = await apply_permission_filter(query, table, user, dt.doc)
-    if user_permission_conditions:
-        query = query.where(and_(*user_permission_conditions))
     if extra_clause is not None:
         query = query.where(extra_clause)
     if filters:
@@ -318,9 +313,7 @@ async def table_list(
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await expand_child_of_filters(session, dt.doc, filters)
 
-    up_conds = await build_conditions(table, user, dt.doc)
-
-    query = await _apply_where(query, table, dt, filters, search, extra_clause, user, up_conds)
+    query = await _apply_where(query, table, dt, filters, search, extra_clause, user)
 
     total: int | None = None
     if include_total:
@@ -332,7 +325,6 @@ async def table_list(
             search,
             extra_clause,
             user,
-            up_conds,
         )
         count_result = await session.execute(count_q)
         total = count_result.scalar() or 0
@@ -452,7 +444,6 @@ async def table_count(
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await expand_child_of_filters(session, dt.doc, filters)
 
-    up_conds = await build_conditions(table, user, dt.doc)
     count_q = await _apply_where(
         select(func.count()).select_from(table),
         table,
@@ -461,7 +452,6 @@ async def table_count(
         search,
         extra_clause,
         user,
-        up_conds,
     )
     return (await session.execute(count_q)).scalar() or 0
 
@@ -503,7 +493,6 @@ async def field_years(
     year = func.extract("year", col)
     extra_clause = await _resolve_list_filter_extra(session, doctype_name, None, table)
 
-    up_conds = await build_conditions(table, user, dt.doc)
     query = await _apply_where(
         select(year).select_from(table).where(col.is_not(None)).distinct(),
         table,
@@ -512,7 +501,6 @@ async def field_years(
         None,
         extra_clause,
         user,
-        up_conds,
     )
     rows = (await session.execute(query)).scalars().all()
     return sorted({int(y) for y in rows if y is not None}, reverse=True)

@@ -59,6 +59,20 @@ async def test_list_and_count_are_restricted(ctx, setup, db_session, engine):
 
 
 @pytest.mark.asyncio
+async def test_get_all_and_aggregate_are_restricted(ctx, setup, db_session, engine):
+    """Every row-level read path, not only get_list - get_all and aggregate once
+    applied role rules and shares but forgot User Permissions."""
+    from grunt.document.base import Document
+
+    class Post(Document):
+        doctype = "UPTestPost"
+
+    async with grunt.context(db_session, engine, _employee("alice@example.com")):
+        assert [d.name for d in await grunt.get_all(Post)] == [setup["red"]]
+        assert await grunt.aggregate("UPTestPost", group_by="team") == [{"team": "Red", "count": 1}]
+
+
+@pytest.mark.asyncio
 async def test_unrestricted_user_sees_everything(ctx, setup, db_session, engine):
     async with grunt.context(db_session, engine, _employee("nobody@example.com")):
         rows = await grunt.get_list("UPTestPost")

@@ -5,7 +5,7 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from fastapi import HTTPException
-from sqlalchemy import and_, func, select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy from openpyxl.cell import Cell
 
@@ -20,7 +20,6 @@ from grunt.errors import not_found
 from grunt.io.exporters.sanitize import escape_formula
 from grunt.permissions.query import apply_permission_filter
 from grunt.permissions.rbac import permission_checker
-from grunt.permissions.user_permissions import build_conditions
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
 lazy from grunt.auth.doctypes.User.user import User
@@ -351,9 +350,6 @@ class ReportEngine:
         # Row-level security
 
         stmt = await apply_permission_filter(stmt, table, user, dt)
-        up_conds = await build_conditions(table, user, dt)
-        if up_conds:
-            stmt = stmt.where(and_(*up_conds))
 
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)

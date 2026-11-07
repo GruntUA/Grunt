@@ -19,7 +19,6 @@ lazy import grunt
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.permissions.query import apply_permission_filter
 lazy from grunt.permissions.rbac import permission_checker
-lazy from grunt.permissions.user_permissions import build_conditions
 
 # (doctype field, id field) for a dynamic reference; (None, link field) for a Link.
 Source = tuple[str | None, str]
@@ -72,11 +71,7 @@ async def readable_names(user: User, parent_meta: Any) -> Any | None:
     if not await permission_checker.check(user, parent_meta, "read"):
         return None
     parent = parent_meta.table
-    readable = await apply_permission_filter(select(parent.c.name), parent, user, parent_meta)
-    up_conds = await build_conditions(parent, user, parent_meta)
-    if up_conds:
-        readable = readable.where(and_(*up_conds))
-    return readable
+    return await apply_permission_filter(select(parent.c.name), parent, user, parent_meta)
 
 
 async def reference_conditions(
