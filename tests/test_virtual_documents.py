@@ -335,26 +335,32 @@ async def test_table_only_work_is_refused_clearly(ctx, notes):
     import grunt
     from grunt.reports.engine import report_engine
 
-    async def status(call) -> int:
+    refused = {
+        "set_value": lambda: grunt.db.set_value(DOCTYPE, "a", "title", "x"),
+        "bulk_update": lambda: grunt.db.bulk_update(DOCTYPE, {"name": "a"}, {"title": "x"}),
+        "delete": lambda: grunt.db.delete(DOCTYPE, {"name": "a"}),
+        "insert_one": lambda: grunt.db.insert_one(DOCTYPE, {"name": "z"}),
+        "aggregate": lambda: ctx.aggregate(DOCTYPE, group_by="title"),
+        "report": lambda: report_engine._run_list_report(
+            DOCTYPE,
+            {"columns": [{"fieldname": "title", "label": "T"}]},
+            {},
+            ctx.get_user(),
+            ctx.get_session(),
+        ),
+    }
+    statuses: dict[str, int] = {}
+    for what, call in refused.items():
         with pytest.raises(HTTPException) as exc:
-            await call
-        return exc.value.status_code
+            await call()
+        statuses[what] = exc.value.status_code
 
-    assert await status(grunt.db.set_value(DOCTYPE, "a", "title", "x")) == 422
-    assert await status(grunt.db.bulk_update(DOCTYPE, {"name": "a"}, {"title": "x"})) == 422
-    assert await status(grunt.db.delete(DOCTYPE, {"name": "a"})) == 422
-    assert await status(grunt.db.insert_one(DOCTYPE, {"name": "z"})) == 422
-    assert await status(ctx.aggregate(DOCTYPE, group_by="title")) == 422
-    assert (
-        await status(
-            report_engine._run_list_report(
-                DOCTYPE,
-                {"columns": [{"fieldname": "title", "label": "T"}]},
-                {},
-                ctx.get_user(),
-                ctx.get_session(),
-            )
-        )
-        == 400
-    )
+    assert statuses == {
+        "set_value": 422,
+        "bulk_update": 422,
+        "delete": 422,
+        "insert_one": 422,
+        "aggregate": 422,
+        "report": 400,
+    }
     assert NOTES["a"]["title"] == "Alpha"
