@@ -149,7 +149,7 @@ class Meta:
         DocType the same names (system ones and physical fields), without
         compiling a table it doesn't have."""
         if self._columns is None:
-            if self.doc.is_virtual:
+            if not self.doc.has_table:
                 names = [*STANDARD_COLUMNS, *(f.fieldname for f in self.get_physical_fields())]
                 if self.doc.is_child:
                     names += CHILD_COLUMNS
@@ -245,7 +245,7 @@ class Meta:
         which must survive too.
         WARNING: Dropping columns is irreversible and could lead to data loss.
         """
-        if self.doc.is_virtual:
+        if not self.doc.has_table:
             return
 
         table_name = self.doc.table_name or get_table_name(self.doc.module, self.doc.name)

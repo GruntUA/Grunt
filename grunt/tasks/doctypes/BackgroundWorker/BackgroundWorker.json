@@ -3,7 +3,7 @@
   "label": "Queue Workers",
   "module": "tasks",
   "icon": "cpu",
-  "is_virtual": true,
+  "storage": "virtual",
   "default_view": "list",
   "title_field": "worker",
   "sort_field": "last_seen",

@@ -3,7 +3,7 @@
   "label": "Performance Trend",
   "module": "monitoring",
   "icon": "trending-up",
-  "is_virtual": true,
+  "storage": "virtual",
   "track_activity": false,
   "track_changes": false,
   "title_field": "endpoint",

@@ -119,7 +119,7 @@ async def test_virtual_doctype_room_checks_the_stored_document(ctx, _point_site_
             "name": "WsVirtual",
             "label": "Ws Virtual",
             "module": "core",
-            "is_virtual": True,
+            "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Data"}],
             "permissions": [{"role": "All", "read": True}],
             "__is_new": True,

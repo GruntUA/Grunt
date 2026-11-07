@@ -46,7 +46,7 @@ description: Довідник по всіх типах полів, налашт�
 | `is_singleton` | bool | Єдиний екземпляр (для налаштувань) |
 | `is_tree` | bool | Ієрархічна структура |
 | `quick_entry` | bool | Діалог швидкого створення |
-| `is_virtual` | bool | Без власної таблиці — документи дає сховище контролера, `store_class` (див. нижче) |
+| `storage` | `"sql"` \| `"virtual"` | Де лежать документи: `sql` (типово) — таблиця DocType; `virtual` — без таблиці, документи дає сховище контролера, `store_class` (див. нижче). `meta.has_table` — `storage == "sql"` |
 
 ### Віртуальний DocType — сховище `VirtualStore`
 
@@ -93,7 +93,7 @@ class ExternalCustomer(Document):
     store_class = ExternalCustomerStore
 ```
 
-- Віртуальний DocType без `store_class` — порожнє сховище: жодного документа, запис → 405.
+- DocType з `"storage": "virtual"` без `store_class` — порожнє сховище: жодного документа, запис → 405.
 - `update` повертає документ так, як його показує `output` (серіалізований).
 - Гібрид «список з таблиці, документ — звідкись ще» (як `DocType`): `class DocTypeStore(SqlStore)`
   перевизначає `get`/`insert`/`update`/`delete`, `fetch`/`count` лишаються табличними.

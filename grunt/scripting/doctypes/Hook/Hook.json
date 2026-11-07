@@ -2,7 +2,7 @@
   "name": "Hook",
   "label": "Hooks",
   "module": "scripting",
-  "is_virtual": true,
+  "storage": "virtual",
   "track_changes": false,
   "title_field": "event",
   "search_fields": [

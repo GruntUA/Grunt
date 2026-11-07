@@ -40,7 +40,7 @@ async def apply_fetch_from(
         if not wanted:
             continue
         target = await grunt.get_meta(str(link_field.options))
-        if target is None or target.doc.is_virtual:
+        if target is None or not target.has_table:
             continue
         row = await grunt.db.get_value(
             str(link_field.options), str(value), [src for _, src in wanted], as_dict=True

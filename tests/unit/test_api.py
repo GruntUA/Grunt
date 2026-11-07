@@ -352,7 +352,6 @@ class TestGruntAppLayerPermissions:
         dt.name = "Invoice"
         dt.permissions = []
         dt.fields = []
-        dt.is_virtual = False
         rows = [{"name": "INV-001", "status": "Draft"}]
         query = Query("Invoice", where=Cmp("status", "eq", "Draft"))
 

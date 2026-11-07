@@ -2,7 +2,7 @@
   "name": "SqlProfilerRequest",
   "label": "SQL Profiler — Requests",
   "module": "monitoring",
-  "is_virtual": true,
+  "storage": "virtual",
   "track_changes": false,
   "track_activity": false,
   "title_field": "path",

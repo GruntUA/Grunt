@@ -42,11 +42,12 @@ class TestStorageDefaults:
         assert not _store().capabilities
 
 
-class TestDocTypeIsVirtual:
-    def test_default_is_false(self):
+class TestDocTypeStorage:
+    def test_default_is_its_table(self):
         dt = DocType(name="Test", label="Test", module="core")
-        assert dt.is_virtual is False
+        assert dt.storage == "sql"
+        assert dt.has_table
 
-    def test_can_set_true(self):
-        dt = DocType(name="Test", label="Test", module="core", is_virtual=True)
-        assert dt.is_virtual is True
+    def test_virtual_has_no_table(self):
+        dt = DocType(name="Test", label="Test", module="core", storage="virtual")
+        assert not dt.has_table

@@ -53,7 +53,7 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
 
     # Дочірні рядки їдуть у знімку батька; окремих табличних доктайпів,
     # віртуальних та інших журналів не чіпаємо.
-    if getattr(dt, "is_child", False) or getattr(dt, "is_virtual", False):
+    if getattr(dt, "is_child", False) or not getattr(dt, "has_table", True):
         return
     if getattr(dt, "is_log", False):
         return

@@ -25,7 +25,7 @@ def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:
     # Show the resolved physical table name (override, or the computed default)
     # so the read-only "Назва таблиці" field isn't a dead empty box in the form.
     # Virtual DocTypes have no table of their own - leave it blank.
-    if not data.get("is_virtual"):
+    if data.get("storage", "sql") == "sql":
         data["table_name"] = data.get("table_name") or get_table_name(data["module"], row["name"])
     created_at = row.get("created_at")
     modified_at = row.get("modified_at")
@@ -67,7 +67,7 @@ class DocTypeStore(SqlStore):
         if await doctype_registry.get_or_none(dt.name) is not None:
             raise ValueError(f"DocType '{dt.name}' already exists")
         await doctype_registry.register(dt, self.session, engine)
-        if not dt.is_virtual and not dt.is_child:
+        if dt.has_table and not dt.is_child:
             await sync_table(dt, engine, session=self.session)
         export_doctype_files(dt, app_name=dt.app or None)
         return dt.model_dump()
@@ -86,7 +86,7 @@ class DocTypeStore(SqlStore):
         _drop_default_table_name(dt)
         engine = grunt.get_engine()
         await doctype_registry.update(dt, self.session, engine)
-        if not dt.is_virtual and not dt.is_child:
+        if dt.has_table and not dt.is_child:
             await sync_table(dt, engine, session=self.session)
         export_doctype_files(dt, app_name=dt.app or None)
         return await self.output(dt.model_dump())

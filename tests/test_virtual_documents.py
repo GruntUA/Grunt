@@ -51,7 +51,7 @@ async def notes(ctx):
             "name": DOCTYPE,
             "label": "Virtual Note",
             "module": "core",
-            "is_virtual": True,
+            "storage": "virtual",
             "search_fields": ["title"],
             "sort_field": "name",
             "sort_order": "desc",
@@ -228,7 +228,7 @@ async def test_row_level_match_filters_list_count_and_get(ctx, db_session, engin
             "name": "VirtualOwnedNote",
             "label": "Virtual Owned Note",
             "module": "core",
-            "is_virtual": True,
+            "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
             "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
             "__is_new": True,
@@ -272,7 +272,7 @@ async def test_shared_virtual_document_is_listed(ctx, db_session, engine):
             "name": "VirtualSharedNote",
             "label": "Virtual Shared Note",
             "module": "core",
-            "is_virtual": True,
+            "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
             "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
             "__is_new": True,
@@ -288,7 +288,7 @@ async def test_shared_virtual_document_is_listed(ctx, db_session, engine):
     )
     document_registry.register("VirtualSharedNote", _Notes)
     try:
-        from grunt.auth.doctypes.User.user import create_user
+        from grunt.auth.users import create_user
 
         await create_user("alice@example.com", "", "Alice", "A", None)
         await ctx.new_doc(

@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-07 (кроки 1–3, 4a–4d готові; далі 4e — поле `storage`)
+Оновлено: 2026-11-07 (кроки 1–4 готові; далі 5 — Connections + UnitOfWork + outbox)
 
 ---
 
@@ -275,7 +275,7 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   полів поля кожного Link (`Клієнт → Регіон`); недоступна ціль — пропускається.
   Тести: `grunt/reports/tests/test_report_joins.py` (7).
 
-### 4. Store protocol — ⏳
+### 4. Store protocol — ✅ (2026-11-07)
 `Store` (`get/list/insert/update/delete/aggregate` + `capabilities`). `SqlStore` обгортає
 теперішні mixins, віртуальні DocType → `VirtualStore`. Поле DocType
 `storage: "sql" | "sql:<alias>" | "virtual" | "http:<connector>"`. Ядро перевіряє
@@ -378,7 +378,19 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   Решта `is_virtual` (схема, CLI, retention, AutoRepeat, ServiceLevel, кошик, посилання на файли,
   health) означає «є своя таблиця в основній базі» — переходить у 4e (`storage`).
   Перевірено: ruff, pyright 0; SQLite 2089/0, PG 2090/0.
-- 4e. Поле `storage`, `is_virtual` — похідне; міграція JSON.
+- 4e. ✅ (2026-11-07, не закомічено) Поле `storage`, міграція.
+  Зроблено: `DocType.storage: "sql" | "virtual"` (типово `sql`) замість `is_virtual`; похідна
+  властивість `has_table` (`storage == "sql"`) — нею перевіряють «є своя таблиця» (схема, CLI,
+  retention, AutoRepeat, ServiceLevel, MilestoneTracker, кошик, посилання на файли, health, пошук,
+  `store_class`, opendata). `is_virtual` на рівні DocType прибрано (на рівні поля — read formula —
+  лишився). Форма DocType: Select «Сховище» (`sql`/`virtual`), `depends_on` — від `storage`; JSON ядра
+  і `translate` — `"storage": "virtual"`; синхронізований з ядра атрибут — `storage`. Міграція 0019:
+  колонка `storage` у таблиці DocType і ключ у збережених визначеннях (`is_virtual` прибрано; стара
+  колонка лишається). Перевірено на копії dev2: 292 визначення, 11 віртуальних — ті самі.
+  До `grunt migrate` сайт не ламається: модель ігнорує невідомий ключ, атрибути DocType ядра й
+  додатків при завантаженні беруться з JSON. Фронтенд: тип `DocType.storage`, `indexHints`.
+  Перевірено: ruff, pyright 0; SQLite 2091/0, PG 2092/0; vitest 328; translate 31, lagoo 20,
+  hromada_it 42, opendata 76, crystal_finance 40. Тест міграції 0019.
 
 ### 5. Connections + UnitOfWork + outbox — ⏳
 Іменовані з'єднання сайту (`default`, `replica`, зовнішні), write_intent → маршрутизація

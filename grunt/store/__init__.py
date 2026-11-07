@@ -33,7 +33,7 @@ def store_class(meta: Any) -> type[Store]:
     cls = getattr(document_registry.get(meta.name), "store_class", None)
     if cls is not None:
         return cls
-    return Store if meta.is_virtual else SqlStore
+    return SqlStore if meta.has_table else Store
 
 
 def supports(meta: Any, capability: str) -> bool:

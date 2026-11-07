@@ -20,7 +20,7 @@ import dotenv
 
 from grunt.cli.utils import AliasedGroup
 lazy import grunt
-lazy from grunt.auth.doctypes.User.user import create_user, get_user_by_email
+lazy from grunt.auth.users import create_user, get_user_by_email
 lazy from grunt.metadata.compiler import SA_METADATA, sync_table
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
@@ -270,7 +270,7 @@ def _run_migrate_for_site(site_name: str) -> None:
                 await doctype_registry.load_all(session)
 
                 for dt in await doctype_registry.list_all():
-                    if not dt.is_virtual:
+                    if dt.has_table:
                         await sync_table(dt, eng, session=session)
 
                 await session.commit()
