@@ -9,7 +9,8 @@
 ## Pull request
 
 - Один PR — один завершений крок, який можна переглянути за раз: **до ~40 файлів**. CodeRabbit
-  безкоштовно рецензує PR лише до 100 файлів, тож великий крок ріжемо на кілька PR.
+  безкоштовно рецензує PR лише до 100 файлів, тож великий крок ріжемо на кілька PR. Рев'ю PR у
+  `develop` вмикає `.coderabbit.yaml`.
 - Заголовок — у форматі [Conventional Commits](https://www.conventionalcommits.org/):
   `feat(store): VirtualStore для віртуальних DocType`, `fix(schema): …`, `docs: …`.
   Типи: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `chore`; зламаний API —
