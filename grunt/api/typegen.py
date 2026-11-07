@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import Any
 
 lazy from grunt import log
-lazy from grunt.document.base import BaseDocument
+lazy from grunt.document.base import Document
 
 #: Parameters the dispatcher fills itself (``api/v1/method.py``).
 _INJECTED = {"self", "cls", "request", "response"}
@@ -196,7 +196,7 @@ def _is_pydantic(tp: type) -> bool:
 
 
 def _is_document(tp: type) -> bool:
-    return issubclass(tp, BaseDocument)
+    return issubclass(tp, Document)
 
 
 #: Columns every document row has (``metadata/compiler.py``), before its fields.

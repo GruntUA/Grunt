@@ -19,10 +19,10 @@ from typing import Any
 
 import grunt
 from grunt.local import _user_ctx, require_user
-lazy from grunt.document.base import BaseDocument
+lazy from grunt.document.base import Document
 
 
-class QuerySet[T: BaseDocument]:
+class QuerySet[T: Document]:
     """Immutable, chainable query builder bound to a single controller class."""
 
     def __init__(self, model_cls: type[T]) -> None:

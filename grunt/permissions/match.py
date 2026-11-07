@@ -19,8 +19,7 @@ one place makes that kind of drift structurally harder to reintroduce.
 """
 
 import re
-
-from sqlalchemy import Table
+from collections.abc import Collection
 
 import grunt
 from grunt import log
@@ -53,8 +52,10 @@ def _operand(raw_value: str, user: User) -> tuple[bool, str]:
     return False, ""
 
 
-async def _resolve_link_target(doctype: DocType | Meta, link_fn: str) -> tuple[str, Table] | None:
-    """``(target_doctype_name, target_table)`` for the Link field *link_fn* on
+async def _resolve_link_target(
+    doctype: DocType | Meta, link_fn: str
+) -> tuple[str, Collection[str]] | None:
+    """``(target_doctype_name, target_columns)`` for the Link field *link_fn* on
     *doctype*, or ``None`` when *link_fn* is not a Link (or its target DocType
     can't be loaded)."""
     field = next((f for f in doctype.fields if f.fieldname == link_fn), None)
@@ -64,7 +65,7 @@ async def _resolve_link_target(doctype: DocType | Meta, link_fn: str) -> tuple[s
     target_dt = await grunt.get_meta(field.options)
     if target_dt is None:
         return None
-    return field.options, target_dt.table
+    return field.options, target_dt.columns
 
 
 class PermissionMatch:
@@ -85,7 +86,7 @@ class PermissionMatch:
         return m.group("field"), m.group("op"), m.group("value").strip()
 
     async def to_expr(
-        self, table: Table, user: User, doctype: DocType | Meta | None = None
+        self, columns: Collection[str], user: User, doctype: DocType | Meta | None = None
     ) -> Expr | None:
         """The rule as a query predicate, for row-level list/count filtering.
 
@@ -106,18 +107,18 @@ class PermissionMatch:
             return None  # numbers, bare names, etc. - outside the supported form
 
         if "." not in field:
-            if field not in table.c:
+            if field not in columns:
                 return None
             return Cmp(field, "eq" if op == "==" else "ne", value)
 
         link_fn, sub_fn = field.split(".", 1)
-        if doctype is None or link_fn not in table.c:
+        if doctype is None or link_fn not in columns:
             return None
         resolved = await _resolve_link_target(doctype, link_fn)
         if resolved is None:
             return None
-        target_name, target_table = resolved
-        if sub_fn not in target_table.c:
+        target_name, target_columns = resolved
+        if sub_fn not in target_columns:
             return None
         return Linked(link_fn, target_name, Cmp(sub_fn, "eq", value), negate=op != "==")
 

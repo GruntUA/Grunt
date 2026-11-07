@@ -150,6 +150,14 @@ msgstr "%(queued)s у черзі, %(running)s виконується"
 msgid "%(shown)s of %(total)s records"
 msgstr "Записів: %(shown)s з %(total)s"
 
+#: grunt/grunt/db/dialects/postgresql.py
+msgid "%(tool)s failed: %(error)s"
+msgstr ""
+
+#: grunt/grunt/db/dialects/postgresql.py
+msgid "%(tool)s not found; install the PostgreSQL client"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py
 msgid "%(used)s used"
 msgstr "використано %(used)s"
@@ -166,7 +174,7 @@ msgstr "%(user)s відповів(-ла) на ваш коментар"
 msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
 msgstr "%(user)s: «%(action)s» — %(from)s → %(to)s"
 
-#: grunt/grunt/document/mixins/write.py
+#: grunt/grunt/document/mixins/lifecycle.py
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
 
@@ -352,6 +360,10 @@ msgstr "Запис з таким значенням вже існує. Введ�
 msgid "A reply must belong to the same document"
 msgstr "Відповідь має стосуватися того самого документа"
 
+#: grunt/grunt/db/errors.py
+msgid "A required field is empty."
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
 msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
@@ -395,6 +407,10 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgid "A user's like on one document (the heart in list views)."
 msgstr "Позначка «подобається» користувача на документі (сердечко у списках)."
+
+#: grunt/grunt/db/errors.py
+msgid "A value does not meet the database's rules."
+msgstr ""
 
 #: grunt/grunt/api/v1/meta.py
 msgid "A virtual DocType has no physical table"
@@ -1249,7 +1265,8 @@ msgstr "Auth ключ"
 msgid "Authentication cancelled"
 msgstr "Автентифікацію скасовано"
 
-#: grunt/grunt/api/context.py grunt/grunt/auth/providers/webauthn.py
+#: grunt/grunt/api/context.py grunt/grunt/api/v1/method.py
+#: grunt/grunt/auth/providers/webauthn.py
 msgid "Authentication required"
 msgstr "Потрібна автентифікація"
 
@@ -1427,10 +1444,6 @@ msgstr "Резервні коди скопійовано"
 msgid "Backup file not found"
 msgstr "Файл резервної копії не знайдено"
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py
-msgid "Backup not found"
-msgstr "Резервну копію не знайдено"
-
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Backup started"
 msgstr "Резервне копіювання запущено"
@@ -1470,7 +1483,7 @@ msgstr "Резервні копії в цьому сховищі"
 msgid "Backups kept"
 msgstr "Зберігається копій"
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/backups/__init__.py grunt/grunt/db/dialects/base.py
 msgid "Backups of %(backend)s are not supported"
 msgstr "Резервне копіювання %(backend)s не підтримується"
 
@@ -1900,7 +1913,7 @@ msgstr "Перевірка посилань…"
 msgid "Checking the connection…"
 msgstr "Перевіряємо з'єднання…"
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "Checking the database copy"
 msgstr "Перевірка копії бази даних"
 
@@ -2120,8 +2133,8 @@ msgstr "Буфер обміну недоступний:"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue
 #: grunt/frontend/src/components/desk/GruntDialog.vue
-#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
 msgstr "Закрити"
@@ -2300,10 +2313,6 @@ msgstr "Стиснути базу даних (VACUUM)"
 msgid "Compacting… the database may be locked until it finishes."
 msgstr "Виконується стиснення… база може бути заблокована до завершення."
 
-#: grunt/grunt/api/v1/meta.py
-msgid "Compaction is not supported for the “%(dialect)s” database"
-msgstr "Стиснення не підтримується для СКБД «%(dialect)s»"
-
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 msgid "Compare and restore"
 msgstr "Порівняти й відновити"
@@ -2338,7 +2347,7 @@ msgstr "Стиснено"
 msgid "Compressing images"
 msgstr "Стиснення зображень"
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "Compressing the database"
 msgstr "Стиснення бази даних"
 
@@ -2486,7 +2495,7 @@ msgstr "Ім'я, під яким процес-воркер зареєструв�
 msgid "Contacts"
 msgstr "Контакти"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Contains"
 msgstr "Містить"
 
@@ -2547,7 +2556,7 @@ msgstr "Координати поза діапазоном"
 #: grunt/frontend/src/core/composables/useToast.ts
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/layout/CommandPalette.vue
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarRows.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 msgid "Copied"
 msgstr "Скопійовано"
@@ -2569,16 +2578,13 @@ msgstr "Скільки копій тримати тут"
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarRows.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 #: grunt/frontend/src/components/fields/Code/CodeView.vue
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "Copy"
 msgstr "Копіювати"
-
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
-msgid "Copy ID"
-msgstr "Скопіювати ідентифікатор"
 
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.js
 msgid "Copy JSON"
@@ -2616,7 +2622,7 @@ msgstr ""
 msgid "Copying the configuration"
 msgstr "Копіювання конфігурації"
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "Copying the database"
 msgstr "Копіювання бази даних"
 
@@ -2632,7 +2638,7 @@ msgstr "Помилка застосування переходу"
 msgid "Could not check for updates: %(error)s"
 msgstr "Не вдалося перевірити оновлення: %(error)s"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarRows.vue
 msgid "Could not copy"
 msgstr "Не вдалося скопіювати"
 
@@ -2684,7 +2690,7 @@ msgstr "Не вдалося відкрити звіт"
 msgid "Could not read the OneDrive drive of this account"
 msgstr "Не вдалося прочитати диск OneDrive цього облікового запису"
 
-#: grunt/grunt/document/mixins/write.py
+#: grunt/grunt/document/mixins/lifecycle.py
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
@@ -3395,7 +3401,7 @@ msgstr "Залежить від (Depends On)"
 msgid "Deprecated"
 msgstr "Неактуальний (deprecated)"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Descendant of"
 msgstr "Підпорядковано"
 
@@ -3770,7 +3776,7 @@ msgstr "Документ з назвою «%(new_id)s» вже існує"
 msgid "Document “%(name)s” already exists. Restore with a new ID?"
 msgstr "Документ «%(name)s» уже існує. Відновити з новим ID?"
 
-#: grunt/grunt/permissions/guards.py grunt/grunt/document/mixins/read.py
+#: grunt/grunt/document/base.py grunt/grunt/permissions/guards.py
 msgid "Document “%(name)s” not found"
 msgstr "Документ «%(name)s» не знайдено"
 
@@ -3802,7 +3808,7 @@ msgstr "Документи, пов'язані з"
 msgid "Documents of “%(doctype)s” cannot be repeated"
 msgstr "Документи «%(doctype)s» не можна повторювати"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Does not contain"
 msgstr "Не містить"
 
@@ -3902,7 +3908,7 @@ msgstr "Dropbox"
 msgid "Due date"
 msgstr "Термін"
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/postgresql.py
 msgid "Dumping the database"
 msgstr "Вивантаження бази даних"
 
@@ -4273,7 +4279,7 @@ msgstr "Спершу введіть адресу електронної пошт
 msgid "Entered"
 msgstr "Увійшов"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Equals"
 msgstr "Дорівнює"
 
@@ -5320,11 +5326,11 @@ msgstr "Координати вузлів графа {state: {x, y}} — кер�
 msgid "Gray"
 msgstr "Сірий"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Greater than"
 msgstr "Більше"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Greater than or equal"
 msgstr "Більше або дорівнює"
 
@@ -5492,20 +5498,6 @@ msgstr "Сховати чеклист"
 msgid "Hide from global feed"
 msgstr "Приховати із загальної стрічки"
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "In global search"
-msgstr "У глобальному пошуку"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid ""
-"Index documents for the global search (Ctrl+K). Turn off for plumbing, "
-"telemetry and large reference directories — list and Link field search keep "
-"working"
-msgstr ""
-"Індексувати документи для глобального пошуку (Ctrl+K). Вимкніть для службових "
-"записів, телеметрії та великих довідників — пошук у списку й полях Link "
-"працюватиме як і раніше"
-
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
 msgstr "Високий"
@@ -5530,10 +5522,6 @@ msgstr "Домашня тека"
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgid "Home page"
 msgstr "Домашня сторінка"
-
-#: grunt/grunt/scripting/doctypes/Hook/hook.py
-msgid "Hook '%(doc_id)s' not found"
-msgstr "Хук «%(doc_id)s» не знайдено"
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Hooks"
@@ -5859,6 +5847,10 @@ msgstr "У хмарних сховищах"
 msgid "In filters"
 msgstr "У фільтрах"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "In global search"
+msgstr "У глобальному пошуку"
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "In list view"
 msgstr "У списку"
@@ -5906,6 +5898,16 @@ msgstr "Невірна електронна пошта або пароль"
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Increase indent"
 msgstr "Збільшити відступ"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Index documents for the global search (Ctrl+K). Turn off for plumbing, "
+"telemetry and large reference directories — list and Link field search keep "
+"working"
+msgstr ""
+"Індексувати документи для глобального пошуку (Ctrl+K). Вимкніть для "
+"службових записів, телеметрії та великих довідників — пошук у списку й полях"
+" Link працюватиме як і раніше"
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
 msgid "Index rebuild error"
@@ -6132,15 +6134,15 @@ msgstr "Невірний код підтвердження"
 msgid "Invite users"
 msgstr "Запросити користувачів"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is empty"
 msgstr "Порожнє"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is none of"
 msgstr "Жодне з"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is one of"
 msgstr "Одне з"
 
@@ -6148,7 +6150,7 @@ msgstr "Одне з"
 msgid "Is published field"
 msgstr "Поле «Опубліковано»"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Is set"
 msgstr "Заповнене"
 
@@ -6505,11 +6507,11 @@ msgstr "Юридична"
 msgid "Less"
 msgstr "Менше"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Less than"
 msgstr "Менше"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Less than or equal"
 msgstr "Менше або дорівнює"
 
@@ -7588,10 +7590,6 @@ msgstr "Немає сповіщень"
 msgid "No options"
 msgstr "Немає варіантів"
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "No physical table — data comes from a controller"
-msgstr "Без фізичної таблиці — дані з контролера"
-
 #: grunt/grunt/reports/engine.py
 msgid "No query specified"
 msgstr "Запит не вказано"
@@ -7734,7 +7732,7 @@ msgstr ""
 "Недостатньо місця: зайнято %(used)s МБ з %(quota)s МБ, файлу потрібно "
 "%(size)s МБ"
 
-#: grunt/frontend/src/components/views/FilterBar.vue
+#: grunt/frontend/src/core/filterOps.ts
 msgid "Not equals"
 msgstr "Не дорівнює"
 
@@ -7788,6 +7786,10 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr "Немає доступу до полів: %(fields)s"
 
+#: grunt/grunt/document/sidebar.py
+msgid "Not published - open preview"
+msgstr "Не опубліковано — відкрити попередній перегляд"
+
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
@@ -7815,11 +7817,11 @@ msgstr "Примітки"
 #: grunt/frontend/src/components/DocTypeCombobox.vue
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
-#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue
 #: grunt/frontend/src/components/fields/RichText/ui/SlashMenu.vue
@@ -7984,7 +7986,7 @@ msgstr "На сервері"
 msgid "On track"
 msgstr "У строк"
 
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/grunt/document/sidebar.py
 msgid "On website"
 msgstr "На сайті"
 
@@ -8430,6 +8432,10 @@ msgstr "Параметр 'q' обов'язковий"
 msgid "Parameters"
 msgstr "Параметри"
 
+#: grunt/grunt/api/v1/method.py
+msgid "Parameters %(items)s cannot be passed in a request"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Parent field"
 msgstr "Батьківське поле"
@@ -8573,10 +8579,6 @@ msgstr "Динаміка продуктивності"
 msgid "Performance trend is read-only"
 msgstr "Динаміка продуктивності доступна лише для читання"
 
-#: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py
-msgid "Performance trend “%(name)s” not found"
-msgstr "Запис динаміки продуктивності «%(name)s» не знайдено"
-
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue
@@ -8711,10 +8713,23 @@ msgstr "Підготовка"
 msgid "Preset name"
 msgstr "Назва пресету"
 
+#: grunt/grunt/document/sidebar.py
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Preview"
 msgstr "Переглянути"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "Preview on website"
+msgstr "Попередній перегляд на сайті"
+
+#: grunt/grunt/website/templates/_preview_banner.html
+msgid ""
+"Preview — this page is not published yet. Only signed-in users with access "
+"can see it."
+msgstr ""
+"Попередній перегляд — сторінку ще не опубліковано. Її бачать лише "
+"користувачі, що увійшли й мають доступ."
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Previous"
@@ -8727,6 +8742,10 @@ msgstr "Попередня сторінка"
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 msgid "Previous period"
 msgstr "Попередній період"
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgid "Previous token hash"
+msgstr ""
 
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "Previous value"
@@ -9550,7 +9569,7 @@ msgstr "Час відновлення"
 msgid "Restored: %(name)s"
 msgstr "Відновлено: %(name)s"
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/base.py
 msgid "Restoring %(backend)s is not supported"
 msgstr "Відновлення %(backend)s не підтримується"
 
@@ -9699,12 +9718,13 @@ msgid "Run `grunt app deps`. Missing:"
 msgstr "Виконайте `grunt app deps`. Бракує:"
 
 #: grunt/grunt/monitoring/updates.py
-msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
-msgstr "Запустіть `grunt upgrade` — він оновить lock-файли; потім закомітьте їх."
-
-#: grunt/grunt/monitoring/updates.py
 msgid "Run `grunt update`."
 msgstr "Запустіть `grunt update`."
+
+#: grunt/grunt/monitoring/updates.py
+msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
+msgstr ""
+"Запустіть `grunt upgrade` — він оновить lock-файли; потім закомітьте їх."
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Run `sudo apt upgrade`."
@@ -10011,10 +10031,6 @@ msgstr "Резервні копії за розкладом"
 msgid "Scheduled delivery"
 msgstr "Розсилка за розкладом"
 
-#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py
-msgid "Scheduled job “%(name)s” not found"
-msgstr "Заплановану задачу «%(name)s» не знайдено"
-
 #: grunt/grunt/monitoring/health.py
 msgid "Scheduled jobs (mailings, cleanup, digests) are not running."
 msgstr "Запланові задачі (розсилки, чистка, дайджести) не запускаються."
@@ -10115,10 +10131,10 @@ msgstr "Пошук…"
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
 #: grunt/frontend/src/components/views/DocTypeToolbar.vue
-#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
-#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/views/form/DocLinksDialog.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
+#: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
+#: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 msgid "Search…"
 msgstr "Пошук…"
@@ -10925,10 +10941,6 @@ msgstr "Вкажіть користувача"
 msgid "Split cell"
 msgstr "Розбити клітинку"
 
-#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py
-msgid "SqlProfilerRequest '%(doc_id)s' not found"
-msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
-
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Stack trace"
 msgstr "Трасування стека"
@@ -10994,10 +11006,10 @@ msgid ""
 msgstr ""
 "Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
 
-#: grunt/grunt/geo/doctypes/Region/Region.json
+#: grunt/grunt/document/sidebar.py
 #: grunt/grunt/monitoring/templates/system_health.html
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
+#: grunt/grunt/geo/doctypes/Region/Region.json
 msgid "State"
 msgstr "Стан"
 
@@ -11013,6 +11025,7 @@ msgstr "Стани"
 msgid "States & transitions"
 msgstr "Стани і переходи"
 
+#: grunt/grunt/document/sidebar.py
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
@@ -11028,7 +11041,6 @@ msgstr "Стани і переходи"
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
-#: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Status"
 msgstr "Статус"
 
@@ -11115,6 +11127,7 @@ msgstr "Зупинити запис"
 msgid "Stop «{title}»? What is done so far is discarded."
 msgstr "Зупинити «{title}»? Уже виконане буде відкинуто."
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Storage"
 msgstr "Сховище"
@@ -11518,7 +11531,7 @@ msgstr ""
 msgid "The SMTP password is not saved. Save the account with a password."
 msgstr "Пароль SMTP не збережено. Збережіть обліковий запис із паролем."
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "The SQLite database has no file to back up"
 msgstr "База даних SQLite не має файлу для резервного копіювання"
 
@@ -11629,7 +11642,7 @@ msgstr "Поточний пароль вказано невірно"
 msgid "The data source is temporarily unavailable."
 msgstr "Джерело даних тимчасово недоступне."
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "The database backup is corrupted: %(result)s"
 msgstr "Копія бази пошкоджена: %(result)s"
 
@@ -11641,7 +11654,7 @@ msgstr ""
 "Тип колонки в БД зміниться під час міграції. Переконайтеся, що наявні "
 "значення можна привести до нового типу, інакше міграція не пройде."
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "The database snapshot is corrupted: %(result)s"
 msgstr "Знімок бази пошкоджений: %(result)s"
 
@@ -11836,6 +11849,12 @@ msgstr "Провайдер не підтвердив цю адресу елек�
 msgid "The pywebpush package is not installed"
 msgstr "Пакет pywebpush не встановлено"
 
+#: grunt/grunt/db/errors.py
+msgid ""
+"The record refers to a record that does not exist, or other records still "
+"refer to it."
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "The redirect URI registered in your app must be exactly"
 msgstr "Redirect URI, зареєстрований у вашому додатку, має бути саме таким"
@@ -11859,6 +11878,16 @@ msgstr "Заміна не може збігатися з документом, �
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The response came from the offline cache."
 msgstr "Відповідь прийшла з офлайн-кешу."
+
+#: grunt/grunt/db/dialects/sqlite.py
+msgid ""
+"The restore failed and the database could not be put back: it is in "
+"%(aside)s"
+msgstr ""
+
+#: grunt/grunt/db/dialects/sqlite.py
+msgid "The restore failed, the database was left as it was: %(error)s"
+msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgid ""
@@ -12298,6 +12327,10 @@ msgstr "Сьогодні"
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Token"
 msgstr "Токен"
+
+#: grunt/grunt/auth/doctypes/UserSession/UserSession.json
+msgid "Token rotated at"
+msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Tomorrow at 9:00"
@@ -13007,14 +13040,6 @@ msgstr "Перегляд як {name}"
 msgid "Views"
 msgstr "Вигляди"
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Virtual"
-msgstr "Віртуальний"
-
-#: grunt/grunt/document/mixins/lifecycle.py
-msgid "Virtual DocType “%(doctype)s” has no individual documents"
-msgstr "Віртуальний DocType «%(doctype)s» не має окремих документів"
-
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
 msgid "Waiting for connection…"
 msgstr "Чекаємо на зв'язок…"
@@ -13607,10 +13632,6 @@ msgstr "містити спеціальний символ"
 msgid "contain an uppercase letter"
 msgstr "містити велику літеру"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "contains"
-msgstr "містить"
-
 #: grunt/grunt/document/mixins/collaboration_rpc.py
 msgid "content is required"
 msgstr "content обов'язковий"
@@ -13676,10 +13697,6 @@ msgstr "doctype_name і doc_id обов'язкові"
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 msgid "document"
 msgstr "документ"
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "does not contain"
-msgstr "не містить"
 
 #: grunt/frontend/src/core/composables/useDocActions.ts
 msgid "done"
@@ -13792,14 +13809,6 @@ msgstr "встановлюється"
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "is active"
 msgstr "активна"
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "is empty"
-msgstr "порожньо"
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "is set"
-msgstr "заповнено"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "ivan.petrenko@gmail.com"
@@ -13933,10 +13942,6 @@ msgstr "немає відповіді"
 msgid "none"
 msgstr "нема"
 
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "none of"
-msgstr "жодне з"
-
 #: grunt/grunt/monitoring/health.py
 msgid "not checked"
 msgstr "не перевірено"
@@ -13984,10 +13989,6 @@ msgstr "npm пакети поза package.json"
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "offline"
 msgstr "офлайн"
-
-#: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
-msgid "one of (comma-separated)"
-msgstr "одне з (через кому)"
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "online"
@@ -14064,14 +14065,6 @@ msgid ""
 msgstr ""
 "pending — самостійно зареєстрований користувач очікує підтвердження "
 "адміністратора і не може увійти."
-
-#: grunt/grunt/backups/__init__.py
-msgid "pg_dump not found; install the PostgreSQL client"
-msgstr "pg_dump не знайдено — встановіть клієнт PostgreSQL"
-
-#: grunt/grunt/backups/__init__.py
-msgid "pg_restore not found; install the PostgreSQL client"
-msgstr "pg_restore не знайдено — встановіть клієнт PostgreSQL"
 
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 msgid "previous value"
@@ -14153,6 +14146,14 @@ msgstr "збережена"
 #: grunt/frontend/src/components/views/actions/BulkActionsMenu.vue
 msgid "selected"
 msgstr "вибрано"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"sql — the type's table in the database; virtual — no table, documents come "
+"from the store its controller names"
+msgstr ""
+"sql — таблиця типу в базі даних; virtual — без таблиці, документи дає "
+"сховище, яке називає контролер"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 msgid "step {n} of {m}"
@@ -14481,9 +14482,9 @@ msgid "— Do not import —"
 msgstr "— Не імпортувати —"
 
 #: grunt/frontend/src/components/DocTypeCombobox.vue
+#: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
 #: grunt/frontend/src/components/common/multi-select/MultiSelect.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
-#: grunt/frontend/src/components/dashboard/sections/DataSourceSection.vue
 #: grunt/frontend/src/components/fields/Select/Select.vue
 #: grunt/frontend/src/components/fields/MultiSelect/MultiSelect.vue
 msgid "— Select —"
@@ -14505,13 +14506,28 @@ msgstr "— не обрано —"
 msgid "“%(doctype)s” does not support replacing references"
 msgstr "«%(doctype)s» не підтримує заміну посилань"
 
-#: grunt/grunt/document/mixins/lifecycle.py
+#: grunt/grunt/store/base.py
 msgid "“%(doctype)s” does not support this operation"
 msgstr "«%(doctype)s» не підтримує цю операцію"
 
-#: grunt/grunt/app/document_api.py
+#: grunt/grunt/app/document_api.py grunt/grunt/store/base.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr "«%(doctype)s» не має таблиці для агрегації"
+
+#: grunt/grunt/document/tree.py
+msgid "“%(doctype)s” has no table to build a tree from"
+msgstr "«%(doctype)s» не має таблиці, щоб побудувати дерево"
+
+#: grunt/grunt/reports/engine.py
+msgid "“%(doctype)s” has no table to report on"
+msgstr "«%(doctype)s» не має таблиці для звіту"
+
+#: grunt/grunt/db/api.py
+msgid ""
+"“%(doctype)s” has no table: grunt.db.%(action)s works on table rows only"
+msgstr ""
+"«%(doctype)s» не має таблиці: grunt.db.%(action)s працює лише з рядками "
+"таблиці"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 #: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py
@@ -14521,11 +14537,6 @@ msgstr "«%(field)s» не є полем дати в %(doctype)s"
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
 msgstr "«%(field)s» не є полем %(doctype)s, яке можна відстежувати"
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py
-msgid "“%(name)s” not found"
-msgstr "«%(name)s» не знайдено"
 
 #: grunt/grunt/email/templates/notification_digest.html
 msgid "… and %(count)s more"
@@ -14975,14 +14986,59 @@ msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
 
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js
-msgid "Preview on website"
-msgstr "Попередній перегляд на сайті"
+#~ msgid "Backup not found"
+#~ msgstr "Резервну копію не знайдено"
 
-#: grunt/grunt/document/sidebar.py
-msgid "Not published - open preview"
-msgstr "Не опубліковано — відкрити попередній перегляд"
+#~ msgid "Compaction is not supported for the “%(dialect)s” database"
+#~ msgstr "Стиснення не підтримується для СКБД «%(dialect)s»"
 
-#: grunt/grunt/website/templates/_preview_banner.html
-msgid "Preview — this page is not published yet. Only signed-in users with access can see it."
-msgstr "Попередній перегляд — сторінку ще не опубліковано. Її бачать лише користувачі, що увійшли й мають доступ."
+#~ msgid "Copy ID"
+#~ msgstr "Скопіювати ідентифікатор"
+
+#~ msgid "Hook '%(doc_id)s' not found"
+#~ msgstr "Хук «%(doc_id)s» не знайдено"
+
+#~ msgid "No physical table — data comes from a controller"
+#~ msgstr "Без фізичної таблиці — дані з контролера"
+
+#~ msgid "Performance trend “%(name)s” not found"
+#~ msgstr "Запис динаміки продуктивності «%(name)s» не знайдено"
+
+#~ msgid "Scheduled job “%(name)s” not found"
+#~ msgstr "Заплановану задачу «%(name)s» не знайдено"
+
+#~ msgid "SqlProfilerRequest '%(doc_id)s' not found"
+#~ msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
+
+#~ msgid "Virtual"
+#~ msgstr "Віртуальний"
+
+#~ msgid "Virtual DocType “%(doctype)s” has no individual documents"
+#~ msgstr "Віртуальний DocType «%(doctype)s» не має окремих документів"
+
+#~ msgid "contains"
+#~ msgstr "містить"
+
+#~ msgid "does not contain"
+#~ msgstr "не містить"
+
+#~ msgid "is empty"
+#~ msgstr "порожньо"
+
+#~ msgid "is set"
+#~ msgstr "заповнено"
+
+#~ msgid "none of"
+#~ msgstr "жодне з"
+
+#~ msgid "one of (comma-separated)"
+#~ msgstr "одне з (через кому)"
+
+#~ msgid "pg_dump not found; install the PostgreSQL client"
+#~ msgstr "pg_dump не знайдено — встановіть клієнт PostgreSQL"
+
+#~ msgid "pg_restore not found; install the PostgreSQL client"
+#~ msgstr "pg_restore не знайдено — встановіть клієнт PostgreSQL"
+
+#~ msgid "“%(name)s” not found"
+#~ msgstr "«%(name)s» не знайдено"

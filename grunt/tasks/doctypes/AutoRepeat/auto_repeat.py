@@ -74,7 +74,7 @@ class AutoRepeat(Document):
                 "VALIDATION_ERROR",
             )
         dt = meta.doc
-        if dt.is_child or dt.is_singleton or dt.is_virtual or dt.name == "AutoRepeat":
+        if dt.is_child or dt.is_singleton or not dt.has_table or dt.name == "AutoRepeat":
             grunt.throw(
                 _("Documents of “%(doctype)s” cannot be repeated") % {"doctype": dt.name},
                 "VALIDATION_ERROR",

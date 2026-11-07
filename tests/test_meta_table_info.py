@@ -61,7 +61,7 @@ async def test_table_info_rejects_virtual_doctype(ctx):
             "name": "VirtualProbe",
             "label": "Virtual Probe",
             "module": "core",
-            "is_virtual": True,
+            "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
             "__is_new": True,
         }

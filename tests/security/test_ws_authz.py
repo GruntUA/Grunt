@@ -94,20 +94,32 @@ async def test_non_reader_cannot_join_list_room(ctx, _secret, _point_site_manage
 
 
 @pytest.mark.asyncio
-async def test_virtual_doctype_room_uses_doctype_level_check(ctx, _point_site_manager_at_test_db):
-    """A virtual DocType has no table; the document-room check must fall back to
-    the DocType-level read grant instead of raising on a missing table and then
-    failing closed for everyone."""
+async def test_virtual_doctype_room_checks_the_stored_document(ctx, _point_site_manager_at_test_db):
+    """A virtual DocType has no table; the document-room check reads the
+    document from its store (no missing-table crash that fails closed for
+    everyone) - and a document the store doesn't have is not readable."""
     from grunt.api.v1.meta import save_doctype
     from grunt.api.v1.ws import _ws_user_can_read
     from grunt.auth.doctypes.User.user import create_user
+    from grunt.document.base import Document
+    from grunt.document.registry import document_registry
+    from grunt.store import VirtualStore
+
+    class _Store(VirtualStore):
+        async def rows(self, query):
+            return [{"name": "anything", "title": "A"}]
+
+    class _WsVirtual(Document):
+        store_class = _Store
+
+    document_registry.register("WsVirtual", _WsVirtual)
 
     await save_doctype(
         doctype_data={
             "name": "WsVirtual",
             "label": "Ws Virtual",
             "module": "core",
-            "is_virtual": True,
+            "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Data"}],
             "permissions": [{"role": "All", "read": True}],
             "__is_new": True,
@@ -117,5 +129,9 @@ async def test_virtual_doctype_room_uses_doctype_level_check(ctx, _point_site_ma
     await ctx.save_doc("User", user.id, {"roles": []})
     await ctx.db._session().commit()
 
-    # A read grant exists for "All" -> allowed, without ever touching a table.
-    assert await _ws_user_can_read(_ws(), "wsv@grunt.example.com", "WsVirtual", "anything")
+    try:
+        # A read grant exists for "All" -> allowed, without ever touching a table.
+        assert await _ws_user_can_read(_ws(), "wsv@grunt.example.com", "WsVirtual", "anything")
+        assert not await _ws_user_can_read(_ws(), "wsv@grunt.example.com", "WsVirtual", "missing")
+    finally:
+        document_registry._controllers.pop("WsVirtual", None)

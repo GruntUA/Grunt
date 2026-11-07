@@ -66,7 +66,7 @@ async def _purge_documents(dt: DocType, cutoff: datetime) -> int:
 
 async def purge_doctype(dt: DocType, now: datetime, log_default: int) -> int:
     """Apply *dt*'s retention; returns how many documents were deleted."""
-    if dt.is_virtual or dt.is_child or dt.is_singleton:
+    if not dt.has_table or dt.is_child or dt.is_singleton:
         return 0
     days = dt.retention_days or (log_default if dt.is_log else None)
     if not days:

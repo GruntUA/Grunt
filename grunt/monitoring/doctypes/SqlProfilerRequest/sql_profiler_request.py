@@ -6,47 +6,18 @@ Read-only: list + load. Insert/update/delete are not supported.
 
 from typing import Any
 
-from grunt import _
 from grunt.db.profiler import get_recent_requests
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
-from grunt.errors import not_found
+from grunt.document.base import Document
 from grunt.i18n import N_
+from grunt.query.query import Query
+from grunt.store import VirtualStore
 
 
-class SqlProfilerRequest(BaseDocument):
+class SqlProfilerRequestStore(VirtualStore):
     not_supported_message = N_("Profiled requests are read-only")
 
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "duration_ms",
-        sort_order: str = "desc",
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
-        rows = get_recent_requests(limit=200)
-
-        if search:
-            rows = apply_search(rows, search, ["path", "method"])
-        if filters:
-            rows = apply_filters(rows, filters)
-        rows = apply_sort(rows, sort_by, sort_order)
-
-        response = build_response(rows, page, per_page)
-        return DocumentList([cls._to_doc(r) for r in response], response.meta)
-
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        for row in get_recent_requests(limit=200):
-            if row["request_id"] == self.name:
-                self.data = self._to_doc(row)
-                return
-        raise not_found(_("SqlProfilerRequest '%(doc_id)s' not found") % {"doc_id": self.name})
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
+        return [self._to_doc(r) for r in get_recent_requests(limit=200)]
 
     @staticmethod
     def _to_doc(row: dict[str, Any]) -> dict[str, Any]:
@@ -81,3 +52,7 @@ class SqlProfilerRequest(BaseDocument):
             "spans": spans,
             "queries": queries,
         }
+
+
+class SqlProfilerRequest(Document):
+    store_class = SqlProfilerRequestStore

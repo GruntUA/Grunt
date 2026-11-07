@@ -8,7 +8,12 @@ from typing import Any
 
 from sqlalchemy import inspect, text
 
-from grunt.metadata.compiler import compile_doctype_to_table, get_table_name
+from grunt.metadata.compiler import (
+    CHILD_COLUMNS,
+    STANDARD_COLUMNS,
+    compile_doctype_to_table,
+    get_table_name,
+)
 from grunt.metadata.field import DocField, get_field_type_class, get_registered_fieldtypes
 lazy from grunt.metadata.doctype import DocType, DocTypeTreeView
 
@@ -31,6 +36,7 @@ class Meta:
     # Static properties cache so we don't recalculate multiple times
     _data_fields: list[DocField] | None = None
     _valid_columns: list[str] | None = None
+    _columns: frozenset[str] | None = None
     _search_fields: list[str] | None = None
     _physical_fields: list[DocField] | None = None
     _visible_fields: list[DocField] | None = None
@@ -137,6 +143,21 @@ class Meta:
             self._searchable_fields = [f for f in self.doc.fields if f.is_searchable]
         return self._searchable_fields
 
+    @property
+    def columns(self) -> frozenset[str]:
+        """The names a stored row holds - the table's columns; for a virtual
+        DocType the same names (system ones and physical fields), without
+        compiling a table it doesn't have."""
+        if self._columns is None:
+            if not self.doc.has_table:
+                names = [*STANDARD_COLUMNS, *(f.fieldname for f in self.get_physical_fields())]
+                if self.doc.is_child:
+                    names += CHILD_COLUMNS
+                self._columns = frozenset(names)
+            else:
+                self._columns = frozenset(self.table.c.keys())
+        return self._columns
+
     def get_valid_columns(self) -> list[str]:
         """Return all valid physical database columns - exactly the compiled table's."""
         if self._valid_columns is None:
@@ -224,7 +245,7 @@ class Meta:
         which must survive too.
         WARNING: Dropping columns is irreversible and could lead to data loss.
         """
-        if self.doc.is_virtual:
+        if not self.doc.has_table:
             return
 
         table_name = self.doc.table_name or get_table_name(self.doc.module, self.doc.name)

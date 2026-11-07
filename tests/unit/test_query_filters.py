@@ -14,10 +14,10 @@ one implementation, not several that could drift apart again.
 import pytest
 from sqlalchemy import Column, Date, Integer, MetaData, String, Table, select
 
-from grunt.document.in_memory import apply_filters as filter_rows
 from grunt.query.compile_sql import to_sql
+from grunt.query.evaluate import matches
 from grunt.query.nodes import TRUE
-from grunt.query.parse import FILTER_OPS, is_truthy, split_key
+from grunt.query.parse import FILTER_OPS, is_truthy, parse_filters, split_key
 from grunt.query.sql import filter_expr
 
 _META = MetaData()
@@ -33,8 +33,14 @@ _TABLE = Table(
 )
 
 
+def filter_rows(rows: list[dict], filters: dict) -> list[dict]:
+    """*rows* matching *filters* in memory - as a virtual DocType's store does."""
+    expr = parse_filters(filters)
+    return [r for r in rows if matches(expr, r)]
+
+
 def _sql(filters: dict) -> str:
-    expr = filter_expr(filters, _TABLE)
+    expr = filter_expr(filters, _TABLE.c.keys())
     stmt = select(_TABLE.c.doctype)
     if expr != TRUE:
         stmt = stmt.where(to_sql(expr, _TABLE))
@@ -172,7 +178,7 @@ def test_every_operator_is_handled_by_sql_and_virtual(op):
     """FILTER_OPS is the one list both backends are driven by — each operator
     must yield a SQL clause *and* be implemented for in-memory rows."""
     value = "set" if op == "is" else "1"
-    assert filter_expr({f"qty__{op}": value}, _TABLE) != TRUE
+    assert filter_expr({f"qty__{op}": value}, _TABLE.c.keys()) != TRUE
     filter_rows([{"qty": 1}], {f"qty__{op}": value})
 
 

@@ -253,10 +253,13 @@ class DocType(BaseModel):
     description: str | None = None  # short human description - tooltips, Studio, docs
     icon: str | None = None  # Lucide icon name (kebab-case) - menu & Workspace
 
+    # Where the documents live: "sql" - the DocType's table in the site's database;
+    # "virtual" - no table, the store the controller names (``store_class``).
+    storage: Literal["sql", "virtual"] = "sql"
+
     # Flags
     is_child: bool = False  # True -> used inside a TABLE field
     is_singleton: bool = False  # only one document per DocType
-    is_virtual: bool = False  # True -> no DB table, data from controller
     is_tree: bool = False  # True -> hierarchical; requires tree_view.parent_field
     is_log: bool = False  # True -> operational log, excluded from global search index
     # False -> documents stay out of the global search index (plumbing,
@@ -389,6 +392,12 @@ class DocType(BaseModel):
     table_name: str | None = None
 
     model_config = {"use_enum_values": True}
+
+    @property
+    def has_table(self) -> bool:
+        """Whether the documents are rows of the DocType's own table (``storage``
+        is ``"sql"``) - so it has a schema to sync, rows to count or purge."""
+        return self.storage == "sql"
 
     @property
     def calendar_view(self) -> DocTypeCalendarView | None:

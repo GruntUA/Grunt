@@ -15,13 +15,12 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
-from grunt import _
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
-from grunt.errors import not_found
+from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.monitoring.perf import HIST_FIELDS, percentile
-from grunt.query.parse import split_key
+from grunt.query.query import Query
+from grunt.store import VirtualStore
+from grunt.store.virtual import equals
 
 DEFAULT_PERIOD_DAYS = 7
 # Below this many calls in either period the change is noise, not a trend.
@@ -38,17 +37,16 @@ _SUMS = {
 }
 
 
-def _period_days(filters: dict[str, Any]) -> int:
-    for key in list(filters):
-        if split_key(key)[0] == "period":
-            value = filters.pop(key)
-            if isinstance(value, list):
-                value = value[0] if value else ""
-            try:
-                return max(1, int(str(value)))
-            except ValueError:
-                break
-    return DEFAULT_PERIOD_DAYS
+def _period_days(value: Any) -> int:
+    """The period of a ``period`` filter value, in days."""
+    if isinstance(value, list):
+        value = value[0] if value else None
+    if value is None:
+        return DEFAULT_PERIOD_DAYS
+    try:
+        return max(1, int(str(value)))
+    except ValueError:
+        return DEFAULT_PERIOD_DAYS
 
 
 async def _summarise(start: datetime, end: datetime) -> dict[tuple, dict[str, Any]]:
@@ -123,36 +121,15 @@ async def build_rows(days: int, now: datetime | None = None) -> list[dict[str, A
     return rows
 
 
-class PerfTrend(BaseDocument):
+class PerfTrendStore(VirtualStore):
     not_supported_message = N_("Performance trend is read-only")
 
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "p95_change",
-        sort_order: str = "desc",
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
-        filters = dict(filters or {})
-        rows = await build_rows(_period_days(filters))
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
+        name = equals(query, "name")
+        if name is not None and "d-" in str(name):
+            return await build_rows(int(str(name).split("d-", 1)[0]) or DEFAULT_PERIOD_DAYS)
+        return await build_rows(_period_days(equals(query, "period")))
 
-        if search:
-            rows = apply_search(rows, search, ["endpoint", "ref_doctype"])
-        if filters:
-            rows = apply_filters(rows, filters)
-        rows = apply_sort(rows, sort_by, sort_order)
-        return build_response(rows, page, per_page)
 
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        days = int(str(self.name).split("d-", 1)[0]) if "d-" in str(self.name) else 0
-        for row in await build_rows(days or DEFAULT_PERIOD_DAYS):
-            if row["name"] == self.name:
-                self.data = row
-                return
-        raise not_found(_("Performance trend “%(name)s” not found") % {"name": self.name})
+class PerfTrend(Document):
+    store_class = PerfTrendStore

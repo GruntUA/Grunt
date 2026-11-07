@@ -182,6 +182,11 @@ def _is_varchar_reduction(desired, current) -> bool:
 # Compiler
 
 
+#: Columns of every DocType table, and those a child table adds.
+STANDARD_COLUMNS = ("name", "owner", "created_at", "modified_at", "modified_by")
+CHILD_COLUMNS = ("parent_name", "parent_doctype", "parent_field", "idx")
+
+
 def compile_doctype_to_table(doctype: DocType) -> Table:
     """Convert a :class:`DocType` into a :class:`sqlalchemy.Table`.
 
@@ -478,7 +483,7 @@ async def sync_table(
     When *session* is provided, uses its underlying connection instead of
     opening a new one (avoids SQLite "database is locked" errors).
     """
-    if doctype.is_virtual:
+    if not doctype.has_table:
         log.debug("compiler.skip_virtual", doctype=doctype.name)
         return False
 

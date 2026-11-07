@@ -2,6 +2,7 @@
 
 import pytest
 
+from grunt.query.query import Query
 from grunt.site.doctypes.AppMenu.app_menu import count_key, parse_count_filters
 
 
@@ -41,15 +42,17 @@ async def test_workspace_items_carry_count_filters_and_key(ctx) -> None:
 
 
 @pytest.mark.asyncio
-async def test_count_of_virtual_doctype_uses_its_controller(ctx) -> None:
-    """A virtual DocType's sidebar badge comes from its controller, not from
-    the table count path (which crashed on ``list_filter_extra``)."""
+async def test_count_of_virtual_doctype_uses_its_store(ctx) -> None:
+    """A virtual DocType's sidebar badge comes from its store, not from a table
+    (the count path once crashed on ``list_filter_extra``)."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.collection import count_documents
-    from grunt.scripting.doctypes.Hook.hook import Hook
+    from grunt.scripting.doctypes.Hook.hook import HookStore
 
     session = ctx.get_session()
-    expected = await Hook.get_count("Hook", session=session, user=SYSTEM_USER)
+    meta = await ctx.get_meta("Hook")
+    expected = len(await HookStore(meta, session).rows(Query("Hook")))
+    assert expected > 0
     assert await count_documents(session, "Hook", SYSTEM_USER) == expected
 
 

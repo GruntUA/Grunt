@@ -1,7 +1,7 @@
 """Document event bus - the fan-out pipeline behind ``fire()``.
 
 Every write in the CRUD pipeline
-(:class:`grunt.document.mixins.write.DocumentWriteMixin`) ends in a single
+(:mod:`grunt.document.mixins.lifecycle`) ends in a single
 ``fire("after_save", ...)`` call. :func:`fire`:
 
 1. Runs the hook registry via :func:`grunt.hooks.dispatch` - app ``@on`` /

@@ -168,13 +168,11 @@ async def test_trend_compares_periods(ctx):
 
 @pytest.mark.asyncio
 async def test_trend_list_reads_period_filter(ctx):
-    from grunt.monitoring.doctypes.PerfTrend.perf_trend import PerfTrend
-
     now = datetime.now(UTC)
     await _stat(ctx, now - timedelta(days=3), "three-days-ago", 20, 40)
 
-    week = await PerfTrend.get_list("PerfTrend", filters={"period": "7"})
-    day = await PerfTrend.get_list("PerfTrend", filters={"period": "1"})
+    week = await ctx.get_list("PerfTrend", filters={"period": "7"})
+    day = await ctx.get_list("PerfTrend", filters={"period": "1"})
     assert [r["endpoint"] for r in week] == ["three-days-ago"]
     assert list(day) == []
 

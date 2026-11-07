@@ -127,7 +127,7 @@ async def _documents_using(file_id: str) -> tuple[str, str] | None:
     session = grunt.get_session()
     pattern = f"%file_id={file_id}%"
     for dt in await doctype_registry.list_all():
-        if dt.name in _NOT_USERS or dt.is_virtual:
+        if dt.name in _NOT_USERS or not dt.has_table:
             continue
         meta = Meta(dt)
         table = meta.table
