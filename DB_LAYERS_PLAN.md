@@ -174,7 +174,7 @@ CI проганяє їх на SQLite і PostgreSQL; `test_in_memory.py` — ті
   порівняння, `%`/`_` у like, той самий порядок тексту, порожні в кінці. LIKE — лінійне
   зіставлення, не regex: `%a%a%…` з `.*`-групами давав експоненційний бектрекінг (ReDoS, #97).
 
-### 3. `Query` AST — ⏳ (дизайн погоджено 2026-11-07; 3a ✅)
+### 3. `Query` AST — ⏳ (дизайн погоджено 2026-11-07; 3a ✅, 3b ✅)
 
 `db/filters.py` розбирає вхідні дані в нейтральний `Query`; права (user permissions,
 shares, власник) — вузли AST; `SqlStore` компілює в SQLAlchemy. Звіти/Query Builder
@@ -233,8 +233,20 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   решта реекспортується з `grunt.query.parse`). Невідомі поля: `parse_filters(fields=…)` пропускає;
   `fields=None` (пам'ять) — невідомий оператор (`__child_of`) → `ValueError`, як і було.
   Перевірено: `tests/unit/test_query_ast.py` + контракт; SQLite 2057, PG 2058, pyright 0.
-- 3b. `PermissionMatch.to_expr`, `read_predicate`; `apply_permission_filter` = `compile(read_predicate)`
+- 3b. ✅ (2026-11-07) `PermissionMatch.to_expr`, `read_predicate`; `apply_permission_filter` = `compile(read_predicate)`
   (тимчасова обгортка). Контракт-кейси на права (match, shares, reference, child, UP) на обох СУБД.
+  Зроблено: вузол `Linked(field, doctype, where, select="name", negate)` + `linked_doctypes(expr)`;
+  `to_sql(…, tables=…)` компілює його в `IN (SELECT …)`, таблиці збирає обгортка через `get_meta`
+  (компіляція лишається синхронною). Джерела прав повертають Expr: `PermissionMatch.to_expr`,
+  `user_permission_predicate` (було `build_conditions`), `shared_predicate` (було `shared_names_clause`),
+  `reference_predicates` / `readable_predicate` (було `reference_conditions` / `readable_names` — тепер
+  предикат батька вкладається в `Linked`, без окремого `SELECT`), `child_predicate`.
+  `tests/contract/test_permissions.py` — 18 кейсів; **ті самі кейси зелені й на старому коді**
+  (перевірено, повернувши старі `grunt/permissions/*`), тож поведінка не змінилась. Зафіксовано
+  як контракт: без жодної ролі — 403, а не порожній список; share сам дає доступ до свого документа;
+  `link.field != v` = «не серед рядків, де `field == v`» (порожнє поле цілі — підходить, порожній Link — ні).
+  Тести: `_UP_CACHE` чиститься між тестами (`conftest.setup_db`) — кеш User Permissions за email
+  протікав між тестами на одному воркері (плаваюче падіння `test_permission_engine`).
 - 3c. `list_documents` / `get_all` / `count` / `aggregate` / tree / звіти будують `Query` і йдуть через
   `run`; обгортки `apply_filters`/`apply_permission_filter` зникають.
 - 3d. (після кроку 4) JOIN з правами для звітів/Query Builder — `Linked` з полями цілі.

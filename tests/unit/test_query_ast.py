@@ -99,3 +99,27 @@ def test_evaluate_missing_field_is_null():
     assert matches(Null("x"), {}) and not matches(Cmp("x", "ne", 1), {})
     with pytest.raises(NotImplementedError):
         matches(MultiLink("tags", None), {})
+
+
+def test_linked_compiles_to_a_subquery_on_the_target_table():
+    from grunt.query.nodes import Linked, linked_doctypes
+
+    meta = MetaData()
+    task = Table("task", meta, Column("name", String), Column("team", String))
+    team = Table("team", meta, Column("name", String), Column("lead", String))
+    share = Table("share", meta, Column("reference_id", String), Column("user", String))
+    expr = or_(
+        Linked("team", "Team", Cmp("lead", "eq", "a@x")),
+        Linked("name", "Share", Cmp("user", "eq", "a@x"), select="reference_id", negate=True),
+    )
+    assert linked_doctypes(expr) == {"Team", "Share"}
+    assert linked_doctypes(Linked("x", "A", Linked("y", "B", TRUE))) == {"A", "B"}
+
+    compiled = to_sql(expr, task, tables={"Team": team, "Share": share}).compile(
+        dialect=sqlite.dialect(), compile_kwargs={"literal_binds": True}
+    )
+    sql = " ".join(str(compiled).split())
+    assert "task.team IN (SELECT team.name FROM team WHERE team.lead = 'a@x')" in sql
+    assert "task.name NOT IN (SELECT share.reference_id FROM share" in sql
+    with pytest.raises(ValueError, match="Team"):
+        to_sql(expr, task)

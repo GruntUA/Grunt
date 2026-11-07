@@ -18,6 +18,7 @@ from grunt.query.nodes import (
     Expr,
     In,
     Like,
+    Linked,
     MultiLink,
     Null,
     Or,
@@ -116,6 +117,8 @@ def matches(expr: Expr, row: dict[str, Any]) -> bool:
             return any(matches(i, row) for i in items)
         case MultiLink():
             raise NotImplementedError("MultiLink filters need the multi-link table")
+        case Linked():
+            raise NotImplementedError("Linked filters read another DocType")
 
     raw = row.get(expr.field)
     match expr:

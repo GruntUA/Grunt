@@ -41,7 +41,7 @@ def _no_document_shares(monkeypatch):
         return None
 
     monkeypatch.setattr(shares, "has_share", _no_share)
-    monkeypatch.setattr(shares, "shared_names_clause", _no_clause)
+    monkeypatch.setattr(shares, "shared_predicate", _no_clause)
 
 
 def _dt(name: str, permissions: list[DocPermission] | None = None) -> DocType:

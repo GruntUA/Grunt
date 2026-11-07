@@ -85,6 +85,23 @@ class MultiLink:
 
 
 @dataclass(frozen=True, slots=True)
+class Linked:
+    """The field's value is among *select* of the *doctype* rows matching *where*
+    (``negate`` - among none of them); NULL is neither.
+
+    One node for every "points at a row that ..." rule: a ``match`` through a
+    Link (``team.lead == user``), shares (``name`` among ``SharedWith.reference_id``),
+    inherited and child-row access (the parent's own read predicate as *where*).
+    """
+
+    field: str
+    doctype: str
+    where: Expr
+    select: str = "name"
+    negate: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class And:
     items: tuple[Expr, ...]
 
@@ -104,7 +121,7 @@ class Const:
 TRUE = Const(True)
 FALSE = Const(False)
 
-type Leaf = Cmp | Like | In | Null | Empty | Year | MultiLink
+type Leaf = Cmp | Like | In | Null | Empty | Year | MultiLink | Linked
 type Expr = Leaf | And | Or | Const
 
 
@@ -136,6 +153,16 @@ def or_(*items: Expr) -> Expr:
     return flat[0] if len(flat) == 1 else Or(tuple(flat))
 
 
+def linked_doctypes(expr: Expr) -> set[str]:
+    """Every DocType a ``Linked`` node in *expr* reads, nested ones included."""
+    match expr:
+        case And(items=items) | Or(items=items):
+            return set().union(*(linked_doctypes(i) for i in items))
+        case Linked(doctype=doctype, where=where):
+            return {doctype} | linked_doctypes(where)
+    return set()
+
+
 def conjuncts(expr: Expr) -> tuple[Expr, ...]:
     """The items an expression ANDs together (itself, when it isn't an AND)."""
     if isinstance(expr, And):
@@ -155,11 +182,13 @@ __all__ = [
     "In",
     "Leaf",
     "Like",
+    "Linked",
     "MultiLink",
     "Null",
     "Or",
     "Year",
     "and_",
     "conjuncts",
+    "linked_doctypes",
     "or_",
 ]

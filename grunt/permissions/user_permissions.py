@@ -26,13 +26,13 @@ restricted user cannot insert or move a record outside their scope.
 
 from typing import Any
 
-from sqlalchemy import Table, and_, false, or_
-from sqlalchemy.sql import ColumnElement
+from sqlalchemy import Table
 
 import grunt
 from grunt import _
 from grunt.cache.bus import fanout
 from grunt.errors import not_found
+from grunt.query.nodes import FALSE, TRUE, Expr, In, Null, and_, or_
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
@@ -157,43 +157,37 @@ def _link_fieldnames(doctype: DocType | Meta, allow: str) -> list[str]:
     return names
 
 
-async def build_conditions(
+async def user_permission_predicate(
     table: Table,
     user: User | None,
     doctype: DocType | Meta,
-) -> list[ColumnElement] | None:
-    """SQL conditions (AND-joined by the caller) enforcing *user*'s permissions
-    on *doctype*, or ``None`` when nothing applies. May return ``[false()]`` to
-    deny every row (strict mode, restricted type with no link field)."""
+) -> Expr:
+    """*user*'s permissions on *doctype* as a query predicate (``TRUE`` when none
+    apply; ``FALSE`` - strict mode, a restricted type with no Link field)."""
     up = await get_user_permissions_for(user, doctype.name)
     if not up:
-        return None
+        return TRUE
 
     strict = await _strict_mode()
-    conds: list[ColumnElement] = []
+    conds: list[Expr] = []
     for allow, values in up.items():
-        values = await expand_tree_values(allow, values)
+        allowed = tuple(sorted(await expand_tree_values(allow, values)))
         fields = [fn for fn in _link_fieldnames(doctype, allow) if fn in table.c]
         if not fields:
             if strict:
-                return [false()]
+                return FALSE
             continue
-        per_field: list[ColumnElement] = []
         for fn in fields:
-            col = table.c[fn]
-            cond = col.in_(values)
-            if not strict:
-                cond = or_(cond, col.is_(None))
-            per_field.append(cond)
-        conds.append(and_(*per_field))
-    return conds or None
+            cond: Expr = In(fn, allowed)
+            conds.append(cond if strict else or_(cond, Null(fn)))
+    return and_(*conds)
 
 
 async def doc_violation(
     user: User | None, doctype: DocType | Meta, doc: dict[str, Any]
 ) -> str | None:
     """Python-level check of a single *doc* against *user*'s permissions - the
-    per-document counterpart of :func:`build_conditions`.
+    per-document counterpart of :func:`user_permission_predicate`.
 
     Returns the offending Link fieldname (``""`` when strict mode denies a
     restricted type the DocType has no field for), or ``None`` when *doc* passes.

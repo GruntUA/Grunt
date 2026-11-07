@@ -4,7 +4,7 @@
 on where a permission check happens:
 
 - Row-level list/count filtering (``permissions/query.py``) needs it as a
-  SQL condition - necessarily a narrow subset (``field == value`` /
+  query predicate (``grunt.query.nodes``) - necessarily a narrow subset (``field == value`` /
   ``field != value`` on a literal or ``user``), since translating arbitrary
   boolean expressions to SQL safely is a much bigger undertaking.
 - Per-document checks (``permissions/rbac.py``) need it evaluated in Python
@@ -20,11 +20,11 @@ one place makes that kind of drift structurally harder to reintroduce.
 
 import re
 
-from sqlalchemy import Table, select
-from sqlalchemy.sql import ColumnElement
+from sqlalchemy import Table
 
 import grunt
 from grunt import log
+from grunt.query.nodes import Cmp, Expr, Linked
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
@@ -84,10 +84,10 @@ class PermissionMatch:
             return None
         return m.group("field"), m.group("op"), m.group("value").strip()
 
-    async def to_sql(
+    async def to_expr(
         self, table: Table, user: User, doctype: DocType | Meta | None = None
-    ) -> ColumnElement | None:
-        """SQL condition for row-level list/count filtering.
+    ) -> Expr | None:
+        """The rule as a query predicate, for row-level list/count filtering.
 
         Returns None when this expression can't be translated - the caller
         must treat that as "can't enforce this rule" (deny/skip), never as
@@ -95,8 +95,8 @@ class PermissionMatch:
         row instead of none.
 
         A ``link_field.target_field`` expression needs *doctype* (to resolve
-        the Link's target) and becomes
-        ``link_field IN (SELECT name FROM <target> WHERE target_field = value)``.
+        the Link's target) and becomes a ``Linked`` node: ``link_field`` among
+        the target rows whose ``target_field`` is the value.
         """
         if self._parsed is None:
             return None
@@ -106,24 +106,20 @@ class PermissionMatch:
             return None  # numbers, bare names, etc. - outside the supported form
 
         if "." not in field:
-            if not hasattr(table.c, field):
+            if field not in table.c:
                 return None
-            col = table.c[field]
-            return col == value if op == "==" else col != value
+            return Cmp(field, "eq" if op == "==" else "ne", value)
 
         link_fn, sub_fn = field.split(".", 1)
-        if doctype is None or not hasattr(table.c, link_fn):
+        if doctype is None or link_fn not in table.c:
             return None
         resolved = await _resolve_link_target(doctype, link_fn)
         if resolved is None:
             return None
-        _target_name, target_table = resolved
+        target_name, target_table = resolved
         if sub_fn not in target_table.c:
             return None
-
-        subq = select(target_table.c.name).where(target_table.c[sub_fn] == value)
-        col = table.c[link_fn]
-        return col.in_(subq) if op == "==" else col.not_in(subq)
+        return Linked(link_fn, target_name, Cmp(sub_fn, "eq", value), negate=op != "==")
 
     async def evaluate_doc(self, doc: dict, user: User, doctype: DocType | Meta) -> bool:
         """Per-document check.
@@ -191,7 +187,7 @@ class PermissionMatch:
 
     def _evaluate_narrow(self, doc: dict, user: User, *, doctype_name: str = "") -> bool | None:
         """Fast path for the same narrow ``field (==|!=) (user|'literal')``
-        form ``to_sql`` handles, evaluated the same structural way: *field*
+        form ``to_expr`` handles, evaluated the same structural way: *field*
         always names a document field, *value* is resolved from the
         (`user`|literal) grammar - never from a shared namespace.
 

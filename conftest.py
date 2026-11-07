@@ -100,6 +100,13 @@ async def setup_db():
 
         _clear_workflow_cache()
 
+        # User Permissions are cached per email in the process: rows loaded for
+        # alice@example.com in one test must not restrict - or, without a
+        # session, break - another test's alice on the same xdist worker.
+        from grunt.permissions.user_permissions import _UP_CACHE
+
+        _UP_CACHE.clear()
+
         # Compile and create core doctype tables from JSON files, and register in doctype_registry
         import json
 

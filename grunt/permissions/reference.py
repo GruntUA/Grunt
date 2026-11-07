@@ -13,11 +13,12 @@ are from lists).
 
 from typing import Any
 
-from sqlalchemy import ColumnElement, Table, and_, false, or_, select
+from sqlalchemy import Table, select
 
+from grunt.query.nodes import Cmp, Empty, Expr, Linked, and_, or_
 lazy import grunt
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.permissions.query import apply_permission_filter
+lazy from grunt.permissions.query import read_predicate
 lazy from grunt.permissions.rbac import permission_checker
 
 # (doctype field, id field) for a dynamic reference; (None, link field) for a Link.
@@ -65,21 +66,17 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
     return False if bound else None
 
 
-async def readable_names(user: User, parent_meta: Any) -> Any | None:
-    """``SELECT name`` of the *parent_meta* rows *user* may read, or ``None``."""
-
+async def readable_predicate(user: User, parent_meta: Any) -> Expr | None:
+    """The rows of *parent_meta* that *user* may read, as a predicate on them -
+    ``None`` when *user* can't read that DocType at all."""
     if not await permission_checker.check(user, parent_meta, "read"):
         return None
-    parent = parent_meta.table
-    return await apply_permission_filter(select(parent.c.name), parent, user, parent_meta)
+    return await read_predicate(parent_meta.table, user, parent_meta)
 
 
-async def reference_conditions(
-    table: Table, user: User, doctype: Any
-) -> tuple[ColumnElement[bool], ColumnElement[bool]] | None:
+async def reference_predicates(table: Table, user: User, doctype: Any) -> tuple[Expr, Expr] | None:
     """``(points at nothing, points at a readable document)`` for list queries,
     or ``None`` when *doctype* doesn't inherit access."""
-
     sources = [
         (dt_field, id_field)
         for dt_field, id_field in reference_sources(doctype)
@@ -87,34 +84,34 @@ async def reference_conditions(
     ]
     if not sources:
         return None
-
-    unbound: list[ColumnElement[bool]] = []
-    readable: list[ColumnElement[bool]] = []
+    unbound: list[Expr] = []
+    readable: list[Expr] = []
     for dt_field, id_field in sources:
-        id_col = table.c[id_field]
         if dt_field is None:
-            unbound.append(or_(id_col.is_(None), id_col == ""))
+            unbound.append(Empty(id_field))
             target = _link_target(doctype, id_field)
             parent_meta = await grunt.get_meta(target) if target else None
             if parent_meta is not None:
-                names = await readable_names(user, parent_meta)
-                if names is not None:
-                    readable.append(id_col.in_(names))
+                where = await readable_predicate(user, parent_meta)
+                if where is not None:
+                    readable.append(Linked(id_field, parent_meta.name, where))
             continue
-
+        empty: list[Expr] = [Empty(dt_field), Empty(id_field)]
         dt_col = table.c[dt_field]
-        empty = [dt_col.is_(None), dt_col == "", id_col.is_(None), id_col == ""]
         referenced = (await grunt.get_session().execute(select(dt_col).distinct())).scalars().all()
         for ref_doctype in referenced:
             if not ref_doctype:
                 continue
             parent_meta = await grunt.get_meta(ref_doctype)
             if parent_meta is None:
-                empty.append(dt_col == ref_doctype)  # orphans of a removed DocType
+                empty.append(Cmp(dt_field, "eq", ref_doctype))  # orphans of a removed DocType
                 continue
-            names = await readable_names(user, parent_meta)
-            if names is not None:
-                readable.append(and_(dt_col == ref_doctype, id_col.in_(names)))
+            where = await readable_predicate(user, parent_meta)
+            if where is not None:
+                readable.append(
+                    and_(
+                        Cmp(dt_field, "eq", ref_doctype), Linked(id_field, parent_meta.name, where)
+                    )
+                )
         unbound.append(or_(*empty))
-
-    return and_(*unbound), or_(*readable) if readable else false()
+    return and_(*unbound), or_(*readable)

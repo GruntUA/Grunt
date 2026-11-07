@@ -3,7 +3,7 @@
 Three collaborating pieces, previously in three separate files:
 
 * ``grunt.permissions.match.PermissionMatch`` — the single parser/evaluator
-  shared by row-level query filtering (``to_sql``) and per-document checks
+  shared by row-level query filtering (``to_expr``) and per-document checks
   (``evaluate``).
 * ``grunt.permissions.access.RoleAccess`` — "is this user exempt from
   checks" and "which permission rows match their roles".
@@ -19,6 +19,7 @@ from grunt.metadata.permission import DocPermission
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.query import apply_permission_filter
+from grunt.query.nodes import Cmp
 from tests.support import make_user
 lazy from grunt.auth.doctypes.User.user import User
 
@@ -35,8 +36,8 @@ def _no_document_shares(monkeypatch):
         return None
 
     monkeypatch.setattr(shares, "has_share", _no_share)
-    monkeypatch.setattr(shares, "shared_names_clause", _no_clause)
-    monkeypatch.setattr(query, "shared_names_clause", _no_clause)
+    monkeypatch.setattr(shares, "shared_predicate", _no_clause)
+    monkeypatch.setattr(query, "shared_predicate", _no_clause)
 
 
 _META = MetaData()
@@ -76,53 +77,51 @@ def _doctype(perms: list[dict]) -> DocType:
     )
 
 
-# ── PermissionMatch.to_sql ────────────────────────────────────────────────
+# ── PermissionMatch.to_expr ───────────────────────────────────────────────
 
 
-class TestPermissionMatchToSql:
+class TestPermissionMatchToExpr:
     async def test_owner_eq_user(self):
-        cond = await PermissionMatch("owner == user").to_sql(_TABLE, _user("alice@example.com"))
-        assert cond is not None
-        assert "alice@example.com" in str(cond.compile(compile_kwargs={"literal_binds": True}))
+        expr = await PermissionMatch("owner == user").to_expr(_TABLE, _user("alice@example.com"))
+        assert expr == Cmp("owner", "eq", "alice@example.com")
 
     async def test_status_eq_literal(self):
-        cond = await PermissionMatch("status == 'Published'").to_sql(
+        expr = await PermissionMatch("status == 'Published'").to_expr(
             _TABLE, _user("alice@example.com")
         )
-        assert cond is not None
-        assert "Published" in str(cond.compile(compile_kwargs={"literal_binds": True}))
+        assert expr == Cmp("status", "eq", "Published")
 
     async def test_not_equal(self):
-        cond = await PermissionMatch("status != 'Archived'").to_sql(
+        expr = await PermissionMatch("status != 'Archived'").to_expr(
             _TABLE, _user("alice@example.com")
         )
-        assert cond is not None
+        assert expr == Cmp("status", "ne", "Archived")
 
     async def test_unknown_field_is_none(self):
-        cond = await PermissionMatch("nonexistent == user").to_sql(
+        expr = await PermissionMatch("nonexistent == user").to_expr(
             _TABLE, _user("alice@example.com")
         )
-        assert cond is None
+        assert expr is None
 
     async def test_boolean_logic_is_unparseable(self):
         m = PermissionMatch("owner == user and status == 'Open'")
-        assert await m.to_sql(_TABLE, _user("alice@example.com")) is None
+        assert await m.to_expr(_TABLE, _user("alice@example.com")) is None
 
     async def test_numeric_literal_is_unparseable(self):
-        cond = await PermissionMatch("status == 5").to_sql(_TABLE, _user("alice@example.com"))
-        assert cond is None
+        expr = await PermissionMatch("status == 5").to_expr(_TABLE, _user("alice@example.com"))
+        assert expr is None
 
     async def test_dotted_path_without_doctype_is_none(self):
         """A ``link.field`` expression can't be translated without the DocType
         that owns the Link — fail closed, don't leak."""
         m = PermissionMatch("asset_user.user_id == user")
-        assert await m.to_sql(_TABLE, _user("alice@example.com")) is None
+        assert await m.to_expr(_TABLE, _user("alice@example.com")) is None
 
     async def test_deep_path_is_unparseable(self):
         """Only a single hop is supported; ``a.b.c`` never parses."""
         m = PermissionMatch("a.b.c == user")
         assert m._parsed is None
-        assert await m.to_sql(_TABLE, _user("alice@example.com")) is None
+        assert await m.to_expr(_TABLE, _user("alice@example.com")) is None
 
 
 # ── PermissionMatch.evaluate ─────────────────────────────────────────────
@@ -138,7 +137,7 @@ class TestPermissionMatchEvaluate:
         assert not m.evaluate({"owner": "bob@example.com"}, _user("alice@example.com"))
 
     def test_boolean_logic_supported(self):
-        """evaluate() supports full simpleeval syntax, wider than to_sql()'s
+        """evaluate() supports full simpleeval syntax, wider than to_expr()'s
         narrow "field == value" form — that's the whole point of having two
         evaluation modes instead of forcing one.
         """

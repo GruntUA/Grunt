@@ -7,10 +7,11 @@ Shares only *add* access on top of role permissions (see
 create or delete, and never apply to a different document.
 """
 
-from sqlalchemy import ColumnElement, Table, select
+from sqlalchemy import Table, select
 
 import grunt
 from grunt.local import _session_ctx
+from grunt.query.nodes import Cmp, Expr, In, Linked, and_
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.permissions.user_permissions import expand_tree_values
 
@@ -66,20 +67,22 @@ async def _with_ancestors(doctype: str, name: str) -> list[str]:
     return out
 
 
-async def shared_names_clause(table: Table, user: User, doctype: str) -> ColumnElement[bool] | None:
-    """``name IN (<docs of doctype shared with user>)`` for list queries."""
+async def shared_predicate(table: Table, user: User, doctype: str) -> Expr | None:
+    """``name`` among the *doctype* documents shared with *user*, for list queries;
+    ``None`` - nothing can be shared."""
     if not user.email or "name" not in table.c:
         return None
     meta = await grunt.get_meta("SharedWith")
     if meta is None:
         return None
+    mine = and_(Cmp("reference_doctype", "eq", doctype), Cmp("user", "eq", user.email))
+    if await _subtree_parent_field(doctype) is None:
+        return Linked("name", "SharedWith", mine, select="reference_id")
     share = meta.table
     shared = select(share.c.reference_id).where(
-        share.c.reference_doctype == doctype,
-        share.c.user == user.email,
+        share.c.reference_doctype == doctype, share.c.user == user.email
     )
-    if await _subtree_parent_field(doctype) is None:
-        return table.c.name.in_(shared)
-
     roots = set((await grunt.get_session().execute(shared)).scalars().all())
-    return table.c.name.in_(await expand_tree_values(doctype, roots)) if roots else None
+    if not roots:
+        return None
+    return In("name", tuple(sorted(await expand_tree_values(doctype, roots))))

@@ -5,11 +5,12 @@ compares either way, PostgreSQL refuses ``int = '5'``); the AST keeps them as
 given.
 """
 
+from collections.abc import Mapping
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import ColumnElement, String, and_, cast, exists, false, or_, true
+from sqlalchemy import ColumnElement, String, Table, and_, cast, exists, false, or_, select, true
 
 from grunt.db.types import IsoDate, UtcDateTime
 from grunt.query.nodes import (
@@ -20,6 +21,7 @@ from grunt.query.nodes import (
     Expr,
     In,
     Like,
+    Linked,
     MultiLink,
     Null,
     Or,
@@ -79,18 +81,42 @@ _CMP = {
 }
 
 
-def to_sql(expr: Expr, table: Any, *, doctype: str | None = None) -> ColumnElement[bool]:
-    """*expr* as a WHERE clause on *table*. *doctype* - for ``MultiLink`` (its rows
-    in ``grunt_core_multi_link`` are keyed by the DocType's name)."""
+def to_sql(
+    expr: Expr,
+    table: Any,
+    *,
+    doctype: str | None = None,
+    tables: Mapping[str, Table] | None = None,
+) -> ColumnElement[bool]:
+    """*expr* as a WHERE clause on *table*.
+
+    *doctype* - for ``MultiLink`` (its rows in ``grunt_core_multi_link`` are keyed
+    by the DocType's name); *tables* - the table of every DocType a ``Linked``
+    node reads (:func:`grunt.query.nodes.linked_doctypes`).
+    """
+
+    def sub(e: Expr) -> ColumnElement[bool]:
+        return to_sql(e, table, doctype=doctype, tables=tables)
+
     match expr:
         case Const(value=value):
             return true() if value else false()
         case And(items=items):
-            return and_(*(to_sql(i, table, doctype=doctype) for i in items))
+            return and_(*(sub(i) for i in items))
         case Or(items=items):
-            return or_(*(to_sql(i, table, doctype=doctype) for i in items))
+            return or_(*(sub(i) for i in items))
         case MultiLink():
             return _multilink(expr, table, doctype)
+        case Linked(field=field, doctype=target_doctype, where=where, select=column, negate=negate):
+            if tables is None or target_doctype not in tables:
+                raise ValueError(
+                    f"Linked filter on {field!r} needs the table of {target_doctype!r}"
+                )
+            target = tables[target_doctype]
+            inner = to_sql(where, target, doctype=target_doctype, tables=tables)
+            subquery = select(target.c[column]).where(inner)
+            col = table.c[field]
+            return col.not_in(subquery) if negate else col.in_(subquery)
 
     col = table.c[expr.field]
     match expr:

@@ -8,13 +8,14 @@ where its controller validates them (e.g. User guards its ``roles``).
 
 from typing import Any
 
-from sqlalchemy import ColumnElement, Table, and_, false, or_
+from sqlalchemy import Table
 
+from grunt.query.nodes import FALSE, Cmp, Expr, Linked, and_, or_
 lazy import grunt
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
-lazy from grunt.permissions.reference import readable_names
+lazy from grunt.permissions.reference import readable_predicate
 lazy from grunt.permissions.types import PermissionAction
 
 
@@ -58,16 +59,18 @@ async def child_allowed(
     return False
 
 
-async def child_conditions(table: Table, user: User, doctype: Any) -> ColumnElement[bool]:
+async def child_predicate(table: Table, user: User, doctype: Any) -> Expr:
     """Rows whose parent document *user* may read, for list queries."""
-
     if "parent_doctype" not in table.c or "parent_name" not in table.c:
-        return false()
-    readable: list[ColumnElement[bool]] = []
+        return FALSE
+    readable: list[Expr] = []
     for parent_meta in await parent_doctypes(doctype.name):
-        names = await readable_names(user, parent_meta)
-        if names is not None:
+        where = await readable_predicate(user, parent_meta)
+        if where is not None:
             readable.append(
-                and_(table.c.parent_doctype == parent_meta.name, table.c.parent_name.in_(names))
+                and_(
+                    Cmp("parent_doctype", "eq", parent_meta.name),
+                    Linked("parent_name", parent_meta.name, where),
+                )
             )
-    return or_(*readable) if readable else false()
+    return or_(*readable)
