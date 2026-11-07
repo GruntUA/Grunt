@@ -15,6 +15,7 @@ lazy from grunt.backups import (
     restore_backup,
 )
 lazy from grunt.cli.utils import _site_session, resolve_site
+lazy from grunt.db.write_intent import set_process_default
 lazy from grunt.metadata.compiler import (
     SA_METADATA,
     compile_doctype_to_table,
@@ -76,6 +77,9 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
     """
 
     async def _run() -> list[str]:
+        if dry_run:
+            # Reads only: SQLite's plain BEGIN, not the write lock (BEGIN IMMEDIATE).
+            set_process_default(False)
 
         broker_started = False
         failed: list[str] = []
@@ -191,7 +195,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                                     continue
                                 if dry_run:
                                     plan = await preview_sync(
-                                        dt, eng, drop_indexes=True, keep=keep_for(dt)
+                                        dt, session=session, drop_indexes=True, keep=keep_for(dt)
                                     )
                                     for line in plan:
                                         click.echo(f"    [dry-run] {dt.name}: {line}")

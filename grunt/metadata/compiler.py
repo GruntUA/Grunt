@@ -286,20 +286,30 @@ def table_index_names(table: Table) -> set[str]:
 
 async def preview_sync(
     doctype: DocType,
-    async_engine: AsyncEngine,
+    async_engine: AsyncEngine | None = None,
     *,
+    session: AsyncSession | None = None,
     drop_indexes: bool = False,
     keep: Collection[str] = (),
 ) -> list[str]:
-    """:func:`sync_table`'s plan for *doctype*, as lines - nothing is changed."""
+    """:func:`sync_table`'s plan for *doctype*, as lines - nothing is changed.
+
+    Reads through *session*'s connection when given - a second connection would
+    wait for the session's own lock (SQLite)."""
     if not doctype.has_table:
         return []
     table = compile_doctype_to_table(doctype)
+
+    def plan(c: Any) -> list[Change]:
+        return plan_sync(c, table, drop_indexes=drop_indexes, keep=keep)
+
+    if session is not None:
+        conn = await session.connection()
+        return describe(await conn.run_sync(plan))
+    if async_engine is None:
+        raise ValueError("preview_sync needs an engine or a session")
     async with async_engine.connect() as conn:
-        changes = await conn.run_sync(
-            lambda c: plan_sync(c, table, drop_indexes=drop_indexes, keep=keep)
-        )
-    return describe(changes)
+        return describe(await conn.run_sync(plan))
 
 
 async def sync_table(

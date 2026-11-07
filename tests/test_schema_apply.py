@@ -188,6 +188,14 @@ async def test_migrate_dry_run_prints_the_plan(ctx, engine):
     table = meta.table_name
     assert lines == [f"add column {table}.rank", f"add index ix_{table}_rank"]
 
+    # through the migrate session's own connection (a second one would wait for its lock)
+    invalidate_table_cache("SchemaPlanItem")
+    try:
+        through_session = await preview_sync(changed, session=ctx.db._session())
+    finally:
+        invalidate_table_cache("SchemaPlanItem")
+    assert through_session == lines
+
 
 @pytest.mark.asyncio
 async def test_a_fresh_schema_needs_no_changes(ctx, engine):
