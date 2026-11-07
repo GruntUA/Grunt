@@ -420,6 +420,8 @@ interface GruntMethods {
   "grunt.progress.cancel_task": { args: { task_id: string }; result: boolean }
   /** Run a report and return the result as an xlsx file download. */
   "grunt.reports.doctypes.Report.report.export_xlsx": { args: { name: string; filters?: Record<string, any> | null; token?: string | null }; result: unknown }
+  /** The fields the report builder may offer for *doctype* - those a report can read for the current user (:func:`grunt.reports.joins.report_fields`). */
+  "grunt.reports.doctypes.Report.report.fields": { args: { doctype: string }; result: Record<string, any>[] }
   /** Execute an ad-hoc List report configuration (the builder's preview). */
   "grunt.reports.doctypes.Report.report.preview": { args: { doctype: string; columns?: Record<string, any>[] | null; filters?: Record<string, any> | null; conditions?: Record<string, any>[] | null; sort_by?: string | null; sort_order?: string | null; row_limit?: number | null }; result: Record<string, any> }
   /** Execute a report and return results. */

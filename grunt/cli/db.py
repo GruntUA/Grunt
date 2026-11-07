@@ -143,7 +143,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             try:
                                 if dt.name in from_json:
                                     continue
-                                if dt.is_virtual:
+                                if not dt.has_table:
                                     skipped += 1
                                     continue
                                 if dry_run:
@@ -265,9 +265,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                         from grunt.document.meta import Meta
 
                         all_metas = [
-                            Meta(dt)
-                            for dt in await doctype_registry.list_all()
-                            if not dt.is_virtual
+                            Meta(dt) for dt in await doctype_registry.list_all() if dt.has_table
                         ]
                         if doctype:
                             target_meta = await grunt.get_meta(doctype)

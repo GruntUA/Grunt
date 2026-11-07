@@ -19,7 +19,7 @@ export interface DocType {
   app?: string | null
   is_child?: boolean
   is_singleton?: boolean
-  is_virtual?: boolean
+  storage?: 'sql' | 'virtual'
   is_tree?: boolean
   track_changes?: boolean
   track_seen?: boolean

@@ -1,17 +1,14 @@
 """Data Import / Export whitelisted methods."""
 
-import asyncio
 import base64
 import json
 from typing import Any, cast
-
-from taskiq import InMemoryBroker
 
 import grunt
 from grunt import _
 from grunt.data_import.tasks import run_data_import
 from grunt.permissions.guards import read_guard, write_guard
-from grunt.tasks.broker import broker
+from grunt.tasks.enqueue import enqueue
 lazy from grunt.io.doctypes.DataImport.data_import import DataImport
 
 
@@ -56,11 +53,9 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
 
     await write_guard("DataImport", "write")
 
-    if isinstance(broker, InMemoryBroker):
-        # No Redis worker running - execute directly in a background asyncio task
-        asyncio.create_task(run_data_import(data_import_id))
-    else:
-        await run_data_import.kiq(data_import_id)
+    # After the commit, so the worker reads the import as saved. Without Redis
+    # the in-memory broker runs it in this process - in the background either way.
+    enqueue(run_data_import, data_import_id)
 
     return {"name": data_import_id, "message": "Import started in background"}
 

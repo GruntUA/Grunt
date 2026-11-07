@@ -18,8 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import log
-from grunt.auth.doctypes.User.user import User, get_user_by_id
+from grunt.auth.doctypes.User.user import User
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
+from grunt.auth.users import get_user_by_id
 
 _KEY_PREFIX = "grnt_"
 _KEY_BYTES = 32  # 64 hex chars

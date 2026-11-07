@@ -7,7 +7,7 @@ from pathlib import Path
 from grunt import log
 from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.utils.strings import to_snake_case
-lazy from grunt.document.base import BaseDocument, Document
+lazy from grunt.document.base import Document
 
 
 class DocumentRegistry:
@@ -28,9 +28,9 @@ class DocumentRegistry:
     """
 
     def __init__(self) -> None:
-        self._controllers: dict[str, type[BaseDocument]] = {}
+        self._controllers: dict[str, type[Document]] = {}
         # The registered class before mixins - recomposed when mixins change.
-        self._bases: dict[str, type[BaseDocument]] = {}
+        self._bases: dict[str, type[Document]] = {}
         # Lazy index: doctype name -> dotted module path to import
         self._index: dict[str, str] = {}
         self._overrides: dict[str, str] = {}
@@ -40,7 +40,7 @@ class DocumentRegistry:
 
     # Eager registration (used for explicit overrides from hooks)
 
-    def register(self, doctype: str, controller: type[BaseDocument]) -> None:
+    def register(self, doctype: str, controller: type[Document]) -> None:
         """Register an already-imported controller class (its mixins are added)."""
         self._bases[doctype] = controller
         self._controllers[doctype] = self._with_mixins(doctype, controller)
@@ -87,7 +87,7 @@ class DocumentRegistry:
         self._controllers.pop(doctype, None)
         self._bases.pop(doctype, None)
 
-    def _with_mixins(self, doctype: str, controller: type[BaseDocument]) -> type[BaseDocument]:
+    def _with_mixins(self, doctype: str, controller: type[Document]) -> type[Document]:
         """*controller* with the DocType's mixins in front, or as is without any."""
         mixins: list[type] = []
         for app, path in reversed(self._mixins.get(doctype, [])):
@@ -118,7 +118,7 @@ class DocumentRegistry:
 
     # Lazy get
 
-    def get(self, doctype: str) -> type[BaseDocument]:
+    def get(self, doctype: str) -> type[Document]:
         """Return the controller for a DocType, importing it on first access."""
 
         if doctype not in self._controllers:
@@ -145,15 +145,11 @@ class DocumentRegistry:
         - ``grunt.auth.doctypes.User.user``          -> scan module for Document subclass
         - ``myapp.module.MyController``              -> explicit class path (overrides)
 
-        A controller is a subclass of ``Document`` or ``BaseDocument``.
+        A controller is a subclass of ``Document``.
         """
 
         def _is_controller(obj) -> bool:
-            return (
-                inspect.isclass(obj)
-                and issubclass(obj, BaseDocument)
-                and obj not in (BaseDocument, Document)
-            )
+            return inspect.isclass(obj) and issubclass(obj, Document) and obj is not Document
 
         # Check if it's an explicit class path (override format: "module.ClassName")
         # Heuristic: last segment starts with uppercase -> explicit class reference

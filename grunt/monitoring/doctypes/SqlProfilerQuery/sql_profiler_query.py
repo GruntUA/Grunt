@@ -1,9 +1,9 @@
 """Controller for the ``SqlProfilerQuery`` DocType."""
 
-from grunt.document.base import BaseDocument
+from grunt.document.base import Document
 
 
-class SqlProfilerQuery(BaseDocument):
+class SqlProfilerQuery(Document):
     """DocType controller for SqlProfilerQuery."""
 
     sql: str | None

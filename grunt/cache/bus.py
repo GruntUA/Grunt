@@ -21,18 +21,16 @@ import asyncio
 import functools
 import inspect
 import json
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from contextlib import suppress
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import event
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from grunt.db.commit import drain as drain_commits
+from grunt.db.commit import on_commit
 from grunt.log import log
 lazy import grunt
 lazy from grunt.config import settings
-lazy from grunt.local import _session_ctx
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.utils.redis import connect, shared
 
@@ -42,10 +40,7 @@ CHANNEL = "grunt:invalidate"
 SENDER = uuid4().hex
 
 _PLAIN = (str, int, float, bool, type(None))
-_QUEUE = "grunt_after_commit"
-
 _handlers: dict[str, Callable[..., Any]] = {}
-_pending: set[asyncio.Task[None]] = set()
 _listener: asyncio.Task[None] | None = None
 
 
@@ -66,49 +61,7 @@ def publish(topic: str, **kwargs: Any) -> None:
     message = json.dumps(
         {"sender": SENDER, "topic": topic, "site": current_site.get(), "kwargs": kwargs}
     )
-    after_commit(lambda: _send(message))
-
-
-def after_commit(fn: Callable[[], Awaitable[None]]) -> None:
-    """Run *fn* once the ambient session's transaction commits (now if there is
-    none); a rollback drops it."""
-    session = _session_ctx.get()
-    if not isinstance(session, AsyncSession) or not session.in_transaction():
-        _spawn(fn)
-        return
-    sync = session.sync_session
-    queue = sync.info.get(_QUEUE)
-    if queue is None:
-        queue = sync.info[_QUEUE] = []
-        event.listen(sync, "after_commit", _run_queued)
-        event.listen(sync, "after_soft_rollback", _drop_queued)
-    queue.append(fn)
-
-
-def _run_queued(sync: Any) -> None:
-    queued, sync.info[_QUEUE] = sync.info.get(_QUEUE) or [], []
-    for fn in queued:
-        _spawn(fn)
-
-
-def _drop_queued(sync: Any, previous_transaction: Any) -> None:
-    # The outer transaction only: a savepoint rollback keeps the rest of it.
-    if previous_transaction.parent is None:
-        sync.info[_QUEUE] = []
-
-
-def _spawn(fn: Callable[[], Awaitable[None]]) -> None:
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        return
-
-    async def _run() -> None:
-        await fn()
-
-    task = loop.create_task(_run())
-    _pending.add(task)
-    task.add_done_callback(_pending.discard)
+    on_commit(lambda: _send(message))
 
 
 async def _send(message: str) -> None:
@@ -123,8 +76,7 @@ async def _send(message: str) -> None:
 
 async def drain() -> None:
     """Wait for the messages still being sent (shutdown, tests)."""
-    if _pending:
-        await asyncio.gather(*_pending, return_exceptions=True)
+    await drain_commits()
 
 
 def fanout[F: Callable[..., Any]](fn: F) -> F:

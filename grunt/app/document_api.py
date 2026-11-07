@@ -23,16 +23,17 @@ from grunt.permissions.guards import (
     write_guard,
 )
 from grunt.permissions.rbac import permission_checker
-from grunt.query.nodes import TRUE
 from grunt.workflow.engine import workflow_engine
 lazy from grunt.cache.document_cache import DocumentCache
 lazy from grunt.cache.query_cache import QueryCache
 lazy from grunt.db import GruntDB
-lazy from grunt.db.api import _GROUP_FN_RE, _parse_aggregation_expr
-lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
+lazy from grunt.db.api import aggregate_query, list_query
+lazy from grunt.document.base import Document, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
-lazy from grunt.permissions.query import read_predicate
+lazy from grunt.query import run
 lazy from grunt.query.parse import FILTER_OPS
+lazy from grunt.store import AGGREGATE, SQL, supports
+lazy from grunt.store.sql import group_field, parse_aggregation
 lazy from grunt.workflow.registry import get_active_workflow
 
 
@@ -89,7 +90,7 @@ class DocumentAPI:
 
     async def _load(
         self, doctype: str, id_or_name: str | None, user: Any, expand: list[str] | None = None
-    ) -> BaseDocument:
+    ) -> Document:
 
         return await load_document(
             doctype,
@@ -100,7 +101,7 @@ class DocumentAPI:
             user=user,
         )
 
-    async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> BaseDocument:
+    async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> Document:
 
         return await new_document(
             doctype, data, user=user, session=grunt.get_session(), engine=require_engine()
@@ -116,7 +117,7 @@ class DocumentAPI:
     ) -> dict[str, Any]: ...
 
     @overload
-    async def get_doc[D: BaseDocument](
+    async def get_doc[D: Document](
         self,
         doctype: type[D],
         id_or_name: str | None = None,
@@ -125,7 +126,7 @@ class DocumentAPI:
     ) -> D: ...
 
     @overload
-    async def get_doc(self, doctype: dict[str, Any]) -> BaseDocument: ...
+    async def get_doc(self, doctype: dict[str, Any]) -> Document: ...
 
     @profile("grunt.get_doc")
     async def get_doc(self, doctype, id_or_name=None, *, expand=None):
@@ -187,7 +188,7 @@ class DocumentAPI:
     ) -> dict[str, Any] | None: ...
 
     @overload
-    async def find_doc[D: BaseDocument](
+    async def find_doc[D: Document](
         self,
         doctype: type[D],
         id_or_name: str | None = None,
@@ -207,7 +208,7 @@ class DocumentAPI:
                 return None
             raise
 
-    async def get_doc_instance(self, doctype: str, id_or_name: str) -> BaseDocument:
+    async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
         dt, user, hidden_fields = await read_guard(doctype)
         doc = await self._load(doctype, id_or_name, user)
@@ -396,12 +397,12 @@ class DocumentAPI:
         )
 
         result = None
-        # Virtual doctypes read from a controller-owned source (ring buffer, external
-        # API, ...) that can mutate outside create/update/delete - the only paths
-        # that invalidate this cache (_invalidate_list_cache). Caching them risks
-        # serving a stale snapshot forever, so they're never cache-eligible here.
+        # Only rows that change through create/update/delete - the paths that
+        # invalidate this cache (_invalidate_list_cache) - are cached: a store
+        # outside SQL (ring buffer, external API, ...) changes on its own, and a
+        # cached snapshot of it could go stale forever.
         cache_eligible = (
-            settings.query_cache_enabled and not dt.is_virtual and self._is_read_only_doctype(dt)
+            settings.query_cache_enabled and supports(dt, SQL) and self._is_read_only_doctype(dt)
         )
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
@@ -488,17 +489,16 @@ class DocumentAPI:
         # Same row-level gate get_list applies (match rules, User Permissions,
         # shares). Without it get_all would return every row the doctype-level
         # read grant allows, ignoring `match`.
-        predicate = TRUE if dt.doc.is_virtual else await read_predicate(dt.table, user, dt.doc)
-        rows = await self.db.get_all(
-            doctype,
+        query = list_query(
+            dt,
             filters=filters,
             fields=fields,
             limit=limit,
             offset=offset,
             order_by=order_by,
             order=order,
-            predicate=predicate,
         )
+        rows = await run.fetch(query, user=user)
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
@@ -594,9 +594,9 @@ class DocumentAPI:
         user = require_user()
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
-        # A virtual DocType's source changes outside the pipeline - never cached.
+        # A store outside SQL changes outside the pipeline - never cached.
         dt = await grunt.get_meta(doctype)
-        if settings.query_cache_enabled and cache is not None and dt and not dt.is_virtual:
+        if settings.query_cache_enabled and cache is not None and dt and supports(dt, SQL):
             cache_key = cache.build_count_key(
                 doctype=doctype, user_email=getattr(user, "email", ""), filters=filters
             )
@@ -639,18 +639,17 @@ class DocumentAPI:
         """
 
         dt, user, hidden = await read_guard(doctype)
-        if dt.doc.is_virtual:
+        if not supports(dt, AGGREGATE):
             raise unprocessable(_("“%(doctype)s” has no table to aggregate") % {"doctype": doctype})
 
         group_by = [group_by] if isinstance(group_by, str) else list(group_by or [])
         aggregations = aggregations or {"count": "count()"}
         referenced: set[str] = set()
         for gb in group_by:
-            m = _GROUP_FN_RE.match(gb.strip())
-            referenced.add(m.group(2).strip() if m else gb.strip())
+            referenced.add(group_field(gb))
         for expr in (aggregations or {}).values():
             try:
-                field = _parse_aggregation_expr(expr)[1]
+                field = parse_aggregation(expr)[1]
             except ValueError as e:
                 raise unprocessable(str(e)) from None
             if field and field != "*":
@@ -659,7 +658,7 @@ class DocumentAPI:
             field, _sep, op = key.rpartition("__")
             referenced.add(field if field and op in FILTER_OPS else key)
 
-        columns = set(dt.table.c.keys())
+        columns = dt.columns
         unknown = sorted(referenced - columns)
         if unknown:
             raise unprocessable(_("Unknown fields: %(fields)s") % {"fields": ", ".join(unknown)})
@@ -669,19 +668,18 @@ class DocumentAPI:
                 % {"fields": ", ".join(sorted(referenced & hidden))}
             )
 
-        predicate = await read_predicate(dt.table, user, dt.doc)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="aggregate")
+        query = aggregate_query(
+            dt,
+            filters=filters,
+            group_by=group_by,
+            aggregations=aggregations,
+            limit=limit,
+            order_by=order_by,
+            order=order,
+        )
         try:
-            rows = await self.db.aggregate(
-                doctype,
-                filters=filters,
-                group_by=group_by or None,
-                aggregations=aggregations,
-                limit=limit,
-                order_by=order_by,
-                order=order,
-                predicate=predicate,
-            )
+            rows = await run.aggregate(query, user=user)
         except ValueError as e:
             raise unprocessable(str(e)) from None
         await fire("after_read", doctype=doctype, user=user, data=rows, method="aggregate")

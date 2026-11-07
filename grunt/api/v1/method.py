@@ -17,7 +17,7 @@ from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
 lazy from grunt.auth.session_cookie import cookie_user
-lazy from grunt.document.base import BaseDocument
+lazy from grunt.document.base import Document
 lazy from grunt.errors import forbidden
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
@@ -79,7 +79,7 @@ def _documents_as_dicts(value: Any) -> Any:
     ``session``, ``doc_before_save``…) under ``data`` instead of its fields.
     Containers are rebuilt only where a controller sits.
     """
-    if isinstance(value, BaseDocument):
+    if isinstance(value, Document):
         return value.as_dict()
     if isinstance(value, dict):
         changed = {k: v2 for k, v in value.items() if (v2 := _documents_as_dicts(v)) is not v}
@@ -91,7 +91,7 @@ def _documents_as_dicts(value: Any) -> Any:
 
 
 def _mentions_document(annotation: Any) -> bool:
-    if inspect.isclass(annotation) and issubclass(annotation, BaseDocument):
+    if inspect.isclass(annotation) and issubclass(annotation, Document):
         return True
     return any(_mentions_document(a) for a in typing.get_args(annotation))
 

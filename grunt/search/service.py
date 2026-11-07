@@ -72,7 +72,7 @@ _FULLTEXT = FullTextSpec(
 
 def is_indexable(dt: DocType) -> bool:
     """True if *dt*'s documents belong in the global search index."""
-    return not (dt.is_child or dt.is_virtual or dt.is_log) and dt.in_global_search
+    return dt.has_table and not (dt.is_child or dt.is_log) and dt.in_global_search
 
 
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:

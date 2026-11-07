@@ -1,6 +1,6 @@
 """Write-pipeline checks for DocTypes with an active workflow.
 
-Called from grunt/document/mixins/write.py. Outside a transition (see
+Called from grunt/document/mixins/lifecycle.py. Outside a transition (see
 :func:`grunt.workflow.engine.current_transition`):
 
 * the state field can't be set to anything but the initial state on create,

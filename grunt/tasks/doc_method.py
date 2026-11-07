@@ -4,9 +4,10 @@ from typing import Any
 
 import grunt
 from grunt import log
-from grunt.auth.doctypes.User.user import get_user_by_email
+from grunt.auth.users import get_user_by_email
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
+from grunt.tasks.enqueue import enqueue
 
 
 @task
@@ -57,8 +58,10 @@ async def enqueue_doc_method(
     method: str,
     kwargs: dict[str, Any],
 ) -> None:
-    """Enqueue :func:`_run_doc_method` via the configured broker."""
-    await _run_doc_method.kiq(
+    """Enqueue :func:`_run_doc_method` via the configured broker - after the
+    current transaction commits, so the worker sees the document as saved."""
+    enqueue(
+        _run_doc_method,
         site=site,
         user_email=user_email,
         doctype=doctype,

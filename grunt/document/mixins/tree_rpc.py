@@ -68,7 +68,7 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
 
     user = grunt.get_user()
     table = dt.table
-    readable = await read_predicate(table, user, dt.doc)
+    readable = await read_predicate(user, dt)
     return None if readable == TRUE else await where(select(table.c.name), readable, table, dt.name)
 
 

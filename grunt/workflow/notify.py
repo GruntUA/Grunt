@@ -18,7 +18,8 @@ from typing import Any
 
 import grunt
 from grunt import _, log
-lazy from grunt.auth.doctypes.User.user import User, get_user_by_id
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.notification.service import notification_service
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.user_permissions import doc_passes

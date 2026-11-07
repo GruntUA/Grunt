@@ -25,6 +25,7 @@ from typing import Any
 
 from grunt.cache import bus
 from grunt.config import settings
+from grunt.db.commit import on_commit
 from grunt.site.manager import current_site
 from grunt.utils.redis import shared
 
@@ -93,7 +94,7 @@ class DocumentCache:
                 shared.failed("doc_cache.redis_invalidate_failed", exc)
 
         await purge()
-        bus.after_commit(purge)
+        on_commit(purge)
 
     async def get(self, doctype: str, name: str) -> dict[str, Any] | None:
         key = self._key(doctype, name)

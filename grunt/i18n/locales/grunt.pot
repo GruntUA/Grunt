@@ -136,6 +136,14 @@ msgstr ""
 msgid "%(shown)s of %(total)s records"
 msgstr ""
 
+#: grunt/grunt/db/dialects/postgresql.py
+msgid "%(tool)s failed: %(error)s"
+msgstr ""
+
+#: grunt/grunt/db/dialects/postgresql.py
+msgid "%(tool)s not found; install the PostgreSQL client"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py
 msgid "%(used)s used"
 msgstr ""
@@ -152,7 +160,7 @@ msgstr ""
 msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py
+#: grunt/grunt/document/mixins/lifecycle.py
 msgid "'%(name)s' is a singleton."
 msgstr ""
 
@@ -325,6 +333,10 @@ msgstr ""
 msgid "A reply must belong to the same document"
 msgstr ""
 
+#: grunt/grunt/db/errors.py
+msgid "A required field is empty."
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
 msgstr ""
@@ -361,6 +373,10 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgid "A user's like on one document (the heart in list views)."
+msgstr ""
+
+#: grunt/grunt/db/errors.py
+msgid "A value does not meet the database's rules."
 msgstr ""
 
 #: grunt/grunt/api/v1/meta.py
@@ -1364,10 +1380,6 @@ msgstr ""
 msgid "Backup file not found"
 msgstr ""
 
-#: grunt/grunt/backups/doctypes/Backup/backup.py
-msgid "Backup not found"
-msgstr ""
-
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Backup started"
 msgstr ""
@@ -1406,7 +1418,7 @@ msgstr ""
 msgid "Backups kept"
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/backups/__init__.py grunt/grunt/db/dialects/base.py
 msgid "Backups of %(backend)s are not supported"
 msgstr ""
 
@@ -1829,7 +1841,7 @@ msgstr ""
 msgid "Checking the connection…"
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "Checking the database copy"
 msgstr ""
 
@@ -2226,10 +2238,6 @@ msgstr ""
 msgid "Compacting… the database may be locked until it finishes."
 msgstr ""
 
-#: grunt/grunt/api/v1/meta.py
-msgid "Compaction is not supported for the “%(dialect)s” database"
-msgstr ""
-
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 msgid "Compare and restore"
 msgstr ""
@@ -2261,7 +2269,7 @@ msgstr ""
 msgid "Compressing images"
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "Compressing the database"
 msgstr ""
 
@@ -2530,7 +2538,7 @@ msgstr ""
 msgid "Copying the configuration"
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "Copying the database"
 msgstr ""
 
@@ -2598,7 +2606,7 @@ msgstr ""
 msgid "Could not read the OneDrive drive of this account"
 msgstr ""
 
-#: grunt/grunt/document/mixins/write.py
+#: grunt/grunt/document/mixins/lifecycle.py
 msgid "Could not reassign the links: uniqueness conflict"
 msgstr ""
 
@@ -3656,7 +3664,7 @@ msgstr ""
 msgid "Document “%(name)s” already exists. Restore with a new ID?"
 msgstr ""
 
-#: grunt/grunt/permissions/guards.py grunt/grunt/document/mixins/read.py
+#: grunt/grunt/document/base.py grunt/grunt/permissions/guards.py
 msgid "Document “%(name)s” not found"
 msgstr ""
 
@@ -3784,7 +3792,7 @@ msgstr ""
 msgid "Due date"
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/postgresql.py
 msgid "Dumping the database"
 msgstr ""
 
@@ -5335,10 +5343,6 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 msgid "Home page"
-msgstr ""
-
-#: grunt/grunt/scripting/doctypes/Hook/hook.py
-msgid "Hook '%(doc_id)s' not found"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -7333,10 +7337,6 @@ msgstr ""
 msgid "No options"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "No physical table — data comes from a controller"
-msgstr ""
-
 #: grunt/grunt/reports/engine.py
 msgid "No query specified"
 msgstr ""
@@ -8280,10 +8280,6 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py
 msgid "Performance trend is read-only"
-msgstr ""
-
-#: grunt/grunt/monitoring/doctypes/PerfTrend/perf_trend.py
-msgid "Performance trend “%(name)s” not found"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -9240,7 +9236,7 @@ msgstr ""
 msgid "Restored: %(name)s"
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/base.py
 msgid "Restoring %(backend)s is not supported"
 msgstr ""
 
@@ -9681,10 +9677,6 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Scheduled delivery"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/ScheduledJob/scheduled_job.py
-msgid "Scheduled job “%(name)s” not found"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -10567,10 +10559,6 @@ msgstr ""
 msgid "Split cell"
 msgstr ""
 
-#: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/sql_profiler_request.py
-msgid "SqlProfilerRequest '%(doc_id)s' not found"
-msgstr ""
-
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Stack trace"
 msgstr ""
@@ -10752,6 +10740,7 @@ msgstr ""
 msgid "Stop «{title}»? What is done so far is discarded."
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Storage"
 msgstr ""
@@ -11146,7 +11135,7 @@ msgstr ""
 msgid "The SMTP password is not saved. Save the account with a password."
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "The SQLite database has no file to back up"
 msgstr ""
 
@@ -11250,7 +11239,7 @@ msgstr ""
 msgid "The data source is temporarily unavailable."
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "The database backup is corrupted: %(result)s"
 msgstr ""
 
@@ -11260,7 +11249,7 @@ msgid ""
 " can be converted to the new type, otherwise the migration fails."
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
+#: grunt/grunt/db/dialects/sqlite.py
 msgid "The database snapshot is corrupted: %(result)s"
 msgstr ""
 
@@ -11442,6 +11431,12 @@ msgstr ""
 msgid "The pywebpush package is not installed"
 msgstr ""
 
+#: grunt/grunt/db/errors.py
+msgid ""
+"The record refers to a record that does not exist, or other records still "
+"refer to it."
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "The redirect URI registered in your app must be exactly"
 msgstr ""
@@ -11464,6 +11459,16 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The response came from the offline cache."
+msgstr ""
+
+#: grunt/grunt/db/dialects/sqlite.py
+msgid ""
+"The restore failed and the database could not be put back: it is in "
+"%(aside)s"
+msgstr ""
+
+#: grunt/grunt/db/dialects/sqlite.py
+msgid "The restore failed, the database was left as it was: %(error)s"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
@@ -12572,14 +12577,6 @@ msgstr ""
 msgid "Views"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Virtual"
-msgstr ""
-
-#: grunt/grunt/document/mixins/lifecycle.py
-msgid "Virtual DocType “%(doctype)s” has no individual documents"
-msgstr ""
-
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
 msgid "Waiting for connection…"
 msgstr ""
@@ -13572,14 +13569,6 @@ msgid ""
 "cannot sign in."
 msgstr ""
 
-#: grunt/grunt/backups/__init__.py
-msgid "pg_dump not found; install the PostgreSQL client"
-msgstr ""
-
-#: grunt/grunt/backups/__init__.py
-msgid "pg_restore not found; install the PostgreSQL client"
-msgstr ""
-
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 msgid "previous value"
 msgstr ""
@@ -13659,6 +13648,12 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/actions/BulkActionsMenu.vue
 msgid "selected"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"sql — the type's table in the database; virtual — no table, documents come "
+"from the store its controller names"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
@@ -14004,12 +13999,25 @@ msgstr ""
 msgid "“%(doctype)s” does not support replacing references"
 msgstr ""
 
-#: grunt/grunt/document/mixins/lifecycle.py
+#: grunt/grunt/store/base.py
 msgid "“%(doctype)s” does not support this operation"
 msgstr ""
 
-#: grunt/grunt/app/document_api.py
+#: grunt/grunt/app/document_api.py grunt/grunt/store/base.py
 msgid "“%(doctype)s” has no table to aggregate"
+msgstr ""
+
+#: grunt/grunt/document/tree.py
+msgid "“%(doctype)s” has no table to build a tree from"
+msgstr ""
+
+#: grunt/grunt/reports/engine.py
+msgid "“%(doctype)s” has no table to report on"
+msgstr ""
+
+#: grunt/grunt/db/api.py
+msgid ""
+"“%(doctype)s” has no table: grunt.db.%(action)s works on table rows only"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
@@ -14019,11 +14027,6 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
-msgstr ""
-
-#: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py
-#: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py
-msgid "“%(name)s” not found"
 msgstr ""
 
 #: grunt/grunt/email/templates/notification_digest.html

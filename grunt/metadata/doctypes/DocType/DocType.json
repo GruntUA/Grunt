@@ -2,7 +2,6 @@
   "name": "DocType",
   "label": "Document type",
   "module": "metadata",
-  "is_virtual": false,
   "is_child": false,
   "track_changes": false,
   "hide_from_activity_feed": true,
@@ -100,10 +99,12 @@
       "fieldtype": "Column"
     },
     {
-      "fieldname": "is_virtual",
-      "label": "Virtual",
-      "fieldtype": "Check",
-      "description": "No physical table — data comes from a controller"
+      "fieldname": "storage",
+      "label": "Storage",
+      "fieldtype": "Select",
+      "options": "sql\nvirtual",
+      "default": "sql",
+      "description": "sql — the type's table in the database; virtual — no table, documents come from the store its controller names"
     },
     {
       "fieldname": "is_tree",
@@ -178,14 +179,14 @@
       "fieldtype": "Data",
       "read_only": true,
       "description": "This type's physical table in the database",
-      "depends_on": "eval:!doc.is_virtual"
+      "depends_on": "eval:doc.storage !== 'virtual'"
     },
     {
       "fieldname": "standard_records",
       "label": "Standard records",
       "fieldtype": "Check",
       "description": "Records marked standard ship with their app as JSON files (saved there in developer mode, applied by migrate)",
-      "depends_on": "eval:!doc.is_child && !doc.is_virtual && !doc.is_singleton"
+      "depends_on": "eval:!doc.is_child && doc.storage !== 'virtual' && !doc.is_singleton"
     },
     {
       "fieldname": "definition",
@@ -543,7 +544,7 @@
       "label": "Logging",
       "fieldtype": "Tab",
       "icon": "History",
-      "depends_on": "eval:!doc.is_child && !doc.is_virtual"
+      "depends_on": "eval:!doc.is_child && doc.storage !== 'virtual'"
     },
     {
       "fieldname": "sec_audit",
@@ -662,7 +663,7 @@
       "label": "Web page",
       "fieldtype": "Tab",
       "icon": "Globe",
-      "depends_on": "eval:!doc.is_child && !doc.is_singleton && !doc.is_virtual"
+      "depends_on": "eval:!doc.is_child && !doc.is_singleton && doc.storage !== 'virtual'"
     },
     {
       "fieldname": "has_web_view",

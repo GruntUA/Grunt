@@ -1,11 +1,12 @@
-"""Tests for the Hook virtual DocType controller."""
+"""Tests for the Hook virtual DocType's store."""
 
 import pytest
 
+import grunt
 import grunt.hooks as hooks
-from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.query.query import Query
 from grunt.scripting.doctypes.Hook import hook as hook_mod
-from grunt.scripting.doctypes.Hook.hook import Hook
+from grunt.scripting.doctypes.Hook.hook import HookStore
 
 
 def _sample_handler():  # pragma: no cover - only its name is used
@@ -13,7 +14,7 @@ def _sample_handler():  # pragma: no cover - only its name is used
 
 
 @pytest.fixture
-def registries(monkeypatch):
+def registries(ctx, monkeypatch):
     """Populate the in-memory hook registries with a known shape."""
     monkeypatch.setattr(
         hooks, "HOOK_REGISTRY", {"after_migrate": [{"handler": _sample_handler, "priority": 5}]}
@@ -33,8 +34,15 @@ def _async_return(value):
     return _inner
 
 
-async def _list(**kwargs):
-    return await Hook.get_list("Hook", session=None, user=SYSTEM_USER, **kwargs)
+async def _store() -> HookStore:
+    """The store with the Hook DocType's real settings (search fields, sort)."""
+    return HookStore(await grunt.get_meta("Hook"), grunt.get_session())
+
+
+async def _list(search: str | None = None) -> dict:
+    query = Query("Hook", search=search)
+    store = await _store()
+    return {"data": await store.fetch(query), "meta": {"total": await store.count(query)}}
 
 
 @pytest.mark.asyncio
@@ -64,25 +72,13 @@ async def test_get_list_search_filters_rows(registries):
 @pytest.mark.asyncio
 async def test_load_returns_single_hook_by_name(registries):
     target = (await _list())["data"][0]
-    doc = Hook("Hook", {"name": target["name"]})
-    await doc.load_from_db()
-    assert doc.data == target
+    assert await (await _store()).get(target["name"]) == target
 
 
 @pytest.mark.asyncio
-async def test_load_unknown_raises_404(registries):
-    from fastapi import HTTPException
-
-    with pytest.raises(HTTPException) as exc:
-        await Hook("Hook", {"name": "Nope::nope::nope"}).load_from_db()
-    assert exc.value.status_code == 404
+async def test_load_unknown_is_none(registries):
+    assert await (await _store()).get("Nope::nope::nope") is None
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize("op", ["db_insert", "db_update", "db_delete"])
-async def test_writes_are_rejected(registries, op):
-    from fastapi import HTTPException
-
-    with pytest.raises(HTTPException) as exc:
-        await getattr(Hook("Hook", {"name": "x"}), op)()
-    assert exc.value.status_code == 405
+def test_writes_are_not_supported():
+    assert not HookStore.capabilities

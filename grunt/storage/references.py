@@ -70,7 +70,7 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     if not email:
         return
     meta = await grunt.get_meta(doctype)
-    if meta is None or meta.is_child or meta.is_virtual:
+    if meta is None or meta.is_child or not meta.has_table:
         return
     ids = await referenced_file_ids(doctype, doc)
     if not ids:

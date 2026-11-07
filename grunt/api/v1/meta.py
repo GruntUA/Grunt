@@ -187,7 +187,7 @@ async def compact_table(name: str) -> dict[str, Any]:
     dt = await grunt.get_meta(name)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
-    if dt.is_virtual:
+    if not dt.has_table:
         grunt.throw(_("A virtual DocType has no physical table"), "VALIDATION_ERROR")
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)
@@ -252,7 +252,7 @@ async def table_info(name: str) -> dict[str, Any]:
     dt = await grunt.get_meta(name)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": name})
-    if dt.is_virtual:
+    if not dt.has_table:
         grunt.throw(_("A virtual DocType has no physical table"), "VALIDATION_ERROR")
 
     table_name = dt.table_name or get_table_name(dt.module or "", dt.name)

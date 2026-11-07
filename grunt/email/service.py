@@ -1,4 +1,3 @@
-import asyncio
 import base64
 import json
 import re
@@ -9,11 +8,11 @@ from email.utils import make_msgid, parsedate_to_datetime
 from typing import Any
 
 import aiosmtplib
-from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
+from grunt.db.commit import on_commit
 from grunt.site.settings import get_setting
 from grunt.storage import store
 
@@ -24,10 +23,6 @@ from grunt.storage import store
 # (EmailAccount.before_save).
 SMTP_PASSWORD_MASK = "••••••••"
 
-# Strong refs to in-flight "kick the queue" tasks so asyncio doesn't GC them
-# before they run (see _kick_queue_after_commit).
-_pending_kicks: set[asyncio.Task[Any]] = set()
-
 
 async def _kick_queue() -> None:
     """Best-effort nudge for the ``process_email_queue`` scheduled task."""
@@ -37,35 +32,6 @@ async def _kick_queue() -> None:
         await process_email_queue.kiq()
     except Exception:
         log.warning("email.queue_kick_failed", exc_info=True)
-
-
-def _kick_queue_after_commit(session: AsyncSession) -> None:
-    """Arm a one-shot hook that runs ``process_email_queue`` the moment this
-    session's transaction commits.
-
-    Queuing on its own leaves the row waiting for the every-5-min scheduled
-    tick. Firing on ``after_commit`` (rather than right away) means the row is
-    already visible to the worker's own session, and a caller that rolls back
-    never triggers a send. Repeated ``queue_email`` calls in one transaction
-    share a single hook.
-    """
-
-    sync_session = session.sync_session
-    if sync_session.info.get("grunt_email_kick_armed"):
-        return
-    sync_session.info["grunt_email_kick_armed"] = True
-
-    def _on_commit(_s: Any) -> None:
-        sync_session.info["grunt_email_kick_armed"] = False
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            return
-        task = loop.create_task(_kick_queue())
-        _pending_kicks.add(task)
-        task.add_done_callback(_pending_kicks.discard)
-
-    event.listen(sync_session, "after_commit", _on_commit, once=True)
 
 
 def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
@@ -393,7 +359,10 @@ class EmailService:
             log.warning("email.queue_doctype_missing")
             return ""
 
-        _kick_queue_after_commit(session)
+        # Right after the commit, not at the every-5-min tick: the row is then
+        # visible to the worker, and a rollback sends nothing. One kick per
+        # transaction, however many emails it queues.
+        on_commit(_kick_queue, session=session, key="email.kick_queue")
         return record_id
 
 

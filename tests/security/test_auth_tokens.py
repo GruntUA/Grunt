@@ -11,8 +11,8 @@
 
 import pytest
 
-from grunt.auth.doctypes.User.user import create_user
 from grunt.auth.service import create_mfa_setup_token, create_mfa_token
+from grunt.auth.users import create_user
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "mfa-victim@grunt.example.com"
@@ -22,7 +22,7 @@ async def _user(ctx):
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user(EMAIL, "Str0ngPass-1", "Mfa", "Victim", None)
         await ctx.db._session().commit()
-        from grunt.auth.doctypes.User.user import get_user_by_email
+        from grunt.auth.users import get_user_by_email
 
         return await get_user_by_email(EMAIL)
 

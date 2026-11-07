@@ -1,7 +1,7 @@
 """Document event bus - the fan-out pipeline behind ``fire()``.
 
 Every write in the CRUD pipeline
-(:class:`grunt.document.mixins.write.DocumentWriteMixin`) ends in a single
+(:mod:`grunt.document.mixins.lifecycle`) ends in a single
 ``fire("after_save", ...)`` call. :func:`fire`:
 
 1. Runs the hook registry via :func:`grunt.hooks.dispatch` - app ``@on`` /
@@ -34,6 +34,7 @@ from grunt.notification import rule_index
 from grunt.notification.tasks import evaluate_notification_rules_task
 from grunt.scripting import server_script_runner
 from grunt.storage.references import claim_referenced_files
+from grunt.tasks.enqueue import enqueue
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,7 +218,9 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     if not await rule_index.has_rules(doctype, event):
         return
 
-    await evaluate_notification_rules_task.kiq(
+    # After the commit: the worker reads the document this transaction saved.
+    enqueue(
+        evaluate_notification_rules_task,
         event=event,
         doctype=doctype,
         doc=kwargs["doc"],
