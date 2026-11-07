@@ -52,6 +52,28 @@ def register_sqlite_functions(dbapi_conn: Any) -> None:
     dbapi_conn.create_function("lower", 1, _unicode_lower, deterministic=True)
 
 
+def _storage(declared: str) -> str:
+    """TEXT, BLOB or NUMBER - the INTEGER, REAL and NUMERIC affinities store a
+    value the same way as far as comparing and sorting go."""
+    affinity = _affinity(declared)
+    return affinity if affinity in ("TEXT", "BLOB") else "NUMBER"
+
+
+def _affinity(declared: str) -> str:
+    """The type affinity SQLite gives a column declared as *declared*
+    (https://www.sqlite.org/datatype3.html#determination_of_column_affinity)."""
+    t = declared.upper()
+    if "INT" in t:
+        return "INTEGER"
+    if any(k in t for k in ("CHAR", "CLOB", "TEXT")):
+        return "TEXT"
+    if "BLOB" in t or not t.strip():
+        return "BLOB"
+    if any(k in t for k in ("REAL", "FLOA", "DOUB")):
+        return "REAL"
+    return "NUMERIC"
+
+
 class SqliteDialect(Dialect):
     name = "sqlite"
     file_based = True
@@ -138,6 +160,14 @@ class SqliteDialect(Dialect):
 
     def group_concat_sql(self, expr: str) -> str:
         return f"GROUP_CONCAT({expr})"
+
+    def same_column_type(self, desired: Any, current: Any, sa_dialect: Any) -> bool:
+        """SQLite stores by type affinity, not by the declared type: VARCHAR(140)
+        and TEXT are both TEXT (the length is not enforced); FLOAT, DOUBLE and
+        NUMERIC(18, 2) all keep a fraction as an 8-byte REAL. What changes how
+        values compare and sort is text against number - only that rebuilds
+        the table."""
+        return _storage(desired.compile(sa_dialect)) == _storage(str(current))
 
     def max_text_length(self, connection: Any, table_name: str, column: str) -> int:
         q = self.quote

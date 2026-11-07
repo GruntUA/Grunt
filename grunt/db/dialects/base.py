@@ -192,6 +192,13 @@ class Dialect(ABC):
             )
         )
 
+    def same_column_type(self, desired: Any, current: Any, sa_dialect: Any) -> bool:
+        """Whether a column of the reflected *current* type already stores the
+        *desired* one - no change to plan (:func:`grunt.db.schema.diff`)."""
+        from grunt.db.schema.diff import type_changed
+
+        return not type_changed(desired, current, sa_dialect)
+
     def max_text_length(self, connection: Any, table_name: str, column: str) -> int:
         """The longest stored value of the text *column* (0 when all are NULL)."""
         q = self.quote

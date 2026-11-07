@@ -266,13 +266,17 @@ def plan_sync(
     connection: Any, table: Table, *, drop_indexes: bool = False, keep: Collection[str] = ()
 ) -> list[Change]:
     """What :func:`sync_table` would change in *table* (a sync connection)."""
+    dialect = dialect_for(connection)
     return diff(
         table,
         read_actual(connection, table.name),
         sa_dialect=connection.dialect,
-        can_alter_type=dialect_for(connection).can_alter_column_type,
+        can_alter_type=dialect.can_alter_column_type,
         drop_indexes=drop_indexes,
         keep=keep,
+        same_type=lambda desired, current: dialect.same_column_type(
+            desired, current, connection.dialect
+        ),
     )
 
 

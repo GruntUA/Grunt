@@ -8,7 +8,7 @@ can hold data nobody defines any more, and several DocTypes can share a table
 (``table_name``) - ``keep`` names what the others still need.
 """
 
-from collections.abc import Collection
+from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from typing import Any
 
@@ -120,6 +120,7 @@ def diff(
     drop_columns: bool = False,
     drop_indexes: bool = False,
     keep: Collection[str] = (),
+    same_type: Callable[[Any, Any], bool] | None = None,
 ) -> list[Change]:
     """The changes that make *actual* what *table* says, in the order they apply.
 
@@ -127,7 +128,16 @@ def diff(
     is planned as a table rebuild). *drop_columns* / *drop_indexes* - also drop
     columns and our own indexes (``ix_<table>_…``) the definition no longer has,
     except those in *keep* (needed by another DocType on the same table).
+    *same_type(desired, current)* - the column already stores the desired type
+    (the dialect's :meth:`~grunt.db.dialects.Dialect.same_column_type`; by
+    default the type names are compared).
     """
+
+    def same_name(desired: Any, current: Any) -> bool:
+        return not type_changed(desired, current, sa_dialect)
+
+    is_same = same_type or same_name
+
     if actual is None:
         return [CreateTable(table)]
 
@@ -137,7 +147,7 @@ def diff(
         current = actual.columns.get(col.name)
         if current is None:
             changes.append(AddColumn(table, col, col.info.get("backfill_default")))
-        elif type_changed(col.type, current, sa_dialect):
+        elif not is_same(col.type, current):
             changes.append(AlterType(table, col, current, rebuild=not can_alter_type))
 
     existing_unique = actual.uniques | actual.unique_indexes

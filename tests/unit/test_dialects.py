@@ -396,3 +396,22 @@ def test_exact_compares_code_points_on_postgres():
     pg = _sql(PostgresDialect().exact(_t.c.title), postgresql.dialect())
     assert pg == 't.title COLLATE "C"'
     assert _sql(SqliteDialect().exact(_t.c.title), sqlite.dialect()) == "t.title"
+
+
+def test_sqlite_compares_column_types_by_affinity():
+    """SQLite stores by affinity: VARCHAR(n)/TEXT are TEXT, FLOAT/DOUBLE/NUMERIC keep
+    a fraction as REAL - no table rebuild for those; number <-> text is a real change."""
+    import sqlalchemy as sa
+    from sqlalchemy.dialects import sqlite
+
+    from grunt.db.dialects.sqlite import SqliteDialect
+
+    d, lite = SqliteDialect(), sqlite.dialect()
+    assert d.same_column_type(sa.Double(), sa.FLOAT(), lite)
+    assert d.same_column_type(sa.Text(), sa.VARCHAR(140), lite)
+    assert d.same_column_type(sa.String(255), sa.TEXT(), lite)
+    assert d.same_column_type(
+        sa.Numeric(18, 2), sa.FLOAT(), lite
+    )  # a fraction is a REAL either way
+    assert not d.same_column_type(sa.String(140), sa.INTEGER(), lite)
+    assert not d.same_column_type(sa.Integer(), sa.VARCHAR(140), lite)
