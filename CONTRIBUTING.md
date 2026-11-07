@@ -15,8 +15,9 @@
   `feat(store): VirtualStore для віртуальних DocType`, `fix(schema): …`, `docs: …`.
   Типи: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `chore`; зламаний API —
   `feat(store)!: …`.
-- PR зливається в `develop` **squash-ом**: заголовок PR стає заголовком коміту, а з цих комітів
-  `grunt release` збирає `CHANGELOG.md` по розділах.
+- Фіча-PR зливається в `develop` **squash-ом**: заголовок PR стає заголовком коміту, а з цих комітів
+  `grunt release` збирає `CHANGELOG.md` по розділах. Виняток — синхронізація `develop` з `master`
+  після випуску (див. нижче).
 - Перед злиттям: CI зелений (ruff, pyright, pytest на SQLite і PostgreSQL, vitest + vue-tsc),
   коментарі CodeRabbit оброблені — виправлено або пояснено, чому ні.
 - В описі PR — що змінилось і що потрібно при розгортанні (міграції, `grunt migrate`, нові
@@ -31,7 +32,9 @@
    бази перелічуються окремо), коміт `chore(release): vX.Y.Z` і анотований тег. Спершу —
    `grunt release <bump> --dry-run`.
 4. `git push --follow-tags` — workflow `release.yml` проганяє CI і публікує GitHub release.
-5. `develop` синхронізується з `master` (коміт із `CHANGELOG.md` має бути і там).
+5. `develop` синхронізується з `master` **merge-комітом**, не squash-ем: тоді тег випуску лишається
+   в історії `develop`, і версія між тегами (`grunt version`, перевірка сумісності додатків)
+   рахується від нього, а коміт із `CHANGELOG.md` є й у `develop`.
 
 ### Версії
 
@@ -40,5 +43,10 @@
 
 ### Розгортання випуску
 
-На кожному сайті після оновлення коду: спершу `grunt migrate --dry-run` (план змін схеми), потім
-`grunt migrate`.
+На кожному сайті після оновлення коду: спершу `grunt migrate --dry-run --site <сайт>` — план змін
+таблиць DocType, нічого не змінює; потім `grunt migrate --site <сайт>`. Без `--site` команда
+проходить усі сайти бенчу.
+
+Перегляд показує не все: міграції Alembic (`grunt/db/migrations/versions/`, у випуску вони
+перелічені в `CHANGELOG.md`) і змінені JSON DocType встановлених додатків застосовуються лише
+справжнім `grunt migrate` — їх переглядайте окремо.
