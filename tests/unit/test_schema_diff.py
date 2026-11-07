@@ -173,3 +173,20 @@ def test_postgres_timestamps_with_a_zone_are_not_a_change():
     assert not type_changed(UtcDateTime(), TIMESTAMP(timezone=True), PG)
     assert type_changed(UtcDateTime(), TIMESTAMP(timezone=False), PG)  # a naive column is
     assert not type_changed(UtcDateTime(), sa.DATETIME(), LITE)
+
+
+def test_an_index_held_twice_is_added_once():
+    """A Table compiled again into the same MetaData (``extend_existing``) holds
+    each Index twice - one CREATE INDEX, not two (the second would fail)."""
+    table = _desired()
+    sa.Table(
+        table.name,
+        table.metadata,
+        sa.Index("ix_grunt_test_item_status", "status"),
+        extend_existing=True,
+    )
+    assert len([i for i in table.indexes if i.name == "ix_grunt_test_item_status"]) == 2
+    adds = [c for c in _plan(_actual(indexes={})) if isinstance(c, AddIndex)]
+    plan = diff(table, _actual(indexes={}), sa_dialect=PG, can_alter_type=True)
+    assert [c.index.name for c in plan if isinstance(c, AddIndex)] == ["ix_grunt_test_item_status"]
+    assert len(adds) == 1
