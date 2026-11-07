@@ -174,7 +174,7 @@ CI проганяє їх на SQLite і PostgreSQL; `test_in_memory.py` — ті
   порівняння, `%`/`_` у like, той самий порядок тексту, порожні в кінці. LIKE — лінійне
   зіставлення, не regex: `%a%a%…` з `.*`-групами давав експоненційний бектрекінг (ReDoS, #97).
 
-### 3. `Query` AST — ✅ 3a–3c (2026-11-07); 3d — після кроку 4
+### 3. `Query` AST — ✅ (2026-11-07)
 
 `db/filters.py` розбирає вхідні дані в нейтральний `Query`; права (user permissions,
 shares, власник) — вузли AST; `SqlStore` компілює в SQLAlchemy. Звіти/Query Builder
@@ -261,7 +261,19 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   сортування/курсор/групування поки в місцях виклику. Переноситься в крок 4: `Store.list(query)` —
   там він і з'явиться разом з `capabilities`. `list_filter_extra` і пошук у списку лишились
   SQL-умовами після предиката (вузли `Raw`/`Search` — теж у кроці 4, коли VirtualStore має їх відхиляти).
-- 3d. (після кроку 4) JOIN з правами для звітів/Query Builder — `Linked` з полями цілі.
+- 3d. ✅ (2026-11-07) JOIN з правами для звітів/Query Builder (IDEAS 2.2).
+  Зроблено: `grunt/reports/joins.py` — `report_source(meta, user, fieldnames)`: поле через Link
+  `customer.region` (один хоп, як у `match`) → `LEFT JOIN` цілі (alias `j_<link>`, один на Link) з
+  `read_predicate` цілі в `ON`. Колонки — `WriteableColumnCollection` з ключами `customer.region`, тож
+  `filter_expr`/`to_sql` компілюють фільтри й умови по JOIN без змін. Недоступний рядок цілі → поля
+  порожні (рядок звіту лишається; фільтр/групування по цілі нічого про нього не видають).
+  **Заодно виправлено:** звіти не застосовували `hidden_fields` навіть для свого DocType — колонкою,
+  фільтром чи групуванням можна було прочитати приховане поле. Тепер поле, якого глядач не бачить
+  (приховане, або DocType цілі без `read`), відсутнє в джерелі: колонка випадає, фільтр/умова
+  пропускаються (як невідома колонка — не оракул). Drill-down вимикається, якщо групування чи умови
+  йдуть через Link (список так фільтрувати не вміє). Фронтенд: `QueryReportBuilder` додає до доступних
+  полів поля кожного Link (`Клієнт → Регіон`); недоступна ціль — пропускається.
+  Тести: `grunt/reports/tests/test_report_joins.py` (7).
 
 ### 4. Store protocol — ⏳
 `Store` (`get/list/insert/update/delete/aggregate` + `capabilities`). `SqlStore` обгортає
