@@ -24,9 +24,8 @@ write path also checks the *new* values of a created / updated document, so a
 restricted user cannot insert or move a record outside their scope.
 """
 
+from collections.abc import Collection
 from typing import Any
-
-from sqlalchemy import Table
 
 import grunt
 from grunt import _
@@ -158,7 +157,7 @@ def _link_fieldnames(doctype: DocType | Meta, allow: str) -> list[str]:
 
 
 async def user_permission_predicate(
-    table: Table,
+    columns: Collection[str],
     user: User | None,
     doctype: DocType | Meta,
 ) -> Expr:
@@ -172,7 +171,7 @@ async def user_permission_predicate(
     conds: list[Expr] = []
     for allow, values in up.items():
         allowed = tuple(sorted(await expand_tree_values(allow, values)))
-        fields = [fn for fn in _link_fieldnames(doctype, allow) if fn in table.c]
+        fields = [fn for fn in _link_fieldnames(doctype, allow) if fn in columns]
         if not fields:
             if strict:
                 return FALSE

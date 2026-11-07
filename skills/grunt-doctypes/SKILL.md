@@ -46,58 +46,59 @@ description: Довідник по всіх типах полів, налашт�
 | `is_singleton` | bool | Єдиний екземпляр (для налаштувань) |
 | `is_tree` | bool | Ієрархічна структура |
 | `quick_entry` | bool | Діалог швидкого створення |
-| `is_virtual` | bool | Без власної таблиці — документи дає контролер на `BaseDocument` (див. нижче) |
+| `is_virtual` | bool | Без власної таблиці — документи дає сховище контролера, `store_class` (див. нижче) |
 
-### Віртуальний DocType — контролер на `BaseDocument`
+### Віртуальний DocType — сховище `VirtualStore`
 
-`Document` зберігає документи в таблиці; `BaseDocument` — той самий документ без сховища.
-Контролер віртуального доктайпа наслідує `BaseDocument` і перевизначає лише сховище —
-конвеєр (події, `validate`/`before_save`/…, права на рядок, workflow, вебхуки) спільний.
+Контролер — завжди `Document` (хуки й бізнес-логіка); де лежать документи, вирішує **сховище**
+(`grunt.store`): за замовчуванням `SqlStore` (таблиця DocType), для віртуального — клас, який
+контролер називає в `store_class`. Конвеєр (події, `validate`/`before_save`/…, права, workflow,
+вебхуки, індекс пошуку) спільний для всіх сховищ.
 
 ```python
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
+from grunt.document.base import Document
+from grunt.query.query import Query, Sort
+from grunt.store import DELETE, INSERT, UPDATE, Unavailable, VirtualStore
 
 
-class ExternalCustomer(BaseDocument):
-    @classmethod
-    async def get_list(
-        cls,
-        doctype,
-        *,
-        page=1,
-        per_page=20,
-        sort_by="name",
-        sort_order="asc",
-        filters=None,
-        search=None,
-        **kwargs,
-    ) -> DocumentList:
-        rows = await api.list_customers()
-        if filters:
-            rows = apply_filters(rows, filters)  # той самий синтаксис field__op
-        if search:
-            rows = apply_search(rows, search, ["title"])
-        return build_response(apply_sort(rows, sort_by, sort_order), page, per_page)
+class ExternalCustomerStore(VirtualStore):
+    capabilities = frozenset({INSERT, UPDATE, DELETE})  # без них — 405
+    not_supported_message = None  # або N_("…") — текст 405
+    search_fields = ("title",)  # None — name, title_field, search_fields DocType
+    default_sort = Sort("title", descending=False)  # коли запитане поле в рядках відсутнє
 
-    async def load_from_db(self, *, expand=None):  # self.name → self.data, 404 якщо нема
-        self.data = await api.get_customer(self.name)
+    async def rows(self, query: Query) -> list[dict]:
+        # Усі рядки джерела; фільтри, пошук, сортування, сторінки й ПРАВА (match, shares,
+        # User Permissions) застосовує VirtualStore — так само, як SQL. query — лише підказка
+        # (grunt.store.virtual.equals(query, "period") — значення фільтра field=value).
+        if not api.ready():
+            raise Unavailable(_("API недоступне"))  # порожній список з поясненням
+        return await api.list_customers()
 
-    async def db_insert(self):  # self.data — новий документ; можна замінити self.data збереженим
-        self.data = await api.create_customer(self.data)
+    async def get(self, name, *, expand=None):  # необов'язково; за замовчуванням — пошук у rows()
+        return await api.get_customer(name)  # None → 404
 
-    async def db_update(self):  # self.data — збережений + зміни; self.doc_before_save — до змін
-        self.data = await api.update_customer(self.name, self.data)
+    async def insert(self, doc, *, input, user):  # повертає збережений документ
+        return await api.create_customer(doc)
 
-    async def db_delete(self):
-        await api.delete_customer(self.name)
+    async def update(self, name, doc, *, before, input, user):
+        # doc — збережений + зміни, before — до змін, input — лише подані значення
+        return await self.output(await api.update_customer(name, doc))
+
+    async def delete(self, name, *, before):
+        await api.delete_customer(name)
+
+
+class ExternalCustomer(Document):
+    store_class = ExternalCustomerStore
 ```
 
-- Не перевизначений метод → 405 (`db_*`), 404 (`load_from_db`), порожній список (`get_list`).
-  `get_count` за замовчуванням бере `meta.total` з `get_list(per_page=1)`.
-- Подані значення (часткові зміни) — `self.input_data`.
-- Гібрид «список з таблиці, документ — звідкись ще» (як `DocType`): `get_list`/`get_count`
-  делегують у `Document.get_list`/`Document.get_count`.
+- Віртуальний DocType без `store_class` — порожнє сховище: жодного документа, запис → 405.
+- `update` повертає документ так, як його показує `output` (серіалізований).
+- Гібрид «список з таблиці, документ — звідкись ще» (як `DocType`): `class DocTypeStore(SqlStore)`
+  перевизначає `get`/`insert`/`update`/`delete`, `fetch`/`count` лишаються табличними.
+- Що сховище вміє, — `capabilities` (`grunt.store`: `INSERT UPDATE DELETE AGGREGATE REFERENCES
+  HISTORY BULK`); ядро відмовляє (405/400/422) замість падіння на відсутній таблиці.
 
 ---
 

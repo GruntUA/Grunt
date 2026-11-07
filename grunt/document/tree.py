@@ -339,7 +339,9 @@ class TreeService:
         # scoped only to the nodes already present in this subtree.
         tree_ids = [r["name"] for r in all_rows]
         filtered_q = select(table.c.name)
-        filtered_q = await where(filtered_q, filter_expr(filters, table, dt), table, dt and dt.name)
+        filtered_q = await where(
+            filtered_q, filter_expr(filters, table.c.keys(), dt), table, dt and dt.name
+        )
 
         if search:
             candidate_fields: list[str] = []

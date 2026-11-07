@@ -31,11 +31,10 @@ def list_query(
     """A :class:`Query` from ``grunt.db``-style arguments: *filters* ANDed,
     *or_filters* ORed (unknown columns skipped in both), sorted by *order_by*
     (``modified_at`` by default)."""
-    table = dt.table
-    any_of = conjuncts(filter_expr(or_filters, table, dt)) if or_filters else ()
+    any_of = conjuncts(filter_expr(or_filters, dt.columns, dt)) if or_filters else ()
     return Query(
         dt.name,
-        where=and_(filter_expr(filters, table, dt), or_(*any_of) if any_of else TRUE),
+        where=and_(filter_expr(filters, dt.columns, dt), or_(*any_of) if any_of else TRUE),
         fields=tuple(fields) if fields else None,
         sort=Sort(order_by or "modified_at", descending=order != "asc"),
         limit=limit,
@@ -57,7 +56,7 @@ def aggregate_query(
     groups = [group_by] if isinstance(group_by, str) else list(group_by or [])
     return Query(
         dt.name,
-        where=filter_expr(filters, dt.table, dt),
+        where=filter_expr(filters, dt.columns, dt),
         group_by=tuple(groups),
         aggregates=tuple((aggregations or {}).items()),
         sort=Sort(order_by, descending=str(order).lower() == "desc") if order_by else None,
@@ -171,7 +170,7 @@ class GruntDB:
         async def first(fields: list[str] | None) -> dict[str, Any] | None:
             query = Query(
                 doctype,
-                where=filter_expr(filters, dt.table, dt),
+                where=filter_expr(filters, dt.columns, dt),
                 fields=tuple(fields) if fields else None,
                 limit=1,
             )
@@ -242,7 +241,9 @@ class GruntDB:
     ) -> str | None:
         """Return the document name if a match exists, else ``None``."""
         dt = await self._meta(doctype)
-        query = Query(doctype, where=filter_expr(filters, dt.table, dt), fields=("name",), limit=1)
+        query = Query(
+            doctype, where=filter_expr(filters, dt.columns, dt), fields=("name",), limit=1
+        )
         rows = await run.fetch(query, ignore_permissions=True, session=self._session())
         return rows[0]["name"] if rows else None
 
@@ -324,7 +325,7 @@ class GruntDB:
         if not present:
             return None
         query = Query(
-            doctype, where=filter_expr(filters, dt.table, dt), fields=tuple(present), limit=1
+            doctype, where=filter_expr(filters, dt.columns, dt), fields=tuple(present), limit=1
         )
         rows = await run.fetch(query, ignore_permissions=True, session=self._session())
         return {f: rows[0].get(f) for f in present} if rows else None
@@ -383,13 +384,13 @@ class GruntDB:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
 
-        expr = filter_expr(filters, table, dt)
+        expr = filter_expr(filters, dt.columns, dt)
         self._require_filter(expr, doctype, "delete")
         stmt = await where(table.delete(), expr, table, dt.name)
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return cast("CursorResult", result).rowcount
+        return cast(CursorResult, result).rowcount
 
     async def insert_one(self, doctype: str, values: dict[str, Any]) -> None:
         """Insert a single row into a DocType table and flush the session.
@@ -416,7 +417,7 @@ class GruntDB:
         table = dt.table
         result = await self._session().execute(table.insert(), rows)
         await self._session().flush()
-        return cast("CursorResult", result).rowcount or len(rows)
+        return cast(CursorResult, result).rowcount or len(rows)
 
     async def bulk_update(
         self,
@@ -434,13 +435,13 @@ class GruntDB:
         if not update_values:
             return 0
 
-        expr = filter_expr(filters, table, dt)
+        expr = filter_expr(filters, dt.columns, dt)
         self._require_filter(expr, doctype, "bulk_update")
         stmt = await where(update(table).values(**update_values), expr, table, dt.name)
 
         result = await self._session().execute(stmt)
         await self._session().flush()
-        return cast("CursorResult", result).rowcount or 0
+        return cast(CursorResult, result).rowcount or 0
 
     async def aggregate(
         self,

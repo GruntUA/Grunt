@@ -7,7 +7,9 @@ Shares only *add* access on top of role permissions (see
 create or delete, and never apply to a different document.
 """
 
-from sqlalchemy import Table, select
+from collections.abc import Collection
+
+from sqlalchemy import select
 
 import grunt
 from grunt.local import _session_ctx
@@ -67,10 +69,10 @@ async def _with_ancestors(doctype: str, name: str) -> list[str]:
     return out
 
 
-async def shared_predicate(table: Table, user: User, doctype: str) -> Expr | None:
+async def shared_predicate(columns: Collection[str], user: User, doctype: str) -> Expr | None:
     """``name`` among the *doctype* documents shared with *user*, for list queries;
     ``None`` - nothing can be shared."""
-    if not user.email or "name" not in table.c:
+    if not user.email or "name" not in columns:
         return None
     meta = await grunt.get_meta("SharedWith")
     if meta is None:

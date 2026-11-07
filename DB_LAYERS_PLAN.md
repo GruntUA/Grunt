@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-07 (кроки 1–2 готові, залишки кроку 1 закрито)
+Оновлено: 2026-11-07 (кроки 1–3, 4a, 4b+4c готові; далі 4d — capabilities у точках входу)
 
 ---
 
@@ -318,9 +318,54 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   `grunt.db.get_all` (раніше мовчки випадало); `grunt.db.get_all` теж розв'язує рівні значення за `name`.
   `field_years` лишився прямим SQL (`capabilities` — у 4d). Перевірено: ruff, pyright 0;
   SQLite 2081+, PG 2089/0.
-- 4b. Протокол `Store`, `store_for`; читання/запис одного документа — у `SqlStore`; методи
-  сховища з контролерів прибрано.
-- 4c. `VirtualStore`, усі віртуальні контролери на ньому; `_readable_rows` зникає.
+- 4b+4c (об'єднано, погоджено 2026-11-07 — без `VirtualStore` методи сховища з контролерів не
+  прибрати). **Один клас `Document`, `BaseDocument` зникає**: контролер — хуки й бізнес-логіка,
+  сховище оголошує атрибутом `store = BackupStore` (без нього — `SqlStore`; віртуальний без
+  store — порожнє сховище). Кроки конвеєра загальні: singleton через `store.count`, формули,
+  `fill_route`, вебхуки, індекс пошуку — для всіх; версії, переприв'язка посилань — за `capabilities`.
+  `Store`: `get(name, expand)`, `insert(doc, input)`, `update(name, doc, before, input)`,
+  `delete(name, before)` — запис повертає збережений документ. `SqlStore` — код `read.py`/`write.py`
+  (дочірні таблиці, MultiLink, агрегати); `DocTypeStore(SqlStore)` — запис через registry.
+  `VirtualStore`: підклас дає `rows()` (+ за потреби `get/insert/update/delete`); фільтри, сортування,
+  пошук і **права** — `evaluate`; `Linked` спершу розв'язується в `In(значення)` запитом через store
+  цілі. `_readable_rows` зникає.
+  ✅ (2026-11-07, не закомічено). Зроблено:
+  - `grunt/store/base.py` — `Store` (база: нічого не зберігає, запис → 405 з `not_supported_message`
+    сховища), `capabilities`: `INSERT UPDATE DELETE AGGREGATE REFERENCES HISTORY BULK`; `get / insert /
+    update / delete / output / distinct / columns`. `SqlStore` — код колишніх `mixins/read.py` і
+    `write.py` (видалені); `update` повертає документ у вигляді `output` (дочірні перечитано).
+  - `grunt/store/virtual.py` — `VirtualStore` (`rows(query)`, `search_fields`, `default_sort`),
+    `Unavailable` (джерело недосяжне → порожній список з `meta.unavailable_message`), `resolve_linked`,
+    `equals(query, field)` — підказка джерелу (період PerfTrend, ім'я ScheduledJob).
+  - `store_for(meta)` — `store_class` контролера, інакше `SqlStore` / порожній `Store` (віртуальний).
+  - **Один `Document`**, `BaseDocument` прибрано; `load_document` → `store.get` + read formulas;
+    конвеєр: `capabilities` перевіряються до хуків, singleton через `store.count`, `fill_route` +
+    формули, індекс пошуку, вебхуки — для всіх; версії — `HISTORY`, `replace_with` — `REFERENCES`,
+    пакетне видалення — `BULK`, перейменування — `REFERENCES`. `payload.update_values` — значення
+    оновлення (спільні для конвеєра й `SqlStore`).
+  - Права без таблиці: `read_predicate(user, meta)`; функції прав беруть `columns`, а не `Table`;
+    `Meta.columns` (віртуальний — системні + фізичні поля, таблиця не компілюється);
+    `filter_expr(filters, columns, meta)`; distinct у `reference_predicates` — `store.distinct`.
+  - Списки (`list_documents`/`count_documents`) — один шлях через `run` для всіх сховищ;
+    `is_table_backed`, `controller_class(...).get_list`, `_readable_rows`, `grunt/document/in_memory.py` —
+    видалено. `doc_guard` і WS-кімната документа читають документ зі сховища (і для віртуальних).
+  - Контролери: Backup, BackgroundJob, BackgroundWorker, ScheduledJob, SqlProfilerRequest, PerfTrend,
+    SystemHealthReport, Hook → `*Store(VirtualStore)`; DocType → `DocTypeStore(SqlStore)`;
+    `translate.TranslatableString` → `TranslatableStringStore`. Skill `grunt-doctypes` переписано.
+  **Зміни поведінки:** права віртуальних — предикатом у пам'яті (правило `match` поза SQL-підмножиною
+  тепер fail-closed, як для таблиць; раніше — повний simpleeval по рядку, ліміт 5000); віртуальні
+  отримали read formulas, підписи Link у списку, проєкцію `fields`, курсорні сторінки; WS-кімната /
+  `doc_guard` віртуального документа — перевірка рядка (неіснуючий → відмова).
+  Тест: shares на віртуальному DocType (`Linked` через SharedWith → `In`).
+  Пошук і порядок віртуальних — **з налаштувань DocType** (`title_field`, `search_fields`,
+  `sort_field`/`sort_order`), без атрибутів класу; значення, яких у JSON бракувало, перенесено в JSON
+  (BackgroundJob, BackgroundWorker, ScheduledJob, SqlProfilerRequest, Hook, TranslatableString).
+  За рев'ю CodeRabbit #98 (3d): конструктор звітів бере поля з сервера —
+  `grunt.reports.doctypes.Report.report.fields` → `joins.report_fields` (ті самі правила, що
+  `report_source`: без прихованих полів і полів недоступної цілі); застаріла відповідь при швидкій
+  зміні DocType більше не перезаписує поля.
+  Перевірено: ruff, pyright 0; SQLite 2087/0, PG 2088/0; translate 31, vitest 328, lagoo 20,
+  hromada_it 42, opendata 76, crystal_finance 40.
 - 4d. Перевірки `capabilities` у точках входу (звіти, aggregate, tree, rename, bulk, fetch,
   `grunt.db.*`); вузол `Search`.
 - 4e. Поле `storage`, `is_virtual` — похідне; міграція JSON.

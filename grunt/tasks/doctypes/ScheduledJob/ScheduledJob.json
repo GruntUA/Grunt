@@ -3,6 +3,8 @@
   "label": "Scheduled Jobs",
   "module": "tasks",
   "is_virtual": true,
+  "sort_field": "name",
+  "sort_order": "asc",
   "fields": [
     {
       "fieldname": "job_id",

@@ -10,13 +10,11 @@ Read-only: list + load. Insert/update/delete are not supported.
 from typing import Any
 
 import grunt
-from grunt import _, hooks
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
-from grunt.errors import not_found
+from grunt import hooks
+from grunt.document.base import Document
 from grunt.i18n import N_
-
-_SEARCH_FIELDS = ["event", "handler", "reference_doctype", "source"]
+from grunt.query.query import Query
+from grunt.store import VirtualStore
 
 
 def _handler_name(handler: Any) -> str:
@@ -95,41 +93,12 @@ def _with_name(row: dict[str, Any]) -> dict[str, Any]:
     return {"id": name, "name": name, **row}
 
 
-class Hook(BaseDocument):
+class HookStore(VirtualStore):
     not_supported_message = N_("Hooks are read-only: they come from the code and Server Scripts")
 
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "reference_doctype",
-        sort_order: str = "asc",
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
-        rows = _collect() + await _collect_server_scripts()
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
+        return [_with_name(r) for r in _collect() + await _collect_server_scripts()]
 
-        if search:
-            rows = apply_search(rows, search, _SEARCH_FIELDS)
-        if filters:
-            rows = apply_filters(rows, filters)
-        # A list view sorts by modified_at by default - hooks have no such field.
-        if not sort_by or sort_by == "modified_at":
-            sort_by, sort_order = "reference_doctype", "asc"
-        rows = apply_sort(rows, sort_by, sort_order)
 
-        response = build_response(rows, page, per_page)
-        return DocumentList([_with_name(r) for r in response], response.meta)
-
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        rows = _collect() + await _collect_server_scripts()
-        for row in rows:
-            named = _with_name(row)
-            if named["name"] == self.name:
-                self.data = named
-                return
-        raise not_found(_("Hook '%(doc_id)s' not found") % {"doc_id": self.name})
+class Hook(Document):
+    store_class = HookStore

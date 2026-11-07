@@ -163,3 +163,26 @@ async def test_one_join_per_link_and_sort_by_a_joined_column(ctx, invoices):
     names = [r["name"] for r in res["data"]]
     assert names[0] == "I3" and names[-1] == "I4"  # credit 200 first, no customer last
     assert {r["name"]: r["customer.credit"] for r in res["data"]}["I3"] == 200
+
+
+@pytest.mark.asyncio
+async def test_builder_offers_only_what_the_report_reads(ctx, invoices):
+    """The builder's field list follows the same rules as the report source: no
+    hidden field (own or the target's), no field of an unreadable target."""
+    from grunt.reports.joins import report_fields
+
+    meta = await ctx.get_meta("JnInvoice")
+
+    async def offered(user):
+        return {f["fieldname"] for f in await report_fields(meta, user)}
+
+    admin = await offered(ctx.get_user())
+    assert {"customer", "amount", "margin", "customer.region", "customer.credit"} <= admin
+
+    seller = await offered(SELLER)
+    assert {"customer", "amount", "customer.region"} <= seller
+    assert not {"margin", "customer.credit"} & seller
+
+    clerk = await offered(CLERK)
+    assert {"customer", "amount", "margin"} <= clerk
+    assert not any("." in f for f in clerk)

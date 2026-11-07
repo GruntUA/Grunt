@@ -9,6 +9,7 @@ an expression onto a statement, loading the table of every DocType a
 is no separate step a read path could forget.
 """
 
+from collections.abc import Collection
 from typing import Any
 
 from sqlalchemy import ColumnElement, Table
@@ -19,12 +20,15 @@ from grunt.query.nodes import TRUE, Expr, linked_doctypes
 from grunt.query.parse import parse_filters
 
 
-def filter_expr(filters: str | dict[str, Any] | None, table: Any, meta: Any = None) -> Expr:
+def filter_expr(
+    filters: str | dict[str, Any] | None, columns: Collection[str], meta: Any = None
+) -> Expr:
     """*filters* (a dict, or a bare string - the ``name``) as an expression on
-    *table*. Unknown columns are skipped; ``meta`` (the DocType's
+    rows with *columns* (``meta.columns``, or a selectable's ``c.keys()``).
+    Unknown columns are skipped; ``meta`` (the DocType's
     :class:`~grunt.document.meta.Meta`) enables MultiLink filters."""
     multilinks = {f.fieldname for f in meta.get_multilink_fields()} if meta is not None else ()
-    return parse_filters(filters, fields=table.c.keys(), multilinks=multilinks)
+    return parse_filters(filters, fields=columns, multilinks=multilinks)
 
 
 async def linked_tables(expr: Expr) -> dict[str, Table]:

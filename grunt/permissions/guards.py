@@ -17,7 +17,7 @@ from grunt.local import require_user
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction, WriteAction
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.document.base import is_table_backed
+lazy from grunt.store import store_for
 
 
 def apply_hidden_fields_to_doc(
@@ -74,12 +74,7 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_user()
 
-    if not is_table_backed(dt):
-        # No table to look the row up in - the DocType-level check is all there is.
-        await permission_checker.require(user, dt, action)
-        return
-    lookup_id = dt.name if dt.is_singleton else doc_id
-    doc = await grunt.db.get_value(doctype, lookup_id, "*")
+    doc = await store_for(dt).get(dt.name if dt.is_singleton else doc_id, expand=[])
     if doc is None:
         raise not_found(_("Document “%(name)s” not found") % {"name": doc_id})
     await permission_checker.require(user, dt, action, doc)

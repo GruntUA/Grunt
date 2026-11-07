@@ -2,21 +2,17 @@
 
 Insert, update and delete fire the document events, validate the values,
 check permissions and workflow and run the controller's lifecycle hooks; the
-storage itself is the controller's: :meth:`load_from_db`, :meth:`db_insert`,
-:meth:`db_update`, :meth:`db_delete` and the :meth:`get_list` /
-:meth:`get_count` classmethods. ``Document`` keeps its documents in the
-DocType's table; a controller for any other source (an API, Redis, files)
-subclasses ``BaseDocument`` directly and overrides those.
-
-The ``_``-prefixed methods below the storage contract are the steps a storage
-adds to the pipeline - ``Document`` fills them in with its table work (naming
-series, child tables, search index, versions).
+storage itself is the DocType's :class:`~grunt.store.Store` (``store_for``):
+the table by default, or what the controller names in ``store_class``. What
+the store can't do (``capabilities``) is refused before any hook runs; the
+side effects - search index, webhooks, versions - follow the same pipeline for
+every store.
 """
 
 import functools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
-from typing import Any, ClassVar, Concatenate
+from typing import Any, Concatenate
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -25,9 +21,16 @@ import grunt
 from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.fetch import apply_fetch_from
+from grunt.document.formula import compute_formulas
 from grunt.document.guards import check_write
+from grunt.document.payload import update_values
 from grunt.document.relations import apply_field_values
-from grunt.document.serde import audit_fields, serialize_datetimes, with_doctype
+from grunt.document.serde import audit_fields
+from grunt.document.update_side_effects import (
+    fire_delete_services,
+    fire_update_services,
+    record_update_changes,
+)
 from grunt.document.validation import _validate_data, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
@@ -38,19 +41,21 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.reference import reference_readable
 from grunt.permissions.user_permissions import doc_violation
+from grunt.query.query import Query
+from grunt.search.service import search_index_service
 from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
+from grunt.store import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store, store_for
 from grunt.webhook.service import webhook_service
+from grunt.website.generator import fill_route
 from grunt.workflow.engine import _active, workflow_engine
 from grunt.workflow.guard import check_create, check_delete, check_update, is_exempt
 from grunt.workflow.registry import get_active_workflow
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.document.base import DocumentList, load_document
+lazy from grunt.document.base import load_document
+lazy from grunt.document.collection import repoint_references, validate_replacement
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.registry import doctype_registry
-
-PROTECTED_FIELDS = frozenset({"name", "owner", "created_at"})
-
 
 type _Pipeline[**P, R] = Callable[Concatenate[Any, P], Awaitable[R]]
 
@@ -83,131 +88,51 @@ class DocumentLifecycleMixin:
     # gave them (on update - only the changes), and (update/delete) the stored
     # document before the change.
     _dt: Any
+    _store: Store
     input_data: dict[str, Any]
     doc_before_save: dict[str, Any] | None
-
-    #: Why an insert/update/delete the storage doesn't implement is refused
-    #: (405) - mark it with ``N_()``; translated when raised.
-    not_supported_message: ClassVar[str | None] = None
 
     def _bind(self) -> None: ...
     def _set_grunt_context(self, user: User) -> tuple: ...  # type: ignore[empty-body]
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None: ...
 
-    # Storage
+    # Pipeline steps
 
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        """Fill ``self.data`` with the stored document ``self.name``.
+    def _store_for(self, dt: Any) -> Store:
+        """The store of *dt*, kept for the rest of the pipeline."""
+        self._store = store_for(dt, self.session)
+        return self._store
 
-        Raise 404 when there is none. *expand* lists the child tables and
-        MultiLink fields to load (``None`` - all, ``[]`` - the bare row);
-        a storage without them ignores it.
-        """
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=_("Virtual DocType “%(doctype)s” has no individual documents")
-            % {"doctype": self.doctype},
-        )
+    async def _singleton_exists(self, dt: Any, store: Store) -> bool:
+        return await store.count(Query(dt.name)) > 0
 
-    async def db_insert(self) -> None:
-        """Store the new document ``self.data``.
+    async def _before_store(self, dt: Any) -> None:
+        """Last changes to ``self.data`` after the hooks, before it is stored:
+        a web page's route, computed fields."""
+        await fill_route(dt, self.data, self.session)
+        await compute_formulas(dt.doc, self.data)
 
-        May replace ``self.data`` with what was stored (e.g. a generated name).
-        """
-        raise self._not_supported()
-
-    async def db_update(self) -> None:
-        """Store ``self.data`` - the stored document with the changes applied.
-
-        The stored version is ``self.doc_before_save``. May replace ``self.data``.
-        """
-        raise self._not_supported()
-
-    async def db_delete(self) -> None:
-        """Remove the stored document ``self.name``."""
-        raise self._not_supported()
-
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        session: Any,
-        user: User,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "modified_at",
-        sort_order: str = "desc",
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
-        """A page of the documents *user* may see. Without storage - none."""
-
-        return DocumentList(data=[], meta={"total": 0, "page": page, "per_page": per_page})
-
-    @classmethod
-    async def get_count(
-        cls,
-        doctype: str,
-        *,
-        session: Any,
-        user: User,
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-    ) -> int:
-        """How many documents *user* may see - by default ``meta.total`` of a list page."""
-        result = await cls.get_list(
-            doctype, session=session, user=user, page=1, per_page=1, filters=filters, search=search
-        )
-        return result.meta.get("total") or 0
-
-    def _not_supported(self) -> HTTPException:
-        if self.not_supported_message:
-            detail = _(self.not_supported_message)
-        else:
-            detail = _("“%(doctype)s” does not support this operation") % {"doctype": self.doctype}
-        return HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED, detail=detail)
-
-    # Pipeline steps of a storage
-
-    def _columns(self, dt: Any) -> set[str] | None:
-        """The values a stored row can hold, or ``None`` - any value."""
-        return None
-
-    async def _check_can_insert(self, dt: Any) -> None:
-        """Refuse an insert the storage can't take (409 for a second singleton row)."""
-
-    async def _insert_instead_of_update(self, dt: Any) -> bool:
-        """True when an update must create the document (a singleton saved first)."""
-        return False
-
-    async def _before_db_write(self, dt: Any, *, insert: bool) -> None:
-        """Last changes to ``self.data`` after the hooks, before it is stored."""
-
-    async def _output(self, dt: Any, *, reload_children: bool) -> dict[str, Any]:
-        """The saved document as the API returns it."""
-        return with_doctype(self.doctype, serialize_datetimes(dict(self.data)))
-
-    async def _after_insert(self, dt: Any) -> None:
-        await webhook_service.fire(self.session, "after_insert", self.doctype, self.data)
-
-    async def _record_update(self, dt: Any, existing: dict[str, Any], result: dict[str, Any]):
-        """Keep a record of an update (version, activity diff)."""
-
-    async def _after_update(self, dt: Any, result: dict[str, Any]) -> None:
-        await webhook_service.fire(self.session, "after_update", self.doctype, result)
-
-    async def _repoint_references(self, dt: Any, real_id: str, replace_with: str) -> None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=_("“%(doctype)s” does not support replacing references")
-            % {"doctype": self.doctype},
-        )
-
-    async def _after_delete(self, dt: Any, real_id: str, existing: dict[str, Any]) -> None:
-        await webhook_service.fire(self.session, "after_delete", self.doctype, existing)
+    async def _repoint_references(
+        self, dt: Any, store: Store, real_id: str, replace_with: str
+    ) -> None:
+        if not store.can(REFERENCES):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=_("“%(doctype)s” does not support replacing references")
+                % {"doctype": self.doctype},
+            )
+        await validate_replacement(self.session, dt, real_id, replace_with)
+        try:
+            await repoint_references(
+                self.session, dt, self.doctype, real_id, replace_with, is_merge=True
+            )
+            await self.session.flush()
+        except IntegrityError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=_("Could not reassign the links: uniqueness conflict"),
+            ) from exc
 
     # Pipeline
 
@@ -288,7 +213,7 @@ class DocumentLifecycleMixin:
             else:
                 doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
 
-        columns = self._columns(dt)
+        columns = self._store.columns
         row: dict[str, Any] = (
             {}
             if columns is not None
@@ -324,29 +249,6 @@ class DocumentLifecycleMixin:
 
         return row
 
-    def _build_update_payload(self, dt: Any, data: dict[str, Any]) -> dict[str, Any]:
-        """The submitted changes to write: coerced, without the protected fields."""
-        columns = self._columns(dt)
-        update_data: dict[str, Any] = {}
-        if columns is None:
-            for key, value in data.items():
-                if key in PROTECTED_FIELDS or key[:2] == "__" or key == "doctype":
-                    continue
-                field = dt.get_field(key)
-                update_data[key] = field.coerce(value) if field and field.is_physical else value
-        else:
-            for field in dt.get_physical_fields():
-                if field.fieldname not in columns:
-                    continue
-                if field.fieldname in data and field.fieldname not in PROTECTED_FIELDS:
-                    update_data[field.fieldname] = field.coerce(data[field.fieldname])
-        now = datetime.now(UTC)
-        if columns is None or "modified_at" in columns:
-            update_data["modified_at"] = now
-        if columns is None or "modified_by" in columns:
-            update_data["modified_by"] = self.user.email
-        return update_data
-
     @_timed("insert")
     async def _insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Create ``self.data`` as a new document - the insert pipeline.
@@ -363,7 +265,14 @@ class DocumentLifecycleMixin:
         )
 
         dt = self._dt = await self._resolve_dt(self.doctype)
-        await self._check_can_insert(dt)
+        store = self._store_for(dt)
+        if not store.can(INSERT):
+            raise store.unsupported()
+        if dt.is_singleton and await self._singleton_exists(dt, store):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=_("'%(name)s' is a singleton.") % {"name": dt.name},
+            )
 
         errors = _validate_data(dt, data, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)
@@ -382,7 +291,7 @@ class DocumentLifecycleMixin:
         self.input_data = data
         self.data = await self._build_initial_row(dt, data, datetime.now(UTC))
         # As on update: hooks see the submitted child rows and MultiLink lists,
-        # and their in-place changes are persisted (db_insert writes from *data*).
+        # and their in-place changes are persisted (the store writes them from *data*).
         for f in [*dt.get_child_table_fields(), *dt.get_multilink_fields()]:
             if f.fieldname in data:
                 self.data[f.fieldname] = data[f.fieldname]
@@ -392,17 +301,18 @@ class DocumentLifecycleMixin:
             await apply_fetch_from(dt.doc, self.data)
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
             await self._require_user_permissions(dt, self.data, user)
-            await self._before_db_write(dt, insert=True)
-            await self.db_insert()
+            await self._before_store(dt)
+            self.data = await store.insert(self.data, input=data, user=user)
             log.info("document.created", doctype=self.doctype, id=self.data.get("name"))
             await self._run_lifecycle_hooks("after_insert", "after_save")
-            await self._after_insert(dt)
+            await search_index_service.index_document(self.session, self.doctype, dt.doc, self.data)
+            await webhook_service.fire(self.session, "after_insert", self.doctype, self.data)
         except IntegrityError as exc:
             raise friendly_integrity_error(exc, dt.doc, self.session) from exc
         finally:
             self._reset_grunt_context(tokens)
 
-        created = await self._output(dt, reload_children=False)
+        created = await store.output(self.data)
         self.data = created
         await self._fire_write_hooks("after_insert", created)
         return created
@@ -427,7 +337,8 @@ class DocumentLifecycleMixin:
         # always routes it as an update (``doc_id`` == DocType name) because
         # there is no separate "new" state. Upsert: if the sole row does not
         # exist yet, create it now (named after the DocType).
-        if await self._insert_instead_of_update(dt):
+        store = self._store_for(dt)
+        if dt.is_singleton and not await self._singleton_exists(dt, store):
             self.data = {**data, "name": dt.name}
             return await self._insert(ignore_required=ignore_required)
 
@@ -439,6 +350,8 @@ class DocumentLifecycleMixin:
             session=self.session,
         )
 
+        if not store.can(UPDATE):
+            raise store.unsupported()
         existing = await self._load_existing(doc_id)
 
         # write_guard() (the facade's pre-check) only verifies doctype-level
@@ -472,7 +385,7 @@ class DocumentLifecycleMixin:
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
-        update_data = self._build_update_payload(dt, data)
+        update_data = update_values(dt, data, store.columns, user.email)
         real_id = existing["name"]
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
@@ -492,18 +405,29 @@ class DocumentLifecycleMixin:
             await apply_fetch_from(dt.doc, self.data, existing)
             await self._run_lifecycle_hooks("validate", "before_save")
             await self._require_user_permissions(dt, self.data, user)
-            await self._before_db_write(dt, insert=False)
-            await self.db_update()
+            await self._before_store(dt)
+            result = await store.update(real_id, self.data, before=existing, input=data, user=user)
             log.info("document.updated", doctype=self.doctype, id=real_id)
 
-            result = await self._output(dt, reload_children=True)
-            await self._record_update(dt, existing, result)
+            if store.can(HISTORY):
+                await record_update_changes(
+                    session=self.session,
+                    engine=self.engine,
+                    doctype_name=self.doctype,
+                    real_id=real_id,
+                    dt=dt,
+                    existing=existing,
+                    result=result,
+                    user=user,
+                )
             await release_dropped_files(self.doctype, existing, result)
 
             self.data = result
             await self._run_lifecycle_hooks("after_save")
 
-            await self._after_update(dt, result)
+            await fire_update_services(
+                session=self.session, doctype_name=self.doctype, dt=dt.doc, result=result
+            )
             await self._fire_write_hooks("after_update", result)
         except IntegrityError as exc:
             raise friendly_integrity_error(exc, dt.doc, self.session) from exc
@@ -531,6 +455,9 @@ class DocumentLifecycleMixin:
         if doc_id is None:
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
         dt = self._dt = await self._resolve_dt(self.doctype)
+        store = self._store_for(dt)
+        if not store.can(DELETE):
+            raise store.unsupported()
 
         existing = await self._load_existing(str(doc_id))
 
@@ -545,7 +472,7 @@ class DocumentLifecycleMixin:
         real_id = existing["name"]
 
         if replace_with:
-            await self._repoint_references(dt, real_id, replace_with)
+            await self._repoint_references(dt, store, real_id, replace_with)
 
         await fire(
             "before_delete", doctype=self.doctype, doc=existing, user=user, session=self.session
@@ -556,8 +483,10 @@ class DocumentLifecycleMixin:
         tokens = self._set_grunt_context(user)
         try:
             await self._run_lifecycle_hooks("before_delete")
-            await self.db_delete()
-            await self._after_delete(dt, real_id, existing)
+            await store.delete(real_id, before=existing)
+            await fire_delete_services(
+                session=self.session, doctype_name=self.doctype, real_id=real_id, existing=existing
+            )
             await self._run_lifecycle_hooks("after_delete")
         finally:
             self._reset_grunt_context(tokens)

@@ -8,8 +8,11 @@
   "search_fields": [
     "event",
     "handler",
-    "reference_doctype"
+    "reference_doctype",
+    "source"
   ],
+  "sort_field": "reference_doctype",
+  "sort_order": "asc",
   "fields": [
     {
       "fieldname": "source",

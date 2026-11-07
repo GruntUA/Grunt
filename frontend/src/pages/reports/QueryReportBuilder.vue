@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { appUrl } from '@/core/workspaceUrl'
-import { getNonPhysicalTypeSet, isDateType } from '@/core/fieldRegistry'
+import { isDateType } from '@/core/fieldRegistry'
 
 const { t } = useI18n()
 
@@ -139,37 +139,14 @@ onMounted(async () => {
     }
 })
 
-/** Fields through each Link (`customer.region`) - the report joins the target
- *  DocType, with its row-level rules (grunt/reports/joins.py). A target the
- *  user can't read is left out. */
-async function linkedFields(dtFields: any[]): Promise<any[]> {
-    const nonPhysical = getNonPhysicalTypeSet()
-    const links = dtFields.filter(f => f.fieldtype === 'Link' && f.options)
-    const groups = await Promise.all(links.map(async (link) => {
-        try {
-            const target = await metaApi.get(link.options)
-            return target.fields
-                .filter((f: any) => !nonPhysical.has(f.fieldtype))
-                .map((f: any) => ({
-                    ...f,
-                    fieldname: `${link.fieldname}.${f.fieldname}`,
-                    label: `${link.label} → ${f.label}`,
-                }))
-        } catch {
-            return []
-        }
-    }))
-    return groups.flat()
-}
-
 watch(selectedDoctype, async (name) => {
     if (!name) return
-    const dt = await metaApi.get(name)
-    fields.value = [...dt.fields, ...(await linkedFields(dt.fields))]
-    // Reset columns if doctype changed
-    if (columns.value.length === 0 || columns.value[0].doctype !== name) {
-        // keep columns if we are editing an existing report
-    }
+    // The fields a report on it can read for this user - its own and, through
+    // each Link, a readable target's (`customer.region`): grunt/reports/joins.py.
+    const readable = await reportsApi.fields(name)
+    // A later selection may have answered first - keep its fields.
+    if (selectedDoctype.value !== name) return
+    fields.value = readable
 })
 
 function addColumn(field: any) {

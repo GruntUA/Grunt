@@ -4,14 +4,14 @@ from typing import Any
 from apscheduler.triggers.cron import CronTrigger
 
 import grunt
-from grunt import _
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import build_response
-from grunt.errors import not_found
+from grunt.document.base import Document
 from grunt.i18n import N_
+from grunt.query.query import Query
+from grunt.store import DELETE, VirtualStore
+from grunt.store.virtual import equals
 
 
-class ScheduledJob(BaseDocument):
+class ScheduledJobStore(VirtualStore):
     """Scheduled Jobs - ServerScripts of the Scheduler Event type.
 
     No insert or update: the underlying ServerScript row also requires a
@@ -19,57 +19,29 @@ class ScheduledJob(BaseDocument):
     ServerScript itself (script_type="Scheduler Event").
     """
 
+    capabilities = frozenset({DELETE})
     not_supported_message = N_(
         "Create or edit a ServerScript with script_type='Scheduler Event' instead"
     )
 
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        page: int = 1,
-        per_page: int = 50,
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
-        """Get list of scheduled jobs from ServerScript."""
-        rows = await grunt.db.get_all(
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
+        filters: dict[str, Any] = {"script_type": "Scheduler Event"}
+        if (name := equals(query, "name")) is not None:
+            filters["name"] = name
+        scripts = await grunt.db.get_all(
             "ServerScript",
-            filters={"script_type": "Scheduler Event"},
+            filters=filters,
             fields=["name", "is_enabled", "cron"],
             order_by="name",
             order="asc",
-            limit=per_page,
+            limit=None,
         )
+        stats = await self._load_job_stats([row["name"] for row in scripts])
+        return [_build_job(row, stats.get(row["name"], {})) for row in scripts]
 
-        if search:
-            rows = [r for r in rows if search.lower() in str(r.get("name", "")).lower()]
-
-        job_names = [row["name"] for row in rows]
-        stats = await cls._load_job_stats(job_names)
-        items = [_build_job(row, stats.get(row["name"], {})) for row in rows]
-
-        return build_response(items, page, per_page)
-
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        """Get single scheduled job by name."""
-        name = str(self.name)
-        rows = await grunt.db.get_all(
-            "ServerScript",
-            filters={"name": name, "script_type": "Scheduler Event"},
-            fields=["name", "is_enabled", "cron"],
-            limit=1,
-        )
-        if not rows:
-            raise not_found(_("Scheduled job “%(name)s” not found") % {"name": name})
-
-        stats = await self._load_job_stats([name])
-        self.data = _build_job(rows[0], stats.get(name, {}))
-
-    async def db_delete(self) -> None:
+    async def delete(self, name: str, *, before: dict[str, Any]) -> None:
         """Delete scheduled job by deleting the underlying ServerScript."""
-        await grunt.delete_doc("ServerScript", str(self.name))
+        await grunt.delete_doc("ServerScript", name)
 
     @staticmethod
     async def _load_job_stats(job_names: list[str]) -> dict[str, dict[str, Any]]:
@@ -111,6 +83,10 @@ class ScheduledJob(BaseDocument):
             }
 
         return stats
+
+
+class ScheduledJob(Document):
+    store_class = ScheduledJobStore
 
 
 def _build_job(row: dict[str, Any], stat: dict[str, Any]) -> dict[str, Any]:

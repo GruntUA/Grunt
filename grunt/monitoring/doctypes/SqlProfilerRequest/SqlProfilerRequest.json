@@ -10,6 +10,8 @@
     "path",
     "method"
   ],
+  "sort_field": "duration_ms",
+  "sort_order": "desc",
   "fields": [
     {
       "fieldname": "method",

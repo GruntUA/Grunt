@@ -57,10 +57,10 @@ async def test_documents_name_their_doctype(ctx, js_doctype):
 
 @pytest.mark.asyncio
 async def test_get_doc_from_json_builds_an_unsaved_controller(ctx, js_doctype):
-    from grunt.document.base import BaseDocument
+    from grunt.document.base import Document
 
     doc = await ctx.get_doc({"doctype": "JsDoc", "code": "b", "rows": [{"label": "y"}]})
-    assert isinstance(doc, BaseDocument)
+    assert isinstance(doc, Document)
     assert doc.doctype == "JsDoc"
     assert await ctx.find_doc("JsDoc", "b") is None
 

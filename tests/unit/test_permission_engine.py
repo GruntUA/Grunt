@@ -14,6 +14,7 @@ Three collaborating pieces, previously in three separate files:
 import pytest
 from sqlalchemy import Column, MetaData, String, Table
 
+from grunt.document.meta import Meta
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 from grunt.permissions.access import RoleAccess
@@ -48,6 +49,14 @@ _TABLE = Table(
     Column("owner", String),
     Column("status", String),
 )
+_COLUMNS = frozenset(_TABLE.c.keys())
+
+
+def _meta(dt: DocType) -> Meta:
+    """*dt* as a Meta whose rows hold ``_TABLE``'s columns."""
+    meta = Meta(dt)
+    meta._columns = _COLUMNS
+    return meta
 
 
 def _user(
@@ -82,46 +91,46 @@ def _doctype(perms: list[dict]) -> DocType:
 
 class TestPermissionMatchToExpr:
     async def test_owner_eq_user(self):
-        expr = await PermissionMatch("owner == user").to_expr(_TABLE, _user("alice@example.com"))
+        expr = await PermissionMatch("owner == user").to_expr(_COLUMNS, _user("alice@example.com"))
         assert expr == Cmp("owner", "eq", "alice@example.com")
 
     async def test_status_eq_literal(self):
         expr = await PermissionMatch("status == 'Published'").to_expr(
-            _TABLE, _user("alice@example.com")
+            _COLUMNS, _user("alice@example.com")
         )
         assert expr == Cmp("status", "eq", "Published")
 
     async def test_not_equal(self):
         expr = await PermissionMatch("status != 'Archived'").to_expr(
-            _TABLE, _user("alice@example.com")
+            _COLUMNS, _user("alice@example.com")
         )
         assert expr == Cmp("status", "ne", "Archived")
 
     async def test_unknown_field_is_none(self):
         expr = await PermissionMatch("nonexistent == user").to_expr(
-            _TABLE, _user("alice@example.com")
+            _COLUMNS, _user("alice@example.com")
         )
         assert expr is None
 
     async def test_boolean_logic_is_unparseable(self):
         m = PermissionMatch("owner == user and status == 'Open'")
-        assert await m.to_expr(_TABLE, _user("alice@example.com")) is None
+        assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
 
     async def test_numeric_literal_is_unparseable(self):
-        expr = await PermissionMatch("status == 5").to_expr(_TABLE, _user("alice@example.com"))
+        expr = await PermissionMatch("status == 5").to_expr(_COLUMNS, _user("alice@example.com"))
         assert expr is None
 
     async def test_dotted_path_without_doctype_is_none(self):
         """A ``link.field`` expression can't be translated without the DocType
         that owns the Link — fail closed, don't leak."""
         m = PermissionMatch("asset_user.user_id == user")
-        assert await m.to_expr(_TABLE, _user("alice@example.com")) is None
+        assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
 
     async def test_deep_path_is_unparseable(self):
         """Only a single hop is supported; ``a.b.c`` never parses."""
         m = PermissionMatch("a.b.c == user")
         assert m._parsed is None
-        assert await m.to_expr(_TABLE, _user("alice@example.com")) is None
+        assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
 
 
 # ── PermissionMatch.evaluate ─────────────────────────────────────────────
@@ -241,24 +250,24 @@ class TestRoleAccess:
 class TestReadPredicate:
     async def test_system_user_unfiltered(self):
         dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
-        assert await read_predicate(_TABLE, _system_user(), dt) == TRUE
+        assert await read_predicate(_system_user(), _meta(dt)) == TRUE
 
     async def test_no_permissions_defined_denies_all_rows(self):
         """Deny-by-default: no permission rows means no role matched, so no
         row is readable rather than every row."""
         dt = DocType(name="Closed", label="Closed", module="test", fields=[])
         user = _user("bob@example.com", roles=["Employee"])
-        assert await read_predicate(_TABLE, user, dt) == FALSE
+        assert await read_predicate(user, _meta(dt)) == FALSE
 
     async def test_rule_without_match_is_unrestricted(self):
         dt = _doctype([{"role": "Employee", "read": True}])
         user = _user("bob@example.com", roles=["Employee"])
-        assert await read_predicate(_TABLE, user, dt) == TRUE
+        assert await read_predicate(user, _meta(dt)) == TRUE
 
     async def test_owner_eq_user_filters_to_own_rows(self):
         dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
         user = _user("alice@example.com", roles=["Employee"])
-        assert await read_predicate(_TABLE, user, dt) == Cmp("owner", "eq", "alice@example.com")
+        assert await read_predicate(user, _meta(dt)) == Cmp("owner", "eq", "alice@example.com")
 
     async def test_unparseable_match_fails_closed_not_open(self):
         """Regression: an expression the mini-parser can't translate used to
@@ -269,12 +278,12 @@ class TestReadPredicate:
             [{"role": "Employee", "read": True, "match": "owner == user and status == 'Open'"}]
         )
         user = _user("alice@example.com", roles=["Employee"])
-        assert await read_predicate(_TABLE, user, dt) == FALSE
+        assert await read_predicate(user, _meta(dt)) == FALSE
 
     async def test_no_matching_role_fails_closed(self):
         dt = _doctype([{"role": "Manager", "read": True, "match": "owner == user"}])
         user = _user("bob@example.com", roles=["Employee"])
-        assert await read_predicate(_TABLE, user, dt) == FALSE
+        assert await read_predicate(user, _meta(dt)) == FALSE
 
     async def test_two_match_rules_or_together(self):
         """Several read rules with a translatable ``match`` widen access (OR):
@@ -286,6 +295,6 @@ class TestReadPredicate:
             ]
         )
         user = _user("alice@example.com", roles=["Employee"])
-        assert await read_predicate(_TABLE, user, dt) == Or(
+        assert await read_predicate(user, _meta(dt)) == Or(
             (Cmp("owner", "eq", "alice@example.com"), Cmp("status", "eq", "Published"))
         )

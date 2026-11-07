@@ -1,13 +1,13 @@
 import client from './client'
 import { useAuthStore } from '@/stores/auth'
-import type { ReportDetail, ReportResult, ReportSummary } from '@/types'
+import type { DocField, ReportDetail, ReportResult, ReportSummary } from '@/types'
 import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
 
 // Report is a regular registered DocType, so list/get/create/update/delete
 // go through the generic `/api/v1/docs/Report` CRUD (see grunt/api/v1/docs/crud.py) -
-// no bespoke REST route exists or is needed for those. Only `run` and
+// no bespoke REST route exists or is needed for those. Only `fields`, `run` and
 // `exportXlsxUrl` are real RPC-only behavior (arbitrary query/script
 // execution, xlsx generation), dispatched via `/api/v1/method/...`
 // (grunt/reports/doctypes/Report/report.py: run / export_xlsx).
@@ -43,6 +43,13 @@ export const reportsApi = {
   /** `name` is the doctype's internal id (from a prior list()/get() result). */
   delete: (name: string): Promise<void> =>
     client.delete(`/api/v1/docs/Report/${encodeURIComponent(name)}`).then(() => undefined),
+
+  /** The fields the builder may offer for `doctype` - those a report can read
+   *  for the current user, `link.field` ones included. */
+  fields: (doctype: string): Promise<DocField[]> =>
+    client
+      .get('/api/v1/method/grunt.reports.doctypes.Report.report.fields', { params: { doctype } })
+      .then(r => r.data.data),
 
   run: (reportName: string, filters: Record<string, unknown> = {}): Promise<ReportResult> =>
     client

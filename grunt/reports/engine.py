@@ -349,7 +349,7 @@ class ReportEngine:
             nonlocal stmt
             if any(k.endswith("__child_of") for k in filter_dict):
                 filter_dict = await expand_child_of_filters(session, dt.doc, filter_dict)
-            stmt = await where(stmt, filter_expr(filter_dict, source, dt), source, dt.name)
+            stmt = await where(stmt, filter_expr(filter_dict, source.c.keys(), dt), source, dt.name)
 
         await add_filters(filters)
 
@@ -358,7 +358,7 @@ class ReportEngine:
 
         # Row-level security
 
-        stmt = await where(stmt, await read_predicate(table, user, dt), table, dt.name)
+        stmt = await where(stmt, await read_predicate(user, dt), table, dt.name)
 
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)

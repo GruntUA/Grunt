@@ -6,9 +6,8 @@ Table field) is. Rows are never changed directly - only by saving the parent,
 where its controller validates them (e.g. User guards its ``roles``).
 """
 
+from collections.abc import Collection
 from typing import Any
-
-from sqlalchemy import Table
 
 from grunt.query.nodes import FALSE, Cmp, Expr, Linked, and_, or_
 lazy import grunt
@@ -59,9 +58,9 @@ async def child_allowed(
     return False
 
 
-async def child_predicate(table: Table, user: User, doctype: Any) -> Expr:
+async def child_predicate(columns: Collection[str], user: User, doctype: Any) -> Expr:
     """Rows whose parent document *user* may read, for list queries."""
-    if "parent_doctype" not in table.c or "parent_name" not in table.c:
+    if "parent_doctype" not in columns or "parent_name" not in columns:
         return FALSE
     readable: list[Expr] = []
     for parent_meta in await parent_doctypes(doctype.name):

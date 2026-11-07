@@ -7,6 +7,7 @@ through :mod:`grunt.query.sql`, the order and keyset through the
 """
 
 import re
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import Select, and_, func, literal, or_, select
@@ -20,6 +21,27 @@ from grunt.query.compile_sql import typed_value
 from grunt.query.query import Query, Sort
 from grunt.query.sql import where
 from grunt.search.terms import like_term, match_terms
+from grunt.store.base import (
+    AGGREGATE,
+    BULK,
+    DELETE,
+    HISTORY,
+    INSERT,
+    REFERENCES,
+    UPDATE,
+    Store,
+)
+lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.aggregate import compute_aggregations
+lazy from grunt.document.multi_link import MultiLinkService
+lazy from grunt.document.payload import PROTECTED_FIELDS, update_values
+lazy from grunt.document.relations import (
+    _load_child_tables,
+    _save_child_tables,
+    attach_multi_link_values,
+)
+lazy from grunt.document.serde import serialize_datetimes, with_doctype
+lazy from grunt.document.update_side_effects import delete_row_and_links
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # "sum(amount)" / "count()" - see parse_aggregation.
@@ -134,14 +156,27 @@ async def search_condition(table: Any, meta: Meta, text: str, dialect: Dialect) 
     return match_terms(text, term_condition)
 
 
-class SqlStore:
-    """The rows of *meta*'s DocType in its table, read in *session*."""
+class SqlStore(Store):
+    """The rows of *meta*'s DocType in its table, read and written in *session*:
+    child tables, MultiLink values and aggregates with them."""
+
+    capabilities = frozenset({INSERT, UPDATE, DELETE, AGGREGATE, REFERENCES, HISTORY, BULK})
 
     def __init__(self, meta: Any, session: AsyncSession) -> None:
-        self.meta = meta
-        self.session = session
+        super().__init__(meta, session)
         self.table = meta.table
         self.dialect = dialect_for(session)
+        self._multilinks: MultiLinkService | None = None
+
+    @property
+    def multilinks(self) -> MultiLinkService:
+        if self._multilinks is None:
+            self._multilinks = MultiLinkService(self.session)
+        return self._multilinks
+
+    @property
+    def columns(self) -> frozenset[str] | None:
+        return self.meta.columns
 
     async def _where(self, stmt: Select, query: Query) -> Select:
         stmt = await where(stmt, query.where, self.table, self.meta.name)
@@ -238,6 +273,144 @@ class SqlStore:
     async def count(self, query: Query) -> int:
         stmt = await self._where(select(func.count()).select_from(self.table), query)
         return (await self.session.execute(stmt)).scalar() or 0
+
+    async def distinct(self, field: str) -> list[Any]:
+        col = self.table.c.get(field)
+        if col is None:
+            return []
+        rows = await self.session.execute(select(col).where(col.is_not(None)).distinct())
+        return [v for v in rows.scalars().all() if v not in (None, "")]
+
+    # One document
+
+    async def get(self, name: str, *, expand: list[str] | None = None) -> dict[str, Any] | None:
+        table = self.table
+        # A singleton has only ever one row; *name* is irrelevant (callers pass
+        # the DocType's name, or nothing at all).
+        stmt = select(table).limit(1)
+        if not self.meta.is_singleton:
+            stmt = stmt.where(table.c.name == name)
+        row = (await self.session.execute(stmt)).first()
+        if row is None:
+            return None
+        doc = serialize_datetimes(dict(row._mapping))
+
+        dt = self.meta
+        expand_set = {x for x in (expand or []) if x}
+        load_all = expand is None or "*" in expand_set
+        tables = dt.get_table_fieldnames()
+        if load_all:
+            await _load_child_tables(self.session, dt.doc, doc)
+        elif selected := tables & expand_set:
+            await _load_child_tables(self.session, dt.doc, doc, include_fields=selected)
+        multilinks = {f.fieldname for f in dt.get_multilink_fields()}
+        if multilinks and (load_all or multilinks & expand_set):
+            await attach_multi_link_values(
+                self.multilinks,
+                dt.name,
+                doc["name"],
+                dt.doc,
+                doc,
+                fields=None if load_all else multilinks & expand_set,
+            )
+        return doc
+
+    async def insert(
+        self, doc: dict[str, Any], *, input: dict[str, Any], user: User
+    ) -> dict[str, Any]:
+        """INSERT *doc* with its child rows (from *doc*, so rows a hook filled in
+        are stored too), aggregates and MultiLink values (from *input*)."""
+        dt, table = self.meta, self.table
+        name = doc["name"]
+        await self.session.execute(
+            table.insert().values(**{k: v for k, v in doc.items() if k in table.c})
+        )
+        # Flush so the parent row exists before the child rows reference it.
+        await self.session.flush()
+        now = doc.get("created_at") or datetime.now(UTC)
+        await _save_child_tables(self.session, dt.doc, name, doc, user, now)
+        await self._apply_aggregations(name, doc)
+        await self._sync_multilinks(name, input, only_present=False)
+        return doc
+
+    async def update(
+        self,
+        name: str,
+        doc: dict[str, Any],
+        *,
+        before: dict[str, Any],
+        input: dict[str, Any],
+        user: User,
+    ) -> dict[str, Any]:
+        """UPDATE the row to *doc* - every physical field that differs from
+        *before* or was submitted (hook changes and computed values included) -
+        then child tables, aggregates and the submitted MultiLink fields."""
+        dt, table = self.meta, self.table
+        real_name = before["name"]
+        values = update_values(dt, input, self.columns, user.email)
+        for field in dt.get_physical_fields():
+            if field.fieldname in PROTECTED_FIELDS or field.fieldname not in table.c:
+                continue
+            # A hook may have put the stored value back (a masked secret sent
+            # unchanged) - the document wins over the request payload then too.
+            if field.fieldname in values or doc.get(field.fieldname) != before.get(field.fieldname):
+                values[field.fieldname] = doc.get(field.fieldname)
+        # The audit stamps of the document, not fresh ones.
+        for key in ("modified_at", "modified_by"):
+            if key in values:
+                values[key] = doc[key]
+
+        await self.session.execute(table.update().where(table.c.name == real_name).values(**values))
+        await _save_child_tables(self.session, dt.doc, real_name, doc, user, datetime.now(UTC))
+        await self._apply_aggregations(real_name, doc)
+        await self._sync_multilinks(real_name, input, only_present=True)
+        await self.session.flush()
+
+        result = serialize_datetimes(dict(doc))
+        await _load_child_tables(self.session, dt.doc, result)
+        return await self.output(result)
+
+    async def delete(self, name: str, *, before: dict[str, Any]) -> None:
+        """DELETE the row, its child rows and its MultiLink relations."""
+        await delete_row_and_links(
+            session=self.session,
+            ml=self.multilinks,
+            dt=self.meta,
+            table=self.table,
+            doctype_name=self.doctype,
+            real_id=before["name"],
+        )
+
+    async def output(self, doc: dict[str, Any]) -> dict[str, Any]:
+        result = serialize_datetimes(dict(doc))
+        await attach_multi_link_values(
+            self.multilinks, self.doctype, result["name"], self.meta.doc, result
+        )
+        return with_doctype(self.doctype, result)
+
+    async def _apply_aggregations(self, name: str, doc: dict[str, Any]) -> None:
+        """Compute and store the aggregate fields derived from child tables."""
+        values = await compute_aggregations(self.session, self.meta.doc, name)
+        if not values:
+            return
+        table = self.table
+        await self.session.execute(table.update().where(table.c.name == name).values(**values))
+        doc.update(values)
+        await self.session.flush()
+
+    async def _sync_multilinks(
+        self, name: str, data: dict[str, Any], *, only_present: bool
+    ) -> None:
+        """Store the MultiLink lists in *data* (``only_present`` - leave the
+        fields *data* doesn't mention as they are)."""
+        for field in self.meta.get_multilink_fields():
+            if only_present and field.fieldname not in data:
+                continue
+            values = data.get(field.fieldname)
+            if isinstance(values, list):
+                await self.multilinks.set_values(
+                    self.doctype, name, field.fieldname, field.options or "", values
+                )
 
     async def aggregate(self, query: Query) -> list[dict[str, Any]]:
         table = self.table

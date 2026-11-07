@@ -4,7 +4,7 @@ Read paths AND it onto their filters (``grunt.query.sql.where``); a raw,
 unpermissioned read is one that never asks for it.
 """
 
-from sqlalchemy import Table
+from collections.abc import Collection
 
 from grunt import log
 from grunt.permissions.access import RoleAccess
@@ -19,19 +19,22 @@ lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
 
 
-async def read_predicate(table: Table, user: User, doctype: DocType | Meta) -> Expr:
-    """The rows of *doctype* (stored in *table*) that *user* may read - every
-    row-level rule in one expression.
+async def read_predicate(user: User, meta: Meta) -> Expr:
+    """The rows of *meta*'s DocType that *user* may read - every row-level rule
+    in one expression, for any store (SQL compiles it, memory evaluates it).
 
     Role ``match`` rules, inherited access, child rows and shares (see
     :func:`_role_and_share_predicate`), then User Permissions ANDed on top - they
     narrow shared documents too.
     """
-    roles = await _role_and_share_predicate(table, user, doctype)
-    return and_(roles, await user_permission_predicate(table, user, doctype))
+    columns = meta.columns
+    roles = await _role_and_share_predicate(columns, user, meta)
+    return and_(roles, await user_permission_predicate(columns, user, meta))
 
 
-async def _role_and_share_predicate(table: Table, user: User, doctype: DocType | Meta) -> Expr:
+async def _role_and_share_predicate(
+    columns: Collection[str], user: User, doctype: DocType | Meta
+) -> Expr:
     """Rows the user's role-permissions allow via `match`, plus documents shared
     with the user (``SharedWith``).
 
@@ -45,15 +48,15 @@ async def _role_and_share_predicate(table: Table, user: User, doctype: DocType |
         return TRUE
 
     if is_child(doctype):
-        return await child_predicate(table, user, doctype)
+        return await child_predicate(columns, user, doctype)
 
-    own = await _own_predicates(table, user, doctype, access)
-    ref = await reference_predicates(table, user, doctype)
+    own = await _own_predicates(columns, user, doctype, access)
+    ref = await reference_predicates(columns, user, doctype)
     if own is None and ref is None:
         return TRUE  # unrestricted read, nothing inherited
 
     conditions: list[Expr] = []
-    shared = await shared_predicate(table, user, doctype.name)
+    shared = await shared_predicate(columns, user, doctype.name)
     if shared is not None:
         conditions.append(shared)
 
@@ -72,7 +75,7 @@ async def _role_and_share_predicate(table: Table, user: User, doctype: DocType |
 
 
 async def _own_predicates(
-    table: Table, user: User, doctype: DocType | Meta, access: RoleAccess
+    columns: Collection[str], user: User, doctype: DocType | Meta, access: RoleAccess
 ) -> list[Expr] | None:
     """The role read rules: ``None`` = unrestricted, ``[]`` = no rows."""
     if access.has_unrestricted_read:
@@ -84,7 +87,7 @@ async def _own_predicates(
         match_expr = getattr(perm, "match", None)
         if not match_expr:
             return None  # has_unrestricted_read would have said so; defensive only
-        condition = await PermissionMatch(match_expr).to_expr(table, user, doctype)
+        condition = await PermissionMatch(match_expr).to_expr(columns, user, doctype)
         if condition is not None:
             conditions.append(condition)
         else:

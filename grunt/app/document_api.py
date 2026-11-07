@@ -28,7 +28,7 @@ lazy from grunt.cache.document_cache import DocumentCache
 lazy from grunt.cache.query_cache import QueryCache
 lazy from grunt.db import GruntDB
 lazy from grunt.db.api import aggregate_query, list_query
-lazy from grunt.document.base import BaseDocument, DocumentList, load_document, new_document
+lazy from grunt.document.base import Document, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
 lazy from grunt.query import run
 lazy from grunt.query.parse import FILTER_OPS
@@ -89,7 +89,7 @@ class DocumentAPI:
 
     async def _load(
         self, doctype: str, id_or_name: str | None, user: Any, expand: list[str] | None = None
-    ) -> BaseDocument:
+    ) -> Document:
 
         return await load_document(
             doctype,
@@ -100,7 +100,7 @@ class DocumentAPI:
             user=user,
         )
 
-    async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> BaseDocument:
+    async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> Document:
 
         return await new_document(
             doctype, data, user=user, session=grunt.get_session(), engine=require_engine()
@@ -116,7 +116,7 @@ class DocumentAPI:
     ) -> dict[str, Any]: ...
 
     @overload
-    async def get_doc[D: BaseDocument](
+    async def get_doc[D: Document](
         self,
         doctype: type[D],
         id_or_name: str | None = None,
@@ -125,7 +125,7 @@ class DocumentAPI:
     ) -> D: ...
 
     @overload
-    async def get_doc(self, doctype: dict[str, Any]) -> BaseDocument: ...
+    async def get_doc(self, doctype: dict[str, Any]) -> Document: ...
 
     @profile("grunt.get_doc")
     async def get_doc(self, doctype, id_or_name=None, *, expand=None):
@@ -187,7 +187,7 @@ class DocumentAPI:
     ) -> dict[str, Any] | None: ...
 
     @overload
-    async def find_doc[D: BaseDocument](
+    async def find_doc[D: Document](
         self,
         doctype: type[D],
         id_or_name: str | None = None,
@@ -207,7 +207,7 @@ class DocumentAPI:
                 return None
             raise
 
-    async def get_doc_instance(self, doctype: str, id_or_name: str) -> BaseDocument:
+    async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
         dt, user, hidden_fields = await read_guard(doctype)
         doc = await self._load(doctype, id_or_name, user)

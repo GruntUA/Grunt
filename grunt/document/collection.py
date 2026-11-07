@@ -20,12 +20,9 @@ from grunt import _, log
 from grunt.document.base import (
     Document,
     DocumentList,
-    controller_class,
-    is_table_backed,
     load_document,
 )
 from grunt.document.formula import evaluate_read_formulas
-from grunt.document.in_memory import build_response
 from grunt.document.meta import Meta
 from grunt.document.multi_link import MultiLinkService
 from grunt.document.query import expand_child_of_filters
@@ -41,15 +38,13 @@ from grunt.document.update_side_effects import (
 )
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
-from grunt.permissions.access import RoleAccess
 from grunt.permissions.query import read_predicate
-from grunt.permissions.rbac import permission_checker
-from grunt.permissions.user_permissions import get_user_permissions_for
 from grunt.query import nodes as q
 from grunt.query import run
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
+from grunt.store import BULK, REFERENCES, Unavailable, store_for
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -69,42 +64,27 @@ def _decode_cursor(cursor: str) -> tuple[Any, str]:
 # List
 
 
-async def _list_singleton(session: AsyncSession, table: Any) -> DocumentList:
-    """Return the (at most one) row of a singleton DocType, ignoring pagination."""
-    result = await session.execute(select(table).limit(1))
-    row = result.first()
-    data_list = [dict(row._mapping)] if row else []
-    for r in data_list:
-        serialize_datetimes(r)
-    return DocumentList(
-        data=data_list,
-        meta={"total": len(data_list), "page": 1, "per_page": 1, "pages": 1},
-    )
-
-
 async def _resolve_list_filter_extra(
     session: AsyncSession,
-    doctype_name: str,
+    dt: Any,
     filters: dict[str, str] | None,
-    table: Any,
 ) -> q.Expr:
     """The controller's ``list_filter_extra`` clause as a ``Raw`` node (``TRUE``
-    when it has none)."""
-    # A controller listing Document's table without being one has no such hook.
-    hook = getattr(document_registry.get(doctype_name), "list_filter_extra", None)
-    if hook is None or hook == Document.list_filter_extra:
+    when it has none) - a SQL condition, so only a table's list takes one."""
+    hook = document_registry.get(dt.name).list_filter_extra
+    if hook.__func__ is Document.list_filter_extra.__func__:
         return q.TRUE
-    clause = await hook(session, filters or {}, table)
+    clause = await hook(session, filters or {}, dt.table)
     return q.TRUE if clause is None else q.Raw(clause)
 
 
 async def _list_where(session: AsyncSession, dt: Any, filters: dict[str, Any] | None) -> q.Expr:
     """The filters of a list (``__child_of`` expanded) and the controller's
     ``list_filter_extra`` - one predicate for the page and its total."""
-    extra = await _resolve_list_filter_extra(session, dt.name, filters, dt.table)
+    extra = await _resolve_list_filter_extra(session, dt, filters)
     if filters and any(k.endswith("__child_of") for k in filters):
         filters = await expand_child_of_filters(session, dt.doc, filters)
-    return q.and_(filter_expr(filters, dt.table, dt), extra)
+    return q.and_(filter_expr(filters, dt.columns, dt), extra)
 
 
 async def _finalize_rows(
@@ -153,64 +133,20 @@ async def list_documents(
     cursor: str | None = None,
     include_total: bool = True,
 ) -> DocumentList:
-    dt = await grunt.get_meta(doctype_name)
-    if dt is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
-        )
+    """A page of the documents of *doctype_name* the *user* may see, from its
+    store - filtered, searched, sorted; with Link labels and read formulas."""
+    dt = await _require_meta(doctype_name)
 
-    if not is_table_backed(dt) and await _row_scoped(dt, user):
-        readable = await _readable_rows(
-            session,
-            dt,
-            user,
-            sort_by=sort_by,
-            sort_order=sort_order,
-            filters=filters,
-            search=search,
-        )
-        extra_meta = {k: v for k, v in readable.meta.items() if k not in _PAGE_META}
-        return build_response(list(readable), page, per_page, extra_meta=extra_meta or None)
-
-    return await controller_class(dt).get_list(
-        doctype_name,
-        session=session,
-        user=user,
-        page=page,
-        per_page=per_page,
-        sort_by=sort_by,
-        sort_order=sort_order,
-        filters=filters,
-        search=search,
-        fields=fields,
-        cursor=cursor,
-        include_total=include_total,
-    )
-
-
-async def table_list(
-    session: AsyncSession,
-    dt: Any,
-    user: User,
-    *,
-    page: int,
-    per_page: int,
-    sort_by: str,
-    sort_order: str,
-    filters: dict[str, Any] | None,
-    search: str | None,
-    fields: list[str] | None,
-    cursor: str | None,
-    include_total: bool,
-) -> DocumentList:
-    """A page of *dt*'s table rows the *user* may see - ``Document.get_list``."""
-    doctype_name = dt.name
-    table = dt.table
-
-    # Singleton - return at most 1 row, ignore pagination
+    # Singleton - at most one row, pagination ignored.
     if dt.is_singleton:
-        return await _list_singleton(session, table)
+        rows = await run.fetch(
+            Query(doctype_name, limit=1), ignore_permissions=True, session=session
+        )
+        for r in rows:
+            serialize_datetimes(r)
+        return DocumentList(
+            data=rows, meta={"total": len(rows), "page": 1, "per_page": 1, "pages": 1}
+        )
 
     after: tuple[Any, str] | None = None
     if cursor:
@@ -230,7 +166,21 @@ async def table_list(
         after=after,
         search=search or None,
     )
-    rows, total = await run.page(query, user=user, with_total=include_total, session=session)
+    try:
+        rows, total = await run.page(query, user=user, with_total=include_total, session=session)
+    except Unavailable as exc:
+        # The source can't be reached - an empty list that says so.
+        return DocumentList(
+            data=[],
+            meta={
+                "total": 0,
+                "page": page,
+                "per_page": per_page,
+                "pages": 0,
+                "unavailable": True,
+                "unavailable_message": str(exc),
+            },
+        )
 
     await _finalize_rows(session, dt, doctype_name, rows)
     next_cursor = _build_next_cursor(rows, per_page, sort_by)
@@ -261,79 +211,22 @@ async def count_documents(
     filter ``list_documents`` applies to its pagination total, so a sidebar
     badge or a headline stat never reports rows the list itself hides.
     """
+    dt = await _require_meta(doctype_name)
+    query = Query(dt.name, where=await _list_where(session, dt, filters), search=search or None)
+    try:
+        return await run.count(query, user=user, session=session)
+    except Unavailable:
+        return 0
+
+
+async def _require_meta(doctype_name: str) -> Any:
     dt = await grunt.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if not is_table_backed(dt) and await _row_scoped(dt, user):
-        readable = await _readable_rows(session, dt, user, filters=filters, search=search)
-        return len(readable)
-    return await controller_class(dt).get_count(
-        doctype_name, session=session, user=user, filters=filters, search=search
-    )
-
-
-# A controller's list (no table to filter in SQL) is checked row by row when the
-# user may read only some documents; this is how many rows it is asked for.
-_ROW_SCOPED_LIMIT = 5000
-_PAGE_META = frozenset({"total", "page", "per_page", "pages", "next_cursor"})
-
-
-async def _row_scoped(dt: Any, user: User) -> bool:
-    """True when *user* may read only some of *dt*'s documents - a ``match``
-    rule or User Permissions, which a table query applies in SQL."""
-    if RoleAccess(dt, user).has_unrestricted_read:
-        return bool(await get_user_permissions_for(user, dt.name))
-    return True
-
-
-async def _readable_rows(
-    session: AsyncSession,
-    dt: Any,
-    user: User,
-    *,
-    sort_by: str = "modified_at",
-    sort_order: str = "desc",
-    filters: dict[str, Any] | None,
-    search: str | None,
-) -> DocumentList:
-    """The controller's rows *user* may read, in its order, with its meta.
-
-    A row is checked as the document it lists, so a ``match`` on a field the
-    list leaves out fails closed.
-    """
-    rows = await controller_class(dt).get_list(
-        dt.name,
-        session=session,
-        user=user,
-        page=1,
-        per_page=_ROW_SCOPED_LIMIT,
-        sort_by=sort_by,
-        sort_order=sort_order,
-        filters=filters,
-        search=search,
-    )
-    if (rows.meta.get("total") or 0) > len(rows):
-        log.warning(
-            "collection.row_scoped_list_truncated", doctype=dt.name, limit=_ROW_SCOPED_LIMIT
-        )
-    readable = [r for r in rows if await permission_checker.check(user, dt, "read", r)]
-    return DocumentList(readable, rows.meta)
-
-
-async def table_count(
-    session: AsyncSession,
-    dt: Any,
-    user: User,
-    *,
-    filters: dict[str, Any] | None,
-    search: str | None,
-) -> int:
-    """How many of *dt*'s table rows the *user* may see - ``Document.get_count``."""
-    query = Query(dt.name, where=await _list_where(session, dt, filters), search=search or None)
-    return await run.count(query, user=user, session=session)
+    return dt
 
 
 async def field_years(
@@ -372,8 +265,8 @@ async def field_years(
         return []
     year = func.extract("year", col)
     predicate = q.and_(
-        await read_predicate(table, user, dt.doc),
-        await _resolve_list_filter_extra(session, doctype_name, None, table),
+        await read_predicate(user, dt),
+        await _resolve_list_filter_extra(session, dt, None),
     )
     query = await where(
         select(year).select_from(table).where(col.is_not(None)).distinct(),
@@ -423,7 +316,7 @@ async def bulk_delete(
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
 
-    if not is_table_backed(dt):
+    if not store_for(dt, session).can(BULK):
         return await bulk_delete_one_by_one(session, engine, doctype_name, ids, user)
 
     table = dt.table
@@ -704,7 +597,7 @@ async def rename_document(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype_name},
         )
-    if not is_table_backed(dt):
+    if not store_for(dt, session).can(REFERENCES):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=_("Cannot rename virtual documents"),

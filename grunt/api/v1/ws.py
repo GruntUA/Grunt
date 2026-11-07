@@ -388,16 +388,15 @@ async def _ws_user_can_read(
             dt = await grunt.get_meta(doctype)
             if dt is None:
                 return False
-            from grunt.document.base import is_table_backed
+            from grunt.store import store_for
 
-            if doc_id is None or not is_table_backed(dt):
-                # List room, or a virtual DocType with no table to look a row up
-                # in: the DocType-level read grant is all there is to check.
+            if doc_id is None:
+                # List room: the DocType-level read grant is all there is to check.
                 return await permission_checker.check(user, dt, "read")
-            # Document room: the row-level check, against the real row - the
-            # user is passed explicitly, so no user needs to be bound to the
+            # Document room: the row-level check, against the stored document -
+            # the user is passed explicitly, so no user needs to be bound to the
             # context (this helper loads it, it does not run as it).
-            row = await grunt.db.get_value(doctype, doc_id, "*")
+            row = await store_for(dt).get(doc_id, expand=[])
             if row is None:
                 return False
             return await permission_checker.check(user, dt, "read", row)

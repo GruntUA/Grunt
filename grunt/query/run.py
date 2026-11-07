@@ -36,7 +36,7 @@ async def _secured(
         raise TypeError("pass either user= or ignore_permissions=True")
     dt = await _meta(query.doctype)
     if user is not None:
-        query = query.narrowed(await read_predicate(dt.table, user, dt.doc))
+        query = query.narrowed(await read_predicate(user, dt))
     return store_for(dt, session), query
 
 
