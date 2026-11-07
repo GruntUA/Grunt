@@ -174,7 +174,7 @@ CI проганяє їх на SQLite і PostgreSQL; `test_in_memory.py` — ті
   порівняння, `%`/`_` у like, той самий порядок тексту, порожні в кінці. LIKE — лінійне
   зіставлення, не regex: `%a%a%…` з `.*`-групами давав експоненційний бектрекінг (ReDoS, #97).
 
-### 3. `Query` AST — ⏳ (дизайн, чекає погодження)
+### 3. `Query` AST — ⏳ (дизайн погоджено 2026-11-07; 3a ✅)
 
 `db/filters.py` розбирає вхідні дані в нейтральний `Query`; права (user permissions,
 shares, власник) — вузли AST; `SqlStore` компілює в SQLAlchemy. Звіти/Query Builder
@@ -221,8 +221,18 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   відповідають одним предикатом. `Linked` в evaluate — через довантаження (як `evaluate_doc`).
 
 **Порядок (кожен — окремий зелений PR, контракт `tests/contract/` — сітка безпеки):**
-- 3a. Вузли + `parse` + `compile_sql`; `build_clauses` = `compile(parse(…))`; `in_memory` → `evaluate`
+- 3a. ✅ (2026-11-07) Вузли + `parse` + `compile_sql`; `build_clauses` = `compile(parse(…))`; `in_memory` → `evaluate`
   (прибирає другу копію операторів). Поведінка не змінюється.
+  Зроблено: `grunt/query/{nodes,parse,compile_sql,evaluate}.py`. Вузли: `Cmp Like In Null Empty Year
+  MultiLink And Or Const` (`TRUE`/`FALSE`); `and_`/`or_` сплющують і поглинають константи.
+  **Відхилення від дизайну:** (1) значення в AST — як їх дали; типізує виконавець (SQL — за колонкою,
+  `typed_value`; пам'ять — за значенням рядка, `_pair`), бо Meta не знає стандартних колонок і так
+  поведінка не змінюється; (2) загального `Not` немає — NOT у SQL (тризначний) і в Python розходяться
+  на NULL, тож заперечення — прапорець `negate` у листках з явним правилом для NULL. `Linked`, `Search`,
+  `Raw` — у 3b/3c, коли з'являться споживачі. `filters.py` — тонкі обгортки (`DISPLAY_OPS` лишився там,
+  решта реекспортується з `grunt.query.parse`). Невідомі поля: `parse_filters(fields=…)` пропускає;
+  `fields=None` (пам'ять) — невідомий оператор (`__child_of`) → `ValueError`, як і було.
+  Перевірено: `tests/unit/test_query_ast.py` + контракт; SQLite 2057, PG 2058, pyright 0.
 - 3b. `PermissionMatch.to_expr`, `read_predicate`; `apply_permission_filter` = `compile(read_predicate)`
   (тимчасова обгортка). Контракт-кейси на права (match, shares, reference, child, UP) на обох СУБД.
 - 3c. `list_documents` / `get_all` / `count` / `aggregate` / tree / звіти будують `Query` і йдуть через

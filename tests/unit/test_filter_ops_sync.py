@@ -5,7 +5,8 @@ These tests keep the two in step and check report conditions use it."""
 import re
 from pathlib import Path
 
-from grunt.db.filters import _CLAUSES, DISPLAY_OPS, FILTER_OPS, split_key
+from grunt.db.filters import DISPLAY_OPS, FILTER_OPS, split_key
+from grunt.query.parse import parse_filters
 from grunt.reports.list_options import compile_conditions
 
 FILTER_OPS_TS = Path(__file__).parents[2] / "frontend/src/core/filterOps.ts"
@@ -30,7 +31,12 @@ def test_display_ops_match_frontend():
 
 def test_display_ops_are_known_backend_ops():
     # child_of is expanded to __in before build_clauses (expand_child_of_filters).
-    assert set(DISPLAY_OPS.values()) - {"child_of"} <= set(FILTER_OPS) & set(_CLAUSES)
+    assert set(DISPLAY_OPS.values()) - {"child_of"} <= set(FILTER_OPS)
+
+
+def test_every_backend_op_parses():
+    for op in FILTER_OPS:
+        assert parse_filters({f"f__{op}": "2024"}) is not None
 
 
 def test_frontend_key_splitting_knows_every_backend_op():

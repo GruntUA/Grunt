@@ -6,144 +6,29 @@ virtual DocType's list view filters like any other.
 """
 
 import math
-from collections.abc import Callable
-from datetime import date, datetime
-from decimal import Decimal
 from typing import Any
 
-from grunt.db.filters import as_list, is_truthy, split_key
 from grunt.document.base import DocumentList
+from grunt.query.evaluate import iso, matches
+from grunt.query.parse import parse_filters
 from grunt.search.terms import matches_text
-
-# The same contract as the SQL side (tests/contract): values compared in one
-# type, NULL never matching a comparison, LIKE patterns with % and _, text in
-# case ignored, empty values last.
-
-
-def _empty(raw: Any) -> bool:
-    return raw in (None, "")
-
-
-def _iso(value: Any) -> Any:
-    return value.isoformat() if isinstance(value, (date, datetime)) else value
-
-
-def _pair(raw: Any, val: Any) -> tuple[Any, Any] | None:
-    """*raw* and *val* in one comparable type; ``None`` when *raw* is NULL (SQL:
-    a comparison with NULL is never true) or they can't be compared."""
-    if raw is None:
-        return None
-    if isinstance(raw, bool):  # before int: a bool is an int
-        return raw, is_truthy(val)
-    if isinstance(raw, (int, float, Decimal)):
-        try:
-            return float(raw), float(val)
-        except TypeError, ValueError:
-            return None
-    if isinstance(raw, (date, datetime)) or isinstance(val, (date, datetime)):
-        return str(_iso(raw)), str(_iso(val))
-    return str(raw), str(val)
-
-
-def _compare(test: Callable[[Any, Any], bool]) -> Callable[[Any, Any], bool]:
-    def match(raw: Any, val: Any) -> bool:
-        pair = _pair(raw, val)
-        return pair is not None and test(*pair)
-
-    return match
-
-
-def _wildcard_match(text: str, pattern: str) -> bool:
-    """Whole *text* against a LIKE *pattern* (``%`` any run, ``_`` one character).
-
-    Linear backtracking - only to the last ``%`` - so ``%a%a%a…`` on a long
-    row costs O(len(text) * len(pattern)), not the exponential time a regex
-    of ``.*`` groups can take (a filter value is user input).
-    """
-    t = p = 0
-    star_p = star_t = -1
-    while t < len(text):
-        if p < len(pattern) and pattern[p] == "%":
-            star_p, star_t = p, t
-            p += 1
-        elif p < len(pattern) and (pattern[p] == "_" or pattern[p] == text[t]):
-            t += 1
-            p += 1
-        elif star_p >= 0:
-            star_t += 1
-            t, p = star_t, star_p + 1
-        else:
-            return False
-    return all(ch == "%" for ch in pattern[p:])
-
-
-def _like(raw: Any, val: Any) -> bool:
-    """SQL ``ILIKE '%val%'``: ``%`` and ``_`` are wildcards, case ignored."""
-    if raw is None:
-        return False
-    return _wildcard_match(str(_iso(raw)).lower(), f"%{str(val).lower()}%")
-
-
-def _in(raw: Any, val: Any) -> bool:
-    return any((p := _pair(raw, v)) is not None and p[0] == p[1] for v in as_list(val))
-
-
-def _year(raw: Any, val: Any) -> bool:
-    return not _empty(raw) and str(_iso(raw))[:4] == f"{int(str(val).strip()):04d}"
-
-
-_eq = _compare(lambda a, b: a == b)
-_lte = _compare(lambda a, b: a <= b)
-
-# In-memory counterparts of grunt.db.filters._CLAUSES.
-_ROW_MATCHERS: dict[str, Callable[[Any, Any], bool]] = {
-    "eq": _eq,
-    "ne": _compare(lambda a, b: a != b),
-    "neq": _compare(lambda a, b: a != b),
-    "gt": _compare(lambda a, b: a > b),
-    "gte": _compare(lambda a, b: a >= b),
-    "lt": _compare(lambda a, b: a < b),
-    "lte": _lte,
-    "lte_or_null": lambda raw, val: raw is None or _lte(raw, val),
-    "like": _like,
-    "ilike": _like,
-    "nlike": lambda raw, val: raw is None or not _like(raw, val),
-    "in": _in,
-    "nin": lambda raw, val: raw is not None and not _in(raw, val),
-    "isnull": lambda raw, val: (raw is None) == is_truthy(val),
-    "is": lambda raw, val: _empty(raw) == (str(val).strip().lower() == "not set"),
-    "year": _year,
-}
-
-
-def _matches(match: Callable[[Any, Any], bool], raw: Any, val: Any) -> bool:
-    try:
-        return match(raw, val)
-    except TypeError, ValueError:
-        return False
 
 
 def apply_filters(rows: list[dict], filters: dict[str, Any]) -> list[dict]:
-    """Filter rows in memory with the same ``field__op`` syntax as SQL lists.
+    """Filter rows in memory with the same ``field__op`` syntax as SQL lists -
+    the same query AST, evaluated by :mod:`grunt.query.evaluate`.
 
     An operator the SQL side doesn't know (``dept__child_of``) raises
     instead of quietly matching the wrong rows.
     """
-    for key, val in filters.items():
-        field, op = split_key(key)
-        if "__" in field:
-            raise ValueError(f"Unsupported filter operator in {key!r}")
-        match = _ROW_MATCHERS.get(op)
-        if match is None:
-            raise NotImplementedError(f"Filter operator {op!r} not supported")
-        rows = [r for r in rows if _matches(match, r.get(field), val)]
-    return rows
+    expr = parse_filters(filters)
+    return [r for r in rows if matches(expr, r)]
 
 
 def _sort_value(value: Any) -> Any:
     if isinstance(value, str):
         return value.lower()  # as SQL lower() - case ignored, then code points
-    return _iso(value)
+    return iso(value)
 
 
 def apply_sort(rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
@@ -160,7 +45,7 @@ def apply_sort(rows: list[dict], sort_by: str, sort_order: str) -> list[dict]:
         present.sort(key=key, reverse=reverse)
     except TypeError:  # mixed types - compare as text
         present.sort(
-            key=lambda r: (str(_iso(r.get(sort_by))), str(r.get("name", ""))), reverse=reverse
+            key=lambda r: (str(iso(r.get(sort_by))), str(r.get("name", ""))), reverse=reverse
         )
     empty.sort(key=lambda r: str(r.get("name", "")), reverse=reverse)
     return present + empty
