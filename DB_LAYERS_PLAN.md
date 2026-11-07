@@ -7,7 +7,7 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-08 (кроки 1–5 готові; далі 6 — схема)
+Оновлено: 2026-11-08 (кроки 1–6 готові)
 
 ---
 
@@ -455,6 +455,65 @@ push) — через outbox після commit.
   Перевірено (5a–5d): ruff, pyright 0; SQLite 2112/0, PG 2113/0 (двічі, без плаваючих); lagoo 20,
   crystal_finance 40, inventory 28, translate 31, hromada_it 42, opendata 76.
 
-### 6. Схема — ⏳
+### 6. Схема — ✅ (2026-11-08)
 Компілятор видає бажану схему, мігратор діалекту її застосовує. Для `ReadOnlySqlStore`
 DDL не виконується ніколи.
+
+Гілка `db-schema` (від `db-connections`), окремий PR.
+
+**Інвентаризація (2026-11-08):** `sync_table` (`metadata/compiler.py`) порівнює й одразу виконує DDL
+одним проходом; DDL — сирий SQL у компіляторі (`"…"` — не MySQL; частковий unique `WHERE` — MySQL не
+має; `char_length`; перевірка дублікатів). Видалення колонок — у трьох місцях зі своїм SQL
+(`Meta.trim_table`, `cli/app.py` для розширень, на SQLite — спершу індекси). Застарілі звичайні
+індекси не видаляються ніколи. На SQLite зміна типу мовчки пропускається, хоча перебудова таблиці є в
+діалекті. `migrate --dry-run` — лише «would sync: X». Alembic — для даних і перейменувань.
+`ReadOnlySqlStore` немає (з'єднання відкладено) — захист — `has_table`.
+
+**Рішення (погоджено 2026-11-08):** видаляти застарілі наші індекси (`ix_<таблиця>_…`); зміна типу на
+SQLite — перебудовою таблиці, але лише в `grunt migrate` (у Studio — попередження «після migrate»).
+
+**Дизайн:** `grunt/db/schema/` — бажана схема = `compile_doctype_to_table`; `diff(desired, actual) →
+list[Change]` — чиста функція (`CreateTable AddColumn AlterType AddUnique DropUnique AddIndex DropIndex
+DropColumn`); перевірки безпеки (дублікати перед unique, звуження VARCHAR) — окремим кроком перед
+застосуванням; `Dialect.apply(change)` — увесь DDL у діалекті; `sync_table` = застосувати план;
+`--dry-run` друкує план; `trim-tables` і видалення колонок розширень — той самий `diff` з дозволом
+видаляти.
+
+**Порядок:** 6a — `diff` + план (тести без бази) → 6b — DDL у діалекти, `sync_table` на новій основі →
+6c — trim/розширення через `DropColumn`, `--dry-run` з планом → 6d — SQLite: тип через перебудову,
+видалення застарілих індексів.
+
+**Зроблено (2026-11-08, не закомічено):**
+- 6a. `grunt/db/schema/changes.py` (dataclass-и змін з `describe()`), `diff.py`: `read_actual` (стан
+  таблиці з інспектора), `diff(table, actual, sa_dialect=, can_alter_type=, drop_columns=,
+  drop_indexes=, keep=)`, `column_drops`, `describe`, `type_changed`/`is_varchar_reduction`
+  (з компілятора). Тести без бази: `tests/unit/test_schema_diff.py`.
+- 6b. `apply.py`: `check` (дублікати перед unique → `DuplicateDataError`, тепер тут; звуження VARCHAR
+  понад дані — зміну пропущено з логом) і `apply` (кожна зміна — через діалект; inline-unique SQLite —
+  одна перебудова на таблицю). DDL — у `Dialect`: `quote`, `add_column`, `alter_column_type`
+  (MySQL — `MODIFY`), `create_unique` (частковий; MySQL — звичайний: два `''` конфліктують),
+  `drop_index` (MySQL — `ON таблиця`), `drop_column`, `max_text_length` (SQLite — `length`).
+  `sync_table` = `plan_sync` → `check` → `apply`; сирий DDL з компілятора прибрано.
+- 6c. `Meta.trim_table` (`grunt db trim-tables`) і видалення колонок розширень (`grunt app remove`) —
+  через `DropColumn` (індекси колонки — першими), кожна в savepoint. `grunt migrate --dry-run` друкує
+  план (`preview_sync`): «X: add column t.c», «change type …», «drop index …».
+- 6d. SQLite `rebuild_column_types`: таблиця як у базі (reflection — і невизначені колонки), змінено
+  лише потрібні типи, рядки скопійовано, індекси й тригери відтворено, у savepoint; одна перебудова на
+  таблицю. Лише в `grunt migrate` (`sync_table(rebuild=True)`); у Studio — `schema.type_change_deferred`
+  у лог. `migrate` також видаляє застарілі наші індекси (`drop_indexes=True`), зберігаючи потрібні
+  іншим DocType тієї ж таблиці (`table_index_names` → `keep`).
+  Тести на справжній базі: `tests/test_schema_apply.py` (SQLite і PG).
+  **Знайдено й виправлено (і в старому коді):** на PG `UtcDateTime` компілюється як
+  `TIMESTAMP WITH TIME ZONE`, а відображається як `TIMESTAMP(timezone=True)` — порівняння вважало тип
+  зміненим, і кожна синхронізація робила `ALTER COLUMN TYPE` для всіх колонок дат (блокування
+  таблиці). Тепер порівнюється базовий тип, а часовий пояс — окремо. Тест: на свіжій схемі план
+  порожній для кожного DocType ядра (SQLite і PG).
+  **Плаваючі падіння тестів прав (з кроку 5) — знайдено причину:** синхронні тести
+  `tests/unit/test_api.py` (`test_set_and_get_session/_user/_engine`) ставили мок-сесію в контекст
+  поза задачею — у контекст усього процесу, тож кожен наступний тест на тому воркері бачив
+  `AsyncMock`-сесію (`has_share` → `UnknownDatabaseError`). Відтворюється детерміновано парою тестів.
+  Виправлено autouse-фікстурою `_restore_grunt_context` у `conftest.py`: після кожного тесту змінні
+  контексту grunt повертаються до попередніх значень, кеші прав очищуються (ключ `_PERM_CACHE`
+  містить `id()` списку прав — адреси перевикористовуються).
+  Перевірено (крок 6): ruff, pyright 0; SQLite 2133/0 (двічі), PG 2134/0; lagoo 20, crystal_finance
+  40, inventory 28, translate 31, hromada_it 42, opendata 76.

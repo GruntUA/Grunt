@@ -6,8 +6,6 @@ Provides convenient access and caching for metadata operations.
 from collections.abc import Iterable
 from typing import Any
 
-from sqlalchemy import inspect, text
-
 from grunt.metadata.compiler import (
     CHILD_COLUMNS,
     STANDARD_COLUMNS,
@@ -15,6 +13,9 @@ from grunt.metadata.compiler import (
     get_table_name,
 )
 from grunt.metadata.field import DocField, get_field_type_class, get_registered_fieldtypes
+lazy from grunt.db.dialects import dialect_for
+lazy from grunt.db.schema import DropColumn, diff, read_actual
+lazy from grunt.db.schema.apply import apply
 lazy from grunt.metadata.doctype import DocType, DocTypeTreeView
 
 # Layout-only fieldtypes that carry no value (FieldType.is_layout). This is the
@@ -248,36 +249,40 @@ class Meta:
         if not self.doc.has_table:
             return
 
-        table_name = self.doc.table_name or get_table_name(self.doc.module, self.doc.name)
+        table = self.table
 
-        def _trim(connection):
-            insp = inspect(connection)
-
-            if not insp.has_table(table_name):
+        def _trim(connection: Any) -> None:
+            actual = read_actual(connection, table.name)
+            if actual is None:
                 return
-
-            db_cols = {c["name"] for c in insp.get_columns(table_name)}
-            valid_cols = set(self.get_valid_columns()) | set(keep)
-
-            to_drop = db_cols - valid_cols
-            indexes = insp.get_indexes(table_name) if to_drop else []
-
-            for col in to_drop:
+            changes = [
+                c
+                for c in diff(
+                    table,
+                    actual,
+                    sa_dialect=connection.dialect,
+                    can_alter_type=True,  # types are not this command's business
+                    drop_columns=True,
+                    keep=set(keep),
+                )
+                if isinstance(c, DropColumn)
+            ]
+            dialect = dialect_for(connection)
+            for change in changes:
                 if dry_run:
                     if not quiet:
-                        print(f"[dry-run] would DROP COLUMN '{col}' from TABLE '{table_name}'")
-                else:
-                    try:
-                        # SQLite refuses DROP COLUMN while an index references it.
-                        for ix in indexes:
-                            if col in ix["column_names"]:
-                                connection.execute(text(f'DROP INDEX IF EXISTS "{ix["name"]}"'))
-                        connection.execute(text(f'ALTER TABLE "{table_name}" DROP COLUMN "{col}"'))
-                        if not quiet:
-                            print(f"Dropped column '{col}' from table '{table_name}'")
-                    except Exception as e:
-                        if not quiet:
-                            print(f"Failed to drop column '{col}' from table '{table_name}': {e}")
+                        print(f"[dry-run] would {change.describe()}")
+                    continue
+                try:
+                    with connection.begin_nested():
+                        apply(connection, dialect, [change])
+                    if not quiet:
+                        print(f"Dropped column '{change.name}' from table '{table.name}'")
+                except Exception as e:
+                    if not quiet:
+                        print(
+                            f"Failed to drop column '{change.name}' from table '{table.name}': {e}"
+                        )
 
         async with engine.begin() as conn:
             await conn.run_sync(_trim)

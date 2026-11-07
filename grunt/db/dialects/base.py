@@ -164,6 +164,69 @@ class Dialect(ABC):
         return f"string_agg(CAST({expr} AS TEXT), ',')"
 
     # ── Schema (sync connection, inside ``run_sync``) ───────────────────────
+    # The DDL of grunt.db.schema's changes; identifiers quoted the backend's way.
+
+    @staticmethod
+    def quote(connection: Any, name: str) -> str:
+        return connection.dialect.identifier_preparer.quote(name)
+
+    def add_column(self, connection: Any, table_name: str, column: Any) -> None:
+        """Add *column* as NULL - the table may already have rows."""
+        q = self.quote
+        col_type = column.type.compile(connection.dialect)
+        connection.execute(
+            text(
+                f"ALTER TABLE {q(connection, table_name)} "
+                f"ADD COLUMN {q(connection, column.name)} {col_type} NULL"
+            )
+        )
+
+    def alter_column_type(self, connection: Any, table_name: str, column: Any) -> None:
+        """Change *column*'s type in place (``can_alter_column_type`` backends)."""
+        q = self.quote
+        col_type = column.type.compile(connection.dialect)
+        connection.execute(
+            text(
+                f"ALTER TABLE {q(connection, table_name)} "
+                f"ALTER COLUMN {q(connection, column.name)} TYPE {col_type}"
+            )
+        )
+
+    def max_text_length(self, connection: Any, table_name: str, column: str) -> int:
+        """The longest stored value of the text *column* (0 when all are NULL)."""
+        q = self.quote
+        result = connection.execute(
+            text(
+                f"SELECT MAX(char_length({q(connection, column)})) FROM {q(connection, table_name)}"
+                f" WHERE {q(connection, column)} IS NOT NULL"
+            )
+        ).scalar()
+        return int(result or 0)
+
+    def create_unique(
+        self, connection: Any, table_name: str, name: str, columns: tuple[str, ...]
+    ) -> None:
+        """A unique index on *columns* that leaves empty values (NULL, ``''``) out."""
+        q = self.quote
+        cols = ", ".join(q(connection, c) for c in columns)
+        nonempty = " AND ".join(
+            f"({q(connection, c)} IS NOT NULL AND {q(connection, c)} != '')" for c in columns
+        )
+        connection.execute(
+            text(
+                f"CREATE UNIQUE INDEX IF NOT EXISTS {q(connection, name)} "
+                f"ON {q(connection, table_name)} ({cols}) WHERE {nonempty}"
+            )
+        )
+
+    def drop_index(self, connection: Any, table_name: str, name: str) -> None:
+        connection.execute(text(f"DROP INDEX IF EXISTS {self.quote(connection, name)}"))
+
+    def drop_column(self, connection: Any, table_name: str, name: str) -> None:
+        q = self.quote
+        connection.execute(
+            text(f"ALTER TABLE {q(connection, table_name)} DROP COLUMN {q(connection, name)}")
+        )
 
     def drop_unique_index(
         self, connection: Any, table_name: str, name: str, *, is_index: bool
@@ -173,13 +236,17 @@ class Dialect(ABC):
         Tried as an index first, then as a constraint - each in a savepoint, so a
         failed attempt does not abort the surrounding transaction (PostgreSQL).
         """
+        q = self.quote
         try:
             with connection.begin_nested():
-                connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
+                self.drop_index(connection, table_name, name)
         except Exception:
             with connection.begin_nested():
                 connection.execute(
-                    text(f'ALTER TABLE "{table_name}" DROP CONSTRAINT IF EXISTS "{name}"')
+                    text(
+                        f"ALTER TABLE {q(connection, table_name)} "
+                        f"DROP CONSTRAINT IF EXISTS {q(connection, name)}"
+                    )
                 )
         return True
 
@@ -188,6 +255,11 @@ class Dialect(ABC):
         quote = conn.dialect.identifier_preparer.quote
         for name in names:
             await conn.execute(text(f"DELETE FROM {quote(name)}"))
+
+    def rebuild_column_types(self, connection: Any, table: Any, columns: list[str]) -> None:
+        """Give *columns* of *table* their compiled types by rebuilding the table
+        (backends that can't ALTER a column's type)."""
+        raise NotImplementedError(f"{type(self).__name__} alters column types in place")
 
     def drop_inline_unique(self, connection: Any, table_name: str, names: list[str]) -> int:
         """Drop unique constraints declared inside CREATE TABLE (rebuild-only backends)."""

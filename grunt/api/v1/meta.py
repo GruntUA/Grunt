@@ -8,9 +8,10 @@ import grunt
 from grunt import _, log
 from grunt.actions import enrich_doctype_actions
 from grunt.db.dialects import dialect_for
+from grunt.db.schema.apply import DuplicateDataError
 from grunt.document.validators import list_validators as _list
 from grunt.errors import not_found
-from grunt.metadata.compiler import DuplicateDataError, get_table_name, sync_table
+from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.dynamic_options import get_option_labels, get_schemas, resolve_field_options
 from grunt.metadata.registry import doctype_registry

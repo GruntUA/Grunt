@@ -14,7 +14,13 @@ lazy from grunt.backups import (
     restore_backup,
 )
 lazy from grunt.cli.utils import _site_session, resolve_site
-lazy from grunt.metadata.compiler import SA_METADATA, sync_table
+lazy from grunt.metadata.compiler import (
+    SA_METADATA,
+    compile_doctype_to_table,
+    preview_sync,
+    sync_table,
+    table_index_names,
+)
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.monitoring.health import human_size
@@ -139,6 +145,20 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                         checked = changed = len(from_json)
                         skipped = 0
+                        # Indexes each table's DocTypes define - one DocType's sync must
+                        # not drop what another on the same table (table_name) needs.
+                        defined: dict[str, dict[str, set[str]]] = {}
+                        for dt in all_dts:
+                            if dt.has_table:
+                                table = compile_doctype_to_table(dt)
+                                defined.setdefault(table.name, {})[dt.name] = table_index_names(
+                                    table
+                                )
+
+                        def keep_for(dt, defined=defined) -> set[str]:
+                            others = defined.get(compile_doctype_to_table(dt).name, {})
+                            return set().union(*(v for k, v in others.items() if k != dt.name))
+
                         for dt in all_dts:
                             try:
                                 if dt.name in from_json:
@@ -147,8 +167,20 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                                     skipped += 1
                                     continue
                                 if dry_run:
-                                    click.echo(f"    [dry-run] would sync: {dt.name}")
-                                elif await sync_table(dt, eng, session=session):
+                                    plan = await preview_sync(
+                                        dt, eng, drop_indexes=True, keep=keep_for(dt)
+                                    )
+                                    for line in plan:
+                                        click.echo(f"    [dry-run] {dt.name}: {line}")
+                                    changed += bool(plan)
+                                elif await sync_table(
+                                    dt,
+                                    eng,
+                                    session=session,
+                                    rebuild=True,
+                                    drop_indexes=True,
+                                    keep=keep_for(dt),
+                                ):
                                     click.echo(f"    synced: {dt.name}")
                                     changed += 1
                                 checked += 1
