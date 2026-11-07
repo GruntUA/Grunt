@@ -3,6 +3,7 @@ from contextlib import suppress
 
 import click
 from taskiq import InMemoryBroker
+lazy from sqlalchemy import inspect
 
 lazy import grunt
 lazy from grunt.apps.required import DependencyCycleError, MissingAppError
@@ -50,9 +51,17 @@ def db_group():
     pass
 
 
+def _missing_tables(connection) -> list[str]:
+    """The infrastructure tables (``SA_METADATA``) the database doesn't have yet."""
+    existing = set(inspect(connection).get_table_names())
+    return sorted(name for name in SA_METADATA.tables if name not in existing)
+
+
 @click.command("migrate")
 @click.option(
-    "--dry-run", is_flag=True, help="Show the SQL without running it (for DocType tables)"
+    "--dry-run",
+    is_flag=True,
+    help="Show the planned DocType table changes; change nothing (no Alembic, app JSON, fixtures)",
 )
 @click.option("--site", default=None, help="Site name")
 @click.option("--no-alembic", is_flag=True, help="Skip the Alembic schema-history migrations")
@@ -87,11 +96,16 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     eng = site_manager.get_engine(site_name)
                     maker = site_manager.get_session_maker(site_name)
 
-                    # 1. Shared infrastructure tables (MultiLink junction, etc.)
+                    # 1. Shared infrastructure tables (MultiLink junction, outbox, etc.)
                     click.echo("  [1/4] Infrastructure tables (SA_METADATA)...")
-                    async with eng.begin() as conn:
-                        await conn.run_sync(SA_METADATA.create_all)
-                    if not dry_run:
+                    if dry_run:
+                        async with eng.connect() as conn:
+                            missing = await conn.run_sync(_missing_tables)
+                        for name in missing:
+                            click.echo(f"    [dry-run] would create table {name}")
+                    else:
+                        async with eng.begin() as conn:
+                            await conn.run_sync(SA_METADATA.create_all)
                         await search_index_service.ensure_table(eng)
 
                     # 2. Alembic history - schema/data patches for existing sites.
@@ -115,8 +129,12 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     # 3. DocType tables
                     click.echo("  [3/4] DocType tables (sync_table)...")
                     async with maker() as session:
+                        # A dry run merges the core JSON in memory only (sync_db=False):
+                        # the plan below compares it with the tables, nothing is written.
                         await load_core_doctypes(
-                            session, sync_db=True, extensions=extensions_for_site(site_name)
+                            session,
+                            sync_db=not dry_run,
+                            extensions=extensions_for_site(site_name),
                         )
                         # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
@@ -129,7 +147,12 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         # the loop below skips them instead of syncing the
                         # stale stored one first.
                         from_json: set[str] = set()
-                        if not dry_run:
+                        if dry_run:
+                            click.echo(
+                                "    [dry-run] installed apps' changed DocType JSON is not"
+                                " previewed - only what the database already defines"
+                            )
+                        else:
                             try:
                                 from_json = await register_installed_app_doctypes(
                                     session, site_name
@@ -196,7 +219,10 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             if purged:
                                 click.echo(f"    search index: removed {purged} entries")
 
-                        await session.commit()
+                        if dry_run:
+                            await session.rollback()
+                        else:
+                            await session.commit()
 
                     click.echo(
                         f"  Done: {checked} checked, {changed} changed,"
