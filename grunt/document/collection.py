@@ -36,17 +36,17 @@ from grunt.document.update_side_effects import (
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
 )
+from grunt.errors import unprocessable
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import read_predicate
 from grunt.query import nodes as q
 from grunt.query import run
-from grunt.query.query import Query
+from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
 from grunt.store import BULK, REFERENCES, SQL, Unavailable, store_for, supports
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.db.api import sort_spec
 
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:
@@ -156,12 +156,16 @@ async def list_documents(
         except Exception:
             log.warning("list_documents.invalid_cursor", cursor=cursor)
 
+    try:
+        sort = Sort.parse(sort_by, sort_order, known=dt.columns)
+    except ValueError as e:
+        raise unprocessable(str(e)) from None
     query = Query(
         doctype_name,
         where=await _list_where(session, dt, filters),
         # name/modified_at always - list views and the cursor rely on them.
         fields=tuple(dict.fromkeys(["name", "modified_at", *fields])) if fields else None,
-        sort=sort_spec(sort_by, sort_order, dt.columns),
+        sort=sort,
         limit=per_page,
         offset=(page - 1) * per_page,
         after=after,
