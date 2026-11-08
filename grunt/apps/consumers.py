@@ -31,11 +31,8 @@ from grunt.middleware.rate_limit import register_path_limit
 from grunt.scripting.file_scripts import register_doctype_js
 from grunt.tasks.scheduler import register_scheduler_events
 from grunt.website import website_registry
-from grunt.website.router import (
-    register_context_processor,
-    register_page_resolver,
-    register_sitemap_source,
-)
+from grunt.website.router import register_context_processor, register_page_resolver
+from grunt.website.sitemap import register_sitemap_source
 lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
 
 

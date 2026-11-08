@@ -135,7 +135,7 @@ async def test_core_stays_on_an_app_domain(client, domain_app):
 @pytest.mark.asyncio
 async def test_sitemap_is_per_host(ctx, monkeypatch):
     from grunt.site.manager import site_manager
-    from grunt.website import router
+    from grunt.website import sitemap
     from grunt.website.host import current_web_app
 
     async def source():
@@ -143,14 +143,14 @@ async def test_sitemap_is_per_host(ctx, monkeypatch):
 
     source.__module__ = "dom.web"
     monkeypatch.setattr(site_manager, "domain_apps", lambda site: {"dom": "dom.test"})
-    router.register_sitemap_source(source)
+    sitemap.register_sitemap_source(source)
     try:
-        assert "/dom/from-source" not in await router.sitemap_entries()
+        assert "/dom/from-source" not in await sitemap.sitemap_entries()
         token = current_web_app.set("dom")
         try:
-            entries = await router.sitemap_entries()
+            entries = await sitemap.sitemap_entries()
         finally:
             current_web_app.reset(token)
     finally:
-        router._sitemap_sources.remove(source)
+        sitemap._sitemap_sources.remove(source)
     assert entries == ["/dom/from-source"]
