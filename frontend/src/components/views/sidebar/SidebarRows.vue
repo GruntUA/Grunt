@@ -5,6 +5,7 @@ import { RouterLink } from 'vue-router'
 import { Check, Copy, ExternalLink } from '@lucide/vue'
 import type { SidebarRow } from '@/core/api/docs'
 import { statusToneClass } from '@/core/status'
+import { formatFull, formatRelative } from '@/core/datetime'
 import { useToast } from '@/core/composables/useToast'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -43,7 +44,7 @@ const items = computed(() =>
     <template v-for="({ row, is, attrs, external }, i) in items" :key="i">
       <dt class="text-muted-foreground">{{ row.label }}</dt>
       <dd class="flex min-w-0 items-center gap-1">
-        <Tooltip :disabled="!row.tooltip">
+        <Tooltip :disabled="!row.tooltip && !row.datetime">
           <TooltipTrigger as-child>
             <component
               :is="is"
@@ -53,10 +54,13 @@ const items = computed(() =>
             >
               <Badge v-if="row.indicator" variant="outline" :class="statusToneClass(row.indicator)">{{ row.value }}</Badge>
               <span v-else class="truncate" :class="row.mono && 'font-mono text-xs'">{{ row.value ?? '' }}</span>
+              <time v-if="row.datetime" :datetime="row.datetime" class="truncate text-xs text-muted-foreground">
+                {{ formatRelative(row.datetime) }}
+              </time>
               <ExternalLink v-if="external" class="size-3 shrink-0 text-muted-foreground group-hover:text-primary" />
             </component>
           </TooltipTrigger>
-          <TooltipContent class="max-w-80 break-all">{{ row.tooltip }}</TooltipContent>
+          <TooltipContent class="max-w-80 break-all">{{ row.tooltip ?? (row.datetime && formatFull(row.datetime)) }}</TooltipContent>
         </Tooltip>
         <Tooltip v-if="row.copy">
           <TooltipTrigger as-child>

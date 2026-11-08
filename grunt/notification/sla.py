@@ -25,6 +25,7 @@ from grunt import _, log
 from grunt.cache.bus import fanout
 from grunt.config import settings
 from grunt.tasks.broker import retryable_task
+lazy from grunt.i18n.service import translation_service
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import current_site, site_manager
 
@@ -356,3 +357,49 @@ async def check_deadlines() -> dict[str, int]:
         counts = await process_deadlines()
         await session.commit()
     return counts
+
+
+# The document's deadlines in its sidebar (``sidebar_sections`` in core_hooks).
+
+_SIDEBAR_TIME = {"Met": "met_at", "Met late": "met_at"}
+
+
+async def sidebar_rows(doctype: str, doc_id: str, doc: Any) -> list[dict[str, Any]]:
+    """One row per service level of the document: its clock as a badge and
+    the deadline (or, once done, when) - the desk shows the time relative."""
+    rows = await grunt.db.get_all(
+        STATUS,
+        filters={"ref_doctype": doctype, "ref_name": doc_id},
+        fields=["name", "service_level", "status", "due_at", "met_at"],
+        order_by="due_at asc",
+        limit=None,
+    )
+    if not rows:
+        return []
+    meta = await grunt.get_meta(STATUS)
+    indicators = {i.value: i for i in meta.doc.status_indicators} if meta else {}
+    titles = {
+        r["name"]: r.get("title") or r["name"]
+        for r in await grunt.db.get_all(
+            POLICY,
+            filters={"name__in": sorted({r["service_level"] for r in rows})},
+            fields=["name", "title"],
+            limit=None,
+        )
+    }
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        status = str(row.get("status") or "")
+        ind = indicators.get(status)
+        label = (ind and ind.label) or status
+        moment = row.get(_SIDEBAR_TIME.get(status, "due_at"))
+        out.append(
+            {
+                "label": titles.get(row["service_level"], row["service_level"]),
+                "value": translation_service.pgettext(f"status:{STATUS}", label),
+                "indicator": (ind and ind.color) or "default",
+                "datetime": moment.isoformat() if isinstance(moment, datetime) else moment,
+                "link": f"/app/grunt/{STATUS}/{row['name']}",
+            }
+        )
+    return out
