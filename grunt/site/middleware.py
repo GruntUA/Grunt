@@ -9,7 +9,8 @@ from grunt.db.write_intent import READ_ONLY_METHODS, set_write_intent
 from grunt.metadata.compiler import clear_table_cache
 from grunt.metadata.registry import get_registry
 from grunt.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY, _client_script_scanned
-from grunt.site.manager import current_site, current_web_app, site_manager
+from grunt.site.manager import current_site, site_manager
+from grunt.website.host import current_web_app
 lazy from grunt.website.domains import canonical_path, domain_path
 
 _STARTED_AT = time.time()

@@ -39,8 +39,8 @@ from sqlalchemy import select
 
 import grunt
 from grunt import log
-from grunt.site.manager import current_web_app
 from grunt.utils.slug import slugify
+from grunt.website.host import current_web_app
 lazy from grunt.apps.loader import CORE_APP, primary_web_app
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 lazy from grunt.document.registry import document_registry

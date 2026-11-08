@@ -21,10 +21,6 @@ lazy from grunt.monitoring.perf import attach_sql_counter
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
 
-# The app served at the root of the request's host when the host is one of a
-# site's ``web_domains`` (``SiteContextMiddleware`` sets it), else ``None``.
-current_web_app: ContextVar[str | None] = ContextVar("current_web_app", default=None)
-
 
 _UNSET = object()
 

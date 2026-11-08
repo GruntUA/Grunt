@@ -134,8 +134,9 @@ async def test_core_stays_on_an_app_domain(client, domain_app):
 
 @pytest.mark.asyncio
 async def test_sitemap_is_per_host(ctx, monkeypatch):
-    from grunt.site.manager import current_web_app, site_manager
+    from grunt.site.manager import site_manager
     from grunt.website import router
+    from grunt.website.host import current_web_app
 
     async def source():
         return ["/dom/from-source"]

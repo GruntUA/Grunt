@@ -17,20 +17,16 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescap
 
 import grunt
 from grunt import log
+from grunt.website.host import current_web_app
 lazy from grunt.apps.loader import primary_web_app
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 lazy from grunt.config import settings
 lazy from grunt.db.session import get_session
 lazy from grunt.i18n.jinja import install as install_i18n
-lazy from grunt.site.manager import current_site, current_web_app, site_manager
+lazy from grunt.site.manager import site_manager
 lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.files import image_srcset, sized_url
-lazy from grunt.website.generator import (
-    _template_envs,
-    app_mount,
-    render_doc_page,
-    sitemap_urls,
-)
+lazy from grunt.website.generator import _template_envs, render_doc_page, sitemap_urls
 lazy from grunt.website.preview import finish_preview, preview_reader
 lazy from grunt.website.spa import spa_assets
 
@@ -149,8 +145,6 @@ class WebsiteRegistry:
 
         env.globals["image_url"] = sized_url
         env.globals["image_srcset"] = image_srcset
-        # <a href="{{ app_mount('opendata') }}/datasets"> - "" on the app's own domain
-        env.globals["app_mount"] = app_mount
         env.globals.update(_template_globals)
         self._envs[app_name] = env
 
@@ -456,7 +450,7 @@ def _sitemap_scope() -> Callable[[str | None], bool]:
     web_app = current_web_app.get()
     if web_app:
         return lambda app: app == web_app
-    elsewhere = set(site_manager.domain_apps(current_site.get()))
+    elsewhere = set(site_manager.domain_apps(site_manager.get_active_site()))
     return lambda app: app not in elsewhere
 
 
