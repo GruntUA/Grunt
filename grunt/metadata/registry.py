@@ -29,7 +29,6 @@ from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
 from grunt.metadata.permission import DocPermission
-from grunt.permissions.rbac import invalidate_permission_cache
 from grunt.site.manager import current_site, site_manager
 lazy from grunt.document.meta import Meta
 lazy from grunt.search.service import is_indexable, search_index_service
@@ -193,7 +192,6 @@ class DocTypeRegistry:
             self._known_names.add(name)
             self._known_index_add(name)
         invalidate_table_cache(name)
-        invalidate_permission_cache(name)
 
     # Read
 
@@ -709,10 +707,9 @@ class DocTypeRegistry:
         await store.update_doctype(session, doctype)
         await session.flush()
 
-        # Invalidate caches BEFORE sync so compile_doctype_to_table() rebuilds
+        # Invalidate the table cache BEFORE sync so compile_doctype_to_table() rebuilds
         # the Table with the new column list when sync_table calls it internally.
         invalidate_table_cache(doctype.name)
-        invalidate_permission_cache(doctype.name)
         await sync_table(doctype, async_engine, session=session)
         if not is_indexable(doctype) and (previous is None or is_indexable(previous)):
             # Switched out of the global search (in_global_search off, is_log on...).
@@ -736,7 +733,6 @@ class DocTypeRegistry:
         self._known_names.discard(name)
         self._known_index_remove(name)
         invalidate_table_cache(name)
-        invalidate_permission_cache(name)
         bus.publish(_CHANGED, name=name, deleted=True)
         log.info("registry.deleted", name=name)
 

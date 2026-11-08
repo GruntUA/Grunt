@@ -69,8 +69,6 @@ def _restore_grunt_context():
     inherits. Its mock session then turns up in some unrelated test's
     permission check (a share lookup on an ``AsyncMock`` -
     ``UnknownDatabaseError``), depending only on which tests share the worker.
-    The permission caches go too: their keys hold ``id()`` of a permissions
-    list, and a freed list's id is reused by the next test's.
     """
     from grunt.local import (
         _bootstrap_ctx,
@@ -80,17 +78,14 @@ def _restore_grunt_context():
         _site_ctx,
         _user_ctx,
     )
-    from grunt.permissions.rbac import invalidate_permission_cache
 
     saved = [
         (var, var.get())
         for var in (_session_ctx, _engine_ctx, _user_ctx, _site_ctx, _messages_ctx, _bootstrap_ctx)
     ]
-    invalidate_permission_cache()
     yield
     for var, value in saved:
         var.set(value)  # type: ignore[attr-defined]
-    invalidate_permission_cache()
 
 
 async def override_get_session():

@@ -240,3 +240,21 @@ async def test_count_respects_permissions(ctx):
     async with ctx.context(ctx.db._session(), ctx.get_engine(), me_ctx):
         assert await grunt.count("User", respect_permissions=True) == 1
         assert await grunt.count("User") == raw_total  # default path unchanged
+
+
+@pytest.mark.asyncio
+async def test_a_changed_permission_row_applies_at_once():
+    """No answer outlives the rows it came from - a row edited in place, or a
+    new DocType object with another row set, is checked as it is now."""
+    user = make_user("user@example.com", roles=["Manager"])
+    dt = _make_doctype_with_perms([{"role": "Manager", "read": True, "hidden_fields": ["salary"]}])
+    assert await permission_checker.check(user, dt, "read")
+    assert permission_checker.hidden_fields(user, dt) == {"salary"}
+
+    dt.permissions[0].read = False
+    dt.permissions[0].hidden_fields = []
+    assert not await permission_checker.check(user, dt, "read")
+    assert permission_checker.hidden_fields(user, dt) == frozenset()
+
+    other = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    assert await permission_checker.check(user, other, "read")
