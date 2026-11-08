@@ -218,6 +218,18 @@
       "description": "An app with at least this many sidebar sections shows them as modules (items open in a panel beside the sidebar) when its sidebar style is Auto"
     },
     {
+      "fieldname": "sec_website",
+      "label": "Website",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "count_page_views",
+      "label": "Count page views",
+      "fieldtype": "Check",
+      "default": true,
+      "description": "Public pages of DocTypes with a view_count field count their views (a beacon after the page loads: bots without JavaScript and repeats within 30 minutes don't count)."
+    },
+    {
       "fieldname": "tab_security",
       "label": "Security",
       "fieldtype": "Tab",

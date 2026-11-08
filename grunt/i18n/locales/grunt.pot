@@ -1681,7 +1681,7 @@ msgstr ""
 msgid "Cancelling…"
 msgstr ""
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 
@@ -2680,6 +2680,10 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py
 msgid "Count from field"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Count page views"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
@@ -4777,7 +4781,7 @@ msgstr ""
 msgid "First page"
 msgstr ""
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Fix the duplicates and try again."
 msgstr ""
 
@@ -8557,6 +8561,13 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Public key"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Public pages of DocTypes with a view_count field count their views (a beacon"
+" after the page loads: bots without JavaScript and repeats within 30 minutes"
+" don't count)."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/Page/Page.json
@@ -12685,6 +12696,10 @@ msgstr ""
 msgid "Webhook not found"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Website"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
 "Website images are better kept on the server: they are read all the time."
@@ -13751,7 +13766,7 @@ msgstr ""
 msgid "uv tool %(name)s"
 msgstr ""
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "value %(value)s, records: %(ids)s"
 msgstr ""
 
