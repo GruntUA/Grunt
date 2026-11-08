@@ -103,6 +103,7 @@
     "vue-demi@0.14.10": true
   },
   "overrides": {
-    "@codemirror/language": "6.12.4"
+    "@codemirror/language": "6.12.4",
+    "minimatch@^10.0.0": "^11.0.1"
   }
 }
