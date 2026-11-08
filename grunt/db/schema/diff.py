@@ -154,9 +154,12 @@ def diff(
         if name.startswith(uq_prefix) and name not in desired_unique and name not in keep:
             changes.append(DropUnique(table, name, is_index=name in actual.unique_indexes))
 
-    desired_indexes = {str(ix.name) for ix in table.indexes if ix.name}
-    for ix in sorted(table.indexes, key=lambda i: str(i.name)):
-        if ix.name and ix.name not in actual.indexes and ix.name not in existing_unique:
+    # By name: a Table compiled again into the same MetaData (extend_existing,
+    # after invalidate_table_cache) holds each Index twice.
+    by_name = {str(ix.name): ix for ix in table.indexes if ix.name}
+    desired_indexes = set(by_name)
+    for name, ix in sorted(by_name.items()):
+        if name not in actual.indexes and name not in existing_unique:
             changes.append(AddIndex(table, ix))
     if drop_indexes:
         ix_prefix = f"ix_{table.name}_"

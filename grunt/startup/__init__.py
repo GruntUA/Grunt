@@ -5,6 +5,7 @@ Called once during application lifespan startup.
 
 from grunt.startup.app_install import register_installed_app_doctypes, sync_installed_apps
 from grunt.startup.doctypes import (
+    bundled_core_doctypes,
     load_core_doctypes,
     sync_all_doctypes,
 )
@@ -14,6 +15,7 @@ from grunt.startup.validators import load_validators
 from grunt.startup.workspaces import seed_grunt_workspace
 
 __all__ = [
+    "bundled_core_doctypes",
     "load_core_doctypes",
     "sync_all_doctypes",
     "seed_system_settings",
