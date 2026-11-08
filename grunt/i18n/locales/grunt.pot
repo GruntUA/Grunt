@@ -385,8 +385,8 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid ""
-"A walk through a DocType's form: each step points at a field or an element "
-"and explains it."
+"A walk through a DocType's form or list: each step points at a field or an "
+"element and explains it."
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -1681,7 +1681,7 @@ msgstr ""
 msgid "Cancelling…"
 msgstr ""
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 
@@ -4777,7 +4777,7 @@ msgstr ""
 msgid "First page"
 msgstr ""
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Fix the duplicates and try again."
 msgstr ""
 
@@ -7957,8 +7957,8 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 msgid ""
-"Or a CSS selector of another element, e.g. [data-action=save]; neither - a "
-"step in the middle of the screen"
+"Or a CSS selector of another element, e.g. [data-action=save], [data-tour-"
+"target=search]; neither - a step in the middle of the screen"
 msgstr ""
 
 #: grunt/grunt/email/templates/email_login.html
@@ -10297,6 +10297,10 @@ msgstr ""
 msgid "Shown"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgid "Shown in"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Shown in the browser tab title, the sidebar and system emails."
 msgstr ""
@@ -10619,8 +10623,8 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid ""
-"Starts the first time a user opens the form; afterwards - from the form's "
-"menu"
+"Starts the first time a user opens the form (or the list); afterwards - from"
+" its menu"
 msgstr ""
 
 #: grunt/grunt/document/sidebar.py
@@ -10956,6 +10960,7 @@ msgid "Tags"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js
 msgid "Take a tour"
 msgstr ""
 
@@ -11296,6 +11301,12 @@ msgstr ""
 msgid "The document was updated by another user"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgid ""
+"The field to point at: in a form - the field (its tab opens by itself), in a"
+" list - its column or quick filter"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
 msgstr ""
@@ -11323,10 +11334,6 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "The folder is not empty: move or delete its files first"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
-msgid "The form field to point at; its tab opens by itself"
 msgstr ""
 
 #: grunt/frontend/src/pages/app/AppHome.vue
@@ -12160,6 +12167,10 @@ msgstr ""
 msgid "Unknown storage type: %(name)s"
 msgstr ""
 
+#: grunt/grunt/site/onboarding.py
+msgid "Unknown view: %(view)s"
+msgstr ""
+
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Unlike"
 msgstr ""
@@ -12746,6 +12757,10 @@ msgstr ""
 msgid ""
 "When the worker last took a task from the queue. Empty — it has not taken "
 "any yet."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgid "Where the tour runs: the document's form or the list of documents"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
@@ -13751,7 +13766,7 @@ msgstr ""
 msgid "uv tool %(name)s"
 msgstr ""
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "value %(value)s, records: %(ids)s"
 msgstr ""
 

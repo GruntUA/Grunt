@@ -234,6 +234,60 @@ async def test_form_tours_are_listed_by_role_and_taken_per_user(ctx, setup, db_s
         await _as(db_session, engine, BEN, lambda: complete_form_tour("item_tour"), ("Other",))
 
 
+LIST_TOUR = {
+    "name": "item_list_tour",
+    "title": "Item list tour",
+    "reference_doctype": "OnbItem",
+    "view": "List",
+    "steps": [
+        {"title": "Titles", "fieldname": "title"},
+        {"title": "Last change", "fieldname": "modified_at"},  # a standard column
+        {"title": "Search", "element": "[data-tour-target=search]"},
+    ],
+}
+
+
+async def test_list_tours_are_apart_from_form_tours(ctx, setup, db_session, engine):
+    from grunt.site.onboarding import complete_form_tour, get_form_tours
+
+    await ctx.new_doc("FormTour", TOUR)
+    await ctx.new_doc("FormTour", LIST_TOUR)
+    await ctx.db._session().commit()
+
+    [form] = await _as(db_session, engine, ANN, lambda: get_form_tours("OnbItem"))
+    assert form["name"] == "item_tour"
+    [lst] = await _as(db_session, engine, ANN, lambda: get_form_tours("OnbItem", "List"))
+    assert lst["name"] == "item_list_tour"
+    assert [s["fieldname"] for s in lst["steps"]] == ["title", "modified_at", None]
+
+    await _as(db_session, engine, BEN, lambda: complete_form_tour("item_list_tour"))
+    [lst] = await _as(db_session, engine, BEN, lambda: get_form_tours("OnbItem", "List"))
+    assert lst["taken"]
+
+    with pytest.raises((ApplicationError, HTTPException)):
+        await _as(db_session, engine, ANN, lambda: get_form_tours("OnbItem", "Kanban"))
+    # A standard column is a list thing - not a form field
+    bad = {**LIST_TOUR, "name": "bad", "view": "Form"}
+    with pytest.raises((ApplicationError, HTTPException)):
+        await ctx.new_doc("FormTour", bad)
+
+
+async def test_take_a_list_tour_step_opens_the_list(ctx, setup, db_session, engine):
+    await ctx.new_doc("FormTour", LIST_TOUR)
+    step = {"title": "The list", "action": "Take a Tour", "form_tour": "item_list_tour"}
+    await ctx.save_doc("ModuleOnboarding", "Setup", {"steps": [step]})
+    await ctx.db._session().commit()
+
+    o = await _one(db_session, engine)
+    assert o is not None
+    [s] = o["steps"]
+    assert s["target"] == {
+        "type": "DocType",
+        "name": "OnbItem",
+        "query": {"tour": "item_list_tour"},
+    }
+
+
 async def test_form_tour_steps_point_at_existing_fields(ctx, setup):
     bad = {**TOUR, "name": "bad", "steps": [{"title": "Nope", "fieldname": "missing"}]}
     with pytest.raises((ApplicationError, HTTPException)):

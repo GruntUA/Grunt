@@ -418,11 +418,11 @@ msgstr "Віртуальний тип документа не має фізич�
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid ""
-"A walk through a DocType's form: each step points at a field or an element "
-"and explains it."
+"A walk through a DocType's form or list: each step points at a field or an "
+"element and explains it."
 msgstr ""
-"Екскурсія формою документа: кожен крок вказує на поле чи елемент і пояснює "
-"його."
+"Екскурсія формою або списком DocType: кожен крок вказує на поле чи елемент і"
+" пояснює його."
 
 #: grunt/grunt/monitoring/health.py
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
@@ -1751,7 +1751,7 @@ msgstr "Скасовано"
 msgid "Cancelling…"
 msgstr "Скасування…"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 "Неможливо додати унікальне обмеження на «%(field)s»: знайдено дублікати:"
@@ -4939,7 +4939,7 @@ msgstr "Ім'я є обов'язковим"
 msgid "First page"
 msgstr "Перша сторінка"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Fix the duplicates and try again."
 msgstr "Виправте дублікати та повторіть операцію."
 
@@ -8244,11 +8244,11 @@ msgstr "Опції"
 
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 msgid ""
-"Or a CSS selector of another element, e.g. [data-action=save]; neither - a "
-"step in the middle of the screen"
+"Or a CSS selector of another element, e.g. [data-action=save], [data-tour-"
+"target=search]; neither - a step in the middle of the screen"
 msgstr ""
-"Або CSS-селектор іншого елемента, напр. [data-action=save]; без обох — крок "
-"посередині екрана"
+"Або CSS-селектор іншого елемента, наприклад [data-action=save], [data-tour-"
+"target=search]; без обох - крок посеред екрана"
 
 #: grunt/grunt/email/templates/email_login.html
 msgid "Or click the button to sign in right away:"
@@ -10666,6 +10666,10 @@ msgstr "Показано перші {n} з {total} файлів"
 msgid "Shown"
 msgstr "Показані"
 
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgid "Shown in"
+msgstr "Де показувати"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Shown in the browser tab title, the sidebar and system emails."
 msgstr ""
@@ -11001,10 +11005,11 @@ msgstr "Запуск…"
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid ""
-"Starts the first time a user opens the form; afterwards - from the form's "
-"menu"
+"Starts the first time a user opens the form (or the list); afterwards - from"
+" its menu"
 msgstr ""
-"Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
+"Запускається, коли користувач уперше відкриває форму (або список); далі - з "
+"її меню"
 
 #: grunt/grunt/document/sidebar.py
 #: grunt/grunt/monitoring/templates/system_health.html
@@ -11344,6 +11349,7 @@ msgid "Tags"
 msgstr "Теги"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js
 msgid "Take a tour"
 msgstr "Пройти тур"
 
@@ -11704,6 +11710,14 @@ msgstr ""
 msgid "The document was updated by another user"
 msgstr "Документ оновлено іншим користувачем"
 
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgid ""
+"The field to point at: in a form - the field (its tab opens by itself), in a"
+" list - its column or quick filter"
+msgstr ""
+"Поле, на яке вказати: у формі - саме поле (його вкладка відкриється сама), у"
+" списку - його колонка або швидкий фільтр"
+
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
 msgstr "Файл не можна видалити: він прикріплений до %(doctype)s «%(doc)s»"
@@ -11733,10 +11747,6 @@ msgstr "У теці є підтеки: спершу перемістіть аб�
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "The folder is not empty: move or delete its files first"
 msgstr "Тека не порожня: спершу перемістіть або видаліть її файли"
-
-#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
-msgid "The form field to point at; its tab opens by itself"
-msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
 
 #: grunt/frontend/src/pages/app/AppHome.vue
 msgid "The home page is not set up."
@@ -12615,6 +12625,10 @@ msgstr "Невідомий статус кроку"
 msgid "Unknown storage type: %(name)s"
 msgstr "Невідомий тип сховища: %(name)s"
 
+#: grunt/grunt/site/onboarding.py
+msgid "Unknown view: %(view)s"
+msgstr "Невідомий вигляд: %(view)s"
+
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Unlike"
 msgstr "Більше не подобається"
@@ -13221,6 +13235,10 @@ msgid ""
 "any yet."
 msgstr ""
 "Коли воркер востаннє взяв задачу з черги. Порожньо — ще жодної не брав."
+
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgid "Where the tour runs: the document's form or the list of documents"
+msgstr "Де проходить тур: у формі документа чи в списку документів"
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
@@ -14250,7 +14268,7 @@ msgstr "uv не встановлено"
 msgid "uv tool %(name)s"
 msgstr "uv tool %(name)s"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "value %(value)s, records: %(ids)s"
 msgstr "значення %(value)s — записи: %(ids)s"
 
@@ -14986,6 +15004,13 @@ msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
 
+#~ msgid ""
+#~ "A walk through a DocType's form: each step points at a field or an element "
+#~ "and explains it."
+#~ msgstr ""
+#~ "Екскурсія формою документа: кожен крок вказує на поле чи елемент і пояснює "
+#~ "його."
+
 #~ msgid "Backup not found"
 #~ msgstr "Резервну копію не знайдено"
 
@@ -15001,6 +15026,13 @@ msgstr "Відкрито"
 #~ msgid "No physical table — data comes from a controller"
 #~ msgstr "Без фізичної таблиці — дані з контролера"
 
+#~ msgid ""
+#~ "Or a CSS selector of another element, e.g. [data-action=save]; neither - a "
+#~ "step in the middle of the screen"
+#~ msgstr ""
+#~ "Або CSS-селектор іншого елемента, напр. [data-action=save]; без обох — крок "
+#~ "посередині екрана"
+
 #~ msgid "Performance trend “%(name)s” not found"
 #~ msgstr "Запис динаміки продуктивності «%(name)s» не знайдено"
 
@@ -15009,6 +15041,15 @@ msgstr "Відкрито"
 
 #~ msgid "SqlProfilerRequest '%(doc_id)s' not found"
 #~ msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
+
+#~ msgid ""
+#~ "Starts the first time a user opens the form; afterwards - from the form's "
+#~ "menu"
+#~ msgstr ""
+#~ "Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
+
+#~ msgid "The form field to point at; its tab opens by itself"
+#~ msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
 
 #~ msgid "Virtual"
 #~ msgstr "Віртуальний"

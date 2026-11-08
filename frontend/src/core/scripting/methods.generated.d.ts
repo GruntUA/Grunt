@@ -428,8 +428,8 @@ interface GruntMethods {
   "grunt.reports.doctypes.Report.report.run": { args: { name: string; filters?: Record<string, any> | null }; result: Record<string, any> }
   /** Note that the user has taken *tour* (finished or closed it). */
   "grunt.site.onboarding.complete_form_tour": { args: { tour: string }; result: null }
-  /** Tours of *doctype*'s form the user sees, and whether they have taken each. */
-  "grunt.site.onboarding.get_form_tours": { args: { doctype: string }; result: Record<string, any>[] }
+  /** Tours of *doctype*'s form (or list, ``view="List"``) the user sees, and whether they have taken each. */
+  "grunt.site.onboarding.get_form_tours": { args: { doctype: string; view?: string }; result: Record<string, any>[] }
   /** Checklists the user sees (all, or *app*'s), with each step's status. */
   "grunt.site.onboarding.get_onboardings": { args: { app?: string | null }; result: Record<string, any>[] }
   /** Hide the checklist for the current user. */
