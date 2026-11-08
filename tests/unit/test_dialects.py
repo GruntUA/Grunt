@@ -415,3 +415,7 @@ def test_sqlite_compares_column_types_by_affinity():
     )  # a fraction is a REAL either way
     assert not d.same_column_type(sa.String(140), sa.INTEGER(), lite)
     assert not d.same_column_type(sa.Integer(), sa.VARCHAR(140), lite)
+    assert d.same_column_type(sa.LargeBinary(), sa.BLOB(), lite)
+    assert not d.same_column_type(sa.Text(), sa.BLOB(), lite)
+    assert not d.same_column_type(sa.Integer(), sa.BLOB(), lite)
+    assert d.same_column_type(sa.Integer(), sa.FLOAT(), lite)
