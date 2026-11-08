@@ -1,0 +1,26 @@
+# A feature PR is squash-merged into develop: its title becomes the commit subject
+# `grunt release` builds CHANGELOG.md from (CONTRIBUTING.md).
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [develop]
+
+permissions: {}
+
+jobs:
+  conventional:
+    name: conventional title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|perf|refactor|docs|test|build|ci|chore)(\([a-z0-9_./-]+\))?!?: [^ ].*'
+          if [[ ! "$TITLE" =~ $pattern ]]; then
+            echo "::error::PR title is not a Conventional Commit: \"$TITLE\""
+            echo "Expected: type(scope): summary - type one of feat fix perf refactor docs test build ci chore (CONTRIBUTING.md)."
+            exit 1
+          fi
