@@ -26,33 +26,6 @@ _ACTION_VERBS: dict[str, str] = {
 }
 
 
-# _PERM_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list), action)
-# _HIDDEN_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list))
-# id(permissions_list) distinguishes different DocType objects sharing the same name.
-# Only populated for the doc=None path (list/count operations).
-# Invalidated per-doctype via invalidate_permission_cache().
-#
-# Unbounded, no TTL: entries accumulate for the process lifetime - bounded in
-# practice by (distinct users x distinct role-sets x DocTypes x actions),
-# which for a typical deployment (roles come from a small fixed Role table,
-# not per-request) stays small relative to available memory. If that stops
-# holding (e.g. per-request synthetic roles), this needs a real eviction
-# policy, not just invalidate_permission_cache().
-_PERM_CACHE: dict[tuple, bool] = {}
-_HIDDEN_CACHE: dict[tuple, frozenset] = {}
-
-
-def invalidate_permission_cache(doctype_name: str | None = None) -> None:
-    """Evict cached permission results for a given DocType, or all if None."""
-    for cache in (_PERM_CACHE, _HIDDEN_CACHE):
-        if doctype_name is None:
-            cache.clear()
-        else:
-            stale = [k for k in cache if k[2] == doctype_name]
-            for k in stale:
-                cache.pop(k, None)
-
-
 class PermissionChecker:
     async def check(
         self,
@@ -63,14 +36,12 @@ class PermissionChecker:
     ) -> bool:
         """Check whether *user* may perform *action* on *doctype* (optionally *doc*).
 
-        ``doc=None`` has two effects, not one: it means "no specific document to
-        check" (so any ``match`` expression on a matching permission row is
-        skipped - a list/count-style check), *and* it makes the result eligible
-        for the per-(user, doctype, action) cache below, since without a doc
-        there's nothing document-specific that could make the answer vary.
-        Passing a ``doc`` disables caching for that call (match evaluation is
-        necessarily per-document) - there's no separate flag for this, the two
-        behaviors are intentionally tied to the same argument.
+        ``doc=None`` means "no specific document": a ``match`` expression on a
+        matching permission row is skipped (a list/count-style check - rows are
+        narrowed by ``read_predicate`` instead).
+
+        Nothing is cached: without a doc the check is one pass over the user's
+        permission rows, and no key is cheaper than those rows themselves.
         """
         access = RoleAccess(doctype, user)
         if access.is_unrestricted:
@@ -78,22 +49,6 @@ class PermissionChecker:
 
         if is_child(doctype):
             return await child_allowed(user, doctype, action, doc)
-
-        # Cache only when doc is None (list/count); match-expression checks are doc-specific.
-        # Include id(doctype.permissions) so that different DocType objects with the same
-        # name but different permission lists (common in tests) get separate cache entries.
-        cache_key: tuple | None = None
-        if doc is None:
-            cache_key = (
-                user.email,
-                access.user_roles,
-                doctype.name,
-                id(doctype.permissions),
-                action,
-            )
-            cached = _PERM_CACHE.get(cache_key)
-            if cached is not None:
-                return cached or await self._shared(user, doctype, action, doc)
 
         # Comments / tags / attachments / files in a folder: a row that points
         # at a document is readable exactly when that document is - the
@@ -128,16 +83,13 @@ class PermissionChecker:
         if inherited is False:
             result = False
 
-        if cache_key is not None:
-            _PERM_CACHE[cache_key] = result
         return result or await self._shared(user, doctype, action, doc)
 
     @staticmethod
     async def _shared(
         user: User, doctype: DocType | Meta, action: PermissionAction, doc: dict | None
     ) -> bool:
-        """Fallback when roles deny: a ``SharedWith`` grant (never cached - shares
-        change without touching the role cache). With ``doc`` only a share of
+        """Fallback when roles deny: a ``SharedWith`` grant. With ``doc`` only a share of
         that very document counts; without it, a share of any document of the
         DocType lets the doctype-level pre-flight pass so the per-document
         check can decide."""
@@ -181,13 +133,6 @@ class PermissionChecker:
         if access.is_unrestricted:
             return frozenset()
 
-        # id(doctype.permissions) distinguishes DocType objects with the same name
-        # but different permission lists (see check() for the same pattern).
-        cache_key = (user.email, access.user_roles, doctype.name, id(doctype.permissions))
-        cached_hidden = _HIDDEN_CACHE.get(cache_key)
-        if cached_hidden is not None:
-            return cached_hidden
-
         hidden: set[str] = set()
         matched = False
 
@@ -203,9 +148,7 @@ class PermissionChecker:
                 # Intersect: a field is hidden only if ALL matching rules hide it
                 hidden &= set(perm_hidden)
 
-        result = frozenset(hidden)
-        _HIDDEN_CACHE[cache_key] = result
-        return result
+        return frozenset(hidden)
 
 
 permission_checker = PermissionChecker()
