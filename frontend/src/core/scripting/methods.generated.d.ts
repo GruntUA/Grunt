@@ -486,4 +486,6 @@ interface GruntMethods {
   "grunt.storage.doctypes.StorageRemote.storage_remote.upload_latest": { args: { name: string }; result: Record<string, boolean> }
   /** Queue :func:`compress_existing` for the whole site (System Settings → Files); whoever started it follows it in the task panel. Roles: System Manager. */
   "grunt.storage.images.start_compression": { args: {}; result: GruntApi.grunt.Queued }
+  /** A page view - the beacon a public page sends after it loads. Allowed for guests. */
+  "grunt.website.views.record_view": { args: { doctype: string; name: string }; result: null }
 }
