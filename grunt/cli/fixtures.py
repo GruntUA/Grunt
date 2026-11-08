@@ -94,7 +94,7 @@ def fixtures_dump(
 
 
 # Server-managed fields: never written back from a dump
-_SKIP_FIELDS = {"id", "docstatus", "creation", "modified", "modified_by"}
+_SKIP_FIELDS = {"id", "docstatus", "owner", "created_at", "modified_at", "modified_by"}
 
 
 @fixtures_group.command("load")

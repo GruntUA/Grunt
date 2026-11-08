@@ -41,11 +41,12 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import read_predicate
 from grunt.query import nodes as q
 from grunt.query import run
-from grunt.query.query import Query, Sort
+from grunt.query.query import Query
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
 from grunt.store import BULK, REFERENCES, SQL, Unavailable, store_for, supports
 lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.db.api import sort_spec
 
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:
@@ -160,7 +161,7 @@ async def list_documents(
         where=await _list_where(session, dt, filters),
         # name/modified_at always - list views and the cursor rely on them.
         fields=tuple(dict.fromkeys(["name", "modified_at", *fields])) if fields else None,
-        sort=Sort(sort_by, descending=sort_order != "asc"),
+        sort=sort_spec(sort_by, sort_order, dt.columns),
         limit=per_page,
         offset=(page - 1) * per_page,
         after=after,
