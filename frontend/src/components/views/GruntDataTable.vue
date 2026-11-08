@@ -169,7 +169,7 @@ function isRowSelected(row: Record<string, unknown>): boolean {
             <Checkbox :model-value="isAllSelected()" @update:model-value="emit('selectAll')" />
           </div>
         </TableHead>
-        <TableHead v-for="col in columns" :key="col.key"
+        <TableHead v-for="col in columns" :key="col.key" :data-column="col.key"
           class="px-3 py-2.5 font-semibold border-b border-border/40 text-left transition-colors"
           :class="sortKey === col.key ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'"
           :role="col.sortable ? 'button' : undefined" @click="col.sortable && emit('sort', col.key)">
