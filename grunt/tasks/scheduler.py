@@ -218,6 +218,8 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.tasks.reminders.send_reminders", "* * * * *")  # every minute
     # Outbox retries and messages a crashed delivery left behind (new ones go out on commit).
     _add_scheduled_job("grunt.outbox.deliver", "* * * * *")  # every minute
+    # Page views gathered in Redis -> view_count (no-op without Redis).
+    _add_scheduled_job("grunt.website.views.flush", "* * * * *")  # every minute
 
     async def _daily_digest():
         await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")

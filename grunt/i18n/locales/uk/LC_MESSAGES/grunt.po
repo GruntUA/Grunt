@@ -152,11 +152,11 @@ msgstr "Записів: %(shown)s з %(total)s"
 
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "%(tool)s failed: %(error)s"
-msgstr ""
+msgstr "%(tool)s завершився з помилкою: %(error)s"
 
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "%(tool)s not found; install the PostgreSQL client"
-msgstr ""
+msgstr "%(tool)s не знайдено; встановіть клієнт PostgreSQL"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py
 msgid "%(used)s used"
@@ -362,7 +362,7 @@ msgstr "Відповідь має стосуватися того самого �
 
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
-msgstr ""
+msgstr "Обов'язкове поле порожнє."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
@@ -410,7 +410,7 @@ msgstr "Позначка «подобається» користувача на 
 
 #: grunt/grunt/db/errors.py
 msgid "A value does not meet the database's rules."
-msgstr ""
+msgstr "Значення не відповідає правилам бази даних."
 
 #: grunt/grunt/api/v1/meta.py
 msgid "A virtual DocType has no physical table"
@@ -1751,7 +1751,7 @@ msgstr "Скасовано"
 msgid "Cancelling…"
 msgstr "Скасування…"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 "Неможливо додати унікальне обмеження на «%(field)s»: знайдено дублікати:"
@@ -2765,6 +2765,10 @@ msgstr "Фільтри лічильника (JSON)"
 #: grunt/grunt/notification/doctypes/ServiceLevel/service_level.py
 msgid "Count from field"
 msgstr "Відлік від поля"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Count page views"
+msgstr "Рахувати перегляди сторінок"
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/geo/doctypes/Region/Region.json
@@ -4939,7 +4943,7 @@ msgstr "Ім'я є обов'язковим"
 msgid "First page"
 msgstr "Перша сторінка"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Fix the duplicates and try again."
 msgstr "Виправте дублікати та повторіть операцію."
 
@@ -8434,7 +8438,7 @@ msgstr "Параметри"
 
 #: grunt/grunt/api/v1/method.py
 msgid "Parameters %(items)s cannot be passed in a request"
-msgstr ""
+msgstr "Параметри %(items)s не можна передавати в запиті"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Parent field"
@@ -8745,7 +8749,7 @@ msgstr "Попередній період"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Previous token hash"
-msgstr ""
+msgstr "Хеш попереднього токена"
 
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "Previous value"
@@ -8866,6 +8870,16 @@ msgstr "І публічні файли"
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Public key"
 msgstr "Публічний ключ"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Public pages of DocTypes with a view_count field count their views (a beacon"
+" after the page loads: bots without JavaScript and repeats within 30 minutes"
+" don't count)."
+msgstr ""
+"Публічні сторінки DocType з полем view_count рахують перегляди (сигнал після"
+" завантаження сторінки: боти без JavaScript і повтори протягом 30 хвилин не "
+"рахуються)."
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
@@ -11854,6 +11868,8 @@ msgid ""
 "The record refers to a record that does not exist, or other records still "
 "refer to it."
 msgstr ""
+"Запис посилається на запис, якого не існує, або на нього ще посилаються інші"
+" записи."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "The redirect URI registered in your app must be exactly"
@@ -11883,11 +11899,11 @@ msgstr "Відповідь прийшла з офлайн-кешу."
 msgid ""
 "The restore failed and the database could not be put back: it is in "
 "%(aside)s"
-msgstr ""
+msgstr "Відновлення не вдалося, і базу не вдалося повернути: вона в %(aside)s"
 
 #: grunt/grunt/db/dialects/sqlite.py
 msgid "The restore failed, the database was left as it was: %(error)s"
-msgstr ""
+msgstr "Відновлення не вдалося, база лишилась як була: %(error)s"
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgid ""
@@ -12330,7 +12346,7 @@ msgstr "Токен"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Token rotated at"
-msgstr ""
+msgstr "Токен оновлено"
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Tomorrow at 9:00"
@@ -13155,6 +13171,10 @@ msgstr "URL вебхуку"
 #: grunt/grunt/webhook/service.py
 msgid "Webhook not found"
 msgstr "Вебхук не знайдено"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Website"
+msgstr "Вебсайт"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
@@ -14250,7 +14270,7 @@ msgstr "uv не встановлено"
 msgid "uv tool %(name)s"
 msgstr "uv tool %(name)s"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "value %(value)s, records: %(ids)s"
 msgstr "значення %(value)s — записи: %(ids)s"
 
