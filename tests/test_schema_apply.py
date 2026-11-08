@@ -211,3 +211,39 @@ async def test_a_fresh_schema_needs_no_changes(ctx, engine):
         if lines := await preview_sync(dt, engine):
             planned[dt.name] = lines
     assert planned == {}
+
+
+def test_migrate_dry_run_on_a_fresh_database(tmp_path, monkeypatch):
+    """No DocType table to read definitions from: the plan is the bundled core
+    JSON - every table created - and the database stays empty."""
+    import json
+
+    from click.testing import CliRunner
+
+    from grunt.cli.db import db_migrate
+    from grunt.db import write_intent
+    from grunt.site.manager import site_manager
+
+    site = tmp_path / "sites" / "fresh"
+    site.mkdir(parents=True)
+    (site / ".env").write_text("DATABASE_URL=sqlite+aiosqlite:///./grunt.db\n")
+    (site / "grunt.site").write_text(json.dumps({"installed_apps": ["grunt"]}))
+    monkeypatch.setattr(site_manager, "sites_dir", tmp_path / "sites")
+    monkeypatch.setattr(site_manager, "engines", {})
+    monkeypatch.setattr(site_manager, "session_makers", {})
+    monkeypatch.setattr(write_intent, "_process_default", write_intent._process_default)
+
+    result = CliRunner().invoke(db_migrate, ["--dry-run", "--site", "fresh"])
+
+    assert result.exit_code == 0, result.output
+    assert "fresh database" in result.output
+    assert "DocType: create table grunt_metadata_doc_type" in result.output
+    assert "Dry run complete - nothing changed." in result.output
+    assert not (site / ".reload_meta").exists()
+    db = site / "grunt.db"
+    if db.exists():
+        engine = sa.create_engine(f"sqlite:///{db}")
+        try:
+            assert sa.inspect(engine).get_table_names() == []
+        finally:
+            engine.dispose()

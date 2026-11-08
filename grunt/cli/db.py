@@ -25,10 +25,12 @@ lazy from grunt.metadata.compiler import (
 )
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.metadata.store import meta_table
 lazy from grunt.monitoring.health import human_size
 lazy from grunt.search.service import search_index_service
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import (
+    bundled_core_doctypes,
     load_core_doctypes,
     load_core_fixtures,
     register_installed_app_doctypes,
@@ -56,6 +58,13 @@ def _missing_tables(connection) -> list[str]:
     """The infrastructure tables (``SA_METADATA``) the database doesn't have yet."""
     existing = set(inspect(connection).get_table_names())
     return sorted(name for name in SA_METADATA.tables if name not in existing)
+
+
+async def _has_doctype_table(session) -> bool:
+    """Whether the table that stores DocType definitions exists (not on a fresh site)."""
+    conn = await session.connection()
+    name = meta_table().name
+    return await conn.run_sync(lambda c: inspect(c).has_table(name))
 
 
 @click.command("migrate")
@@ -133,17 +142,24 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     # 3. DocType tables
                     click.echo("  [3/4] DocType tables (sync_table)...")
                     async with maker() as session:
-                        # A dry run merges the core JSON in memory only (sync_db=False):
-                        # the plan below compares it with the tables, nothing is written.
-                        await load_core_doctypes(
-                            session,
-                            sync_db=not dry_run,
-                            extensions=extensions_for_site(site_name),
-                        )
+                        # A fresh database has no DocType table to read definitions
+                        # from - its plan is the bundled core JSON, every table new.
+                        fresh = dry_run and not await _has_doctype_table(session)
+                        if fresh:
+                            click.echo("    [dry-run] fresh database: the core DocTypes as bundled")
+                        else:
+                            # A dry run merges the core JSON in memory only
+                            # (sync_db=False): the plan below compares it with the
+                            # tables, nothing is written.
+                            await load_core_doctypes(
+                                session,
+                                sync_db=not dry_run,
+                                extensions=extensions_for_site(site_name),
+                            )
                         # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
                         # (register_installed_app_doctypes below does it otherwise.)
-                        if dry_run:
+                        if dry_run and not fresh:
                             await doctype_registry.load_all(session)
 
                         # App DocTypes changed in JSON: register/update syncs
@@ -168,7 +184,11 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             for name in sorted(from_json):
                                 click.echo(f"    synced (from JSON): {name}")
 
-                        all_dts = await doctype_registry.list_all()
+                        all_dts = (
+                            bundled_core_doctypes(extensions_for_site(site_name))
+                            if fresh
+                            else await doctype_registry.list_all()
+                        )
 
                         checked = changed = len(from_json)
                         skipped = 0
@@ -263,10 +283,12 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                                 await record_migrated_versions()
                                 await session.commit()
 
-                    # 5. Trigger hot-reload for running servers
-                    reload_file = site_manager.sites_dir / site_name / ".reload_meta"
-                    reload_file.touch()
-                    click.echo("  Hot-reload triggered.")
+                    # 5. Trigger hot-reload for running servers - nothing to reload
+                    #    after a dry run.
+                    if not dry_run:
+                        reload_file = site_manager.sites_dir / site_name / ".reload_meta"
+                        reload_file.touch()
+                        click.echo("  Hot-reload triggered.")
                 finally:
                     current_site.reset(token)
         finally:
@@ -292,7 +314,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
         for item in failed:
             click.echo(f"  {item}", err=True)
         raise SystemExit(1)
-    click.echo("\nMigration complete.")
+    click.echo("\nDry run complete - nothing changed." if dry_run else "\nMigration complete.")
 
 
 @db_group.command("trim-tables")

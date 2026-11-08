@@ -22,6 +22,32 @@ def _find_doctype_dirs(_root=None):
     return [p for p in root.glob("*/doctypes") if p.is_dir()]
 
 
+def _core_doctype_files() -> list[Path]:
+    return sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
+
+
+def _read_core_doctype(
+    dt_file: Path, extensions: dict[str, list[DoctypeExtension]] | None
+) -> DocType | None:
+    dt_data = json.loads(dt_file.read_text())
+    dt_name = dt_data.get("name", "")
+    if not dt_name:
+        return None
+    dt_obj = DocType.model_validate(dt_data)
+    if not dt_obj.app:
+        dt_obj.app = "grunt"
+    return apply_extensions(dt_obj, (extensions or {}).get(dt_name))
+
+
+def bundled_core_doctypes(
+    extensions: dict[str, list[DoctypeExtension]] | None = None,
+) -> list[DocType]:
+    """The core DocTypes as their JSON defines them (with *extensions*) - no
+    database: what a fresh site gets (``grunt migrate --dry-run`` plans it)."""
+    found = (_read_core_doctype(f, extensions) for f in _core_doctype_files())
+    return [dt for dt in found if dt is not None]
+
+
 async def load_core_doctypes(
     session: AsyncSession,
     sync_db: bool = False,
@@ -37,18 +63,11 @@ async def load_core_doctypes(
     if sync_db:
         await store.ensure_table(session)
 
-    dt_files = sorted(f for d in _find_doctype_dirs() for f in d.glob("**/*.json"))
-
-    for dt_file in dt_files:
+    for dt_file in _core_doctype_files():
         try:
-            dt_data = json.loads(dt_file.read_text())
-            dt_name = dt_data.get("name", "")
-            if not dt_name:
+            dt_obj = _read_core_doctype(dt_file, extensions)
+            if dt_obj is None:
                 continue
-            dt_obj = DocType.model_validate(dt_data)
-            if not dt_obj.app:
-                dt_obj.app = "grunt"
-            dt_obj = apply_extensions(dt_obj, (extensions or {}).get(dt_name))
             await doctype_registry._inject_core(dt_obj, session, sync_db=sync_db)
         except Exception as e:
             # Boot tolerates a broken file; a sync (migrate) must not report
