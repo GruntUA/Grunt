@@ -27,6 +27,7 @@ Pages without ``allow_guest_to_view`` are never served: a page is rendered
 """
 
 import inspect
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote
@@ -38,6 +39,7 @@ from sqlalchemy import select
 
 import grunt
 from grunt import log
+from grunt.site.manager import current_web_app
 from grunt.utils.slug import slugify
 lazy from grunt.apps.loader import CORE_APP, primary_web_app
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
@@ -76,10 +78,13 @@ def is_public(dt: Any) -> bool:
 
 
 def app_mount(app: str | None) -> str:
-    """Where *app*'s pages live: ``""`` for the core and the primary web app,
-    ``/<app>`` for every other app (the www/ rule)."""
+    """Where *app*'s pages live: ``""`` for the core, the primary web app and
+    the app whose own domain the request came to (``web_domains``), ``/<app>``
+    for every other app (the www/ rule)."""
 
-    return "" if not app or app in (CORE_APP, primary_web_app()) else f"/{app}"
+    if not app or app in (CORE_APP, primary_web_app(), current_web_app.get()):
+        return ""
+    return f"/{app}"
 
 
 def route_prefix(dt: Any) -> str:
@@ -294,12 +299,15 @@ async def _render(request: Request, dt: Any, context: dict[str, Any]) -> HTMLRes
     )
 
 
-async def sitemap_urls() -> list[tuple[str, Any]]:
-    """``(path, modified)`` of every indexed web view page (caller holds a grunt context)."""
+async def sitemap_urls(
+    include: Callable[[str | None], bool] = lambda app: True,
+) -> list[tuple[str, Any]]:
+    """``(path, modified)`` of every indexed web view page of the apps
+    *include* accepts (caller holds a grunt context)."""
 
     urls: list[tuple[str, Any]] = []
     for dt in await doctype_registry.list_all():
-        if not is_public(dt) or not dt.index_web_pages_for_search:
+        if not is_public(dt) or not dt.index_web_pages_for_search or not include(dt.app):
             continue
         filters = {dt.is_published_field: True} if dt.is_published_field else None
         extra = (ROUTE_FIELD, dt.is_published_field)

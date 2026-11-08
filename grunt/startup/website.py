@@ -50,6 +50,18 @@ def _is_spa_path(path: str) -> bool:
     return path == "/" or any(path == r or path.startswith(r + "/") for r in _SPA_ROUTES)
 
 
+def is_core_path(path: str) -> bool:
+    """Whether the catch-all serves *path* for the core whatever the host: a
+    Desk route (not ``/`` itself) or a root static file (built SPA, ``public/``)."""
+    if path.rstrip("/") and _is_spa_path(path):
+        return True
+    req_path = path.lstrip("/")
+    return bool(
+        (not settings.debug and static_file(DIST_DIR, req_path))
+        or static_file(_MAIN_PUBLIC_DIR, req_path)
+    )
+
+
 async def _legacy_workspace_url(request: Request, session) -> str | None:
     """``/app/<path>`` for an old bare ``/<workspace>/...`` bookmark, else None.
 

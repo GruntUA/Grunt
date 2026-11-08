@@ -5,6 +5,7 @@ Website page rendering engine - Enhanced routing for Grunt apps.
 import importlib.util
 import inspect
 import re
+from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -21,10 +22,15 @@ lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 lazy from grunt.config import settings
 lazy from grunt.db.session import get_session
 lazy from grunt.i18n.jinja import install as install_i18n
-lazy from grunt.site.manager import site_manager
+lazy from grunt.site.manager import current_site, current_web_app, site_manager
 lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.files import image_srcset, sized_url
-lazy from grunt.website.generator import _template_envs, render_doc_page, sitemap_urls
+lazy from grunt.website.generator import (
+    _template_envs,
+    app_mount,
+    render_doc_page,
+    sitemap_urls,
+)
 lazy from grunt.website.preview import finish_preview, preview_reader
 lazy from grunt.website.spa import spa_assets
 
@@ -143,6 +149,8 @@ class WebsiteRegistry:
 
         env.globals["image_url"] = sized_url
         env.globals["image_srcset"] = image_srcset
+        # <a href="{{ app_mount('opendata') }}/datasets"> - "" on the app's own domain
+        env.globals["app_mount"] = app_mount
         env.globals.update(_template_globals)
         self._envs[app_name] = env
 
@@ -442,13 +450,28 @@ def _lastmod(value: Any) -> str:
     return value.strftime("%Y-%m-%d") if hasattr(value, "strftime") else ""
 
 
-async def sitemap_entries() -> list[SitemapEntry]:
-    """Every listed page: www pages, web view documents and every app's
-    ``website_sitemap`` source (caller holds a grunt context)."""
+def _sitemap_scope() -> Callable[[str | None], bool]:
+    """Which apps' pages this host's sitemap lists: on an app's own domain that
+    app only; elsewhere every app but those with a domain of their own."""
+    web_app = current_web_app.get()
+    if web_app:
+        return lambda app: app == web_app
+    elsewhere = set(site_manager.domain_apps(current_site.get()))
+    return lambda app: app not in elsewhere
 
-    entries: list[SitemapEntry] = [p.url_pattern for p in website_registry.pages if p.in_sitemap]
-    entries.extend(await sitemap_urls())
+
+async def sitemap_entries() -> list[SitemapEntry]:
+    """Every listed page of this host: www pages, web view documents and every
+    app's ``website_sitemap`` source (caller holds a grunt context)."""
+
+    include = _sitemap_scope()
+    entries: list[SitemapEntry] = [
+        p.url_pattern for p in website_registry.pages if p.in_sitemap and include(p.app)
+    ]
+    entries.extend(await sitemap_urls(include))
     for source in _sitemap_sources:
+        if not include(getattr(source, "__module__", "").split(".")[0]):
+            continue
         try:
             entries.extend(await source())
         except Exception as e:  # noqa: BLE001 - one app's bug must not drop the sitemap

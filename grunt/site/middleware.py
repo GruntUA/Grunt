@@ -1,6 +1,7 @@
 import time
 
 from fastapi import Request
+from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from grunt import log
@@ -8,7 +9,8 @@ from grunt.db.write_intent import READ_ONLY_METHODS, set_write_intent
 from grunt.metadata.compiler import clear_table_cache
 from grunt.metadata.registry import get_registry
 from grunt.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY, _client_script_scanned
-from grunt.site.manager import current_site, site_manager
+from grunt.site.manager import current_site, current_web_app, site_manager
+lazy from grunt.website.domains import canonical_path, domain_path
 
 _STARTED_AT = time.time()
 
@@ -51,19 +53,37 @@ async def _apply_hot_reload_if_triggered(site: str) -> None:
     log.info("site.meta_reloaded", site=site)
 
 
+def _route_on_domain(request: Request, app: str) -> RedirectResponse | None:
+    """On *app*'s own domain: a 301 from ``/<app>/...`` to the root address, or
+    the path rewritten to where the app's page is mounted (``scope["path"]``)."""
+    path = request.url.path
+    if request.method in READ_ONLY_METHODS and (target := canonical_path(path, app)):
+        query = request.url.query
+        return RedirectResponse(target + (f"?{query}" if query else ""), status_code=301)
+    routed = domain_path(path, app, request.app.router.routes, request.method)
+    if routed is not None:
+        request.scope["path"] = routed
+        request.scope["raw_path"] = routed.encode()
+    return None
+
+
 class SiteContextMiddleware(BaseHTTPMiddleware):
-    """Middleware to determine the active site based on request headers."""
+    """Picks the request's site - and, on an app's own domain, the app served
+    at the root (``web_domains`` in ``grunt.site``)."""
 
     async def dispatch(self, request: Request, call_next):
         # 1. Check for explicit X-Grunt-Site header
         site = request.headers.get("x-grunt-site")
+        host_header = request.headers.get("host", "")
+        host_name = host_header.split(":")[0].lower() if host_header else ""
 
-        # 2. Fallback to Host header (only if it matches a known site)
+        # 2. Fallback to Host header: a site's name, or an app domain of a site
+        web_app: str | None = None
         if not site:
-            host_header = request.headers.get("host", "")
-            host_name = host_header.split(":")[0] if host_header else ""
             if host_name in site_manager.get_sites():
                 site = host_name
+            elif domain := site_manager.get_web_domains().get(host_name):
+                site, web_app = domain
 
         # 3. Fallback to currentsite.txt when neither header matched a known site.
         if not site:
@@ -72,9 +92,13 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
             except Exception:
                 log.warning("site.fallback_resolve_failed", host=request.headers.get("host", ""))
 
+        if web_app and (redirect := _route_on_domain(request, web_app)):
+            return redirect
+
         # 4. Set the site context var BEFORE anything below resolves a
         # per-site resource (e.g. the DocType registry) off it.
         token = current_site.set(site) if site else None
+        app_token = current_web_app.set(web_app)
         # SQLite: writing requests take the write lock at BEGIN (grunt/db/write_intent.py).
         set_write_intent(request.method not in READ_ONLY_METHODS)
 
@@ -86,5 +110,6 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         finally:
+            current_web_app.reset(app_token)
             if token:
                 current_site.reset(token)
