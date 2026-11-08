@@ -108,6 +108,13 @@ open_orders = await grunt.get_list(
 )
 ```
 
+`order_by` is one field, optionally with its direction: `"created_at"`,
+`"created_at asc"`, `"created_at desc"` (a direction in the string wins over
+`order`). An unknown field, several fields (`"a, b"`) or another word than
+`asc`/`desc` is a 422 - the list is never quietly sorted by something else.
+The same holds for `grunt.get_all`, `grunt.db.get_all`, `.objects.order_by()`
+and the REST list (`sort_by` / `sort_order`).
+
 ### `SomeController.objects` — typed query builder
 
 Every `Document` subclass gets a fluent, chainable query builder — a typed

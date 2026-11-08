@@ -1,5 +1,6 @@
 """Grunt database API helpers."""
 
+from collections.abc import Collection
 from typing import Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, select, update
@@ -18,6 +19,14 @@ from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.multi_link import MultiLinkService
 
 
+def sort_spec(order_by: str, order: str, known: Collection[str] | None = None) -> Sort:
+    """:meth:`Sort.parse` with a bad spec as a 422 (it comes from the caller)."""
+    try:
+        return Sort.parse(order_by, order, known=known)
+    except ValueError as e:
+        raise unprocessable(str(e)) from None
+
+
 def list_query(
     dt: Any,
     *,
@@ -31,13 +40,16 @@ def list_query(
 ) -> Query:
     """A :class:`Query` from ``grunt.db``-style arguments: *filters* ANDed,
     *or_filters* ORed (unknown columns skipped in both), sorted by *order_by*
-    (``modified_at`` by default)."""
+    (``modified_at`` by default; ``"field asc"`` sets the direction too).
+
+    An unknown sort field or a malformed *order_by* is a 422, not a silent
+    fallback to another order."""
     any_of = conjuncts(filter_expr(or_filters, dt.columns, dt)) if or_filters else ()
     return Query(
         dt.name,
         where=and_(filter_expr(filters, dt.columns, dt), or_(*any_of) if any_of else TRUE),
         fields=tuple(fields) if fields else None,
-        sort=Sort(order_by or "modified_at", descending=order != "asc"),
+        sort=sort_spec(order_by or "modified_at", order, dt.columns),
         limit=limit,
         offset=offset,
     )
@@ -60,7 +72,7 @@ def aggregate_query(
         where=filter_expr(filters, dt.columns, dt),
         group_by=tuple(groups),
         aggregates=tuple((aggregations or {}).items()),
-        sort=Sort(order_by, descending=str(order).lower() == "desc") if order_by else None,
+        sort=sort_spec(order_by, order) if order_by else None,
         limit=limit,
     )
 

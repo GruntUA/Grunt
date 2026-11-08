@@ -40,7 +40,7 @@ def _row_view(row: dict[str, Any]) -> dict[str, Any]:
         "last_used_at": row.get("last_used_at"),
         "backed_up": bool(row.get("backed_up")),
         "transports": [t for t in (row.get("transports") or "").split(",") if t],
-        "created_at": row.get("creation"),
+        "created_at": row.get("created_at"),
     }
 
 
@@ -64,8 +64,8 @@ async def list_my_passkeys() -> list[dict[str, Any]]:
     rows = await grunt.get_list(
         "WebAuthnCredential",
         filters={"user": current.id},
-        fields=["name", "label", "last_used_at", "backed_up", "transports", "creation"],
-        order_by="creation desc",
+        fields=["name", "label", "last_used_at", "backed_up", "transports", "created_at"],
+        order_by="created_at desc",
         limit=100,
     )
     return [_row_view(r) for r in rows]
