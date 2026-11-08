@@ -22,6 +22,7 @@ from grunt.query.nodes import (
     MultiLink,
     Null,
     Or,
+    Raw,
     Year,
 )
 from grunt.query.parse import is_truthy
@@ -119,6 +120,8 @@ def matches(expr: Expr, row: dict[str, Any]) -> bool:
             raise NotImplementedError("MultiLink filters need the multi-link table")
         case Linked():
             raise NotImplementedError("Linked filters read another DocType")
+        case Raw():
+            raise NotImplementedError("A raw SQL condition can't be evaluated in memory")
 
     raw = row.get(expr.field)
     match expr:

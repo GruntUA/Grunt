@@ -198,7 +198,7 @@ def test_float_is_double_and_currency_is_exact_numeric():
     from sqlalchemy.dialects import postgresql
     from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, NUMERIC, REAL
 
-    from grunt.metadata.compiler import _type_changed
+    from grunt.db.schema.diff import type_changed as _type_changed
 
     flt = DocField(fieldname="f", label="F", fieldtype="Float").to_sa_column().type
     cur = DocField(fieldname="c", label="C", fieldtype="Currency")

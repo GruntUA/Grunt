@@ -17,7 +17,7 @@ from grunt.document.versioning import version_service
 from grunt.errors import not_found
 from grunt.permissions.guards import doc_guard
 lazy from grunt.activity.reactions import reactions_for
-lazy from grunt.auth.doctypes.User.user import get_users_by_emails
+lazy from grunt.auth.users import get_users_by_emails
 
 
 class DocumentHistoryRPCMixin:

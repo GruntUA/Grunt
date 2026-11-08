@@ -118,10 +118,18 @@ class Const:
     value: bool
 
 
+@dataclass(frozen=True, slots=True)
+class Raw:
+    """A ready SQL condition (``list_filter_extra`` of a controller) - only a SQL
+    store can apply it; evaluating it in memory is an error."""
+
+    clause: Any
+
+
 TRUE = Const(True)
 FALSE = Const(False)
 
-type Leaf = Cmp | Like | In | Null | Empty | Year | MultiLink | Linked
+type Leaf = Cmp | Like | In | Null | Empty | Year | MultiLink | Linked | Raw
 type Expr = Leaf | And | Or | Const
 
 
@@ -186,6 +194,7 @@ __all__ = [
     "MultiLink",
     "Null",
     "Or",
+    "Raw",
     "Year",
     "and_",
     "conjuncts",

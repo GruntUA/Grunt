@@ -67,6 +67,35 @@ class MysqlDialect(Dialect):
         # No NULLS LAST in MySQL: sort on "is it NULL" first
         return [expr.is_(None).asc(), expr.desc() if descending else expr.asc()]
 
+    # ── Schema ──────────────────────────────────────────────────────────────
+
+    def alter_column_type(self, connection: Any, table_name: str, column: Any) -> None:
+        q = self.quote
+        col_type = column.type.compile(connection.dialect)
+        connection.execute(
+            text(
+                f"ALTER TABLE {q(connection, table_name)} "
+                f"MODIFY COLUMN {q(connection, column.name)} {col_type} NULL"
+            )
+        )
+
+    def create_unique(
+        self, connection: Any, table_name: str, name: str, columns: tuple[str, ...]
+    ) -> None:
+        """MySQL has no partial indexes: a plain unique index. Many NULLs pass it,
+        but two empty strings collide - store a cleared value as NULL."""
+        q = self.quote
+        cols = ", ".join(q(connection, c) for c in columns)
+        connection.execute(
+            text(
+                f"CREATE UNIQUE INDEX {q(connection, name)} ON {q(connection, table_name)} ({cols})"
+            )
+        )
+
+    def drop_index(self, connection: Any, table_name: str, name: str) -> None:
+        q = self.quote
+        connection.execute(text(f"DROP INDEX {q(connection, name)} ON {q(connection, table_name)}"))
+
     def group_concat_sql(self, expr: str) -> str:
         return f"GROUP_CONCAT({expr})"
 

@@ -3,7 +3,7 @@
   "label": "Backups",
   "module": "backups",
   "icon": "archive",
-  "is_virtual": true,
+  "storage": "virtual",
   "track_changes": false,
   "track_activity": false,
   "default_view": "list",

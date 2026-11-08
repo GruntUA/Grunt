@@ -1,0 +1,7 @@
+# CodeRabbit: work goes through pull requests into `develop` (see CONTRIBUTING.md),
+# so reviews run on those too, not only on PRs into the default branch.
+reviews:
+  auto_review:
+    enabled: true
+    base_branches:
+      - develop

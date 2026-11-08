@@ -107,7 +107,7 @@ async def test_log_purge_takes_child_rows_along(ctx):
     from grunt.tasks.retention import purge_doctype
 
     stale = NOW - timedelta(days=40)
-    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         user = await create_user("purge@grunt.example.com", "Str0ngPass", "P", "U", None)

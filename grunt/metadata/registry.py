@@ -46,7 +46,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
     {
         "is_child",
         "is_singleton",
-        "is_virtual",
+        "storage",
         "is_tree",
         "is_log",
         "in_global_search",

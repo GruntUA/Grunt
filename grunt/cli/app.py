@@ -7,7 +7,7 @@ from pathlib import Path
 lazy import tarfile
 
 import click
-from sqlalchemy import func, inspect, select
+from sqlalchemy import func, select
 
 lazy import grunt
 lazy from grunt.api import typegen
@@ -22,6 +22,8 @@ lazy from grunt.apps.required import (
 )
 lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.db.dialects import dialect_for
+lazy from grunt.db.schema import column_drops, read_actual
+lazy from grunt.db.schema.apply import apply as apply_schema
 lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
 lazy from grunt.metadata.extensions import extensions_for_site, revert_properties
 lazy from grunt.metadata.field import is_physical_fieldtype
@@ -333,26 +335,29 @@ async def _strip_extension_fields(session, eng, ext_fields: list, name: str = ""
 
 
 async def _drop_extension_columns(eng, ext_fields: list) -> None:
-    """DROP COLUMN for the removed extension fields (with their indexes first -
-    SQLite refuses to drop an indexed column). A failure is reported, not fatal:
-    the field is already gone from the DocType, only its data stays."""
-    prep = eng.dialect.identifier_preparer
+    """DROP COLUMN for the removed extension fields (their indexes first - see
+    :func:`grunt.db.schema.column_drops`). A failure is reported, not fatal: the
+    field is already gone from the DocType, only its data stays."""
     for dt, fields in ext_fields:
-        table = compile_doctype_to_table(dt).name  # cached Table may already lack the columns
-        for field in fields:
-            if not is_physical_fieldtype(field.fieldtype):
-                continue
-            try:
-                async with eng.begin() as conn:
-                    indexes = await conn.run_sync(lambda c, t=table: inspect(c).get_indexes(t))
-                    for index in indexes:
-                        if field.fieldname in index["column_names"]:
-                            await conn.exec_driver_sql(f"DROP INDEX {prep.quote(index['name'])}")
-                    await conn.exec_driver_sql(
-                        f"ALTER TABLE {prep.quote(table)} DROP COLUMN {prep.quote(field.fieldname)}"
-                    )
-            except Exception as e:
-                click.echo(f"  ! {table}.{field.fieldname} not dropped: {e}", err=True)
+        table = compile_doctype_to_table(dt)  # cached Table may already lack the columns
+        names = [f.fieldname for f in fields if is_physical_fieldtype(f.fieldtype)]
+
+        def _drop(conn, table=table, names=names) -> list[str]:
+            actual = read_actual(conn, table.name)
+            if actual is None:
+                return []
+            failed = []
+            for change in column_drops(table, actual, names):
+                try:
+                    with conn.begin_nested():
+                        apply_schema(conn, dialect_for(conn), [change])
+                except Exception as e:  # noqa: BLE001 - reported, the rest still go
+                    failed.append(f"{table.name}.{change.name} not dropped: {e}")
+            return failed
+
+        async with eng.begin() as conn:
+            for message in await conn.run_sync(_drop):
+                click.echo(f"  ! {message}", err=True)
 
 
 async def _drop_app_tables(eng, plan: list) -> None:

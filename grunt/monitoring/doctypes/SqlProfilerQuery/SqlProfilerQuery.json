@@ -2,7 +2,7 @@
   "name": "SqlProfilerQuery",
   "label": "SQL Profiler — Request",
   "module": "monitoring",
-  "is_virtual": true,
+  "storage": "virtual",
   "is_child": true,
   "track_changes": false,
   "track_activity": false,

@@ -216,6 +216,8 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.notification.sla.check_deadlines", "*/10 * * * *")  # every 10 min
     _add_scheduled_job("grunt.notification.date_rules.check_date_rules", "0 8 * * *")  # 08:00
     _add_scheduled_job("grunt.tasks.reminders.send_reminders", "* * * * *")  # every minute
+    # Outbox retries and messages a crashed delivery left behind (new ones go out on commit).
+    _add_scheduled_job("grunt.outbox.deliver", "* * * * *")  # every minute
 
     async def _daily_digest():
         await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")

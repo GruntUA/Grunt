@@ -19,9 +19,12 @@ from grunt.errors import not_found
 from grunt.io.exporters.sanitize import escape_formula
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
+from grunt.query.parse import split_key
 from grunt.query.sql import filter_expr, where
+from grunt.reports.joins import report_source
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
+from grunt.store import SQL, supports
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -256,6 +259,11 @@ class ReportEngine:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        if not supports(dt, SQL):
+            raise HTTPException(
+                status_code=400,
+                detail=_("“%(doctype)s” has no table to report on") % {"doctype": doctype},
+            )
         table = dt.table
 
         # Permission check
@@ -287,15 +295,26 @@ class ReportEngine:
         order_exprs: dict[str, Any] = {}  # result column -> sortable expression
         result_columns = []
 
+        # Fixed report conditions (always on, unlike the viewer's filters).
+        # Drill-down below gets them unexpanded - the list URL carries child_of.
+        conditions = compile_conditions(report.get("conditions"))
+
+        # What the viewer may read: the DocType's visible fields, and fields
+        # through a Link (``customer.region``) joined with the target's rules.
+        filters = {k: v for k, v in filters.items() if v not in (None, "", [])}
+        referenced = {c["fieldname"] for c in col_defs}
+        referenced |= {split_key(k)[0] for f in (filters, *conditions) for k in f}
+        source = await report_source(dt, user, referenced)
+
         for col_def in col_defs:
             fn = col_def["fieldname"]
             label = col_def.get("label", fn)
             agg = (col_def.get("aggregation") or "").lower()
             fieldtype = col_def.get("fieldtype", "Data")
 
-            sa_col = table.c.get(fn)
+            sa_col = source.c.get(fn)
             if sa_col is None:
-                continue
+                continue  # unknown, or not visible to this viewer
 
             if agg in agg_map:
                 expr = agg_map[agg](sa_col)
@@ -311,19 +330,19 @@ class ReportEngine:
                     select_cols.append(expr.label(fn))
                 else:
                     expr = sa_col
-                    select_cols.append(sa_col)
+                    select_cols.append(sa_col.label(fn))
                 group_by_cols.append(expr)
                 group_fields.append(fn)
             else:
                 expr = sa_col
-                select_cols.append(sa_col)
+                select_cols.append(sa_col.label(fn))
             order_exprs[fn] = expr
             result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
 
         if not select_cols:
             return {"columns": [], "data": [], "meta": {"rows": 0, "time_ms": 0}}
 
-        stmt = select(*select_cols)
+        stmt = select(*select_cols).select_from(source.from_)
 
         # Apply filters - operator-aware, same vocabulary as list views:
         # ``field__gte`` / ``__like`` / ``__ne`` / … ; a bare ``field`` means
@@ -336,19 +355,16 @@ class ReportEngine:
             nonlocal stmt
             if any(k.endswith("__child_of") for k in filter_dict):
                 filter_dict = await expand_child_of_filters(session, dt.doc, filter_dict)
-            stmt = await where(stmt, filter_expr(filter_dict, table, dt), table, dt.name)
+            stmt = await where(stmt, filter_expr(filter_dict, source.c.keys(), dt), source, dt.name)
 
-        await add_filters({k: v for k, v in filters.items() if v not in (None, "", [])})
+        await add_filters(filters)
 
-        # Fixed report conditions (always on, unlike the viewer's filters).
-        # Drill-down below gets them unexpanded - the list URL carries child_of.
-        conditions = compile_conditions(report.get("conditions"))
         for condition in conditions:
             await add_filters(condition)
 
         # Row-level security
 
-        stmt = await where(stmt, await read_predicate(table, user, dt), table, dt.name)
+        stmt = await where(stmt, await read_predicate(user, dt), table, dt.name)
 
         if group_by_cols:
             stmt = stmt.group_by(*group_by_cols)
@@ -373,7 +389,9 @@ class ReportEngine:
         elapsed = int((time.time() - start) * 1000)
 
         meta: dict[str, Any] = {"rows": len(rows), "time_ms": elapsed}
-        if group_by_cols:
+        drill_keys = set(group_fields) | {split_key(k)[0] for c in conditions for k in c}
+        if group_by_cols and not drill_keys & source.joined:
+            # (A list can't filter through a Link - no drill-down then.)
             # Each result row summarises the documents sharing these group
             # values - the client can open them as a filtered list. Date groups
             # are periods (the client turns the label into a date range), and

@@ -3,6 +3,7 @@ from contextlib import suppress
 
 import click
 from taskiq import InMemoryBroker
+lazy from sqlalchemy import inspect
 
 lazy import grunt
 lazy from grunt.apps.required import DependencyCycleError, MissingAppError
@@ -14,13 +15,22 @@ lazy from grunt.backups import (
     restore_backup,
 )
 lazy from grunt.cli.utils import _site_session, resolve_site
-lazy from grunt.metadata.compiler import SA_METADATA, sync_table
+lazy from grunt.db.write_intent import set_process_default
+lazy from grunt.metadata.compiler import (
+    SA_METADATA,
+    compile_doctype_to_table,
+    preview_sync,
+    sync_table,
+    table_index_names,
+)
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.metadata.store import meta_table
 lazy from grunt.monitoring.health import human_size
 lazy from grunt.search.service import search_index_service
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import (
+    bundled_core_doctypes,
     load_core_doctypes,
     load_core_fixtures,
     register_installed_app_doctypes,
@@ -44,9 +54,24 @@ def db_group():
     pass
 
 
+def _missing_tables(connection) -> list[str]:
+    """The infrastructure tables (``SA_METADATA``) the database doesn't have yet."""
+    existing = set(inspect(connection).get_table_names())
+    return sorted(name for name in SA_METADATA.tables if name not in existing)
+
+
+async def _has_doctype_table(session) -> bool:
+    """Whether the table that stores DocType definitions exists (not on a fresh site)."""
+    conn = await session.connection()
+    name = meta_table().name
+    return await conn.run_sync(lambda c: inspect(c).has_table(name))
+
+
 @click.command("migrate")
 @click.option(
-    "--dry-run", is_flag=True, help="Show the SQL without running it (for DocType tables)"
+    "--dry-run",
+    is_flag=True,
+    help="Show the planned DocType table changes; change nothing (no Alembic, app JSON, fixtures)",
 )
 @click.option("--site", default=None, help="Site name")
 @click.option("--no-alembic", is_flag=True, help="Skip the Alembic schema-history migrations")
@@ -61,13 +86,19 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
     """
 
     async def _run() -> list[str]:
+        if dry_run:
+            # Reads only: SQLite's plain BEGIN, not the write lock (BEGIN IMMEDIATE).
+            set_process_default(False)
 
         broker_started = False
         failed: list[str] = []
 
         try:
-            await broker.startup()
-            broker_started = True
+            # A dry run enqueues nothing - and an in-memory broker's startup boots
+            # the worker side, which brings the sites' schema up.
+            if not dry_run:
+                await broker.startup()
+                broker_started = True
 
             sites = [site] if site else site_manager.get_sites()
             if not sites:
@@ -81,11 +112,16 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     eng = site_manager.get_engine(site_name)
                     maker = site_manager.get_session_maker(site_name)
 
-                    # 1. Shared infrastructure tables (MultiLink junction, etc.)
+                    # 1. Shared infrastructure tables (MultiLink junction, outbox, etc.)
                     click.echo("  [1/4] Infrastructure tables (SA_METADATA)...")
-                    async with eng.begin() as conn:
-                        await conn.run_sync(SA_METADATA.create_all)
-                    if not dry_run:
+                    if dry_run:
+                        async with eng.connect() as conn:
+                            missing = await conn.run_sync(_missing_tables)
+                        for name in missing:
+                            click.echo(f"    [dry-run] would create table {name}")
+                    else:
+                        async with eng.begin() as conn:
+                            await conn.run_sync(SA_METADATA.create_all)
                         await search_index_service.ensure_table(eng)
 
                     # 2. Alembic history - schema/data patches for existing sites.
@@ -109,13 +145,24 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                     # 3. DocType tables
                     click.echo("  [3/4] DocType tables (sync_table)...")
                     async with maker() as session:
-                        await load_core_doctypes(
-                            session, sync_db=True, extensions=extensions_for_site(site_name)
-                        )
+                        # A fresh database has no DocType table to read definitions
+                        # from - its plan is the bundled core JSON, every table new.
+                        fresh = dry_run and not await _has_doctype_table(session)
+                        if fresh:
+                            click.echo("    [dry-run] fresh database: the core DocTypes as bundled")
+                        else:
+                            # A dry run merges the core JSON in memory only
+                            # (sync_db=False): the plan below compares it with the
+                            # tables, nothing is written.
+                            await load_core_doctypes(
+                                session,
+                                sync_db=not dry_run,
+                                extensions=extensions_for_site(site_name),
+                            )
                         # Hydrate Studio-created DocTypes too - list_all()'s
                         # lazy branch only fires once _known_names is populated.
                         # (register_installed_app_doctypes below does it otherwise.)
-                        if dry_run:
+                        if dry_run and not fresh:
                             await doctype_registry.load_all(session)
 
                         # App DocTypes changed in JSON: register/update syncs
@@ -123,7 +170,12 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                         # the loop below skips them instead of syncing the
                         # stale stored one first.
                         from_json: set[str] = set()
-                        if not dry_run:
+                        if dry_run:
+                            click.echo(
+                                "    [dry-run] installed apps' changed DocType JSON is not"
+                                " previewed - only what the database already defines"
+                            )
+                        else:
                             try:
                                 from_json = await register_installed_app_doctypes(
                                     session, site_name
@@ -135,20 +187,50 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             for name in sorted(from_json):
                                 click.echo(f"    synced (from JSON): {name}")
 
-                        all_dts = await doctype_registry.list_all()
+                        all_dts = (
+                            bundled_core_doctypes(extensions_for_site(site_name))
+                            if fresh
+                            else await doctype_registry.list_all()
+                        )
 
                         checked = changed = len(from_json)
                         skipped = 0
+                        # Indexes each table's DocTypes define - one DocType's sync must
+                        # not drop what another on the same table (table_name) needs.
+                        defined: dict[str, dict[str, set[str]]] = {}
+                        for dt in all_dts:
+                            if dt.has_table:
+                                table = compile_doctype_to_table(dt)
+                                defined.setdefault(table.name, {})[dt.name] = table_index_names(
+                                    table
+                                )
+
+                        def keep_for(dt, defined=defined) -> set[str]:
+                            others = defined.get(compile_doctype_to_table(dt).name, {})
+                            return set().union(*(v for k, v in others.items() if k != dt.name))
+
                         for dt in all_dts:
                             try:
                                 if dt.name in from_json:
                                     continue
-                                if dt.is_virtual:
+                                if not dt.has_table:
                                     skipped += 1
                                     continue
                                 if dry_run:
-                                    click.echo(f"    [dry-run] would sync: {dt.name}")
-                                elif await sync_table(dt, eng, session=session):
+                                    plan = await preview_sync(
+                                        dt, session=session, drop_indexes=True, keep=keep_for(dt)
+                                    )
+                                    for line in plan:
+                                        click.echo(f"    [dry-run] {dt.name}: {line}")
+                                    changed += bool(plan)
+                                elif await sync_table(
+                                    dt,
+                                    eng,
+                                    session=session,
+                                    rebuild=True,
+                                    drop_indexes=True,
+                                    keep=keep_for(dt),
+                                ):
                                     click.echo(f"    synced: {dt.name}")
                                     changed += 1
                                 checked += 1
@@ -164,7 +246,10 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             if purged:
                                 click.echo(f"    search index: removed {purged} entries")
 
-                        await session.commit()
+                        if dry_run:
+                            await session.rollback()
+                        else:
+                            await session.commit()
 
                     click.echo(
                         f"  Done: {checked} checked, {changed} changed,"
@@ -201,10 +286,12 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                                 await record_migrated_versions()
                                 await session.commit()
 
-                    # 5. Trigger hot-reload for running servers
-                    reload_file = site_manager.sites_dir / site_name / ".reload_meta"
-                    reload_file.touch()
-                    click.echo("  Hot-reload triggered.")
+                    # 5. Trigger hot-reload for running servers - nothing to reload
+                    #    after a dry run.
+                    if not dry_run:
+                        reload_file = site_manager.sites_dir / site_name / ".reload_meta"
+                        reload_file.touch()
+                        click.echo("  Hot-reload triggered.")
                 finally:
                     current_site.reset(token)
         finally:
@@ -230,7 +317,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
         for item in failed:
             click.echo(f"  {item}", err=True)
         raise SystemExit(1)
-    click.echo("\nMigration complete.")
+    click.echo("\nDry run complete - nothing changed." if dry_run else "\nMigration complete.")
 
 
 @db_group.command("trim-tables")
@@ -265,9 +352,7 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                         from grunt.document.meta import Meta
 
                         all_metas = [
-                            Meta(dt)
-                            for dt in await doctype_registry.list_all()
-                            if not dt.is_virtual
+                            Meta(dt) for dt in await doctype_registry.list_all() if dt.has_table
                         ]
                         if doctype:
                             target_meta = await grunt.get_meta(doctype)

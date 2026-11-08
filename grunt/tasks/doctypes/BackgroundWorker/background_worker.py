@@ -7,10 +7,10 @@ from redis.asyncio import Redis
 from taskiq_redis import RedisStreamBroker
 
 from grunt import _, log
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import apply_filters, apply_search, apply_sort, build_response
-from grunt.errors import not_found
+from grunt.document.base import Document
 from grunt.i18n import N_
+from grunt.query.query import Query
+from grunt.store import DELETE, Unavailable, VirtualStore
 from grunt.tasks.redis_introspect import (
     DEAD_CONSUMER_IDLE_MS,
     read_task_info,
@@ -22,7 +22,7 @@ from grunt.tasks.redis_introspect import (
 )
 
 
-class BackgroundWorker(BaseDocument):
+class BackgroundWorkerStore(VirtualStore):
     """Live view of the TaskIQ consumer group's members (``XINFO CONSUMERS``).
 
     Read-only except for ``delete``, which drops a dead consumer's
@@ -30,47 +30,18 @@ class BackgroundWorker(BaseDocument):
     crashed and left an idle entry behind.
     """
 
+    capabilities = frozenset({DELETE})
     not_supported_message = N_(
         "BackgroundWorker is a live view of the consumer group — it can't be created or edited"
     )
 
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "last_seen",
-        sort_order: str = "desc",
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
-        rows, reason = await cls._load_all()
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
+        rows, reason = await self._load_all()
+        if reason:
+            raise Unavailable(unavailable_message(reason))
+        return rows
 
-        if search:
-            rows = apply_search(rows, search, ["worker", "current_tasks"])
-        if filters:
-            rows = apply_filters(rows, filters)
-        rows = apply_sort(rows, sort_by, sort_order)
-
-        extra_meta = (
-            {"unavailable": True, "unavailable_message": unavailable_message(reason)}
-            if reason
-            else None
-        )
-        return build_response(rows, page, per_page, extra_meta=extra_meta)
-
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        rows, _reason = await self._load_all()
-        for row in rows:
-            if row["name"] == self.name:
-                self.data = row
-                return
-        raise not_found(_("“%(name)s” not found") % {"name": self.name})
-
-    async def db_delete(self) -> None:
+    async def delete(self, name: str, *, before: dict[str, Any]) -> None:
         sb = stream_broker()
         if sb is None:
             raise HTTPException(
@@ -81,7 +52,7 @@ class BackgroundWorker(BaseDocument):
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, detail=_("Redis unavailable")
                 )
-            await conn.xgroup_delconsumer(sb.queue_name, sb.consumer_group_name, str(self.name))
+            await conn.xgroup_delconsumer(sb.queue_name, sb.consumer_group_name, name)
 
     @staticmethod
     async def _load_all() -> tuple[list[dict[str, Any]], str | None]:
@@ -128,6 +99,10 @@ class BackgroundWorker(BaseDocument):
             return [], "unreachable"
 
         return rows, None
+
+
+class BackgroundWorker(Document):
+    store_class = BackgroundWorkerStore
 
 
 # Enough to see what a worker is busy with - one XRANGE per entry.

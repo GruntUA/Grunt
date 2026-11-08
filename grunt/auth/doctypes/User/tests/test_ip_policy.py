@@ -5,9 +5,9 @@ import pytest
 from httpx2 import AsyncClient
 from starlette.requests import Request
 
-from grunt.auth.doctypes.User.user import create_user
 from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
+from grunt.auth.users import create_user
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "root@grunt.example.com"

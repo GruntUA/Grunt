@@ -25,7 +25,7 @@ class MilestoneTracker(Document):
                 "VALIDATION_ERROR",
             )
         dt = meta.doc
-        if dt.is_child or dt.is_singleton or dt.is_virtual:
+        if dt.is_child or dt.is_singleton or not dt.has_table:
             grunt.throw(
                 _("Milestones cannot be tracked on “%(doctype)s”") % {"doctype": dt.name},
                 "VALIDATION_ERROR",

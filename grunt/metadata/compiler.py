@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from typing import Any
 
 from sqlalchemy import (
@@ -8,15 +9,16 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
+    Text,
     UniqueConstraint,
-    inspect,
-    text,
-    update,
 )
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import _, log
+from grunt import log
 from grunt.db.dialects import dialect_for
+from grunt.db.schema.apply import apply, check
+from grunt.db.schema.changes import Change
+from grunt.db.schema.diff import describe, diff, read_actual
 from grunt.db.types import UtcDateTime
 from grunt.metadata.field import NON_PHYSICAL_FIELDS, get_storage_class
 from grunt.utils.strings import to_snake_case
@@ -24,7 +26,7 @@ lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.registry import _resolve_site_key
 
 # SA MetaData for fixed-shape infrastructure tables that never vary by
-# DocType or by site (currently just MULTI_LINK_TABLE below). Kept as a
+# DocType or by site (MULTI_LINK_TABLE, OUTBOX_TABLE below). Kept as a
 # single shared MetaData/name since nothing here is ever tenant-specific.
 SA_METADATA = MetaData()
 
@@ -52,45 +54,6 @@ def get_compiled_metadata(site: str | None = None) -> MetaData:
 
     key = site or _resolve_site_key()
     return _SA_METADATA.setdefault(key, MetaData())
-
-
-class DuplicateDataError(Exception):
-    """Raised when a unique constraint cannot be added due to duplicate values.
-
-    Attributes:
-        table - physical table name
-        constraint - constraint/index name
-        columns - list of column names in the constraint
-        duplicates - list of {value, ids} dicts describing the offending rows
-    """
-
-    def __init__(
-        self,
-        table: str,
-        constraint: str,
-        columns: list[str],
-        duplicates: list[dict[str, object]],
-    ) -> None:
-        self.table = table
-        self.constraint = constraint
-        self.columns = columns
-        self.duplicates = duplicates
-        super().__init__(self._format())
-
-    def _format(self) -> str:
-        col_label = ", ".join(self.columns)
-        lines = [
-            _("Cannot add a unique constraint on “%(field)s”: duplicates found:")
-            % {"field": col_label}
-        ]
-        for dup in self.duplicates:
-            lines.append(
-                "  • "
-                + _("value %(value)s, records: %(ids)s")
-                % {"value": repr(dup["value"]), "ids": dup["ids"]}
-            )
-        lines.append(_("Fix the duplicates and try again."))
-        return "\n".join(lines)
 
 
 def invalidate_table_cache(doctype_name: str) -> None:
@@ -133,6 +96,28 @@ MULTI_LINK_TABLE = Table(
 )
 
 
+# Outbox - side effects written with the change they announce, delivered
+# after the commit (grunt.outbox).
+
+OUTBOX_TABLE = Table(
+    "grunt_core_outbox",
+    SA_METADATA,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    # Dotted path of the async function that delivers the message.
+    Column("handler", String(255), nullable=False),
+    Column("payload", JSON, nullable=False),
+    Column("attempts", Integer, nullable=False, default=0),
+    # Not before this - a retry waits out its backoff.
+    Column("due_at", UtcDateTime(), nullable=False),
+    # A delivery in progress holds the row until then (a crashed one lets go).
+    Column("claimed_until", UtcDateTime(), nullable=True),
+    Column("last_error", Text, nullable=True),
+    Column("created_at", UtcDateTime(), nullable=False),
+    Index("ix_grunt_core_outbox_due_at", "due_at"),
+    extend_existing=True,
+)
+
+
 # Helpers
 
 
@@ -141,45 +126,12 @@ def get_table_name(module: str, doctype_name: str) -> str:
     return f"grunt_{module}_{to_snake_case(doctype_name)}"
 
 
-# Type comparison helpers
-
-# Normalize DB-reported type names to canonical SA type names for comparison.
-_TYPE_ALIASES: dict[str, str] = {
-    "VARCHAR": "STRING",
-    "CHAR": "STRING",
-    "BIGINT": "INTEGER",
-    "SMALLINT": "INTEGER",
-    "TINYINT": "INTEGER",
-    # Postgres reflects DOUBLE PRECISION as DOUBLE_PRECISION. REAL / MySQL FLOAT are
-    # 4-byte and stay distinct so sync widens them to DOUBLE.
-    "DOUBLE_PRECISION": "DOUBLE",
-    "DOUBLE PRECISION": "DOUBLE",
-    "DECIMAL": "NUMERIC",
-    "TIMESTAMP": "DATETIME",
-}
-
-
-def _normalize_type(name: str) -> str:
-    return _TYPE_ALIASES.get(name.upper(), name.upper())
-
-
-def _type_changed(desired, current, dialect) -> bool:
-    """True if the desired SA type differs from the current DB type."""
-    desired_str = _normalize_type(desired.compile(dialect).upper().split("(")[0].strip())
-    current_str = _normalize_type(type(current).__name__)
-    return desired_str != current_str
-
-
-def _is_varchar_reduction(desired, current) -> bool:
-    """True if both are string types and the desired length is shorter than current."""
-    if not isinstance(desired, String):
-        return False
-    current_len = getattr(current, "length", None)
-    desired_len = getattr(desired, "length", None)
-    return bool(current_len and desired_len and desired_len < current_len)
-
-
 # Compiler
+
+
+#: Columns of every DocType table, and those a child table adds.
+STANDARD_COLUMNS = ("name", "owner", "created_at", "modified_at", "modified_by")
+CHILD_COLUMNS = ("parent_name", "parent_doctype", "parent_field", "idx")
 
 
 def compile_doctype_to_table(doctype: DocType) -> Table:
@@ -260,7 +212,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         col.nullable = True
         # Defaults are handled at the application level (the document pipeline),
         # not at the DB column level, to avoid SA compile issues. The static one
-        # is kept for _sync_columns: a column added to a table with rows gets it.
+        # is kept for the schema sync: a column added to a table with rows gets it.
         backfill = _backfill_default(field)
         if backfill is not None:
             col.info["backfill_default"] = backfill
@@ -310,191 +262,92 @@ def _backfill_default(field: Any) -> Any:
         return None
 
 
-def _sync_columns(insp: Any, connection: Any, table: Table) -> int:
-    """Add missing columns and ALTER type-changed ones (non-SQLite only).
-
-    A new column is added as NULL (safe on tables with rows), then existing
-    rows get the field's static default - what a new document would get - so
-    e.g. a new Check "enabled by default" on a settings singleton reads as on.
-    """
-    existing_col_map = {c["name"]: c["type"] for c in insp.get_columns(table.name)}
-    changes = 0
-
-    for col in table.columns:
-        if col.name not in existing_col_map:
-            col_type = col.type.compile(connection.dialect)
-            # Always add as NULL to avoid failures on tables with existing rows
-            connection.execute(
-                text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type} NULL')
-            )
-            log.info("compiler.column_added", table=table.name, column=col.name)
-            changes += 1
-            if "backfill_default" in col.info:
-                connection.execute(
-                    update(table)
-                    .where(col.is_(None))
-                    .values({col.name: col.info["backfill_default"]})
-                )
-
-        elif dialect_for(connection).can_alter_column_type and _type_changed(
-            col.type, existing_col_map[col.name], connection.dialect
-        ):
-            # Varchar reduction safety: skip if existing data would be truncated
-            if _is_varchar_reduction(col.type, existing_col_map[col.name]):
-                max_stored = (
-                    connection.execute(
-                        text(
-                            f'SELECT MAX(char_length("{col.name}")) FROM "{table.name}"'
-                            f' WHERE "{col.name}" IS NOT NULL'
-                        )
-                    ).scalar()
-                    or 0
-                )
-                col_length = getattr(col.type, "length", None)
-                if col_length is not None and max_stored > col_length:
-                    log.warning(
-                        "compiler.skip_varchar_reduction",
-                        table=table.name,
-                        column=col.name,
-                        current_max=max_stored,
-                        new_length=col_length,
-                    )
-                    continue
-
-            desired_type = col.type.compile(connection.dialect)
-            connection.execute(
-                text(f'ALTER TABLE "{table.name}" ALTER COLUMN "{col.name}" TYPE {desired_type}')
-            )
-            log.info(
-                "compiler.column_altered",
-                table=table.name,
-                column=col.name,
-                new_type=desired_type,
-            )
-            changes += 1
-    return changes
-
-
-def _sync_unique_constraints(insp: Any, connection: Any, table: Table) -> int:
-    """Add missing per-field unique indexes, drop stale ones (our naming prefix only)."""
-    # SQLite exposes unique indexes via get_indexes (not get_unique_constraints),
-    # so merge both sources for a complete picture.
-    existing_uq: set[str] = {ix["name"] for ix in insp.get_unique_constraints(table.name)}
-    unique_indexes = {ix["name"] for ix in insp.get_indexes(table.name) if ix.get("unique")}
-    existing_uq |= unique_indexes
-    desired_uq: dict[str, UniqueConstraint] = {
-        str(c.name): c for c in table.constraints if isinstance(c, UniqueConstraint) and c.name
-    }
-    uq_prefix = f"uq_{table.name}_"
+def plan_sync(
+    connection: Any, table: Table, *, drop_indexes: bool = False, keep: Collection[str] = ()
+) -> list[Change]:
+    """What :func:`sync_table` would change in *table* (a sync connection)."""
     dialect = dialect_for(connection)
-    changes = 0
-
-    for name, uq in desired_uq.items():
-        if name not in existing_uq:
-            uq_cols = [c.name for c in uq.columns]
-            cols_sql = ", ".join(f'"{c}"' for c in uq_cols)
-            # Partial index: uniqueness applies only to non-NULL, non-empty values.
-            # Empty strings are treated the same as NULL (not provided).
-            where_nonempty = " AND ".join(f'("{c}" IS NOT NULL AND "{c}" != \'\')' for c in uq_cols)
-
-            # Safety: raise with details if non-empty data has duplicates
-            concat_ids = dialect.group_concat_sql("name")
-            dup_rows = connection.execute(
-                text(
-                    f"SELECT {cols_sql}, {concat_ids} as ids, COUNT(*) as cnt "
-                    f'FROM "{table.name}" '
-                    f"WHERE {where_nonempty} "
-                    f"GROUP BY {cols_sql} HAVING COUNT(*) > 1"
-                )
-            ).fetchall()
-            if dup_rows:
-                duplicates = [
-                    {
-                        "value": row[0] if len(uq_cols) == 1 else tuple(row[: len(uq_cols)]),
-                        "ids": row[-2],  # group_concat(name)
-                    }
-                    for row in dup_rows
-                ]
-                raise DuplicateDataError(table.name, name, uq_cols, duplicates)
-
-            # Use a partial unique index for both dialects so that NULL and
-            # empty-string values are exempt from the uniqueness check.
-            connection.execute(
-                text(
-                    f'CREATE UNIQUE INDEX IF NOT EXISTS "{name}" '
-                    f'ON "{table.name}" ({cols_sql}) '
-                    f"WHERE {where_nonempty}"
-                )
-            )
-            log.info("compiler.unique_added", table=table.name, constraint=name)
-            changes += 1
-
-    # Drop stale per-field unique indexes (those with our naming prefix only)
-    inline: list[str] = []
-    for name in existing_uq:
-        if name and name.startswith(uq_prefix) and name not in desired_uq:
-            if not dialect.drop_unique_index(
-                connection, table.name, name, is_index=name in unique_indexes
-            ):
-                inline.append(name)
-                continue
-            log.info("compiler.unique_dropped", table=table.name, constraint=name)
-            changes += 1
-    if inline:
-        changes += dialect.drop_inline_unique(connection, table.name, sorted(inline))
-    return changes
+    return diff(
+        table,
+        read_actual(connection, table.name),
+        sa_dialect=connection.dialect,
+        can_alter_type=dialect.can_alter_column_type,
+        drop_indexes=drop_indexes,
+        keep=keep,
+        same_type=lambda desired, current: dialect.same_column_type(
+            desired, current, connection.dialect
+        ),
+    )
 
 
-def _sync_indexes(insp: Any, connection: Any, table: Table) -> int:
-    """Create indexes defined on *table* that don't exist yet in the DB."""
-    existing_indexes = {ix["name"] for ix in insp.get_indexes(table.name)}
-    changes = 0
-    for index in table.indexes:
-        if index.name and index.name not in existing_indexes:
-            index.create(connection)
-            log.info("compiler.index_created", table=table.name, index=index.name)
-            changes += 1
-    return changes
+def table_index_names(table: Table) -> set[str]:
+    """The names of *table*'s indexes and unique constraints - what another
+    DocType sharing the table needs kept (``keep``)."""
+    names = {str(ix.name) for ix in table.indexes if ix.name}
+    names |= {str(c.name) for c in table.constraints if isinstance(c, UniqueConstraint) and c.name}
+    return names
+
+
+async def preview_sync(
+    doctype: DocType,
+    async_engine: AsyncEngine | None = None,
+    *,
+    session: AsyncSession | None = None,
+    drop_indexes: bool = False,
+    keep: Collection[str] = (),
+) -> list[str]:
+    """:func:`sync_table`'s plan for *doctype*, as lines - nothing is changed.
+
+    Reads through *session*'s connection when given - a second connection would
+    wait for the session's own lock (SQLite)."""
+    if not doctype.has_table:
+        return []
+    table = compile_doctype_to_table(doctype)
+
+    def plan(c: Any) -> list[Change]:
+        return plan_sync(c, table, drop_indexes=drop_indexes, keep=keep)
+
+    if session is not None:
+        conn = await session.connection()
+        return describe(await conn.run_sync(plan))
+    if async_engine is None:
+        raise ValueError("preview_sync needs an engine or a session")
+    async with async_engine.connect() as conn:
+        return describe(await conn.run_sync(plan))
 
 
 async def sync_table(
     doctype: DocType,
     async_engine: AsyncEngine | None,
     session: AsyncSession | None = None,
+    *,
+    rebuild: bool = False,
+    drop_indexes: bool = False,
+    keep: Collection[str] = (),
 ) -> bool:
-    """Apply DocType changes to the physical database.
-
-    1. Compile DocType -> SA Table.
-    2. If the table does not exist - ``CREATE TABLE``.
-    3. If the table exists:
-       - Add missing columns (always as NULL).
-       - Alter columns whose type changed (with varchar-reduction safety check).
-       - Sync per-field unique constraints (add missing, drop stale).
-       - Add missing indexes.
-       Columns are **never** dropped.
+    """Bring the DocType's table in line with its definition (:mod:`grunt.db.schema`):
+    create it, add columns, change types, sync unique indexes, add indexes.
+    Columns are **never** dropped here. *rebuild* - also change column types
+    that need a table rebuild (SQLite); *drop_indexes* - also drop our indexes
+    the definition no longer has, except *keep* (another DocType on the same
+    table needs them) - ``grunt migrate`` passes both.
 
     Returns True if anything in the database was changed.
 
     When *session* is provided, uses its underlying connection instead of
     opening a new one (avoids SQLite "database is locked" errors).
     """
-    if doctype.is_virtual:
+    if not doctype.has_table:
         log.debug("compiler.skip_virtual", doctype=doctype.name)
         return False
 
     table = compile_doctype_to_table(doctype)
 
     def _sync(connection) -> bool:
-        insp = inspect(connection)
-        if not insp.has_table(table.name):
-            table.metadata.create_all(connection, tables=[table])
-            log.info("compiler.table_created", table=table.name)
-            return True
-
-        changes = _sync_columns(insp, connection, table)
-        changes += _sync_unique_constraints(insp, connection, table)
-        changes += _sync_indexes(insp, connection, table)
-        return changes > 0
+        dialect = dialect_for(connection)
+        planned = plan_sync(connection, table, drop_indexes=drop_indexes, keep=keep)
+        changes = check(connection, dialect, planned)
+        return apply(connection, dialect, changes, rebuild=rebuild) > 0
 
     if session is not None:
         conn = await session.connection()

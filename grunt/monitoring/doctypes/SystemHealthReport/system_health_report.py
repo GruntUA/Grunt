@@ -1,12 +1,13 @@
 from typing import Any
 
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import build_response
+from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.monitoring.health import skeleton
+from grunt.query.query import Query
+from grunt.store import VirtualStore
 
 
-class SystemHealthReport(BaseDocument):
+class SystemHealthReportStore(VirtualStore):
     """«Стан системи» - computed live on every open, nothing is stored (read-only).
 
     Opens at once on a skeleton: every section pending. The page's client
@@ -17,10 +18,13 @@ class SystemHealthReport(BaseDocument):
 
     not_supported_message = N_("The system health report is read-only")
 
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
-        self.data = {"name": self.doctype, **skeleton()}
-
-    @classmethod
-    async def get_list(cls, doctype: str, **kwargs: Any) -> DocumentList:
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
         # The single row, without running the checks - lists and counts only need the name.
-        return build_response([{"name": doctype}], 1, 1)
+        return [{"name": self.doctype}]
+
+    async def get(self, name: str, *, expand: list[str] | None = None) -> dict[str, Any] | None:
+        return {"name": self.doctype, **skeleton()}
+
+
+class SystemHealthReport(Document):
+    store_class = SystemHealthReportStore

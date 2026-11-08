@@ -3,7 +3,7 @@
   "label": "System Health",
   "module": "monitoring",
   "icon": "heart-pulse",
-  "is_virtual": true,
+  "storage": "virtual",
   "is_singleton": true,
   "track_changes": false,
   "track_activity": false,

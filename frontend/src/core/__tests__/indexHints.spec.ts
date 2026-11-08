@@ -63,7 +63,7 @@ describe('computeIndexHints', () => {
 
   it('returns no hints for a virtual doctype, even with an unindexed pair', () => {
     const hints = computeIndexHints(dt({
-      is_virtual: true,
+      storage: 'virtual',
       fields: [
         { fieldname: 'reference_doctype', label: 'Ref type', fieldtype: 'Link' },
         { fieldname: 'reference_id', label: 'Ref id', fieldtype: 'Data' },

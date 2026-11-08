@@ -189,7 +189,7 @@ async def test_magic_link_ignores_forged_origin(client, captured_mail):
 
 @pytest.mark.asyncio
 async def test_existing_user_signs_in_without_registration(client, captured_mail, ctx):
-    from grunt.auth.doctypes.User.user import create_user
+    from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await create_user("member@grunt.example.com", "Wh4tever", "Mem", "Ber", None)

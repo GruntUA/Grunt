@@ -66,6 +66,7 @@ has_permission = _app.has_permission
 
 notify = _app.notify
 publish = _app.publish
+enqueue = _app.enqueue
 enqueue_doc = _app.enqueue_doc
 render_template = _app.render_template
 
@@ -85,6 +86,7 @@ __all__ = [
     "db",
     "delete_doc",
     "doc_cache",
+    "enqueue",
     "enqueue_doc",
     "exists",
     "find_doc",

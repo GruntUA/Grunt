@@ -242,7 +242,7 @@ async def get_document_stats() -> dict[str, int]:
     total = 0
     counted = 0
     for dt in await doctype_registry.list_all():
-        if dt.is_child or dt.is_virtual or dt.is_singleton:
+        if dt.is_child or not dt.has_table or dt.is_singleton:
             continue
         if not dt.track_activity or dt.hide_from_activity_feed:
             continue

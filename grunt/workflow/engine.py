@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
+from grunt.db.commit import on_commit
 from grunt.events import fire as fire_hook
 from grunt.workflow.notify import notify_transition, previous_actor
 from grunt.workflow.registry import get_active_workflow
@@ -239,13 +240,15 @@ class WorkflowEngine:
         except Exception:
             log.exception("hook.on_transition_error")
 
-        with contextlib.suppress(Exception):
-            await manager.broadcast_doc(
-                active.doctype,
-                active.doc_id,
-                "workflow_transition",
-                {"action": active.action, "to_state": active.to_state},
-            )
+        doctype, doc_id = active.doctype, active.doc_id
+        data = {"action": active.action, "to_state": active.to_state}
+
+        async def announce() -> None:
+            with contextlib.suppress(Exception):
+                await manager.broadcast_doc(doctype, doc_id, "workflow_transition", data)
+
+        # After the commit - an open form reloads the document in its new state.
+        on_commit(announce)
 
     async def _log_activity(
         self,

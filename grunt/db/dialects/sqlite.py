@@ -9,7 +9,7 @@ from contextlib import closing, suppress
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Integer, String, Table, bindparam, cast, event, func, text
+from sqlalchemy import Integer, MetaData, String, Table, bindparam, cast, event, func, text
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
@@ -50,6 +50,28 @@ def register_sqlite_functions(dbapi_conn: Any) -> None:
     these, otherwise search behaves differently under test.
     """
     dbapi_conn.create_function("lower", 1, _unicode_lower, deterministic=True)
+
+
+def _storage(declared: str) -> str:
+    """TEXT, BLOB or NUMBER - the INTEGER, REAL and NUMERIC affinities store a
+    value the same way as far as comparing and sorting go."""
+    affinity = _affinity(declared)
+    return affinity if affinity in ("TEXT", "BLOB") else "NUMBER"
+
+
+def _affinity(declared: str) -> str:
+    """The type affinity SQLite gives a column declared as *declared*
+    (https://www.sqlite.org/datatype3.html#determination_of_column_affinity)."""
+    t = declared.upper()
+    if "INT" in t:
+        return "INTEGER"
+    if any(k in t for k in ("CHAR", "CLOB", "TEXT")):
+        return "TEXT"
+    if "BLOB" in t or not t.strip():
+        return "BLOB"
+    if any(k in t for k in ("REAL", "FLOA", "DOUB")):
+        return "REAL"
+    return "NUMERIC"
 
 
 class SqliteDialect(Dialect):
@@ -139,6 +161,24 @@ class SqliteDialect(Dialect):
     def group_concat_sql(self, expr: str) -> str:
         return f"GROUP_CONCAT({expr})"
 
+    def same_column_type(self, desired: Any, current: Any, sa_dialect: Any) -> bool:
+        """SQLite stores by type affinity, not by the declared type: VARCHAR(140)
+        and TEXT are both TEXT (the length is not enforced); FLOAT, DOUBLE and
+        NUMERIC(18, 2) all keep a fraction as an 8-byte REAL. What changes how
+        values compare and sort is text against number - only that rebuilds
+        the table."""
+        return _storage(desired.compile(sa_dialect)) == _storage(str(current))
+
+    def max_text_length(self, connection: Any, table_name: str, column: str) -> int:
+        q = self.quote
+        result = connection.execute(
+            text(
+                f"SELECT MAX(length({q(connection, column)})) FROM {q(connection, table_name)}"
+                f" WHERE {q(connection, column)} IS NOT NULL"
+            )
+        ).scalar()
+        return int(result or 0)
+
     # ── Schema ──────────────────────────────────────────────────────────────
 
     def drop_unique_index(
@@ -147,8 +187,50 @@ class SqliteDialect(Dialect):
         if not is_index:
             # Declared inline in CREATE TABLE - DROP INDEX can't reach it.
             return False
-        connection.execute(text(f'DROP INDEX IF EXISTS "{name}"'))
+        self.drop_index(connection, table_name, name)
         return True
+
+    def rebuild_column_types(self, connection: Any, table: Any, columns: list[str]) -> None:
+        """Give *columns* their compiled types: SQLite can't ALTER a type, so the
+        table is rebuilt - as the database has it (every column, even one no field
+        defines any more), with only those types changed; rows copied over (SQLite
+        converts by the new column's affinity), indexes and triggers recreated.
+        In a savepoint - on a failure nothing changes."""
+        name = table.name
+        actual = Table(name, MetaData(), autoload_with=connection)
+        tmp_name = f"{name}__rebuild"
+        tmp = actual.to_metadata(MetaData(), name=tmp_name)
+        tmp.indexes.clear()  # the originals come back by their own SQL below
+        for column in columns:
+            tmp.c[column].type = table.c[column].type
+        extras = (
+            connection.execute(
+                text(
+                    "SELECT sql FROM sqlite_master WHERE tbl_name = :t "
+                    "AND type IN ('index', 'trigger') AND sql IS NOT NULL"
+                ),
+                {"t": name},
+            )
+            .scalars()
+            .all()
+        )
+        q = self.quote
+        cols = ", ".join(q(connection, c.name) for c in actual.columns)
+        with connection.begin_nested():
+            tmp.create(connection)
+            connection.execute(
+                text(
+                    f"INSERT INTO {q(connection, tmp_name)} ({cols}) "
+                    f"SELECT {cols} FROM {q(connection, name)}"
+                )
+            )
+            connection.execute(text(f"DROP TABLE {q(connection, name)}"))
+            connection.execute(
+                text(f"ALTER TABLE {q(connection, tmp_name)} RENAME TO {q(connection, name)}")
+            )
+            for statement in extras:
+                connection.execute(text(statement))
+        log.info("schema.table_rebuilt", table=name, columns=columns)
 
     def drop_inline_unique(self, connection: Any, table_name: str, names: list[str]) -> int:
         """Drop named constraints declared inside SQLite's CREATE TABLE.

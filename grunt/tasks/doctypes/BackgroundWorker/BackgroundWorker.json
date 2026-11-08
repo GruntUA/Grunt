@@ -3,11 +3,12 @@
   "label": "Queue Workers",
   "module": "tasks",
   "icon": "cpu",
-  "is_virtual": true,
+  "storage": "virtual",
   "default_view": "list",
   "title_field": "worker",
   "sort_field": "last_seen",
   "sort_order": "desc",
+  "search_fields": ["current_tasks"],
   "description": "Background worker processes connected to the task queue — a live snapshot from Redis, nothing is stored in the DB. A running worker checks the queue every few seconds; one silent for over 10 minutes has most likely crashed or restarted under a new name, and can be deleted.",
   "fields": [
     {

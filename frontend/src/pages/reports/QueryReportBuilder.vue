@@ -141,12 +141,12 @@ onMounted(async () => {
 
 watch(selectedDoctype, async (name) => {
     if (!name) return
-    const dt = await metaApi.get(name)
-    fields.value = dt.fields
-    // Reset columns if doctype changed
-    if (columns.value.length === 0 || columns.value[0].doctype !== name) {
-        // keep columns if we are editing an existing report
-    }
+    // The fields a report on it can read for this user - its own and, through
+    // each Link, a readable target's (`customer.region`): grunt/reports/joins.py.
+    const readable = await reportsApi.fields(name)
+    // A later selection may have answered first - keep its fields.
+    if (selectedDoctype.value !== name) return
+    fields.value = readable
 })
 
 function addColumn(field: any) {

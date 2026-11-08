@@ -22,7 +22,9 @@ from grunt.local import require_user
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
 from grunt.search.terms import match_columns
-lazy from grunt.document.base import controller_class
+lazy from grunt.query import run
+lazy from grunt.query.query import Query
+lazy from grunt.store import SQL, Unavailable, supports
 
 
 async def _identifier_search(
@@ -117,19 +119,18 @@ class DocumentLinkRPCMixin:
             await permission_checker.require(user, dt.doc, "select")  # raises 403
             has_read = False
 
-        # Virtual DocType - delegate to its controller's get_list
-        if dt.is_virtual:
-            result = await controller_class(dt).get_list(
-                doctype,
-                session=grunt.get_session(),
-                user=user,
-                search=search,
-                page=1,
-                per_page=per_page,
-            )
+        # Not a table - the store's rows, searched like its list
+        if not supports(dt, SQL):
+            try:
+                rows = await run.fetch(
+                    Query(doctype, search=search or None, limit=per_page),
+                    ignore_permissions=True,
+                )
+            except Unavailable:
+                rows = []
             title_field = dt.title_field or "name"
             items = []
-            for row in result.get("data", []):
+            for row in rows:
                 name_val = str(row.get("name") or "")
                 title_val = str(row.get(title_field) or name_val)
                 items.append(

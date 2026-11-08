@@ -11,15 +11,15 @@ DocType no longer exists; rows whose document was deleted are hidden (as they
 are from lists).
 """
 
+from collections.abc import Collection
 from typing import Any
-
-from sqlalchemy import Table, select
 
 from grunt.query.nodes import Cmp, Empty, Expr, Linked, and_, or_
 lazy import grunt
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.permissions.query import read_predicate
 lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.store import store_for
 
 # (doctype field, id field) for a dynamic reference; (None, link field) for a Link.
 Source = tuple[str | None, str]
@@ -71,16 +71,18 @@ async def readable_predicate(user: User, parent_meta: Any) -> Expr | None:
     ``None`` when *user* can't read that DocType at all."""
     if not await permission_checker.check(user, parent_meta, "read"):
         return None
-    return await read_predicate(parent_meta.table, user, parent_meta)
+    return await read_predicate(user, parent_meta)
 
 
-async def reference_predicates(table: Table, user: User, doctype: Any) -> tuple[Expr, Expr] | None:
+async def reference_predicates(
+    columns: Collection[str], user: User, doctype: Any
+) -> tuple[Expr, Expr] | None:
     """``(points at nothing, points at a readable document)`` for list queries,
     or ``None`` when *doctype* doesn't inherit access."""
     sources = [
         (dt_field, id_field)
         for dt_field, id_field in reference_sources(doctype)
-        if id_field in table.c and (dt_field is None or dt_field in table.c)
+        if id_field in columns and (dt_field is None or dt_field in columns)
     ]
     if not sources:
         return None
@@ -97,8 +99,8 @@ async def reference_predicates(table: Table, user: User, doctype: Any) -> tuple[
                     readable.append(Linked(id_field, parent_meta.name, where))
             continue
         empty: list[Expr] = [Empty(dt_field), Empty(id_field)]
-        dt_col = table.c[dt_field]
-        referenced = (await grunt.get_session().execute(select(dt_col).distinct())).scalars().all()
+        meta = await grunt.get_meta(doctype.name)
+        referenced = await store_for(meta).distinct(dt_field) if meta is not None else []
         for ref_doctype in referenced:
             if not ref_doctype:
                 continue

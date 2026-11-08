@@ -25,6 +25,7 @@ from grunt.query.nodes import (
     MultiLink,
     Null,
     Or,
+    Raw,
     Year,
 )
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
@@ -105,6 +106,8 @@ def to_sql(
             return and_(*(sub(i) for i in items))
         case Or(items=items):
             return or_(*(sub(i) for i in items))
+        case Raw(clause=clause):
+            return clause
         case MultiLink():
             return _multilink(expr, table, doctype)
         case Linked(field=field, doctype=target_doctype, where=where, select=column, negate=negate):

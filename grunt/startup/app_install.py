@@ -274,7 +274,7 @@ async def _seed_app_singletons(app_name: str) -> None:
     """
 
     for dt in await doctype_registry.list_all():
-        if dt.app != app_name or not dt.is_singleton or dt.is_virtual:
+        if dt.app != app_name or not dt.is_singleton or not dt.has_table:
             continue
         if await grunt.db.count(dt.name) > 0:
             continue

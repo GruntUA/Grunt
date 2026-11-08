@@ -7,7 +7,7 @@ import grunt
 from grunt import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
 lazy from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
-lazy from grunt.auth.doctypes.User.user import get_user_by_id
+lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
 
 

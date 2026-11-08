@@ -1,16 +1,14 @@
 from typing import Any
 
-from fastapi import HTTPException, status
-
-from grunt import _
 from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
-from grunt.document.base import BaseDocument, DocumentList
-from grunt.document.in_memory import apply_search, apply_sort, build_response
+from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.monitoring.health import human_size
+from grunt.query.query import Query
 from grunt.site.manager import site_manager
 from grunt.storage.cloud.backups import load_state
+from grunt.store import DELETE, VirtualStore
 
 
 def _site() -> str:
@@ -33,43 +31,30 @@ def _row(site: str, backup: BackupSet, cloud: dict[str, dict[str, str]]) -> dict
     }
 
 
-class Backup(BaseDocument):
-    """The backup sets on disk - made by the scheduler or «Створити зараз».
+class BackupStore(VirtualStore):
+    """The backup sets on disk. Created only by the Create now button and never
+    changed: insert and update are left unsupported."""
 
-    Created only by the Create now button and never changed: insert and
-    update are left unsupported.
-    """
-
+    capabilities = frozenset({DELETE})
     not_supported_message = N_(
         "Backups are created with the Create now button and cannot be changed"
     )
 
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "name",
-        sort_order: str = "desc",
-        search: str | None = None,
-        **kwargs: Any,
-    ) -> DocumentList:
+    async def rows(self, query: Query) -> list[dict[str, Any]]:
         site = _site()
         cloud = load_state(site)
-        rows = [_row(site, b, cloud) for b in list_backups(site)]
-        if search:
-            rows = apply_search(rows, search, ["name"])
-        rows = apply_sort(rows, sort_by if sort_by != "modified_at" else "name", sort_order)
-        return build_response(rows, page, per_page)
+        return [_row(site, b, cloud) for b in list_backups(site)]
 
-    async def load_from_db(self, *, expand: list[str] | None = None) -> None:
+    async def get(self, name: str, *, expand: list[str] | None = None) -> dict[str, Any] | None:
         site = _site()
-        backup = get_backup(site, str(self.name))
-        if backup is None:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, _("Backup not found"))
-        self.data = _row(site, backup, load_state(site))
+        backup = get_backup(site, name)
+        return None if backup is None else _row(site, backup, load_state(site))
 
-    async def db_delete(self) -> None:
-        delete_backup(_site(), str(self.name))
+    async def delete(self, name: str, *, before: dict[str, Any]) -> None:
+        delete_backup(_site(), name)
+
+
+class Backup(Document):
+    """The backup sets on disk - made by the scheduler or «Створити зараз»."""
+
+    store_class = BackupStore

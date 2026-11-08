@@ -34,6 +34,7 @@ from grunt import _, log
 from grunt.db.dialects import dialect_for
 from grunt.document.registry import document_registry
 from grunt.search.terms import match_columns
+from grunt.store import SQL, supports
 lazy from grunt.document.base import Document
 lazy from grunt.query.sql import filter_expr, where
 
@@ -85,6 +86,11 @@ def _require_tree(dt: Any) -> str:
             status.HTTP_400_BAD_REQUEST,
             detail=_("DocType '%(name)s' is not a tree (is_tree=false or tree_view not configured)")
             % {"name": dt.name},
+        )
+    if not supports(dt, SQL):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail=_("“%(doctype)s” has no table to build a tree from") % {"doctype": dt.name},
         )
     return dt.tree_view.parent_field
 
@@ -339,7 +345,9 @@ class TreeService:
         # scoped only to the nodes already present in this subtree.
         tree_ids = [r["name"] for r in all_rows]
         filtered_q = select(table.c.name)
-        filtered_q = await where(filtered_q, filter_expr(filters, table, dt), table, dt and dt.name)
+        filtered_q = await where(
+            filtered_q, filter_expr(filters, table.c.keys(), dt), table, dt and dt.name
+        )
 
         if search:
             candidate_fields: list[str] = []

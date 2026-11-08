@@ -1,7 +1,10 @@
 """Outgoing Webhook service.
 
-Fires HTTP POST requests to registered webhook URLs when document events occur.
-Payload is signed with HMAC-SHA256 using the webhook secret (if configured).
+Sends HTTP POST requests to registered webhook URLs when document events occur -
+after the commit, through the outbox (:mod:`grunt.outbox`): the save doesn't wait
+on the remote server, a rollback sends nothing, a failed delivery is retried with
+a backoff. Every attempt is written to ``WebhookLog``. Payload is signed with
+HMAC-SHA256 using the webhook secret (if configured).
 
 The ``X-Grunt-Signature`` header contains: ``sha256=<hex_digest>``
 Recipients can verify it with their copy of the secret.
@@ -17,7 +20,7 @@ import httpx2
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
-from grunt import _, log
+from grunt import _, log, outbox
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.webhook.doctypes.OutgoingWebhook.outgoing_webhook import OutgoingWebhook
 
@@ -30,7 +33,8 @@ class WebhookService:
         doctype: str,
         doc: dict[str, Any],
     ) -> None:
-        """Load matching enabled webhooks and fire them concurrently (best-effort)."""
+        """Queue *event* for the matching enabled webhooks - one outbox message
+        each, delivered after the commit (:func:`deliver_webhook`)."""
         if await doctype_registry.get_or_none("OutgoingWebhook") is None:
             return
 
@@ -73,16 +77,10 @@ class WebhookService:
                     )
                     continue
 
-            await self._send_and_log(
+            await outbox.put(
+                deliver_webhook,
+                {"webhook": str(wh.get("name") or ""), "event": event, "body": payload_str},
                 session=session,
-                webhook_id=str(wh.get("name") or ""),
-                event=event,
-                url=str(wh["url"]),
-                payload=payload_str,
-                secret=wh.get("secret") or "",
-                extra_headers=wh.get("headers") or "",
-                timeout=int(wh.get("timeout") or 10),
-                is_test=False,
             )
 
     async def test_delivery(
@@ -196,3 +194,34 @@ class WebhookService:
 
 
 webhook_service = WebhookService()
+
+
+class WebhookDeliveryError(Exception):
+    """The remote end didn't take the webhook (no answer, or not a 2xx) - retried."""
+
+
+async def deliver_webhook(message: dict[str, Any]) -> None:
+    """Send one queued webhook (an outbox handler) with its current settings - a
+    webhook disabled or deleted since is skipped. The attempt is logged and
+    committed before a failure is raised, so a retry keeps the history."""
+    session = grunt.get_session()
+    rows = await grunt.db.get_all("OutgoingWebhook", filters={"name": message["webhook"]}, limit=1)
+    wh = rows[0] if rows else None
+    if wh is None or not wh.get("is_enabled"):
+        return
+    # No transaction open while the remote server answers.
+    await session.commit()
+    result = await webhook_service._send_and_log(
+        session=session,
+        webhook_id=message["webhook"],
+        event=message["event"],
+        url=str(wh["url"]),
+        payload=message["body"],
+        secret=wh.get("secret") or "",
+        extra_headers=wh.get("headers") or "",
+        timeout=int(wh.get("timeout") or 10),
+        is_test=False,
+    )
+    await session.commit()
+    if not result["success"]:
+        raise WebhookDeliveryError(result.get("error") or f"HTTP {result.get('status_code')}")

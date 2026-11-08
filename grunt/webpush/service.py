@@ -268,3 +268,11 @@ class WebPushService:
 
 
 webpush_service = WebPushService()
+
+
+async def deliver_push(message: dict[str, str]) -> None:
+    """Send a queued notification push (an outbox handler) - best-effort, as
+    :meth:`WebPushService.send_push`; a gone subscription is logged, not retried."""
+    await webpush_service.send_push(
+        message["user"], message["subject"], message["body"], url=message.get("url") or "/"
+    )

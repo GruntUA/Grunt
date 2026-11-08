@@ -12,6 +12,7 @@ from typing import Any
 
 from grunt.cache import bus
 from grunt.config import settings
+from grunt.db.commit import on_commit
 from grunt.document.base import DocumentList
 from grunt.site.manager import current_site
 lazy from grunt.utils.redis import shared
@@ -185,7 +186,7 @@ class QueryCache:
                 shared.failed("query_cache.redis_invalidate_failed", exc)
 
         await purge()
-        bus.after_commit(purge)
+        on_commit(purge)
 
     def subscribe(self) -> None:
         """Let the other processes' invalidations reach this cache's memory."""

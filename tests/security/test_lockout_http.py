@@ -5,7 +5,7 @@ be undone, leaving password and MFA guessing unlimited."""
 
 import pytest
 
-from grunt.auth.doctypes.User.user import create_user
+from grunt.auth.users import create_user
 
 M = "/api/v1/method/grunt.auth.doctypes.User.user"
 EMAIL = "lockme@grunt.example.com"
@@ -46,7 +46,7 @@ async def test_wrong_mfa_codes_lock_the_account(ctx, client):
 
     await _setup(ctx)
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
-        from grunt.auth.doctypes.User.user import get_user_by_email
+        from grunt.auth.users import get_user_by_email
 
         await ctx.db.set_value(
             "User", EMAIL, {"mfa_enabled": True, "mfa_secret": pyotp.random_base32()}

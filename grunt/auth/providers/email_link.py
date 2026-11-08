@@ -27,18 +27,18 @@ from typing import Any, ClassVar
 import grunt
 from grunt import _, log
 from grunt.api.messages import throw
-from grunt.auth.doctypes.User.user import (
-    User,
+from grunt.auth.doctypes.User.user import User
+from grunt.auth.login import find_or_create_external_user
+from grunt.auth.providers.base import AuthFlowContext, AuthProvider
+from grunt.auth.providers.registry import register
+from grunt.auth.service import create_challenge_token, verify_challenge_token
+from grunt.auth.users import (
     _apply_signup_approval,
     _guard_registration,
     get_user_by_email,
     is_account_locked,
     register_failed_attempt,
 )
-from grunt.auth.login import find_or_create_external_user
-from grunt.auth.providers.base import AuthFlowContext, AuthProvider
-from grunt.auth.providers.registry import register
-from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.config import settings
 from grunt.email.service import email_service
 

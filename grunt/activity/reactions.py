@@ -10,7 +10,7 @@ from typing import Any
 import grunt
 from grunt.permissions.guards import doc_guard
 from grunt.site.settings import get_setting
-lazy from grunt.auth.doctypes.User.user import get_users_by_emails
+lazy from grunt.auth.users import get_users_by_emails
 
 DEFAULT_REACTIONS = "👍 ✅ ❓ 🎉 👀"
 

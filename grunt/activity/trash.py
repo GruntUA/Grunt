@@ -1,6 +1,6 @@
 """Soft-delete snapshots - Ґрунтів кошик видалених документів.
 
-Коли документ видаляється, ядро (:class:`~grunt.document.mixins.write.DocumentWriteMixin`)
+Коли документ видаляється, ядро (:mod:`~grunt.document.mixins.lifecycle`)
 робить повний ``load_document`` знімок (скаляри + дочірні таблиці + MultiLink) і
 проганяє його через ``fire("after_delete", doc=existing, ...)``. Тут ми ловимо
 цей знімок і кладемо його у DocType ``DeletedDocument``, звідки документ можна
@@ -53,7 +53,7 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
 
     # Дочірні рядки їдуть у знімку батька; окремих табличних доктайпів,
     # віртуальних та інших журналів не чіпаємо.
-    if getattr(dt, "is_child", False) or getattr(dt, "is_virtual", False):
+    if getattr(dt, "is_child", False) or not getattr(dt, "has_table", True):
         return
     if getattr(dt, "is_log", False):
         return

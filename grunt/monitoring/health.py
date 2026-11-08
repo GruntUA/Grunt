@@ -123,7 +123,8 @@ async def largest_tables() -> list[Row]:
     tables = [
         (dt.name, table)
         for dt in await doctype_registry.list_all()
-        if not (dt.is_virtual or dt.is_singleton)
+        if dt.has_table
+        and not dt.is_singleton
         and (table := dt.table_name or get_table_name(dt.module, dt.name)) in existing
     ]
     # One UNION ALL per chunk instead of a count per DocType (SQLite caps a

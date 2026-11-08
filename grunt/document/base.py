@@ -1,9 +1,9 @@
-"""Base classes for DocType controllers.
+"""``Document`` - the base class of every DocType controller.
 
-``BaseDocument`` is a document with its lifecycle and no storage of its own -
-the base of a controller backed by an API, Redis or files (a virtual DocType).
-``Document`` is a ``BaseDocument`` stored in the DocType's table, the default
-for every DocType.
+A controller is the DocType's lifecycle hooks and business logic; where its
+documents live is the DocType's store (:mod:`grunt.store`) - the table by
+default, or the class a controller names in ``store_class`` (a
+:class:`~grunt.store.VirtualStore` for rows from an API, Redis or files).
 
 Field values live in ``self.data``; ``__getattr__``/``__setattr__`` route
 ``doc.amount`` to ``doc.data["amount"]``. Annotations on a subclass are only
@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import grunt
 from grunt import _, log
 from grunt.api.v1.ws import manager
+from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
 from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
@@ -27,14 +28,13 @@ from grunt.document.mixins.link_rpc import DocumentLinkRPCMixin
 from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
 from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
 from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
-from grunt.document.mixins.write import DocumentWriteMixin
 from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.local import require_engine, require_user
+from grunt.store import Store, store_for
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.document.collection import table_count, table_list
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
@@ -99,24 +99,46 @@ class DocumentList(list):
 class _ObjectsDescriptor:
     """``Document.objects`` - returns a QuerySet for the controller class."""
 
-    def __get__(self, instance: Any, owner: type[BaseDocument]) -> Any:
+    def __get__(self, instance: Any, owner: type[Document]) -> Any:
         return QuerySet(owner)
 
 
-class BaseDocument(DocumentLifecycleMixin):
-    """A document with its lifecycle hooks and no storage of its own.
+class Document(
+    DocumentTreeRPCMixin,
+    DocumentLinkRPCMixin,
+    DocumentExportRPCMixin,
+    DocumentHistoryRPCMixin,
+    DocumentCollaborationRPCMixin,
+    DocumentWorkflowRPCMixin,
+    DocumentMetaRPCMixin,
+    DocumentLifecycleMixin,
+):
+    """A document: its values in ``self.data``, its lifecycle hooks, and the
+    pipeline that stores it.
 
-    Subclass it for a DocType whose documents live somewhere else and override
-    the storage methods - see :mod:`grunt.document.mixins.lifecycle`::
+    Subclass it and override the lifecycle hooks below (all async, all optional)::
 
-        class Backup(BaseDocument):
-            @classmethod
-            async def get_list(cls, doctype, *, page=1, per_page=20, **kwargs):
-                return build_response(list_backups(), page, per_page)
+        class Invoice(Document):
+            amount: float
+            customer: str
 
-            async def load_from_db(self, *, expand=None):
-                self.data = get_backup(self.name)
+            async def validate(self) -> None:
+                if self.amount <= 0:
+                    grunt.throw("Сума повинна бути більше нуля")
+
+    A DocType whose documents aren't rows of its table names its store::
+
+        class BackupStore(VirtualStore):
+            async def rows(self, query):
+                return list_backups()
+
+        class Backup(Document):
+            store_class = BackupStore
     """
+
+    #: The store of the DocType's documents - ``None``: its table (nothing at
+    #: all for a virtual DocType).
+    store_class: ClassVar[type[Store] | None] = None
 
     objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
 
@@ -311,7 +333,7 @@ class BaseDocument(DocumentLifecycleMixin):
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
         user: User | None = None,
-    ) -> BaseDocument:
+    ) -> Document:
         """Load a document as an instance of its registered controller."""
         return await load_document(
             doctype, name, expand=expand, session=session, engine=engine, user=user
@@ -380,83 +402,7 @@ class BaseDocument(DocumentLifecycleMixin):
     def __repr__(self) -> str:
         return f"<{self.doctype} id={self.data.get('name', '?')!r}>"
 
-
-class Document(
-    DocumentWriteMixin,
-    DocumentTreeRPCMixin,
-    DocumentLinkRPCMixin,
-    DocumentExportRPCMixin,
-    DocumentHistoryRPCMixin,
-    DocumentCollaborationRPCMixin,
-    DocumentWorkflowRPCMixin,
-    DocumentMetaRPCMixin,
-    BaseDocument,
-):
-    """A document stored in its DocType's table - the default controller.
-
-    Subclass it and override the lifecycle hooks below (all async, all optional)::
-
-        class Invoice(Document):
-            amount: float
-            customer: str
-
-            async def validate(self) -> None:
-                if self.amount <= 0:
-                    grunt.throw("Сума повинна бути більше нуля")
-    """
-
-    # Lists
-
-    @classmethod
-    async def get_list(
-        cls,
-        doctype: str,
-        *,
-        session: AsyncSession,
-        user: User,
-        page: int = 1,
-        per_page: int = 20,
-        sort_by: str = "modified_at",
-        sort_order: str = "desc",
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-        fields: list[str] | None = None,
-        cursor: str | None = None,
-        include_total: bool = True,
-        **kwargs: Any,
-    ) -> DocumentList:
-        """A page of the documents *user* may see, read from the DocType's table."""
-
-        return await table_list(
-            session,
-            await _meta(doctype),
-            user,
-            page=page,
-            per_page=per_page,
-            sort_by=sort_by,
-            sort_order=sort_order,
-            filters=filters,
-            search=search,
-            fields=fields,
-            cursor=cursor,
-            include_total=include_total,
-        )
-
-    @classmethod
-    async def get_count(
-        cls,
-        doctype: str,
-        *,
-        session: AsyncSession,
-        user: User,
-        filters: dict[str, Any] | None = None,
-        search: str | None = None,
-    ) -> int:
-        """How many documents *user* may see, under the same rules as :meth:`get_list`."""
-
-        return await table_count(
-            session, await _meta(doctype), user, filters=filters, search=search
-        )
+    # Lists and trees of the table
 
     @classmethod
     async def list_filter_extra(
@@ -514,23 +460,9 @@ class Document(
         return children
 
 
-def controller_class(dt: Any) -> type[BaseDocument]:
-    """The controller of the DocType *dt*.
-
-    A virtual DocType without a controller of its own has no documents - it
-    gets ``BaseDocument``, not the table-backed default.
-    """
-    controller_cls = document_registry.get(dt.name)
-    if controller_cls is Document and dt.is_virtual:
-        return BaseDocument
-    return controller_cls
-
-
-def is_table_backed(dt: Any) -> bool:
-    """True when *dt*'s documents are rows of its table - its controller is a
-    ``Document`` - so table-only work (row lookups, batched DELETE, rename,
-    trees) applies; False for a controller that keeps them elsewhere."""
-    return issubclass(controller_class(dt), Document)
+def controller_class(dt: Any) -> type[Document]:
+    """The controller of the DocType *dt*."""
+    return document_registry.get(dt.name)
 
 
 async def new_document(
@@ -540,7 +472,7 @@ async def new_document(
     user: User | None = None,
     session: AsyncSession | None = None,
     engine: AsyncEngine | None = None,
-) -> BaseDocument:
+) -> Document:
     """An instance of *doctype*'s controller holding *data*, bound to the context."""
     doc = controller_class(await _meta(doctype))(
         doctype, data, user=user, session=session, engine=engine
@@ -557,10 +489,13 @@ async def load_document(
     session: AsyncSession | None = None,
     engine: AsyncEngine | None = None,
     user: User | None = None,
-) -> BaseDocument:
+) -> Document:
     """The stored document *name* as an instance of its controller.
 
-    A singleton needs no *name*. *expand* - see ``load_from_db``.
+    A singleton needs no *name*. *expand* - the child tables and MultiLink
+    fields to load: ``None`` - all, ``[]`` - the bare row (no read formulas
+    either: those can run queries of their own, e.g. a permission check
+    needs none of it).
     """
     dt = await _meta(doctype)
     doc = controller_class(dt)(
@@ -568,8 +503,13 @@ async def load_document(
     )
     doc._bind()
     doc._dt = dt
-    await doc.load_from_db(expand=expand)
-    if type(doc).on_load is not BaseDocument.on_load:
+    data = await store_for(dt, doc.session).get(name or doctype, expand=expand)
+    if data is None:
+        raise not_found(_("Document “%(name)s” not found") % {"name": name or dt.name})
+    if expand is None or any(expand):
+        await evaluate_read_formulas(dt.doc, data)
+    doc.data = data
+    if type(doc).on_load is not Document.on_load:
         await doc.on_load()
     doc.data = with_doctype(doctype, doc.data)
     return doc
