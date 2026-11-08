@@ -220,6 +220,7 @@ def test_migrate_dry_run_on_a_fresh_database(tmp_path, monkeypatch):
 
     from click.testing import CliRunner
 
+    import grunt.tasks.worker  # noqa: F401 - its startup hook boots the sites on broker.startup()
     from grunt.cli.db import db_migrate
     from grunt.db import write_intent
     from grunt.site.manager import site_manager

@@ -94,8 +94,11 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
         failed: list[str] = []
 
         try:
-            await broker.startup()
-            broker_started = True
+            # A dry run enqueues nothing - and an in-memory broker's startup boots
+            # the worker side, which brings the sites' schema up.
+            if not dry_run:
+                await broker.startup()
+                broker_started = True
 
             sites = [site] if site else site_manager.get_sites()
             if not sites:
