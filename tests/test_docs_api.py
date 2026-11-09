@@ -258,6 +258,43 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
 
 
 @pytest.mark.asyncio
+async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
+    """Regression: the list/count cache was keyed by the user's email alone - a
+    role taken away (or a rule tightened) kept serving the wider cached list
+    until the TTL ran out. The key now holds the roles and the row predicate."""
+    import grunt
+    from grunt.api.v1.meta import save_doctype
+    from tests.support import make_user
+
+    await save_doctype(
+        doctype_data={
+            "name": "CacheScopedItem",
+            "label": "Cache Scoped Item",
+            "module": "core",
+            "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+            "permissions": [
+                {"role": "Reader", "read": True},
+                {"role": "Own", "read": True, "match": "owner == user"},
+            ],
+            "__is_new": True,
+        }
+    )
+    await ctx.new_doc("CacheScopedItem", {"title": "Someone else's"})
+    await ctx.db._session().commit()
+    ctx.query_cache.clear()
+
+    async def seen(roles: list[str]) -> tuple[int, int]:
+        user = make_user("cache-reader@example.com", roles=roles)
+        async with grunt.context(db_session, engine, user):
+            rows = await grunt.get_list("CacheScopedItem", limit=10)
+            total = await grunt.count("CacheScopedItem", respect_permissions=True)
+        return len(rows), total
+
+    assert await seen(["Reader"]) == (1, 1)
+    assert await seen(["Own"]) == (0, 0)  # same user, narrower access: not the cached (1, 1)
+
+
+@pytest.mark.asyncio
 async def test_dev_query_cache_methods(ctx, setup_doctype):
     """Dev methods expose and clear query cache stats."""
     from grunt.api.v1.dev import clear_query_cache, get_query_cache_stats

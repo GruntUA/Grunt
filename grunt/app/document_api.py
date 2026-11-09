@@ -30,7 +30,9 @@ lazy from grunt.db import GruntDB
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
+lazy from grunt.permissions.query import read_predicate
 lazy from grunt.query import run
+lazy from grunt.query.nodes import linked_doctypes
 lazy from grunt.query.parse import FILTER_OPS
 lazy from grunt.store import AGGREGATE, SQL, supports
 lazy from grunt.store.sql import group_field, parse_aggregation
@@ -65,6 +67,22 @@ class DocumentAPI:
             ):
                 return False
         return True
+
+    @staticmethod
+    async def _access_key(dt: Any, user: Any) -> str | None:
+        """What the user may see of *dt*, as part of a query-cache key: their
+        roles (hidden fields) and their row predicate (``match``, User
+        Permissions). A change to either is a different key, so a revoked role
+        or tightened rule never serves the wider cached result.
+
+        ``None`` - not cacheable: the predicate reads other DocTypes (shares,
+        inherited or child access), whose changes don't invalidate this cache.
+        """
+        predicate = await read_predicate(user, dt)
+        if linked_doctypes(predicate):
+            return None
+        roles = sorted(getattr(user, "roles", None) or [])
+        return repr((roles, predicate))
 
     async def _invalidate_list_cache(
         self, doctype: str, names: str | list[str] | None = None
@@ -408,10 +426,16 @@ class DocumentAPI:
         cache_key: str | None = None
 
         # Keyset (cursor) pages are not cached - the cursor already scopes them.
-        if cache_eligible and cache is not None and cursor is None:
+        access = (
+            await self._access_key(dt, user)
+            if cache_eligible and cache is not None and cursor is None
+            else None
+        )
+        if access is not None and cache is not None:
             cache_key = cache.build_key(
                 doctype=doctype,
                 user_email=getattr(user, "email", ""),
+                access=access,
                 filters=filters,
                 fields=fields,
                 limit=limit,
@@ -596,9 +620,17 @@ class DocumentAPI:
         cache_key: str | None = None
         # A store outside SQL changes outside the pipeline - never cached.
         dt = await grunt.get_meta(doctype)
-        if settings.query_cache_enabled and cache is not None and dt and supports(dt, SQL):
+        access = (
+            await self._access_key(dt, user)
+            if settings.query_cache_enabled and cache is not None and dt and supports(dt, SQL)
+            else None
+        )
+        if access is not None and cache is not None:
             cache_key = cache.build_count_key(
-                doctype=doctype, user_email=getattr(user, "email", ""), filters=filters
+                doctype=doctype,
+                user_email=getattr(user, "email", ""),
+                access=access,
+                filters=filters,
             )
             cached = await cache.get_count(cache_key)
             if cached is not None:

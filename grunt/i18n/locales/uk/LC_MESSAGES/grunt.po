@@ -6920,8 +6920,12 @@ msgid "Marked point"
 msgstr "Позначена точка"
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Match condition (eval:)"
-msgstr "Умова відповідності (eval:)"
+msgid "Row condition"
+msgstr "Умова для рядків"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Which rows this rule covers: field == user, field != 'value' or link_field.field == user. Empty - all rows."
+msgstr "Які рядки охоплює це правило: field == user, field != 'value' або link_field.field == user. Порожньо — усі рядки."
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgid "Match only day and month - birthdays, work anniversaries"

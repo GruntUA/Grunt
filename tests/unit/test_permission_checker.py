@@ -89,14 +89,14 @@ async def test_match_owner_eq_user():
 
 
 @pytest.mark.asyncio
-async def test_match_eval_error_denies():
-    """Regression: a match expression that fails to evaluate must deny access
-    (fail closed), not silently grant it. Previously any exception inside
-    _eval_match (typo'd field, unsupported syntax, ...) returned True.
-    """
+async def test_match_on_unknown_field_denies():
+    """Regression: a match rule that can't be enforced must deny access (fail
+    closed), not silently grant it. Rules outside the grammar are refused when
+    saved (tests/contract/test_permissions.py); one naming a field the DocType
+    lacks grants no row."""
     user = make_user("user@example.com", roles=["Employee"])
     dt = _make_doctype_with_perms(
-        [{"role": "Employee", "read": True, "match": "doc.this_field_does_not_exist"}]
+        [{"role": "Employee", "read": True, "match": "this_field_does_not_exist == user"}]
     )
     doc = {"owner": "user@example.com"}
     assert not await permission_checker.check(user, dt, "read", doc)

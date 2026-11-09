@@ -133,52 +133,59 @@ class TestPermissionMatchToExpr:
         assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
 
 
-# ── PermissionMatch.evaluate ─────────────────────────────────────────────
+# ── A single document: the read predicate evaluated against its row ─────
 
 
-class TestPermissionMatchEvaluate:
-    def test_owner_eq_user_true(self):
-        m = PermissionMatch("owner == user")
-        assert m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+async def _opens(dt: DocType, doc: dict, user: User, columns=_COLUMNS) -> bool:
+    from grunt.permissions.rbac import permission_checker
 
-    def test_owner_eq_user_false(self):
-        m = PermissionMatch("owner == user")
-        assert not m.evaluate({"owner": "bob@example.com"}, _user("alice@example.com"))
+    meta = Meta(dt)
+    meta._columns = frozenset(columns)
+    return await permission_checker.check(user, meta, "read", doc)
 
-    def test_boolean_logic_supported(self):
-        """evaluate() supports full simpleeval syntax, wider than to_expr()'s
-        narrow "field == value" form — that's the whole point of having two
-        evaluation modes instead of forcing one.
-        """
-        m = PermissionMatch("owner == user and doc.get('status') == 'Open'")
-        doc = {"owner": "alice@example.com", "status": "Open"}
-        assert m.evaluate(doc, _user("alice@example.com"))
 
-    def test_eval_error_fails_closed(self):
-        """A broken/unsupported expression must deny, not grant."""
-        m = PermissionMatch("doc.this_field_does_not_exist")
-        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+@pytest.mark.asyncio
+class TestRowDecision:
+    async def test_owner_eq_user(self):
+        dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert await _opens(dt, {"owner": "alice@example.com"}, alice)
+        assert not await _opens(dt, {"owner": "bob@example.com"}, alice)
 
-    @pytest.mark.parametrize("expr", ["", "   "])
-    def test_empty_expression_denies(self, expr):
-        m = PermissionMatch(expr)
-        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+    async def test_rules_or_together(self):
+        dt = _doctype(
+            [
+                {"role": "Employee", "read": True, "match": "owner == user"},
+                {"role": "Employee", "read": True, "match": "status == 'Open'"},
+            ]
+        )
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert await _opens(dt, {"owner": "bob@example.com", "status": "Open"}, alice)
+        assert not await _opens(dt, {"owner": "bob@example.com", "status": "Closed"}, alice)
 
-    def test_field_named_user_is_not_shadowed_by_current_user_token(self):
-        """Regression: a field literally named `user` (the natural field
-        name for "who this row belongs to" on DocTypes like PushSubscription/
-        Notification) used to collide with the reserved `user` name meaning
-        "current user's email" in evaluate()'s simpleeval namespace — the
-        doc's own `user` field was never consulted, so "user == user" was
-        always True regardless of the document's actual owner.
-        """
-        m = PermissionMatch("user == user")
-        assert m.evaluate({"user": "alice@example.com"}, _user("alice@example.com"))
-        assert not m.evaluate({"user": "bob@example.com"}, _user("alice@example.com"))
+    async def test_field_named_user_is_not_shadowed_by_current_user_token(self):
+        """Regression: a field literally named `user` (PushSubscription,
+        Notification) once collided with the `user` token meaning "current
+        user's email" - "user == user" was always True. The predicate compares
+        the document's `user` column with the current user's email."""
+        dt = _doctype([{"role": "Employee", "read": True, "match": "user == user"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        columns = {*_COLUMNS, "user"}
+        assert await _opens(dt, {"user": "alice@example.com"}, alice, columns)
+        assert not await _opens(dt, {"user": "bob@example.com"}, alice, columns)
 
-    def test_narrow_form_denies_when_field_missing_from_doc(self):
-        m = PermissionMatch("status == 'Open'")
-        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+    async def test_field_missing_from_doc_denies(self):
+        """A field the row doesn't carry is NULL - no comparison holds."""
+        dt = _doctype([{"role": "Employee", "read": True, "match": "status == 'Open'"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert not await _opens(dt, {"owner": "alice@example.com"}, alice)
+
+    async def test_rule_on_unknown_field_denies(self):
+        """A rule on a field the DocType doesn't have can't be enforced - it
+        grants nothing, in a list and for one document alike."""
+        dt = _doctype([{"role": "Employee", "read": True, "match": "nonexistent == user"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert not await _opens(dt, {"owner": "alice@example.com"}, alice)
 
 
 # ── RoleAccess ───────────────────────────────────────────────────────────
@@ -274,9 +281,7 @@ class TestReadPredicate:
         be treated as unrestricted (return everything). It must instead
         exclude all rows for that rule rather than leak them.
         """
-        dt = _doctype(
-            [{"role": "Employee", "read": True, "match": "owner == user and status == 'Open'"}]
-        )
+        dt = _doctype([{"role": "Employee", "read": True, "match": "nonexistent == user"}])
         user = _user("alice@example.com", roles=["Employee"])
         assert await read_predicate(user, _meta(dt)) == FALSE
 
