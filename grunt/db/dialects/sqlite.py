@@ -127,7 +127,7 @@ class SqliteDialect(Dialect):
                 cursor.execute("PRAGMA temp_store=MEMORY")
                 # Planner statistics for tables that have none or have changed a
                 # lot (bounded work) - without them the planner guesses between
-                # indexes. The nightly maintenance_sql keeps them fresh.
+                # indexes. The nightly routine_maintenance keeps them fresh.
                 cursor.execute("PRAGMA optimize=0x10002")
                 cursor.close()
                 register_sqlite_functions(dbapi_conn)

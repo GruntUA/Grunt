@@ -254,12 +254,15 @@ _MAX_IDENTIFIER = 63
 
 
 def index_name(table_name: str, *columns: str) -> str:
-    """``ix_<table>_<columns>``, shortened with a hash past 63 characters."""
+    """``ix_<table>_<columns>``, shortened with a hash past 63 bytes."""
     name = f"ix_{table_name}_" + "_".join(columns)
-    if len(name) <= _MAX_IDENTIFIER:
+    if len(name.encode()) <= _MAX_IDENTIFIER:  # the limit is in bytes
         return name
     digest = hashlib.sha1(name.encode(), usedforsecurity=False).hexdigest()[:8]
-    return f"{name[: _MAX_IDENTIFIER - 9]}_{digest}"
+    head = name
+    while len(head.encode()) > _MAX_IDENTIFIER - 9:
+        head = head[:-1]
+    return f"{head}_{digest}"
 
 
 def _implicit_indexes(doctype: DocType, table_name: str, columns: list[Column]) -> list[Index]:
