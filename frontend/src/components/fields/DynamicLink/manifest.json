@@ -14,5 +14,8 @@
     "storage_class": "text",
     "emits": [
         "create-new"
+    ],
+    "traits": [
+        "dynamic_link"
     ]
 }

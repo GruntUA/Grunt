@@ -20,6 +20,7 @@ def test_scheduled_framework_tasks_are_registered():
         "grunt.email.tasks:process_email_queue",
         "grunt.email.tasks:send_notification_digest",
         "grunt.tasks.retention:purge_expired_documents",
+        "grunt.tasks.db_maintenance:run_maintenance",
         "grunt.tasks.todo_reminders:send_due_reminders",
     } <= names
 

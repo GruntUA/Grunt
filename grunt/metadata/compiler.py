@@ -1,3 +1,4 @@
+import hashlib
 from collections.abc import Collection
 from typing import Any
 
@@ -233,16 +234,71 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         if field.fieldname in _system_cols:
             continue
         if field.index and not field.unique:
-            constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
+            constraints.append(Index(index_name(table_name, field.fieldname), field.fieldname))
 
     # Composite indexes (doctype.indexes)
     for idx_fields in doctype.indexes:
-        idx_name = f"ix_{table_name}_" + "_".join(idx_fields)
-        constraints.append(Index(idx_name, *idx_fields))
+        constraints.append(Index(index_name(table_name, *idx_fields), *idx_fields))
+
+    constraints.extend(_implicit_indexes(doctype, table_name, columns))
 
     table = Table(table_name, metadata, *columns, *constraints, extend_existing=True)
     cache[doctype.name] = table
     return table
+
+
+#: PostgreSQL cuts identifiers at 63 bytes - silently, so a longer name would
+#: never match what the database reports and the index would be "added" again
+#: on every sync.
+_MAX_IDENTIFIER = 63
+
+
+def index_name(table_name: str, *columns: str) -> str:
+    """``ix_<table>_<columns>``, shortened with a hash past 63 characters."""
+    name = f"ix_{table_name}_" + "_".join(columns)
+    if len(name) <= _MAX_IDENTIFIER:
+        return name
+    digest = hashlib.sha1(name.encode(), usedforsecurity=False).hexdigest()[:8]
+    return f"{name[: _MAX_IDENTIFIER - 9]}_{digest}"
+
+
+def _implicit_indexes(doctype: DocType, table_name: str, columns: list[Column]) -> list[Index]:
+    """Indexes every DocType table gets without asking for them.
+
+    * each Link field - filters, permission matches, "connections" and the
+      document's own links all look rows up by it;
+    * ``modified_at`` - the default list order (``LIMIT 20`` over an index
+      instead of sorting the whole table);
+    * ``parent_name`` of a child table - every document load fetches its rows;
+    * ``(<doctype field>, <field>)`` for each DynamicLink.
+
+    Skipped when the primary key, a unique field or an explicit index already
+    starts with the column.
+    """
+    physical = {c.name for c in columns}
+    leading = {"name"}
+    leading |= {f.fieldname for f in doctype.fields if f.unique or f.index}
+    leading |= {cols[0] for cols in doctype.indexes if cols}
+
+    indexes: list[Index] = []
+    # A DynamicLink is looked up together with its DocType field - one
+    # (doctype, name) index serves both, a lone index on the DocType hardly helps.
+    explicit = {tuple(cols[:2]) for cols in doctype.indexes}
+    for f in doctype.fields:
+        if f.has_trait("dynamic_link") and f.fieldname in physical and f.options in physical:
+            pair = (f.options, f.fieldname)
+            if pair not in explicit:
+                indexes.append(Index(index_name(table_name, *pair), *pair))
+                explicit.add(pair)
+            leading.add(f.options)
+
+    wanted = ["parent_name" if doctype.is_child else "modified_at"]
+    wanted += [f.fieldname for f in doctype.fields if f.has_trait("link") and not f.is_virtual]
+    for col in dict.fromkeys(wanted):
+        if col in physical and col not in leading:
+            indexes.append(Index(index_name(table_name, col), col))
+            leading.add(col)
+    return indexes
 
 
 # Sync (create / alter)

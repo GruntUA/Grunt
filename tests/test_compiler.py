@@ -9,7 +9,9 @@ from grunt.metadata.compiler import (
     compile_doctype_to_table,
     get_compiled_metadata,
     get_table_name,
+    index_name,
     invalidate_table_cache,
+    plan_sync,
     sync_table,
 )
 from grunt.metadata.doctype import DocType
@@ -268,3 +270,101 @@ async def test_sqlite_inline_unique_dropped_by_table_rebuild(async_engine):
                     "VALUES ('c', 'x', 'U', 'r1')"
                 )
             )
+
+
+# ── Implicit indexes ─────────────────────────────────────────────────────
+
+
+def _index_columns(table) -> dict[str, tuple[str, ...]]:
+    return {str(ix.name): tuple(c.name for c in ix.columns) for ix in table.indexes}
+
+
+def test_link_fields_and_modified_at_are_indexed():
+    dt = DocType(
+        name="IxOrder",
+        label="Order",
+        module="test",
+        fields=[
+            DocField(fieldname="customer", label="Customer", fieldtype="Link", options="Customer"),
+            DocField(fieldname="title", label="Title", fieldtype="Data"),
+        ],
+    )
+    indexes = _index_columns(compile_doctype_to_table(dt))
+    assert indexes["ix_grunt_test_ix_order_customer"] == ("customer",)
+    assert indexes["ix_grunt_test_ix_order_modified_at"] == ("modified_at",)
+    assert not any("title" in cols for cols in indexes.values())
+
+
+def test_child_table_indexes_parent_name_not_modified_at():
+    dt = DocType(name="IxRow", label="Row", module="test", is_child=True, fields=[])
+    indexes = _index_columns(compile_doctype_to_table(dt))
+    assert ("parent_name",) in indexes.values()
+    assert ("modified_at",) not in indexes.values()
+
+
+def test_dynamic_link_gets_one_composite_index():
+    dt = DocType(
+        name="IxNote",
+        label="Note",
+        module="test",
+        fields=[
+            DocField(fieldname="ref_doctype", label="Type", fieldtype="Link", options="DocType"),
+            DocField(
+                fieldname="ref_name", label="Doc", fieldtype="DynamicLink", options="ref_doctype"
+            ),
+        ],
+    )
+    indexes = _index_columns(compile_doctype_to_table(dt))
+    assert indexes["ix_grunt_test_ix_note_ref_doctype_ref_name"] == ("ref_doctype", "ref_name")
+    # The composite already leads with ref_doctype - no lone index on it.
+    assert ("ref_doctype",) not in indexes.values()
+
+
+def test_already_indexed_columns_get_no_second_index():
+    dt = DocType(
+        name="IxDup",
+        label="Dup",
+        module="test",
+        indexes=[["owner_link", "title"]],
+        fields=[
+            DocField(fieldname="code", label="Code", fieldtype="Link", options="X", unique=True),
+            DocField(fieldname="owner_link", label="O", fieldtype="Link", options="User"),
+            DocField(fieldname="title", label="Title", fieldtype="Data"),
+            DocField(fieldname="virt", label="V", fieldtype="Link", options="X", is_virtual=True),
+        ],
+    )
+    indexes = _index_columns(compile_doctype_to_table(dt))
+    assert ("code",) not in indexes.values()
+    assert ("owner_link",) not in indexes.values()
+    assert ("owner_link", "title") in indexes.values()
+    assert not any("virt" in cols for cols in indexes.values())
+
+
+def test_index_name_fits_postgres_identifier_limit():
+    short = index_name("grunt_test_doc", "customer")
+    assert short == "ix_grunt_test_doc_customer"
+    long = index_name("grunt_inventory_crystal_finance_holding_history", "counterparty_account")
+    assert len(long) == 63
+    assert long.startswith("ix_grunt_inventory_crystal_finance_holding")
+    assert long != index_name(
+        "grunt_inventory_crystal_finance_holding_history", "counterparty_acc0"
+    )
+
+
+@pytest.mark.asyncio
+async def test_implicit_indexes_are_created_and_stable(async_engine):
+    dt = DocType(
+        name="IxSync",
+        label="Sync",
+        module="test",
+        fields=[DocField(fieldname="customer", label="C", fieldtype="Link", options="Customer")],
+    )
+    await sync_table(dt, async_engine)
+    async with async_engine.connect() as conn:
+        names = await conn.run_sync(
+            lambda c: {ix["name"] for ix in inspect(c).get_indexes("grunt_test_ix_sync")}
+        )
+        table = compile_doctype_to_table(dt)
+        again = await conn.run_sync(lambda c: plan_sync(c, table))
+    assert {"ix_grunt_test_ix_sync_customer", "ix_grunt_test_ix_sync_modified_at"} <= names
+    assert again == []

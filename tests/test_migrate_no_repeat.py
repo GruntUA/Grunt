@@ -109,3 +109,25 @@ async def test_fixture_conflict_keeps_earlier_session_work(ctx, db_session, engi
 
     assert await grunt.exists("NrConfig", {"name": "before"})
     assert not await grunt.exists("NrConfig", {"name": "clash"})
+
+
+@pytest.mark.asyncio
+async def test_inject_core_brings_index_changes_to_existing_sites(ctx, db_session, engine):
+    """An index added to a core DocType's JSON reaches a site that already
+    stores the DocType - it is schema the core relies on, not a customization."""
+    from grunt.metadata import store
+    from grunt.metadata.field import DocField
+    from grunt.metadata.registry import doctype_registry
+
+    fields = [DocField(fieldname="code", label="Code", fieldtype="Data")]
+    source = DocType(name="NrIdx", label="Nr Idx", module="test", fields=fields)
+    await doctype_registry.register(source, db_session, engine)
+    await db_session.commit()
+
+    updated = source.model_copy(deep=True, update={"indexes": [["code", "modified_at"]]})
+    updated.fields[0].index = True
+    await doctype_registry._inject_core(updated, db_session, sync_db=True)
+
+    stored = DocType.model_validate(await store.get_definition(db_session, "NrIdx"))
+    assert stored.indexes == [["code", "modified_at"]]
+    assert stored.fields[0].index is True

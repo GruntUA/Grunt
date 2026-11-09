@@ -7,6 +7,7 @@
   "table_name": "grunt_doc_version",
   "hide_from_activity_feed": true,
   "track_deletions": false,
+  "indexes": [["ref_doctype", "doc_id"]],
   "fields": [
     {
       "fieldname": "ref_doctype",

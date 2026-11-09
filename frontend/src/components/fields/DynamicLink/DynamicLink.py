@@ -5,6 +5,7 @@ class DynamicLinkField(FieldType):
     name = "DynamicLink"
     column_spec = ("String", 255)
     python_type = "str | None"
+    traits = frozenset({"dynamic_link"})
 
 
 def register():
