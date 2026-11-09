@@ -76,10 +76,14 @@ def _group_column(table: Any, entry: str, dialect: Dialect) -> tuple[Any, Any]:
     return col.label(entry), col
 
 
-async def _linked_search_columns(field: Any) -> tuple[Any, list[Any]] | None:
+async def _linked_search_columns(
+    field: Any, exclude: frozenset[str] = frozenset()
+) -> tuple[Any, list[Any]] | None:
     """The table a Link field points at and its identifying columns (``name``,
     title, search fields), so a search matches what the user sees, not the id.
-    ``None`` when the target can't be resolved - the raw column is matched then."""
+    ``None`` when the target can't be resolved - the raw column is matched then.
+    *exclude* - ``link_field.target_field`` names not to look in (hidden from
+    the user by the target DocType's rules)."""
     target = getattr(field, "options", None)
     linked_dt = await grunt.get_meta(target) if target else None
     if linked_dt is None:
@@ -88,7 +92,7 @@ async def _linked_search_columns(field: Any) -> tuple[Any, list[Any]] | None:
     cols = [linked_table.c.name]
     seen = {"name"}
     for fname in [linked_dt.title_field, *(linked_dt.search_fields or [])]:
-        if not fname or fname in seen:
+        if not fname or fname in seen or f"{field.fieldname}.{fname}" in exclude:
             continue
         col = linked_table.c.get(fname)
         if col is not None:
@@ -106,7 +110,8 @@ async def search_condition(
     found in some searched column (:mod:`grunt.search.terms`), so «Іван Петренко»
     finds first and last name kept in separate fields. A Link field is matched by
     the linked document's title/search fields - users type the name, not the id.
-    *exclude* - fields not to look in (hidden from the user).
+    *exclude* - fields not to look in (hidden from the user); for a Link field,
+    ``link_field.target_field`` names its target's columns.
     """
     dt = meta.doc
     direct_cols: list[Any] = [table.c.name]
@@ -121,7 +126,7 @@ async def search_condition(
             continue
         field = meta.get_field(fname)
         if field is not None and field.has_trait("link"):
-            resolved = await _linked_search_columns(field)
+            resolved = await _linked_search_columns(field, exclude)
             if resolved is not None:
                 link_targets.append((col, *resolved))
                 continue

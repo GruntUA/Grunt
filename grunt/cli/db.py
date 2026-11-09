@@ -245,6 +245,10 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             purged = await search_index_service.purge_excluded(session, all_dts)
                             if purged:
                                 click.echo(f"    search index: removed {purged} entries")
+                            # Entries built under other settings (a field hidden
+                            # since, a search field added) - rebuilt per DocType.
+                            for name in await search_index_service.refresh_stale(session, all_dts):
+                                click.echo(f"    search index: reindexed {name}")
 
                         if dry_run:
                             await session.rollback()

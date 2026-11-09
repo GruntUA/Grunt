@@ -52,8 +52,10 @@ async def _secured(
             raise forbidden(
                 _("Not permitted to use fields: %(fields)s") % {"fields": ", ".join(sorted(used))}
             )
-        if hidden and query.search:
-            query = replace(query, search_exclude=query.search_exclude | hidden)
+        if query.search:
+            excluded = hidden | await _hidden_behind_links(dt, user)
+            if excluded:
+                query = replace(query, search_exclude=query.search_exclude | excluded)
         query = query.narrowed(await read_predicate(user, dt))
     return store_for(dt, session), query, hidden
 
@@ -76,6 +78,8 @@ async def _hidden_used(query: Query, dt: Any, user: User, hidden: frozenset[str]
 
 
 async def _hidden_in(expr: Expr, dt: Any, user: User, hidden: frozenset[str]) -> set[str]:
+    """Fields of *expr* hidden from *user*; a ``Linked`` node's inner fields
+    against its target DocType's rules, reported as ``link_field.target_field``."""
     if isinstance(expr, (And, Or)):
         out: set[str] = set()
         for item in expr.items:
@@ -92,7 +96,23 @@ async def _hidden_in(expr: Expr, dt: Any, user: User, hidden: frozenset[str]) ->
     return out
 
 
+async def _hidden_behind_links(dt: Any, user: User) -> frozenset[str]:
+    """``link_field.target_field`` for every column the search box would read
+    through a Link (the target's title / search fields) that the target's
+    rules hide from *user*."""
+    out: set[str] = set()
+    for fname in {dt.title_field, *(dt.search_fields or [])} - {None, ""}:
+        field = dt.get_field(fname)
+        if field is None or not field.has_trait("link") or not field.options:
+            continue
+        target = await grunt.get_meta(field.options)
+        if target is not None:
+            out |= {f"{fname}.{f}" for f in RoleAccess(target, user).hidden_fields}
+    return frozenset(out)
+
+
 def _visible(rows: list[dict[str, Any]], hidden: frozenset[str]) -> list[dict[str, Any]]:
+    """*rows* without the *hidden* fields (in place)."""
     if hidden:
         for row in rows:
             for field in hidden:

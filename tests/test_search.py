@@ -702,6 +702,80 @@ async def test_switching_off_purges_existing_entries(ctx):
 
 
 @pytest.mark.asyncio
+async def test_hiding_a_field_rebuilds_the_index(ctx):
+    """A field hidden from a role leaves the shared index - entries built before
+    are rebuilt when the DocType is saved (its index signature changed)."""
+    from grunt.api.v1.meta import get_doctype, save_doctype
+    from grunt.api.v1.search import global_search
+
+    doctype = {
+        **SIMPLE_DOCTYPE,
+        "name": "Ховання",
+        "fields": [
+            *SIMPLE_DOCTYPE["fields"],
+            {"fieldname": "secret", "label": "Секрет", "fieldtype": "Data"},
+        ],
+    }
+    await create_and_sync(ctx, doctype)
+    await create_doc(ctx, "Ховання", {"name": "Х-1", "title": "Відкритий", "secret": "Таємниця"})
+    assert await global_search(q="Таємниця")
+
+    current = await get_doctype(name="Ховання")
+    rows = [*current["permissions"], {"role": "Clerk", "read": True, "hidden_fields": ["secret"]}]
+    await save_doctype(doctype_data={**current, "permissions": rows})
+    await ctx.db._session().commit()
+    assert not await global_search(q="Таємниця")
+    assert await global_search(q="Відкритий")
+
+
+@pytest.mark.asyncio
+async def test_migrate_rebuilds_entries_from_before_signatures(ctx):
+    """Entries indexed before signatures were kept may hold a hidden value;
+    ``refresh_stale`` (run by ``grunt migrate``) rebuilds them."""
+    from sqlalchemy import delete, select, update
+
+    from grunt.metadata.registry import doctype_registry
+    from grunt.search.service import (
+        _index_state_table,
+        _search_index_table,
+        search_index_service,
+    )
+
+    doctype = {
+        **SIMPLE_DOCTYPE,
+        "name": "Спадок",
+        "fields": [
+            *SIMPLE_DOCTYPE["fields"],
+            {"fieldname": "secret", "label": "Секрет", "fieldtype": "Data"},
+        ],
+        "permissions": [
+            *SIMPLE_DOCTYPE["permissions"],
+            {"role": "Clerk", "read": True, "hidden_fields": ["secret"]},
+        ],
+    }
+    await create_and_sync(ctx, doctype)
+    await create_doc(ctx, "Спадок", {"name": "С-1", "title": "Відкритий", "secret": "Таємниця"})
+    session = ctx.db._session()
+    # As an older version left it: the hidden value in the entry, no signature.
+    t = _search_index_table
+    await session.execute(
+        update(t).where(t.c.doctype == "Спадок").values(content_raw="Відкритий Таємниця")
+    )
+    await session.execute(
+        delete(_index_state_table).where(_index_state_table.c.doctype == "Спадок")
+    )
+
+    all_dts = await doctype_registry.list_all()
+    assert "Спадок" in await search_index_service.refresh_stale(session, all_dts)
+    content = (
+        await session.execute(select(t.c.content_raw).where(t.c.doctype == "Спадок"))
+    ).scalar_one()
+    assert "Таємниця" not in content
+    # Nothing changed since: the next migrate leaves it alone.
+    assert "Спадок" not in await search_index_service.refresh_stale(session, all_dts)
+
+
+@pytest.mark.asyncio
 async def test_global_search_respects_row_level_match(ctx, db_session, engine):
     """A match-scoped role sees only the rows it could open, not all titles."""
     import grunt

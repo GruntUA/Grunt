@@ -17,9 +17,13 @@ TEAM = {
     "label": "Fa Team",
     "module": "test",
     "autoname": "prompt",
-    "fields": [{"fieldname": "budget", "label": "Budget", "fieldtype": "Int"}],
+    "search_fields": ["code"],
+    "fields": [
+        {"fieldname": "budget", "label": "Budget", "fieldtype": "Int"},
+        {"fieldname": "code", "label": "Code", "fieldtype": "Data"},
+    ],
     "permissions": [
-        {"role": "Clerk", "read": True, "hidden_fields": ["budget"]},
+        {"role": "Clerk", "read": True, "hidden_fields": ["budget", "code"]},
         {"role": "Own", "read": True, "hidden_fields": ["budget"]},
         {"role": "Payroll", "read": True},
     ],
@@ -30,7 +34,7 @@ PERSON = {
     "label": "Fa Person",
     "module": "test",
     "autoname": "prompt",
-    "search_fields": ["note"],
+    "search_fields": ["note", "team"],
     "fields": [
         {"fieldname": "full_name", "label": "Full name", "fieldtype": "Data"},
         {"fieldname": "note", "label": "Note", "fieldtype": "Data", "in_global_search": True},
@@ -59,12 +63,13 @@ PAYROLL = make_user("payroll@x.com", roles=["Payroll"])
 
 @pytest_asyncio.fixture
 async def people(ctx):
+    """Two people (P1 owned by ``own@x.com``) in team T1."""
     from grunt.api.v1.meta import save_doctype, sync_doctype
 
     for dt in (TEAM, PERSON):
         await save_doctype(doctype_data={**dt, "__is_new": True})
         await sync_doctype(name=dt["name"])
-    await ctx.new_doc("FaTeam", {"name": "T1", "budget": 1000})
+    await ctx.new_doc("FaTeam", {"name": "T1", "budget": 1000, "code": "team-code"})
     await ctx.new_doc(
         "FaPerson",
         {
@@ -82,11 +87,13 @@ async def people(ctx):
 
 
 async def _as(ctx, db_session, engine, user, coro_fn):
+    """Run *coro_fn* as *user*."""
     async with ctx.context(db_session, engine, user):
         return await coro_fn()
 
 
 async def _forbidden(ctx, db_session, engine, user, coro_fn) -> bool:
+    """Whether *coro_fn* run as *user* is refused with 403."""
     try:
         await _as(ctx, db_session, engine, user, coro_fn)
     except HTTPException as exc:  # APIError is one too
@@ -173,6 +180,20 @@ async def test_aggregates_refuse_hidden_fields(ctx, people, db_session, engine):
 async def test_the_search_box_does_not_look_in_hidden_fields(ctx, people, db_session, engine):
     async def search():
         return await ctx.get_list("FaPerson", search="secret-word", limit=10)
+
+    assert await _as(ctx, db_session, engine, CLERK, search) == []
+    assert [r["name"] for r in await _as(ctx, db_session, engine, PAYROLL, search)] == ["P1"]
+
+
+@pytest.mark.asyncio
+async def test_the_search_box_does_not_look_through_a_link_into_hidden_fields(
+    ctx, people, db_session, engine
+):
+    """A Link field is searched by its target's title / search fields - not by
+    one the target's rules hide (``FaTeam.code`` from the clerk)."""
+
+    async def search():
+        return await ctx.get_list("FaPerson", search="team-code", limit=10)
 
     assert await _as(ctx, db_session, engine, CLERK, search) == []
     assert [r["name"] for r in await _as(ctx, db_session, engine, PAYROLL, search)] == ["P1"]

@@ -65,14 +65,17 @@ class Meta:
 
     @property
     def name(self) -> str:
+        """The DocType name."""
         return self.doc.name
 
     @property
     def permissions(self) -> list[DocPermission]:
+        """The DocType's permission rows."""
         return self.doc.permissions
 
     @property
     def fields(self) -> list[DocField]:
+        """The DocType's fields, layout ones included."""
         return self.doc.fields
 
     @property

@@ -718,6 +718,10 @@ class DocTypeRegistry:
         if not is_indexable(doctype) and (previous is None or is_indexable(previous)):
             # Switched out of the global search (in_global_search off, is_log on...).
             await search_index_service.remove_doctype(session, doctype.name)
+        elif is_indexable(doctype):
+            # A field hidden since, a search field changed: entries are rebuilt
+            # so none keeps what the DocType no longer allows.
+            await search_index_service.refresh_stale(session, [doctype])
         self._doctypes[doctype.name] = doctype
         self._index_add(doctype.name)
         bus.publish(_CHANGED, name=doctype.name)
