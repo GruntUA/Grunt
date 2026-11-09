@@ -71,6 +71,7 @@ def test_prunes_per_doctype_limit_and_unescapes(tmp_path: Path):
             sa.text("SELECT changes FROM grunt_doc_version WHERE name = 'Small-s1-v5'")
         ).scalar()
     engine.dispose()
+    assert isinstance(stored, str)
     assert "Привіт 5" in stored and "\\u" not in stored
 
 
