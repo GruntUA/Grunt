@@ -20,10 +20,12 @@ properties (status, ID, web page) come through here too, from
 ``method(doctype, doc_id, doc)`` is awaited with the already permission-checked
 document and returns the rows, or ``None``/``[]`` to hide the section. A row is
 ``{"label", "value", "link"?, "external"?, "indicator"?, "copy"?, "mono"?,
-"tooltip"?}``: ``link`` is a desk path or URL (``external`` opens a path in a
+"tooltip"?, "datetime"?}``: ``link`` is a desk path or URL (``external`` opens a path in a
 new tab - a website page, not a desk route), ``indicator`` one of the status
 colours (green, red, orange, yellow, blue, gray, success, danger, ...), ``copy``
-adds a copy-to-clipboard button, ``mono`` sets the value in a monospace font.
+adds a copy-to-clipboard button, ``mono`` sets the value in a monospace font,
+``datetime`` (ISO) adds that moment after the value, relative ("in 3 hours"),
+in the reader's language and time zone.
 
 ``placement="section"`` draws the rows under their own heading below the
 built-in blocks; ``"properties"`` merges them, without a heading, into the
@@ -45,7 +47,17 @@ lazy from grunt.website.generator import WEB_URL_KEY, with_web_url
 lazy from grunt.website.preview import PREVIEW_URL_KEY
 lazy from grunt.workflow.registry import get_active_workflow
 
-_ROW_KEYS = ("label", "value", "link", "external", "indicator", "copy", "mono", "tooltip")
+_ROW_KEYS = (
+    "label",
+    "value",
+    "link",
+    "external",
+    "indicator",
+    "copy",
+    "mono",
+    "tooltip",
+    "datetime",
+)
 
 Placement = Literal["properties", "section"]
 PLACEMENTS: tuple[Placement, ...] = ("properties", "section")

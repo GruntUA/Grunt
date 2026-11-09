@@ -159,6 +159,8 @@ export interface SidebarRow {
   /** Monospace value (ids, paths, codes). */
   mono?: boolean
   tooltip?: string
+  /** A moment (ISO) shown after the value, relative - «за 3 год», «2 дні тому»; exact in the tooltip. */
+  datetime?: string
 }
 
 export interface SidebarSection {
