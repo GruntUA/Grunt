@@ -15,6 +15,14 @@ export default defineConfig({
     // jsdom's implementation and resolves to `undefined` without --localstorage-file.
     // Disable it so the jsdom environment owns Web Storage.
     execArgv: ['--no-experimental-webstorage'],
+    server: {
+      deps: {
+        // @unovis/vue 1.8 re-exports directories of @unovis/ts
+        // (`export … from '@unovis/ts/components/annotations'`): Node's ESM loader
+        // rejects that, Vite resolves it - as in the browser build.
+        inline: [/@unovis\//],
+      },
+    },
   },
   resolve: {
     alias: {
