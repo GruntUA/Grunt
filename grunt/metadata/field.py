@@ -348,6 +348,9 @@ class DocField(BaseModel):
     required: bool = False
     unique: bool = False
     index: bool = False
+    # Changes of this field leave no version or activity entry - for values the
+    # system keeps up to date (sync status, last run, logs), not for user data.
+    no_history: bool = False
     read_only: bool = False
     hidden: bool = False
 

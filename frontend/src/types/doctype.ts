@@ -22,6 +22,7 @@ export interface DocType {
   storage?: 'sql' | 'virtual'
   is_tree?: boolean
   track_changes?: boolean
+  max_versions?: number
   track_seen?: boolean
   track_views?: boolean
   quick_entry?: boolean

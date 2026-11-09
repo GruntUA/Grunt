@@ -18,6 +18,7 @@ const FLAGS: { key: keyof DocField; label: string }[] = [
   { key: 'bold', label: 'Bold' },
   { key: 'unique', label: 'Unique' },
   { key: 'index', label: 'Index' },
+  { key: 'no_history', label: 'No history' },
 ]
 </script>
 

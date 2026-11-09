@@ -44,8 +44,15 @@ async def record_update_changes(
     result: dict[str, Any],
     user: User,
 ) -> None:
-    """Create a version record and write an ActivityLog diff (best-effort)."""
-    diff_changes = version_service._compute_diff(existing, result)
+    """Create a version record and write an ActivityLog diff (best-effort).
+
+    Fields marked ``no_history`` (values the system keeps up to date) are left
+    out of both - a save that changed only them leaves no trace.
+    """
+    quiet = {f.fieldname for f in dt.fields if f.no_history}
+    diff_changes = [
+        c for c in version_service._compute_diff(existing, result) if c["field"] not in quiet
+    ]
 
     if dt.track_changes and diff_changes:
         try:
@@ -56,6 +63,8 @@ async def record_update_changes(
                 old_doc=existing,
                 new_doc=result,
                 user=user.email,
+                skip=quiet,
+                keep=dt.max_versions,
             )
         except Exception:
             log.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
