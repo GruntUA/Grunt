@@ -260,9 +260,10 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
 @pytest.mark.asyncio
 async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
     """Regression: the list/count cache was keyed by the user's email alone - a
-    role taken away (or a rule tightened) kept serving the wider cached list
-    until the TTL ran out. The key now holds the roles and the row predicate."""
-    import grunt
+    role taken away (or a rule tightened) kept serving the wider cached result
+    until the TTL ran out. The key now holds the roles and the row predicate.
+
+    ``ctx`` is the ``grunt`` module (tests/conftest.py)."""
     from grunt.api.v1.meta import save_doctype
     from tests.support import make_user
 
@@ -271,27 +272,63 @@ async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
             "name": "CacheScopedItem",
             "label": "Cache Scoped Item",
             "module": "core",
-            "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+            "fields": [
+                {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+                {
+                    "fieldname": "assignee",
+                    "label": "Assignee",
+                    "fieldtype": "Link",
+                    "options": "User",
+                },
+            ],
             "permissions": [
                 {"role": "Reader", "read": True},
+                {"role": "Clerk", "read": True, "hidden_fields": ["title"]},
                 {"role": "Own", "read": True, "match": "owner == user"},
             ],
             "__is_new": True,
         }
     )
-    await ctx.new_doc("CacheScopedItem", {"title": "Someone else's"})
+    for email in ("cache-reader@example.com", "cache-other@example.com"):
+        await ctx.new_doc("User", {"email": email, "first_name": "Cache", "last_name": "User"})
+    await ctx.new_doc(
+        "CacheScopedItem", {"title": "Someone else's", "assignee": "cache-other@example.com"}
+    )
     await ctx.db._session().commit()
     ctx.query_cache.clear()
 
-    async def seen(roles: list[str]) -> tuple[int, int]:
+    async def seen(roles: list[str]) -> tuple[list[dict], int]:
         user = make_user("cache-reader@example.com", roles=roles)
-        async with grunt.context(db_session, engine, user):
-            rows = await grunt.get_list("CacheScopedItem", limit=10)
-            total = await grunt.count("CacheScopedItem", respect_permissions=True)
-        return len(rows), total
+        async with ctx.context(db_session, engine, user):
+            rows = await ctx.get_list("CacheScopedItem", fields=["name", "title"], limit=10)
+            total = await ctx.count("CacheScopedItem", respect_permissions=True)
+        return [dict(r) for r in rows], total
 
-    assert await seen(["Reader"]) == (1, 1)
-    assert await seen(["Own"]) == (0, 0)  # same user, narrower access: not the cached (1, 1)
+    # Both roles read every row with no row rule - their lists are cacheable,
+    # and are cached apart: the clerk never gets the reader's cached titles.
+    rows, total = await seen(["Reader"])
+    assert total == 1 and rows[0]["title"] == "Someone else's"
+    hits = ctx.query_cache.stats()["hits"]
+    assert (await seen(["Reader"]))[1] == 1
+    assert ctx.query_cache.stats()["hits"] > hits  # the same access does hit the cache
+    rows, total = await seen(["Clerk"])
+    assert total == 1 and "title" not in rows[0]
+
+    # Same user, same role, a User Permission added: the predicate changes and
+    # stays cacheable - the reader's cached list must not be served.
+    await ctx.new_doc(
+        "UserPermission",
+        {
+            "for_user": "cache-reader@example.com",
+            "allow": "User",
+            "for_value": "cache-reader@example.com",
+        },
+    )
+    await ctx.db._session().commit()
+    assert await seen(["Reader"]) == ([], 0)
+
+    # A row rule: the same user with narrower access gets nothing of the above.
+    assert await seen(["Own"]) == ([], 0)
 
 
 @pytest.mark.asyncio

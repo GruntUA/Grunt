@@ -273,6 +273,8 @@ async def test_a_document_opens_exactly_when_the_list_holds_it(
         "status == 5",
         "a.b.c == user",
         "owner == someone",
+        "status == 'Open' and owner == 'x'",
+        "status == 'a' or status == 'b'",
     ],
 )
 def test_unsupported_match_is_refused(rule):

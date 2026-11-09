@@ -143,11 +143,10 @@ def matches(expr: Expr, row: dict[str, Any]) -> bool:
 
 
 def _reads_db(expr: Expr) -> bool:
-    match expr:
-        case Linked():
-            return True
-        case And(items=items) | Or(items=items):
-            return any(_reads_db(i) for i in items)
+    if isinstance(expr, Linked):
+        return True
+    if isinstance(expr, (And, Or)):
+        return any(_reads_db(i) for i in expr.items)
     return False
 
 

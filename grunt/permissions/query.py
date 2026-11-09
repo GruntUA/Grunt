@@ -13,8 +13,7 @@ truth for "which rows may this user read / write / delete".
 from collections.abc import Collection, Mapping
 from typing import Any
 
-from grunt import log
-from grunt.local import _session_ctx
+from grunt.log import log
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.child import child_predicate, is_child
 from grunt.permissions.match import PermissionMatch
@@ -27,20 +26,12 @@ lazy import grunt
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
-lazy from grunt.metadata.permission import DocPermission
 lazy from grunt.query.query import Query
 lazy from grunt.store import store_for
 
 # Actions whose access can be inherited (child rows, comments, files): seeing
 # what a document holds, never changing it through someone else's rights.
 READ_ACTIONS = frozenset({"read", "select"})
-
-
-def grants(perm: DocPermission, action: str) -> bool:
-    """Whether a permission row grants *action* - ``read`` implies ``select``."""
-    if getattr(perm, action, False):
-        return True
-    return action == "select" and bool(getattr(perm, "read", False))
 
 
 async def read_predicate(user: User, meta: Meta) -> Expr:
@@ -83,7 +74,9 @@ async def row_allowed(user: User, meta: Meta, action: str, row: Mapping[str, Any
 async def _linked_exists(node: Linked, value: Any) -> bool:
     """Whether *node.doctype* has a row with ``node.select == value`` matching
     ``node.where`` - the per-row form of ``field IN (SELECT select ... WHERE where)``."""
-    if _session_ctx.get() is None:
+    try:
+        grunt.get_session()
+    except RuntimeError:
         log.warning("permissions.linked_without_session", doctype=node.doctype)
         return False
     target = await grunt.get_meta(node.doctype)
@@ -153,7 +146,7 @@ async def _own_predicates(
     action: str,
 ) -> list[Expr] | None:
     """The role rules granting *action*: ``None`` = unrestricted, ``[]`` = no rows."""
-    granting = [perm for perm in access.matching_permissions() if grants(perm, action)]
+    granting = [perm for perm in access.matching_permissions() if perm.grants(action)]
     if any(not getattr(perm, "match", None) for perm in granting):
         return None
     conditions: list[Expr] = []

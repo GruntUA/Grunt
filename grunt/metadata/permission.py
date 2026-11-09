@@ -25,9 +25,14 @@ MATCH_RE = re.compile(
 )
 
 
+# Exactly one quoted token - ``'Open' and owner == 'x'`` starts and ends with a
+# quote too, but is not a literal.
+_LITERAL_RE = re.compile(r"'[^']*'|\"[^\"]*\"")
+
+
 def is_literal(raw_value: str) -> bool:
-    """A quoted string literal (``'x'`` / ``"x"``)."""
-    return len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\""
+    """A single quoted string literal (``'x'`` / ``"x"``)."""
+    return _LITERAL_RE.fullmatch(raw_value) is not None
 
 
 def validate_match(expr: str | None) -> str | None:
@@ -65,6 +70,12 @@ class DocPermission(BaseModel):
     match: str | None = None
     # Fields hidden for this role (field names)
     hidden_fields: list[str] = []
+
+    def grants(self, action: str) -> bool:
+        """Whether this row grants *action* - ``read`` implies ``select``."""
+        if getattr(self, action, False) is True:
+            return True
+        return action == "select" and self.read
 
     @field_validator("match")
     @classmethod
