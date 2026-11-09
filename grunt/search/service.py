@@ -75,9 +75,18 @@ def is_indexable(dt: DocType) -> bool:
     return dt.has_table and not (dt.is_child or dt.is_log) and dt.in_global_search
 
 
+def hidden_somewhere(dt: DocType) -> frozenset[str]:
+    """Fields some permission rule hides. The global index is shared by every
+    reader, so such a field stays out of it - a match on it would reveal its
+    value to a user it is hidden from."""
+    return frozenset(f for perm in dt.permissions for f in (perm.hidden_fields or []))
+
+
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
-    """Return a whitespace-joined string of all searchable field values."""
+    """Return a whitespace-joined string of all searchable field values - fields
+    hidden from some role left out (:func:`hidden_somewhere`)."""
     parts: list[str] = []
+    hidden = hidden_somewhere(dt)
 
     # Always include name
     name = doc.get("name") or ""
@@ -86,13 +95,15 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
 
     # Title field
     title_field = dt.title_field or "name"
-    title = doc.get(title_field) or ""
+    title = "" if title_field in hidden else doc.get(title_field) or ""
     if title and str(title) not in parts:
         parts.append(str(title))
 
     # All other text-ish fields
 
     for field in Meta(dt).get_searchable_fields():
+        if field.fieldname in hidden:
+            continue
         val = doc.get(field.fieldname)
         if val is None or val is False or val == "":
             continue
@@ -150,6 +161,8 @@ class SearchIndexService:
             return
 
         title_field = dt.title_field or "name"
+        if title_field in hidden_somewhere(dt):
+            title_field = "name"  # results show the title to every reader
         row = {
             "idx_id": f"{doctype}:{doc_id}",
             "doctype": doctype,

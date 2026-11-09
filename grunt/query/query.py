@@ -55,8 +55,10 @@ class Query:
     field comes back as the list of linked names. ``after`` - the
     ``(sort value, name)`` of the last row of the previous page: rows after it
     in the ``sort`` order (``offset`` is then ignored). ``search`` - the list
-    search box text. ``group_by`` / ``aggregates`` (``(label, "sum(amount)")``) -
-    for :meth:`grunt.store.Store.aggregate` only.
+    search box text; ``search_exclude`` - fields the search box must not look in
+    (permission-hidden ones: a match on them would reveal their value).
+    ``group_by`` / ``aggregates`` (``(label, "sum(amount)")``) - for
+    :meth:`grunt.store.Store.aggregate` only.
     """
 
     doctype: str
@@ -67,6 +69,7 @@ class Query:
     offset: int = 0
     after: tuple[Any, str] | None = None
     search: str | None = None
+    search_exclude: frozenset[str] = frozenset()
     group_by: tuple[str, ...] = ()
     aggregates: tuple[tuple[str, str], ...] = ()
 

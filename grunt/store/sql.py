@@ -6,7 +6,6 @@ through :mod:`grunt.query.sql`, the order and keyset through the
 ``name`` by code points breaking ties - ``tests/contract``).
 """
 
-import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -14,9 +13,9 @@ from sqlalchemy import Select, and_, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
-from grunt.db.buckets import DATE_BUCKETS
 from grunt.db.dialects import Dialect, dialect_for
 from grunt.document.meta import Meta
+from grunt.query.aggregates import GROUP_FN_RE, parse_aggregation
 from grunt.query.compile_sql import typed_value
 from grunt.query.query import Query, Sort
 from grunt.query.sql import where
@@ -46,31 +45,9 @@ lazy from grunt.document.update_side_effects import delete_row_and_links
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # "sum(amount)" / "count()" - see parse_aggregation.
-_AGG_EXPR_RE = re.compile(r"^([a-z_]+)(?:\((.*)\))?$")
-# "month(created_at)" / "date(due)" - a group_by entry with a period bucket.
-GROUP_FN_RE = re.compile(rf"^(date|{'|'.join(DATE_BUCKETS)})\((.+)\)$", re.IGNORECASE)
 _AGG_FUNCS = {"sum": func.sum, "avg": func.avg, "min": func.min, "max": func.max}
 # Bound parameters per IN (...) when loading MultiLink values.
 _CHUNK = 500
-
-
-def parse_aggregation(expr: str) -> tuple[str, str | None]:
-    """An ``aggregates`` entry (``sum(amount)``, ``count()``) as (function, field).
-
-    The field is ``None`` for ``count()`` / ``count``. ``ValueError`` for anything
-    else than ``fn(field)`` / ``fn``.
-    """
-    m = _AGG_EXPR_RE.match(expr.strip().lower())
-    if not m:
-        raise ValueError(f"Invalid aggregation expression: {expr}")
-    fn_name, field = m.groups()
-    return fn_name, (field.strip() if field else None)
-
-
-def group_field(entry: str) -> str:
-    """The field a ``group_by`` entry reads (``month(posting_date)`` -> ``posting_date``)."""
-    m = GROUP_FN_RE.match(entry.strip())
-    return m.group(2).strip() if m else entry.strip()
 
 
 def _aggregate_column(table: Any, fn_name: str, field: str | None) -> Any:
@@ -120,20 +97,23 @@ async def _linked_search_columns(field: Any) -> tuple[Any, list[Any]] | None:
     return linked_table, cols
 
 
-async def search_condition(table: Any, meta: Meta, text: str, dialect: Dialect) -> Any | None:
+async def search_condition(
+    table: Any, meta: Meta, text: str, dialect: Dialect, exclude: frozenset[str] = frozenset()
+) -> Any | None:
     """The list search box as a condition, or ``None`` for no terms.
 
     Searched: ``name``, ``title_field`` and ``search_fields``. Every term must be
     found in some searched column (:mod:`grunt.search.terms`), so «Іван Петренко»
     finds first and last name kept in separate fields. A Link field is matched by
     the linked document's title/search fields - users type the name, not the id.
+    *exclude* - fields not to look in (hidden from the user).
     """
     dt = meta.doc
     direct_cols: list[Any] = [table.c.name]
     link_targets: list[tuple[Any, Any, list[Any]]] = []
     seen = {"name"}
     for fname in [dt.title_field, *(dt.search_fields or [])]:
-        if not fname or fname in seen:
+        if not fname or fname in seen or fname in exclude:
             continue
         seen.add(fname)
         col = table.c.get(fname)
@@ -182,7 +162,9 @@ class SqlStore(Store):
     async def _where(self, stmt: Select, query: Query) -> Select:
         stmt = await where(stmt, query.where, self.table, self.meta.name)
         if query.search:
-            condition = await search_condition(self.table, self.meta, query.search, self.dialect)
+            condition = await search_condition(
+                self.table, self.meta, query.search, self.dialect, query.search_exclude
+            )
             if condition is not None:
                 stmt = stmt.where(condition)
         return stmt
@@ -450,4 +432,4 @@ class SqlStore(Store):
         return [dict(r._mapping) for r in (await self.session.execute(stmt)).all()]
 
 
-__all__ = ["GROUP_FN_RE", "SqlStore", "group_field", "parse_aggregation", "search_condition"]
+__all__ = ["SqlStore", "search_condition"]

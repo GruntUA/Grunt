@@ -13,6 +13,7 @@ from grunt.metadata.compiler import (
     get_table_name,
 )
 from grunt.metadata.field import DocField, get_field_type_class, get_registered_fieldtypes
+from grunt.metadata.permission import DocPermission
 lazy from grunt.db.dialects import dialect_for
 lazy from grunt.db.schema import DropColumn, diff, read_actual
 lazy from grunt.db.schema.apply import apply
@@ -58,6 +59,21 @@ class Meta:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self.doc, name)
+
+    # Typed forms of the most used DocType properties (``__getattr__`` answers
+    # them too, untyped) - what the permission layer reads (``RoleAccess``).
+
+    @property
+    def name(self) -> str:
+        return self.doc.name
+
+    @property
+    def permissions(self) -> list[DocPermission]:
+        return self.doc.permissions
+
+    @property
+    def fields(self) -> list[DocField]:
+        return self.doc.fields
 
     @property
     def table_name(self) -> str:

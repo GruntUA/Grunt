@@ -14,6 +14,7 @@ from typing import Any
 
 import grunt
 from grunt import log
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.users import hash_password, verify_password
 from grunt.document.base import Document
@@ -246,7 +247,7 @@ class UserPublic(Schema):
 SYSTEM_USER = User(
     doctype="User",
     data={
-        "email": "system@grunt.local",
+        "email": SYSTEM_USER_EMAIL,
         "full_name": "System",
         "roles": ["System Manager"],
         "is_active": True,

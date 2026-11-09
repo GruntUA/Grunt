@@ -18,18 +18,46 @@ The one exception is the internal SYSTEM_USER identity (`grunt.system_context()`
 same as before. That's an unrelated, non-human concern from "how do people
 get admin rights" - it's what lets the framework itself write to doctypes
 (like ErrorLog) that intentionally grant no write access to any real role.
+
+The module depends on nothing above it: the user and the DocType are described
+by what it reads of them (:class:`Principal`, :class:`Target`), so every layer
+can ask it without an import cycle.
 """
 
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User
-lazy from grunt.document.meta import Meta
-lazy from grunt.metadata.doctype import DocType
-lazy from grunt.metadata.permission import DocPermission
+from collections.abc import Sequence
+from typing import Any, Protocol
+
+from grunt.auth.constants import SYSTEM_USER_EMAIL
+from grunt.metadata.permission import DocPermission
+
+
+class Principal(Protocol):
+    """Who asks - a ``User`` document, as permissions see it."""
+
+    @property
+    def email(self) -> str | None: ...
+
+    @property
+    def roles(self) -> Sequence[Any]: ...
+
+
+class Target(Protocol):
+    """What is asked about - a ``DocType`` model or its ``Meta``."""
+
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def permissions(self) -> Sequence[DocPermission]: ...
+
+    @property
+    def fields(self) -> Sequence[Any]: ...
 
 
 class RoleAccess:
     """Role-based access facts for *user* on *doctype*, computed once."""
 
-    def __init__(self, doctype: DocType | Meta, user: User) -> None:
+    def __init__(self, doctype: Target, user: Principal) -> None:
         self.doctype = doctype
         self.user = user
         self.user_roles: frozenset[str] = frozenset(getattr(user, "roles", []) or [])
@@ -66,11 +94,47 @@ class RoleAccess:
         return any(getattr(perm, "select", False) for perm in self.matching_permissions())
 
     @property
+    def hidden_fields(self) -> frozenset[str]:
+        """Field names the user may not see - nor write, filter, sort, group or
+        search by. A field is hidden only when *every* matching rule that grants
+        ``read`` hides it: any rule exposing it makes it visible. Empty when no
+        rule grants ``read`` (the read guard refuses then anyway)."""
+        if self.is_unrestricted:
+            return frozenset()
+        hidden: set[str] | None = None
+        for perm in self.matching_permissions():
+            if not getattr(perm, "read", False):
+                continue
+            rule = set(getattr(perm, "hidden_fields", None) or [])
+            hidden = rule if hidden is None else hidden & rule
+        return frozenset(hidden or ())
+
+    def hidden_changes(self, data: dict, existing: dict | None = None) -> set[str]:
+        """Hidden fields that writing *data* would change - over *existing*, or on
+        a new document past the field's default (a form may send defaults back).
+        The user can't set what they can't see."""
+        hidden = self.hidden_fields
+        changed: set[str] = set()
+        for field in hidden & data.keys():
+            value = data[field]
+            if existing is not None:
+                if value != existing.get(field):
+                    changed.add(field)
+                continue
+            if value in (None, "", []):
+                continue
+            meta_field = next((f for f in self.doctype.fields if f.fieldname == field), None)
+            default = getattr(meta_field, "default", None)
+            if default is None or str(value) != str(default):
+                changed.add(field)
+        return changed
+
+    @property
     def is_unrestricted(self) -> bool:
         """True only for the internal SYSTEM_USER identity - never for a human
         role, System Manager included (see module docstring)."""
 
-        return self.user is not None and getattr(self.user, "email", None) == SYSTEM_USER.email
+        return self.user is not None and getattr(self.user, "email", None) == SYSTEM_USER_EMAIL
 
     def matching_permissions(self) -> list[DocPermission]:
         """Permission rows whose role applies to this user (own roles, or "All").

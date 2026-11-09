@@ -78,33 +78,9 @@ class PermissionChecker:
         user: User,
         doctype: DocType | Meta,
     ) -> frozenset[str]:
-        """Return the set of field names the user is NOT allowed to see.
-
-        If no permissions are defined, returns empty set. For each matching
-        role permission, the union of hidden_fields from the *most permissive*
-        (first matching) rule is used - i.e., if any matching rule exposes a
-        field, it is visible.
-        """
-        access = RoleAccess(doctype, user)
-        if access.is_unrestricted:
-            return frozenset()
-
-        hidden: set[str] = set()
-        matched = False
-
-        for perm in access.matching_permissions():
-            read_ok = getattr(perm, "read", False)
-            if not read_ok:
-                continue
-            perm_hidden = getattr(perm, "hidden_fields", [])
-            if not matched:
-                hidden = set(perm_hidden)
-                matched = True
-            else:
-                # Intersect: a field is hidden only if ALL matching rules hide it
-                hidden &= set(perm_hidden)
-
-        return frozenset(hidden)
+        """The field names *user* may not see on *doctype* (see
+        :attr:`RoleAccess.hidden_fields`)."""
+        return RoleAccess(doctype, user).hidden_fields
 
 
 permission_checker = PermissionChecker()

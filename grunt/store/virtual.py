@@ -120,7 +120,7 @@ class VirtualStore(Store):
         expr = await resolve_linked(query.where)
         rows = [dict(r) for r in await self.rows(query) if matches(expr, r)]
         if query.search:
-            fields = self._search_fields()
+            fields = [f for f in self._search_fields() if f not in query.search_exclude]
             rows = [r for r in rows if matches_text(query.search, (r.get(f) for f in fields))]
         return rows
 

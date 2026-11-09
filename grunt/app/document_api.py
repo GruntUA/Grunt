@@ -19,6 +19,7 @@ from grunt.naming import naming_service
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
     apply_hidden_fields_to_rows,
+    doc_guard,
     read_guard,
     write_guard,
 )
@@ -32,10 +33,12 @@ lazy from grunt.document.base import Document, DocumentList, load_document, new_
 lazy from grunt.document.registry import document_registry
 lazy from grunt.permissions.query import read_predicate
 lazy from grunt.query import run
+lazy from grunt.query.aggregates import group_field, parse_aggregation
 lazy from grunt.query.nodes import linked_doctypes
 lazy from grunt.query.parse import FILTER_OPS
+lazy from grunt.query.query import Query
+lazy from grunt.query.sql import filter_expr
 lazy from grunt.store import AGGREGATE, SQL, supports
-lazy from grunt.store.sql import group_field, parse_aggregation
 lazy from grunt.workflow.registry import get_active_workflow
 
 
@@ -724,14 +727,21 @@ class DocumentAPI:
     ) -> str | None:
         """Return the document id if a matching record exists, otherwise ``None``.
 
-        Unlike ``grunt.db.exists``, this respects the current user's read permission::
+        Unlike ``grunt.db.exists``, this respects the current user's read
+        permission - row-level rules and hidden fields included::
 
             if await grunt.exists("Invoice", {"number": "INV-001", "status": "Unpaid"}):
                 ...
         """
-        _, user, _ = await read_guard(doctype)
+        dt, user, _hidden = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, filters=filters, method="exists")
-        exists = await self.db.exists(doctype, filters)
+        # The list's read path: row-level rules apply, a hidden field can't be
+        # probed by filtering on it.
+        query = Query(
+            dt.name, where=filter_expr(filters, dt.columns, dt), fields=("name",), limit=1
+        )
+        rows = await run.fetch(query, user=user)
+        exists = rows[0]["name"] if rows else None
         await fire(
             "after_read",
             doctype=doctype,
@@ -749,11 +759,20 @@ class DocumentAPI:
     ) -> Any:
         """Fetch a single field value from a document.
 
-        Checks read permission and raises ``403`` if the user has no access::
+        Checks read permission on that very document (role ``match`` rules,
+        shares, User Permissions) and raises ``403`` if the user has no access
+        or asks for a field hidden from them::
 
             status = await grunt.get_value("Invoice", invoice_id, "status")
         """
-        _, user, _ = await read_guard(doctype)
+        _dt, user, hidden = await read_guard(doctype)
+        await doc_guard(doctype, id_or_name, "read")
+        asked = {fieldname} if isinstance(fieldname, str) else set(fieldname)
+        if asked & hidden:
+            raise forbidden(
+                _("Not permitted to use fields: %(fields)s")
+                % {"fields": ", ".join(sorted(asked & hidden))}
+            )
         await fire(
             "before_read",
             doctype=doctype,
@@ -770,6 +789,8 @@ class DocumentAPI:
             data={"fieldname": fieldname, "value": value},
             method="get_value",
         )
+        if isinstance(value, dict):  # fieldname "*" - the whole row
+            value = apply_hidden_fields_to_doc(value, hidden)
         return value
 
     async def set_value(
@@ -781,7 +802,8 @@ class DocumentAPI:
     ) -> None:
         """Update one or more fields directly - lightweight, no lifecycle hooks.
 
-        Checks write permission then issues a single SQL UPDATE.
+        Checks write permission on that very document (and that no field hidden
+        from the user is set), then issues a single SQL UPDATE.
         Use :meth:`save_doc` when you need ``before_save``/``after_save`` hooks
         to run (e.g. validation, audit log)::
 
@@ -791,7 +813,15 @@ class DocumentAPI:
             # multiple fields at once
             await grunt.set_value("Invoice", invoice_id, {"status": "Paid", "paid_at": now})
         """
-        _, _, _ = await write_guard(doctype, "write")
+        dt, user, _session = await write_guard(doctype, "write")
+        await doc_guard(doctype, id_or_name, "write")
+        names = set(fieldname) if isinstance(fieldname, dict) else {fieldname}
+        hidden = names & permission_checker.hidden_fields(user, dt)
+        if hidden:
+            raise forbidden(
+                _("Not permitted to change fields: %(fields)s")
+                % {"fields": ", ".join(sorted(dt.get_label(f) for f in hidden))}
+            )
         await self.db.set_value(doctype, id_or_name, fieldname, value)
         await self._invalidate_list_cache(doctype, id_or_name)
 
