@@ -111,11 +111,24 @@ class SqliteDialect(Dialect):
             dbapi_conn.isolation_level = None
             with suppress(Exception):
                 cursor = dbapi_conn.cursor()
+                # Freed pages can go back to the OS (lazily, by the nightly
+                # incremental_vacuum - no full-file rewrite). Before
+                # journal_mode: switching to WAL writes the file header, after
+                # which auto_vacuum only changes with a full VACUUM.
+                cursor.execute("PRAGMA auto_vacuum=INCREMENTAL")
                 cursor.execute("PRAGMA journal_mode=WAL")
                 cursor.execute("PRAGMA synchronous=NORMAL")
-                # Automatically return freed pages to the OS over time
-                # (INCREMENTAL = pages freed lazily, no full-file rewrite)
-                cursor.execute("PRAGMA auto_vacuum=INCREMENTAL")
+                # The default page cache is 2 MB per connection - a database of
+                # hundreds of MB then rereads hot pages from the disk. 32 MB per
+                # connection, plus the file memory-mapped (that cache is the
+                # OS's, shared by every connection and worker process).
+                cursor.execute("PRAGMA cache_size=-32768")
+                cursor.execute("PRAGMA mmap_size=268435456")
+                cursor.execute("PRAGMA temp_store=MEMORY")
+                # Planner statistics for tables that have none or have changed a
+                # lot (bounded work) - without them the planner guesses between
+                # indexes. The nightly routine_maintenance keeps them fresh.
+                cursor.execute("PRAGMA optimize=0x10002")
                 cursor.close()
                 register_sqlite_functions(dbapi_conn)
 
@@ -311,6 +324,22 @@ class SqliteDialect(Dialect):
 
     async def server_version(self, session: Any) -> str:
         return str((await session.execute(text("select sqlite_version()"))).scalar())
+
+    async def routine_maintenance(self, engine: AsyncEngine) -> list[str]:
+        # optimize - ANALYZE of what changed enough since the last run (bounded
+        # by analysis_limit, so cheap); incremental_vacuum - the pages that
+        # auto_vacuum=INCREMENTAL only marks free, back to the file system. On
+        # the driver's own cursor and read to the end: incremental_vacuum frees
+        # one page per step, and SQLAlchemy steps a row-less PRAGMA only once.
+        statements = ["PRAGMA optimize", "PRAGMA incremental_vacuum"]
+        async with engine.connect() as conn:
+            raw = (await conn.get_raw_connection()).driver_connection
+            assert raw is not None  # a checked-out connection
+            for sql in statements:
+                cursor = await raw.execute(sql)
+                await cursor.fetchall()
+                await cursor.close()
+        return statements
 
     async def database_size(self, session: Any) -> int | None:
         path = session.bind.url.database
