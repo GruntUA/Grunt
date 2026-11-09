@@ -75,17 +75,17 @@ def test_controller_is_cached_until_the_file_changes(tmp_path):
 
 @pytest.mark.asyncio
 async def test_sitemap_lists_source_urls(ctx):
-    from grunt.website import sitemap
+    from grunt.website import router
 
     async def source():
         return ["/x/from-source", ("/x/dated", "2026-10-01T10:00:00")]
 
-    sitemap.register_sitemap_source(source)
+    router.register_sitemap_source(source)
     try:
-        entries = await sitemap.sitemap_entries()
+        entries = await router.sitemap_entries()
     finally:
-        sitemap._sitemap_sources.remove(source)
-    body = sitemap.render_sitemap("http://test", [*entries, "/x/from-source"])
+        router._sitemap_sources.remove(source)
+    body = router.render_sitemap("http://test", [*entries, "/x/from-source"])
     assert body.count("<loc>http://test/x/from-source</loc>") == 1
     assert "<loc>http://test/x/dated</loc><lastmod>2026-10-01</lastmod>" in body
     assert "/login<" not in body
