@@ -23,6 +23,7 @@ from grunt import _, log
 from grunt.config import settings
 from grunt.site.manager import site_manager
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
+from grunt.website.generator import app_mount, render_doc_page, sitemap_urls
 from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
 from grunt.website.spa import DIST_DIR, static_file
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
@@ -48,6 +49,18 @@ _SPA_ROUTES = (
 def _is_spa_path(path: str) -> bool:
     path = path.rstrip("/") or "/"
     return path == "/" or any(path == r or path.startswith(r + "/") for r in _SPA_ROUTES)
+
+
+def is_core_path(path: str) -> bool:
+    """Whether the catch-all serves *path* for the core whatever the host: a
+    Desk route (not ``/`` itself) or a root static file (built SPA, ``public/``)."""
+    if path.rstrip("/") and _is_spa_path(path):
+        return True
+    req_path = path.lstrip("/")
+    return bool(
+        (not settings.debug and static_file(DIST_DIR, req_path))
+        or static_file(_MAIN_PUBLIC_DIR, req_path)
+    )
 
 
 async def _legacy_workspace_url(request: Request, session) -> str | None:
@@ -76,6 +89,11 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
 
 
 def register_website_routes(app: FastAPI) -> None:
+    # <a href="{{ app_mount('opendata') }}/datasets"> - "" on the app's own domain
+    website_registry.add_global("app_mount", app_mount)
+    # Web view documents: after www/ pages, before the apps' page resolvers.
+    website_registry.doc_pages = render_doc_page
+    website_registry.doc_sitemap = sitemap_urls
     for page in website_registry.discover_app(_CORE_WEBSITE_DIR, "grunt", is_main_app=True):
         app.add_api_route(
             page.url_pattern,
