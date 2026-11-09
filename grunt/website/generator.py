@@ -62,7 +62,8 @@ ROUTE_FIELD = "route"
 # the generic field layout.
 _TECHNICAL_FIELDS = {ROUTE_FIELD}
 
-_template_envs: dict[Path, Environment] = {}
+# template dir -> (website_registry.templates_version it was built at, env)
+_template_envs: dict[Path, tuple[int, Environment]] = {}
 
 
 # URLs
@@ -198,16 +199,18 @@ async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | No
 def _template_env(app: str | None, template_dir: Path) -> Environment | None:
     """The app's www/ env, searching *template_dir* first."""
 
-    env = _template_envs.get(template_dir)
-    if env is None:
-        base = website_registry.get_env(app or "grunt") or website_registry.get_env("grunt")
-        if base is None:
-            return None
-        loaders: list[BaseLoader] = [FileSystemLoader(str(template_dir))]
-        if base.loader is not None:
-            loaders.append(base.loader)
-        env = base.overlay(loader=ChoiceLoader(loaders))
-        _template_envs[template_dir] = env
+    version = website_registry.templates_version
+    cached = _template_envs.get(template_dir)
+    if cached is not None and cached[0] == version:
+        return cached[1]
+    base = website_registry.get_env(app or "grunt") or website_registry.get_env("grunt")
+    if base is None:
+        return None
+    loaders: list[BaseLoader] = [FileSystemLoader(str(template_dir))]
+    if base.loader is not None:
+        loaders.append(base.loader)
+    env = base.overlay(loader=ChoiceLoader(loaders))
+    _template_envs[template_dir] = (version, env)
     return env
 
 

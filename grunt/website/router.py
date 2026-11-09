@@ -5,7 +5,7 @@ Website page rendering engine - Enhanced routing for Grunt apps.
 import importlib.util
 import inspect
 import re
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -26,7 +26,6 @@ lazy from grunt.i18n.jinja import install as install_i18n
 lazy from grunt.site.manager import site_manager
 lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.files import image_srcset, sized_url
-lazy from grunt.website.generator import _template_envs, render_doc_page, sitemap_urls
 lazy from grunt.website.preview import finish_preview, preview_reader
 lazy from grunt.website.spa import spa_assets
 
@@ -118,6 +117,15 @@ class WebsiteRegistry:
         self._pages: list[WebsitePage] = []
         # Jinja2 Environment per app name
         self._envs: dict[str, Environment] = {}
+        # Bumped when a template dir is added - envs derived from these
+        # (web view pages) rebuild instead of serving a stale template.
+        self.templates_version = 0
+        # Web view documents (grunt.website.generator), plugged in at startup
+        # (grunt.startup.website) - the router doesn't import the generator.
+        self.doc_pages: Callable[[Request, Any], Awaitable[Response | None]] | None = None
+        self.doc_sitemap: (
+            Callable[[Callable[[str | None], bool]], Awaitable[list[tuple[str, Any]]]] | None
+        ) = None
 
     def discover_app(
         self, app_dir: Path, app_name: str, is_main_app: bool = False
@@ -201,7 +209,7 @@ class WebsiteRegistry:
             if env.cache is not None:
                 env.cache.clear()
 
-        _template_envs.clear()
+        self.templates_version += 1
 
     def add_global(self, name: str, value: Any) -> None:
         """A Jinja global in every app's env (``website_menu`` of the CMS)."""
@@ -362,7 +370,8 @@ async def render_page_by_route(
     # 2. Documents of web-view DocTypes (grunt.website.generator)
 
     try:
-        response = await render_doc_page(request, session)
+        doc_pages = website_registry.doc_pages
+        response = await doc_pages(request, session) if doc_pages else None
     except HTTPException:
         raise
     except Exception as e:
@@ -462,7 +471,8 @@ async def sitemap_entries() -> list[SitemapEntry]:
     entries: list[SitemapEntry] = [
         p.url_pattern for p in website_registry.pages if p.in_sitemap and include(p.app)
     ]
-    entries.extend(await sitemap_urls(include))
+    if website_registry.doc_sitemap is not None:
+        entries.extend(await website_registry.doc_sitemap(include))
     for source in _sitemap_sources:
         if not include(getattr(source, "__module__", "").split(".")[0]):
             continue

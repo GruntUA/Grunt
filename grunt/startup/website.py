@@ -23,7 +23,7 @@ from grunt import _, log
 from grunt.config import settings
 from grunt.site.manager import site_manager
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
-from grunt.website.generator import app_mount
+from grunt.website.generator import app_mount, render_doc_page, sitemap_urls
 from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
 from grunt.website.spa import DIST_DIR, static_file
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
@@ -91,6 +91,9 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
 def register_website_routes(app: FastAPI) -> None:
     # <a href="{{ app_mount('opendata') }}/datasets"> - "" on the app's own domain
     website_registry.add_global("app_mount", app_mount)
+    # Web view documents: after www/ pages, before the apps' page resolvers.
+    website_registry.doc_pages = render_doc_page
+    website_registry.doc_sitemap = sitemap_urls
     for page in website_registry.discover_app(_CORE_WEBSITE_DIR, "grunt", is_main_app=True):
         app.add_api_route(
             page.url_pattern,
