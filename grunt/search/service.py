@@ -12,8 +12,15 @@ every term must match, each term matches as a word *prefix*
 
 The index is updated on every document save/delete through direct calls from
 the document pipeline (no hook overhead, always consistent).
+
+What an entry holds depends on the DocType's settings - its searchable fields,
+title field, and the fields some role hides (left out). ``grunt_search_index_state``
+keeps a signature of those settings per DocType; when it changes (a Studio edit,
+an app upgrade) that DocType is reindexed - :meth:`SearchIndexService.refresh_stale`.
 """
 
+import hashlib
+import json
 import re
 from itertools import islice
 from typing import Any
@@ -60,6 +67,16 @@ _search_index_table = Table(
 )
 _doctype_index = Index("grunt_search_idx_doctype", _search_index_table.c.doctype)
 
+# One row per indexed DocType: the signature of the settings its entries were
+# built with (see content_signature).
+_index_state_table = Table(
+    "grunt_search_index_state",
+    _INDEX_META,
+    Column("doctype", String(255), primary_key=True),
+    Column("signature", String(64), nullable=False),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now()),
+)
+
 _FULLTEXT = FullTextSpec(
     name="grunt_search",
     table=_search_index_table,
@@ -75,9 +92,29 @@ def is_indexable(dt: DocType) -> bool:
     return dt.has_table and not (dt.is_child or dt.is_log) and dt.in_global_search
 
 
+def hidden_somewhere(dt: DocType) -> frozenset[str]:
+    """Fields some permission rule hides. The global index is shared by every
+    reader, so such a field stays out of it - a match on it would reveal its
+    value to a user it is hidden from."""
+    return frozenset(f for perm in dt.permissions for f in (perm.hidden_fields or []))
+
+
+def content_signature(dt: DocType) -> str:
+    """A hash of the settings an index entry of *dt* is built from - entries
+    built under another signature may hold what the DocType no longer allows."""
+    payload = {
+        "title": dt.title_field or "name",
+        "fields": sorted(f.fieldname for f in Meta(dt).get_searchable_fields()),
+        "hidden": sorted(hidden_somewhere(dt)),
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+
 def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
-    """Return a whitespace-joined string of all searchable field values."""
+    """Return a whitespace-joined string of all searchable field values - fields
+    hidden from some role left out (:func:`hidden_somewhere`)."""
     parts: list[str] = []
+    hidden = hidden_somewhere(dt)
 
     # Always include name
     name = doc.get("name") or ""
@@ -86,13 +123,15 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
 
     # Title field
     title_field = dt.title_field or "name"
-    title = doc.get(title_field) or ""
+    title = "" if title_field in hidden else doc.get(title_field) or ""
     if title and str(title) not in parts:
         parts.append(str(title))
 
     # All other text-ish fields
 
     for field in Meta(dt).get_searchable_fields():
+        if field.fieldname in hidden:
+            continue
         val = doc.get(field.fieldname)
         if val is None or val is False or val == "":
             continue
@@ -105,6 +144,9 @@ def _build_content(dt: DocType, doc: dict[str, Any]) -> str:
 
 
 class SearchIndexService:
+    """The global search index: entries kept in step with documents, queried
+    through the database's full-text engine."""
+
     def __init__(self) -> None:
         self._fulltext_by_dialect: dict[Dialect, FullText] = {}
 
@@ -126,6 +168,7 @@ class SearchIndexService:
     async def empty(self, conn: Any) -> None:
         """Delete every index entry, the full-text engine's included (tests)."""
         await conn.execute(delete(_search_index_table))
+        await conn.execute(delete(_index_state_table))
         await self._fulltext(conn).clear(conn)
 
     async def drop_table(self, engine: AsyncEngine) -> None:
@@ -150,6 +193,8 @@ class SearchIndexService:
             return
 
         title_field = dt.title_field or "name"
+        if title_field in hidden_somewhere(dt):
+            title_field = "name"  # results show the title to every reader
         row = {
             "idx_id": f"{doctype}:{doc_id}",
             "doctype": doctype,
@@ -230,7 +275,54 @@ class SearchIndexService:
         removed = 0
         for name in [n for n in indexed if n not in keep]:
             removed += await self.remove_doctype(session, name)
+        state = _index_state_table
+        await session.execute(delete(state).where(state.c.doctype.not_in(keep)))
         return removed
+
+    async def refresh_stale(self, session: AsyncSession, doctypes: list[DocType]) -> list[str]:
+        """Reindex each indexable DocType whose entries were built under other
+        settings (:func:`content_signature`) - e.g. a field hidden from a role
+        since, whose values would otherwise stay searchable. Returns the names
+        reindexed.
+
+        A DocType with no recorded signature (entries from before signatures
+        were kept) is reindexed only if some field is hidden - otherwise its
+        entries are what they would be now, and the signature is just recorded.
+        """
+        state = _index_state_table
+        stored = dict((await session.execute(select(state.c.doctype, state.c.signature))).all())
+        reindexed: list[str] = []
+        for dt in doctypes:
+            if not is_indexable(dt):
+                continue
+            signature = content_signature(dt)
+            known = stored.get(dt.name)
+            if known == signature:
+                continue
+            if known is not None or hidden_somewhere(dt):
+                await self.reindex_doctype(session, dt)
+                reindexed.append(dt.name)
+            else:
+                await self._record(session, dt.name, signature)
+        return reindexed
+
+    async def reindex_doctype(self, session: AsyncSession, dt: DocType) -> int:
+        """Rebuild every entry of *dt* from its table. Returns the count."""
+        await self.remove_doctype(session, dt.name)
+        count = 0
+        if is_indexable(dt):
+            table = compile_doctype_to_table(dt)
+            for row in (await session.execute(select(table))).fetchall():
+                await self.index_document(session, dt.name, dt, dict(row._mapping))
+                count += 1
+            await self._record(session, dt.name, content_signature(dt))
+        log.info("search_index.doctype_reindexed", doctype=dt.name, count=count)
+        return count
+
+    async def _record(self, session: AsyncSession, doctype: str, signature: str) -> None:
+        """Remember that *doctype*'s entries are built under *signature*."""
+        row = {"doctype": doctype, "signature": signature, "updated_at": func.now()}
+        await session.execute(dialect_for(session).upsert(_index_state_table, row, ["doctype"]))
 
     async def search(
         self,
@@ -279,6 +371,7 @@ class SearchIndexService:
     ) -> int:
         """Rebuild the entire search index from all DocType tables. Returns count."""
         await session.execute(delete(_search_index_table))
+        await session.execute(delete(_index_state_table))
         await self._fulltext(session).clear(session)
 
         count = 0
@@ -293,6 +386,7 @@ class SearchIndexService:
                     doc = dict(row._mapping)
                     await self.index_document(session, dt.name, dt, doc)
                     count += 1
+                await self._record(session, dt.name, content_signature(dt))
             except Exception:
                 log.warning("search_index.reindex_doctype_failed", doctype=dt.name)
 

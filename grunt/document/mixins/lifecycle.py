@@ -161,6 +161,20 @@ class DocumentLifecycleMixin:
             raise e.to_api_error() from e
 
     @staticmethod
+    def _refuse_hidden_writes(
+        dt: Any, user: User, data: dict[str, Any], existing: dict[str, Any] | None = None
+    ) -> None:
+        """403 when *data* sets a field hidden from *user* - read-hidden means
+        write-hidden too, or a hidden value could be overwritten blind."""
+        changed = RoleAccess(dt, user).hidden_changes(data, existing)
+        if changed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=_("Not permitted to change fields: %(fields)s")
+                % {"fields": ", ".join(sorted(dt.get_label(f) for f in changed))},
+            )
+
+    @staticmethod
     async def _require_user_permissions(dt: Any, row: dict[str, Any], user: User) -> None:
         """403 when the values being written fall outside *user*'s User
         Permissions - the role check alone only looks at the stored row, so
@@ -279,6 +293,8 @@ class DocumentLifecycleMixin:
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
+        self._refuse_hidden_writes(dt, user, data)
+
         # A comment / tag / attachment may only be added to a readable document.
         if (
             not RoleAccess(dt, user).is_unrestricted
@@ -379,6 +395,7 @@ class DocumentLifecycleMixin:
         data = dict(data)
         auto_transition = await check_update(self.doctype, existing, data, user)
         await check_write("update", self.doctype, existing, data, user)
+        self._refuse_hidden_writes(dt, user, data, existing)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)

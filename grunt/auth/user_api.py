@@ -459,7 +459,9 @@ async def set_user_password_api(
             grunt.throw(_("The current password is incorrect"), "PERMISSION_DENIED")
 
     await enforce_password_policy(new_password)
-    await grunt.set_value("User", user.id, "hashed_password", await hash_password(new_password))
+    # Authorised above (self + current password, or an admin): the hash is a
+    # field hidden from its owner, so it is written past the field rules.
+    await grunt.db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
     return True
 
 

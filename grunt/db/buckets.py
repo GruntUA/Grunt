@@ -1,14 +1,12 @@
 """Date buckets - group a date/datetime column by day, month, quarter or year.
 
-The SQL lives on the dialect (``Dialect.date_bucket``); this module keeps the
-bucket names and a by-name helper.
+The SQL lives on the dialect (``Dialect.date_bucket``); this module keeps a
+by-name helper. The bucket names are query syntax - ``grunt.query.aggregates``.
 """
 
 from typing import Any
 
 from grunt.db.dialects import dialect_for
-
-DATE_BUCKETS = ("day", "month", "quarter", "year")
 
 
 def date_bucket(column: Any, bucket: str, dialect: Any) -> Any:

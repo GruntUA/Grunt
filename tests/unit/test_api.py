@@ -311,29 +311,34 @@ class TestGruntAppLayerPermissions:
             mock_db_get_value.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_exists_requires_permission_and_calls_db(self, setup_context):
-        """grunt.exists must enforce read permission and use low-level db method."""
+    async def test_exists_runs_the_read_path_as_the_user(self, setup_context):
+        """grunt.exists enforces read permission and runs through ``run.fetch`` as
+        the current user - row-level rules and hidden fields apply there (the
+        raw ``grunt.db.exists`` would answer for rows the user can't read)."""
         dt = Mock()
         dt.name = "Invoice"
-        dt.permissions = []
-        dt.fields = []
+        dt.columns = frozenset({"name"})
+        dt.get_multilink_fields = Mock(return_value=[])
+        user = Mock()
 
         with (
-            patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
             patch(
-                "grunt.permissions.rbac.permission_checker.require",
+                "grunt.app.document_api.read_guard",
                 new_callable=AsyncMock,
-            ) as mock_require,
-            patch.object(
-                grunt.db, "exists", new_callable=AsyncMock, return_value="INV-001"
-            ) as mock_db_exists,
+                return_value=(dt, user, frozenset()),
+            ) as mock_guard,
+            patch(
+                "grunt.query.run.fetch", new_callable=AsyncMock, return_value=[{"name": "INV-001"}]
+            ) as mock_fetch,
+            patch.object(grunt.db, "exists", new_callable=AsyncMock) as mock_db_exists,
             patch("grunt.app.document_api.fire", new_callable=AsyncMock),
         ):
             result = await grunt.exists("Invoice", {"name": "INV-001"})
 
             assert result == "INV-001"
-            assert mock_require.await_count == 1
-            mock_db_exists.assert_awaited_once_with("Invoice", {"name": "INV-001"})
+            mock_guard.assert_awaited_once_with("Invoice")
+            assert mock_fetch.await_args.kwargs["user"] is user
+            mock_db_exists.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_get_all_runs_query_as_user_with_hooks(self, setup_context):

@@ -79,7 +79,10 @@ async def rename_passkey(name: str, label: str) -> bool:
     label = (label or "").strip()
     if not label:
         grunt.throw(_("Label is required"), "VALIDATION_ERROR")
-    await grunt.set_value(
+    # Ownership is checked by _owned_passkey; the role grants no `write`
+    # (credentials change only through these endpoints), so the field is set
+    # past the role rules.
+    await grunt.db.set_value(
         "WebAuthnCredential", await _owned_passkey(name, current.id), "label", label
     )
     return True
@@ -101,7 +104,7 @@ async def touch_passkey(name: str) -> bool:
     """Update ``last_used_at`` (used by the frontend after a successful ceremony)."""
     current = grunt.get_user()
     assert current.id is not None
-    await grunt.set_value(
+    await grunt.db.set_value(  # ownership checked; see rename_passkey
         "WebAuthnCredential",
         await _owned_passkey(name, current.id),
         "last_used_at",

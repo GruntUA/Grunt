@@ -11,7 +11,6 @@ lazy from openpyxl.cell import Cell
 
 import grunt
 from grunt import _, log
-from grunt.db.buckets import DATE_BUCKETS
 from grunt.db.dialects import dialect_for
 from grunt.db.session import get_engine as _engine_factory
 from grunt.document.query import expand_child_of_filters
@@ -19,6 +18,7 @@ from grunt.errors import not_found
 from grunt.io.exporters.sanitize import escape_formula
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
+from grunt.query.aggregates import DATE_BUCKETS
 from grunt.query.parse import split_key
 from grunt.query.sql import filter_expr, where
 from grunt.reports.joins import report_source
