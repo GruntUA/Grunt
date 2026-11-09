@@ -45,44 +45,27 @@ class ScheduledJobStore(VirtualStore):
 
     @staticmethod
     async def _load_job_stats(job_names: list[str]) -> dict[str, dict[str, Any]]:
-        """Load last execution stats and run counts from ScheduledJobLog."""
+        """Last run and run count of each job, from ScheduledJobState."""
         if not job_names:
             return {}
-
         try:
-            logs = await grunt.db.get_all(
-                "ScheduledJobLog",
-                filters={"job_name__in": job_names},
-                fields=["job_name", "status", "finished_at", "error_message"],
-                order_by="started_at",
-                order="desc",
-                limit=len(job_names) * 500,
-            )
-            count_rows = await grunt.db.aggregate(
-                "ScheduledJobLog",
-                filters={"job_name__in": job_names, "status__in": ["Success", "Failed"]},
-                group_by="job_name",
-                aggregations={"run_count": "count()"},
+            rows = await grunt.db.get_all(
+                "ScheduledJobState",
+                filters={"name__in": job_names},
+                fields=["name", "last_status", "last_finished_at", "last_error", "run_count"],
+                limit=None,
             )
         except Exception:
             return {}
-
-        run_counts = {row["job_name"]: row["run_count"] for row in count_rows}
-
-        stats: dict[str, dict[str, Any]] = {}
-        for row in logs:
-            jn = row.get("job_name")
-            if jn not in job_names or jn in stats:
-                continue
-            status = row.get("status")
-            stats[jn] = {
-                "status": status,
-                "last_run_at": row.get("finished_at"),
-                "last_error": row.get("error_message") if status == "Failed" else None,
-                "run_count": run_counts.get(jn, 0),
+        return {
+            row["name"]: {
+                "status": row.get("last_status"),
+                "last_run_at": row.get("last_finished_at"),
+                "last_error": row.get("last_error") if row.get("last_status") == "Failed" else None,
+                "run_count": row.get("run_count") or 0,
             }
-
-        return stats
+            for row in rows
+        }
 
 
 class ScheduledJob(Document):

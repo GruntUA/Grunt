@@ -462,3 +462,9 @@ scheduler_events = {
     ],
 }
 ```
+
+Each job's last run (status, error, run count) is in **Scheduled Job State**.
+The **Scheduled Job Log** keeps every run only of jobs that fire at most
+hourly; a job that fires more often (`* * * * *`, `*/5 * * * *`) leaves a
+row there only when it fails. Set `"log_runs": True` (every run) or `False`
+(failures only) in the item to override this.

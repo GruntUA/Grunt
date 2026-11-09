@@ -1830,8 +1830,8 @@ msgid ""
 "Changes leave no version or activity entry - for values the system keeps up "
 "to date (sync status, last run, logs)"
 msgstr ""
-"Зміни не створюють версії й запису в журналі дій — для значень, які "
-"оновлює система (стан синхронізації, останній запуск, логи)"
+"Зміни не створюють версії й запису в журналі дій — для значень, які оновлює "
+"система (стан синхронізації, останній запуск, логи)"
 
 #: grunt/frontend/src/core/api/client.ts
 msgid ""
@@ -2898,6 +2898,7 @@ msgstr "Облікові дані"
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Cron expression"
 msgstr "Cron вираз"
 
@@ -4515,6 +4516,7 @@ msgstr "Додаткові джерела"
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Failed"
 msgstr "Помилка"
 
@@ -6243,6 +6245,7 @@ msgid "Job ID"
 msgstr "ID завдання"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Job name"
 msgstr "Назва завдання"
 
@@ -6412,6 +6415,7 @@ msgstr "Останній день місяця"
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Last error"
 msgstr "Остання помилка"
 
@@ -8039,12 +8043,15 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 msgid ""
-"One row per scheduled job run - framework tasks, app scheduler_events and "
-"Scheduler Event server scripts. Old entries are deleted automatically."
+"Scheduled job runs - framework tasks, app scheduler_events and Scheduler "
+"Event server scripts. Jobs that fire more often than hourly leave a row only"
+" when they fail; their last run is in Scheduled Job State. Old entries are "
+"deleted automatically."
 msgstr ""
-"Один рядок на кожен запуск запланованого завдання — задачі фреймворку, "
-"scheduler_events додатків і серверні скрипти Scheduler Event. Старі записи "
-"видаляються автоматично."
+"Запуски запланованих завдань — задачі фреймворку, scheduler_events додатків "
+"і серверні скрипти Scheduler Event. Завдання, що запускаються частіше ніж "
+"раз на годину, лишають запис лише при збої; їхній останній запуск — у «Стані"
+" завдань планувальника». Старі записи видаляються автоматично."
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "One status per line; reaching any of them stops the clock"
@@ -11244,6 +11251,7 @@ msgstr "Підсумок"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Success"
 msgstr "Успішно"
 
@@ -15043,6 +15051,44 @@ msgstr "В роботі"
 msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Scheduled Job State"
+msgstr "Стан завдань планувальника"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid ""
+"One row per scheduled job: when it last ran and how it ended. Updated on "
+"every run, including the frequent jobs whose successful runs the Scheduled "
+"Job Log does not keep."
+msgstr ""
+"Один рядок на кожне заплановане завдання: коли воно запускалося востаннє і "
+"чим це скінчилося. Оновлюється при кожному запуску, зокрема для частих "
+"завдань, успішні запуски яких «Лог завдань планувальника» не зберігає."
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last status"
+msgstr "Останній статус"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last start"
+msgstr "Останній запуск"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last end"
+msgstr "Останнє завершення"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Runs"
+msgstr "Запусків"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Failures"
+msgstr "Збоїв"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last failure"
+msgstr "Останній збій"
 
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "

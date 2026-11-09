@@ -14,6 +14,7 @@ import os
 import socket
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -21,13 +22,19 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.base import STATE_STOPPED
 from apscheduler.triggers.cron import CronTrigger
 
-from grunt import log
 from grunt.config import settings
-from grunt.db.session import async_session_factory
 from grunt.db.write_intent import write_intent
-from grunt.email.tasks import send_notification_digest
-from grunt.scripting.server_script import ServerScriptRunner
-from grunt.tasks.job_log import LOG_LABEL, close_job_log, fail_stale_job_logs, open_job_log
+from grunt.log import log
+from grunt.tasks.job_log import (
+    CRON_LABEL,
+    JOB_LABEL,
+    LOG_LABEL,
+    STARTED_LABEL,
+    fail_stale_job_logs,
+    finish_job,
+    logs_every_run,
+    open_job_log,
+)
 from grunt.utils.redis import connect
 
 # Global scheduler instance
@@ -73,6 +80,10 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
             {"handler": "path.to.task", "expression": "0 * * * *"}
         ]
     }
+
+    A dict item may also set ``"log_runs"``: True keeps every run in the
+    Scheduled Job Log, False only the failed ones (the default for jobs
+    that fire more often than hourly - see grunt.tasks.job_log).
     """
     for event_type, tasks in events.items():
         # Support dict form for "cron": {"expr": ["handler", ...]} as well as list form
@@ -110,10 +121,11 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
                 log.warning("scheduler.invalid_task", event_type=event_type, item=item)
                 continue
 
-            _add_scheduled_job(path, cron_expr)
+            log_runs = item.get("log_runs") if isinstance(item, dict) else None
+            _add_scheduled_job(path, cron_expr, log_runs=log_runs)
 
 
-def _add_scheduled_job(path: str, cron_expr: str) -> None:
+def _add_scheduled_job(path: str, cron_expr: str, *, log_runs: bool | None = None) -> None:
     try:
         module_path, func_name = path.rsplit(".", 1)
         module = importlib.import_module(module_path)
@@ -121,7 +133,7 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
 
         async def trigger_task():
             log.info("scheduler.triggering_task", path=path)
-            await _run_logged(path, cron_expr, task_fn)
+            await _run_logged(path, cron_expr, task_fn, log_runs=log_runs)
 
         scheduler.add_job(
             trigger_task,
@@ -221,6 +233,10 @@ def _register_framework_jobs() -> None:
     # Page views gathered in Redis -> view_count (no-op without Redis).
     _add_scheduled_job("grunt.website.views.flush", "* * * * *")  # every minute
 
+    # Imported here, not at module level: grunt.email reaches back to this module
+    # (through the apps and the web layer).
+    from grunt.email.tasks import send_notification_digest
+
     async def _daily_digest():
         await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")
 
@@ -281,6 +297,9 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
     """Register a single server script as an APScheduler cron job."""
 
     async def _execute() -> None:
+        from grunt.db.session import async_session_factory
+        from grunt.scripting.server_script import ServerScriptRunner
+
         async with async_session_factory() as session:
             result = await ServerScriptRunner().execute(
                 script, session=session, trusted=True, user_email="system"
@@ -305,35 +324,46 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
 
 
 async def _run_logged(
-    job_name: str, cron_expr: str, task_fn: Callable[..., Awaitable[Any]], *args: Any
+    job_name: str,
+    cron_expr: str,
+    task_fn: Callable[..., Awaitable[Any]],
+    *args: Any,
+    log_runs: bool | None = None,
 ) -> None:
-    """Run one scheduler firing with a ScheduledJobLog row around it.
+    """Run one scheduler firing and record it (grunt.tasks.job_log).
 
-    A TaskIQ task is only enqueued here: the row id rides in its labels and
-    ``ScheduledJobLogMiddleware`` closes the row once a worker has run it.
+    A TaskIQ task is only enqueued here: the run rides in its labels and
+    ``ScheduledJobLogMiddleware`` records it once a worker has run it.
 
     Runs in the web process, which defaults to a deferred ``BEGIN``: on SQLite
     the log row and inline jobs write, so take the write lock up front
     (grunt/db/write_intent.py) - else a concurrent request's commit fails
     them with "database is locked".
     """
+    started_at = datetime.now(UTC)
     with write_intent():
-        log_id = await open_job_log(job_name, cron_expr)
+        log_id = (
+            await open_job_log(job_name, cron_expr) if logs_every_run(cron_expr, log_runs) else None
+        )
         kicker = getattr(task_fn, "kicker", None)
         try:
             if kicker is None:
                 await task_fn(*args)
             else:
-                enqueue = kicker().with_labels(**{LOG_LABEL: log_id}) if log_id else kicker()
-                await enqueue.kiq(*args)
+                labels = {
+                    JOB_LABEL: job_name,
+                    CRON_LABEL: cron_expr,
+                    STARTED_LABEL: started_at.isoformat(),
+                }
+                if log_id:
+                    labels[LOG_LABEL] = log_id
+                await kicker().with_labels(**labels).kiq(*args)
                 return
         except Exception as exc:
             log.error("scheduler.job_failed", job_name=job_name, error=str(exc))
-            if log_id:
-                await close_job_log(log_id, error=exc)
+            await finish_job(job_name, cron_expr, started_at, log_id, error=exc)
             return
-        if log_id:
-            await close_job_log(log_id)
+        await finish_job(job_name, cron_expr, started_at, log_id)
 
 
 async def stop_scheduler() -> None:
