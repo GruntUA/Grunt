@@ -45,6 +45,17 @@ def test_web_domains_from_site_config(tmp_path: Path) -> None:
     assert manager.domain_apps("c.example") == {}
 
 
+def test_web_domains_skip_empty_hosts_and_site_names_in_any_case(tmp_path: Path) -> None:
+    _site(tmp_path, "Shop.Example", installed_apps=["grunt"])
+    _site(
+        tmp_path,
+        "a.example",
+        installed_apps=["grunt", "data"],
+        web_domains={"": "data", "  ": "data", "shop.example": "data", "ok.example": "data"},
+    )
+    assert _manager(tmp_path).get_web_domains() == {"ok.example": ("a.example", "data")}
+
+
 def _routes() -> list:
     app = FastAPI()
 

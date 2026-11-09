@@ -134,6 +134,7 @@ class SiteManager:
         if self._web_domains is not None:
             return self._web_domains
         sites = sorted(self.get_sites())
+        site_hosts = {s.lower() for s in sites}  # hosts are matched lower-cased
         domains: dict[str, tuple[str, str]] = {}
         for site in sites:
             config = self.get_site_config(site)
@@ -143,11 +144,13 @@ class SiteManager:
                 continue
             for host, app in raw.items():
                 host = str(host).strip().lower()
-                if app not in config.get("installed_apps", []):
+                if not host:  # would catch every request without a Host header
+                    log.warning("site_manager.web_domains.empty_host", site=site, app=app)
+                elif app not in config.get("installed_apps", []):
                     log.warning(
                         "site_manager.web_domains.not_installed", site=site, host=host, app=app
                     )
-                elif host in sites:
+                elif host in site_hosts:
                     log.warning("site_manager.web_domains.is_a_site", site=site, host=host)
                 elif host in domains:
                     log.warning(

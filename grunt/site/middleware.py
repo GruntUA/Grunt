@@ -76,14 +76,15 @@ class SiteContextMiddleware(BaseHTTPMiddleware):
         # 1. Check for explicit X-Grunt-Site header
         site = request.headers.get("x-grunt-site")
         host_header = request.headers.get("host", "")
-        host_name = host_header.split(":")[0].lower() if host_header else ""
+        host_name = host_header.split(":")[0] if host_header else ""
 
-        # 2. Fallback to Host header: a site's name, or an app domain of a site
+        # 2. Fallback to Host header: a site's name (as is - site names may
+        # differ in case only), or an app domain of a site (lower-cased)
         web_app: str | None = None
-        if not site:
+        if not site and host_name:
             if host_name in site_manager.get_sites():
                 site = host_name
-            elif domain := site_manager.get_web_domains().get(host_name):
+            elif domain := site_manager.get_web_domains().get(host_name.lower()):
                 site, web_app = domain
 
         # 3. Fallback to currentsite.txt when neither header matched a known site.
