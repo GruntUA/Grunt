@@ -169,3 +169,22 @@ async def test_app_hooks_resolve_paths_and_extend_context_and_templates(ctx, db_
                 for x in loader.loaders
                 if not (isinstance(x, FileSystemLoader) and str(layouts) in x.searchpath)
             ]
+
+
+def test_web_view_env_rebuilds_after_a_template_dir_is_added(tmp_path, monkeypatch):
+    """The generator's per-dir env follows the router's template dirs without
+    the router knowing the generator (templates_version)."""
+    from jinja2 import Environment
+
+    from grunt.website import generator, router
+
+    base = Environment(loader=FileSystemLoader(str(tmp_path)), autoescape=True)
+    monkeypatch.setattr(router.website_registry, "get_env", lambda app: base)
+    monkeypatch.setattr(router.website_registry, "templates_version", 7)
+    monkeypatch.setattr(generator, "_template_envs", {})
+
+    first = generator._template_env("grunt", tmp_path)
+    assert generator._template_env("grunt", tmp_path) is first
+    router.website_registry.templates_version += 1
+    rebuilt = generator._template_env("grunt", tmp_path)
+    assert rebuilt is not None and rebuilt is not first

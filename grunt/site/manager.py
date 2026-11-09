@@ -55,6 +55,7 @@ class SiteManager:
         self.engines: dict[str, AsyncEngine] = {}
         self.session_makers: dict[str, async_sessionmaker[AsyncSession]] = {}
         self._primary_web_app: Any = _UNSET
+        self._web_domains: dict[str, tuple[str, str]] | None = None
 
     @staticmethod
     def _find_bench_dir(start: Path) -> Path | None:
@@ -120,6 +121,52 @@ class SiteManager:
                 )
         self._primary_web_app = primary
         return primary
+
+    def get_web_domains(self) -> dict[str, tuple[str, str]]:
+        """``host -> (site, app)`` from every site's ``web_domains`` in
+        ``grunt.site`` (``{"opendata.example.org": "opendata"}``): a request to
+        that host is served by *site* with *app*'s www pages at the root.
+
+        A domain whose app isn't installed on the site, that names a site
+        itself or that another site already claims is skipped (and logged).
+        Cached - like ``primary_web_app``, a change needs a restart.
+        """
+        if self._web_domains is not None:
+            return self._web_domains
+        sites = sorted(self.get_sites())
+        site_hosts = {s.lower() for s in sites}  # hosts are matched lower-cased
+        domains: dict[str, tuple[str, str]] = {}
+        for site in sites:
+            config = self.get_site_config(site)
+            raw = config.get("web_domains") or {}
+            if not isinstance(raw, dict):
+                log.warning("site_manager.web_domains.invalid", site=site)
+                continue
+            for host, app in raw.items():
+                host = str(host).strip().lower()
+                if not host:  # would catch every request without a Host header
+                    log.warning("site_manager.web_domains.empty_host", site=site, app=app)
+                elif app not in config.get("installed_apps", []):
+                    log.warning(
+                        "site_manager.web_domains.not_installed", site=site, host=host, app=app
+                    )
+                elif host in site_hosts:
+                    log.warning("site_manager.web_domains.is_a_site", site=site, host=host)
+                elif host in domains:
+                    log.warning(
+                        "site_manager.web_domains.conflict",
+                        site=site,
+                        host=host,
+                        holder=domains[host][0],
+                    )
+                else:
+                    domains[host] = (site, app)
+        self._web_domains = domains
+        return domains
+
+    def domain_apps(self, site: str) -> dict[str, str]:
+        """``app -> host`` - the apps of *site* that have a domain of their own."""
+        return {app: host for host, (s, app) in self.get_web_domains().items() if s == site}
 
     def get_all_installed_apps(self) -> set[str]:
         """Return the union of apps installed across every site in the bench.
