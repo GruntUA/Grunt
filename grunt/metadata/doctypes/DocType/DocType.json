@@ -564,6 +564,14 @@
       "default": 1
     },
     {
+      "fieldname": "max_versions",
+      "label": "Versions per document",
+      "fieldtype": "Int",
+      "default": 50,
+      "depends_on": "track_changes",
+      "description": "The oldest versions past this number are deleted. 0 - keep all"
+    },
+    {
       "fieldname": "track_activity",
       "label": "Activity log",
       "fieldtype": "Check",

@@ -4,6 +4,7 @@ Each version records which fields changed, their old and new values,
 and supports restoring a document to any previous version.
 """
 
+from collections.abc import Collection
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -31,6 +32,9 @@ class VersionService:
         old_doc: dict[str, Any],
         new_doc: dict[str, Any],
         user: str,
+        *,
+        skip: Collection[str] = (),
+        keep: int = 0,
     ) -> str | None:
         """Create a version record if there are actual changes.
 
@@ -41,11 +45,13 @@ class VersionService:
             old_doc: Document data before update.
             new_doc: Document data after update.
             user: Email of the user who made the change.
+            skip: Fields left out of the version (``no_history``).
+            keep: Versions kept per document - older ones are deleted; 0 keeps all.
 
         Returns:
             Version ID if created, None if no changes detected.
         """
-        changes = self._compute_diff(old_doc, new_doc)
+        changes = [c for c in self._compute_diff(old_doc, new_doc) if c["field"] not in skip]
         if not changes:
             return None
 
@@ -80,6 +86,13 @@ class VersionService:
                 user=user,
             )
         )
+        if keep > 0 and next_version > keep:
+            await session.execute(
+                table.delete()
+                .where(table.c.ref_doctype == doctype)
+                .where(table.c.doc_id == doc_id)
+                .where(table.c.version <= next_version - keep)
+            )
         await session.flush()
 
         log.info(

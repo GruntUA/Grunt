@@ -1825,6 +1825,14 @@ msgstr "Змінено: %(fields)s"
 msgid "Changes"
 msgstr "Зміни"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Changes leave no version or activity entry - for values the system keeps up "
+"to date (sync status, last run, logs)"
+msgstr ""
+"Зміни не створюють версії й запису в журналі дій — для значень, які "
+"оновлює система (стан синхронізації, останній запуск, логи)"
+
 #: grunt/frontend/src/core/api/client.ts
 msgid ""
 "Changes saved on this device — they will be sent once the connection is back"
@@ -7561,6 +7569,10 @@ msgstr "Не вказано назву файлу"
 msgid "No grouping"
 msgstr "Без групування"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "No history"
+msgstr "Без історії"
+
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "No icons found"
 msgstr "Іконок не знайдено"
@@ -11832,6 +11844,10 @@ msgstr ""
 "Наявні дані цього поля не переносяться автоматично — вивантажте їх до "
 "міграції."
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "The oldest versions past this number are deleted. 0 - keep all"
+msgstr "Найстаріші версії понад цю кількість видаляються. 0 — зберігати всі"
+
 #: grunt/grunt/tasks/auto_repeat.py
 msgid "The owner of this rule is missing or inactive"
 msgstr "Власник цього правила відсутній або деактивований"
@@ -13001,6 +13017,10 @@ msgstr "Версію не знайдено"
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Version {n}"
 msgstr "Версія {n}"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Versions per document"
+msgstr "Версій на документ"
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Vertical text, bottom to top"

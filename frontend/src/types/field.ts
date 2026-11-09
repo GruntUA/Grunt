@@ -30,6 +30,8 @@ export interface DocField {
   required?: boolean
   unique?: boolean
   index?: boolean
+  /** Changes leave no version or activity entry (system-maintained values). */
+  no_history?: boolean
   read_only?: boolean
   hidden?: boolean
   bold?: boolean

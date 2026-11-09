@@ -53,6 +53,12 @@
       "fieldtype": "Check"
     },
     {
+      "fieldname": "no_history",
+      "label": "No history",
+      "fieldtype": "Check",
+      "description": "Changes leave no version or activity entry - for values the system keeps up to date (sync status, last run, logs)"
+    },
+    {
       "fieldname": "read_only",
       "label": "Read-only",
       "fieldtype": "Check"

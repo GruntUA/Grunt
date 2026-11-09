@@ -6,7 +6,7 @@ and is the single source of truth for DB tables, REST API and UI forms.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from grunt.metadata.field import DocField
 from grunt.metadata.permission import DocPermission
@@ -272,6 +272,8 @@ class DocType(BaseModel):
     retention_date_field: str | None = None
     # to name the self-referential Link
     track_changes: bool = True  # audit log
+    # Versions kept per document (oldest dropped past it); 0 - all of them.
+    max_versions: int = Field(50, ge=0)
     track_seen: bool = False  # record which users have opened each document (_seen column)
     track_views: bool = False  # log every document open to ViewLog (throttled 1/user/doc/hour)
     track_deletions: bool = True  # False -> skip the restorable DeletedDocument snapshot on delete

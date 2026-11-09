@@ -1754,6 +1754,12 @@ msgstr ""
 msgid "Changes"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Changes leave no version or activity entry - for values the system keeps up "
+"to date (sync status, last run, logs)"
+msgstr ""
+
 #: grunt/frontend/src/core/api/client.ts
 msgid ""
 "Changes saved on this device — they will be sent once the connection is back"
@@ -7308,6 +7314,10 @@ msgstr ""
 msgid "No grouping"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "No history"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "No icons found"
 msgstr ""
@@ -11410,6 +11420,10 @@ msgid ""
 "migrating."
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "The oldest versions past this number are deleted. 0 - keep all"
+msgstr ""
+
 #: grunt/grunt/tasks/auto_repeat.py
 msgid "The owner of this rule is missing or inactive"
 msgstr ""
@@ -12529,6 +12543,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Version {n}"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Versions per document"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts

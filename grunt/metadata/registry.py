@@ -112,6 +112,7 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "icon",
         "placeholder",
         "index",
+        "no_history",
     }
 )
 
