@@ -22,12 +22,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.base import STATE_STOPPED
 from apscheduler.triggers.cron import CronTrigger
 
-from grunt import log
 from grunt.config import settings
-from grunt.db.session import async_session_factory
 from grunt.db.write_intent import write_intent
-from grunt.email.tasks import send_notification_digest
-from grunt.scripting.server_script import ServerScriptRunner
+from grunt.log import log
 from grunt.tasks.job_log import (
     CRON_LABEL,
     JOB_LABEL,
@@ -236,6 +233,10 @@ def _register_framework_jobs() -> None:
     # Page views gathered in Redis -> view_count (no-op without Redis).
     _add_scheduled_job("grunt.website.views.flush", "* * * * *")  # every minute
 
+    # Imported here, not at module level: grunt.email reaches back to this module
+    # (through the apps and the web layer).
+    from grunt.email.tasks import send_notification_digest
+
     async def _daily_digest():
         await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")
 
@@ -296,6 +297,9 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
     """Register a single server script as an APScheduler cron job."""
 
     async def _execute() -> None:
+        from grunt.db.session import async_session_factory
+        from grunt.scripting.server_script import ServerScriptRunner
+
         async with async_session_factory() as session:
             result = await ServerScriptRunner().execute(
                 script, session=session, trusted=True, user_email="system"

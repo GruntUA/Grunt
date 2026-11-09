@@ -16,9 +16,10 @@ the labels below carry the run to the worker, where
 
 from datetime import UTC, datetime, timedelta
 
-from grunt import log
-from grunt.db.session import async_session_factory
+# Only leaf modules at module level: grunt and grunt.db.session reach (through
+# the apps and the web layer) back to grunt.tasks.scheduler, which imports this.
 from grunt.db.write_intent import write_intent
+from grunt.log import log
 
 # TaskIQ labels carrying a run from the scheduler to the worker.
 LOG_LABEL = "scheduled_job_log"  # id of the open ScheduledJobLog row, if any
@@ -47,6 +48,7 @@ async def open_job_log(job_name: str, cron_expression: str) -> str | None:
     """Insert a Running row. Returns its name, or None if it could not be written."""
     try:
         import grunt
+        from grunt.db.session import async_session_factory
 
         async with async_session_factory() as session, grunt.system_context(session):
             doc = await grunt.new_doc(
@@ -79,6 +81,7 @@ async def finish_job(
     Separate transactions: a failed state update does not lose the log row.
     """
     import grunt
+    from grunt.db.session import async_session_factory
 
     now = datetime.now(UTC)
     message = None if error is None else (str(error) or type(error).__name__)
@@ -146,6 +149,7 @@ async def fail_stale_job_logs() -> None:
     """Close rows left Running by a process that died mid-job."""
     try:
         import grunt
+        from grunt.db.session import async_session_factory
 
         with write_intent():
             async with async_session_factory() as session, grunt.system_context(session):

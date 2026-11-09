@@ -4,10 +4,12 @@ from typing import Any
 
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
-from grunt import log
-lazy from grunt.monitoring import perf
-lazy from grunt.progress import current_job
-lazy from grunt.tasks import job_log
+from grunt.log import log
+from grunt.tasks import job_log
+
+# grunt.monitoring.perf and grunt.progress are imported in the methods: both
+# import grunt, which reaches (through the outbox) grunt.tasks.broker - and the
+# broker imports this module.
 
 _ARGS_PREVIEW_MAX = 2000
 
@@ -92,6 +94,7 @@ class TaskPerfMiddleware(TaskiqMiddleware):
     """Feeds every finished task run into the perf stats (kind ``Task``)."""
 
     def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
+        from grunt.monitoring import perf
 
         perf.record("Task", message.task_name, result.execution_time * 1000, error=result.is_err)
 
@@ -105,11 +108,13 @@ class TaskProgressMiddleware(TaskiqMiddleware):
     """
 
     def pre_execute(self, message: TaskiqMessage) -> TaskiqMessage:
+        from grunt.progress import current_job
 
         current_job.set(message.task_id)
         return message
 
     def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
+        from grunt.progress import current_job
 
         current_job.set(None)
 

@@ -118,14 +118,20 @@ async def test_enqueued_task_carries_log_id(setup_db):
             sent["args"] = args
 
     class Task:
+        """A TaskIQ task: _run_logged enqueues it through kicker(), never calls it."""
+
+        async def __call__(self, *args):
+            raise AssertionError("enqueued tasks are not called inline")
+
         def kicker(self):
             return Kicker()
 
-    await scheduler._run_logged("test.kiq", HOURLY, Task(), "daily")  # pyright: ignore[reportArgumentType]
+    await scheduler._run_logged("test.kiq", HOURLY, Task(), "daily")
 
     [row] = await _rows("test.kiq")
     assert row["status"] == "Running"  # the worker closes it
-    assert sent.pop(job_log.STARTED_LABEL)
+    started = sent.pop(job_log.STARTED_LABEL)
+    assert started
     assert sent == {
         job_log.LOG_LABEL: row["name"],
         job_log.JOB_LABEL: "test.kiq",
@@ -291,10 +297,15 @@ async def test_enqueued_frequent_task_opens_no_row(setup_db):
             pass
 
     class Task:
+        """A TaskIQ task: _run_logged enqueues it through kicker(), never calls it."""
+
+        async def __call__(self, *args):
+            raise AssertionError("enqueued tasks are not called inline")
+
         def kicker(self):
             return Kicker()
 
-    await scheduler._run_logged("test.kiq_freq", EVERY_MINUTE, Task())  # pyright: ignore[reportArgumentType]
+    await scheduler._run_logged("test.kiq_freq", EVERY_MINUTE, Task())
 
     assert await _rows("test.kiq_freq") == []
     assert job_log.LOG_LABEL not in sent
