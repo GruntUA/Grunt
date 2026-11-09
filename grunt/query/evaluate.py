@@ -161,21 +161,20 @@ async def matches_linked(
 
     NULL is in neither ``Linked`` nor its negation, as in SQL.
     """
-    match expr:
-        case And(items=items):
-            for item in sorted(items, key=_reads_db):
-                if not await matches_linked(item, row, linked):
-                    return False
-            return True
-        case Or(items=items):
-            for item in sorted(items, key=_reads_db):
-                if await matches_linked(item, row, linked):
-                    return True
-            return False
-        case Linked(field=field, negate=negate):
-            value = row.get(field)
-            if value is None:
+    if isinstance(expr, And):
+        for item in sorted(expr.items, key=_reads_db):
+            if not await matches_linked(item, row, linked):
                 return False
-            found = await linked(expr, value)
-            return not found if negate else found
+        return True
+    if isinstance(expr, Or):
+        for item in sorted(expr.items, key=_reads_db):
+            if await matches_linked(item, row, linked):
+                return True
+        return False
+    if isinstance(expr, Linked):
+        value = row.get(expr.field)
+        if value is None:
+            return False
+        found = await linked(expr, value)
+        return not found if expr.negate else found
     return matches(expr, row)
