@@ -349,6 +349,9 @@ def test_index_name_fits_postgres_identifier_limit():
     assert long != index_name(
         "grunt_inventory_crystal_finance_holding_history", "counterparty_acc0"
     )
+    # PostgreSQL's limit is in bytes - Cyrillic takes two per letter.
+    cyrillic = index_name("grunt_test_таблиця_документів", "поле_звʼязку_з_контрагентом")
+    assert len(cyrillic.encode()) <= 63
 
 
 @pytest.mark.asyncio
