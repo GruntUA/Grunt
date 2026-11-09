@@ -86,6 +86,13 @@ sidebar_sections: list[dict] = [
         "order": 10,
     },
     {
+        # Service levels (SLA) of the document: the clock and the deadline.
+        "name": "service_levels",
+        "method": "grunt.notification.sla.sidebar_rows",
+        "placement": "properties",
+        "order": 5,
+    },
+    {
         "name": "web_page",
         "method": "grunt.document.sidebar.web_page_row",
         "placement": "properties",

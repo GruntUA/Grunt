@@ -20,6 +20,8 @@ from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 from grunt.i18n.meta import translate_record
 
 AUTO_ACTIONS = ("Create Entry", "Update Settings", "Take a Tour")
+TOUR_VIEWS = ("Form", "List")  # FormTour.view - where a tour runs
+TOUR_FIELDS = ["reference_doctype", "view"]
 _MARKS = ("Completed", "Skipped")
 
 
@@ -86,12 +88,16 @@ async def _target(step: dict[str, Any]) -> dict[str, Any] | None:
     action = step.get("action")
     if action == "Take a Tour":
         tour = step.get("form_tour") or ""
-        doctype = await grunt.db.get_value("FormTour", tour, "reference_doctype")
+        row = await grunt.db.get_value(
+            "FormTour", tour, ["reference_doctype", "view"], as_dict=True
+        )
+        doctype = (row or {}).get("reference_doctype")
         meta = await grunt.get_meta(doctype) if doctype else None
         if meta is None:
             return None
         target = {"type": "DocType", "name": doctype, "query": {"tour": tour}}
-        return target if meta.doc.is_singleton else {**target, "id": "new"}
+        on_list = (row or {}).get("view") == "List"
+        return target if on_list or meta.doc.is_singleton else {**target, "id": "new"}
     if action == "Create Entry":
         return {"type": "DocType", "name": step.get("reference_doctype"), "id": "new"}
     if action == "Update Settings" or (step.get("reference_doctype") and not step.get("route")):
@@ -198,11 +204,11 @@ async def hide_onboarding(onboarding: str) -> None:
     await _set({"onboarding": onboarding, "step_id": "", "user": user.email}, "Hidden")
 
 
-# Form tours - the published ones of a form whose roles fit the user; taking
-# one is a ``Completed`` progress row of that user.
+# Tours (FormTour) - the published ones of a form or a list whose roles fit
+# the user; taking one is a ``Completed`` progress row of that user.
 
 
-async def _tours(doctype: str, user: User) -> list[dict[str, Any]]:
+async def _tours(doctype: str, user: User, view: str) -> list[dict[str, Any]]:
     names = await grunt.db.get_all(
         "FormTour",
         filters={"is_published": True, "reference_doctype": doctype},
@@ -211,15 +217,22 @@ async def _tours(doctype: str, user: User) -> list[dict[str, Any]]:
         limit=None,
     )
     docs = [await grunt.get_doc("FormTour", n) for n in names]
-    return [d for d in docs if page_visible({**d, "is_published": True}, user)]
+    return [
+        d
+        for d in docs
+        if (d.get("view") or "Form") == view and page_visible({**d, "is_published": True}, user)
+    ]
 
 
 @grunt.whitelist()
-async def get_form_tours(doctype: str) -> list[dict[str, Any]]:
-    """Tours of *doctype*'s form the user sees, and whether they have taken each."""
+async def get_form_tours(doctype: str, view: str = "Form") -> list[dict[str, Any]]:
+    """Tours of *doctype*'s form (or list, ``view="List"``) the user sees, and
+    whether they have taken each."""
+    if view not in TOUR_VIEWS:
+        grunt.throw(_("Unknown view: %(view)s") % {"view": view})
     user = grunt.get_user()
     async with grunt.system_context(grunt.get_session()):
-        tours = await _tours(doctype, user)
+        tours = await _tours(doctype, user, view)
         taken = set(
             await grunt.db.get_all(
                 "OnboardingProgress",
@@ -257,8 +270,14 @@ async def complete_form_tour(tour: str) -> None:
     """Note that the user has taken *tour* (finished or closed it)."""
     user = grunt.get_user()
     async with grunt.system_context(grunt.get_session()):
-        doctype = await grunt.db.get_value("FormTour", tour, "reference_doctype")
-        visible = bool(doctype) and any(t["name"] == tour for t in await _tours(doctype, user))
+        row = await grunt.db.get_value(
+            "FormTour", tour, ["reference_doctype", "view"], as_dict=True
+        )
+        doctype = (row or {}).get("reference_doctype")
+        view = (row or {}).get("view") or "Form"
+        visible = bool(doctype) and any(
+            t["name"] == tour for t in await _tours(doctype, user, view)
+        )
     if not visible:
         grunt.throw(_("Form tour not found"), "NOT_FOUND")
     await _set({"form_tour": tour, "step_id": "", "user": user.email}, "Completed")

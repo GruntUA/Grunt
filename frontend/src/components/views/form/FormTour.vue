@@ -2,12 +2,19 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from '@lucide/vue'
-import type { FormTour } from '@/core/api/workspace'
+import type { FormTour, TourView } from '@/core/api/workspace'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
-/** One form tour: a spotlight on each step's field (or element) and a card that explains it. */
-const props = defineProps<{ tour: FormTour; reveal: (fieldname: string) => void }>()
+/**
+ * One tour: a spotlight on each step's field (or element) and a card that
+ * explains it. In a form the field is its input (`reveal` opens its tab); in a
+ * list - its column header or quick filter.
+ */
+const props = withDefaults(
+  defineProps<{ tour: FormTour; view?: TourView; reveal?: (fieldname: string) => void }>(),
+  { view: 'Form', reveal: undefined },
+)
 const emit = defineEmits<{ close: [] }>()
 
 const { t } = useI18n()
@@ -29,7 +36,12 @@ const CARD_WIDTH = 360
 
 function findTarget(): HTMLElement | null {
   const { fieldname, element } = step.value
-  const selector = fieldname ? `[data-fieldname="${CSS.escape(fieldname)}"]` : element
+  const name = fieldname ? CSS.escape(fieldname) : ''
+  const selector = !fieldname
+    ? element
+    : props.view === 'List'
+      ? `[data-column="${name}"], [data-quick-filter="${name}"]`
+      : `[data-fieldname="${name}"]`
   if (!selector) return null
   try {
     return document.querySelector<HTMLElement>(selector)
@@ -47,7 +59,7 @@ function measure() {
 
 async function show() {
   const { fieldname } = step.value
-  if (fieldname) props.reveal(fieldname)
+  if (fieldname) props.reveal?.(fieldname)
   // The fields of a tab that has just opened render a few frames later.
   target = null
   for (let i = 0; i < 20 && !target; i++) {

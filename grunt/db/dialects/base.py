@@ -287,6 +287,12 @@ class Dialect(ABC):
         """Bytes the database takes, ``None`` when unknown."""
         return None
 
+    async def routine_maintenance(self, engine: AsyncEngine) -> list[str]:
+        """Nightly upkeep that keeps the database online and is cheap: planner
+        statistics, freed pages back to the OS. Returns what ran - nothing when
+        the backend does it by itself (PostgreSQL's autovacuum / autoanalyze)."""
+        return []
+
     @abstractmethod
     def compaction_command(self, quoted_table: str) -> str:
         """Statement that compacts a table (runs in AUTOCOMMIT), see :attr:`compaction_scope`."""

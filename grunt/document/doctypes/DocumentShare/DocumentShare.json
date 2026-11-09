@@ -25,6 +25,7 @@
       "fieldname": "token",
       "label": "Token",
       "fieldtype": "Data",
+      "index": true,
       "hidden": true,
       "read_only": true
     },

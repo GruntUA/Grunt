@@ -78,6 +78,8 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "label",
         "module",
         "app",
+        # Physical schema the core relies on for speed - not a customization.
+        "indexes",
     }
 )
 
@@ -109,6 +111,7 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "collapsible",
         "icon",
         "placeholder",
+        "index",
     }
 )
 

@@ -1,14 +1,15 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { workspaceApi, type FormTour } from '@/core/api/workspace'
+import { workspaceApi, type FormTour, type TourView } from '@/core/api/workspace'
 
 /**
- * Form tours (FormTour) of a DocType's form. Once the form has loaded, the tour
- * named in `?tour=` starts (a checklist step links there), else the first
- * `auto_start` tour the user hasn't taken. Finishing or closing a tour marks it
- * taken; the form's menu («Take a tour», global_form.js) starts it again.
+ * Tours (FormTour) of a DocType's form - or of its list, `view = 'List'`. Once
+ * the page has loaded, the tour named in `?tour=` starts (a checklist step
+ * links there), else the first `auto_start` tour the user hasn't taken.
+ * Finishing or closing a tour marks it taken; the page's menu («Take a tour»,
+ * global_form.js / global_list.js) starts it again.
  */
-export function useFormTour(doctype: string, ready: Ref<boolean>) {
+export function useFormTour(doctype: string, ready: Ref<boolean>, view: TourView = 'Form') {
   const route = useRoute()
   const router = useRouter()
   const tours = ref<FormTour[]>([])
@@ -32,7 +33,7 @@ export function useFormTour(doctype: string, ready: Ref<boolean>) {
     if (!isReady || loaded) return
     loaded = true
     try {
-      tours.value = await workspaceApi.getFormTours(doctype)
+      tours.value = await workspaceApi.getFormTours(doctype, view)
     } catch { return }
     const requested = route.query.tour
     const auto = tours.value.find((t) => t.auto_start && !t.taken)

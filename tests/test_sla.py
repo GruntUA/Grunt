@@ -221,3 +221,32 @@ async def test_policy_validation(ctx, policy):
         await ctx.new_doc(
             "ServiceLevel", {"title": "never done", "ref_doctype": "SlaTicket", "target": 1}
         )
+
+
+@pytest.mark.asyncio
+async def test_sidebar_shows_the_clock_and_the_deadline(ctx, policy):
+    t = await ctx.new_doc("SlaTicket", {"title": "Screen"})
+    row = await _row(ctx, t["name"])
+
+    [shown] = await sla.sidebar_rows("SlaTicket", t["name"], t)
+    assert shown["label"] == "Tickets in 2 days"
+    assert shown["indicator"] == "primary"  # On track
+    assert _due(shown["datetime"]) == _due(row["due_at"])
+    assert shown["link"] == f"/app/grunt/ServiceLevelStatus/{row['name']}"
+
+    await ctx.save_doc("SlaTicket", t["name"], {"status": "Closed"})
+    [shown] = await sla.sidebar_rows("SlaTicket", t["name"], t)
+    assert shown["indicator"] == "success"  # Met - and when
+    assert _due(shown["datetime"]) == _due((await _row(ctx, t["name"]))["met_at"])
+
+    assert await sla.sidebar_rows("SlaTicket", "no-such-ticket", {}) == []
+
+
+@pytest.mark.asyncio
+async def test_sidebar_properties_carry_the_deadline(ctx, policy):
+    from grunt.document.sidebar import collect_sections
+
+    t = await ctx.new_doc("SlaTicket", {"title": "Keyboard"})
+    props = (await collect_sections("SlaTicket", t["name"], t))["properties"]
+    [shown] = [r for r in props if r["label"] == "Tickets in 2 days"]
+    assert shown["datetime"]  # passes the row-key filter

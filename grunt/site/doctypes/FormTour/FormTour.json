@@ -1,14 +1,21 @@
 {
   "name": "FormTour",
   "label": "Form tour",
-  "description": "A walk through a DocType's form: each step points at a field or an element and explains it.",
+  "description": "A walk through a DocType's form or list: each step points at a field or an element and explains it.",
   "module": "site",
   "standard_records": true,
   "hide_from_activity_feed": true,
   "autoname": "prompt",
   "title_field": "title",
   "fields": [
-    {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": true, "in_list_view": true, "translatable": true},
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "translatable": true
+    },
     {
       "fieldname": "reference_doctype",
       "label": "Document type",
@@ -17,6 +24,17 @@
       "required": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "view",
+      "label": "Shown in",
+      "fieldtype": "Select",
+      "options": "Form\nList",
+      "default": "Form",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "Where the tour runs: the document's form or the list of documents"
     },
     {
       "fieldname": "app",
@@ -36,7 +54,7 @@
       "fieldname": "auto_start",
       "label": "Start automatically",
       "fieldtype": "Check",
-      "description": "Starts the first time a user opens the form; afterwards - from the form's menu"
+      "description": "Starts the first time a user opens the form (or the list); afterwards - from its menu"
     },
     {
       "fieldname": "roles",
@@ -44,7 +62,12 @@
       "fieldtype": "Data",
       "description": "Who sees the tour; empty - everyone. System Manager always does"
     },
-    {"fieldname": "steps", "label": "Steps", "fieldtype": "Table", "options": "FormTourStep"},
+    {
+      "fieldname": "steps",
+      "label": "Steps",
+      "fieldtype": "Table",
+      "options": "FormTourStep"
+    },
     {
       "fieldname": "is_standard",
       "label": "Standard",
@@ -54,7 +77,15 @@
     }
   ],
   "permissions": [
-    {"role": "All", "read": true},
-    {"role": "System Manager", "write": true, "create": true, "delete": true}
+    {
+      "role": "All",
+      "read": true
+    },
+    {
+      "role": "System Manager",
+      "write": true,
+      "create": true,
+      "delete": true
+    }
   ]
 }

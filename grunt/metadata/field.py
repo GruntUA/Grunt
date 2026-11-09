@@ -122,6 +122,7 @@ def parse_int(value: Any) -> Any:
 # from column_spec (see is_numeric_fieldtype / is_date_fieldtype).
 TRAITS: dict[str, str] = {
     "link": "value is the name of a document of the DocType in `options`",
+    "dynamic_link": "value is a document name; `options` names the field holding its DocType",
     "table": "child rows of the DocType in `options`, no column of its own",
     "file": "value is a single file URL",
     "sensitive": "secret - never exported, listed or shown in dashboards",

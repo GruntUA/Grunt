@@ -700,6 +700,7 @@ export function createListViewProxy(
     setFilters?: ListViewProxy['set_filters']
     setQuickFilterValue?: ListViewProxy['set_quick_filter_value']
     setQuickFilters?: ListViewProxy['set_quick_filters']
+    startTour?: (name?: string) => void
   } = {},
   actions: ActionsApi<ListViewProxy> = noActions(),
 ): ListViewProxy {
@@ -721,6 +722,7 @@ export function createListViewProxy(
     get exporters() { return state().exporters },
     get can_export() { return state().canExport },
     get filters() { return state().filters },
+    get has_tours() { return !!state().hasTours },
     refresh(options) { callbacks.refresh?.(options) },
     new_doc() { callbacks.newDoc?.() },
     bulk_edit() { callbacks.bulkEdit?.() },
@@ -732,6 +734,7 @@ export function createListViewProxy(
     set_filters(filters) { callbacks.setFilters?.(filters) },
     set_quick_filter_value(id, value) { callbacks.setQuickFilterValue?.(id, value) },
     set_quick_filters(values) { callbacks.setQuickFilters?.(values) },
+    start_tour(name) { callbacks.startTour?.(name) },
   }
 }
 
