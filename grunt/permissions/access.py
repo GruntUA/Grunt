@@ -35,23 +35,33 @@ class Principal(Protocol):
     """Who asks - a ``User`` document, as permissions see it."""
 
     @property
-    def email(self) -> str | None: ...
+    def email(self) -> str | None:
+        """Matched against the internal system identity."""
+        raise NotImplementedError
 
     @property
-    def roles(self) -> Sequence[Any]: ...
+    def roles(self) -> Sequence[Any]:
+        """Role names; a permission row applies when its role is among them."""
+        raise NotImplementedError
 
 
 class Target(Protocol):
     """What is asked about - a ``DocType`` model or its ``Meta``."""
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """The DocType name."""
+        raise NotImplementedError
 
     @property
-    def permissions(self) -> Sequence[DocPermission]: ...
+    def permissions(self) -> Sequence[DocPermission]:
+        """The DocType's permission rows."""
+        raise NotImplementedError
 
     @property
-    def fields(self) -> Sequence[Any]: ...
+    def fields(self) -> Sequence[Any]:
+        """The DocType's fields (``fieldname``, ``default``)."""
+        raise NotImplementedError
 
 
 class RoleAccess:
