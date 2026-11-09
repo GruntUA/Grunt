@@ -178,7 +178,7 @@ def test_web_view_env_rebuilds_after_a_template_dir_is_added(tmp_path, monkeypat
 
     from grunt.website import generator, router
 
-    base = Environment(loader=FileSystemLoader(str(tmp_path)))
+    base = Environment(loader=FileSystemLoader(str(tmp_path)), autoescape=True)
     monkeypatch.setattr(router.website_registry, "get_env", lambda app: base)
     monkeypatch.setattr(router.website_registry, "templates_version", 7)
     monkeypatch.setattr(generator, "_template_envs", {})
