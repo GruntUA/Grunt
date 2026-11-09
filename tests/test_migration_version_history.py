@@ -48,6 +48,14 @@ def test_prunes_per_doctype_limit_and_unescapes(tmp_path: Path):
                     },  # ASCII-escaped, as older rows were
                 )
 
+        # A history with gaps: 1, 2, 4, 5 - with max_versions 2 keeps 4, 5;
+        # Small "s2" 1, 3, 4 keeps 3, 4 (by count, not by number).
+        for v in (1, 3, 4):
+            conn.execute(
+                sa.text("INSERT INTO grunt_doc_version VALUES (:n, 'Small', 's2', :v, '[]')"),
+                {"n": f"Small-s2-v{v}", "v": v},
+            )
+
         with Operations.context(MigrationContext.configure(conn)):
             migration.upgrade()
 
@@ -65,6 +73,7 @@ def test_prunes_per_doctype_limit_and_unescapes(tmp_path: Path):
 
         assert versions("Menu", "m1") == list(range(11, 61))
         assert versions("Small", "s1") == [4, 5]
+        assert versions("Small", "s2") == [3, 4]
         assert len(versions("All", "a1")) == 70
         assert versions("Menu", "m2") == [1, 2, 3]
         stored = conn.execute(

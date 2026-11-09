@@ -67,3 +67,17 @@ async def test_zero_keeps_every_version(ctx):
         await ctx.save_doc("VhAll", name, {"title": f"v{i}"})
     versions = await version_service.get_versions(ctx.db._session(), "VhAll", name)
     assert len(versions) == 4
+
+
+async def test_the_limit_counts_existing_versions_not_numbers(ctx, note):
+    """A gap in the numbers (a version deleted by hand) keeps a record that fits."""
+    from sqlalchemy import delete
+
+    for i in (1, 2, 3):
+        await ctx.save_doc("VhNote", note, {"title": f"v{i}"})
+    table = (await ctx.get_meta("DocVersion")).table
+    await ctx.db._session().execute(
+        delete(table).where(table.c.doc_id == note).where(table.c.version == 2)
+    )
+    await ctx.save_doc("VhNote", note, {"title": "v4"})  # keeps 1, 3, 4 - three of them
+    assert [v["version"] for v in await _versions(ctx, note)] == [4, 3, 1]

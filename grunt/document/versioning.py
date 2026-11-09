@@ -87,12 +87,25 @@ class VersionService:
             )
         )
         if keep > 0 and next_version > keep:
-            await session.execute(
-                table.delete()
-                .where(table.c.ref_doctype == doctype)
-                .where(table.c.doc_id == doc_id)
-                .where(table.c.version <= next_version - keep)
-            )
+            # By count, not number: the oldest kept is the keep-th newest
+            # existing version (numbers can have gaps).
+            oldest_kept = (
+                await session.execute(
+                    select(table.c.version)
+                    .where(table.c.ref_doctype == doctype)
+                    .where(table.c.doc_id == doc_id)
+                    .order_by(table.c.version.desc())
+                    .offset(keep - 1)
+                    .limit(1)
+                )
+            ).scalar()
+            if oldest_kept is not None:
+                await session.execute(
+                    table.delete()
+                    .where(table.c.ref_doctype == doctype)
+                    .where(table.c.doc_id == doc_id)
+                    .where(table.c.version < oldest_kept)
+                )
         await session.flush()
 
         log.info(

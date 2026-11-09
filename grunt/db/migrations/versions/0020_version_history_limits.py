@@ -44,21 +44,32 @@ def _prune(conn: sa.Connection) -> None:
     limits = _limits(conn)
     over = conn.execute(
         sa.text(
-            f"SELECT ref_doctype, doc_id, max(version) FROM {_VERSION} "
+            f"SELECT ref_doctype, doc_id FROM {_VERSION} "
             "GROUP BY ref_doctype, doc_id HAVING count(*) > :keep"
         ),
         {"keep": min([_DEFAULT_KEEP, *[v for v in limits.values() if v > 0]])},
     ).all()
-    for doctype, doc_id, newest in over:
+    for doctype, doc_id in over:
         keep = limits.get(doctype, _DEFAULT_KEEP)
         if keep <= 0:
+            continue
+        # By count, not number (numbers can have gaps): the keep-th newest
+        # existing version is the oldest one kept.
+        oldest_kept = conn.execute(
+            sa.text(
+                f"SELECT version FROM {_VERSION} WHERE ref_doctype = :dt AND doc_id = :id "
+                "ORDER BY version DESC LIMIT 1 OFFSET :skip"
+            ),
+            {"dt": doctype, "id": doc_id, "skip": keep - 1},
+        ).scalar()
+        if oldest_kept is None:
             continue
         conn.execute(
             sa.text(
                 f"DELETE FROM {_VERSION} "
-                "WHERE ref_doctype = :dt AND doc_id = :id AND version <= :upto"
+                "WHERE ref_doctype = :dt AND doc_id = :id AND version < :oldest"
             ),
-            {"dt": doctype, "id": doc_id, "upto": newest - keep},
+            {"dt": doctype, "id": doc_id, "oldest": oldest_kept},
         )
 
 
