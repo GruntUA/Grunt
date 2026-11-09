@@ -11,7 +11,7 @@ DocType no longer exists; rows whose document was deleted are hidden (as they
 are from lists).
 """
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 from typing import Any
 
 from grunt.query.nodes import Cmp, Empty, Expr, Linked, and_, or_
@@ -75,10 +75,14 @@ async def readable_predicate(user: User, parent_meta: Any) -> Expr | None:
 
 
 async def reference_predicates(
-    columns: Collection[str], user: User, doctype: Any
+    columns: Collection[str], user: User, doctype: Any, *, row: Mapping[str, Any] | None = None
 ) -> tuple[Expr, Expr] | None:
-    """``(points at nothing, points at a readable document)`` for list queries,
-    or ``None`` when *doctype* doesn't inherit access."""
+    """``(points at nothing, points at a readable document)``, or ``None`` when
+    *doctype* doesn't inherit access.
+
+    For a list every DocType the reference column holds is covered; with *row*
+    (deciding that one row) only the row's own - exact for it, without reading
+    the distinct values of the whole table."""
     sources = [
         (dt_field, id_field)
         for dt_field, id_field in reference_sources(doctype)
@@ -99,8 +103,11 @@ async def reference_predicates(
                     readable.append(Linked(id_field, parent_meta.name, where))
             continue
         empty: list[Expr] = [Empty(dt_field), Empty(id_field)]
-        meta = await grunt.get_meta(doctype.name)
-        referenced = await store_for(meta).distinct(dt_field) if meta is not None else []
+        if row is not None:
+            referenced = [row.get(dt_field)]
+        else:
+            meta = await grunt.get_meta(doctype.name)
+            referenced = await store_for(meta).distinct(dt_field) if meta is not None else []
         for ref_doctype in referenced:
             if not ref_doctype:
                 continue

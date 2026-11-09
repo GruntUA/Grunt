@@ -5,7 +5,7 @@ compared in one type, NULL never matching a comparison, LIKE patterns with
 ``%`` and ``_``, text case ignored.
 """
 
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
@@ -140,3 +140,41 @@ def matches(expr: Expr, row: dict[str, Any]) -> bool:
         case Year(year=year):
             return not is_empty(raw) and str(iso(raw))[:4] == f"{year:04d}"
     raise TypeError(f"Not a query node: {expr!r}")
+
+
+def _reads_db(expr: Expr) -> bool:
+    if isinstance(expr, Linked):
+        return True
+    if isinstance(expr, (And, Or)):
+        return any(_reads_db(i) for i in expr.items)
+    return False
+
+
+async def matches_linked(
+    expr: Expr, row: dict[str, Any], linked: Callable[[Linked, Any], Awaitable[bool]]
+) -> bool:
+    """:func:`matches` for an expression with ``Linked`` nodes: *linked* answers
+    whether the target DocType holds a row whose ``select`` column is the value
+    and that satisfies ``where`` (the caller runs it as a query, compiled like
+    the SQL ``IN (subquery)``). In-memory branches are tried before ones that
+    read the database, so a role rule that already decides costs no query.
+
+    NULL is in neither ``Linked`` nor its negation, as in SQL.
+    """
+    if isinstance(expr, And):
+        for item in sorted(expr.items, key=_reads_db):
+            if not await matches_linked(item, row, linked):
+                return False
+        return True
+    if isinstance(expr, Or):
+        for item in sorted(expr.items, key=_reads_db):
+            if await matches_linked(item, row, linked):
+                return True
+        return False
+    if isinstance(expr, Linked):
+        value = row.get(expr.field)
+        if value is None:
+            return False
+        found = await linked(expr, value)
+        return not found if expr.negate else found
+    return matches(expr, row)

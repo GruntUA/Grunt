@@ -6,7 +6,7 @@ Table field) is. Rows are never changed directly - only by saving the parent,
 where its controller validates them (e.g. User guards its ``roles``).
 """
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 from typing import Any
 
 from grunt.query.nodes import FALSE, Cmp, Expr, Linked, and_, or_
@@ -35,35 +35,29 @@ async def parent_doctypes(child_name: str) -> list[Any]:
     return [m for m in metas if m is not None]
 
 
-async def child_allowed(
-    user: User, doctype: Any, action: PermissionAction, doc: dict | None
-) -> bool:
-
+async def child_allowed(user: User, doctype: Any, action: PermissionAction) -> bool:
+    """DocType-level: a child DocType is readable when one of the DocTypes that
+    embed it is. A single row is decided by :func:`child_predicate`."""
     if action not in ("read", "select"):
         return False
-    parent_doctype = (doc or {}).get("parent_doctype")
-    if doc is not None and parent_doctype:
-        parent_meta = await grunt.get_meta(parent_doctype)
-        if parent_meta is None:
-            return False
-        lookup = parent_meta.name if parent_meta.is_singleton else doc.get("parent_name")
-        parent = await grunt.db.get_value(parent_doctype, lookup, "*") if lookup else None
-        if parent is None:
-            return False
-        return await permission_checker.check(user, parent_meta, "read", parent)
-
     for parent_meta in await parent_doctypes(doctype.name):
         if await permission_checker.check(user, parent_meta, "read"):
             return True
     return False
 
 
-async def child_predicate(columns: Collection[str], user: User, doctype: Any) -> Expr:
-    """Rows whose parent document *user* may read, for list queries."""
+async def child_predicate(
+    columns: Collection[str], user: User, doctype: Any, *, row: Mapping[str, Any] | None = None
+) -> Expr:
+    """Rows whose parent document *user* may read. With *row* only its own
+    parent DocType is considered (exact for that row)."""
     if "parent_doctype" not in columns or "parent_name" not in columns:
         return FALSE
+    parents = await parent_doctypes(doctype.name)
+    if row is not None:
+        parents = [p for p in parents if p.name == row.get("parent_doctype")]
     readable: list[Expr] = []
-    for parent_meta in await parent_doctypes(doctype.name):
+    for parent_meta in parents:
         where = await readable_predicate(user, parent_meta)
         if where is not None:
             readable.append(

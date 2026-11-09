@@ -65,8 +65,9 @@
     },
     {
       "fieldname": "match",
-      "label": "Match condition (eval:)",
-      "fieldtype": "Data"
+      "label": "Row condition",
+      "fieldtype": "Data",
+      "description": "Which rows this rule covers: field == user, field != 'value' or link_field.field == user. Empty - all rows."
     },
     {
       "fieldname": "hidden_fields",

@@ -6680,7 +6680,11 @@ msgid "Marked point"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Match condition (eval:)"
+msgid "Row condition"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Which rows this rule covers: field == user, field != 'value' or link_field.field == user. Empty - all rows."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json

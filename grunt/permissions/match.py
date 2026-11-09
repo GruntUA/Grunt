@@ -1,41 +1,27 @@
 """A single parsed DocPermission.match expression.
 
-`match` (e.g. ``"owner == user"``) is evaluated two different ways depending
-on where a permission check happens:
+``match`` (e.g. ``"owner == user"``, ``"team.lead == user"``) is translated to a
+query predicate (``grunt.query.nodes``) and nothing else: lists filter by it in
+SQL, a single document is decided by evaluating the *same* predicate against
+its row (``grunt.permissions.query.row_allowed``). There used to be a second,
+per-document evaluator (``simpleeval``) accepting a wider grammar - a rule could
+open a document by its link yet keep it out of every list. One translation
+makes that drift impossible.
 
-- Row-level list/count filtering (``permissions/query.py``) needs it as a
-  query predicate (``grunt.query.nodes``) - necessarily a narrow subset (``field == value`` /
-  ``field != value`` on a literal or ``user``), since translating arbitrary
-  boolean expressions to SQL safely is a much bigger undertaking.
-- Per-document checks (``permissions/rbac.py``) need it evaluated in Python
-  against an already-fetched row, via ``simpleeval`` - which supports the
-  full expression syntax, not just the SQL-translatable subset.
-
-Before this class existed, those two evaluations were two independent
-implementations of the same domain concept, and had already drifted apart
-once (one failed open, the other silently treated "can't translate" as
-"unrestricted" instead of "deny"). Parsing and evaluating the expression in
-one place makes that kind of drift structurally harder to reintroduce.
+Grammar: ``<field> (==|!=) (user|'literal')``, where ``<field>`` is a document
+field or one Link hop ``<link_field>.<target_field>``. ``validate_match``
+(``grunt.metadata.permission``) rejects anything else when the DocType is
+saved or loaded.
 """
 
-import re
 from collections.abc import Collection
 
 import grunt
-from grunt import log
+from grunt.metadata.permission import MATCH_RE, is_literal
 from grunt.query.nodes import Cmp, Expr, Linked
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
-
-# "<field> == <value>" / "<field> != <value>".
-#   <field>  a document field, or "<link_field>.<target_field>" for a single
-#            Link hop - translated to an IN-subquery against the linked table.
-#   <value>  the bare word `user` (-> current user's email) or a quoted literal.
-_MATCH_RE = re.compile(
-    r"^(?P<field>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"
-    r"\s*(?P<op>==|!=)\s*(?P<value>.+)$"
-)
 
 
 def _operand(raw_value: str, user: User) -> tuple[bool, str]:
@@ -47,7 +33,7 @@ def _operand(raw_value: str, user: User) -> tuple[bool, str]:
     """
     if raw_value == "user":
         return True, user.email
-    if len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
+    if is_literal(raw_value):
         return True, raw_value[1:-1]
     return False, ""
 
@@ -69,7 +55,7 @@ async def _resolve_link_target(
 
 
 class PermissionMatch:
-    """A parsed ``match`` expression, evaluable as SQL or as Python."""
+    """A parsed ``match`` expression, translated to a query predicate."""
 
     def __init__(self, expr: str) -> None:
         self.expr = expr.strip()
@@ -80,7 +66,7 @@ class PermissionMatch:
         form, or None when *expr* isn't in that form (arbitrary boolean
         logic, non-string/non-`user` literals, ...).
         """
-        m = _MATCH_RE.match(self.expr)
+        m = MATCH_RE.match(self.expr)
         if not m:
             return None
         return m.group("field"), m.group("op"), m.group("value").strip()
@@ -121,107 +107,3 @@ class PermissionMatch:
         if sub_fn not in target_columns:
             return None
         return Linked(link_fn, target_name, Cmp(sub_fn, "eq", value), negate=op != "==")
-
-    async def evaluate_doc(self, doc: dict, user: User, doctype: DocType | Meta) -> bool:
-        """Per-document check.
-
-        Resolves the single-hop ``link_field.target_field`` form with one DB
-        lookup (the ``owner``/literal forms and full simpleeval expressions
-        are delegated to the synchronous :meth:`evaluate`).
-
-        Fails CLOSED on any resolution failure - unparseable operand, a Link
-        that can't be resolved, or no active DB session - same as
-        :meth:`evaluate`.
-        """
-        if self._parsed is None or "." not in self._parsed[0]:
-            return self.evaluate(doc, user, doctype_name=doctype.name)
-
-        field, op, raw_value = self._parsed
-        ok, value = _operand(raw_value, user)
-        if not ok:
-            log.warning("permissions.match_eval_error", doctype=doctype.name, match=self.expr)
-            return False
-
-        link_fn, sub_fn = field.split(".", 1)
-        link_val = doc.get(link_fn)
-        if link_val in (None, ""):
-            # this row's link is unset: "== value" can't hold, "!= value" does
-            return op != "=="
-
-        resolved = await _resolve_link_target(doctype, link_fn)
-        if resolved is None:
-            log.warning("permissions.match_eval_error", doctype=doctype.name, match=self.expr)
-            return False
-        target_name, _target_table = resolved
-
-        try:
-            actual = await grunt.db.get_value(target_name, link_val, sub_fn)
-        except RuntimeError:
-            log.warning("permissions.match_eval_error", doctype=doctype.name, match=self.expr)
-            return False
-        return actual == value if op == "==" else actual != value
-
-    def evaluate(self, doc: dict, user: User, *, doctype_name: str = "") -> bool:
-        """Python-level evaluation against a single already-fetched document.
-
-        Fails CLOSED: an unevaluable expression (typo, unsupported syntax,
-        field missing from *doc*, ...) denies rather than grants - the
-        opposite default would turn a broken permission rule into an open
-        one. Logged so a misconfigured rule is visible to admins.
-        """
-        narrow = self._evaluate_narrow(doc, user, doctype_name=doctype_name)
-        if narrow is not None:
-            return narrow
-
-        try:
-            from simpleeval import simple_eval
-
-            names = {
-                "user": user.email,
-                "owner": doc.get("owner"),
-                "doc": doc,
-            }
-            return bool(simple_eval(self.expr, names=names))
-        except Exception:
-            log.warning("permissions.match_eval_error", doctype=doctype_name, match=self.expr)
-            return False
-
-    def _evaluate_narrow(self, doc: dict, user: User, *, doctype_name: str = "") -> bool | None:
-        """Fast path for the same narrow ``field (==|!=) (user|'literal')``
-        form ``to_expr`` handles, evaluated the same structural way: *field*
-        always names a document field, *value* is resolved from the
-        (`user`|literal) grammar - never from a shared namespace.
-
-        Without this, the fallback ``simpleeval`` path below injects `user`
-        as a bare name meaning "current user's email" into the *same*
-        namespace document fields are read from. A match expression on a
-        field that happens to be named ``user`` (e.g. ``"user == user"``,
-        the natural way to write "this row's `user` field is me" for a
-        DocType whose owning-user field is literally called `user`) would
-        silently evaluate as `user.email == user.email` - always True,
-        regardless of the document's actual `user` field - since the doc's
-        own `user` value is never consulted at all. That's not a rejected
-        expression (which fails closed via the `except` below); it's a
-        *wrong* answer with no error, which is worse.
-
-        Returns None (defer to the general simpleeval path) for anything
-        outside this narrow grammar, e.g. boolean logic or comparisons
-        against fields other than the literal/`user` forms.
-        """
-        if self._parsed is None:
-            return None
-        field, op, raw_value = self._parsed
-
-        if raw_value == "user":
-            value: str = user.email
-        elif len(raw_value) >= 2 and raw_value[0] == raw_value[-1] and raw_value[0] in "'\"":
-            value = raw_value[1:-1]
-        else:
-            return None  # numeric/bare-name literals etc. - outside this form
-
-        if field not in doc:
-            log.warning("permissions.match_eval_error", doctype=doctype_name, match=self.expr)
-            return False
-
-        actual = doc.get(field)
-        return actual == value if op == "==" else actual != value
