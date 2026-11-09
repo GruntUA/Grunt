@@ -7,7 +7,7 @@ from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 from grunt import log
 lazy from grunt.monitoring import perf
 lazy from grunt.progress import current_job
-lazy from grunt.tasks.job_log import LOG_LABEL, close_job_log
+lazy from grunt.tasks import job_log
 
 _ARGS_PREVIEW_MAX = 2000
 
@@ -115,18 +115,33 @@ class TaskProgressMiddleware(TaskiqMiddleware):
 
 
 class ScheduledJobLogMiddleware(TaskiqMiddleware):
-    """Closes the ScheduledJobLog row of a task the scheduler enqueued.
+    """Records the run of a task the scheduler enqueued (grunt.tasks.job_log).
 
-    The scheduler opens the row and passes its id in the ``scheduled_job_log``
-    label; a failure that will be retried leaves the row Running for the
-    next attempt (the retry re-sends the same labels).
+    The scheduler passes the run in the labels: job name, cron, start and -
+    for a job whose every run is logged - the id of its open ScheduledJobLog
+    row. A failure that will be retried records nothing yet (the retry
+    re-sends the same labels).
     """
 
     async def post_execute(self, message: TaskiqMessage, result: TaskiqResult[Any]) -> None:
-        log_id = message.labels.get(LOG_LABEL)
-        if not log_id:
+        labels = message.labels
+        job_name = labels.get(job_log.JOB_LABEL)
+        log_id = labels.get(job_log.LOG_LABEL)
+        if not job_name and not log_id:
             return
-        if not result.is_err:
-            await close_job_log(str(log_id))
-        elif not _retry_info(message)[0]:
-            await close_job_log(str(log_id), error=result.error or "Task failed")
+        if result.is_err and _retry_info(message)[0]:
+            return
+        await job_log.finish_job(
+            str(job_name) if job_name else None,
+            str(labels.get(job_log.CRON_LABEL) or ""),
+            _started_at(labels.get(job_log.STARTED_LABEL)),
+            str(log_id) if log_id else None,
+            error=(result.error or "Task failed") if result.is_err else None,
+        )
+
+
+def _started_at(value: Any) -> datetime:
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
+        return datetime.now(UTC)

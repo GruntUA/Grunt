@@ -1,0 +1,77 @@
+{
+  "name": "ScheduledJobState",
+  "label": "Scheduled Job State",
+  "module": "tasks",
+  "autoname": "field:job_name",
+  "description": "One row per scheduled job: when it last ran and how it ended. Updated on every run, including the frequent jobs whose successful runs the Scheduled Job Log does not keep.",
+  "track_changes": false,
+  "table_name": "grunt_scheduled_job_state",
+  "track_activity": false,
+  "track_deletions": false,
+  "sort_field": "job_name",
+  "sort_order": "asc",
+  "fields": [
+    {
+      "fieldname": "job_name",
+      "label": "Job name",
+      "fieldtype": "Data",
+      "required": true,
+      "unique": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "cron_expression",
+      "label": "Cron expression",
+      "fieldtype": "Data",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "last_status",
+      "label": "Last status",
+      "fieldtype": "Select",
+      "options": "Success\nFailed",
+      "translatable": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "last_started_at",
+      "label": "Last start",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "last_finished_at",
+      "label": "Last end",
+      "fieldtype": "Datetime",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "run_count",
+      "label": "Runs",
+      "fieldtype": "Int",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "failure_count",
+      "label": "Failures",
+      "fieldtype": "Int",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "last_failed_at",
+      "label": "Last failure",
+      "fieldtype": "Datetime"
+    },
+    {
+      "fieldname": "last_error",
+      "label": "Last error",
+      "fieldtype": "LongText"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "read": true
+    }
+  ]
+}
