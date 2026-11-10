@@ -84,7 +84,7 @@ def test_shipped_doctype_has_permissions_defined(doctype_name):
     quietly coming back (e.g. someone reverting the JSON edit by accident).
     """
     dt = _load(doctype_name)
-    # A child table takes its access from the parent (grunt.permissions.child).
+    # A child table takes its access from the parent (grunt.permissions.query).
     assert dt.permissions or dt.is_child, (
         f"{doctype_name} must declare permissions, not be open by default"
     )

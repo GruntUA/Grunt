@@ -2,8 +2,8 @@
 
 The layers above (documents, lists, reports) speak :class:`~grunt.query.query.Query`
 and plain row dicts; a store executes them. Permissions are not a store's
-concern: :mod:`grunt.query.run` ANDs them onto a query's ``where`` before it
-gets here, and the document pipeline checks them before a write.
+concern: :mod:`grunt.permissions.reads` ANDs them onto a query's ``where``
+before it gets here, and the document pipeline checks them before a write.
 
 A store says what it can do in :attr:`Store.capabilities`; the core refuses
 what's missing with a clear error instead of failing on a table that isn't
@@ -15,8 +15,8 @@ from typing import Any, ClassVar
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import _
 from grunt.document.serde import serialize_datetimes, with_doctype
+from grunt.i18n import _
 from grunt.query.query import Query
 
 # What a store can do, beyond reading its rows (``fetch``/``count``/``get``).

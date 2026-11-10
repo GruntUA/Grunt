@@ -10,10 +10,10 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _
 from grunt.errors import not_found
-from grunt.local import require_session_user
+from grunt.i18n import _
+from grunt.local import require_session, require_session_user
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction, WriteAction
 lazy from grunt.store import store_for
@@ -50,7 +50,7 @@ async def read_guard(doctype: str) -> tuple[Any, str, frozenset[str]]:
     Returns ``(dt, user email, hidden_fields)``. Raises ``403`` when the user has no
     *read* permission on the DocType.
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_session_user()
@@ -68,7 +68,7 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     evaluate row-level ``match``/User Permission rules. Raises ``404`` when
     the document does not exist, ``403`` when the action is not permitted.
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_session_user()
@@ -85,9 +85,9 @@ async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, str, Asyn
     Returns ``(dt, user email, session)``. Raises ``403`` when the user has no
     permission for *action* (``"create"``, ``"write"``, or ``"delete"``).
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = require_session_user()
     await permission_checker.require(dt, action, user=user)
-    return dt, user, grunt.get_session()
+    return dt, user, require_session()

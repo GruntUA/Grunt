@@ -155,15 +155,17 @@ async def test_a_hidden_field_cannot_be_queried_by(ctx, people, db_session, engi
 async def test_a_link_hop_follows_the_target_rules(ctx, people, db_session, engine):
     """A query through a Link (``team`` -> ``FaTeam.budget``) is checked against
     the target DocType's hidden fields."""
-    from grunt.query import run
+    from grunt.permissions import reads
     from grunt.query.nodes import Cmp, Linked
     from grunt.query.query import Query
 
     query = Query("FaPerson", where=Linked("team", "FaTeam", Cmp("budget", "gt", 500)))
     assert await _forbidden(
-        ctx, db_session, engine, CLERK, lambda: run.fetch(query, user=CLERK.email)
+        ctx, db_session, engine, CLERK, lambda: reads.fetch(query, user=CLERK.email)
     )
-    rows = await _as(ctx, db_session, engine, PAYROLL, lambda: run.fetch(query, user=PAYROLL.email))
+    rows = await _as(
+        ctx, db_session, engine, PAYROLL, lambda: reads.fetch(query, user=PAYROLL.email)
+    )
     assert [r["name"] for r in rows] == ["P1"]
 
 

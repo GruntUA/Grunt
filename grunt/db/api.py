@@ -6,10 +6,10 @@ from typing import Any, Literal, cast, overload
 from sqlalchemy import CursorResult, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _
 from grunt.errors import not_found, unprocessable
+from grunt.i18n import _
 from grunt.local import _session_ctx
+from grunt.metadata.registry import doctype_registry
 from grunt.query import run
 from grunt.query.nodes import TRUE, Expr, and_, conjuncts, or_
 from grunt.query.query import Query, Sort
@@ -98,7 +98,7 @@ class GruntDB:
 
     @staticmethod
     async def _meta(doctype: str) -> Any:
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         return dt
@@ -315,7 +315,8 @@ class GruntDB:
         """Fetch a list of documents as plain dicts.
 
         No permission checks - ``grunt.get_all`` is the permission-aware
-        variant (both are :func:`grunt.query.run.fetch`). A MultiLink
+        variant (:func:`grunt.permissions.reads.fetch`; this one is
+        :func:`grunt.query.run.fetch`). A MultiLink
         field in ``fields`` comes back as a list of linked names (one extra
         query for the whole page).
         """

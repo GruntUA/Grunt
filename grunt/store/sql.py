@@ -12,9 +12,9 @@ from typing import Any
 from sqlalchemy import Select, and_, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
 from grunt.db.dialects import Dialect, dialect_for
 from grunt.document.meta import Meta
+from grunt.metadata.registry import doctype_registry
 from grunt.query.aggregates import GROUP_FN_RE, parse_aggregation
 from grunt.query.compile_sql import typed_value
 from grunt.query.query import Query, Sort
@@ -84,7 +84,7 @@ async def _linked_search_columns(
     *exclude* - ``link_field.target_field`` names not to look in (hidden from
     the user by the target DocType's rules)."""
     target = getattr(field, "options", None)
-    linked_dt = await grunt.get_meta(target) if target else None
+    linked_dt = await doctype_registry.get_meta(target) if target else None
     if linked_dt is None:
         return None
     linked_table = linked_dt.table

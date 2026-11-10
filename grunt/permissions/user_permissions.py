@@ -27,16 +27,20 @@ restricted user cannot insert or move a record outside their scope.
 from collections.abc import Collection
 from typing import Any
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.cache.bus import fanout
+from grunt.db.api import GruntDB
 from grunt.errors import not_found
+from grunt.i18n import _
 from grunt.local import session_user
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.roles import has_roles
 from grunt.query.nodes import FALSE, TRUE, Expr, In, Null, and_, or_
 from grunt.site.settings import get_setting
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # {user_email: {allow_doctype: {scope: set(for_value)}}}  scope = "*" | applicable_for
 _UP_CACHE: dict[str, dict[str, dict[str, set[str]]]] = {}
@@ -65,7 +69,7 @@ async def _strict_mode() -> bool:
 
 async def _load(user_email: str) -> dict[str, dict[str, set[str]]]:
 
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "UserPermission",
         filters={"for_user": user_email},
         fields=["allow", "for_value", "apply_to_all_doctypes", "applicable_for"],
@@ -116,7 +120,7 @@ async def expand_tree_values(allow: str, values: set[str]) -> set[str]:
     caching isn't worth the staleness risk.
     """
 
-    dt = await grunt.get_meta(allow)
+    dt = await doctype_registry.get_meta(allow)
     if dt is None:
         return values
     parent_field = getattr(dt, "tree_parent_field", None)
@@ -126,7 +130,7 @@ async def expand_tree_values(allow: str, values: set[str]) -> set[str]:
     out = set(values)
     frontier = list(values)
     while frontier:
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             allow,
             filters={f"{parent_field}__in": frontier},
             fields=["name"],
@@ -231,11 +235,11 @@ async def allowed_values(user: str | None, doctype_name: str, allow: str) -> set
 # Whitelisted endpoints
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     """Rows for the list-view "Restrictions" popup: which fields on *doctype*
     are constrained, and to which values, for the current user."""
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     up = await get_user_permissions_for(session_user(), doctype)
@@ -251,7 +255,7 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     return out
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     """``{fieldname: value}`` to pre-fill on a new *doctype* form from the
     current user's ``is_default`` UserPermission rows."""
@@ -259,7 +263,7 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     if not email or not await user_permissions_apply_to(email):
         return {}
 
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "UserPermission",
         filters={"for_user": email, "is_default": True},
         fields=["allow", "for_value", "apply_to_all_doctypes", "applicable_for"],
@@ -268,7 +272,7 @@ async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     if not rows:
         return {}
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     defaults: dict[str, str] = {}

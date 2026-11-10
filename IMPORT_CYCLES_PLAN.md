@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–3 злито (#120–#123); крок 4 (метадані) — у PR.
+Оновлено: 2026-11-10 — кроки 0–4 злито (#120–#124); крок 5 (права всередині) — у PR.
 
 ---
 
@@ -87,8 +87,8 @@
 | 1 | Малі цикли: auth.providers ↔ registry, dialects.fulltext ↔ search.terms, standard_records ↔ startup.fixtures, tasks.auto_repeat ↔ AutoRepeat | злито (#120) |
 | 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | злито (#121, #122) |
 | 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | злито (#123) |
-| 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | у PR |
-| 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | |
+| 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | злито (#124) |
+| 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | у PR |
 | 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | |
 | 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
@@ -209,3 +209,22 @@
   previous)`; пошуковий індекс підписується сам (`search.service._follow_doctype_update`).
 - **registry, db.schema.apply, compiler → фасад:** `_` / `log` — з `grunt.i18n` / `grunt.log`.
 - Результат: 2253 passed, pyright 0; CodeQL локально 311 → 295, нових 0.
+
+### 2026-11-10 — крок 5: права всередині
+
+- **Рекурсія `rbac ↔ query ↔ child ↔ reference`.** Доступ справді рекурсивний (дочірній рядок —
+  за батьком, коментар — за документом), тому `child.py` і `reference.py` злито в
+  `permissions/query.py` разом із тілом перевірки (`query.allowed`). `rbac.permission_checker` —
+  тонке API над ним (`check` → `allowed`, `require` з 403, `hidden_fields`).
+- **`query.run` без прав.** Читання від імені користувача (предикат прав, приховані поля, 403 на
+  фільтр за прихованим полем) — новий `permissions/reads.py` (`fetch / count / page / aggregate(
+  query, *, user=email)`). `query.run.*` — лише з `ignore_permissions=True` (обов'язковий
+  keyword, `Literal[True]`); явність «чиїми правами читаємо» збережено сигнатурами.
+- **Без фасаду** в `permissions.*`, `query.run`, `query.sql`, `store.base / sql`, `db.api`:
+  `doctype_registry.get_meta`, `local.require_session`, `GruntDB()` з `grunt.db.api`, `whitelist`
+  з `grunt.api.context`, `_` / `log` напряму.
+- Базовий список 145 → 141 (`child` / `reference` злито; `match`, `query.sql`, `store.base` поза
+  циклами). `permissions/reads.py` додано в список — код переїхав із `query.run`, що й так був у
+  циклі. Права, `query.run`, `store`, `db.api` лишаються в циклі через `store → document.registry`
+  і `store.sql → document.update_side_effects / aggregate` — крок 6.
+- Результат: 2257 passed, pyright 0; CodeQL локально 295 → 285, нових 0.

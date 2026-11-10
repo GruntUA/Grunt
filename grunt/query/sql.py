@@ -14,7 +14,7 @@ from typing import Any
 
 from sqlalchemy import ColumnElement, Table
 
-import grunt
+from grunt.metadata.registry import doctype_registry
 from grunt.query.compile_sql import to_sql
 from grunt.query.nodes import TRUE, Expr, linked_doctypes
 from grunt.query.parse import parse_filters
@@ -35,7 +35,7 @@ async def linked_tables(expr: Expr) -> dict[str, Table]:
     """The table of every DocType a ``Linked`` node in *expr* reads."""
     tables: dict[str, Table] = {}
     for name in linked_doctypes(expr):
-        meta = await grunt.get_meta(name)
+        meta = await doctype_registry.get_meta(name)
         if meta is None:  # a predicate only names DocTypes it just loaded
             raise LookupError(f"DocType {name!r} disappeared while filtering")
         tables[name] = meta.table

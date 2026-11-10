@@ -12,10 +12,13 @@ from typing import Any
 
 from sqlalchemy import select
 
-import grunt
-from grunt.local import _session_ctx
+from grunt.db.api import GruntDB
+from grunt.local import _session_ctx, require_session
+from grunt.metadata.registry import doctype_registry
 from grunt.query.nodes import Cmp, Expr, In, Linked, and_
 lazy from grunt.permissions.user_permissions import expand_tree_values
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # action -> share levels that grant it
 _LEVELS: dict[str, tuple[str, ...]] = {
@@ -41,11 +44,11 @@ async def has_share(user: str | None, doctype: str, action: str) -> bool:
         "user": user,
         "permission__in": list(levels),
     }
-    return bool(await grunt.db.exists("SharedWith", filters))
+    return bool(await _db.exists("SharedWith", filters))
 
 
 async def _subtree_parent_field(doctype: str) -> str | None:
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None or not getattr(meta, "shares_cover_subtree", False):
         return None
     return getattr(meta, "tree_parent_field", None) if getattr(meta, "is_tree", False) else None
@@ -62,7 +65,7 @@ async def shared_predicate(
         return None
     if getattr(doctype, "is_singleton", False):
         return None
-    meta = await grunt.get_meta("SharedWith")
+    meta = await doctype_registry.get_meta("SharedWith")
     if meta is None:
         return None
     mine = and_(
@@ -80,7 +83,7 @@ async def shared_predicate(
         share.c.user == user,
         share.c.permission.in_(levels),
     )
-    roots = set((await grunt.get_session().execute(shared)).scalars().all())
+    roots = set((await require_session().execute(shared)).scalars().all())
     if not roots:
         return None
     return In("name", tuple(sorted(await expand_tree_values(doctype.name, roots))))

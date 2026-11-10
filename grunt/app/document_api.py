@@ -32,8 +32,8 @@ lazy from grunt.db import GruntDB
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, DocumentList, load_document, new_document
 lazy from grunt.document.registry import document_registry
+lazy from grunt.permissions import reads
 lazy from grunt.permissions.query import read_predicate
-lazy from grunt.query import run
 lazy from grunt.query.aggregates import group_field, parse_aggregation
 lazy from grunt.query.nodes import linked_doctypes
 lazy from grunt.query.parse import FILTER_OPS
@@ -525,7 +525,7 @@ class DocumentAPI:
             order_by=order_by,
             order=order,
         )
-        rows = await run.fetch(query, user=user)
+        rows = await reads.fetch(query, user=user)
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
@@ -714,7 +714,7 @@ class DocumentAPI:
             order=order,
         )
         try:
-            rows = await run.aggregate(query, user=user)
+            rows = await reads.aggregate(query, user=user)
         except ValueError as e:
             raise unprocessable(str(e)) from None
         await fire("after_read", doctype=doctype, user=user, data=rows, method="aggregate")
@@ -740,7 +740,7 @@ class DocumentAPI:
         query = Query(
             dt.name, where=filter_expr(filters, dt.columns, dt), fields=("name",), limit=1
         )
-        rows = await run.fetch(query, user=user)
+        rows = await reads.fetch(query, user=user)
         exists = rows[0]["name"] if rows else None
         await fire(
             "after_read",

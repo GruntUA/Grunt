@@ -295,7 +295,7 @@ class DocType(BaseModel):
     # Sources of read access: [<doctype field>, <id field>] pairs and/or Link
     # fieldnames - a row pointing at a document is readable exactly when that
     # document is (comments, tags, attachments, files in a folder).
-    # See grunt.permissions.reference.
+    # See grunt.permissions.query.
     inherit_permission_from: list[str | list[str]] | None = None
     quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
     # Hovering a link to a document of this DocType pops up a card with its
@@ -493,7 +493,7 @@ class DocType(BaseModel):
 
     @model_validator(mode="after")
     def _drop_child_permissions(self) -> DocType:
-        """Child rows take their access from the parent document (grunt.permissions.child)."""
+        """Child rows take their access from the parent document (grunt.permissions.query)."""
         if self.is_child:
             self.permissions = []
         return self
