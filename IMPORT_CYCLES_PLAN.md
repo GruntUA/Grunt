@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–6b-1 злито (#120–#127); 6b-2 (`base` ↔ `registry` / `schema` / `queryset`) — у PR.
+Оновлено: 2026-11-10 — злито #120–#131 (кроки 0–6b-2, 9a–9c); 6b-3 (точки розширення конвеєра) — у PR; далі 6b-4.
 
 ---
 
@@ -329,4 +329,22 @@
   (`grunt.context` для хуків), `base` / `lifecycle` → `api.v1.ws`, `webhook.service`,
   `website.generator`, workflow — це 6b-3; `workflow.engine ↔ workflow.notify`.
 - Результат: 2260 passed, pyright 0.
+
+### 2026-11-10 — крок 6b-3: точки розширення конвеєра запису
+
+- `grunt/document/pipeline.py` — `WriteExtension` з точками `prepare_insert`, `before_store`,
+  `begin_update` (→ `UpdateScope`: `active()` навколо збереження, `finish()` після),
+  `check_delete`, `after_write`, `changes_recorded`, `doc_progress`. Конвеєр (`lifecycle`,
+  `update_side_effects`, `base`) кличе їх замість workflow, `website.generator`, вебхуків,
+  активності/підписників і WebSocket.
+- Реалізації — `grunt/core_pipeline.py` (workflow-охоронці й переходи, маршрут веб-сторінки,
+  вебхуки, активність, realtime); конвеєр імпортує його за шляхом перед першим записом.
+  `REQUIRED = {"workflow"}`: без охоронця workflow `pipeline.extensions()` відмовляє —
+  запис не проходить без перевірки (`tests/test_write_pipeline_extensions.py`).
+- Функціонально-локальні імпорти `activity` / `follow` в `update_side_effects` прибрано.
+- Базовий список 100 → 93 (`lifecycle`, `collection`, `update_side_effects`, `webhook.service`,
+  `OutgoingWebhook`, `workflow.guard`, `activity.follow`).
+- Результат: 2262 passed, pyright 0; CodeQL локально 257 → 224, нових 0. З алертів після #131
+  лишились 2 (`documents` у `workflow.engine` / `website.generator`) — їх тримають HTTP-методи
+  в `Document` (6b-4).
 

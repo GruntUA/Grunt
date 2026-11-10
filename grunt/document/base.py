@@ -17,7 +17,7 @@ from typing import Any, ClassVar
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt.api.v1.ws import manager
+from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
 from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
@@ -376,7 +376,7 @@ class Document(
         if message is not None:
             payload["message"] = message
         try:
-            await manager.broadcast_doc(self.doctype, str(doc_id), "import_progress", payload)
+            await pipeline.doc_progress(self.doctype, str(doc_id), payload)
         except Exception:
             log.exception("document.progress_broadcast_failed", doctype=self.doctype, doc=doc_id)
 

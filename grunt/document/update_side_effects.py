@@ -13,17 +13,16 @@ from typing import Any
 from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from grunt.document import pipeline
 from grunt.document.registry import document_registry
 from grunt.document.serde import audit_fields
 from grunt.document.versioning import _SKIP_FIELDS, version_service
 from grunt.errors import ApplicationError
 from grunt.i18n import _
-from grunt.local import rebound
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.store.sql import delete_child_rows
-from grunt.webhook.service import webhook_service
 
 ProgressCallback = Callable[[int], Awaitable[None]]
 
@@ -72,33 +71,15 @@ async def record_update_changes(
         changed_fields = [
             item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
         ]
-        try:
-            from grunt.activity import record_activity
-
-            with rebound(session, engine):
-                await record_activity(
-                    doctype_name,
-                    real_id,
-                    "Update",
-                    user_email=user,
-                    details={"changed_fields": changed_fields} if changed_fields else None,
-                )
-        except Exception:
-            log.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)
-
-        try:
-            from grunt.activity.follow import notify_followers_of_update
-
-            await notify_followers_of_update(
-                session=session,
-                doctype=doctype_name,
-                doc_id=real_id,
-                dt=dt,
-                changed_fields=changed_fields,
-                actor_email=user,
-            )
-        except Exception:
-            log.exception("follow.update_notify_failed", doctype=doctype_name, doc_id=real_id)
+        await pipeline.changes_recorded(
+            session=session,
+            engine=engine,
+            doctype=doctype_name,
+            doc_id=real_id,
+            dt=dt,
+            changed_fields=changed_fields,
+            user=user,
+        )
 
 
 async def fire_update_services(
@@ -110,7 +91,7 @@ async def fire_update_services(
 ) -> None:
     """Update search index and fire outgoing webhooks after successful update."""
     await search_index_service.index_document(session, doctype_name, dt, result)
-    await webhook_service.fire(session, "after_update", doctype_name, result)
+    await pipeline.after_write("after_update", session, doctype_name, result)
 
 
 async def fire_delete_services(
@@ -122,7 +103,7 @@ async def fire_delete_services(
 ) -> None:
     """Update external services after delete: search index and outgoing webhooks."""
     await search_index_service.remove_document(session, doctype_name, real_id)
-    await webhook_service.fire(session, "after_delete", doctype_name, existing)
+    await pipeline.after_write("after_delete", session, doctype_name, existing)
 
 
 async def fire_bulk_delete_webhooks(
@@ -133,7 +114,7 @@ async def fire_bulk_delete_webhooks(
 ) -> None:
     """Fire outgoing after_delete webhooks for each deleted document."""
     for doc in docs:
-        await webhook_service.fire(session, "after_delete", doctype_name, doc)
+        await pipeline.after_write("after_delete", session, doctype_name, doc)
 
 
 async def run_bulk_before_delete_hooks(

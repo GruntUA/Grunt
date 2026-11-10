@@ -5,7 +5,6 @@ grunt.actions
 grunt.actions.builtin
 grunt.activity
 grunt.activity.doctypes.DeletedDocument.deleted_document
-grunt.activity.follow
 grunt.activity.milestones
 grunt.activity.reactions
 grunt.api.messages
@@ -39,11 +38,9 @@ grunt.auth.users
 grunt.backups
 grunt.document.api
 grunt.document.base
-grunt.document.collection
 grunt.document.mixins.collaboration_rpc
 grunt.document.mixins.export_rpc
 grunt.document.mixins.history_rpc
-grunt.document.mixins.lifecycle
 grunt.document.mixins.link_rpc
 grunt.document.mixins.meta_rpc
 grunt.document.mixins.tree_rpc
@@ -52,7 +49,6 @@ grunt.document.queryset
 grunt.document.sidebar
 grunt.document.titles
 grunt.document.tree
-grunt.document.update_side_effects
 grunt.email.inbound
 grunt.email.service
 grunt.email.tasks
@@ -88,8 +84,6 @@ grunt.tasks.middleware
 grunt.tasks.redis_introspect
 grunt.tasks.scheduler
 grunt.utils.codegen
-grunt.webhook.doctypes.OutgoingWebhook.outgoing_webhook
-grunt.webhook.service
 grunt.webpush.doctypes.PushSubscription.push_subscription
 grunt.webpush.service
 grunt.website
@@ -98,5 +92,4 @@ grunt.website.generator
 grunt.website.preview
 grunt.website.router
 grunt.workflow.engine
-grunt.workflow.guard
 grunt.workflow.notify
