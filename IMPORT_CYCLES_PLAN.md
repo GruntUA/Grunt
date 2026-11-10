@@ -312,3 +312,21 @@
   `app.document_api`, `app.workflow_api` — виділений з нього `submit`; обидва в циклі через
   `collection` / `workflow.engine` → фасад — 9c).
 
+### 2026-11-10 — крок 9c: сервіси на `documents` і `grunt.local`
+
+- `workflow.engine`, `website.generator` — `documents.get_doc / save_doc / new_doc` замість
+  `grunt.*`; `grunt.system_context` → `grunt.local.as_system(session, engine)` (документ
+  `SYSTEM_USER` реєструє `auth.doctypes.User.user` — `local.use_system_user`; без нього
+  `as_system` відмовляє, а не працює як «ніхто»).
+- `collection`, `update_side_effects` — `grunt.set_context / context` з поточним користувачем →
+  `grunt.local.rebound(session, engine)`.
+- **Формули** (`count` / `sum_docs`) — без `document.api` (реальний цикл імпорту `formula →
+  document.api → collection → formula`): `count` — сирий підрахунок, як `grunt.count`;
+  `sum_docs` — перевірка права читання + `permissions.reads` по всіх рядках. **Виправлено:**
+  `sum_docs` через `grunt.get_list` підсумовував лише першу сторінку (20 рядків) —
+  `tests/test_formula_aggregates.py` падає на старому коді.
+- Базовий список 101 → 100 (`document.formula`). Решту тримають: `document.base` → фасад
+  (`grunt.context` для хуків), `base` / `lifecycle` → `api.v1.ws`, `webhook.service`,
+  `website.generator`, workflow — це 6b-3; `workflow.engine ↔ workflow.notify`.
+- Результат: 2260 passed, pyright 0.
+

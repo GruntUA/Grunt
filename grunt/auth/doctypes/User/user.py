@@ -20,6 +20,7 @@ from grunt.auth.users import hash_password, verify_password
 from grunt.document.base import Document
 from grunt.document.schema import Schema
 from grunt.i18n import N_, _
+from grunt.local import use_system_user
 
 # When a non-privileged user saves their *own* record via the generic form (the
 # "All" permission row lets them), these fields must not change. Roles live in
@@ -254,6 +255,7 @@ SYSTEM_USER = User(
         "language": "uk",
     },
 )
+use_system_user(SYSTEM_USER)
 
 
 # Anonymous visitors of the public site (form submissions, uploads) act as

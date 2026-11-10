@@ -18,6 +18,7 @@ from grunt.document.serde import audit_fields
 from grunt.document.versioning import _SKIP_FIELDS, version_service
 from grunt.errors import ApplicationError
 from grunt.i18n import _
+from grunt.local import rebound
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
@@ -72,10 +73,9 @@ async def record_update_changes(
             item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
         ]
         try:
-            import grunt
             from grunt.activity import record_activity
 
-            async with grunt.context(session=session, engine=engine, user=user):
+            with rebound(session, engine):
                 await record_activity(
                     doctype_name,
                     real_id,

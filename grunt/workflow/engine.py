@@ -28,10 +28,11 @@ from typing import Any
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
 from grunt.db.commit import on_commit
+from grunt.document.api import documents
 from grunt.events import fire as fire_hook
 from grunt.i18n import _
+from grunt.local import as_system
 from grunt.log import log
 from grunt.permissions.roles import get_roles
 from grunt.workflow.notify import notify_transition, previous_actor
@@ -125,7 +126,7 @@ class WorkflowEngine:
         engine: AsyncEngine,
         values: dict | None = None,
     ) -> dict:
-        doc = await grunt.get_doc(doctype.name, doc_id)
+        doc = await documents.get_doc(doctype.name, doc_id)
 
         available = await self.get_available_transitions(doctype, doc, user)
         transition = next((t for t in available if t.action == action), None)
@@ -181,7 +182,7 @@ class WorkflowEngine:
         # so a reader can't move a document through its workflow.
         token = _active.set(active)
         try:
-            updated = await grunt.save_doc(doctype.name, doc_id, updates)
+            updated = await documents.save_doc(doctype.name, doc_id, updates)
         finally:
             _active.reset(token)
 
@@ -262,8 +263,8 @@ class WorkflowEngine:
         details: dict,
         session: AsyncSession,
     ) -> None:
-        async with grunt.system_context(session):
-            await grunt.new_doc(
+        with as_system(session):
+            await documents.new_doc(
                 "ActivityLog",
                 {
                     "ref_doctype": doctype,
@@ -307,7 +308,7 @@ def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:
 async def _add_comment(active: ActiveTransition) -> None:
     """The transition's comment on the document's comment thread."""
     text = escape(active.comment or "").replace("\n", "<br>")
-    await grunt.new_doc(
+    await documents.new_doc(
         "Comment",
         {
             "reference_doctype": active.doctype,

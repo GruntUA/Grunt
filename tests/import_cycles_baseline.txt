@@ -40,7 +40,6 @@ grunt.backups
 grunt.document.api
 grunt.document.base
 grunt.document.collection
-grunt.document.formula
 grunt.document.mixins.collaboration_rpc
 grunt.document.mixins.export_rpc
 grunt.document.mixins.history_rpc

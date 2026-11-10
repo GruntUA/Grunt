@@ -37,8 +37,9 @@ from fastapi.responses import HTMLResponse
 from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
-import grunt
 from grunt.db.api import GruntDB
+from grunt.document.api import documents
+from grunt.local import as_system
 from grunt.log import log
 from grunt.utils.slug import slugify
 from grunt.website.host import current_web_app
@@ -227,7 +228,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
     """
 
     path = request.url.path.rstrip("/")
-    async with grunt.system_context(session):
+    with as_system(session):
         found = await _find_page(request, path)
         if found is None:
             return None
@@ -245,7 +246,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
             context.update(status_code=404, title="", doc=None)
             await _apply(hook(context), context)
         else:
-            doc = await grunt.get_doc(dt.name, name)
+            doc = await documents.get_doc(dt.name, name)
             title_field = dt.title_field or "name"
             context.update(
                 doc=doc,

@@ -15,7 +15,6 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
 from grunt.document.document_list import DocumentList
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
@@ -33,7 +32,7 @@ from grunt.document.update_side_effects import (
 )
 from grunt.errors import unprocessable
 from grunt.i18n import _
-from grunt.local import _user_ctx
+from grunt.local import rebound
 from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
@@ -345,8 +344,7 @@ async def bulk_delete(
         if progress_cb is not None:
             await progress_cb(done, total, len(errors))
 
-    tokens = grunt.set_context(session=session, engine=engine, user=_user_ctx.get())
-    try:
+    with rebound(session, engine):
         controllers = await run_bulk_before_delete_hooks(
             doctype_name=doctype_name,
             docs=to_delete,
@@ -355,16 +353,13 @@ async def bulk_delete(
             errors=errors,
             report=_report,
         )
-    finally:
-        grunt.reset_context(tokens)
 
     if not controllers:
         return 0, errors
 
     final_ids = [str(d["name"]) for d, _ in controllers]
 
-    tokens = grunt.set_context(session=session, engine=engine, user=_user_ctx.get())
-    try:
+    with rebound(session, engine):
         await run_bulk_delete_writes(
             session=session,
             ml=ml,
@@ -379,8 +374,6 @@ async def bulk_delete(
             controllers=controllers,
             errors=errors,
         )
-    finally:
-        grunt.reset_context(tokens)
 
     deleted = len(final_ids)
     await _report(total)
