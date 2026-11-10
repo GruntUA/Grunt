@@ -87,7 +87,7 @@ async def test_inject_core_writes_only_when_changed(ctx, db_session, engine, mon
 async def test_fixture_conflict_keeps_earlier_session_work(ctx, db_session, engine, monkeypatch):
     import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import apply_doctype_fixture
 
     await save_doctype(doctype_data={**_FX, "__is_new": True})
     await db_session.commit()
@@ -102,7 +102,7 @@ async def test_fixture_conflict_keeps_earlier_session_work(ctx, db_session, engi
         raise IntegrityError("INSERT", {}, Exception("duplicate"))
 
     monkeypatch.setattr(grunt, "new_doc", _conflicting_new_doc)
-    await _apply_doctype_fixture(
+    await apply_doctype_fixture(
         "NrConfig", [{"name": "clash", "code": "clash"}], db_session, engine
     )
     await db_session.commit()

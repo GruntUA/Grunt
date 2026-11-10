@@ -61,7 +61,7 @@ async def test_mysql_branch_uses_bound_parameter_not_string_interpolation(db_ses
     assert _INJECTION_PAYLOAD not in raw_sql
 
     # Defence in depth: the boolean-mode query is rebuilt from word
-    # characters only (grunt.search.terms.mysql_boolean_query), so the quote
+    # characters only (grunt.search.tokens.mysql_boolean_query), so the quote
     # and the comment marker never even reach the bound value.
     compiled_with_params_visible = str(
         stmt.compile(dialect=mysql.dialect(), compile_kwargs={"literal_binds": True})

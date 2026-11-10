@@ -29,13 +29,14 @@ import grunt
 from grunt import log
 from grunt.config import settings
 from grunt.document.serde import to_json, with_doctype
-from grunt.fixtures import clean_record
+from grunt.fixtures import apply_doctype_fixture, clean_record
 from grunt.site.manager import site_manager
 from grunt.utils.slug import slugify
 from grunt.utils.strings import to_snake_case
 lazy from grunt.apps.manifest import read_manifest
 lazy from grunt.document.meta import Meta
-lazy from grunt.startup.fixtures import _GRUNT_ROOT, _apply_doctype_fixture
+
+_GRUNT_ROOT = Path(__file__).parent  # the grunt package dir
 
 RECORDS_DIR = "records"
 
@@ -243,7 +244,7 @@ async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: Asyn
     record = {k: v for k, v in record.items() if k == "name" or meta.has_field(k)}
     record.update(is_standard=True, app=app)
     try:
-        return await _apply_doctype_fixture(meta.doc.name, [record], session, eng, sync=True)
+        return await apply_doctype_fixture(meta.doc.name, [record], session, eng, sync=True)
     except Exception as e:
         log.warning("standard_records.apply_failed", path=str(folder), error=str(e))
         return 0

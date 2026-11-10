@@ -27,7 +27,6 @@ from grunt import _, log
 from grunt.api.messages import throw
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
-from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.auth.users import get_user_by_email, get_user_by_id
 from grunt.config import settings
@@ -321,7 +320,3 @@ class WebAuthnProvider(AuthProvider):
             )
         log.info("webauthn.registered", user=user.email, credential=doc["name"])
         return {"name": doc["name"], "label": label}
-
-
-def register_provider() -> None:
-    register(WebAuthnProvider())

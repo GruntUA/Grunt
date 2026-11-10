@@ -110,15 +110,14 @@ async def test_export_respects_filters(ctx, fx_doctype, tmp_path):
 
 @pytest.mark.asyncio
 async def test_sync_fixture_updates_existing_record(ctx, fx_doctype, db_session, engine):
-    from grunt.fixtures import FixtureSpec, export_records
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import FixtureSpec, apply_doctype_fixture, export_records
 
     doc = await _make(ctx)
     [rec] = await export_records(FixtureSpec("FxConfig"))
     rec["title"] = "Changed"
     rec["rows"] = [{"label": "z", "amount": 9}]
 
-    await _apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
+    await apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
     await db_session.commit()
 
     fresh = await ctx.get_doc("FxConfig", doc["name"])
@@ -129,12 +128,12 @@ async def test_sync_fixture_updates_existing_record(ctx, fx_doctype, db_session,
 
 @pytest.mark.asyncio
 async def test_seed_fixture_does_not_touch_existing_record(ctx, fx_doctype, db_session, engine):
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import apply_doctype_fixture
 
     doc = await _make(ctx)
     rec = {"name": doc["name"], "code": "alpha", "title": "Changed"}
 
-    await _apply_doctype_fixture("FxConfig", [rec], db_session, engine)
+    await apply_doctype_fixture("FxConfig", [rec], db_session, engine)
     await db_session.commit()
 
     assert (await ctx.get_doc("FxConfig", doc["name"]))["title"] == "Alpha"
@@ -142,14 +141,13 @@ async def test_seed_fixture_does_not_touch_existing_record(ctx, fx_doctype, db_s
 
 @pytest.mark.asyncio
 async def test_unchanged_sync_fixture_is_not_resaved(ctx, fx_doctype, db_session, engine):
-    from grunt.fixtures import FixtureSpec, export_records
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import FixtureSpec, apply_doctype_fixture, export_records
 
     doc = await _make(ctx)
     before = (await ctx.get_doc("FxConfig", doc["name"]))["modified_at"]
     records = await export_records(FixtureSpec("FxConfig"))
 
-    await _apply_doctype_fixture("FxConfig", records, db_session, engine, sync=True)
+    await apply_doctype_fixture("FxConfig", records, db_session, engine, sync=True)
     await db_session.commit()
 
     assert (await ctx.get_doc("FxConfig", doc["name"]))["modified_at"] == before
@@ -157,10 +155,10 @@ async def test_unchanged_sync_fixture_is_not_resaved(ctx, fx_doctype, db_session
 
 @pytest.mark.asyncio
 async def test_sync_fixture_inserts_missing_record(ctx, fx_doctype, db_session, engine):
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import apply_doctype_fixture
 
     rec = {"name": "gamma", "code": "gamma", "title": "G", "rows": [{"label": "x", "amount": 3}]}
-    await _apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
+    await apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
     await db_session.commit()
 
     fresh = await ctx.get_doc("FxConfig", "gamma")
@@ -171,13 +169,13 @@ async def test_sync_fixture_inserts_missing_record(ctx, fx_doctype, db_session, 
 @pytest.mark.asyncio
 async def test_sync_fixture_leaves_matching_record_alone(ctx, fx_doctype, db_session, engine):
     """Child rows compare on the fixture's keys - a stored row also holds empty fillers."""
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import apply_doctype_fixture
 
     doc = await _make(ctx)
     before = (await ctx.get_doc("FxConfig", doc["name"]))["modified_at"]
     rec = {"name": doc["name"], "code": "alpha", "rows": [{"label": "a"}, {"label": "b"}]}
 
-    await _apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
+    await apply_doctype_fixture("FxConfig", [rec], db_session, engine, sync=True)
     await db_session.commit()
 
     assert (await ctx.get_doc("FxConfig", doc["name"]))["modified_at"] == before
