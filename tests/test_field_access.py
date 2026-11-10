@@ -10,6 +10,7 @@ import pytest
 import pytest_asyncio
 from fastapi import HTTPException
 
+from grunt.api.v1.document import meta as meta_api
 from tests.support import make_user
 
 TEAM = {
@@ -237,10 +238,9 @@ async def test_exists_follows_row_rules_and_hidden_fields(ctx, people, db_sessio
 
 @pytest.mark.asyncio
 async def test_year_filter_options_of_a_hidden_date(ctx, people, db_session, engine):
-    from grunt.document.base import Document
 
     async def years():
-        return await Document.get_field_years("FaPerson", "hired_on")
+        return await meta_api.get_field_years("FaPerson", "hired_on")
 
     assert await _as(ctx, db_session, engine, CLERK, years) == []
     assert await _as(ctx, db_session, engine, PAYROLL, years) == [2021]

@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from grunt.api.v1.document import meta as meta_api
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext
 from grunt.document import sidebar
 from tests.support import make_user
@@ -68,10 +69,9 @@ def sections():
 
 async def _sidebar(db_session, engine, doc_id, roles):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("ann@example.com", roles=roles)):
-        return await Document.get_sidebar(doctype="SideNote", doc_id=doc_id)
+        return await meta_api.get_sidebar(doctype="SideNote", doc_id=doc_id)
 
 
 @pytest.mark.asyncio
@@ -180,12 +180,11 @@ async def test_status_row(core_sections, ctx, db_session, engine):
 
     async def props(doc_id):
         import grunt
-        from grunt.document.base import Document
 
         async with grunt.context(
             db_session, engine, make_user("ann@example.com", roles=["Reader"])
         ):
-            return (await Document.get_sidebar(doctype="SideTask", doc_id=doc_id))["properties"]
+            return (await meta_api.get_sidebar(doctype="SideTask", doc_id=doc_id))["properties"]
 
     status = (await props(done["name"]))[0]
     assert (status["value"], status["indicator"]) == ("Finished", "success")

@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — злито #120–#131 (кроки 0–6b-2, 9a–9c); 6b-3 (точки розширення конвеєра) — у PR; далі 6b-4.
+Оновлено: 2026-11-10 — злито #120–#132 (кроки 0–6b-3, 9a–9c); 6b-4 (HTTP-методи з `Document` в `grunt.api.v1.document`) — у PR.
 
 ---
 
@@ -347,4 +347,22 @@
 - Результат: 2262 passed, pyright 0; CodeQL локально 257 → 224, нових 0. З алертів після #131
   лишились 2 (`documents` у `workflow.engine` / `website.generator`) — їх тримають HTTP-методи
   в `Document` (6b-4).
+
+### 2026-11-10 — крок 6b-4: HTTP-методи документа — з `Document` у `grunt.api.v1.document`
+
+- Рішення власника (2026-11-10): винести, нові шляхи, сумісність не зберігаємо.
+- 7 міксинів `grunt/document/mixins/*_rpc.py` (27 методів-`@staticmethod`) → модулі
+  `grunt/api/v1/document/{tree,links,export,history,collaboration,workflow,meta}.py` (функції
+  модуля). Шлях `grunt.document.base.Document.<m>` → `grunt.api.v1.document.<модуль>.<m>`.
+  `Document` = `DocumentLifecycleMixin` + сам документ, без HTTP-методів.
+- Оновлено: фронтенд (`core/api/docs.ts`, `DocSidebarBody.vue`, `executor.ts`, експортери),
+  `methods.generated.d.ts` (перегенеровано), тести, `docs/api/grunt-app.md`, skill
+  `grunt-dev` (`references/api.md`, обидві копії). Інші додатки bench
+  старих шляхів не використовують.
+- Базовий список 93 → 70 (23 модулі: усі `*_rpc`, `activity`, `activity.reactions /
+  milestones`, `print.renderer`, `website.preview`, `document.tree / titles`, `metadata.scaffold`,
+  ...).
+- Результат: 2262 passed, vitest 335, vue-tsc і pyright 0; CodeQL локально 224 → 147;
+  алерти `documents` після #131 зникли; 3 «нові» — ті самі цикли `auth`, перекласифіковані з
+  `unsafe-cyclic-import` на `cyclic-import`.
 

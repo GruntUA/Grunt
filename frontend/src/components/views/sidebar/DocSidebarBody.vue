@@ -121,7 +121,7 @@ function printDoc() {
   })
   const token = accessToken.value
   if (token) params.set('token', token)
-  window.open(`/api/v1/method/grunt.document.base.Document.print?${params.toString()}`, '_blank', 'noopener')
+  window.open(`/api/v1/method/grunt.api.v1.document.export.print?${params.toString()}`, '_blank', 'noopener')
 }
 </script>
 

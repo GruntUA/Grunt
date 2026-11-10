@@ -5,6 +5,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi import HTTPException
 
+from grunt.api.v1.document import collaboration as collaboration_api
+from grunt.api.v1.document import meta as meta_api
 from grunt.errors import ApplicationError
 from grunt.tasks import reminders
 from tests.support import make_user
@@ -62,13 +64,12 @@ async def _subjects(ctx, user):
 @pytest.mark.asyncio
 async def test_remind_me_and_delivery(ctx, note, as_user, db_session):
     from grunt import _
-    from grunt.document.base import Document
 
     async with as_user(ANN):
-        r = await Document.add_reminder(
+        r = await collaboration_api.add_reminder(
             doctype="RemNote", doc_id=note["name"], remind_at=_in(30), description="Check totals"
         )
-        sidebar = await Document.get_sidebar(doctype="RemNote", doc_id=note["name"])
+        sidebar = await meta_api.get_sidebar(doctype="RemNote", doc_id=note["name"])
     await db_session.commit()
     assert [x["description"] for x in sidebar["reminders"]] == ["Check totals"]
 
@@ -84,22 +85,23 @@ async def test_remind_me_and_delivery(ctx, note, as_user, db_session):
 
     # Sent reminders leave the sidebar.
     async with as_user(ANN):
-        sidebar = await Document.get_sidebar(doctype="RemNote", doc_id=note["name"])
+        sidebar = await meta_api.get_sidebar(doctype="RemNote", doc_id=note["name"])
     assert sidebar["reminders"] == []
 
 
 @pytest.mark.asyncio
 async def test_reminders_are_private(ctx, note, as_user, db_session):
     import grunt
-    from grunt.document.base import Document
 
     async with as_user(ANN):
-        r = await Document.add_reminder(doctype="RemNote", doc_id=note["name"], remind_at=_in(10))
+        r = await collaboration_api.add_reminder(
+            doctype="RemNote", doc_id=note["name"], remind_at=_in(10)
+        )
     await db_session.commit()
 
     async with as_user(BEN):
         assert await grunt.get_list("Reminder", limit=10) == []
-        sidebar = await Document.get_sidebar(doctype="RemNote", doc_id=note["name"])
+        sidebar = await meta_api.get_sidebar(doctype="RemNote", doc_id=note["name"])
         assert sidebar["reminders"] == []
         with pytest.raises(ERRORS):
             await grunt.save_doc("Reminder", r["name"], {"description": "hijack"})
@@ -108,17 +110,22 @@ async def test_reminders_are_private(ctx, note, as_user, db_session):
 @pytest.mark.asyncio
 async def test_validation_and_rescheduling(ctx, note, as_user, db_session):
     import grunt
-    from grunt.document.base import Document
 
     async with as_user(ANN):
         with pytest.raises(ERRORS):  # in the past
-            await Document.add_reminder(doctype="RemNote", doc_id=note["name"], remind_at=_in(-60))
+            await collaboration_api.add_reminder(
+                doctype="RemNote", doc_id=note["name"], remind_at=_in(-60)
+            )
     async with as_user("nobody@example.com", roles=()):
         with pytest.raises(ERRORS):  # cannot read the document
-            await Document.add_reminder(doctype="RemNote", doc_id=note["name"], remind_at=_in(5))
+            await collaboration_api.add_reminder(
+                doctype="RemNote", doc_id=note["name"], remind_at=_in(5)
+            )
 
     async with as_user(ANN):
-        r = await Document.add_reminder(doctype="RemNote", doc_id=note["name"], remind_at=_in(1))
+        r = await collaboration_api.add_reminder(
+            doctype="RemNote", doc_id=note["name"], remind_at=_in(1)
+        )
     await db_session.commit()
     async with ctx.system_context(db_session):
         assert await reminders.process_due(datetime.now(UTC) + timedelta(minutes=2)) == 1

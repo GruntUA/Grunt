@@ -364,7 +364,7 @@ def collect_methods(package_dir: Path, package: str) -> list[Method]:
     """Every whitelisted method of *package*, keyed by the path the dispatcher resolves.
 
     Methods of a class are exposed on the class and on its direct subclasses
-    (``DocumentTreeRPCMixin.get_tree`` is called as ``…base.Document.get_tree``).
+    (a mixin's method is called as ``<module>.<Controller>.<method>``).
     """
     methods: dict[str, Method] = {}
     for mod_name in _candidate_modules(package_dir, package):
