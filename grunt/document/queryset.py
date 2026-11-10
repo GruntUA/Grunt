@@ -19,14 +19,13 @@ from typing import Any
 
 import grunt
 from grunt.local import _user_ctx, require_session
-lazy from grunt.document.base import Document
 
 
-class QuerySet[T: Document]:
+class QuerySet[T]:
     """Immutable, chainable query builder bound to a single controller class."""
 
     def __init__(self, model_cls: type[T]) -> None:
-        self._model_cls = model_cls
+        self._model_cls: Any = model_cls  # a Document subclass
         self._doctype: str = getattr(model_cls, "doctype", model_cls.__name__)
         self._filters: dict[str, Any] = {}
         self._fields: list[str] | None = None

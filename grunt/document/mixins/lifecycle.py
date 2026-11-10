@@ -52,7 +52,6 @@ from grunt.website.generator import fill_route
 from grunt.workflow.engine import _active, workflow_engine
 from grunt.workflow.guard import check_create, check_delete, check_update, is_exempt
 from grunt.workflow.registry import get_active_workflow
-lazy from grunt.document.base import load_document
 lazy from grunt.document.collection import repoint_references, validate_replacement
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.registry import doctype_registry
@@ -92,6 +91,16 @@ class DocumentLifecycleMixin:
     doc_before_save: dict[str, Any] | None
 
     def _bind(self) -> None: ...
+    @classmethod
+    async def load(  # type: ignore[empty-body]  # Document.load
+        cls,
+        doctype: str,
+        name: str | None = None,
+        *,
+        expand: list[str] | None = None,
+        session: Any = None,
+        engine: Any = None,
+    ) -> Any: ...
     @property
     def user(self) -> str | None: ...  # type: ignore[empty-body]  # Document: the session user
 
@@ -199,7 +208,7 @@ class DocumentLifecycleMixin:
     async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
         """The stored document *doc_id*, read like ``grunt.get_doc`` reads it."""
 
-        doc = await load_document(self.doctype, doc_id, session=self.session, engine=self.engine)
+        doc = await self.load(self.doctype, doc_id, session=self.session, engine=self.engine)
         return doc.data
 
     async def _build_initial_row(

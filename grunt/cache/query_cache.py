@@ -13,7 +13,7 @@ from typing import Any
 from grunt.cache import bus
 from grunt.config import settings
 from grunt.db.commit import on_commit
-from grunt.document.base import DocumentList
+from grunt.document.document_list import DocumentList
 from grunt.site.manager import current_site
 lazy from grunt.utils.redis import shared
 

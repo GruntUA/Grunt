@@ -23,7 +23,6 @@ from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.store.sql import delete_child_rows
 from grunt.webhook.service import webhook_service
-lazy from grunt.document.base import new_document
 
 ProgressCallback = Callable[[int], Awaitable[None]]
 
@@ -224,7 +223,9 @@ async def bulk_delete_one_by_one(
     errors: list[str] = []
     for doc_id in ids:
         try:
-            doc = await new_document(doctype_name, {"name": doc_id}, session=session, engine=engine)
+            doc = await document_registry.base.new(
+                doctype_name, {"name": doc_id}, session=session, engine=engine
+            )
             await doc.delete()
             deleted += 1
         except Exception as e:
