@@ -11,9 +11,9 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.document.meta import Meta
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.errors import not_found
 
@@ -55,7 +55,7 @@ class VersionService:
         if not changes:
             return None
 
-        dt_version = await grunt.get_meta("DocVersion")
+        dt_version = await doctype_registry.get_meta("DocVersion")
         if dt_version is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
@@ -124,7 +124,7 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        dt_version = await grunt.get_meta("DocVersion")
+        dt_version = await doctype_registry.get_meta("DocVersion")
         if dt_version is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
@@ -148,7 +148,7 @@ class VersionService:
             for row in rows
         ]
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is not None:
             await self.resolve_change_labels(session, dt, versions)
 
@@ -228,7 +228,7 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        dt_version = await grunt.get_meta("DocVersion")
+        dt_version = await doctype_registry.get_meta("DocVersion")
         if dt_version is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table

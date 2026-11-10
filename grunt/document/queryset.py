@@ -18,7 +18,7 @@ Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gt
 from typing import Any
 
 import grunt
-from grunt.local import _user_ctx
+from grunt.local import _user_ctx, require_session
 lazy from grunt.document.base import Document
 
 
@@ -116,7 +116,7 @@ class QuerySet[T: Document]:
         return self._model_cls(
             doctype=self._doctype,
             data=created,
-            session=grunt.get_session(),
+            session=require_session(),
         )
 
     async def get_or_create(

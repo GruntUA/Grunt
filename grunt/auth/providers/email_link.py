@@ -26,7 +26,6 @@ from typing import Any, ClassVar
 
 import grunt
 from grunt import _, log
-from grunt.api.messages import throw
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
@@ -40,6 +39,7 @@ from grunt.auth.users import (
 )
 from grunt.config import settings
 from grunt.email.service import email_service
+from grunt.errors import throw
 
 _CODE_PURPOSE = "email-login-code"
 _LINK_PURPOSE = "email-login-link"

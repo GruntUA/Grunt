@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–5 злито (#120–#125); крок 6a (шар даних поза циклами) — у PR.
+Оновлено: 2026-11-10 — кроки 0–6a злито (#120–#126); 6b-1 (документ без низькорівневого фасаду) — у PR.
 
 ---
 
@@ -89,7 +89,7 @@
 | 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | злито (#123) |
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | злито (#124) |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | злито (#125) |
-| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a (шар даних: store, query.run, db.*, права) — у PR; 6b (документ і mixins) — далі |
+| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a злито (#126); 6b-1 (`throw` у `errors`, документ без низькорівневого фасаду) — у PR; 6b-2 (`base` ↔ mixins / `registry`) — далі |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | |
 | 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
 | 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | |
@@ -248,3 +248,19 @@
   вийшли.
 - Результат: 2257 passed, pyright 0; CodeQL локально 285 → 285, нових 0 (його алерти тримає
   велика компонента через фасад і документ — 6b, 9).
+
+### 2026-11-10 — крок 6b-1: документ без низькорівневого фасаду
+
+- `throw` — з `api.messages` (тягне email і сповіщення) у `grunt.errors` (шар 0); фасад і
+  `auth.*` імпортують звідти.
+- У `grunt/document/**` низькорівневі звернення до фасаду замінено прямими імпортами:
+  `get_meta` → `doctype_registry`, `get_session` → `local.require_session`, `whitelist` →
+  `api.context`, `throw` → `errors`, `grunt.db.*` (читання) → `GruntDB()`, `_` / `log` напряму.
+  Високорівневі (`get_doc`, `get_list`, `new_doc`, `context`) лишились — крок 9.
+- Базовий список 121 → 115: `document.fetch / links / query / validation / validators /
+  versioning`.
+- Що тримає решту документа: `base` імпортує всі mixins, а mixins (`lifecycle`, `collection`,
+  `tree`, `queryset`, `registry`) — `base` назад (фабрики `load_document` / `new_document`,
+  клас за замовчуванням). Це 6b-2.
+- Результат: 2257 passed, pyright 0; CodeQL локально 285 → 281, нових 0 (алерт `publish →
+  api.v1.ws` змінив клас з `unsafe-cyclic-import` на `cyclic-import` — той самий цикл).

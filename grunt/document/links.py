@@ -11,10 +11,10 @@ from typing import Any
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.document.meta import Meta
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 
@@ -46,11 +46,11 @@ class LinkService:
 
         Returns the number of links created.
         """
-        doclink_dt = await grunt.get_meta("DocLink")
+        doclink_dt = await doctype_registry.get_meta("DocLink")
         if doclink_dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
         table = doclink_dt.table
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
@@ -111,7 +111,7 @@ class LinkService:
 
         Returns a list of dicts with source_doctype, source_id, link_fieldname.
         """
-        dt_doc_link = await grunt.get_meta("DocLink")
+        dt_doc_link = await doctype_registry.get_meta("DocLink")
         if dt_doc_link is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
         table = dt_doc_link.table
@@ -238,7 +238,7 @@ class LinkService:
         doc_id: str,
     ) -> None:
         """Remove all links from and to a document (on delete)."""
-        dt_doc_link = await grunt.get_meta("DocLink")
+        dt_doc_link = await doctype_registry.get_meta("DocLink")
         if dt_doc_link is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocLink"})
         table = dt_doc_link.table

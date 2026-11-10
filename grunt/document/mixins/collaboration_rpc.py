@@ -14,18 +14,22 @@ from typing import Any
 from fastapi import HTTPException, status
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.auth.language import language_of
-from grunt.i18n import use_language
+from grunt.db.api import GruntDB
+from grunt.i18n import _, use_language
+from grunt.local import require_session
 from grunt.permissions.guards import doc_guard
 lazy from grunt.document.doctypes.Comment.comment import Comment
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class DocumentCollaborationRPCMixin:
     """Comments and bookmarks on documents, exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_comments(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return all comments for a document."""
         await doc_guard(doctype, doc_id)
@@ -50,7 +54,7 @@ class DocumentCollaborationRPCMixin:
         ]
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def add_comment(
         doctype: str,
         doc_id: str,
@@ -101,8 +105,8 @@ class DocumentCollaborationRPCMixin:
         # Reply: tell the author of the thread's root (unless already @mentioned).
         root = comment.get("parent_comment")
         if root:
-            async with grunt.system_context(grunt.get_session()):
-                root_author = await grunt.db.get_value("Comment", root, "owner")
+            async with grunt.system_context(require_session()):
+                root_author = await _db.get_value("Comment", root, "owner")
             if (
                 root_author
                 and root_author != grunt.get_user().email
@@ -123,7 +127,7 @@ class DocumentCollaborationRPCMixin:
         return comment
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
         """Delete a comment."""
 
@@ -135,7 +139,7 @@ class DocumentCollaborationRPCMixin:
         await grunt.delete_doc("Comment", comment_id)
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def add_reminder(
         doctype: str, doc_id: str, remind_at: str, description: str = ""
     ) -> dict[str, Any]:
@@ -152,7 +156,7 @@ class DocumentCollaborationRPCMixin:
         )
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
         """Return the current user's bookmark."""
         await doc_guard(doctype, doc_id)
@@ -173,7 +177,7 @@ class DocumentCollaborationRPCMixin:
         return data
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def add_bookmark(doctype: str, doc_id: str, title: str = "") -> dict[str, Any]:
         """Bookmark a document."""
         await doc_guard(doctype, doc_id)
@@ -188,7 +192,7 @@ class DocumentCollaborationRPCMixin:
         )
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def remove_bookmark(doctype: str, doc_id: str) -> None:
         """Remove a bookmark."""
 

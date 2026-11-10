@@ -23,7 +23,8 @@ The document API is bound from the :class:`~grunt.app.GruntApp` singleton last.
 from grunt.log import log
 from grunt.i18n import _
 from grunt.api.context import get_engine, get_session, whitelist
-from grunt.api.messages import msgprint, throw
+from grunt.api.messages import msgprint
+from grunt.errors import throw
 from grunt.monitoring.error_log import record_error as log_error
 from grunt.version import framework_version
 

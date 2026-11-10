@@ -12,9 +12,12 @@ from typing import Any
 from sqlalchemy import select
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import write_guard
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
@@ -31,7 +34,7 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     filters, so returns ``(dt, [name, parent_field, title_field])``. Neither ->
     a 403 naming the DocType.
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = grunt.get_user()
@@ -98,7 +101,7 @@ class DocumentTreeRPCMixin:
     """Tree operations for ``is_tree`` DocTypes, exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_tree(
         doctype: str,
         root_id: str | None = None,
@@ -117,7 +120,7 @@ class DocumentTreeRPCMixin:
             # select-only grant: identifier columns, no ad-hoc filters/search
             fields, filters, search = restricted, None, None
         scope = await _tree_row_scope(dt, restricted)
-        session = grunt.get_session()
+        session = require_session()
 
         nodes = await tree_service.get_tree(
             session,
@@ -141,7 +144,7 @@ class DocumentTreeRPCMixin:
         return nodes
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_tree_children(
         doctype: str,
         node_id: str | None = None,
@@ -160,7 +163,7 @@ class DocumentTreeRPCMixin:
         if restricted is not None:
             fields, filters = restricted, None
         scope = await _tree_row_scope(dt, restricted)
-        session = grunt.get_session()
+        session = require_session()
 
         return await tree_service.get_children(
             session,
@@ -175,7 +178,7 @@ class DocumentTreeRPCMixin:
         )
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_tree_ancestors(
         doctype: str,
         node_id: str,
@@ -190,13 +193,13 @@ class DocumentTreeRPCMixin:
         if restricted is not None:
             fields = restricted
         scope = await _tree_row_scope(dt, restricted)
-        session = grunt.get_session()
+        session = require_session()
         return await tree_service.get_ancestors(
             session, doctype, node_id, fields=fields, scope=scope
         )
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def move_tree_node(
         doctype: str, node_id: str, new_parent_id: str | None = None
     ) -> dict[str, Any]:
@@ -206,7 +209,7 @@ class DocumentTreeRPCMixin:
         """
 
         await write_guard(doctype, "write")
-        session = grunt.get_session()
+        session = require_session()
         return await tree_service.move_node(
             session,
             doctype,

@@ -15,7 +15,7 @@ from typing import Any
 from fastapi import Response
 
 from grunt import _
-lazy from grunt.api.messages import throw
+from grunt.errors import throw
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
 lazy from grunt.auth.ip_policy import sign_in_ip_allowed

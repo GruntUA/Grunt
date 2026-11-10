@@ -9,9 +9,9 @@ from urllib.parse import unquote, urlsplit
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import log
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
+from grunt.log import log
 from grunt.metadata.field import get_storage_class
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.doctype import DocType

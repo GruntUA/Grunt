@@ -9,10 +9,12 @@ from sqlalchemy import delete as sa_delete
 from sqlalchemy.engine import CursorResult
 
 import grunt
-from grunt import _, log
 from grunt.api.v1.ws import manager
 from grunt.db.session import async_session_factory
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.roles import has_roles
 from grunt.search.service import _search_index_table
 from grunt.store.sql import delete_child_rows
@@ -267,7 +269,7 @@ class BulkDeleteTask:
 
         try:
             async with async_session_factory() as session, grunt.context(session, engine, user):
-                dt = await grunt.get_meta(doctype)
+                dt = await doctype_registry.get_meta(doctype)
                 if dt is None:
                     raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
                 table = dt.table
@@ -317,7 +319,7 @@ class BulkDeleteTask:
 
                 # 4. Summary ActivityLog entry
                 try:
-                    dt_log = await grunt.get_meta("ActivityLog")
+                    dt_log = await doctype_registry.get_meta("ActivityLog")
                     if dt_log is None:
                         raise ValueError(
                             _("DocType “%(doctype)s” not found") % {"doctype": "ActivityLog"}

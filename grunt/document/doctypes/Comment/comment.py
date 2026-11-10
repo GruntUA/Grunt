@@ -3,9 +3,12 @@
 from typing import Any
 
 import grunt
-from grunt import _
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.permissions.roles import has_roles
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class Comment(Document):
@@ -26,7 +29,7 @@ class Comment(Document):
             return
         if parent_id == self.id:
             self.grunt.throw(_("A comment cannot reply to itself"))
-        parent = await grunt.db.get_value(
+        parent = await _db.get_value(
             "Comment",
             parent_id,
             ["reference_doctype", "reference_id", "parent_comment"],
@@ -47,7 +50,7 @@ class Comment(Document):
         if self.user and not is_admin and self.owner != self.user:
             self.grunt.throw(_("Only the author or an administrator can delete a comment"))
 
-        replies = await grunt.db.get_all(
+        replies = await _db.get_all(
             "Comment", filters={"parent_comment": self.id}, fields=["name", "owner"], limit=10_000
         )
         if not replies:

@@ -9,7 +9,7 @@ Two layers live here:
   single builder for the JSON error envelope used by every error response.
 """
 
-from typing import Any
+from typing import Any, NoReturn
 
 from fastapi import HTTPException
 
@@ -45,6 +45,22 @@ class ApplicationError(Exception):
     def to_api_error(self) -> APIError:
         """The same error as an HTTP exception - for code paths that only speak HTTP."""
         return APIError(self.status_code, self.code, self.message)
+
+
+def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn:
+    """Raise an ApplicationError (translates to HTTP exception + message).
+
+    This stops execution and returns an error response to the frontend.
+
+    Args:
+        message: Error message shown to user
+        code: Error code (e.g., "VALIDATION_ERROR", "PERMISSION_DENIED")
+        title: Optional error title
+
+    Raises:
+        ApplicationError
+    """
+    raise ApplicationError(message, code=code, title=title)
 
 
 def error_body(

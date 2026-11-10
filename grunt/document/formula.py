@@ -35,8 +35,8 @@ from functools import lru_cache
 from typing import Any
 
 import grunt
-from grunt import log
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.field import get_storage_class
 lazy from grunt.metadata.doctype import DocType
 

@@ -11,7 +11,10 @@ from typing import Any
 from fastapi import HTTPException
 
 import grunt
+from grunt.api.context import whitelist
 from grunt.i18n import _
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.activity.milestones import history as milestone_history
 lazy from grunt.auth.users import get_users_by_emails
 lazy from grunt.document import collection
@@ -48,17 +51,17 @@ class DocumentMetaRPCMixin:
     """Cross-document metadata (backlinks, sidebar bundle), exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_field_years(doctype: str, fieldname: str) -> list[int]:
         """Years present in a Date/Datetime field, newest first (year quick filter)."""
 
         _dt, user, hidden_fields = await read_guard(doctype)
         if fieldname in hidden_fields:
             return []
-        return await collection.field_years(grunt.get_session(), doctype, user, fieldname)
+        return await collection.field_years(require_session(), doctype, user, fieldname)
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_backlinks(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return all documents that link to this document (backlinks).
 
@@ -69,7 +72,7 @@ class DocumentMetaRPCMixin:
         # Permission verification
         await grunt.get_doc(doctype, doc_id)
 
-        rows = await link_service.get_backlinks(grunt.get_session(), doctype, doc_id)
+        rows = await link_service.get_backlinks(require_session(), doctype, doc_id)
         refs = [(r["source_doctype"], r["source_id"]) for r in rows]
         titles = await resolve_reference_titles(refs)
         return [
@@ -78,7 +81,7 @@ class DocumentMetaRPCMixin:
         ]
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_delete_impact(
         doctype: str,
         doc_id: str | None = None,
@@ -90,10 +93,10 @@ class DocumentMetaRPCMixin:
         for one in ids:
             await doc_guard(doctype, one)  # permission check per id
 
-        return await link_service.get_delete_impact(grunt.get_session(), doctype, ids)
+        return await link_service.get_delete_impact(require_session(), doctype, ids)
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
         """Link hover card: title, image and the ``in_preview`` fields of a document.
 
@@ -101,7 +104,7 @@ class DocumentMetaRPCMixin:
         can't see the document. Without ``in_preview`` fields the required
         ones are shown instead (as Frappe does).
         """
-        meta = await grunt.get_meta(doctype)
+        meta = await doctype_registry.get_meta(doctype)
         if meta is None or not meta.doc.show_preview_popup:
             return None
 
@@ -144,7 +147,7 @@ class DocumentMetaRPCMixin:
         }
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         """Return the whole document-sidebar payload in one round-trip.
 
@@ -241,10 +244,10 @@ class DocumentMetaRPCMixin:
         )
 
         grunt.get_user()  # 401 without a user, as before
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
 
         async def can(target: str, action: PermissionAction, row: dict | None = None) -> bool:
-            meta = dt if target == doctype else await grunt.get_meta(target)
+            meta = dt if target == doctype else await doctype_registry.get_meta(target)
             return meta is not None and await permission_checker.check(meta, action, row)
 
         # The same checks the add endpoints enforce, so the UI hides what would be refused.

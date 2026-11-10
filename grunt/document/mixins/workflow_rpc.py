@@ -7,8 +7,11 @@ RPC: grunt.document.base.Document.apply_workflow_transition
 from typing import Any
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 from grunt.workflow.engine import workflow_engine
 from grunt.workflow.registry import get_active_workflow
 
@@ -17,10 +20,10 @@ class DocumentWorkflowRPCMixin:
     """Workflow transitions on documents, exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_workflow_transitions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return available workflow transitions for a document."""
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
@@ -41,7 +44,7 @@ class DocumentWorkflowRPCMixin:
         ]
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def apply_workflow_transition(
         doctype: str, doc_id: str, action: str, values: dict[str, Any] | None = None
     ) -> dict[str, Any]:
@@ -51,12 +54,12 @@ class DocumentWorkflowRPCMixin:
         entered in a dialog) - fields not declared on the transition are ignored;
         ``values["__comment"]`` is the comment of a ``require_comment`` transition.
         """
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
         user = grunt.get_user()
-        session = grunt.get_session()
+        session = require_session()
 
         return await workflow_engine.apply_transition(
             dt.doc, doc_id, action, user.email, session, grunt.get_engine(), values
