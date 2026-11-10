@@ -14,7 +14,7 @@ on a single doctype.
 from collections.abc import Iterable
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
-from grunt.local import session_roles, session_user
+from grunt.local import _session_ctx, session_roles, session_user
 lazy import grunt
 
 _BUILT_IN: dict[str, list[str]] = {
@@ -29,19 +29,18 @@ async def get_roles(user: str | None = None) -> list[str]:
         return session_roles()
     if user in _BUILT_IN:
         return list(_BUILT_IN[user])
-    try:
-        # UserRole rows hang off the User's name - usually, not always, the email.
-        name = await grunt.db.get_value("User", {"email": user}, "name")
-        if not name:
-            return []
-        rows = await grunt.db.get_all(
-            "UserRole",
-            filters={"parent_name": name, "parent_doctype": "User"},
-            fields=["role_name"],
-            limit=100,
-        )
-    except RuntimeError:
+    if _session_ctx.get() is None:
         return []  # no database in context (a bare unit test): no roles to load
+    # UserRole rows hang off the User's name - usually, not always, the email.
+    name = await grunt.db.get_value("User", {"email": user}, "name")
+    if not name:
+        return []
+    rows = await grunt.db.get_all(
+        "UserRole",
+        filters={"parent_name": name, "parent_doctype": "User"},
+        fields=["role_name"],
+        limit=100,
+    )
     return [r["role_name"] for r in rows]
 
 

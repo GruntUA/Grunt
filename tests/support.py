@@ -51,25 +51,29 @@ def acting_as(user: Any) -> Iterator[None]:
 
 
 async def check_as(user: Any, *args: Any, **kwargs: Any) -> bool:
-    """``permission_checker.check(*args)`` for *user* (see :func:`acting_as`)."""
+    """``permission_checker.check(user, *args)``, with *user* also bound to the context
+    (:func:`acting_as`) for code the check reaches."""
     with acting_as(user):
         return await permission_checker.check(user, *args, **kwargs)
 
 
 async def require_as(user: Any, *args: Any, **kwargs: Any) -> None:
-    """``permission_checker.require(*args)`` for *user* (see :func:`acting_as`)."""
+    """``permission_checker.require(user, *args)``, with *user* also bound to the context
+    (:func:`acting_as`) for code the check reaches."""
     with acting_as(user):
         await permission_checker.require(user, *args, **kwargs)
 
 
 async def hidden_fields_as(user: Any, doctype: Any) -> frozenset[str]:
-    """``permission_checker.hidden_fields(doctype)`` for *user* (see :func:`acting_as`)."""
+    """``permission_checker.hidden_fields(user, doctype)``, with *user* also bound to
+    the context (:func:`acting_as`)."""
     with acting_as(user):
         return permission_checker.hidden_fields(user, doctype)
 
 
 async def read_predicate_as(user: Any, meta: Any) -> Any:
-    """``read_predicate`` of *user* (see :func:`acting_as`)."""
+    """``read_predicate(user, meta)``, with *user* also bound to the context
+    (:func:`acting_as`) for code the predicate reaches."""
     from grunt.permissions.query import read_predicate
 
     with acting_as(user):
