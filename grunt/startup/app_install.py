@@ -16,13 +16,13 @@ from grunt import log
 lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import ensure_site_dependencies
 lazy from grunt.document.registry import document_registry
+lazy from grunt.fixtures import apply_doctype_fixture
 lazy from grunt.metadata.compiler import get_table_name
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import DoctypeExtension, apply_extensions, site_extensions
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import site_manager
 lazy from grunt.standard_records import apply_records
-lazy from grunt.startup.fixtures import _apply_doctype_fixture
 lazy from grunt.startup.workspaces import _apply_workspace_fixture, _auto_seed_workspace
 lazy from grunt.version import app_version, framework_version
 
@@ -241,7 +241,7 @@ async def _apply_app_fixtures(
                     deferred_menus.append((fx_file, records))
                     continue
 
-                written = await _apply_doctype_fixture(
+                written = await apply_doctype_fixture(
                     fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
                 )
                 if written:

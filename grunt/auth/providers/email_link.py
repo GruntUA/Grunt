@@ -30,7 +30,6 @@ from grunt.api.messages import throw
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
-from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.auth.users import (
     _apply_signup_approval,
@@ -245,7 +244,3 @@ class EmailLoginProvider(AuthProvider):
             log.warning("auth.email_login.queue_failed", email=email)
         else:
             log.info("auth.email_login.sent", email=email)
-
-
-def register_provider() -> None:
-    register(EmailLoginProvider())

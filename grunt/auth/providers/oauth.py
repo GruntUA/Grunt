@@ -17,7 +17,6 @@ from grunt import _
 from grunt.api.messages import throw
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
-from grunt.auth.providers.registry import register
 from grunt.config import settings
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.users import _apply_signup_approval, _guard_registration, get_user_by_email
@@ -169,8 +168,3 @@ class MicrosoftProvider(OIDCProvider):
 
     def _client_secret(self) -> str | None:
         return settings.oauth_microsoft_client_secret
-
-
-def register_providers() -> None:
-    register(GoogleProvider())
-    register(MicrosoftProvider())

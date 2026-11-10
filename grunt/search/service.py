@@ -6,7 +6,7 @@ PostgreSQL ``tsvector`` or MySQL ``FULLTEXT``, chosen by the dialect (see
 :mod:`grunt.db.dialects.fulltext`). Where the engine can't serve a query
 (FTS5 unavailable, nothing to tokenize) search falls back to ``LIKE``.
 
-All engines get the same query semantics (see :mod:`grunt.search.terms`):
+All engines get the same query semantics (see :mod:`grunt.search.tokens`):
 every term must match, each term matches as a word *prefix*
 (``петр`` → «Петренко»), results are ranked with title hits first.
 

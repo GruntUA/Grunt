@@ -153,6 +153,7 @@ Every hook below works on any app's DocType, not only your own:
 | `doctype_js` | client scripts for the form |
 | `sidebar_sections` | panels in the form sidebar |
 | `scheduler_events` | background jobs |
+| `auth_providers` | sign-in methods ([Authentication providers](auth-providers.md)) |
 
 ```python title="crystal_finance/hooks.py"
 doctype_mixins = {"Asset": ["crystal_finance.asset.AssetFinance"]}

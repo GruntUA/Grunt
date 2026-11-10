@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from grunt.tasks.auto_repeat import first_date, next_date
+from grunt.tasks.repeat_schedule import first_date, next_date
 
 # ── Schedule arithmetic ──────────────────────────────────────────────────
 

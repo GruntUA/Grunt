@@ -1,6 +1,7 @@
 """AutoRepeat controller - validates the rule and keeps its schedule current.
 
-The copying itself lives in :mod:`grunt.tasks.auto_repeat` (daily job).
+The copying itself lives in :mod:`grunt.tasks.auto_repeat` (daily job), the
+schedule arithmetic in :mod:`grunt.tasks.repeat_schedule`.
 """
 
 from datetime import date
@@ -10,7 +11,7 @@ import grunt
 from grunt import _
 from grunt.document.base import Document
 from grunt.permissions.rbac import permission_checker
-from grunt.tasks.auto_repeat import (
+from grunt.tasks.repeat_schedule import (
     FREQUENCIES,
     MONTHS_BY_FREQUENCY,
     anchor_day,
