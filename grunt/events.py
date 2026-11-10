@@ -19,22 +19,15 @@ Adding a stage means appending an :class:`EventSubscriber` - never editing
 :func:`fire`.
 """
 
+import importlib
 import inspect
 from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from grunt import log
-from grunt.assignment import assignment_service
-from grunt.document.links import link_service
 from grunt.hooks import dispatch as _dispatch_hooks
 from grunt.local import _bootstrap_ctx
-from grunt.metadata.registry import doctype_registry
-from grunt.notification import rule_index
-from grunt.notification.tasks import evaluate_notification_rules_task
-from grunt.scripting import server_script_runner
-from grunt.storage.references import claim_referenced_files
-from grunt.tasks.enqueue import enqueue
+from grunt.log import log
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,6 +48,20 @@ class EventSubscriber:
 
 
 SUBSCRIBERS: list[EventSubscriber] = []
+
+# The framework's own stages (server scripts, backlinks, file claims,
+# notification and assignment rules) - a module above the document layer that
+# registers them. Imported by path before the first event, so the bus never
+# imports the subsystems and a stage can't be missed because nothing imported it.
+_CORE_STAGES = "grunt.core_events"
+_core_loaded = False
+
+
+def _load_core_stages() -> None:
+    global _core_loaded
+    if not _core_loaded:
+        importlib.import_module(_CORE_STAGES)
+        _core_loaded = True
 
 
 def register_subscriber(sub: EventSubscriber) -> None:
@@ -106,6 +113,7 @@ async def fire(event: str, **kwargs: Any) -> None:
     if _bootstrap_ctx.get():
         log.debug("event.skipped", reason="bootstrap", hook_event=event)
         return
+    _load_core_stages()
 
     kwargs["event"] = event
 
@@ -120,131 +128,3 @@ async def fire(event: str, **kwargs: Any) -> None:
                 await result
         except Exception:
             log.exception("event.subscriber_error", subscriber=sub.name, hook_event=event)
-
-
-# Core pipeline stages
-#
-# These are framework-internal (not pluggable), but they are registered the
-# same way an app's would be - as data in SUBSCRIBERS - so the dispatch loop
-# in fire() stays a plain iteration. Each keeps its own lazy imports to avoid
-# import cycles at module load.
-
-_SERVER_SCRIPT_EVENTS = frozenset(
-    {
-        "before_insert",
-        "after_insert",
-        "before_save",
-        "after_save",
-        "before_delete",
-        "after_delete",
-        "validate",
-        "on_transition",
-    }
-)
-
-_LINK_EVENTS = frozenset({"after_save", "after_insert", "after_delete"})
-
-_ASSIGNMENT_EVENTS = frozenset({"after_save", "after_insert"})
-
-_FILE_CLAIM_EVENTS = frozenset({"after_save"})
-
-_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
-
-
-def _user_email(kwargs: dict) -> str:
-    user_obj = kwargs.get("user")
-    return getattr(user_obj, "email", str(user_obj)) if user_obj else ""
-
-
-async def _run_server_scripts(**kwargs: Any) -> None:
-    """Server Scripts of type "DocType Event"."""
-    doctype = kwargs.get("doctype")
-    if not doctype or not kwargs.get("session"):
-        return
-
-    await server_script_runner.run_doctype_event(
-        session=kwargs["session"],
-        doctype=doctype,
-        event=kwargs["event"],
-        doc=kwargs.get("doc", {}),
-        user_email=_user_email(kwargs),
-    )
-
-
-async def _sync_document_links(**kwargs: Any) -> None:
-    """Backlink sync on write, backlink cleanup on delete."""
-    doctype = kwargs.get("doctype")
-    doc = kwargs.get("doc")
-    session = kwargs.get("session")
-    if not doctype or not doc or not session:
-        return
-
-    doc_id = str(doc.get("name", ""))
-    if kwargs["event"] == "after_delete":
-        await link_service.delete_links(session, doctype, doc_id)
-    else:
-        await link_service.sync_links(session, doctype, doc_id, doc)
-
-
-async def _claim_referenced_files(**kwargs: Any) -> None:
-    """Bind pending uploads the saved document points at (grunt.storage.references)."""
-    if not kwargs.get("session"):
-        return
-
-    await claim_referenced_files(**kwargs)
-
-
-async def _evaluate_notification_rules(**kwargs: Any) -> None:
-    """Offload notification-rule evaluation to a background worker."""
-    doctype = kwargs.get("doctype")
-    event = kwargs["event"]
-    if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
-        return
-    # ``Notification`` is the fan-out sink itself - evaluating rules on its own
-    # writes would recursively enqueue more work. Append-only system logs
-    # (``DocType.is_log``) never warrant notification rules either.
-    if doctype == "Notification":
-        return
-
-    try:
-        dt = await doctype_registry.get(doctype)
-    except Exception:
-        dt = None
-    if dt is not None and getattr(dt, "is_log", False):
-        return
-
-    # Skip the worker hop entirely unless a rule could actually match -
-    # otherwise every document write queues a task and a log row.
-    if not await rule_index.has_rules(doctype, event):
-        return
-
-    # After the commit: the worker reads the document this transaction saved.
-    enqueue(
-        evaluate_notification_rules_task,
-        event=event,
-        doctype=doctype,
-        doc=kwargs["doc"],
-        user_email=_user_email(kwargs),
-    )
-
-
-async def _evaluate_assignment_rules(**kwargs: Any) -> None:
-    doctype = kwargs.get("doctype")
-    if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
-        return
-
-    await assignment_service.evaluate_and_assign(doctype=doctype, doc=kwargs["doc"])
-
-
-for _core_stage in (
-    EventSubscriber("server_scripts", _run_server_scripts, _SERVER_SCRIPT_EVENTS, priority=30),
-    EventSubscriber("document_links", _sync_document_links, _LINK_EVENTS, priority=40),
-    EventSubscriber("file_references", _claim_referenced_files, _FILE_CLAIM_EVENTS, priority=45),
-    EventSubscriber(
-        "notification_rules", _evaluate_notification_rules, _NOTIFICATION_EVENTS, priority=50
-    ),
-    EventSubscriber(
-        "assignment_rules", _evaluate_assignment_rules, _ASSIGNMENT_EVENTS, priority=60
-    ),
-):
-    register_subscriber(_core_stage)

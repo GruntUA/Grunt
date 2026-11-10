@@ -1,4 +1,10 @@
-"""Document CRUD and query API mixin for GruntApp facade."""
+"""Document CRUD and queries with permissions - what ``grunt.get_doc``,
+``grunt.get_list``, ``grunt.new_doc`` ... run.
+
+One instance, :data:`documents`, with the query and document caches: the
+``grunt`` facade binds its functions, and the layers below the facade
+(services, the pipeline's own helpers) call it directly - never ``grunt.*``.
+"""
 
 import copy
 from datetime import UTC, datetime
@@ -6,15 +12,19 @@ from typing import Any, overload
 
 from fastapi import HTTPException
 
-import grunt
-from grunt import _, log
+from grunt.cache.document_cache import DocumentCache
+from grunt.cache.query_cache import QueryCache
 from grunt.config import settings
+from grunt.db.api import GruntDB
 from grunt.db.profiler import profile
 from grunt.document import collection
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
 from grunt.errors import forbidden, not_found, unprocessable
 from grunt.events import fire
-from grunt.local import require_engine, require_session_user
+from grunt.i18n import _
+from grunt.local import require_engine, require_session, require_session_user
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.naming import naming_service
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
@@ -25,10 +35,7 @@ from grunt.permissions.guards import (
 )
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import get_roles
-from grunt.workflow.engine import workflow_engine
-lazy from grunt.cache.document_cache import DocumentCache
-lazy from grunt.cache.query_cache import QueryCache
-lazy from grunt.db import GruntDB
+from grunt.workflow.registry import get_active_workflow
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, load_document, new_document
 lazy from grunt.document.document_list import DocumentList
@@ -41,17 +48,21 @@ lazy from grunt.query.parse import FILTER_OPS
 lazy from grunt.query.query import Query
 lazy from grunt.query.sql import filter_expr
 lazy from grunt.store import AGGREGATE, SQL, supports
-lazy from grunt.workflow.registry import get_active_workflow
 
 
 class DocumentAPI:
-    """Document CRUD, list/query, and workflow helpers for GruntApp.
+    """Document CRUD and list/query with permissions (see the module doc).
 
-    Guard/identity logic is imported as module-level functions from
-    :mod:`grunt.local` and :mod:`grunt.permissions.guards`; the annotations
-    below declare the ``db``/``query_cache`` attributes provided by the composed
-    :class:`~grunt.app.GruntApp` so type checkers can resolve them.
+    Guard/identity logic comes from :mod:`grunt.local` and
+    :mod:`grunt.permissions.guards`; ``db`` and the caches are its own.
     """
+
+    def __init__(self) -> None:
+        self.db = GruntDB()
+        self.query_cache = QueryCache()
+        self.doc_cache = DocumentCache()
+        self.query_cache.subscribe()
+        self.doc_cache.subscribe()
 
     db: GruntDB
     query_cache: QueryCache
@@ -119,15 +130,13 @@ class DocumentAPI:
             doctype,
             id_or_name,
             expand=expand,
-            session=grunt.get_session(),
+            session=require_session(),
             engine=require_engine(),
         )
 
     async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> Document:
 
-        return await new_document(
-            doctype, data, session=grunt.get_session(), engine=require_engine()
-        )
+        return await new_document(doctype, data, session=require_session(), engine=require_engine())
 
     @overload
     async def get_doc(
@@ -190,7 +199,7 @@ class DocumentAPI:
             # (doctype_mixins / override_doctype_class of other apps).
             controller = document_registry.get(name)
             cls = controller if issubclass(controller, doctype) else doctype
-            return cls(doctype=name, data=data, session=grunt.get_session())
+            return cls(doctype=name, data=data, session=require_session())
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
@@ -314,7 +323,7 @@ class DocumentAPI:
         )
 
         res = await collection.rename_document(
-            grunt.get_session(), require_engine(), doctype, old_id, new_id, user
+            require_session(), require_engine(), doctype, old_id, new_id, user
         )
 
         await fire(
@@ -453,7 +462,7 @@ class DocumentAPI:
 
         if result is None:
             result = await collection.list_documents(
-                grunt.get_session(),
+                require_session(),
                 doctype,
                 user,
                 page=page,
@@ -530,7 +539,7 @@ class DocumentAPI:
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
 
-        session = grunt.get_session()
+        session = require_session()
         controllers = [
             model_class(doctype=doctype, data=row, session=session)  # type: ignore[return-value]
             for row in rows
@@ -543,12 +552,12 @@ class DocumentAPI:
         records: list[dict[str, Any]],
     ) -> list[str]:
         """Create multiple documents in a single database round-trip."""
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
         user = require_session_user()
-        session = grunt.get_session()
+        session = require_session()
 
         now = datetime.now(UTC)
         rows: list[dict[str, Any]] = []
@@ -623,7 +632,7 @@ class DocumentAPI:
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
         # A store outside SQL changes outside the pipeline - never cached.
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         access = (
             await self._access_key(dt, user)
             if settings.query_cache_enabled and cache is not None and dt and supports(dt, SQL)
@@ -640,9 +649,7 @@ class DocumentAPI:
             if cached is not None:
                 return cached
 
-        result = await collection.count_documents(
-            grunt.get_session(), doctype, user, filters=filters
-        )
+        result = await collection.count_documents(require_session(), doctype, user, filters=filters)
         if cache_key is not None and cache is not None:
             await cache.set_count(cache_key, result)
         return result
@@ -836,37 +843,6 @@ class DocumentAPI:
         """
         return await self.db.get_single_value(doctype, fieldname)
 
-    async def submit(
-        self,
-        doctype: str,
-        doc_id: str,
-        action: str,
-        values: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        """Apply a workflow transition to a document.
-
-        ``action`` must match a transition label defined in the DocType's workflow.
-        Raises ``HTTPException(409)`` if the transition is not available for the
-        current document state or the user lacks the required role::
-
-            await grunt.submit("LeaveRequest", request_id, "Approve")
-
-        ``values`` fills in the transition's ``prompt_fields`` (e.g. a note
-        collected in a dialog before applying the transition).
-        """
-        dt = await grunt.get_meta(doctype)
-        if dt is None:
-            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-        return await workflow_engine.apply_transition(
-            dt.doc,
-            doc_id,
-            action,
-            require_session_user(),
-            grunt.get_session(),
-            require_engine(),
-            values,
-        )
-
     async def copy_doc(
         self,
         doctype: str,
@@ -893,3 +869,6 @@ class DocumentAPI:
         if overrides:
             data.update(overrides)
         return await self.new_doc(doctype, data)
+
+
+documents = DocumentAPI()

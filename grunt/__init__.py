@@ -31,7 +31,7 @@ from grunt.version import framework_version
 from grunt.app import grunt as _app  # after the helpers above - see the module docstring
 # isort: on
 
-# Document & database API (GruntApp)
+# Document & database API (grunt.document.api.documents, via GruntApp)
 db = _app.db
 query_cache = _app.query_cache
 doc_cache = _app.doc_cache
@@ -43,26 +43,26 @@ bootstrap_context = _app.bootstrap_context
 set_context = _app.set_context
 reset_context = _app.reset_context
 
-get_doc = _app.get_doc
-find_doc = _app.find_doc
-get_doc_instance = _app.get_doc_instance
-new_doc = _app.new_doc
-save_doc = _app.save_doc
-delete_doc = _app.delete_doc
-rename_doc = _app.rename_doc
-copy_doc = _app.copy_doc
+get_doc = _app.documents.get_doc
+find_doc = _app.documents.find_doc
+get_doc_instance = _app.documents.get_doc_instance
+new_doc = _app.documents.new_doc
+save_doc = _app.documents.save_doc
+delete_doc = _app.documents.delete_doc
+rename_doc = _app.documents.rename_doc
+copy_doc = _app.documents.copy_doc
 submit = _app.submit
-get_list = _app.get_list
-get_all = _app.get_all
-count = _app.count
-aggregate = _app.aggregate
-exists = _app.exists
-get_value = _app.get_value
-set_value = _app.set_value
-get_single = _app.get_single
-bulk_insert = _app.bulk_insert
-bulk_update = _app.bulk_update
-bulk_delete_docs = _app.bulk_delete_docs
+get_list = _app.documents.get_list
+get_all = _app.documents.get_all
+count = _app.documents.count
+aggregate = _app.documents.aggregate
+exists = _app.documents.exists
+get_value = _app.documents.get_value
+set_value = _app.documents.set_value
+get_single = _app.documents.get_single
+bulk_insert = _app.documents.bulk_insert
+bulk_update = _app.documents.bulk_update
+bulk_delete_docs = _app.documents.bulk_delete_docs
 get_meta = _app.get_meta
 has_permission = _app.has_permission
 
