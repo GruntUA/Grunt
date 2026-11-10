@@ -99,3 +99,49 @@ def bound_session(session: AsyncSession, engine: AsyncEngine) -> Iterator[None]:
         _session_ctx.reset(tokens[0])
         _engine_ctx.reset(tokens[1])
         _user_ctx.reset(tokens[2])
+
+
+@contextmanager
+def rebound(session: AsyncSession, engine: AsyncEngine | None = None) -> Iterator[None]:
+    """Bind *session* (and *engine*, else the one in context) for the block,
+    keeping the user the context runs as."""
+    tokens = (
+        _session_ctx.set(session),
+        _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
+    )
+    try:
+        yield
+    finally:
+        _session_ctx.reset(tokens[0])
+        _engine_ctx.reset(tokens[1])
+
+
+# The internal system identity (the ``SYSTEM_USER`` document) - registered by
+# grunt.auth.doctypes.User.user, so this module never imports the auth layer.
+_system_user: Any = None
+
+
+def use_system_user(user: Any) -> None:
+    """Register the document :func:`as_system` runs as."""
+    global _system_user
+    _system_user = user
+
+
+@contextmanager
+def as_system(session: AsyncSession, engine: AsyncEngine | None = None) -> Iterator[None]:
+    """Run the block as the internal system identity - ``grunt.system_context``
+    for the layers below the facade. Refuses to run without it registered
+    rather than run as nobody."""
+    if _system_user is None:
+        raise RuntimeError("grunt: the system user is not registered (grunt.auth not loaded)")
+    tokens = (
+        _session_ctx.set(session),
+        _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
+        _user_ctx.set(_system_user),
+    )
+    try:
+        yield
+    finally:
+        _session_ctx.reset(tokens[0])
+        _engine_ctx.reset(tokens[1])
+        _user_ctx.reset(tokens[2])
