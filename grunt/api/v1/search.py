@@ -2,33 +2,37 @@
 
 from typing import Any
 
-import grunt
-from grunt import _, log
+from grunt.api.context import whitelist
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_engine, require_session
+from grunt.log import log
 from grunt.search.service import search_index_service
+lazy from grunt.document.api import documents
 
 _OVERFETCH = 4
 _MAX_FETCH = 200
 
 
-@grunt.whitelist()
+@whitelist()
 async def global_search(
     q: str,
     doctype: str | None = None,
     limit: int = 10,
 ) -> list[dict[str, Any]]:
     if not q or not q.strip():
-        grunt.throw(_("Parameter 'q' is required"), "VALIDATION_ERROR")
+        throw(_("Parameter 'q' is required"), "VALIDATION_ERROR")
 
     limit = int(limit)
     if limit <= 0:
-        grunt.throw(_("Parameter 'limit' must be positive"), "VALIDATION_ERROR")
+        throw(_("Parameter 'limit' must be positive"), "VALIDATION_ERROR")
     if limit > 50:
-        grunt.throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
+        throw(_("Parameter 'limit' too high"), "VALIDATION_ERROR")
 
     # Over-fetch: hits the user may not read are dropped below, and they must
     # not eat into the page the user asked for.
     raw = await search_index_service.search(
-        session=grunt.get_session(),
+        session=require_session(),
         q=q,
         limit=min(limit * _OVERFETCH, _MAX_FETCH),
         doctype=doctype,
@@ -66,7 +70,7 @@ async def global_search(
 async def _readable_ids(doctype: str, ids: list[str]) -> set[str]:
     """The subset of *ids* the current user may read (empty on any denial)."""
     try:
-        rows = await grunt.get_list(
+        rows = await documents.get_list(
             doctype,
             filters={"name__in": ids},
             fields=["name"],
@@ -79,9 +83,9 @@ async def _readable_ids(doctype: str, ids: list[str]) -> set[str]:
     return {str(row["name"]) for row in rows}
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def rebuild_index() -> dict[str, Any]:
     """Rebuild the entire search index from scratch. System Manager only."""
-    session = grunt.get_session()
-    count = await search_index_service.reindex_all(session, grunt.get_engine())
+    session = require_session()
+    count = await search_index_service.reindex_all(session, require_engine())
     return {"indexed": count}

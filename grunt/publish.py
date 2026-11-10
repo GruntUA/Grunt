@@ -38,10 +38,12 @@ Live progress goes through :mod:`grunt.progress`, which doesn't wait.
 
 from typing import Any, Literal
 
-import grunt
-from grunt import _, log
 from grunt.api.v1.ws import manager
 from grunt.db.commit import on_commit
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
+lazy from grunt.document.api import documents
 
 MessageType = Literal["success", "error", "info", "warning"]
 
@@ -79,9 +81,9 @@ async def notify(
     # A notification is the system telling someone - creating one must not
     # depend on the acting user's rights (nobody but admins may create
     # Notification rows directly).
-    async with grunt.system_context(grunt.get_session()):
+    async with system_context(require_session()):
         for user_email in users:
-            doc = await grunt.new_doc(
+            doc = await documents.new_doc(
                 "Notification",
                 {
                     "user": user_email,

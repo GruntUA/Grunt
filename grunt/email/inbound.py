@@ -14,8 +14,12 @@ from typing import Any
 import aioimaplib
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def pull_emails(account: dict[str, Any]) -> list[dict[str, Any]]:
@@ -276,7 +280,7 @@ def parse_report(msg: Message, text_body: str = "") -> dict[str, Any] | None:
 async def apply_report(report: dict[str, Any], session: AsyncSession | None = None) -> None:
     """Update the referenced outgoing ``EmailMessage`` from a DSN/MDN report."""
     try:
-        sess = session or grunt.get_session()
+        sess = session or require_session()
     except RuntimeError:
         return
 
@@ -285,8 +289,8 @@ async def apply_report(report: dict[str, Any], session: AsyncSession | None = No
         log.warning("email.report_no_orig", kind=report.get("kind"))
         return
 
-    async with grunt.system_context(sess):
-        row = await grunt.db.get_value(
+    async with system_context(sess):
+        row = await _db.get_value(
             "EmailMessage",
             {"message_id": orig, "direction": "Outgoing"},
             ["name", "status"],
@@ -318,7 +322,7 @@ async def apply_report(report: dict[str, Any], session: AsyncSession | None = No
                 updates["delivery_detail"] = report["detail"]
 
         if updates:
-            await grunt.save_doc("EmailMessage", row["name"], updates)
+            await documents.save_doc("EmailMessage", row["name"], updates)
             log.info(
                 "email.report_applied",
                 name=row["name"],

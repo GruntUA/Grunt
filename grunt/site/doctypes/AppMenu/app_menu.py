@@ -7,9 +7,10 @@ import hashlib
 import json
 from typing import Any
 
-import grunt
-from grunt import log
 from grunt.document.base import Document
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 
 
 def parse_count_filters(item: dict[str, Any]) -> dict[str, Any]:
@@ -151,7 +152,7 @@ class AppMenu(Document):
         counts: dict[str, int] = {}
         for item in items:
             link_to = item["link_to"]
-            dt = await grunt.get_meta(link_to)
+            dt = await doctype_registry.get_meta(link_to)
             if dt is None:
                 continue
 
@@ -159,7 +160,7 @@ class AppMenu(Document):
             key = self._generate_count_key(link_to, filters)
 
             try:
-                counts[key] = await grunt.count(
+                counts[key] = await documents.count(
                     link_to, filters=filters or None, respect_permissions=True
                 )
             except Exception as e:  # table not built yet, source unreachable

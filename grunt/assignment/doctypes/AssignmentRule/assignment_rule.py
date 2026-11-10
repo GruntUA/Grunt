@@ -3,10 +3,11 @@
 import json
 from typing import Any
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.assignment import assignment_service
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
 
 
 class AssignmentRule(Document):
@@ -23,7 +24,7 @@ class AssignmentRule(Document):
             try:
                 json.loads(self.filters)
             except json.JSONDecodeError, TypeError:
-                grunt.throw(
+                throw(
                     _("The “Filters (JSON)” field must contain valid JSON.")
                     + ' Example: {"status": "Draft"}',
                     title=_("Validation error"),
@@ -85,11 +86,11 @@ class AssignmentRule(Document):
 # Whitelisted API
 
 
-@grunt.whitelist()
+@whitelist()
 async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
     """Test an assignment rule against a sample document."""
     try:
         return await assignment_service.preview_rule(rule_id, test_doc)
     except Exception as exc:
-        grunt.throw(str(exc))
+        throw(str(exc))
         raise RuntimeError(str(exc)) from exc

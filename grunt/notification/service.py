@@ -11,10 +11,14 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
 from grunt import log, outbox
 from grunt.api.v1.ws import manager
+from grunt.db.api import GruntDB
 from grunt.db.commit import on_commit
+from grunt.local import require_session, system_context
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class NotificationService:
@@ -40,8 +44,8 @@ class NotificationService:
         Returns:
             Number of notifications created.
         """
-        async with grunt.system_context(session):
-            rules = await grunt.db.get_all(
+        async with system_context(session):
+            rules = await _db.get_all(
                 "NotificationRule",
                 filters={"ref_doctype": doctype, "event": event, "is_enabled": True},
                 limit=100,
@@ -124,8 +128,8 @@ class NotificationService:
         if unread_only:
             filters["is_read"] = False
 
-        async with grunt.system_context(grunt.get_session()):
-            rows = await grunt.db.get_all(
+        async with system_context(require_session()):
+            rows = await _db.get_all(
                 "Notification",
                 filters=filters,
                 fields=[
@@ -154,14 +158,14 @@ class NotificationService:
     async def mark_read(self, notification_id: str) -> None:
         """Mark a single notification as read."""
 
-        async with grunt.system_context(grunt.get_session()):
-            await grunt.db.set_value("Notification", notification_id, "is_read", True)
+        async with system_context(require_session()):
+            await _db.set_value("Notification", notification_id, "is_read", True)
 
     async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
 
-        async with grunt.system_context(grunt.get_session()):
-            return await grunt.bulk_update(
+        async with system_context(require_session()):
+            return await documents.bulk_update(
                 "Notification",
                 {"user": user, "is_read": False},
                 {"is_read": True},
@@ -216,8 +220,8 @@ class NotificationService:
     ) -> str:
         notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
         now = datetime.now(UTC)
-        async with grunt.system_context(session):
-            await grunt.db.insert_one(
+        async with system_context(session):
+            await _db.insert_one(
                 "Notification",
                 {
                     "name": notif_name,
@@ -310,13 +314,11 @@ class NotificationService:
         if not role_names:
             return []
         try:
-            import grunt
-
-            async with grunt.system_context(session):
+            async with system_context(session):
                 # Collect user_ids for all requested roles
                 user_ids: set[str] = set()
                 for role in role_names:
-                    rows = await grunt.db.get_all(
+                    rows = await _db.get_all(
                         "UserRole",
                         filters={"role_name": role, "parent_doctype": "User"},
                         fields=["parent_name"],
@@ -330,7 +332,7 @@ class NotificationService:
                 # Resolve to emails - only active users
                 emails: list[str] = []
                 for user_id in user_ids:
-                    user_rows = await grunt.db.get_all(
+                    user_rows = await _db.get_all(
                         "User",
                         filters={"name": user_id, "is_active": True},
                         fields=["email"],

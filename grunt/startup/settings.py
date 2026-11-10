@@ -13,17 +13,21 @@ all, so removing this file would silently stop seeding SystemSettings on
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import system_context
+from grunt.log import log
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def seed_system_settings(session: AsyncSession, engine: AsyncEngine) -> None:
     """Ensure a row exists for the SystemSettings singleton."""
-    async with grunt.system_context(session, engine):
-        if await grunt.db.count("SystemSettings") > 0:
+    async with system_context(session, engine):
+        if await _db.count("SystemSettings") > 0:
             return
 
-        await grunt.new_doc(
+        await documents.new_doc(
             "SystemSettings",
             {
                 "name": "SystemSettings",

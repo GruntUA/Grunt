@@ -27,9 +27,9 @@ from typing import Any
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
 from grunt.db.commit import on_commit
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.compiler import OUTBOX_TABLE
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
@@ -67,7 +67,7 @@ async def put(
 ) -> None:
     """Write a message for *handler* in the current transaction; it is delivered
     once the transaction commits (a rollback drops it with the change)."""
-    session = session if session is not None else grunt.get_session()
+    session = session if session is not None else require_session()
     now = datetime.now(UTC)
     await session.execute(
         OUTBOX_TABLE.insert().values(
@@ -155,7 +155,7 @@ async def deliver() -> int:
     and every minute (retries, rows a crashed run left behind)."""
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
         return await deliver_due(session)
 
 

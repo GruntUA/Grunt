@@ -5,8 +5,8 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import log
 from grunt.db.schema.apply import DuplicateDataError
+from grunt.log import log
 from grunt.metadata import store
 from grunt.metadata.compiler import sync_table
 from grunt.metadata.doctype import DocType

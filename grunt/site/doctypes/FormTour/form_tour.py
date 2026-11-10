@@ -1,8 +1,8 @@
 """FormTour controller - every step points at a field the DocType has (a
 list tour may also point at a standard column: name, modified_at, ...)."""
 
-from grunt import _
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.metadata.compiler import STANDARD_COLUMNS
 
 

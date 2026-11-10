@@ -8,9 +8,16 @@ comments (``reactions_for``), so reading them needs no extra round trip.
 from typing import Any
 
 import grunt
+from grunt.api.context import whitelist
+from grunt.db.api import GruntDB
+from grunt.errors import throw
+from grunt.local import require_session, system_context
 from grunt.permissions.guards import doc_guard
 from grunt.site.settings import get_setting
 lazy from grunt.auth.users import get_users_by_emails
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 DEFAULT_REACTIONS = "👍 ✅ ❓ 🎉 👀"
 
@@ -20,7 +27,7 @@ async def reaction_choices() -> list[str]:
     return list(dict.fromkeys(str(raw or "").split()))
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_reaction_choices() -> list[str]:
     return await reaction_choices()
 
@@ -34,8 +41,8 @@ async def reactions_for(comment_ids: list[str]) -> dict[str, list[dict[str, Any]
     """
     if not comment_ids:
         return {}
-    async with grunt.system_context(grunt.get_session()):
-        rows = await grunt.db.get_all(
+    async with system_context(require_session()):
+        rows = await _db.get_all(
             "CommentReaction",
             filters={"comment__in": comment_ids},
             fields=["comment", "emoji", "user"],
@@ -66,24 +73,24 @@ async def reactions_for(comment_ids: list[str]) -> dict[str, list[dict[str, Any]
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def toggle_reaction(comment: str, emoji: str) -> list[dict[str, Any]]:
     """Add the reaction, or take it back. Returns the comment's reactions afterwards."""
-    async with grunt.system_context(grunt.get_session()):
-        ref = await grunt.db.get_value(
+    async with system_context(require_session()):
+        ref = await _db.get_value(
             "Comment", comment, ["reference_doctype", "reference_id"], as_dict=True
         )
     if ref is None:
-        grunt.throw(grunt._("Comment not found"), "NOT_FOUND")
+        throw(grunt._("Comment not found"), "NOT_FOUND")
     await doc_guard(ref.reference_doctype, ref.reference_id)
 
     key = {"comment": comment, "emoji": emoji, "user": grunt.get_user().email}
-    async with grunt.system_context(grunt.get_session()):
-        existing = await grunt.db.get_all("CommentReaction", filters=key, pluck="name", limit=1)
+    async with system_context(require_session()):
+        existing = await _db.get_all("CommentReaction", filters=key, pluck="name", limit=1)
     if existing:
-        await grunt.delete_doc("CommentReaction", str(existing[0]))
+        await documents.delete_doc("CommentReaction", str(existing[0]))
     else:
-        await grunt.new_doc("CommentReaction", {"comment": comment, "emoji": emoji})
+        await documents.new_doc("CommentReaction", {"comment": comment, "emoji": emoji})
     return (await reactions_for([comment])).get(comment, [])
 
 
@@ -100,5 +107,5 @@ async def drop_reactions(
     ref = doc_id or (doc.get("name") if isinstance(doc, dict) else None)
     if doctype != "Comment" or not ref or session is None:
         return
-    async with grunt.system_context(session):
-        await grunt.db.delete("CommentReaction", {"comment": str(ref)})
+    async with system_context(session):
+        await _db.delete("CommentReaction", {"comment": str(ref)})

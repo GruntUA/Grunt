@@ -5,7 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, ClassVar
 
-from grunt import _, log
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.dynamic_options import register_option_provider
 
 # WidgetType base class

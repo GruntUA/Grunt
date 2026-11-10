@@ -10,9 +10,17 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
-from grunt import _, log
+from grunt.api.context import whitelist
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # Ключі знімка, які не можна передавати в insert відновлюваного документа:
 # per-user "seen" стан і аудит-поля (ядро проставляє власні).
@@ -33,7 +41,7 @@ class DeletedDocument(Document):
 
 def _require_system_manager() -> None:
     if not grunt.get_user().has_role("System Manager"):
-        grunt.throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
+        throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
 
 
 def _snapshot_payload(snap: DeletedDocument) -> dict[str, Any]:
@@ -43,13 +51,13 @@ def _snapshot_payload(snap: DeletedDocument) -> dict[str, Any]:
         try:
             raw = json.loads(raw)
         except json.JSONDecodeError:
-            grunt.throw(_("The snapshot is corrupted: invalid JSON"), code="INVALID_SNAPSHOT")
+            throw(_("The snapshot is corrupted: invalid JSON"), code="INVALID_SNAPSHOT")
     if not isinstance(raw, dict):
-        grunt.throw(_("The snapshot is empty"), code="INVALID_SNAPSHOT")
+        throw(_("The snapshot is empty"), code="INVALID_SNAPSHOT")
     return {k: v for k, v in raw.items() if k not in _STRIP_ON_RESTORE}
 
 
-@grunt.whitelist()
+@whitelist()
 async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     """Відновити один видалений документ зі знімка ``name``.
 
@@ -62,9 +70,9 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     """
     _require_system_manager()
 
-    snap = await grunt.get_doc(DeletedDocument, name)
+    snap = await documents.get_doc(DeletedDocument, name)
     if snap.restored:
-        grunt.throw(
+        throw(
             _("Already restored as “%(name)s”") % {"name": snap.restored_to or "?"},
             code="ALREADY_RESTORED",
         )
@@ -73,7 +81,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     try:
         await doctype_registry.get(target_dt)
     except Exception:
-        grunt.throw(
+        throw(
             _("DocType “%(doctype)s” no longer exists") % {"doctype": target_dt},
             code="DOCTYPE_GONE",
         )
@@ -81,18 +89,18 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     payload = _snapshot_payload(snap)
     orig_name = str(snap.deleted_name)
 
-    if await grunt.db.exists(target_dt, orig_name):
+    if await _db.exists(target_dt, orig_name):
         if not allow_rename:
-            grunt.throw(
+            throw(
                 _("Document “%(name)s” already exists. Restore with a new ID?")
                 % {"name": orig_name},
                 code="NAME_TAKEN",
             )
         payload.pop("name", None)
 
-    async with grunt.system_context(grunt.get_session()):
-        created = await grunt.new_doc(target_dt, payload)
-        await grunt.set_value(
+    async with system_context(require_session()):
+        created = await documents.new_doc(target_dt, payload)
+        await documents.set_value(
             "DeletedDocument",
             name,
             {
@@ -106,7 +114,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     return created
 
 
-@grunt.whitelist()
+@whitelist()
 async def bulk_restore(names: list[str], allow_rename: bool = False) -> dict[str, Any]:
     """Відновити кілька знімків. Повертає ``{restored: [...], failed: [{name, error}]}``."""
     _require_system_manager()

@@ -20,7 +20,7 @@ from sqlalchemy import Table, and_
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.base import WriteableColumnCollection
 
-import grunt
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
 from grunt.query.nodes import TRUE
@@ -67,7 +67,7 @@ async def report_source(meta: Any, user: str, fieldnames: Iterable[str]) -> Repo
     for link in sorted(wanted):
         if link not in columns or (target_name := _link_target(meta, link)) is None:
             continue
-        target = await grunt.get_meta(target_name)
+        target = await doctype_registry.get_meta(target_name)
         if target is None or not await permission_checker.check(target, "read", user=user):
             continue
         target_hidden = await permission_checker.hidden_fields(target, user=user)
@@ -101,7 +101,7 @@ async def report_fields(meta: Any, user: str) -> list[dict[str, Any]]:
         name = link["fieldname"]
         if name not in meta.columns or (target_name := _link_target(meta, name)) is None:
             continue
-        target = await grunt.get_meta(target_name)
+        target = await doctype_registry.get_meta(target_name)
         if target is None or not await permission_checker.check(target, "read", user=user):
             continue
         target_hidden = await permission_checker.hidden_fields(target, user=user)

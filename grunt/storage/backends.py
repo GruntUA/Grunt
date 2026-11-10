@@ -31,8 +31,8 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import BinaryIO
 
-from grunt import log
 from grunt.config import settings
+from grunt.log import log
 from grunt.site.manager import site_manager
 
 CHUNK_SIZE = 1024 * 1024

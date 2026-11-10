@@ -11,10 +11,14 @@ from typing import Any
 
 import grunt
 from grunt.api.context import whitelist
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.log import log
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class WebAuthnCredential(Document):
@@ -49,7 +53,7 @@ def _row_view(row: dict[str, Any]) -> dict[str, Any]:
 
 async def _owned_passkey(name: str, user_id: str) -> str:
     """Return the passkey id if it belongs to *user_id*, else raise 404."""
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         "WebAuthnCredential",
         filters={"name": name, "user": user_id},
         fields=["name"],
@@ -64,7 +68,7 @@ async def _owned_passkey(name: str, user_id: str) -> str:
 async def list_my_passkeys() -> list[dict[str, Any]]:
     """Passkeys registered by the current user."""
     current = grunt.get_user()
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         "WebAuthnCredential",
         filters={"user": current.id},
         fields=["name", "label", "last_used_at", "backed_up", "transports", "created_at"],
@@ -85,7 +89,7 @@ async def rename_passkey(name: str, label: str) -> bool:
     # Ownership is checked by _owned_passkey; the role grants no `write`
     # (credentials change only through these endpoints), so the field is set
     # past the role rules.
-    await grunt.db.set_value(
+    await _db.set_value(
         "WebAuthnCredential", await _owned_passkey(name, current.id), "label", label
     )
     return True
@@ -97,7 +101,7 @@ async def delete_passkey(name: str) -> bool:
     current = grunt.get_user()
     assert current.id is not None
     target = await _owned_passkey(name, current.id)
-    await grunt.delete_doc("WebAuthnCredential", target)
+    await documents.delete_doc("WebAuthnCredential", target)
     log.info("webauthn.passkey_removed", user=current.email, credential=target)
     return True
 
@@ -107,7 +111,7 @@ async def touch_passkey(name: str) -> bool:
     """Update ``last_used_at`` (used by the frontend after a successful ceremony)."""
     current = grunt.get_user()
     assert current.id is not None
-    await grunt.db.set_value(  # ownership checked; see rename_passkey
+    await _db.set_value(  # ownership checked; see rename_passkey
         "WebAuthnCredential",
         await _owned_passkey(name, current.id),
         "last_used_at",

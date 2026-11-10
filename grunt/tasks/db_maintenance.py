@@ -5,8 +5,8 @@ deletions back to the file system (``PRAGMA incremental_vacuum``). PostgreSQL
 does both by itself (autovacuum), so nothing runs there.
 """
 
-from grunt import log
 from grunt.db.dialects import dialect_for
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
 

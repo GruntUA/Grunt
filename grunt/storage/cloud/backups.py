@@ -15,9 +15,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import grunt
-from grunt import _, log
 from grunt.backups import _NAME, BackupSet, backups_dir, get_backup, list_backups
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.log import log
 from grunt.storage.cloud import RemoteError, backup_remotes, record_status
 from grunt.storage.cloud.rclone import Rclone
 lazy from grunt.progress import Progress
@@ -145,7 +146,7 @@ async def upload_to_remotes(
     recorded on the remote (status, ErrorLog, a notification). Call with
     the site's session bound and no transaction open.
     """
-    session = grunt.get_session()
+    session = require_session()
     remotes = await backup_remotes()
     await session.commit()  # no write lock held through the uploads
     outcome: dict[str, str | None] = {}

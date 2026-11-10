@@ -16,14 +16,19 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.auth.users import get_user_by_email
+from grunt.db.api import GruntDB
 from grunt.email.service import email_service
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.reports.engine import report_engine
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 XLSX_MIMETYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -84,7 +89,7 @@ async def send_report(report: dict[str, Any], session: AsyncSession) -> int:
 
     for to in recipients:
         await email_service.queue_email(session, to, subject, body, attachments=[attachment])
-    await grunt.db.set_value("Report", report["name"], "last_sent_at", datetime.now(UTC))
+    await _db.set_value("Report", report["name"], "last_sent_at", datetime.now(UTC))
     log.info("reports.delivered", report=name, recipients=len(recipients), rows=rows)
     return len(recipients)
 
@@ -108,8 +113,8 @@ async def send_scheduled_reports() -> None:
     eng = site_manager.get_engine(site)
     today = datetime.now(UTC).date()
 
-    async with maker() as session, grunt.system_context(session, eng):
-        reports = await grunt.db.get_all(
+    async with maker() as session, system_context(session, eng):
+        reports = await _db.get_all(
             "Report",
             filters={"schedule_frequency__in": ["Daily", "Weekly", "Monthly"]},
             fields=_REPORT_FIELDS,
@@ -128,8 +133,8 @@ async def send_scheduled_reports() -> None:
 
 async def send_report_now(name: str) -> int:
     """Send one report immediately, regardless of its schedule (form action)."""
-    rows = await grunt.db.get_all("Report", filters={"name": name}, fields=_REPORT_FIELDS, limit=1)
+    rows = await _db.get_all("Report", filters={"name": name}, fields=_REPORT_FIELDS, limit=1)
     if not rows:
-        grunt.throw(_("Report “%(name)s” not found") % {"name": name}, "NOT_FOUND")
+        throw(_("Report “%(name)s” not found") % {"name": name}, "NOT_FOUND")
 
-    return await send_report(rows[0], grunt.get_session())
+    return await send_report(rows[0], require_session())

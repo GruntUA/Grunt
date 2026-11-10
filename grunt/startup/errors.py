@@ -13,9 +13,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from jinja2 import Environment
 from pydantic import ValidationError
 
-from grunt import _, log
 from grunt.config import settings
 from grunt.errors import ApplicationError, error_body
+from grunt.i18n import _
+from grunt.log import log
 from grunt.logging_config import mark_logged
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "website" / "templates"

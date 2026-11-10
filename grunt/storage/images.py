@@ -30,12 +30,17 @@ lazy from PIL import Image, ImageOps
 import grunt
 from grunt import _, log, whitelist
 from grunt.api.results import Queued
+from grunt.db.api import GruntDB
+from grunt.errors import throw
+from grunt.local import require_session
 from grunt.site.settings import get_setting
 lazy from grunt.progress import Progress
 lazy from grunt.storage import files
 lazy from grunt.storage.backends import get_storage_backend
 lazy from grunt.storage.cloud.files import read_blob
 lazy from grunt.storage.tasks import compress_images
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 OPTIMIZABLE = frozenset({"image/jpeg", "image/png", "image/webp"})
 # Re-encoding an image of the right size must save at least this share.
@@ -165,7 +170,7 @@ async def compress_existing(
     opts = await image_options()
     if opts is None:
         return report
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "File",
         filters={"content_type__in": sorted(OPTIMIZABLE)},
         fields=["name", "file_name", "content_hash", "content_type", "file_size", "is_compressed"],
@@ -178,7 +183,7 @@ async def compress_existing(
 
     # Minutes of image work ahead: don't hold the read transaction (on SQLite
     # it is the write lock) all along.
-    await grunt.get_session().commit()
+    await require_session().commit()
     blobs = list(by_blob.items())[:limit]
     if progress:
         progress.set(total=len(blobs))
@@ -204,7 +209,7 @@ async def compress_existing(
         await files.ensure_thumbnail(new_key, optimized.content_type)
         # Re-read: while the image was encoded, its files may have been
         # renamed, deleted or joined by new ones.
-        group = await grunt.db.get_all(
+        group = await _db.get_all(
             "File",
             filters={"content_hash": key, "content_type": content_type},
             fields=["name", "file_name", "file_size", "is_compressed"],
@@ -214,7 +219,7 @@ async def compress_existing(
             if row["is_compressed"]:
                 continue
             file_id = str(row["name"])
-            await grunt.db.set_value(
+            await _db.set_value(
                 "File",
                 file_id,
                 {
@@ -228,7 +233,7 @@ async def compress_existing(
                     "thumbnail_url": files.thumbnail_url(file_id, new_key, optimized.content_type),
                 },
             )
-        await grunt.get_session().commit()
+        await require_session().commit()
     return report
 
 
@@ -238,6 +243,6 @@ async def start_compression() -> Queued:
     Files); whoever started it follows it in the task panel."""
 
     if await image_options() is None:
-        grunt.throw(_("Image compression is turned off in System Settings"))
+        throw(_("Image compression is turned off in System Settings"))
     await compress_images.kiq(user=grunt.get_user().email)
     return {"queued": True}

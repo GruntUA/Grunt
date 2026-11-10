@@ -1,13 +1,18 @@
 from datetime import UTC, datetime, timedelta
 
 import grunt
-from grunt import _, log
 from grunt.auth.constants import SYSTEM_USER_EMAIL
+from grunt.db.api import GruntDB
 from grunt.email.inbound import apply_report, pull_emails
 from grunt.email.service import EmailService, decode_attachments, email_service
-from grunt.i18n import ngettext, pgettext, use_language
+from grunt.i18n import _, ngettext, pgettext, use_language
+from grunt.local import system_context
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 @retryable_task()
@@ -16,11 +21,11 @@ async def process_email_queue():
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session, grunt.system_context(session, eng):
+    async with maker() as session, system_context(session, eng):
         try:
             # Reopen rows a crashed run left mid-flight (claimed "Sending" but
             # never marked Sent/Error) so they get retried, not stranded.
-            reopened = await grunt.db.bulk_update(
+            reopened = await _db.bulk_update(
                 "EmailQueue",
                 {
                     "status": "Sending",
@@ -32,7 +37,7 @@ async def process_email_queue():
                 await session.commit()
                 log.warning("email.queue_reopened_stale", count=reopened)
 
-            queue_items = await grunt.get_list(
+            queue_items = await documents.get_list(
                 "EmailQueue", filters={"status": "Pending"}, limit=100
             )
 
@@ -50,7 +55,7 @@ async def process_email_queue():
                 # Atomically claim the row: flip Pending -> Sending and bail if a
                 # concurrent run (on-commit kick overlapping the */5 cron tick)
                 # already took it. Without this both runs would send the mail.
-                claimed = await grunt.db.bulk_update(
+                claimed = await _db.bulk_update(
                     "EmailQueue",
                     {"name": item["name"], "status": "Pending"},
                     {"status": "Sending", "modified_at": datetime.now(UTC)},
@@ -59,16 +64,16 @@ async def process_email_queue():
                 if not claimed:
                     continue
 
-                account = await grunt.get_doc("EmailAccount", account_id)
+                account = await documents.get_doc("EmailAccount", account_id)
                 await session.commit()  # no transaction (write lock) across SMTP
 
                 try:
                     message = {**item, "attachments": decode_attachments(item.get("attachments"))}
                     await EmailService.send_now(account, message)
-                    await grunt.save_doc("EmailQueue", item["name"], {"status": "Sent"})
+                    await documents.save_doc("EmailQueue", item["name"], {"status": "Sent"})
                     await session.commit()
                 except Exception as e:
-                    await grunt.save_doc(
+                    await documents.save_doc(
                         "EmailQueue",
                         item["name"],
                         {"status": "Error", "error_message": str(e)},
@@ -86,9 +91,9 @@ async def pull_from_accounts():
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session, grunt.system_context(session, eng):
+    async with maker() as session, system_context(session, eng):
         try:
-            accounts = await grunt.get_list(
+            accounts = await documents.get_list(
                 "EmailAccount", filters={"enable_incoming": "True"}, limit=1000
             )
             await session.commit()  # no transaction (write lock) across IMAP
@@ -207,8 +212,8 @@ async def send_notification_digest(period: str = "daily") -> None:
 
     async with maker() as session:
         sent = 0
-        async with grunt.system_context(session):
-            user_rows = await grunt.db.get_all(
+        async with system_context(session):
+            user_rows = await _db.get_all(
                 "User",
                 filters={"is_active": True},
                 fields=["email", "language"],
@@ -218,7 +223,7 @@ async def send_notification_digest(period: str = "daily") -> None:
 
             for user_email, user_language in users:
                 # Fetch unread notifications for this user since cutoff
-                rows = await grunt.db.get_all(
+                rows = await _db.get_all(
                     "Notification",
                     filters={
                         "user": user_email,

@@ -38,7 +38,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from grunt import log
+from grunt.log import log
 from grunt.search.tokens import fts5_query, mysql_boolean_query, tsquery
 
 

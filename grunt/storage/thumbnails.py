@@ -14,7 +14,7 @@ import io
 lazy import pypdfium2 as pdfium
 lazy from PIL import Image
 
-from grunt import log
+from grunt.log import log
 
 THUMB_WIDTH = 480
 THUMB_MIMETYPE = "image/webp"

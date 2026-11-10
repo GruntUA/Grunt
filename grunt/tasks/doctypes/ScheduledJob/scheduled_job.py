@@ -3,12 +3,15 @@ from typing import Any
 
 from apscheduler.triggers.cron import CronTrigger
 
-import grunt
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
 from grunt.store import DELETE, VirtualStore
 from grunt.store.virtual import equals
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class ScheduledJobStore(VirtualStore):
@@ -28,7 +31,7 @@ class ScheduledJobStore(VirtualStore):
         filters: dict[str, Any] = {"script_type": "Scheduler Event"}
         if (name := equals(query, "name")) is not None:
             filters["name"] = name
-        scripts = await grunt.db.get_all(
+        scripts = await _db.get_all(
             "ServerScript",
             filters=filters,
             fields=["name", "is_enabled", "cron"],
@@ -41,7 +44,7 @@ class ScheduledJobStore(VirtualStore):
 
     async def delete(self, name: str, *, before: dict[str, Any]) -> None:
         """Delete scheduled job by deleting the underlying ServerScript."""
-        await grunt.delete_doc("ServerScript", name)
+        await documents.delete_doc("ServerScript", name)
 
     @staticmethod
     async def _load_job_stats(job_names: list[str]) -> dict[str, dict[str, Any]]:
@@ -49,7 +52,7 @@ class ScheduledJobStore(VirtualStore):
         if not job_names:
             return {}
         try:
-            rows = await grunt.db.get_all(
+            rows = await _db.get_all(
                 "ScheduledJobState",
                 filters={"name__in": job_names},
                 fields=["name", "last_status", "last_finished_at", "last_error", "run_count"],

@@ -18,6 +18,7 @@ from grunt.metadata.registry import doctype_registry
 lazy from grunt.activity.milestones import history as milestone_history
 lazy from grunt.auth.users import get_users_by_emails
 lazy from grunt.document import collection
+lazy from grunt.document.api import documents
 lazy from grunt.document.links import link_service
 lazy from grunt.document.sidebar import collect_sections
 lazy from grunt.document.titles import resolve_reference_titles
@@ -66,7 +67,7 @@ async def get_backlinks(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     """
 
     # Permission verification
-    await grunt.get_doc(doctype, doc_id)
+    await documents.get_doc(doctype, doc_id)
 
     rows = await link_service.get_backlinks(require_session(), doctype, doc_id)
     refs = [(r["source_doctype"], r["source_id"]) for r in rows]
@@ -113,7 +114,7 @@ async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
         fieldnames.add(image_field)
 
     rows = await _optional(
-        grunt.get_list(
+        documents.get_list(
             doctype,
             filters={"name": doc_id},
             fields=sorted(fieldnames),
@@ -153,7 +154,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     the desk sidebar needs a single request instead of one per section.
     """
 
-    doc = await grunt.get_doc(doctype, doc_id, expand=[])  # also the permission check
+    doc = await documents.get_doc(doctype, doc_id, expand=[])  # also the permission check
 
     ref = {"reference_doctype": doctype, "reference_id": doc_id}
 
@@ -167,7 +168,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     # need pagination totals, so include_total is off to skip the extra
     # COUNT(*) per section.
     assignees = await _optional(
-        grunt.get_list(
+        documents.get_list(
             "ToDo",
             filters={**ref, "status__in": ["Open", "In Progress"]},
             order_by="created_at",
@@ -178,7 +179,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         [],
     )
     shares = await _optional(
-        grunt.get_list(
+        documents.get_list(
             "SharedWith",
             filters=ref,
             order_by="created_at",
@@ -189,7 +190,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         [],
     )
     tags = await _optional(
-        grunt.get_list(
+        documents.get_list(
             "DocTag",
             filters=ref,
             order_by="created_at",
@@ -200,7 +201,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         [],
     )
     bookmarks = await _optional(
-        grunt.get_list(
+        documents.get_list(
             "Bookmark",
             filters={**ref, "owner": grunt.get_user().email},
             limit=1,
@@ -210,7 +211,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     )
 
     follows = await _optional(
-        grunt.get_list(
+        documents.get_list(
             "DocFollow",
             filters={**ref, "user": grunt.get_user().email},
             limit=1,
@@ -222,7 +223,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     milestones = await _optional(milestone_history(doctype, doc_id), [])
 
     reminders = await _optional(
-        grunt.get_list(
+        documents.get_list(
             "Reminder",
             filters={
                 "reference_doctype": doctype,

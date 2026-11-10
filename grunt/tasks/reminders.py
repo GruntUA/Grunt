@@ -7,14 +7,17 @@ notification goes out, so overlapping runs never remind twice.
 from datetime import UTC, datetime
 from typing import Any
 
-import grunt
-from grunt import _, log
 from grunt.auth.language import language_of
-from grunt.i18n import use_language
+from grunt.db.api import GruntDB
+from grunt.i18n import _, use_language
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.tasks.broker import retryable_task
 lazy from grunt.document.titles import resolve_reference_titles
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def _title(row: dict[str, Any]) -> str:
@@ -29,7 +32,7 @@ async def _title(row: dict[str, Any]) -> str:
 async def deliver(row: dict[str, Any]) -> bool:
     """Claim and send one reminder; False when another run already took it."""
 
-    claimed = await grunt.db.bulk_update(
+    claimed = await _db.bulk_update(
         "Reminder", {"name": row["name"], "notified": False}, {"notified": True}
     )
     if not claimed:
@@ -42,7 +45,7 @@ async def deliver(row: dict[str, Any]) -> bool:
         subject = _("Reminder: %(title)s") % {"title": title} if title else _("Reminder")
         message = note or title or _("You asked to be reminded")
     await notification_service.notify(
-        grunt.get_session(),
+        require_session(),
         user=user,
         doctype=row.get("reference_doctype") or "Reminder",
         doc_id=str(row.get("reference_name") or row["name"]),
@@ -55,7 +58,7 @@ async def deliver(row: dict[str, Any]) -> bool:
 async def process_due(now: datetime | None = None) -> int:
     """Send every unsent reminder due by *now*; runs inside a system context."""
     now = now or datetime.now(UTC)
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "Reminder",
         filters={"notified": False, "remind_at__lte": now},
         fields=["name", "owner", "remind_at", "description", "reference_doctype", "reference_name"],
@@ -67,9 +70,9 @@ async def process_due(now: datetime | None = None) -> int:
     for row in rows:
         try:
             sent += await deliver(row)
-            await grunt.get_session().commit()
+            await require_session().commit()
         except Exception:
-            await grunt.get_session().rollback()
+            await require_session().rollback()
             log.exception("reminder.delivery_failed", reminder=row["name"])
     if sent:
         log.info("reminders.sent", count=sent)
@@ -82,5 +85,5 @@ async def send_reminders() -> int:
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
         return await process_due()

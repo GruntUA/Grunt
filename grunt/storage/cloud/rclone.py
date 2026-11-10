@@ -38,11 +38,14 @@ from typing import Any
 import httpx2
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-import grunt
-from grunt import _, log
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.log import log
 lazy from grunt.progress import Progress
 lazy from grunt.storage.cloud.providers import provider_section
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # rclone's fixed key for "obscured" config values (lib/obscure). Obscuring is
 # not encryption - it only keeps secrets from being read over a shoulder -
@@ -261,7 +264,7 @@ class Rclone:
         if not token or token == self._token or not name:
             return
 
-        await grunt.db.set_value("StorageRemote", name, {"oauth_token": token})
+        await _db.set_value("StorageRemote", name, {"oauth_token": token})
         self._token = self.remote["oauth_token"] = token
         log.info("cloud.token_refreshed", remote=name)
 

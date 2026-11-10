@@ -7,8 +7,9 @@ from typing import Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 import grunt
-from grunt import log
 from grunt.cache.bus import SENDER
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 lazy from grunt.auth.users import get_user_by_email
 lazy from grunt.local import _site_ctx
@@ -385,7 +386,7 @@ async def _ws_user_can_read(
             user = await get_user_by_email(user_email)
             if user is None or not user.is_active:
                 return False
-            dt = await grunt.get_meta(doctype)
+            dt = await doctype_registry.get_meta(doctype)
             if dt is None:
                 return False
             from grunt.store import store_for
@@ -491,7 +492,7 @@ async def ws_document(
     if not user_email:
         return
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
 
     if not await _ws_user_can_read(websocket, user_email, normalized_doctype, doc_id):
@@ -541,7 +542,7 @@ async def ws_list(
     if not user_email:
         return
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
 
     if not await _ws_user_can_read(websocket, user_email, normalized_doctype, None):

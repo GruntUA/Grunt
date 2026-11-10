@@ -20,7 +20,6 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from grunt import log
 from grunt.actions import load_app_doc_actions
 from grunt.auth.providers.declarations import declare as declare_auth_provider
 from grunt.document.guards import register_write_guard
@@ -28,6 +27,7 @@ from grunt.document.registry import document_registry
 from grunt.document.tree import register_tree_title_resolver
 from grunt.hooks import register_doc_events
 from grunt.io import register_exporter, register_importer
+from grunt.log import log
 from grunt.middleware.rate_limit import register_path_limit
 from grunt.scripting.file_scripts import register_doctype_js
 from grunt.tasks.scheduler import register_scheduler_events

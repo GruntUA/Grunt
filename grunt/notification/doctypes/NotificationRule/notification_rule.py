@@ -1,8 +1,9 @@
 """NotificationRule controller - checks date-based rules against their DocType."""
 
-import grunt
-from grunt import _
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 from grunt.notification.date_rules import DATE_EVENTS
 
 _SYSTEM_DATES = ("created_at", "modified_at")
@@ -20,15 +21,15 @@ class NotificationRule(Document):
         field = (self.get("date_field") or "").strip()
         self.date_field = field
         if int(self.get("days") or 0) < 0:
-            grunt.throw(_("Days cannot be negative"), "VALIDATION_ERROR")
+            throw(_("Days cannot be negative"), "VALIDATION_ERROR")
         if not field:
-            grunt.throw(_("Choose the date field to count from"), "VALIDATION_ERROR")
+            throw(_("Choose the date field to count from"), "VALIDATION_ERROR")
         if field in _SYSTEM_DATES:
             return
-        meta = await grunt.get_meta(self.ref_doctype)
+        meta = await doctype_registry.get_meta(self.ref_doctype)
         fdef = meta.get_field(field) if meta else None
         if fdef is None or not fdef.is_date:
-            grunt.throw(
+            throw(
                 _("“%(field)s” is not a date field of %(doctype)s")
                 % {"field": field, "doctype": self.ref_doctype},
                 "VALIDATION_ERROR",

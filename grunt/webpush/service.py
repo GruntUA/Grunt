@@ -17,9 +17,13 @@ from cryptography.hazmat.primitives import serialization
 lazy import pywebpush
 lazy from py_vapid import Vapid
 
-import grunt
-from grunt import _, log
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.log import log
 from grunt.site.settings import get_setting
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _VAPID_PRIVATE_KEY_FIELD = "webpush_vapid_private"
 _VAPID_PUBLIC_KEY_FIELD = "webpush_vapid_public"
@@ -68,7 +72,7 @@ class WebPushService:
     async def get_vapid_public_key(self) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
         try:
-            return await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
+            return await documents.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
         except Exception:
             return None
 
@@ -79,7 +83,7 @@ class WebPushService:
             return None
 
         try:
-            public_key = await grunt.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
+            public_key = await documents.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
             if public_key:
                 return public_key
 
@@ -88,10 +92,10 @@ class WebPushService:
 
             # Since SystemSettings is a Singleton, it's stored as KV in Singles table
             # We can use grunt.db.set_value which works beautifully for Singletons
-            await grunt.db.set_value(
+            await _db.set_value(
                 "SystemSettings", "SystemSettings", _VAPID_PRIVATE_KEY_FIELD, private_pem
             )
-            await grunt.db.set_value(
+            await _db.set_value(
                 "SystemSettings", "SystemSettings", _VAPID_PUBLIC_KEY_FIELD, public_b64
             )
 
@@ -111,10 +115,10 @@ class WebPushService:
     ) -> None:
         """Upsert a push subscription for a user (one per endpoint)."""
         # Remove old subscription at this endpoint if any using db.delete for performance
-        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint})
+        await _db.delete("PushSubscription", filters={"endpoint": endpoint})
 
         # Create new subscription document
-        await grunt.new_doc(
+        await documents.new_doc(
             "PushSubscription",
             {
                 "user": user,
@@ -127,7 +131,7 @@ class WebPushService:
 
     async def remove_subscription(self, endpoint: str, user: str) -> None:
         """Delete a push subscription by endpoint URL - only if it belongs to `user`."""
-        await grunt.db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
+        await _db.delete("PushSubscription", filters={"endpoint": endpoint, "user": user})
 
     async def _vapid(self) -> Vapid | None:
         """Load the stored VAPID private key; ``None`` if keys aren't generated yet.
@@ -139,7 +143,7 @@ class WebPushService:
         """
 
         try:
-            key = await grunt.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
+            key = await documents.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
         except Exception:
             return None
         if not key:
@@ -185,7 +189,7 @@ class WebPushService:
             expired = status in (404, 410)
             if expired:
                 # Browser dropped the subscription - forget it.
-                await grunt.db.delete("PushSubscription", filters={"endpoint": sub["endpoint"]})
+                await _db.delete("PushSubscription", filters={"endpoint": sub["endpoint"]})
             detail = getattr(exc.response, "text", "") or str(exc)
             return PushResult(ok=False, status=status, error=detail[:500], expired=expired)
         except Exception as exc:
@@ -219,11 +223,11 @@ class WebPushService:
         """
         vapid = await self._ready_vapid()
 
-        email = await grunt.db.get_value("User", user, "email")
+        email = await _db.get_value("User", user, "email")
         # Raw read: the caller is usually the *sender* (whoever triggered the
         # notification), and PushSubscription is row-matched to its owner - a
         # guarded read would see none of the recipient's subscriptions.
-        subs = await grunt.db.get_all(
+        subs = await _db.get_all(
             "PushSubscription",
             filters={"user__in": sorted({user, email} - {None, ""})},
             fields=["endpoint", "p256dh", "auth"],

@@ -20,14 +20,20 @@ from zoneinfo import ZoneInfo
 
 lazy from simpleeval import simple_eval
 
-import grunt
-from grunt import _, log
 from grunt.cache.bus import fanout
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.tasks.broker import retryable_task
+lazy from grunt.document.api import documents
 lazy from grunt.i18n.service import translation_service
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import current_site, site_manager
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 POLICY = "ServiceLevel"
 STATUS = "ServiceLevelStatus"
@@ -54,8 +60,8 @@ async def policies_for(doctype: str) -> list[dict[str, Any]]:
     site = current_site.get()
     hit = _policies.get(site)
     if hit is None or time.monotonic() - hit[0] > _CACHE_TTL:
-        async with grunt.system_context(grunt.get_session()):
-            rows = await grunt.db.get_all(POLICY, filters={"is_enabled": True}, limit=10_000)
+        async with system_context(require_session()):
+            rows = await _db.get_all(POLICY, filters={"is_enabled": True}, limit=10_000)
         grouped: dict[str, list[dict[str, Any]]] = {}
         for row in rows:
             grouped.setdefault(row["ref_doctype"], []).append(dict(row))
@@ -130,7 +136,7 @@ def _eval(expr: str | None, doc: dict[str, Any]) -> bool | None:
 async def _is_done(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> bool:
     states = {s.strip() for s in (policy.get("done_states") or "").splitlines() if s.strip()}
     if states:
-        meta = await grunt.get_meta(doctype)
+        meta = await doctype_registry.get_meta(doctype)
         status_field = getattr(getattr(meta, "doc", None), "status_field", None) or "status"
         if str(doc.get(status_field) or "") in states:
             return True
@@ -165,7 +171,7 @@ async def on_document_saved(**kwargs: Any) -> None:
     policies = await policies_for(doctype)
     if not policies:
         return
-    async with grunt.system_context(grunt.get_session()):
+    async with system_context(require_session()):
         for policy in policies:
             try:
                 await _track(policy, doctype, doc)
@@ -175,7 +181,7 @@ async def on_document_saved(**kwargs: Any) -> None:
 
 async def _track(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> None:
     now = datetime.now(UTC)
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         STATUS,
         filters={"service_level": policy["name"], "ref_doctype": doctype, "ref_name": doc["name"]},
         limit=1,
@@ -188,7 +194,7 @@ async def _track(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> N
             return
         due = await _planned_due(policy, doc)
         assert due is not None
-        await grunt.new_doc(
+        await documents.new_doc(
             STATUS,
             {
                 "service_level": policy["name"],
@@ -209,12 +215,12 @@ async def _track(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> N
     if done:
         late = row["status"] == "Breached" or now > due
         status = "Met late" if late else "Met"
-        await grunt.db.set_value(STATUS, row["name"], {"status": status, "met_at": now})
+        await _db.set_value(STATUS, row["name"], {"status": status, "met_at": now})
         return
     # A deadline edited by hand on the document moves the clock.
     planned = as_datetime(doc.get(policy.get("due_field") or ""), end_of_day=True)
     if planned and planned != due:
-        await grunt.db.set_value(
+        await _db.set_value(
             STATUS,
             row["name"],
             {
@@ -232,12 +238,12 @@ async def _fill_due_field(
     field = policy.get("due_field")
     if not field or doc.get(field):
         return
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     fdef = meta.get_field(field) if meta else None
     if fdef is None:
         return
     value: Any = due.astimezone(_tz()).date() if fdef.fieldtype == "Date" else due
-    await grunt.db.set_value(doctype, doc["name"], field, value)
+    await _db.set_value(doctype, doc["name"], field, value)
     doc[field] = value
 
 
@@ -248,8 +254,8 @@ async def on_document_deleted(**kwargs: Any) -> None:
     name = doc.get("name") if isinstance(doc, dict) else kwargs.get("doc_id")
     if not doctype or not name or not await policies_for(doctype):
         return
-    async with grunt.system_context(grunt.get_session()):
-        await grunt.db.delete(STATUS, {"ref_doctype": doctype, "ref_name": name})
+    async with system_context(require_session()):
+        await _db.delete(STATUS, {"ref_doctype": doctype, "ref_name": name})
 
 
 # Scheduler
@@ -264,10 +270,10 @@ async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> se
         part = part.strip()
         if part.startswith("{field:") and part.endswith("}") and "." in part:
             link_field, target_field = part[7:-1].split(".", 1)
-            meta = await grunt.get_meta(doctype)
+            meta = await doctype_registry.get_meta(doctype)
             fdef = meta.get_field(link_field) if meta else None
             if fdef and fdef.has_trait("link") and fdef.options and doc.get(link_field):
-                value = await grunt.db.get_value(fdef.options, doc[link_field], target_field)
+                value = await _db.get_value(fdef.options, doc[link_field], target_field)
                 if isinstance(value, str) and "@" in value:
                     emails.add(value)
         elif part:
@@ -275,16 +281,14 @@ async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> se
     found, roles = notification_service._resolve_recipients(",".join(plain), doc, "")
     emails.update(found)
     if roles:
-        emails.update(
-            await notification_service._resolve_role_recipients(roles, grunt.get_session())
-        )
+        emails.update(await notification_service._resolve_role_recipients(roles, require_session()))
     return emails
 
 
 async def _notify(policy: dict[str, Any], row: dict[str, Any], *, breached: bool) -> None:
 
     doctype, name = row["ref_doctype"], row["ref_name"]
-    doc = await grunt.db.get_doc(doctype, name)
+    doc = await _db.get_doc(doctype, name)
     if doc is None:
         return
     recipients = await _recipients(policy.get("notify"), doctype, doc)
@@ -302,7 +306,7 @@ async def _notify(policy: dict[str, Any], row: dict[str, Any], *, breached: bool
     email = policy.get("channel") in ("email", "both")
     for user in sorted(recipients):
         await notification_service.notify(
-            grunt.get_session(),
+            require_session(),
             user=user,
             doctype=doctype,
             doc_id=name,
@@ -316,7 +320,7 @@ async def process_deadlines(now: datetime | None = None) -> dict[str, int]:
     """Warn and escalate open SLA rows; runs inside a system context."""
     now = now or datetime.now(UTC)
     counts = {"warned": 0, "breached": 0}
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         STATUS,
         filters={"status__in": ["On track", "At risk"]},
         order_by="due_at",
@@ -327,7 +331,7 @@ async def process_deadlines(now: datetime | None = None) -> dict[str, int]:
     for row in rows:
         name = row["service_level"]
         if name not in policies:
-            policies[name] = await grunt.db.get_doc(POLICY, name)
+            policies[name] = await _db.get_doc(POLICY, name)
         policy = policies[name]
         due = as_datetime(row["due_at"])
         if policy is None or due is None:
@@ -336,7 +340,7 @@ async def process_deadlines(now: datetime | None = None) -> dict[str, int]:
         if status == row["status"]:
             continue
         stamp = "breached_at" if status == "Breached" else "warned_at"
-        await grunt.db.set_value(STATUS, row["name"], {"status": status, stamp: now})
+        await _db.set_value(STATUS, row["name"], {"status": status, stamp: now})
         try:
             await _notify(policy, row, breached=status == "Breached")
         except Exception:
@@ -353,7 +357,7 @@ async def check_deadlines() -> dict[str, int]:
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
         counts = await process_deadlines()
         await session.commit()
     return counts
@@ -367,7 +371,7 @@ _SIDEBAR_TIME = {"Met": "met_at", "Met late": "met_at"}
 async def sidebar_rows(doctype: str, doc_id: str, doc: Any) -> list[dict[str, Any]]:
     """One row per service level of the document: its clock as a badge and
     the deadline (or, once done, when) - the desk shows the time relative."""
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         STATUS,
         filters={"ref_doctype": doctype, "ref_name": doc_id},
         fields=["name", "service_level", "status", "due_at", "met_at"],
@@ -376,11 +380,11 @@ async def sidebar_rows(doctype: str, doc_id: str, doc: Any) -> list[dict[str, An
     )
     if not rows:
         return []
-    meta = await grunt.get_meta(STATUS)
+    meta = await doctype_registry.get_meta(STATUS)
     indicators = {i.value: i for i in meta.doc.status_indicators} if meta else {}
     titles = {
         r["name"]: r.get("title") or r["name"]
-        for r in await grunt.db.get_all(
+        for r in await _db.get_all(
             POLICY,
             filters={"name__in": sorted({r["service_level"] for r in rows})},
             fields=["name", "title"],

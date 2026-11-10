@@ -9,7 +9,10 @@ from fastapi import HTTPException
 
 import grunt
 from grunt import _, whitelist
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.local import require_session
 from grunt.site.manager import site_manager
 from grunt.storage.cloud import MASK, SECRET_FIELDS, RemoteError, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone, config_text
@@ -17,6 +20,8 @@ lazy from grunt.monitoring.health import human_size
 lazy from grunt.storage.cloud.backups import forget_remote, list_remote_backups
 lazy from grunt.storage.cloud.providers import get_provider
 lazy from grunt.storage.cloud.tasks import upload_latest_backup
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # Changing any of these makes what is already in the storage unreachable
 # (another place, another key) - not while files live there.
@@ -93,19 +98,19 @@ class StorageRemote(Document):
     # end: auto-generated types
 
     async def before_save(self) -> None:
-        stored = await grunt.db.get_value("StorageRemote", self.name, "*") if self.name else None
+        stored = await _db.get_value("StorageRemote", self.name, "*") if self.name else None
         self._keep_masked_secrets(stored)
         if stored:
             await self._guard_location(stored)
         if self.use_for_files and self.enabled:
-            other = await grunt.db.get_all(
+            other = await _db.get_all(
                 "StorageRemote",
                 filters={"use_for_files": True, "enabled": True, "name__ne": self.name or ""},
                 pluck="title",
                 limit=1,
             )
             if other:
-                grunt.throw(
+                throw(
                     _("Files are already moved to “%(name)s”; only one storage can hold files")
                     % {"name": other[0]}
                 )
@@ -119,8 +124,8 @@ class StorageRemote(Document):
 
     async def _guard_location(self, stored: dict[str, Any]) -> None:
         changed = [f for f in _LOCATION_FIELDS if (self.get(f) or None) != (stored.get(f) or None)]
-        if changed and await grunt.db.count("File", {"storage_remote": self.name}):
-            grunt.throw(
+        if changed and await _db.count("File", {"storage_remote": self.name}):
+            throw(
                 _(
                     "Files are kept in this storage: return them to the server first "
                     "(Files → Return all files), then change where or how they are stored"
@@ -128,10 +133,8 @@ class StorageRemote(Document):
             )
 
     async def before_delete(self) -> None:
-        if await grunt.db.count("File", {"storage_remote": self.name}):
-            grunt.throw(
-                _("Files are kept in this storage: return them to the server before deleting it")
-            )
+        if await _db.count("File", {"storage_remote": self.name}):
+            throw(_("Files are kept in this storage: return them to the server before deleting it"))
 
     async def after_delete(self) -> None:
 
@@ -154,7 +157,7 @@ async def test_connection(name: str) -> dict[str, Any]:
     """Create the root folder, write + delete a probe file, read the quota."""
 
     remote = await _remote(name)
-    await grunt.get_session().commit()
+    await require_session().commit()
     quota = ""
     try:
         async with Rclone(remote) as rc:
@@ -204,7 +207,7 @@ async def list_backups(name: str) -> list[dict[str, Any]]:
     """Backup sets kept in the remote (newest first)."""
 
     remote = await _remote(name)
-    await grunt.get_session().commit()
+    await require_session().commit()
     try:
         async with Rclone(remote) as rc:
             rows = await list_remote_backups(rc, site_manager.get_active_site())

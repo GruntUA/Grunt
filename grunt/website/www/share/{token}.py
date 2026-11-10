@@ -2,8 +2,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-import grunt
-from grunt import _
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 from grunt.website.doc_layout import FlatField, build_tabs, fmt_dt
 lazy from grunt.api.v1.share import get_shared_document
 lazy from grunt.errors import ApplicationError
@@ -34,7 +34,7 @@ async def get_context(context: dict[str, Any]) -> dict[str, Any]:
     all_fields: list[Any] = []
     title_field = "name"
 
-    dt = await grunt.get_meta(share["doctype"])
+    dt = await doctype_registry.get_meta(share["doctype"])
     if dt is None:  # metadata unavailable - fall back to a flat single section
         all_fields = [
             FlatField(f["fieldname"], f["label"], f["fieldtype"]) for f in share["fields"]

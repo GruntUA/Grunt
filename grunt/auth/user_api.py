@@ -65,6 +65,7 @@ from grunt.log import log
 from grunt.utils.http import public_base_url
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
 lazy from grunt.auth.mfa import disable_mfa as _disable_mfa
+lazy from grunt.document.api import documents
 lazy from grunt.email.service import email_service
 lazy from grunt.i18n import use_language
 
@@ -263,7 +264,7 @@ async def update_me_api(
 
     assert user.id is not None
     if values:
-        await grunt.set_value("User", user.id, values)
+        await documents.set_value("User", user.id, values)
 
     updated = await get_user_by_id(user.id)
     if updated is None:
@@ -390,7 +391,7 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
 @whitelist(roles=["System Manager"])
 async def list_pending_users_api() -> list[dict[str, Any]]:
     """Self-registered users awaiting approval. System Manager only."""
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         "User",
         filters={"signup_state": "pending"},
         fields=["name", "email", "full_name", "created_at"],
@@ -404,7 +405,7 @@ async def _set_signup_state(user_id: str, state: str) -> bool:
     user = await get_user_by_id(user_id)
     if not user or not user.id:
         throw(_("User not found"), "NOT_FOUND")
-    await grunt.set_value(
+    await documents.set_value(
         "User",
         user.id,
         {"signup_state": state, "is_active": state == "approved"},
@@ -462,7 +463,7 @@ async def set_user_password_api(
     await enforce_password_policy(new_password)
     # Authorised above (self + current password, or an admin): the hash is a
     # field hidden from its owner, so it is written past the field rules.
-    await grunt.db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
+    await _db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
     return True
 
 

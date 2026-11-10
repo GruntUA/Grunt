@@ -10,7 +10,7 @@ from pathlib import Path
 
 from markupsafe import Markup
 
-from grunt import log
+from grunt.log import log
 
 DIST_DIR = Path(__file__).resolve().parent.parent.parent / "dist"  # apps/grunt/dist
 

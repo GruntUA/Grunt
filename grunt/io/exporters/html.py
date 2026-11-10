@@ -18,12 +18,12 @@ from zoneinfo import ZoneInfo
 
 from jinja2 import Environment, FileSystemLoader
 
-import grunt
-from grunt import _
+from grunt.i18n import _
 from grunt.i18n.jinja import install as install_i18n
 from grunt.i18n.meta import translate_doctype_meta
 from grunt.i18n.service import translation_service
 from grunt.io.exporters.registry import Exporter, ListExportContext
+from grunt.metadata.registry import doctype_registry
 from grunt.site.settings import get_system_settings
 lazy from grunt.metadata.field import DocField, is_numeric_fieldtype
 
@@ -200,7 +200,7 @@ class HtmlExporter(Exporter):
         fields: list[DocField],
         ctx: ListExportContext,
     ) -> bytes:
-        meta = await grunt.get_meta(doctype)
+        meta = await doctype_registry.get_meta(doctype)
         dt = translate_doctype_meta(meta.doc.model_dump()) if meta else {}
         translated = {f["fieldname"]: f for f in dt.get("fields") or []}
         columns = [

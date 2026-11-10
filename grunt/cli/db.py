@@ -5,7 +5,7 @@ import click
 from taskiq import InMemoryBroker
 lazy from sqlalchemy import inspect
 
-lazy import grunt
+from grunt.local import system_context
 lazy from grunt.apps.required import DependencyCycleError, MissingAppError
 lazy from grunt.backups import (
     create_backup,
@@ -284,9 +284,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                         # The versions this database is now migrated to.
                         if not any(f.startswith(f"{site_name}:") for f in failed):
-                            import grunt
-
-                            async with maker() as session, grunt.system_context(session, eng):
+                            async with maker() as session, system_context(session, eng):
                                 await record_migrated_versions()
                                 await session.commit()
 
@@ -352,14 +350,14 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                     # can iterate them - reads only, no schema/JSON merge here.
                     await doctype_registry.load_all(session)
 
-                    async with grunt.system_context(session, eng):
+                    async with system_context(session, eng):
                         from grunt.document.meta import Meta
 
                         all_metas = [
                             Meta(dt) for dt in await doctype_registry.list_all() if dt.has_table
                         ]
                         if doctype:
-                            target_meta = await grunt.get_meta(doctype)
+                            target_meta = await doctype_registry.get_meta(doctype)
                             if target_meta is None:
                                 click.echo(f"DocType '{doctype}' not found.", err=True)
                                 raise SystemExit(1)
@@ -464,7 +462,7 @@ def _cloud_remote(site: str, name: str):
 
     async def run(fn):
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             remote = await load_remote(name)
             await session.commit()
             result = await fn(remote)

@@ -10,6 +10,7 @@ from grunt.document.base import Document
 from grunt.errors import forbidden, throw
 from grunt.i18n import _
 lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.api import documents
 
 
 class ApiKey(Document):
@@ -44,7 +45,7 @@ async def create_api_key(
     assert user.id is not None
     full_key, key_prefix, key_hash = generate_api_key()
 
-    doc = await grunt.new_doc(
+    doc = await documents.new_doc(
         "ApiKey",
         {
             "label": clean_label,
@@ -76,7 +77,7 @@ async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     if "System Manager" not in (user.roles or []):
         filters["user_id"] = user.id
 
-    return await grunt.get_list(
+    return await documents.get_list(
         "ApiKey",
         filters=filters,
         fields=[
@@ -105,7 +106,7 @@ async def update_api_key(
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
     user = user or grunt.get_user()
-    key_doc = await grunt.get_doc(ApiKey, key_id)
+    key_doc = await documents.get_doc(ApiKey, key_id)
     _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
@@ -124,7 +125,7 @@ async def update_api_key(
     if not updates:
         throw(_("No fields to update"), "VALIDATION")
 
-    doc = await grunt.save_doc("ApiKey", key_id, updates)
+    doc = await documents.save_doc("ApiKey", key_id, updates)
     return {
         "name": doc["name"],
         "label": doc["label"],
@@ -139,9 +140,9 @@ async def update_api_key(
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or grunt.get_user()
-    key_doc = await grunt.get_doc(ApiKey, key_id)
+    key_doc = await documents.get_doc(ApiKey, key_id)
     _require_key_owner(key_doc, user)
-    await grunt.delete_doc("ApiKey", key_id)
+    await documents.delete_doc("ApiKey", key_id)
     return True
 
 

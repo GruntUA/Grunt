@@ -19,11 +19,12 @@ from contextlib import asynccontextmanager, suppress
 from fastapi import FastAPI
 
 import grunt
-from grunt import log
 from grunt.apps import load_external_apps
 from grunt.cache import bus
 from grunt.config import settings
+from grunt.db.api import GruntDB
 from grunt.i18n import translation_service
+from grunt.log import log
 from grunt.logging_config import configure_logging
 from grunt.metadata.registry import doctype_registry
 from grunt.monitoring import perf
@@ -33,6 +34,8 @@ from grunt.startup import load_validators
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import start_scheduler, stop_scheduler
 from grunt.utils.redis import shared
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 def _configure() -> None:
@@ -93,7 +96,7 @@ async def _seed_supported_languages() -> None:
             maker = site_manager.get_session_maker(site)
             async with maker() as session, grunt.context(session):
                 translation_service.set_default(await get_setting("language"))
-                rows = await grunt.db.get_all(
+                rows = await _db.get_all(
                     "Language",
                     filters={"is_active": True},
                     fields=["code", "native_name"],

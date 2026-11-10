@@ -3,8 +3,8 @@
 The grant itself is enforced in :mod:`grunt.permissions.shares`.
 """
 
-from grunt import _
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.permissions.rbac import permission_checker
 
 

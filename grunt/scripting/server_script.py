@@ -34,10 +34,10 @@ from typing import Any, NoReturn, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
+from grunt.log import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
 lazy from grunt.app import GruntDB
+lazy from grunt.document.api import documents
 lazy from grunt.local import _session_ctx
 lazy from grunt.publish import notify as _notify
 
@@ -264,8 +264,8 @@ class ScriptContext:
 
         Usage::
 
-            doc = grunt.get_doc("Applicant", "some-id")
-            doc = grunt.get_doc("Applicant", {"tax_id": "1234567890"})
+            doc = documents.get_doc("Applicant", "some-id")
+            doc = documents.get_doc("Applicant", {"tax_id": "1234567890"})
         """
         return self._run_or_default(self._get_doc_impl(doctype, filters_or_id), None)
 
@@ -295,7 +295,7 @@ class ScriptContext:
 
         Usage::
 
-            docs = grunt.get_list(
+            docs = documents.get_list(
                 "Applicant", filters={"applicant_type": "Фізична особа"}, limit=10
             )
         """
@@ -323,20 +323,20 @@ class ScriptContext:
 
         Usage::
 
-            inv = grunt.new_doc("Invoice", {"number": "INV-001", "amount": 1500.0})
+            inv = documents.new_doc("Invoice", {"number": "INV-001", "amount": 1500.0})
         """
         return self._run_or_raise(self._new_doc_impl(doctype, data), "new_doc")
 
     async def _new_doc_impl(self, doctype: str, data: dict[str, Any]) -> dict[str, Any]:
 
-        return await self._run_with_session(lambda: grunt.new_doc(doctype, data))
+        return await self._run_with_session(lambda: documents.new_doc(doctype, data))
 
     def save_doc(self, doctype: str, id_or_name: str, data: dict[str, Any]) -> dict[str, Any]:
         """Update an existing document.
 
         Usage::
 
-            updated = grunt.save_doc("Invoice", doc_id, {"status": "Paid"})
+            updated = documents.save_doc("Invoice", doc_id, {"status": "Paid"})
         """
         return self._run_or_raise(self._save_doc_impl(doctype, id_or_name, data), "save_doc")
 
@@ -359,7 +359,7 @@ class ScriptContext:
 
         Usage::
 
-            grunt.delete_doc("TempLog", log_id)
+            documents.delete_doc("TempLog", log_id)
         """
         self._run_or_raise(self._delete_doc_impl(doctype, id_or_name), "delete_doc")
 
@@ -377,7 +377,7 @@ class ScriptContext:
 
         Usage::
 
-            n = grunt.count("Invoice", {"status": "Draft"})
+            n = documents.count("Invoice", {"status": "Draft"})
         """
         return self._run_or_default(self._count_impl(doctype, filters), 0)
 
@@ -420,7 +420,7 @@ class ScriptContext:
 
 
 class ScriptError(Exception):
-    """Error raised by a server script via grunt.throw()."""
+    """Error raised by a server script via throw()."""
 
 
 class ScriptResult:

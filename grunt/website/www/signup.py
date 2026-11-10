@@ -1,6 +1,6 @@
 from typing import Any
 
-from grunt import _
+from grunt.i18n import _
 
 sitemap = False  # not a page for search engines
 

@@ -15,8 +15,8 @@ from redis.asyncio import Redis
 from redis.asyncio import Redis as AsyncRedis
 from taskiq_redis import RedisStreamBroker
 
-from grunt import log
 from grunt.i18n import N_, _
+from grunt.log import log
 from grunt.tasks.broker import broker
 
 

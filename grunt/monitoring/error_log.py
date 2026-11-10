@@ -16,10 +16,10 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt.local import session_user
+from grunt.local import session_user, system_context
 from grunt.log import log
 from grunt.site.manager import site_manager
+lazy from grunt.document.api import documents
 
 _TITLE_MAX = 200
 _MESSAGE_MAX = 8000
@@ -58,7 +58,7 @@ async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> s
     if session is not None:
         # Caller owns the transaction (e.g. the task middleware already holds a
         # system_context). Reuse it so the row commits with the caller's work.
-        doc = await grunt.new_doc("ErrorLog", payload)
+        doc = await documents.new_doc("ErrorLog", payload)
         return doc.get("name")
 
     # HTTP path: the request's own session is very likely in a failed
@@ -67,8 +67,8 @@ async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> s
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as fresh, grunt.system_context(fresh, eng):
-        doc = await grunt.new_doc("ErrorLog", payload)
+    async with maker() as fresh, system_context(fresh, eng):
+        doc = await documents.new_doc("ErrorLog", payload)
         await fresh.commit()
         return doc.get("name")
 

@@ -3,9 +3,10 @@
 The tracking itself lives in :mod:`grunt.notification.sla`.
 """
 
-import grunt
-from grunt import _
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 
 _DATE_TYPES = ("Date", "Datetime")
 _SYSTEM_DATES = ("created_at", "modified_at")
@@ -18,20 +19,20 @@ class ServiceLevel(Document):
     target: int
 
     async def validate(self) -> None:
-        meta = await grunt.get_meta(self.ref_doctype)
+        meta = await doctype_registry.get_meta(self.ref_doctype)
         if meta is None:
-            grunt.throw(
+            throw(
                 _("DocType “%(doctype)s” not found") % {"doctype": self.ref_doctype},
                 "VALIDATION_ERROR",
             )
         dt = meta.doc
         if dt.is_child or dt.is_singleton or not dt.has_table:
-            grunt.throw(
+            throw(
                 _("Service levels cannot track “%(doctype)s” documents") % {"doctype": dt.name},
                 "VALIDATION_ERROR",
             )
         if int(self.target or 0) < 1:
-            grunt.throw(_("Time allowed must be at least 1"), "VALIDATION_ERROR")
+            throw(_("Time allowed must be at least 1"), "VALIDATION_ERROR")
 
         self.start_field = (self.get("start_field") or "").strip() or "created_at"
         self.due_field = (self.get("due_field") or "").strip() or None
@@ -43,19 +44,19 @@ class ServiceLevel(Document):
                 continue
             fdef = meta.get_field(field)
             if fdef is None or fdef.fieldtype not in _DATE_TYPES:
-                grunt.throw(
+                throw(
                     _("%(label)s: “%(field)s” is not a date field of %(doctype)s")
                     % {"label": label, "field": field, "doctype": dt.name},
                     "VALIDATION_ERROR",
                 )
         if self.due_field in _SYSTEM_DATES:
-            grunt.throw(_("The deadline field must be a field of the document"), "VALIDATION_ERROR")
+            throw(_("The deadline field must be a field of the document"), "VALIDATION_ERROR")
 
         if (
             not (self.get("done_states") or "").strip()
             and not (self.get("done_condition") or "").strip()
         ):
-            grunt.throw(
+            throw(
                 _("Set done statuses or a done condition - otherwise the clock never stops"),
                 "VALIDATION_ERROR",
             )

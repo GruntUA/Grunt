@@ -21,6 +21,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import doc_guard
 lazy from grunt.activity.reactions import reactions_for
 lazy from grunt.auth.users import get_users_by_emails
+lazy from grunt.document.api import documents
 
 
 @whitelist()
@@ -36,7 +37,7 @@ async def get_versions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
 async def restore_version(doctype: str, doc_id: str, version_id: str) -> dict[str, Any]:
     """Restore a document to a previous version."""
     # Get current doc and verify access
-    current_doc = await grunt.get_doc(doctype, doc_id)
+    current_doc = await documents.get_doc(doctype, doc_id)
 
     session = require_session()
     target = await version_service.get_version(session, version_id)
@@ -64,10 +65,10 @@ async def restore_version(doctype: str, doc_id: str, version_id: str) -> dict[st
         if field.fieldname in restore_data:
             update_fields[field.fieldname] = restore_data[field.fieldname]
 
-    result = await grunt.save_doc(doctype, doc_id, update_fields)
+    result = await documents.save_doc(doctype, doc_id, update_fields)
 
     # Add audit log - via the shared write path (grunt.activity.record_activity),
-    # not a raw grunt.new_doc("ActivityLog", ...) call: ActivityLog.create is
+    # not a raw documents.new_doc("ActivityLog", ...) call: ActivityLog.create is
     # restricted to System Manager to keep the audit trail tamper-proof, and
     # record_activity is the one path that's allowed to write as any user.
 
@@ -89,7 +90,7 @@ async def get_activity_log(doctype: str, doc_id: str, per_page: int = 10) -> lis
 
     per_page = max(1, min(per_page, 100))
 
-    entries = await grunt.get_list(
+    entries = await documents.get_list(
         "ActivityLog",
         filters={"ref_doctype": doctype, "doc_id": doc_id},
         order_by="created_at",
@@ -117,11 +118,11 @@ async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     dt = await doctype_registry.get_meta(doctype)
     track_changes = bool(dt and dt.track_changes)
 
-    act_rows = await grunt.get_list(
+    act_rows = await documents.get_list(
         "ActivityLog", filters={"ref_doctype": doctype, "doc_id": doc_id}, limit=1000
     )
 
-    comment_rows = await grunt.get_list(
+    comment_rows = await documents.get_list(
         "Comment", filters={"reference_doctype": doctype, "reference_id": doc_id}, limit=1000
     )
 

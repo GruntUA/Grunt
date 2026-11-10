@@ -15,13 +15,17 @@
 
 from datetime import UTC, datetime, timedelta
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
+lazy from grunt.document.api import documents
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.site.settings import get_setting
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 DEFAULT_LOG_RETENTION_DAYS = 30
 MAX_DELETES_PER_RUN = 1000
@@ -35,15 +39,15 @@ async def _purge_log(dt: DocType, cutoff: datetime) -> int:
     filters = {f"{_date_field(dt)}__lt": cutoff}
     children = {f.options for f in dt.fields if f.has_trait("table") and f.options}
     if children:
-        names = await grunt.db.get_all(dt.name, filters=filters, pluck="name", limit=None)
+        names = await _db.get_all(dt.name, filters=filters, pluck="name", limit=None)
         for child in children if names else ():
-            await grunt.db.delete(child, {"parent_doctype": dt.name, "parent_name__in": names})
-    return await grunt.db.delete(dt.name, filters)
+            await _db.delete(child, {"parent_doctype": dt.name, "parent_name__in": names})
+    return await _db.delete(dt.name, filters)
 
 
 async def _purge_documents(dt: DocType, cutoff: datetime) -> int:
     field = _date_field(dt)
-    names = await grunt.db.get_all(
+    names = await _db.get_all(
         dt.name,
         filters={f"{field}__lt": cutoff},
         pluck="name",
@@ -52,12 +56,12 @@ async def _purge_documents(dt: DocType, cutoff: datetime) -> int:
         limit=MAX_DELETES_PER_RUN,
     )
 
-    session = grunt.get_session()
+    session = require_session()
     deleted = 0
     for name in names:
         try:
             async with session.begin_nested():  # a failed delete rolls back alone
-                await grunt.delete_doc(dt.name, name)
+                await documents.delete_doc(dt.name, name)
             deleted += 1
         except Exception as e:  # noqa: BLE001 - one undeletable doc must not stop the rest
             log.warning("retention.delete_failed", doctype=dt.name, name=name, error=str(e))
@@ -87,7 +91,7 @@ async def purge_expired_documents() -> None:
     eng = site_manager.get_engine(site)
     now = datetime.now(UTC)
 
-    async with maker() as session, grunt.system_context(session, eng):
+    async with maker() as session, system_context(session, eng):
         log_default = await get_setting("log_retention_days", DEFAULT_LOG_RETENTION_DAYS)
 
         total = 0

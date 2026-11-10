@@ -4,7 +4,7 @@ for the server-rendered read-only views (``/share/{token}``, web view pages).
 
 from typing import Any
 
-from grunt import _
+from grunt.i18n import _
 from grunt.metadata.field import has_trait
 from grunt.utils.sanitize import sanitize_html
 

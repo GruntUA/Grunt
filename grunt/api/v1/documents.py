@@ -2,21 +2,22 @@
 
 from typing import Any
 
-import grunt
+from grunt.api.context import whitelist
 from grunt.api.v1.docs.utils import default_sort
+lazy from grunt.document.api import documents
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_doc(
     doctype: str,
     name: str,
     expand: list[str] | None = None,
 ) -> dict[str, Any]:
     """Get a single document."""
-    return await grunt.get_doc(doctype, name, expand=expand)
+    return await documents.get_doc(doctype, name, expand=expand)
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_list(
     doctype: str,
     filters: dict[str, Any] | None = None,
@@ -29,7 +30,7 @@ async def get_list(
 ) -> dict[str, Any]:
     """Get a list of documents with metadata."""
     order_by, order = await default_sort(doctype, order_by, order)
-    res = await grunt.get_list(
+    res = await documents.get_list(
         doctype,
         filters=filters,
         fields=fields,
@@ -42,30 +43,30 @@ async def get_list(
     return res.to_dict()
 
 
-@grunt.whitelist()
+@whitelist()
 async def save_doc(doctype: str, name: str, data: dict[str, Any]) -> dict[str, Any]:
     """Update an existing document."""
-    return await grunt.save_doc(doctype, name, data)
+    return await documents.save_doc(doctype, name, data)
 
 
-@grunt.whitelist()
+@whitelist()
 async def new_doc(doctype: str, data: dict[str, Any]) -> dict[str, Any]:
     """Create a new document."""
-    return await grunt.new_doc(doctype, data)
+    return await documents.new_doc(doctype, data)
 
 
-@grunt.whitelist()
+@whitelist()
 async def delete_doc(doctype: str, name: str, replace_with: str | None = None) -> bool:
     """Delete a document.
 
     ``replace_with`` repoints every reference to the deleted document at this
     surviving document of the same DocType before removal.
     """
-    await grunt.delete_doc(doctype, name, replace_with)
+    await documents.delete_doc(doctype, name, replace_with)
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def rename_doc(doctype: str, name: str, new_name: str) -> dict[str, Any]:
     """Rename a document."""
-    return await grunt.rename_doc(doctype, name, new_name)
+    return await documents.rename_doc(doctype, name, new_name)

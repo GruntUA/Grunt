@@ -11,9 +11,12 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _
+from grunt.db.api import GruntDB
 from grunt.email.service import email_service
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class EmailTemplateError(Exception):
@@ -35,8 +38,8 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
     including one acting as a synthetic Guest (e.g. a public CMS WebForm
     submission queuing its own confirmation e-mail).
     """
-    async with grunt.system_context(grunt.get_session()):
-        rows = await grunt.db.get_all(
+    async with system_context(require_session()):
+        rows = await _db.get_all(
             "EmailTemplate",
             filters={"name": name, "is_active": True},
             fields=["subject", "body", "body_html"],

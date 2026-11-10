@@ -15,12 +15,13 @@ from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session
+from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
 lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -69,7 +70,7 @@ async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) ->
     omit it to fetch the full row, including password/token/MFA columns.
     """
     session = require_session()
-    async with grunt.system_context(session):
+    async with system_context(session):
         query = User.objects.filter(**filter_kwargs)
         if fields is not None:
             query = query.only(*fields)
@@ -96,7 +97,7 @@ async def get_users_by_emails(emails: list[str], *, fields: list[str] | None = N
         return []
 
     session = require_session()
-    async with grunt.system_context(session):
+    async with system_context(session):
         query = User.objects.filter(email__in=emails)
         if fields is not None:
             query = query.only(*fields)
@@ -138,7 +139,7 @@ async def list_users() -> list[User]:
     themselves before calling this."""
     session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
-    async with grunt.system_context(session, engine):
+    async with system_context(session, engine):
         users = await User.objects.limit(10_000).all()
         for user in users:
             user.data["roles"] = await get_user_roles(user.name)
@@ -155,7 +156,7 @@ async def create_user(
     """Create a new user. The first user automatically gets the "System Manager" role."""
     session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
-    async with grunt.system_context(session, engine):
+    async with system_context(session, engine):
         is_first_user = await User.objects.count() == 0
         await User.objects.create(
             email=email,
@@ -179,7 +180,7 @@ async def _grant_system_manager(user_id: str) -> None:
     used to make the first user on a site an administrator."""
     if not await _db.exists("Role", {"role_name": "System Manager"}):
         await Role.objects.create(role_name="System Manager")
-    await grunt.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
+    await documents.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
 
 
 # Sign-in lockout
@@ -209,7 +210,7 @@ async def register_failed_attempt(user: User) -> None:
     )
     assert user.name
     session = require_session()
-    async with grunt.system_context(session):
+    async with system_context(session):
         # Fresh count, not the copy loaded at the start of the request.
         stored = await _db.get_value("User", user.name, "login_attempts")
         new_attempts = int(stored or 0) + 1
@@ -217,7 +218,7 @@ async def register_failed_attempt(user: User) -> None:
         if new_attempts >= max_attempts:
             updates["locked_until"] = datetime.now(UTC) + timedelta(minutes=lockout_minutes)
             updates["login_attempts"] = 0
-        await grunt.db.set_value("User", user.name, updates)
+        await _db.set_value("User", user.name, updates)
     # Persist now: the caller rejects the sign-in by raising, and the request
     # session is rolled back on an exception - which would otherwise undo this
     # counter and leave guessing unlimited. Only ever called from an auth
@@ -230,8 +231,8 @@ async def clear_failed_attempts(user: User) -> None:
     """Reset the failed-sign-in counter and any lock after a success."""
 
     assert user.name
-    async with grunt.system_context(require_session()):
-        await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
+    async with system_context(require_session()):
+        await _db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
 
 
 async def authenticate(email: str, password: str) -> User | None:
@@ -249,7 +250,7 @@ async def authenticate(email: str, password: str) -> User | None:
     if await is_account_locked(user):
         raise ValueError("locked")
 
-    async with grunt.system_context(require_session()):
+    async with system_context(require_session()):
         valid = bool(user.hashed_password) and await verify_password(password, user.hashed_password)
 
     if not valid:
@@ -304,7 +305,7 @@ async def _assign_default_role(user_id: str | None) -> None:
     if not role or not user_id:
         return
 
-    async with grunt.system_context(require_session()):
+    async with system_context(require_session()):
         if not await _db.exists("Role", {"role_name": role}):
             return
         current = await _db.get_all(
@@ -317,7 +318,7 @@ async def _assign_default_role(user_id: str | None) -> None:
         if role in names:
             return
         rows = [{"role_name": n} for n in names] + [{"role_name": role}]
-        await grunt.save_doc("User", user_id, {"roles": rows})
+        await documents.save_doc("User", user_id, {"roles": rows})
 
 
 async def _apply_signup_approval(user: User) -> bool:
@@ -331,8 +332,8 @@ async def _apply_signup_approval(user: User) -> bool:
         return False
 
     assert user.id is not None
-    async with grunt.system_context(require_session()):
-        await grunt.db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
+    async with system_context(require_session()):
+        await _db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
     user.data["signup_state"] = "pending"
     user.data["is_active"] = False
     log.info("user.pending_approval", email=user.email)

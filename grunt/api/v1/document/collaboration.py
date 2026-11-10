@@ -18,8 +18,9 @@ from grunt.api.context import whitelist
 from grunt.auth.language import language_of
 from grunt.db.api import GruntDB
 from grunt.i18n import _, use_language
-from grunt.local import require_session
+from grunt.local import require_session, system_context
 from grunt.permissions.guards import doc_guard
+lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -29,7 +30,7 @@ async def get_comments(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     """Return all comments for a document."""
     await doc_guard(doctype, doc_id)
 
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         "Comment",
         filters={"reference_doctype": doctype, "reference_id": doc_id},
         order_by="created_at",
@@ -67,7 +68,7 @@ async def add_comment(
 
     await doc_guard(doctype, doc_id)
 
-    comment = await grunt.new_doc(
+    comment = await documents.new_doc(
         "Comment",
         {
             "reference_doctype": doctype,
@@ -98,7 +99,7 @@ async def add_comment(
     # Reply: tell the author of the thread's root (unless already @mentioned).
     root = comment.get("parent_comment")
     if root:
-        async with grunt.system_context(require_session()):
+        async with system_context(require_session()):
             root_author = await _db.get_value("Comment", root, "owner")
         if root_author and root_author != grunt.get_user().email and root_author not in mentions:
             with use_language(await language_of(root_author)):
@@ -118,12 +119,12 @@ async def add_comment(
 async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
     """Delete a comment."""
 
-    comment = await grunt.get_doc("Comment", comment_id)
+    comment = await documents.get_doc("Comment", comment_id)
     user = grunt.get_user()
     if comment.get("owner") != user.email and not user.has_role("System Manager"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
-    await grunt.delete_doc("Comment", comment_id)
+    await documents.delete_doc("Comment", comment_id)
 
 
 @whitelist()
@@ -132,7 +133,7 @@ async def add_reminder(
 ) -> dict[str, Any]:
     """Remind the current user about this document at *remind_at*."""
     await doc_guard(doctype, doc_id)
-    return await grunt.new_doc(
+    return await documents.new_doc(
         "Reminder",
         {
             "reference_doctype": doctype,
@@ -148,7 +149,7 @@ async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
     """Return the current user's bookmark."""
     await doc_guard(doctype, doc_id)
 
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         "Bookmark",
         filters={
             "reference_doctype": doctype,
@@ -169,7 +170,7 @@ async def add_bookmark(doctype: str, doc_id: str, title: str = "") -> dict[str, 
     """Bookmark a document."""
     await doc_guard(doctype, doc_id)
 
-    return await grunt.new_doc(
+    return await documents.new_doc(
         "Bookmark",
         {
             "reference_doctype": doctype,
@@ -183,7 +184,7 @@ async def add_bookmark(doctype: str, doc_id: str, title: str = "") -> dict[str, 
 async def remove_bookmark(doctype: str, doc_id: str) -> None:
     """Remove a bookmark."""
 
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         "Bookmark",
         filters={
             "reference_doctype": doctype,
@@ -193,4 +194,4 @@ async def remove_bookmark(doctype: str, doc_id: str) -> None:
         limit=1,
     )
     if rows:
-        await grunt.delete_doc("Bookmark", rows[0]["name"])
+        await documents.delete_doc("Bookmark", rows[0]["name"])

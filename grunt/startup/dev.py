@@ -4,8 +4,8 @@ import httpx2
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from grunt import log
 from grunt.config import settings
+from grunt.log import log
 
 VITE_SERVER_URL = "http://localhost:5173"
 

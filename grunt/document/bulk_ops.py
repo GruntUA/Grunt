@@ -18,6 +18,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.roles import has_roles
 from grunt.search.service import _search_index_table
 from grunt.store.sql import delete_child_rows
+lazy from grunt.document.api import documents
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]
 
@@ -68,7 +69,7 @@ class BulkDeleteTask:
 
         try:
             async with async_session_factory() as session, grunt.context(session, engine, user):
-                deleted, errors = await grunt.bulk_delete_docs(
+                deleted, errors = await documents.bulk_delete_docs(
                     doctype,
                     list(ids),
                     replace_with=replace_with,
@@ -118,7 +119,7 @@ class BulkDeleteTask:
         # One-time count for accurate progress display.
         try:
             async with async_session_factory() as session, grunt.context(session, engine, user):
-                grand_total: int = await grunt.count(doctype, filters=filters)  # type: ignore[arg-type]
+                grand_total: int = await documents.count(doctype, filters=filters)  # type: ignore[arg-type]
         except Exception:
             grand_total = 0
 
@@ -136,7 +137,7 @@ class BulkDeleteTask:
                     async_session_factory() as session,
                     grunt.context(session, engine, user),
                 ):
-                    rows = await grunt.get_list(
+                    rows = await documents.get_list(
                         doctype,
                         filters=filters,
                         search=search,
@@ -155,7 +156,7 @@ class BulkDeleteTask:
                     async_session_factory() as session,
                     grunt.context(session, engine, user),
                 ):
-                    deleted, errors = await grunt.bulk_delete_docs(doctype, ids)
+                    deleted, errors = await documents.bulk_delete_docs(doctype, ids)
 
                 total_deleted += deleted
                 all_errors.extend(errors)
@@ -276,7 +277,7 @@ class BulkDeleteTask:
 
                 deleted = 0
                 while True:
-                    rows = await grunt.get_list(
+                    rows = await documents.get_list(
                         doctype,
                         filters=filters,
                         search=search,

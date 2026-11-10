@@ -21,6 +21,7 @@ from grunt.io import ListExportContext, get_exporter, get_exporters
 from grunt.local import require_session
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort
+lazy from grunt.document.api import documents
 lazy from grunt.print.pdf import PdfEngineError, html_to_pdf
 lazy from grunt.print.renderer import (
     apply_letter_head,
@@ -81,7 +82,7 @@ async def _export_via_registry(
     order_by, order = (
         (group_by, "asc") if group_by else await default_sort(doctype, sort_by, sort_order)
     )
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         doctype,
         limit=10_000,
         filters=filters if filters else None,
@@ -119,7 +120,7 @@ async def export_csv(
 
     parsed_fields = fields.split(",") if fields else ["*"]
 
-    data = await grunt.get_list(
+    data = await documents.get_list(
         doctype,
         limit=1000,
         order_by=sort_by,
@@ -157,7 +158,7 @@ async def print(
 ) -> Response:
     """Generate document in requested format: html, pdf, xlsx, or docx."""
 
-    doc = await grunt.get_doc(doctype, doc_id)
+    doc = await documents.get_doc(doctype, doc_id)
     dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise HTTPException(
@@ -252,10 +253,10 @@ async def preview(
         )
 
     if doc_id:
-        doc = await grunt.get_doc(doctype, doc_id)
+        doc = await documents.get_doc(doctype, doc_id)
     else:
         # Use first available document as sample
-        sample_list = await grunt.get_list(doctype, limit=1)
+        sample_list = await documents.get_list(doctype, limit=1)
         if sample_list:
             doc = sample_list[0]
         else:

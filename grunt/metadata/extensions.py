@@ -39,7 +39,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from grunt import log
+from grunt.log import log
 from grunt.metadata.doctype import DocType
 from grunt.metadata.field import DocField
 lazy from grunt.apps.manifest import is_app, read_manifest

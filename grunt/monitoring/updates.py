@@ -32,10 +32,10 @@ import httpx2
 from packaging.version import InvalidVersion, Version
 
 import grunt
-from grunt import log
 from grunt.apps.manifest import is_app
 from grunt.config import settings
 from grunt.i18n import _
+from grunt.log import log
 from grunt.monitoring.health import ERROR, INFO, OK, WARNING, Row, row
 from grunt.site.manager import site_manager
 from grunt.version import FRAMEWORK_DIR, app_version

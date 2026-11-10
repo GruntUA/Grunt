@@ -21,6 +21,8 @@ import code
 import sys
 from typing import Any
 
+from grunt.local import system_context
+lazy from grunt.document.api import documents
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup.lifespan import boot
 
@@ -49,15 +51,15 @@ def start_shell(site: str | None = None) -> None:
 
     def run(coro: Any) -> Any:
         async def _in_context() -> Any:
-            async with grunt.system_context(session, engine):
+            async with system_context(session, engine):
                 return await coro
 
         return loop.run_until_complete(_in_context())
 
     def save_doc(doctype: str, data: dict) -> dict:
         if data.get("name"):
-            return run(grunt.save_doc(doctype, data["name"], data))
-        return run(grunt.new_doc(doctype, data))
+            return run(documents.save_doc(doctype, data["name"], data))
+        return run(documents.new_doc(doctype, data))
 
     namespace: dict[str, Any] = {
         "grunt": grunt,
@@ -66,12 +68,12 @@ def start_shell(site: str | None = None) -> None:
         "asyncio": asyncio,
         "run": run,
         "commit": lambda: loop.run_until_complete(session.commit()),
-        "get_doc": lambda doctype, name=None: run(grunt.get_doc(doctype, name)),
+        "get_doc": lambda doctype, name=None: run(documents.get_doc(doctype, name)),
         "get_list": lambda doctype, filters=None, fields=None, limit=20: run(
-            grunt.get_list(doctype, filters=filters, fields=fields, limit=limit)
+            documents.get_list(doctype, filters=filters, fields=fields, limit=limit)
         ),
         "save_doc": save_doc,
-        "delete_doc": lambda doctype, name: run(grunt.delete_doc(doctype, name)),
+        "delete_doc": lambda doctype, name: run(documents.delete_doc(doctype, name)),
     }
     banner = (
         f"Grunt shell - site {target}, Python {sys.version.split()[0]}\n"

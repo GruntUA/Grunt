@@ -95,13 +95,15 @@ async def test_fixture_conflict_keeps_earlier_session_work(ctx, db_session, engi
     # Uncommitted work done earlier in the same session (as sync_installed_apps does).
     await ctx.new_doc("NrConfig", {"code": "before"})
 
-    real_new_doc = grunt.new_doc
+    from grunt.document.api import documents
+
+    real_new_doc = documents.new_doc
 
     async def _conflicting_new_doc(doctype, data):
         await real_new_doc(doctype, data)  # partial write, must be undone
         raise IntegrityError("INSERT", {}, Exception("duplicate"))
 
-    monkeypatch.setattr(grunt, "new_doc", _conflicting_new_doc)
+    monkeypatch.setattr(documents, "new_doc", _conflicting_new_doc)
     await apply_doctype_fixture(
         "NrConfig", [{"name": "clash", "code": "clash"}], db_session, engine
     )

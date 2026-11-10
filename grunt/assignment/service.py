@@ -4,11 +4,16 @@ import json
 from typing import Any
 
 import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
 lazy from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
 lazy from grunt.auth.users import get_user_by_id
+lazy from grunt.document.api import documents
 lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class AssignmentService:
@@ -70,7 +75,7 @@ class AssignmentService:
     async def preview_rule(self, rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
         """Evaluate a rule against a sample document and return preview details."""
 
-        rule = await grunt.get_doc(AssignmentRule, rule_id)
+        rule = await documents.get_doc(AssignmentRule, rule_id)
 
         matched = rule.match(test_doc)
         filters = rule.parsed_filters()
@@ -80,7 +85,7 @@ class AssignmentService:
             if rule.assign_to_user:
                 will_assign_to.append(rule.assign_to_user)
             elif rule.assign_to_role:
-                ur_rows = await grunt.get_list(
+                ur_rows = await documents.get_list(
                     "UserRole",
                     filters={"role_name": rule.assign_to_role, "parent_doctype": "User"},
                     fields=["parent_name"],
@@ -113,8 +118,8 @@ class AssignmentService:
         """Завантажити всі enabled правила для DocType з БД."""
 
         try:
-            async with grunt.context(grunt.get_session()):
-                rows = await grunt.db.get_all(
+            async with grunt.context(require_session()):
+                rows = await _db.get_all(
                     "AssignmentRule",
                     filters={"doctype_target": doctype, "enabled": True},
                     fields=[
@@ -187,8 +192,8 @@ class AssignmentService:
     ) -> None:
 
         try:
-            async with grunt.system_context(grunt.get_session()):
-                ur_rows = await grunt.db.get_all(
+            async with system_context(require_session()):
+                ur_rows = await _db.get_all(
                     "UserRole",
                     filters={"role_name": role, "parent_doctype": "User"},
                     fields=["parent_name"],
@@ -234,8 +239,8 @@ class AssignmentService:
 
         ref_id = doc.get("name") or doc.get("id")
 
-        async with grunt.system_context(grunt.get_session()):
-            already = await grunt.db.exists(
+        async with system_context(require_session()):
+            already = await _db.exists(
                 "ToDo",
                 {
                     "reference_doctype": doctype,
@@ -247,7 +252,7 @@ class AssignmentService:
             if already:
                 return
 
-            await grunt.new_doc(
+            await documents.new_doc(
                 "ToDo",
                 {
                     "description": auto_assign_note(doctype, ref_id),

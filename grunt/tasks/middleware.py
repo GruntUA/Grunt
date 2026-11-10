@@ -4,6 +4,7 @@ from typing import Any
 
 from taskiq import TaskiqMessage, TaskiqMiddleware, TaskiqResult
 
+from grunt.local import system_context
 from grunt.log import log
 from grunt.tasks import job_log
 
@@ -64,14 +65,13 @@ class BackgroundTaskLoggingMiddleware(TaskiqMiddleware):
             args_str = ""
 
         try:
-            import grunt
             from grunt.monitoring.error_log import record_error
             from grunt.site.manager import site_manager
 
             site = site_manager.get_active_site()
             maker = site_manager.get_session_maker(site)
             eng = site_manager.get_engine(site)
-            async with maker() as session, grunt.system_context(session, eng):
+            async with maker() as session, system_context(session, eng):
                 await record_error(
                     exc=exception,
                     message=f"{exception}\n\nAttempt: {attempt}\nArguments: {args_str}",

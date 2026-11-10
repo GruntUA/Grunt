@@ -39,10 +39,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import log
 from grunt.db.dialects import Dialect, dialect_for
 from grunt.db.dialects.fulltext import FullText, FullTextSpec
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.compiler import compile_doctype_to_table
 from grunt.metadata.registry import doctype_registry, on_doctype_updated
 from grunt.search.terms import match_columns

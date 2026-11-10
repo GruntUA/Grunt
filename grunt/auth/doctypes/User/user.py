@@ -216,7 +216,7 @@ class User(Document):
             if row.get("owner") != self.name:
                 return
             if not row.get("is_public"):
-                await grunt.db.set_value("File", file_id, "is_public", True)
+                await _db.set_value("File", file_id, "is_public", True)
         except Exception:
             # A missing/renamed file must not block saving the profile.
             log.debug("user.avatar_publish_skipped", file_id=file_id)

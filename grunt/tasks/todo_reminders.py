@@ -9,14 +9,17 @@ from collections import defaultdict
 from datetime import UTC, date, datetime
 from typing import Any
 
-import grunt
-from grunt import _, log
 from grunt.auth.language import language_of
-from grunt.i18n import ngettext, use_language
+from grunt.db.api import GruntDB
+from grunt.i18n import _, ngettext, use_language
+from grunt.local import system_context
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 lazy from grunt.document.titles import resolve_reference_titles
 lazy from grunt.notification.service import notification_service
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _OPEN_STATES = ["Open", "In Progress"]
 
@@ -29,8 +32,8 @@ async def send_due_reminders() -> None:
     eng = site_manager.get_engine(site)
     today = datetime.now(UTC).date()
 
-    async with maker() as session, grunt.system_context(session, eng):
-        todos = await grunt.db.get_all(
+    async with maker() as session, system_context(session, eng):
+        todos = await _db.get_all(
             "ToDo",
             filters={"status__in": _OPEN_STATES, "due_date__lte": today.isoformat()},
             fields=[

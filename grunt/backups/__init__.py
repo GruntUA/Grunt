@@ -30,9 +30,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import NamedTuple
 
-from grunt import _, log
 from grunt.db.dialects import dialect_for
 from grunt.db.dialects.archive import DEFAULT_COMPRESSION_LEVEL, BackupError, zstd_options
+from grunt.i18n import _
+from grunt.log import log
 from grunt.progress import Progress
 from grunt.site.manager import site_manager
 

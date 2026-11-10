@@ -14,14 +14,21 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 import grunt
-from grunt import _, log
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import require_engine, require_session, system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.tasks.broker import retryable_task
 from grunt.tasks.doctypes.AutoRepeat.auto_repeat import AutoRepeat
 from grunt.tasks.repeat_schedule import anchor_day, as_date, next_date, status_for
 lazy from grunt.auth.users import get_auth_context_user
+lazy from grunt.document.api import documents
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
 lazy from grunt.workflow.registry import get_active_workflow
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 MAX_CATCH_UP = 12
 
@@ -38,7 +45,7 @@ async def create_copy(rule: dict[str, Any], on_date: date) -> dict[str, Any]:
     """Insert one copy of the rule's template document, as the current user."""
 
     doctype = rule["reference_doctype"]
-    template = await grunt.get_doc(doctype, rule["reference_document"])
+    template = await documents.get_doc(doctype, rule["reference_document"])
     data = {k: v for k, v in template.items() if k not in _SKIP_FIELDS}
 
     # A copy starts its own workflow from the initial state.
@@ -46,12 +53,12 @@ async def create_copy(rule: dict[str, Any], on_date: date) -> dict[str, Any]:
     if workflow:
         data.pop(workflow.state_field, None)
 
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if rule.get("date_field"):
         data[rule["date_field"]] = on_date.isoformat()
     if meta is not None and meta.has_field("auto_repeat"):
         data["auto_repeat"] = rule["name"]
-    return await grunt.new_doc(doctype, data)
+    return await documents.new_doc(doctype, data)
 
 
 async def _owner(email: str | None) -> Any:
@@ -67,7 +74,7 @@ async def _notify(rule: dict[str, Any], subject: str, message: str) -> None:
 
     try:
         await notification_service.notify(
-            grunt.get_session(),
+            require_session(),
             user=rule["owner"],
             doctype="AutoRepeat",
             doc_id=rule["name"],
@@ -84,8 +91,8 @@ async def process_rule(name: str, today: date) -> int:
     Runs inside a system context; returns the number of copies created. Each
     copy is committed on its own, so one failure keeps the earlier ones.
     """
-    session = grunt.get_session()
-    rule = await grunt.get_doc(AutoRepeat, name)
+    session = require_session()
+    rule = await documents.get_doc(AutoRepeat, name)
     frequency = rule.frequency
     day, last_day = anchor_day(rule.data), bool(rule.repeat_on_last_day)
     end = as_date(rule.end_date)
@@ -107,7 +114,7 @@ async def process_rule(name: str, today: date) -> int:
         and created < MAX_CATCH_UP
     ):
         try:
-            async with grunt.context(session, grunt.get_engine(), owner):
+            async with grunt.context(session, require_engine(), owner):
                 copy = await create_copy(rule.data, next_on)
             await session.commit()
         except Exception as e:
@@ -135,7 +142,7 @@ async def process_rule(name: str, today: date) -> int:
         created_count=int(rule.created_count or 0) + created,
         last_error=error,
     )
-    await grunt.db.set_value("AutoRepeat", name, updates)
+    await _db.set_value("AutoRepeat", name, updates)
     await session.commit()
     return created
 
@@ -149,8 +156,8 @@ async def run_auto_repeats(today: str | None = None) -> int:
     maker = site_manager.get_session_maker(site)
     engine = site_manager.get_engine(site)
     total = 0
-    async with maker() as session, grunt.system_context(session, engine):
-        due = await grunt.db.get_all(
+    async with maker() as session, system_context(session, engine):
+        due = await _db.get_all(
             "AutoRepeat",
             filters={"status": "Active", "next_schedule_date__lte": run_date},
             fields=["name"],

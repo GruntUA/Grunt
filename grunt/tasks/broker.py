@@ -7,8 +7,8 @@ from typing import ParamSpec, TypeVar
 from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
 from taskiq_redis import RedisStreamBroker
 
-from grunt import log
 from grunt.config import settings
+from grunt.log import log
 from grunt.tasks.middleware import (
     BackgroundTaskLoggingMiddleware,
     ScheduledJobLogMiddleware,

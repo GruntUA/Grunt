@@ -13,8 +13,10 @@
 from datetime import UTC, datetime
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.local import require_session, system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 
 
 def _title_of(dt: Any, doc: dict[str, Any]) -> str:
@@ -47,7 +49,7 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
     if not doc.get("name"):
         return
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         return
 
@@ -64,10 +66,10 @@ async def snapshot_deleted_document(event: str, **kwargs: Any) -> None:
     user_obj = kwargs.get("user")
     deleted_by = getattr(user_obj, "email", None) or str(user_obj or "system")
 
-    session = grunt.get_session()
+    session = require_session()
     try:
-        async with grunt.system_context(session):
-            await grunt.new_doc(
+        async with system_context(session):
+            await documents.new_doc(
                 "DeletedDocument",
                 {
                     "deleted_doctype": doctype,

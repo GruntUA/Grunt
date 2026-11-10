@@ -8,11 +8,17 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import grunt
-from grunt import _, log
+from grunt.api.context import whitelist
 from grunt.document.query import expand_child_of_filters
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.metadata.widget import WIDGET_PERIOD_DAYS, get_widget_type_class
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.widget_compute import _widget_report_series
+lazy from grunt.document.api import documents
 lazy from grunt.site.doctypes.Page.page import Page
 
 _TIMESPAN_DAYS = {
@@ -81,7 +87,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             resolved[key] = value
             continue
         doctype, fieldname = match.groups()
-        meta = await grunt.get_meta(doctype)
+        meta = await doctype_registry.get_meta(doctype)
         field = meta.get_field(fieldname) if meta is not None else None
         allowed = (
             meta is not None
@@ -90,7 +96,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             and not field.has_trait("sensitive")
             and await permission_checker.check(meta, "read")
         )
-        resolved[key] = await grunt.get_single(doctype, fieldname) if allowed else None
+        resolved[key] = await documents.get_single(doctype, fieldname) if allowed else None
         if resolved[key] is None:
             log.info("dashboard.filter_token_unresolved", token=value)
             resolved[key] = _NO_MATCH
@@ -163,7 +169,7 @@ async def _compute_widget_data(
 
     dt = None
     if doctype_name:
-        dt = await grunt.get_meta(doctype_name)
+        dt = await doctype_registry.get_meta(doctype_name)
         if dt is None:
             log.warning("dashboard.unknown_doctype", doctype=doctype_name)
             return None
@@ -187,7 +193,7 @@ async def _compute_widget_data(
     # `field__child_of` is expanded to the subtree (`field__in=…`) only by list
     # queries; grunt.db.aggregate would silently drop it, so expand it here.
 
-    session = grunt.get_session()
+    session = require_session()
     expanded = await expand_child_of_filters(session, dt.doc, base_filters)
     data = await cls.compute(widget, dt, doctype_name, since, until, days, expanded)
     # The list URL can't carry `__in`, so drill-down gets the original child_of back.
@@ -218,13 +224,13 @@ async def _load_widgets(
     date_to: str | None,
 ) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
     """A visible Page's widgets (in row order) and the parsed global date range."""
-    doc = await grunt.find_doc(Page, name)
+    doc = await documents.find_doc(Page, name)
     if doc is None:
-        grunt.throw(_("Page not found"), "NOT_FOUND")
+        throw(_("Page not found"), "NOT_FOUND")
     page = dict(doc.data)
 
     if not page_visible(page, grunt.get_user().role_names):
-        grunt.throw(_("The page is not published"), "PERMISSION_DENIED")
+        throw(_("The page is not published"), "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = page.get("widgets") or []
 
@@ -267,13 +273,13 @@ async def get_page_widget_data(
     widgets, global_since, global_until = await _load_widgets(name, date_from, date_to)
     w_dict = next((w for w in widgets if w.get("name") == widget), None)
     if w_dict is None:
-        grunt.throw(_("Widget not found"), "NOT_FOUND")
+        throw(_("Widget not found"), "NOT_FOUND")
     if period in _TIMESPAN_DAYS:
         w_dict = {**w_dict, "period": period}
     return await _safe_compute(w_dict, global_since, global_until)
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_page_data(
     name: str,
     date_from: str | None = None,
