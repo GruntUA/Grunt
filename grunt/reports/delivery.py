@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
-from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.auth.users import get_user_by_email
 from grunt.email.service import email_service
 from grunt.reports.engine import report_engine
@@ -52,9 +52,10 @@ def is_due(frequency: str | None, last_sent_at: datetime | str | None, today: da
     return False
 
 
-async def _run_as(report: dict[str, Any]) -> User:
+async def _run_as(report: dict[str, Any]) -> str:
     owner = await get_user_by_email(report.get("owner") or "")
-    return owner if owner is not None and owner.is_active else SYSTEM_USER
+    # Without an active owner the report runs as the system.
+    return owner.email if owner is not None and owner.is_active else SYSTEM_USER_EMAIL
 
 
 async def send_report(report: dict[str, Any], session: AsyncSession) -> int:

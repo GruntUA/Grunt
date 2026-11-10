@@ -19,12 +19,11 @@ from collections.abc import Collection
 import grunt
 from grunt.metadata.permission import MATCH_RE, is_literal
 from grunt.query.nodes import Cmp, Expr, Linked
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
 
 
-def _operand(raw_value: str, user: User) -> tuple[bool, str]:
+def _operand(raw_value: str, user: str | None) -> tuple[bool, str]:
     """Resolve the RHS of a match expression to a concrete string.
 
     ``(True, value)`` for the bare word ``user`` or a quoted literal;
@@ -32,7 +31,8 @@ def _operand(raw_value: str, user: User) -> tuple[bool, str]:
     must treat as "outside the supported grammar" and reject.
     """
     if raw_value == "user":
-        return True, user.email
+        # Nobody in context matches no one - never the rows with an empty owner.
+        return (True, user) if user else (False, "")
     if is_literal(raw_value):
         return True, raw_value[1:-1]
     return False, ""
@@ -72,7 +72,7 @@ class PermissionMatch:
         return m.group("field"), m.group("op"), m.group("value").strip()
 
     async def to_expr(
-        self, columns: Collection[str], user: User, doctype: DocType | Meta | None = None
+        self, columns: Collection[str], user: str | None, doctype: DocType | Meta | None = None
     ) -> Expr | None:
         """The rule as a query predicate, for row-level list/count filtering.
 

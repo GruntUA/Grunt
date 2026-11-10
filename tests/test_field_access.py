@@ -160,8 +160,10 @@ async def test_a_link_hop_follows_the_target_rules(ctx, people, db_session, engi
     from grunt.query.query import Query
 
     query = Query("FaPerson", where=Linked("team", "FaTeam", Cmp("budget", "gt", 500)))
-    assert await _forbidden(ctx, db_session, engine, CLERK, lambda: run.fetch(query, user=CLERK))
-    rows = await _as(ctx, db_session, engine, PAYROLL, lambda: run.fetch(query, user=PAYROLL))
+    assert await _forbidden(
+        ctx, db_session, engine, CLERK, lambda: run.fetch(query, user=CLERK.email)
+    )
+    rows = await _as(ctx, db_session, engine, PAYROLL, lambda: run.fetch(query, user=PAYROLL.email))
     assert [r["name"] for r in rows] == ["P1"]
 
 

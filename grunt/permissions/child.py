@@ -11,7 +11,6 @@ from typing import Any
 
 from grunt.query.nodes import FALSE, Cmp, Expr, Linked, and_, or_
 lazy import grunt
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.reference import readable_predicate
@@ -35,19 +34,23 @@ async def parent_doctypes(child_name: str) -> list[Any]:
     return [m for m in metas if m is not None]
 
 
-async def child_allowed(user: User, doctype: Any, action: PermissionAction) -> bool:
+async def child_allowed(user: str | None, doctype: Any, action: PermissionAction) -> bool:
     """DocType-level: a child DocType is readable when one of the DocTypes that
     embed it is. A single row is decided by :func:`child_predicate`."""
     if action not in ("read", "select"):
         return False
     for parent_meta in await parent_doctypes(doctype.name):
-        if await permission_checker.check(user, parent_meta, "read"):
+        if await permission_checker.check(parent_meta, "read", user=user):
             return True
     return False
 
 
 async def child_predicate(
-    columns: Collection[str], user: User, doctype: Any, *, row: Mapping[str, Any] | None = None
+    columns: Collection[str],
+    user: str | None,
+    doctype: Any,
+    *,
+    row: Mapping[str, Any] | None = None,
 ) -> Expr:
     """Rows whose parent document *user* may read. With *row* only its own
     parent DocType is considered (exact for that row)."""

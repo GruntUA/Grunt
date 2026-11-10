@@ -18,7 +18,7 @@ from grunt.config import settings
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+lazy from grunt.auth.doctypes.User.user import User
 
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
@@ -151,9 +151,7 @@ async def get_auth_context_user(uid: str) -> User | None:
 
     cached = await grunt.doc_cache.get("User", uid)
     if cached is not None:
-        return User(
-            doctype="User", data=dict(cached), user=SYSTEM_USER, session=grunt.get_session()
-        )
+        return User(doctype="User", data=dict(cached), session=grunt.get_session())
 
     user = await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
     if user is not None:

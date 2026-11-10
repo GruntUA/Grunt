@@ -42,7 +42,6 @@ from grunt import log
 from grunt.utils.slug import slugify
 from grunt.website.host import current_web_app
 lazy from grunt.apps.loader import CORE_APP, primary_web_app
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 lazy from grunt.document.registry import document_registry
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.website.doc_layout import build_tabs
@@ -225,7 +224,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
     """
 
     path = request.url.path.rstrip("/")
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with grunt.system_context(session):
         found = await _find_page(request, path)
         if found is None:
             return None
@@ -260,7 +259,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
                     },
                 ),
             )
-            controller = controller_cls(dt.name, doc, SYSTEM_USER, session)
+            controller = controller_cls(dt.name, doc, session)
             hook = getattr(controller_cls, "get_web_context", None)
             if hook is not None:
                 await _apply(hook(controller, context), context)

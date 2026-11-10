@@ -17,7 +17,7 @@ async def _sign(data: Any) -> Any:
     """Sign file URLs in widget data for files the current user may read (widget
     rows can carry Attach/Image fields); see grunt.storage.signing."""
 
-    return await sign_authorized_file_urls(data, grunt.get_user())
+    return await sign_authorized_file_urls(data, grunt.get_user().email)
 
 
 @router.get("/page-data/{name}")

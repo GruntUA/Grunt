@@ -23,7 +23,6 @@ from grunt.errors import ApplicationError
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.webhook.service import webhook_service
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.base import new_document
 
 ProgressCallback = Callable[[int], Awaitable[None]]
@@ -42,7 +41,7 @@ async def record_update_changes(
     dt: Any,
     existing: dict[str, Any],
     result: dict[str, Any],
-    user: User,
+    user: str,
 ) -> None:
     """Create a version record and write an ActivityLog diff (best-effort).
 
@@ -62,7 +61,7 @@ async def record_update_changes(
                 doc_id=real_id,
                 old_doc=existing,
                 new_doc=result,
-                user=user.email,
+                user=user,
                 skip=quiet,
                 keep=dt.max_versions,
             )
@@ -82,7 +81,7 @@ async def record_update_changes(
                     doctype_name,
                     real_id,
                     "Update",
-                    user_email=user.email,
+                    user_email=user,
                     details={"changed_fields": changed_fields} if changed_fields else None,
                 )
         except Exception:
@@ -97,7 +96,7 @@ async def record_update_changes(
                 doc_id=real_id,
                 dt=dt,
                 changed_fields=changed_fields,
-                actor_email=user.email,
+                actor_email=user,
             )
         except Exception:
             log.exception("follow.update_notify_failed", doctype=doctype_name, doc_id=real_id)
@@ -142,7 +141,7 @@ async def run_bulk_before_delete_hooks(
     *,
     doctype_name: str,
     docs: list[dict[str, Any]],
-    user: User,
+    user: str,
     session: AsyncSession,
     errors: list[str],
     report: ProgressCallback | None = None,
@@ -151,7 +150,7 @@ async def run_bulk_before_delete_hooks(
     controllers: list[tuple[dict[str, Any], Any]] = []
     for i, doc in enumerate(docs):
         controller_cls = document_registry.get(doctype_name)
-        ctrl = controller_cls(doctype_name, doc, user, session)
+        ctrl = controller_cls(doctype_name, doc, session)
         try:
             await ctrl.before_delete()
         except ApplicationError as e:
@@ -240,18 +239,16 @@ async def bulk_delete_one_by_one(
     engine: Any,
     doctype_name: str,
     ids: list[str],
-    user: User,
 ) -> tuple[int, list[str]]:
     """Delete documents one at a time through the delete pipeline - for a
-    controller without a table to batch the DELETE on. Aggregates errors."""
+    controller without a table to batch the DELETE on - as the context's user.
+    Aggregates errors."""
 
     deleted = 0
     errors: list[str] = []
     for doc_id in ids:
         try:
-            doc = await new_document(
-                doctype_name, {"name": doc_id}, user=user, session=session, engine=engine
-            )
+            doc = await new_document(doctype_name, {"name": doc_id}, session=session, engine=engine)
             await doc.delete()
             deleted += 1
         except Exception as e:

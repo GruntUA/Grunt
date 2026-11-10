@@ -26,7 +26,6 @@ from grunt.permissions.rbac import permission_checker
 from grunt.query.nodes import TRUE
 from grunt.query.sql import where_clause
 lazy from grunt.api.v1.meta import _dump_doctype
-lazy from grunt.auth.doctypes.User.user import User
 
 
 @dataclass
@@ -47,11 +46,11 @@ def _link_target(meta: Any, fieldname: str) -> str | None:
     return field.options
 
 
-async def report_source(meta: Any, user: User, fieldnames: Iterable[str]) -> ReportSource:
+async def report_source(meta: Any, user: str, fieldnames: Iterable[str]) -> ReportSource:
     """The source for a report on *meta* reading *fieldnames* (dotted ones
     join their Link's DocType - one join per Link, whatever fields it gives)."""
     table = meta.table
-    hidden = permission_checker.hidden_fields(user, meta)
+    hidden = await permission_checker.hidden_fields(meta, user=user)
     columns = WriteableColumnCollection()
     for col in table.c:
         if col.key not in hidden:
@@ -69,9 +68,9 @@ async def report_source(meta: Any, user: User, fieldnames: Iterable[str]) -> Rep
         if link not in columns or (target_name := _link_target(meta, link)) is None:
             continue
         target = await grunt.get_meta(target_name)
-        if target is None or not await permission_checker.check(user, target, "read"):
+        if target is None or not await permission_checker.check(target, "read", user=user):
             continue
-        target_hidden = permission_checker.hidden_fields(user, target)
+        target_hidden = await permission_checker.hidden_fields(target, user=user)
         alias = target.table.alias(f"j_{link}")
         readable = await read_predicate(user, target)
         on = table.c[link] == alias.c.name
@@ -85,13 +84,13 @@ async def report_source(meta: Any, user: User, fieldnames: Iterable[str]) -> Rep
     return ReportSource(table, columns, from_, frozenset(joined))
 
 
-async def report_fields(meta: Any, user: User) -> list[dict[str, Any]]:
+async def report_fields(meta: Any, user: str) -> list[dict[str, Any]]:
     """The fields a report on *meta* can read for *user* - what the builder
     offers: the DocType's own (without hidden ones) and, through each Link, the
     stored fields of a target *user* may read (``customer.region``, labelled
     ``Клієнт → Регіон``). The same rules as :func:`report_source`, so nothing
     offered is silently left out of the report."""
-    hidden = permission_checker.hidden_fields(user, meta)
+    hidden = await permission_checker.hidden_fields(meta, user=user)
     own = [
         f
         for f in (await _dump_doctype(meta.doc, translate=True))["fields"]
@@ -103,9 +102,9 @@ async def report_fields(meta: Any, user: User) -> list[dict[str, Any]]:
         if name not in meta.columns or (target_name := _link_target(meta, name)) is None:
             continue
         target = await grunt.get_meta(target_name)
-        if target is None or not await permission_checker.check(user, target, "read"):
+        if target is None or not await permission_checker.check(target, "read", user=user):
             continue
-        target_hidden = permission_checker.hidden_fields(user, target)
+        target_hidden = await permission_checker.hidden_fields(target, user=user)
         for f in (await _dump_doctype(target.doc, translate=True))["fields"]:
             if f["fieldname"] in target.columns and f["fieldname"] not in target_hidden:
                 fields.append(

@@ -29,7 +29,7 @@ class DocumentWorkflowRPCMixin:
 
         doc = await grunt.get_doc(doctype, doc_id)
         user = grunt.get_user()
-        transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user)
+        transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user.email)
         return [
             {
                 "action": t.action,
@@ -59,5 +59,5 @@ class DocumentWorkflowRPCMixin:
         session = grunt.get_session()
 
         return await workflow_engine.apply_transition(
-            dt.doc, doc_id, action, user, session, grunt.get_engine(), values
+            dt.doc, doc_id, action, user.email, session, grunt.get_engine(), values
         )

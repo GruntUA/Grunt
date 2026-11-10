@@ -18,6 +18,7 @@ the document, notifications (``notify``, grunt/workflow/notify.py), the
 """
 
 import contextlib
+from collections.abc import Collection
 from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime
@@ -31,10 +32,10 @@ import grunt
 from grunt import _, log
 from grunt.db.commit import on_commit
 from grunt.events import fire as fire_hook
+from grunt.permissions.roles import get_roles
 from grunt.workflow.notify import notify_transition, previous_actor
 from grunt.workflow.registry import get_active_workflow
 lazy from grunt.api.v1.ws import manager
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 
 # Values key carrying the dialog's comment for a `require_comment` transition.
@@ -83,7 +84,7 @@ class WorkflowEngine:
         self,
         doctype: DocType,
         doc: dict,
-        user: User,
+        user: str,
         *,
         on_edit: bool = False,
     ) -> list[WorkflowTransition]:
@@ -95,10 +96,11 @@ class WorkflowEngine:
         current_state_name = current_state.state if current_state else None
 
         available: list[WorkflowTransition] = []
+        roles = await get_roles(user)
         for t in workflow.transitions:
             if t.from_state != current_state_name or t.on_edit != on_edit:
                 continue
-            if not user_may_take(t, user):
+            if not user_may_take(t, roles):
                 continue
             # Check condition - transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since
@@ -106,7 +108,7 @@ class WorkflowEngine:
             if (
                 t.condition
                 and not t.prompt_fields
-                and not self._eval_condition(t.condition, doc, user.email)
+                and not self._eval_condition(t.condition, doc, user)
             ):
                 continue
             available.append(t)
@@ -117,7 +119,7 @@ class WorkflowEngine:
         doctype: DocType,
         doc_id: str,
         action: str,
-        user: User,
+        user: str,
         session: AsyncSession,
         engine: AsyncEngine,
         values: dict | None = None,
@@ -158,7 +160,7 @@ class WorkflowEngine:
 
             if transition.condition:
                 merged_doc = {**doc, **updates}
-                if not self._eval_condition(transition.condition, merged_doc, user.email):
+                if not self._eval_condition(transition.condition, merged_doc, user):
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=_("Fill in the required fields"),
@@ -189,7 +191,7 @@ class WorkflowEngine:
         self,
         active: ActiveTransition,
         doc: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> None:
         """After a transition is saved: log, comment, notify, hooks, broadcast."""
@@ -204,7 +206,7 @@ class WorkflowEngine:
                 doctype=active.doctype,
                 doc_id=active.doc_id,
                 action="Workflow",
-                user=user.email,
+                user=user,
                 details={
                     "from": active.from_state,
                     "to": active.to_state,
@@ -284,12 +286,12 @@ class WorkflowEngine:
             return True  # Don't block on error
 
 
-def user_may_take(transition: WorkflowTransition, user: User) -> bool:
-    """Role check of a transition (System Manager may take any)."""
+def user_may_take(transition: WorkflowTransition, roles: Collection[str]) -> bool:
+    """Role check of a transition for a user holding *roles* (System Manager may take any)."""
     if not transition.allowed_roles:
         return True
-    roles = set(getattr(user, "roles", []) or [])
-    return bool(roles.intersection(transition.allowed_roles)) or "System Manager" in roles
+    held = set(roles)
+    return bool(held.intersection(transition.allowed_roles)) or "System Manager" in held
 
 
 def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:

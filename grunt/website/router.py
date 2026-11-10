@@ -19,7 +19,6 @@ import grunt
 from grunt import log
 from grunt.website.host import current_web_app
 lazy from grunt.apps.loader import primary_web_app
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 lazy from grunt.config import settings
 lazy from grunt.db.session import get_session
 lazy from grunt.i18n.jinja import install as install_i18n
@@ -263,7 +262,7 @@ async def render_page(
     ``RedirectResponse``) - it is sent as is.
     """
 
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with grunt.system_context(session):
         context = await page_context(request, session, path_params=path_params or {})
 
         # Controller errors propagate to the exception handlers (HTML error page):
@@ -298,7 +297,7 @@ async def render_page(
     template = env.get_template(template_name)
     context["page_preview"] = preview_reader(request) is not None
     # Templates query too (website_menu) - render inside the grunt context.
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with grunt.system_context(session):
         html = await template.render_async(**context)
     # A controller may set e.g. ``context["status_code"] = 404`` for a missing record,
     # ``content_type`` for a non-HTML page (an RSS feed), ``cache_seconds`` to let
@@ -309,7 +308,7 @@ async def render_page(
     cache_seconds = int(context.get("cache_seconds") or 0)
     if cache_seconds > 0 and status_code == 200 and request.method in ("GET", "HEAD"):
         headers["Cache-Control"] = f"public, max-age={cache_seconds}"
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with grunt.system_context(session):
         html = await finish_preview(request, html, headers)
     return HTMLResponse(
         content=html,
@@ -512,7 +511,7 @@ async def sitemap_xml(request: Request) -> Response:
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.context(session, user=SYSTEM_USER):
+    async with maker() as session, grunt.system_context(session):
         entries = await sitemap_entries()
     body = render_sitemap(str(request.base_url).rstrip("/"), entries)
     return Response(content=body, media_type="application/xml")

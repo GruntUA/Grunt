@@ -35,7 +35,7 @@ class SharedWith(Document):
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
             self.grunt.throw(_("Document not found"), "NOT_FOUND")
-        if not await permission_checker.check(self.user, dt, "write", doc):
+        if not await permission_checker.check(dt, "write", doc):
             self.grunt.throw(
                 _("Only someone who can edit the document can share it"),
                 "PERMISSION_DENIED",

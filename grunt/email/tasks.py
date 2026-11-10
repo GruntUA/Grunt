@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import grunt
 from grunt import _, log
-from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.email.inbound import apply_report, pull_emails
 from grunt.email.service import EmailService, decode_attachments, email_service
 from grunt.i18n import ngettext, pgettext, use_language
@@ -105,7 +105,7 @@ async def pull_from_accounts():
                         account=account,
                         email_data=email_data,
                         session=session,
-                        user=SYSTEM_USER,
+                        user=SYSTEM_USER_EMAIL,
                     )
 
                     # Delivery-status (DSN) / read-receipt (MDN) report -

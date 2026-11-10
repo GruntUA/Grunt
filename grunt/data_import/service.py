@@ -8,8 +8,8 @@ class DataImportService:
         self._session = session
         self._engine = engine
 
-    async def run_import(self, data_import_id: str, user: object) -> None:
-        """Load the DataImport document and execute the import."""
-        async with grunt.context(self._session, self._engine, user):  # type: ignore[arg-type]
+    async def run_import(self, data_import_id: str, user: str) -> None:
+        """Load the DataImport document and execute the import as *user* (an email)."""
+        async with grunt.context(self._session, self._engine, user):
             doc = await grunt.get_doc_instance("DataImport", data_import_id)
             await doc.run()

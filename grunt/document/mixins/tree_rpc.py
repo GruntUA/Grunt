@@ -15,10 +15,10 @@ import grunt
 from grunt import _
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
 from grunt.errors import not_found
-from grunt.permissions.access import RoleAccess
 from grunt.permissions.guards import write_guard
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
+from grunt.permissions.roles import role_access
 from grunt.query.nodes import TRUE
 from grunt.query.sql import where
 
@@ -35,7 +35,7 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = grunt.get_user()
-    access = RoleAccess(dt.doc, user)
+    access = await role_access(dt.doc, user.email)
 
     # An explicit ``select`` grant (without unrestricted ``read``) limits the
     # tree to identifier columns - even when the user also has a row-scoped
@@ -48,9 +48,9 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
             allowed.append(title_field)
         return dt, allowed
 
-    if await permission_checker.check(user, dt.doc, "read"):
+    if await permission_checker.check(dt.doc, "read", user=user.email):
         return dt, None
-    await permission_checker.require(user, dt.doc, "select")  # raises 403
+    await permission_checker.require(dt.doc, "select", user=user.email)  # raises 403
     return dt, None  # unreachable - require() raised
 
 
@@ -68,7 +68,7 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
 
     user = grunt.get_user()
     table = dt.table
-    readable = await read_predicate(user, dt)
+    readable = await read_predicate(user.email, dt)
     return None if readable == TRUE else await where(select(table.c.name), readable, table, dt.name)
 
 

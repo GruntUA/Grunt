@@ -37,6 +37,7 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.errors import unprocessable
+from grunt.local import _user_ctx
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import read_predicate
@@ -46,7 +47,6 @@ from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
 from grunt.store import BULK, REFERENCES, SQL, Unavailable, store_for, supports
-lazy from grunt.auth.doctypes.User.user import User
 
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:
@@ -122,7 +122,7 @@ def _build_next_cursor(rows: list[dict[Any, Any]], per_page: int, sort_by: str) 
 async def list_documents(
     session: AsyncSession,
     doctype_name: str,
-    user: User,
+    user: str,
     *,
     page: int = 1,
     per_page: int = 20,
@@ -207,7 +207,7 @@ async def list_documents(
 async def count_documents(
     session: AsyncSession,
     doctype_name: str,
-    user: User,
+    user: str,
     *,
     filters: dict[str, str] | None = None,
     search: str | None = None,
@@ -237,7 +237,7 @@ async def _require_meta(doctype_name: str) -> Any:
 async def field_years(
     session: AsyncSession,
     doctype_name: str,
-    user: User,
+    user: str,
     fieldname: str,
 ) -> list[int]:
     """Distinct calendar years of a Date/Datetime field, newest first, over the
@@ -291,7 +291,7 @@ async def bulk_delete(
     engine: AsyncEngine,
     doctype_name: str,
     ids: list[str],
-    user: User,
+    user: str,
     *,
     replace_with: str | None = None,
     progress_cb: Any | None = None,
@@ -322,7 +322,7 @@ async def bulk_delete(
         )
 
     if not store_for(dt, session).can(BULK):
-        return await bulk_delete_one_by_one(session, engine, doctype_name, ids, user)
+        return await bulk_delete_one_by_one(session, engine, doctype_name, ids)
 
     table = dt.table
 
@@ -347,7 +347,7 @@ async def bulk_delete(
         if progress_cb is not None:
             await progress_cb(done, total, len(errors))
 
-    tokens = grunt.set_context(session=session, engine=engine, user=user)
+    tokens = grunt.set_context(session=session, engine=engine, user=_user_ctx.get())
     try:
         controllers = await run_bulk_before_delete_hooks(
             doctype_name=doctype_name,
@@ -365,7 +365,7 @@ async def bulk_delete(
 
     final_ids = [str(d["name"]) for d, _ in controllers]
 
-    tokens = grunt.set_context(session=session, engine=engine, user=user)
+    tokens = grunt.set_context(session=session, engine=engine, user=_user_ctx.get())
     try:
         await run_bulk_delete_writes(
             session=session,
@@ -585,12 +585,12 @@ async def rename_document(
     doctype_name: str,
     old_id: str,
     new_id: str,
-    user: User,
+    user: str,
 ) -> dict[str, Any]:
     """Update the primary ID of a document and cascade changes to all references."""
 
     async def _load(doc_id: str) -> dict[str, Any]:
-        doc = await load_document(doctype_name, doc_id, session=session, engine=engine, user=user)
+        doc = await load_document(doctype_name, doc_id, session=session, engine=engine)
         return doc.as_dict()
 
     if old_id == new_id:

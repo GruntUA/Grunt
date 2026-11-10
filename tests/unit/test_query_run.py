@@ -16,7 +16,7 @@ async def test_run_needs_user_or_explicit_ignore(fn):
     with pytest.raises(TypeError, match="user= or ignore_permissions"):
         await fn(query)
     with pytest.raises(TypeError, match="user= or ignore_permissions"):
-        await fn(query, user=SYSTEM_USER, ignore_permissions=True)
+        await fn(query, user=SYSTEM_USER.email, ignore_permissions=True)
 
 
 def test_narrowed_ands_onto_where():

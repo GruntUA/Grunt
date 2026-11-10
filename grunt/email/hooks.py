@@ -6,6 +6,7 @@ Registered from ``grunt/main.py`` via ``register_doc_events``.
 from typing import Any
 
 from grunt.email.service import SMTP_PASSWORD_MASK
+from grunt.permissions.roles import has_roles
 
 
 def _mask(row: Any) -> None:
@@ -22,7 +23,7 @@ async def mask_smtp_password(**kwargs: Any) -> None:
     ``SMTP_PASSWORD_MASK``.
     """
     user = kwargs.get("user")
-    if user is not None and "System Manager" in (getattr(user, "roles", None) or []):
+    if user is not None and await has_roles(["System Manager"], user=user):
         return
 
     doc = kwargs.get("doc")

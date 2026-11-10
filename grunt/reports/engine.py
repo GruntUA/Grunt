@@ -25,7 +25,6 @@ from grunt.reports.joins import report_source
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
 from grunt.store import SQL, supports
-lazy from grunt.auth.doctypes.User.user import User
 
 
 class ReportEngine:
@@ -33,7 +32,7 @@ class ReportEngine:
         self,
         report_name: str,
         filters: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
         async with grunt.context(session, None, user):
@@ -134,7 +133,7 @@ class ReportEngine:
         self,
         report: dict,
         filters: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Execute a Python script in the sandbox and return {columns, data}.
@@ -237,7 +236,7 @@ class ReportEngine:
         doctype: str,
         report: dict,
         filters: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Run a dynamic aggregate report against a DocType table.
@@ -267,7 +266,7 @@ class ReportEngine:
         table = dt.table
 
         # Permission check
-        await permission_checker.require(user, dt, "read")
+        await permission_checker.require(dt, "read", user=user)
 
         col_defs: list[dict] = report.get("columns") or []
 

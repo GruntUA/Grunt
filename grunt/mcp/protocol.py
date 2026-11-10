@@ -14,8 +14,8 @@ from fastapi.encoders import jsonable_encoder
 import grunt
 from grunt import log
 from grunt.errors import ApplicationError
+from grunt.local import session_user
 from grunt.mcp.registry import get_tool, list_tools
-lazy from grunt.local import _user_ctx
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
 # Newest first; the first entry is offered when the client asks for one we lack.
@@ -67,7 +67,7 @@ async def _to_text(value: Any) -> str:
     # read (grunt.storage.signing) - never blanket-signed, or the payload would
     # become an oracle for any file id. No user in context -> public files only.
 
-    return await sign_authorized_file_urls(text, _user_ctx.get())
+    return await sign_authorized_file_urls(text, session_user())
 
 
 def _tool_error(message: str) -> dict[str, Any]:

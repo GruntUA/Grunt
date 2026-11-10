@@ -5,6 +5,7 @@ from typing import Any
 import grunt
 from grunt import _
 from grunt.document.base import Document
+from grunt.permissions.roles import has_roles
 
 
 class Comment(Document):
@@ -42,8 +43,8 @@ class Comment(Document):
             self.parent_comment = parent.parent_comment
 
     async def before_delete(self) -> None:
-        is_admin = bool(self.user) and self.user.has_role("System Manager")
-        if self.user and not is_admin and self.owner != self.user.email:
+        is_admin = bool(self.user) and await has_roles(["System Manager"])
+        if self.user and not is_admin and self.owner != self.user:
             self.grunt.throw(_("Only the author or an administrator can delete a comment"))
 
         replies = await grunt.db.get_all(
@@ -52,7 +53,7 @@ class Comment(Document):
         if not replies:
             return
         # The thread goes with its root - someone else's replies only by an admin.
-        if self.user and not is_admin and any(r["owner"] != self.user.email for r in replies):
+        if self.user and not is_admin and any(r["owner"] != self.user for r in replies):
             self.grunt.throw(
                 _("Others replied to this comment - only an administrator can delete the thread")
             )

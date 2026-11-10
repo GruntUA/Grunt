@@ -3,6 +3,7 @@
 import contextlib
 import json
 import re
+from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -87,7 +88,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             and meta.is_singleton
             and field is not None
             and not field.has_trait("sensitive")
-            and await permission_checker.check(grunt.get_user(), meta, "read")
+            and await permission_checker.check(meta, "read")
         )
         resolved[key] = await grunt.get_single(doctype, fieldname) if allowed else None
         if resolved[key] is None:
@@ -168,7 +169,7 @@ async def _compute_widget_data(
             return None
         # No read access -> no data, not even counts (row-level rules and
         # hidden fields are applied by the queries themselves).
-        if not await permission_checker.check(grunt.get_user(), dt, "read"):
+        if not await permission_checker.check(dt, "read"):
             return None
 
     period_key = widget.get("period") or "last_month"
@@ -199,10 +200,10 @@ async def _compute_widget_data(
     return data
 
 
-def page_visible(page: dict[str, Any], user: Any) -> bool:
-    """A Page is shown to a user when it is published and, if it
-    lists roles, the user has one of them. System Manager sees every page."""
-    roles = set(user.roles or [])
+def page_visible(page: dict[str, Any], user_roles: Iterable[str]) -> bool:
+    """A Page is shown to a user holding *user_roles* when it is published and,
+    if it lists roles, the user has one of them. System Manager sees every page."""
+    roles = set(user_roles)
     if "System Manager" in roles:
         return True
     if not page.get("is_published"):
@@ -222,7 +223,7 @@ async def _load_widgets(
         grunt.throw(_("Page not found"), "NOT_FOUND")
     page = dict(doc.data)
 
-    if not page_visible(page, grunt.get_user()):
+    if not page_visible(page, grunt.get_user().role_names):
         grunt.throw(_("The page is not published"), "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = page.get("widgets") or []

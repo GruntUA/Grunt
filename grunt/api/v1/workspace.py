@@ -28,7 +28,7 @@ async def _visible_pages() -> list[dict[str, Any]]:
         limit=1000,
         include_total=False,
     )
-    visible = [p for p in pages if page_visible(p, user)]
+    visible = [p for p in pages if page_visible(p, user.role_names)]
     return sorted(visible, key=lambda p: str(p.get("label") or p["name"]).casefold())
 
 

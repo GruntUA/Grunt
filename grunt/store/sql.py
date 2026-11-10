@@ -31,7 +31,6 @@ from grunt.store.base import (
     UPDATE,
     Store,
 )
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.aggregate import compute_aggregations
 lazy from grunt.document.multi_link import MultiLinkService
 lazy from grunt.document.payload import PROTECTED_FIELDS, update_values
@@ -304,7 +303,7 @@ class SqlStore(Store):
         return doc
 
     async def insert(
-        self, doc: dict[str, Any], *, input: dict[str, Any], user: User
+        self, doc: dict[str, Any], *, input: dict[str, Any], user: str
     ) -> dict[str, Any]:
         """INSERT *doc* with its child rows (from *doc*, so rows a hook filled in
         are stored too), aggregates and MultiLink values (from *input*)."""
@@ -328,14 +327,14 @@ class SqlStore(Store):
         *,
         before: dict[str, Any],
         input: dict[str, Any],
-        user: User,
+        user: str,
     ) -> dict[str, Any]:
         """UPDATE the row to *doc* - every physical field that differs from
         *before* or was submitted (hook changes and computed values included) -
         then child tables, aggregates and the submitted MultiLink fields."""
         dt, table = self.meta, self.table
         real_name = before["name"]
-        values = update_values(dt, input, self.columns, user.email)
+        values = update_values(dt, input, self.columns, user)
         for field in dt.get_physical_fields():
             if field.fieldname in PROTECTED_FIELDS or field.fieldname not in table.c:
                 continue

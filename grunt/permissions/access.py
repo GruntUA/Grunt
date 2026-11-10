@@ -19,30 +19,17 @@ same as before. That's an unrelated, non-human concern from "how do people
 get admin rights" - it's what lets the framework itself write to doctypes
 (like ErrorLog) that intentionally grant no write access to any real role.
 
-The module depends on nothing above it: the user and the DocType are described
-by what it reads of them (:class:`Principal`, :class:`Target`), so every layer
-can ask it without an import cycle.
+The module depends on nothing above it: the user is their email and roles
+(looked up by :func:`grunt.permissions.roles.role_access`), the DocType is
+described by what it reads of it (:class:`Target`), so every layer can ask it
+without an import cycle.
 """
 
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from typing import Any, Protocol
 
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.metadata.permission import DocPermission
-
-
-class Principal(Protocol):
-    """Who asks - a ``User`` document, as permissions see it."""
-
-    @property
-    def email(self) -> str | None:
-        """Matched against the internal system identity."""
-        raise NotImplementedError
-
-    @property
-    def roles(self) -> Sequence[Any]:
-        """Role names; a permission row applies when its role is among them."""
-        raise NotImplementedError
 
 
 class Target(Protocol):
@@ -65,12 +52,13 @@ class Target(Protocol):
 
 
 class RoleAccess:
-    """Role-based access facts for *user* on *doctype*, computed once."""
+    """Role-based access facts for *user* (an email) holding *roles* on *doctype*,
+    computed once. :func:`grunt.permissions.roles.role_access` looks the roles up."""
 
-    def __init__(self, doctype: Target, user: Principal) -> None:
+    def __init__(self, doctype: Target, user: str | None, roles: Collection[str]) -> None:
         self.doctype = doctype
         self.user = user
-        self.user_roles: frozenset[str] = frozenset(getattr(user, "roles", []) or [])
+        self.user_roles: frozenset[str] = frozenset(roles)
 
     @property
     def has_unrestricted_read(self) -> bool:
@@ -144,7 +132,7 @@ class RoleAccess:
         """True only for the internal SYSTEM_USER identity - never for a human
         role, System Manager included (see module docstring)."""
 
-        return self.user is not None and getattr(self.user, "email", None) == SYSTEM_USER_EMAIL
+        return self.user == SYSTEM_USER_EMAIL
 
     def matching_permissions(self) -> list[DocPermission]:
         """Permission rows whose role applies to this user (own roles, or "All").

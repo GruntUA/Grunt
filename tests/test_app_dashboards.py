@@ -1,13 +1,11 @@
 """An app's home offers every Page of the app the user may open as a dashboard."""
 
-from types import SimpleNamespace
-
 from grunt.api.v1.dashboard import page_visible
 from grunt.api.v1.workspace import _dashboards
 
 
-def _user(*roles: str) -> SimpleNamespace:
-    return SimpleNamespace(roles=list(roles))
+def _user(*roles: str) -> list[str]:
+    return list(roles)
 
 
 def test_page_visible_needs_publishing_and_a_listed_role():

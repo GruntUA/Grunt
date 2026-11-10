@@ -18,12 +18,12 @@ from grunt.permissions.access import RoleAccess
 from grunt.permissions.child import child_predicate, is_child
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.reference import reference_predicates
+from grunt.permissions.roles import role_access
 from grunt.permissions.shares import shared_predicate
 from grunt.permissions.user_permissions import user_permission_predicate
 from grunt.query.evaluate import matches_linked
 from grunt.query.nodes import FALSE, TRUE, Cmp, Expr, Linked, and_, or_
 lazy import grunt
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.query.query import Query
@@ -34,13 +34,13 @@ lazy from grunt.store import store_for
 READ_ACTIONS = frozenset({"read", "select"})
 
 
-async def read_predicate(user: User, meta: Meta) -> Expr:
+async def read_predicate(user: str | None, meta: Meta) -> Expr:
     """The rows of *meta*'s DocType that *user* may read."""
     return await action_predicate(user, meta, "read")
 
 
 async def action_predicate(
-    user: User, meta: Meta, action: str, *, row: Mapping[str, Any] | None = None
+    user: str | None, meta: Meta, action: str, *, row: Mapping[str, Any] | None = None
 ) -> Expr:
     """The rows of *meta*'s DocType on which *user* may perform *action* - every
     row-level rule in one expression, for any store (SQL compiles it, memory
@@ -59,7 +59,7 @@ async def action_predicate(
     return and_(granted, await user_permission_predicate(columns, user, meta))
 
 
-async def row_allowed(user: User, meta: Meta, action: str, row: Mapping[str, Any]) -> bool:
+async def row_allowed(user: str | None, meta: Meta, action: str, row: Mapping[str, Any]) -> bool:
     """Whether *user* may perform *action* on the document *row* - the
     :func:`action_predicate` evaluated against it.
 
@@ -88,7 +88,7 @@ async def _linked_exists(node: Linked, value: Any) -> bool:
 
 async def _grants_predicate(
     columns: Collection[str],
-    user: User,
+    user: str | None,
     doctype: DocType | Meta,
     action: str,
     row: Mapping[str, Any] | None,
@@ -101,7 +101,7 @@ async def _grants_predicate(
     translated contributes *no* rows (fails closed) rather than being treated
     as unrestricted.
     """
-    access = RoleAccess(doctype, user)
+    access = await role_access(doctype, user)
     if access.is_unrestricted:
         return TRUE
 
@@ -140,7 +140,7 @@ async def _grants_predicate(
 
 async def _own_predicates(
     columns: Collection[str],
-    user: User,
+    user: str | None,
     doctype: DocType | Meta,
     access: RoleAccess,
     action: str,

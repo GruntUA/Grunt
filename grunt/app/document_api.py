@@ -14,7 +14,7 @@ from grunt.document import collection
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
 from grunt.errors import forbidden, not_found, unprocessable
 from grunt.events import fire
-from grunt.local import require_engine, require_user
+from grunt.local import require_engine, require_session_user
 from grunt.naming import naming_service
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
@@ -24,6 +24,7 @@ from grunt.permissions.guards import (
     write_guard,
 )
 from grunt.permissions.rbac import permission_checker
+from grunt.permissions.roles import get_roles
 from grunt.workflow.engine import workflow_engine
 lazy from grunt.cache.document_cache import DocumentCache
 lazy from grunt.cache.query_cache import QueryCache
@@ -84,7 +85,7 @@ class DocumentAPI:
         predicate = await read_predicate(user, dt)
         if linked_doctypes(predicate):
             return None
-        roles = sorted(getattr(user, "roles", None) or [])
+        roles = sorted(await get_roles(user))
         return repr((roles, predicate))
 
     async def _invalidate_list_cache(
@@ -119,13 +120,12 @@ class DocumentAPI:
             expand=expand,
             session=grunt.get_session(),
             engine=require_engine(),
-            user=user,
         )
 
     async def _new(self, doctype: str, data: dict[str, Any], user: Any) -> Document:
 
         return await new_document(
-            doctype, data, user=user, session=grunt.get_session(), engine=require_engine()
+            doctype, data, session=grunt.get_session(), engine=require_engine()
         )
 
     @overload
@@ -182,19 +182,19 @@ class DocumentAPI:
             dt, user, hidden_fields = await read_guard(name)
             await fire("before_read", doctype=name, user=user, doc_id=id_or_name)
             data = (await self._load(name, id_or_name, user, expand)).data
-            await permission_checker.require(user, dt, "read", data)
+            await permission_checker.require(dt, "read", data, user=user)
             data = apply_hidden_fields_to_doc(data, hidden_fields)
             await fire("after_read", doctype=name, user=user, doc=data)
             # The registered controller, when it extends the class asked for
             # (doctype_mixins / override_doctype_class of other apps).
             controller = document_registry.get(name)
             cls = controller if issubclass(controller, doctype) else doctype
-            return cls(doctype=name, data=data, user=user, session=grunt.get_session())
+            return cls(doctype=name, data=data, session=grunt.get_session())
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
         doc = (await self._load(doctype, id_or_name, user, expand)).data
-        await permission_checker.require(user, dt, "read", doc)
+        await permission_checker.require(dt, "read", doc, user=user)
         doc = apply_hidden_fields_to_doc(doc, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
@@ -233,7 +233,7 @@ class DocumentAPI:
         """Fetch a document and return it as an instantiated controller."""
         dt, user, hidden_fields = await read_guard(doctype)
         doc = await self._load(doctype, id_or_name, user)
-        await permission_checker.require(user, dt, "read", doc.data)
+        await permission_checker.require(dt, "read", doc.data, user=user)
         doc.data = apply_hidden_fields_to_doc(doc.data, hidden_fields)
         return doc
 
@@ -373,7 +373,7 @@ class DocumentAPI:
                 session=session,
                 doctype_name=doctype,
                 doc_ids=deleted_ids,
-                user_email=user.email,
+                user_email=user,
             )
 
         await self._invalidate_list_cache(doctype, ids)
@@ -437,7 +437,7 @@ class DocumentAPI:
         if access is not None and cache is not None:
             cache_key = cache.build_key(
                 doctype=doctype,
-                user_email=getattr(user, "email", ""),
+                user_email=user,
                 access=access,
                 filters=filters,
                 fields=fields,
@@ -531,7 +531,7 @@ class DocumentAPI:
 
         session = grunt.get_session()
         controllers = [
-            model_class(doctype=doctype, data=row, user=user, session=session)  # type: ignore[return-value, call-arg]
+            model_class(doctype=doctype, data=row, session=session)  # type: ignore[return-value]
             for row in rows
         ]
         return DocumentList(controllers, meta=getattr(rows, "meta", {}))
@@ -546,7 +546,7 @@ class DocumentAPI:
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         table = dt.table
-        user = require_user()
+        user = require_session_user()
         session = grunt.get_session()
 
         now = datetime.now(UTC)
@@ -559,10 +559,10 @@ class DocumentAPI:
             row = {k: v for k, v in rec.items() if k in table.c}
             standard = {
                 "name": doc_name,
-                "owner": user.email,
+                "owner": user,
                 "created_at": now,
                 "modified_at": now,
-                "modified_by": user.email,
+                "modified_by": user,
             }
             for k, v in standard.items():
                 if k in table.c:
@@ -581,11 +581,11 @@ class DocumentAPI:
         values: dict[str, Any],
     ) -> int:
         """Update multiple documents matching ``filters`` in a single query."""
-        user = require_user()
+        user = require_session_user()
 
         update_values = dict(values)
         update_values["modified_at"] = datetime.now(UTC)
-        update_values["modified_by"] = user.email
+        update_values["modified_by"] = user
 
         row_count = await self.db.bulk_update(doctype, filters, update_values)
         log.info("grunt.bulk_update", doctype=doctype, rows=row_count)
@@ -618,7 +618,7 @@ class DocumentAPI:
         if not respect_permissions:
             return await self.db.count(doctype, filters=filters)
 
-        user = require_user()
+        user = require_session_user()
         cache = getattr(self, "query_cache", None)
         cache_key: str | None = None
         # A store outside SQL changes outside the pipeline - never cached.
@@ -631,7 +631,7 @@ class DocumentAPI:
         if access is not None and cache is not None:
             cache_key = cache.build_count_key(
                 doctype=doctype,
-                user_email=getattr(user, "email", ""),
+                user_email=user,
                 access=access,
                 filters=filters,
             )
@@ -816,7 +816,7 @@ class DocumentAPI:
         dt, user, _session = await write_guard(doctype, "write")
         await doc_guard(doctype, id_or_name, "write")
         names = set(fieldname) if isinstance(fieldname, dict) else {fieldname}
-        hidden = names & permission_checker.hidden_fields(user, dt)
+        hidden = names & (await permission_checker.hidden_fields(dt, user=user))
         if hidden:
             raise forbidden(
                 _("Not permitted to change fields: %(fields)s")
@@ -860,7 +860,7 @@ class DocumentAPI:
             dt.doc,
             doc_id,
             action,
-            require_user(),
+            require_session_user(),
             grunt.get_session(),
             require_engine(),
             values,

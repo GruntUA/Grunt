@@ -392,14 +392,14 @@ async def _ws_user_can_read(
 
             if doc_id is None:
                 # List room: the DocType-level read grant is all there is to check.
-                return await permission_checker.check(user, dt, "read")
+                return await permission_checker.check(dt, "read", user=user.email)
             # Document room: the row-level check, against the stored document -
             # the user is passed explicitly, so no user needs to be bound to the
             # context (this helper loads it, it does not run as it).
             row = await store_for(dt).get(doc_id, expand=[])
             if row is None:
                 return False
-            return await permission_checker.check(user, dt, "read", row)
+            return await permission_checker.check(dt, "read", row, user=user.email)
     except Exception:
         log.warning("ws.authz_failed", doctype=doctype, doc_id=doc_id)
         return False

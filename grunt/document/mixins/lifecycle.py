@@ -34,12 +34,13 @@ from grunt.document.update_side_effects import (
 from grunt.document.validation import _validate_data, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
+from grunt.local import require_session_user
 from grunt.monitoring import perf
 from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
-from grunt.permissions.access import RoleAccess
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.reference import reference_readable
+from grunt.permissions.roles import role_access
 from grunt.permissions.user_permissions import doc_violation
 from grunt.query.query import Query
 from grunt.search.service import search_index_service
@@ -51,7 +52,6 @@ from grunt.website.generator import fill_route
 from grunt.workflow.engine import _active, workflow_engine
 from grunt.workflow.guard import check_create, check_delete, check_update, is_exempt
 from grunt.workflow.registry import get_active_workflow
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.base import load_document
 lazy from grunt.document.collection import repoint_references, validate_replacement
 lazy from grunt.document.meta import Meta
@@ -81,7 +81,6 @@ def _timed[**P, R](op: str) -> Callable[[_Pipeline[P, R]], _Pipeline[P, R]]:
 class DocumentLifecycleMixin:
     doctype: str
     data: dict[str, Any]
-    user: Any
     session: Any
     engine: Any
     # Set while a pipeline runs: the DocType meta, the values as the caller
@@ -93,7 +92,10 @@ class DocumentLifecycleMixin:
     doc_before_save: dict[str, Any] | None
 
     def _bind(self) -> None: ...
-    def _set_grunt_context(self, user: User) -> tuple: ...  # type: ignore[empty-body]
+    @property
+    def user(self) -> str | None: ...  # type: ignore[empty-body]  # Document: the session user
+
+    def _set_grunt_context(self) -> tuple: ...  # type: ignore[empty-body]
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None: ...
 
@@ -161,12 +163,12 @@ class DocumentLifecycleMixin:
             raise e.to_api_error() from e
 
     @staticmethod
-    def _refuse_hidden_writes(
-        dt: Any, user: User, data: dict[str, Any], existing: dict[str, Any] | None = None
+    async def _refuse_hidden_writes(
+        dt: Any, user: str | None, data: dict[str, Any], existing: dict[str, Any] | None = None
     ) -> None:
         """403 when *data* sets a field hidden from *user* - read-hidden means
         write-hidden too, or a hidden value could be overwritten blind."""
-        changed = RoleAccess(dt, user).hidden_changes(data, existing)
+        changed = (await role_access(dt, user)).hidden_changes(data, existing)
         if changed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -175,7 +177,7 @@ class DocumentLifecycleMixin:
             )
 
     @staticmethod
-    async def _require_user_permissions(dt: Any, row: dict[str, Any], user: User) -> None:
+    async def _require_user_permissions(dt: Any, row: dict[str, Any], user: str | None) -> None:
         """403 when the values being written fall outside *user*'s User
         Permissions - the role check alone only looks at the stored row, so
         without this a restricted user could create a record in (or move one
@@ -197,16 +199,14 @@ class DocumentLifecycleMixin:
     async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
         """The stored document *doc_id*, read like ``grunt.get_doc`` reads it."""
 
-        doc = await load_document(
-            self.doctype, doc_id, session=self.session, engine=self.engine, user=self.user
-        )
+        doc = await load_document(self.doctype, doc_id, session=self.session, engine=self.engine)
         return doc.data
 
     async def _build_initial_row(
         self, dt: Any, data: dict[str, Any], now: datetime
     ) -> dict[str, Any]:
         """The new document: name, audit fields, coerced values and workflow state."""
-        user = self.user
+        user = require_session_user()
         # An explicit caller-supplied name wins over autoname for fixtures and
         # imports, which rely on stable names regardless of the DocType's
         # naming scheme - but NOT for counter-based series (e.g.
@@ -233,7 +233,7 @@ class DocumentLifecycleMixin:
             if columns is not None
             else {k: v for k, v in data.items() if k[:2] != "__" and k != "doctype"}
         )
-        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user.email, now)}
+        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user, now)}
         for k, v in standard.items():
             if columns is None or k in columns:
                 row[k] = v
@@ -272,7 +272,7 @@ class DocumentLifecycleMixin:
         backlink sync, activity log) fire identically regardless of the caller.
         """
         self._bind()
-        user = self.user
+        user = require_session_user()
         data = strip_file_signatures(self.data)
         await fire(
             "before_save", doctype=self.doctype, doc=dict(data), user=user, session=self.session
@@ -293,11 +293,11 @@ class DocumentLifecycleMixin:
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
-        self._refuse_hidden_writes(dt, user, data)
+        await self._refuse_hidden_writes(dt, user, data)
 
         # A comment / tag / attachment may only be added to a readable document.
         if (
-            not RoleAccess(dt, user).is_unrestricted
+            not (await role_access(dt, user)).is_unrestricted
             and await reference_readable(user, dt, data) is False
         ):
             raise HTTPException(
@@ -312,7 +312,7 @@ class DocumentLifecycleMixin:
             if f.fieldname in data:
                 self.data[f.fieldname] = data[f.fieldname]
 
-        tokens = self._set_grunt_context(user)
+        tokens = self._set_grunt_context()
         try:
             await apply_fetch_from(dt.doc, self.data)
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
@@ -342,7 +342,7 @@ class DocumentLifecycleMixin:
         Single entry point for updating a document - see :meth:`_insert`.
         """
         self._bind()
-        user = self.user
+        user = require_session_user()
         data = strip_file_signatures(data)
         # Optimistic-concurrency guard: the `modified_at` the client's edit was
         # based on (sent by offline replays). A newer server copy -> 409.
@@ -375,7 +375,7 @@ class DocumentLifecycleMixin:
         # `match`-restricted write permission (e.g. "owner == user") is never
         # evaluated there. `existing` is already fetched for the diff logic
         # below, so this row-level check is free - no extra DB round trip.
-        await permission_checker.require(user, dt, "write", existing)
+        await permission_checker.require(dt, "write", existing, user=user)
 
         if (
             base_modified_at
@@ -395,14 +395,14 @@ class DocumentLifecycleMixin:
         data = dict(data)
         auto_transition = await check_update(self.doctype, existing, data, user)
         await check_write("update", self.doctype, existing, data, user)
-        self._refuse_hidden_writes(dt, user, data, existing)
+        await self._refuse_hidden_writes(dt, user, data, existing)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
-        update_data = update_values(dt, data, store.columns, user.email)
+        update_data = update_values(dt, data, store.columns, user)
         real_id = existing["name"]
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
@@ -416,7 +416,7 @@ class DocumentLifecycleMixin:
         self.doc_before_save = existing
         self.data = merged
 
-        tokens = self._set_grunt_context(user)
+        tokens = self._set_grunt_context()
         transition_token = _active.set(auto_transition) if auto_transition else None
         try:
             await apply_fetch_from(dt.doc, self.data, existing)
@@ -467,7 +467,7 @@ class DocumentLifecycleMixin:
         reference to the deleted document is repointed to before it is removed.
         """
         self._bind()
-        user = self.user
+        user = require_session_user()
         doc_id = self.data.get("name")
         if doc_id is None:
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
@@ -481,7 +481,7 @@ class DocumentLifecycleMixin:
         # Same reasoning as update(): write_guard()'s pre-check can't see
         # `match`-restricted delete permissions (doc=None there); this reuses
         # the `existing` fetch already needed below, so it's free.
-        await permission_checker.require(user, dt, "delete", existing)
+        await permission_checker.require(dt, "delete", existing, user=user)
 
         await check_delete(self.doctype, existing, user)
         await check_write("delete", self.doctype, existing, {}, user)
@@ -497,7 +497,7 @@ class DocumentLifecycleMixin:
 
         self.doc_before_save = existing
         self.data = existing
-        tokens = self._set_grunt_context(user)
+        tokens = self._set_grunt_context()
         try:
             await self._run_lifecycle_hooks("before_delete")
             await store.delete(real_id, before=existing)

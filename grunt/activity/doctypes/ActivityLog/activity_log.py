@@ -16,7 +16,7 @@ class ActivityLog(Document):
     async def before_insert(self) -> None:
         # Auto-set 'user' field from request context if caller didn't provide it.
         if not self.data.get("user") and self.user:
-            self.data["user"] = self.user.email
+            self.data["user"] = self.user
 
     # Helper Classmethods
 

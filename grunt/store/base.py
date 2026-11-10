@@ -18,7 +18,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt import _
 from grunt.document.serde import serialize_datetimes, with_doctype
 from grunt.query.query import Query
-lazy from grunt.auth.doctypes.User.user import User
 
 # What a store can do, beyond reading its rows (``fetch``/``count``/``get``).
 INSERT = "insert"
@@ -107,7 +106,7 @@ class Store:
     # Writing
 
     async def insert(
-        self, doc: dict[str, Any], *, input: dict[str, Any], user: User
+        self, doc: dict[str, Any], *, input: dict[str, Any], user: str
     ) -> dict[str, Any]:
         """Store the new document *doc* and return it as stored (a store may
         name it, add computed values). *input* - the values as submitted."""
@@ -120,7 +119,7 @@ class Store:
         *,
         before: dict[str, Any],
         input: dict[str, Any],
-        user: User,
+        user: str,
     ) -> dict[str, Any]:
         """Store *doc* - the document *name* (stored as *before*) with the
         changes *input* applied - and return it as :meth:`output` shows it."""
