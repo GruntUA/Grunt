@@ -18,6 +18,7 @@ the document, notifications (``notify``, grunt/workflow/notify.py), the
 """
 
 import contextlib
+from collections.abc import Collection
 from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime
@@ -95,10 +96,11 @@ class WorkflowEngine:
         current_state_name = current_state.state if current_state else None
 
         available: list[WorkflowTransition] = []
+        roles = await get_roles(user)
         for t in workflow.transitions:
             if t.from_state != current_state_name or t.on_edit != on_edit:
                 continue
-            if not await user_may_take(t, user):
+            if not user_may_take(t, roles):
                 continue
             # Check condition - transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since
@@ -284,12 +286,12 @@ class WorkflowEngine:
             return True  # Don't block on error
 
 
-async def user_may_take(transition: WorkflowTransition, user: str | None) -> bool:
-    """Role check of a transition for *user* (an email; System Manager may take any)."""
+def user_may_take(transition: WorkflowTransition, roles: Collection[str]) -> bool:
+    """Role check of a transition for a user holding *roles* (System Manager may take any)."""
     if not transition.allowed_roles:
         return True
-    roles = set(await get_roles(user))
-    return bool(roles.intersection(transition.allowed_roles)) or "System Manager" in roles
+    held = set(roles)
+    return bool(held.intersection(transition.allowed_roles)) or "System Manager" in held
 
 
 def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:

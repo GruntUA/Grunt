@@ -47,6 +47,8 @@ class PermissionChecker:
         """
         if user is None:
             user = session_user()
+        if not user:
+            return False  # nobody in context: fail closed, even for an "All" row
         access = await role_access(doctype, user)
         if access.is_unrestricted:
             return True

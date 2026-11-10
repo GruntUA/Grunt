@@ -88,7 +88,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             and meta.is_singleton
             and field is not None
             and not field.has_trait("sensitive")
-            and await permission_checker.check(meta, "read", user=grunt.get_user().email)
+            and await permission_checker.check(meta, "read")
         )
         resolved[key] = await grunt.get_single(doctype, fieldname) if allowed else None
         if resolved[key] is None:
@@ -169,7 +169,7 @@ async def _compute_widget_data(
             return None
         # No read access -> no data, not even counts (row-level rules and
         # hidden fields are applied by the queries themselves).
-        if not await permission_checker.check(dt, "read", user=grunt.get_user().email):
+        if not await permission_checker.check(dt, "read"):
             return None
 
     period_key = widget.get("period") or "last_month"

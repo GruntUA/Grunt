@@ -31,7 +31,8 @@ def _operand(raw_value: str, user: str | None) -> tuple[bool, str]:
     must treat as "outside the supported grammar" and reject.
     """
     if raw_value == "user":
-        return True, user or ""
+        # Nobody in context matches no one - never the rows with an empty owner.
+        return (True, user) if user else (False, "")
     if is_literal(raw_value):
         return True, raw_value[1:-1]
     return False, ""

@@ -4,6 +4,8 @@ import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
+from grunt.permissions.match import PermissionMatch
+from grunt.permissions.rbac import permission_checker
 from tests.support import check_as, hidden_fields_as, make_user, require_as
 
 # No TYPE_CHECKING needed for httpx2 in direct tests
@@ -257,3 +259,15 @@ async def test_a_changed_permission_row_applies_at_once():
 
     other = _make_doctype_with_perms([{"role": "Manager", "read": True}])
     assert await check_as(user, other, "read")
+
+
+async def test_nobody_in_context_is_denied_even_by_an_all_row():
+    """Without a user ``check`` fails closed - an "All" row with ``owner == user``
+    must not open the rows whose owner is empty."""
+    dt = _make_doctype_with_perms([{"role": "All", "read": True, "match": "owner == user"}])
+    assert await permission_checker.check(dt, "read") is False
+    assert await permission_checker.check(dt, "read", {"name": "x", "owner": ""}) is False
+
+
+async def test_match_user_without_a_user_is_untranslatable():
+    assert await PermissionMatch("owner == user").to_expr({"owner"}, None) is None

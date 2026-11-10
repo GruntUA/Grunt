@@ -1,5 +1,5 @@
-import grunt
 from grunt import log
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.data_import.service import DataImportService
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
@@ -11,12 +11,12 @@ async def run_data_import(data_import_id: str):
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session, grunt.system_context(session, eng):
+    async with maker() as session:
         service = DataImportService(session, eng)
 
         try:
             log.info("data_import.task_started", id=data_import_id)
-            await service.run_import(data_import_id, grunt.get_user())
+            await service.run_import(data_import_id, SYSTEM_USER_EMAIL)
             log.info("data_import.task_finished", id=data_import_id)
         except Exception as e:
             log.error("data_import.task_failed", id=data_import_id, error=str(e))

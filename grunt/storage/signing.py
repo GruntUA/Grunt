@@ -146,7 +146,6 @@ async def _authorized_file_ids(ids: set[str], user: str | None) -> set[str]:
         limit=None,
     )
     by_id = {str(r["name"]): r for r in rows}
-    user_email = user
 
     meta = None
     for fid in ids:
@@ -160,13 +159,12 @@ async def _authorized_file_ids(ids: set[str], user: str | None) -> set[str]:
         if doc.get("is_public"):
             authorized.add(fid)
             continue
-        if user_email is None:
+        if user is None:
             continue  # guest: only public files
-        if doc.get("owner") == user_email:
+        if doc.get("owner") == user:
             authorized.add(fid)  # File grants read to its owner
             continue
 
-        assert user is not None  # user_email was set, so user is a real User
         if meta is None:
             meta = await grunt.get_meta("File")
         if meta is not None and await permission_checker.check(meta, "read", doc, user=user):

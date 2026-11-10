@@ -97,7 +97,7 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     for candidate in users:
         if candidate is None or not candidate.get("is_active", True):
             continue
-        if not [t for t in transitions if await user_may_take(t, candidate.email)]:
+        if not any(user_may_take(t, candidate.role_names) for t in transitions):
             continue
         if not await permission_checker.check(meta, "read", doc, user=candidate.email):
             continue
@@ -130,7 +130,7 @@ def _doc_title(meta: Any, doc: dict[str, Any]) -> str:
 
 
 async def _message(active: ActiveTransition, user: str, meta: Any) -> str:
-    who = await grunt.db.get_value("User", user, "full_name") or user
+    who = await grunt.db.get_value("User", {"email": user}, "full_name") or user
     lines = [
         _("%(user)s: “%(action)s” — %(from)s → %(to)s")
         % {
