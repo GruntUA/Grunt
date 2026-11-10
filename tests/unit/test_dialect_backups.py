@@ -10,8 +10,8 @@ from pathlib import Path
 import pytest
 from sqlalchemy.engine import make_url
 
-from grunt.backups import BackupError
 from grunt.db.dialects import PostgresDialect, SqliteDialect
+from grunt.db.dialects.archive import BackupError
 from grunt.i18n import _
 from grunt.progress import Progress
 

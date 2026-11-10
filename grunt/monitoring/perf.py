@@ -211,6 +211,9 @@ def attach_sql_counter(engine: AsyncEngine) -> None:
         event.listen(sync, "after_cursor_execute", _after_cursor)
 
 
+site_manager.on_engine(attach_sql_counter)
+
+
 # Persisting
 
 _MERGED_FIELDS = ("calls", "errors", "total_ms", "max_ms", "sql_calls", "sql_ms", *HIST_FIELDS)

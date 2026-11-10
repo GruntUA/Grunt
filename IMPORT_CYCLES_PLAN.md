@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–1 злито (#120), 2a злито (#121); 2b (email замість об'єкта) — PR #122.
+Оновлено: 2026-11-10 — кроки 0–2 злито (#120–#122); крок 3 (контекстний шар) — у PR.
 
 ---
 
@@ -67,11 +67,11 @@
 
 ```
 0  листи: errors, log, i18n (каталоги), config, version, auth.constants, utils.*,
-   search.tokens
+   search.tokens, site.bench, db.dialects (+ archive)
 1  контекст: local (користувач — `session_user()` email і `session_roles()`), site.manager,
-   site.settings, cache.bus, db.commit
+   cache.bus, db.commit
 2  метадані: metadata.compiler / store / registry, document.meta
-3  дані: db, store, query
+3  дані: db, store, query, site.settings (рядок SystemSettings — через метадані)
 4  права: permissions.*
 5  документ: document.base + mixins (без імпорту api/ws/workflow — через події)
 6  сервіси: auth (User, users, login), workflow, notification, storage, email, search.service…
@@ -83,10 +83,10 @@
 
 | # | Що | Стан |
 |---|---|---|
-| 0 | Тест-храповик, граф, локальний CodeQL, цей план | у PR |
-| 1 | Малі цикли: auth.providers ↔ registry, dialects.fulltext ↔ search.terms, standard_records ↔ startup.fixtures, tasks.auto_repeat ↔ AutoRepeat | у PR |
-| 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | 2a злито (#121); 2b — PR #122 |
-| 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | |
+| 0 | Тест-храповик, граф, локальний CodeQL, цей план | злито (#120) |
+| 1 | Малі цикли: auth.providers ↔ registry, dialects.fulltext ↔ search.terms, standard_records ↔ startup.fixtures, tasks.auto_repeat ↔ AutoRepeat | злито (#120) |
+| 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | злито (#121, #122) |
+| 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | у PR |
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | |
 | 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | |
@@ -174,3 +174,27 @@
 - Додатки не оновлено (рішення власника — спершу фреймворк): ламаються виклики
   `permission_checker.check(user, …)`, `user_has_roles`, `Document(..., user=)`,
   хуки з `user.email`.
+
+### 2026-11-10 — крок 3: контекстний шар
+
+- `local`, `site.manager`, `cache.bus`, `db.commit` — поза циклами; разом з ними `i18n`,
+  діалекти й ще 15 модулів. Базовий список 178 → 156.
+- **site.manager → perf / profiler:** `site_manager.on_engine(setup)` — налаштування рушія
+  застосовується до наявних і нових; `monitoring.perf` (лічильник SQL) і `db.profiler` (якщо
+  `sql_profiler_enabled`) реєструються самі. Менеджер не знає реалізацій.
+- **dialects → backups:** `BackupError`, рівні стиснення, `zstd_options` — у листі
+  `db/dialects/archive.py`; `backups`, `cli`, тести імпортують звідти. `current_dialect()`
+  (не використовувався, тягнув фасад) прибрано.
+- **i18n → site.manager:** тека bench — лист `site/bench.py`; `SiteManager.bench_dir` —
+  властивість над ним (заміна в тестах діє). Джерело опцій мов `grunt.i18n.language` реєструє
+  `metadata.dynamic_options` (i18n не знає метаданих).
+- **`language_of`** — з `i18n.service` у `auth/language.py`, шукає за email (не за
+  `User.name`). Модуль додано в базовий список: читає через `grunt.db.api`, а той у циклі через
+  `store.sql → document.update_side_effects → activity.follow` — вийде на кроках 5–6. Функція й
+  раніше сиділа в циклі (у `i18n.service`).
+- **cache.bus:** асинхронний обробник отримує сесію й рушій сайту через `grunt.local`, без
+  фасаду й без користувача.
+- **site.settings:** читає рядок `SystemSettings` напряму з таблиці (`doctype_registry` +
+  сесія) — налаштування нижче запитів і прав, які їх читають. Переїхав у шар даних; у циклі
+  через `metadata.registry → grunt` (кроки 4, 9).
+- Результат: 2250 passed, pyright 0; CodeQL локально 325 → 311, нових 0.

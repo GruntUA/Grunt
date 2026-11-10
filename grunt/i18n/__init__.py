@@ -14,40 +14,21 @@ from grunt.i18n.service import (
     NP_,
     TranslationService,
     _,
-    language_of,
     ngettext,
     parse_po_string,
     pgettext,
     translation_service,
     use_language,
 )
-from grunt.metadata.dynamic_options import register_option_provider
 
 #: Register the runtime translation provider (see :meth:`TranslationService.register_provider`).
 register_provider = translation_service.register_provider
 
-#: Dynamic-options source for language Select fields (User.language,
-#: SystemSettings.language): the UI languages, labelled with native names.
-LANGUAGE_OPTIONS_SOURCE = "grunt.i18n.language"
-
-
-def _language_options() -> list[str | tuple[str, str]]:
-    return [(c, translation_service.language_name(c)) for c in translation_service.ui_languages()]
-
-
-def _register_language_options() -> None:
-    register_option_provider(LANGUAGE_OPTIONS_SOURCE, _language_options)
-
-
-_register_language_options()
-
 __all__ = [
-    "LANGUAGE_OPTIONS_SOURCE",
     "NP_",
     "N_",
     "TranslationService",
     "_",
-    "language_of",
     "ngettext",
     "parse_po_string",
     "pgettext",

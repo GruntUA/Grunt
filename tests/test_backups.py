@@ -12,7 +12,7 @@ from sqlalchemy.engine import make_url
 
 import grunt.backups as backups
 from grunt.backups import api, tasks
-from grunt.db.dialects import SqliteDialect
+from grunt.db.dialects import SqliteDialect, archive
 
 SITE = "backup.test"
 
@@ -78,7 +78,7 @@ async def test_backup_of_chosen_parts_only(site):
 
 @pytest.mark.asyncio
 async def test_backup_of_nothing_is_refused(site):
-    with pytest.raises(backups.BackupError):
+    with pytest.raises(archive.BackupError):
         await backups.create_backup(SITE, with_database=False, with_files=False, with_config=False)
     assert backups.list_backups(SITE) == []
 
@@ -95,9 +95,9 @@ async def test_failed_backup_leaves_nothing_behind(site, monkeypatch):
 
 
 def test_compression_level_is_clamped():
-    level = backups.zstd.CompressionParameter.compression_level
-    assert backups.zstd_options(0)[level] == 1
-    assert backups.zstd_options(22)[level] == backups.MAX_COMPRESSION_LEVEL
+    level = zstd.CompressionParameter.compression_level
+    assert archive.zstd_options(0)[level] == 1
+    assert archive.zstd_options(22)[level] == archive.MAX_COMPRESSION_LEVEL
 
 
 def test_rotation_keeps_the_newest(site):
@@ -132,7 +132,7 @@ def test_restore_refuses_a_corrupt_copy(site):
     (out / "20260901-020000-database.sqlite.zst").write_bytes(zstd.compress(b"not a database"))
     backup = backups.get_backup(SITE, "20260901-020000")
     assert backup is not None
-    with pytest.raises((backups.BackupError, sqlite3.DatabaseError)):
+    with pytest.raises((archive.BackupError, sqlite3.DatabaseError)):
         backups.restore_backup(SITE, backup)
     assert _rows(site / "grunt.db") == ["original"]  # untouched
 
@@ -307,7 +307,7 @@ async def test_backup_is_refused_without_disk_space(site, monkeypatch):
     usage = namedtuple("usage", "total used free")
     monkeypatch.setattr(backups.shutil, "disk_usage", lambda p: usage(100, 100, 0))
     # The message is matched in English
-    with use_language("en"), pytest.raises(backups.BackupError, match="disk space"):
+    with use_language("en"), pytest.raises(archive.BackupError, match="disk space"):
         await backups.create_backup(SITE)
     assert list(backups.backups_dir(SITE).iterdir()) == []
 

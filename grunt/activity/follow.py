@@ -12,8 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
 from grunt import _, log
+from grunt.auth.language import language_of
 from grunt.document.titles import resolve_reference_titles
-from grunt.i18n import language_of, use_language
+from grunt.i18n import use_language
 from grunt.notification.service import notification_service
 
 # How many changed field labels a notification spells out before "і ще N".

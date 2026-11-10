@@ -10,6 +10,7 @@ never need to know a source is dynamic.
 
 from collections.abc import Callable, Sequence
 
+from grunt.i18n import translation_service
 lazy from grunt.metadata.field import DocField
 
 _REGISTRY: dict[str, list[str]] = {}
@@ -78,3 +79,15 @@ def register_schema(source: str, key: str, fields: list[dict]) -> None:
 def get_schemas(source: str) -> dict[str, list[dict]]:
     """Return all registered {key: fields} variants for *source*."""
     return dict(_SCHEMA_REGISTRY.get(source, {}))
+
+
+#: Built-in source for language Select fields (User.language,
+#: SystemSettings.language): the UI languages, labelled with native names.
+LANGUAGE_OPTIONS_SOURCE = "grunt.i18n.language"
+
+
+def _language_options() -> list[str | tuple[str, str]]:
+    return [(c, translation_service.language_name(c)) for c in translation_service.ui_languages()]
+
+
+register_option_provider(LANGUAGE_OPTIONS_SOURCE, _language_options)
