@@ -1,6 +1,6 @@
 import pytest
 
-from grunt.document.base import DocumentList
+from grunt.document.document_list import DocumentList
 
 
 def test_document_list_behavior():

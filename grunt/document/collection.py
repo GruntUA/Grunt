@@ -16,11 +16,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt.document.base import (
-    Document,
-    DocumentList,
-    load_document,
-)
+from grunt.document.document_list import DocumentList
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
 from grunt.document.multi_link import MultiLinkService
@@ -75,7 +71,7 @@ async def _resolve_list_filter_extra(
     """The controller's ``list_filter_extra`` clause as a ``Raw`` node (``TRUE``
     when it has none) - a SQL condition, so only a table's list takes one."""
     hook = document_registry.get(dt.name).list_filter_extra
-    if hook.__func__ is Document.list_filter_extra.__func__ or not supports(dt, SQL):
+    if hook.__func__ is document_registry.base.list_filter_extra.__func__ or not supports(dt, SQL):
         return q.TRUE
     clause = await hook(session, filters or {}, dt.table)
     return q.TRUE if clause is None else q.Raw(clause)
@@ -592,7 +588,9 @@ async def rename_document(
     """Update the primary ID of a document and cascade changes to all references."""
 
     async def _load(doc_id: str) -> dict[str, Any]:
-        doc = await load_document(doctype_name, doc_id, session=session, engine=engine)
+        doc = await document_registry.base.load(
+            doctype_name, doc_id, session=session, engine=engine
+        )
         return doc.as_dict()
 
     if old_id == new_id:

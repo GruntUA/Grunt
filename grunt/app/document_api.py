@@ -30,7 +30,8 @@ lazy from grunt.cache.document_cache import DocumentCache
 lazy from grunt.cache.query_cache import QueryCache
 lazy from grunt.db import GruntDB
 lazy from grunt.db.api import aggregate_query, list_query
-lazy from grunt.document.base import Document, DocumentList, load_document, new_document
+lazy from grunt.document.base import Document, load_document, new_document
+lazy from grunt.document.document_list import DocumentList
 lazy from grunt.document.registry import document_registry
 lazy from grunt.permissions import reads
 lazy from grunt.permissions.query import read_predicate

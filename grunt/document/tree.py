@@ -37,7 +37,6 @@ from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.search.terms import match_columns
 from grunt.store import SQL, supports
-lazy from grunt.document.base import Document
 lazy from grunt.query.sql import filter_expr, where
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
@@ -201,7 +200,7 @@ class TreeService:
             row["has_children"] = row["name"] in child_parent_ids
 
         ctrl_cls = _tree_controller(doctype)
-        if ctrl_cls.tree_sort_children is not Document.tree_sort_children:
+        if ctrl_cls.tree_sort_children is not document_registry.base.tree_sort_children:
             rows = await ctrl_cls.tree_sort_children(
                 session,
                 rows,
@@ -308,7 +307,7 @@ class TreeService:
 
         # Build nested structure
         nested = self._nest(all_rows, parent_field, root_id)
-        if ctrl_cls.tree_sort_children is not Document.tree_sort_children:
+        if ctrl_cls.tree_sort_children is not document_registry.base.tree_sort_children:
             nested = await self._apply_tree_sort_children_hook(
                 ctrl_cls,
                 session,
@@ -374,13 +373,13 @@ class TreeService:
         # Controller hook: list_filter_extra - allows DocType controllers
         # (e.g. in app code) to inject extra WHERE clauses without touching
         # the framework core.
-        if ctrl_cls.list_filter_extra is not Document.list_filter_extra:
+        if ctrl_cls.list_filter_extra is not document_registry.base.list_filter_extra:
             extra_clause = await ctrl_cls.list_filter_extra(session, filters, table)
             if extra_clause is not None:
                 filtered_q = filtered_q.where(extra_clause)
 
         preserve_ancestors = True
-        if ctrl_cls.tree_preserve_ancestors is not Document.tree_preserve_ancestors:
+        if ctrl_cls.tree_preserve_ancestors is not document_registry.base.tree_preserve_ancestors:
             preserve_ancestors = await ctrl_cls.tree_preserve_ancestors(session, filters, table)
 
         filtered_q = filtered_q.where(table.c.name.in_(tree_ids))
@@ -537,7 +536,7 @@ class TreeService:
         if resolved_sort_by is None and fallback_if_missing:
             resolved_sort_by = fallback_field
 
-        if controller_cls.tree_get_sort_order is not Document.tree_get_sort_order:
+        if controller_cls.tree_get_sort_order is not document_registry.base.tree_get_sort_order:
             override = await controller_cls.tree_get_sort_order(
                 session,
                 filters,
@@ -652,8 +651,9 @@ class TreeService:
 tree_service = TreeService()
 
 
-def _tree_controller(doctype: str) -> type[Document]:
+def _tree_controller(doctype: str) -> type[Any]:
     """The controller whose tree hooks apply - a tree is always a table's."""
 
     controller_cls = document_registry.get(doctype)
-    return controller_cls if issubclass(controller_cls, Document) else Document
+    base = document_registry.base
+    return controller_cls if issubclass(controller_cls, base) else base

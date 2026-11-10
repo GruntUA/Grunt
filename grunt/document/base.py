@@ -67,36 +67,6 @@ async def _meta(doctype: str) -> Any:
     return dt
 
 
-class DocumentList(list):
-    """A list of rows plus pagination meta.
-
-    Iterates and indexes like a list, but ``result["data"]`` and
-    ``result["meta"]`` also work, so it can be returned where the
-    ``{"data": ..., "meta": ...}`` response shape is expected.
-    """
-
-    def __init__(self, data: list, meta: dict[str, Any] | None = None) -> None:
-        super().__init__(data)
-        self.meta = meta or {}
-
-    def to_dict(self) -> dict[str, Any]:
-        return {"data": list(self), "meta": self.meta}
-
-    def __getitem__(self, key: Any) -> Any:
-        if key == "data":
-            return list(self)
-        if key == "meta":
-            return self.meta
-        return super().__getitem__(key)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        if key == "data":
-            return list(self)
-        if key == "meta":
-            return self.meta
-        return default
-
-
 class _ObjectsDescriptor:
     """``Document.objects`` - returns a QuerySet for the controller class."""
 
@@ -338,6 +308,18 @@ class Document(
         """Load a document as an instance of its registered controller."""
         return await load_document(doctype, name, expand=expand, session=session, engine=engine)
 
+    @classmethod
+    async def new(
+        cls,
+        doctype: str,
+        data: dict[str, Any],
+        *,
+        session: AsyncSession | None = None,
+        engine: AsyncEngine | None = None,
+    ) -> Document:
+        """A new, unsaved instance of *doctype*'s registered controller holding *data*."""
+        return await new_document(doctype, data, session=session, engine=engine)
+
     # Lifecycle hooks
 
     async def on_load(self) -> None:
@@ -457,6 +439,9 @@ class Document(
     ) -> list[dict[str, Any]]:
         """Reorder child nodes when one ``sort_by`` field isn't enough."""
         return children
+
+
+document_registry.use_base(Document)
 
 
 def controller_class(dt: Any) -> type[Document]:

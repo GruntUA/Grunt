@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–6a злито (#120–#126); 6b-1 (документ без низькорівневого фасаду) — у PR.
+Оновлено: 2026-11-10 — кроки 0–6b-1 злито (#120–#127); 6b-2 (`base` ↔ `registry` / `schema` / `queryset`) — у PR.
 
 ---
 
@@ -89,7 +89,7 @@
 | 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | злито (#123) |
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | злито (#124) |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | злито (#125) |
-| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a злито (#126); 6b-1 (`throw` у `errors`, документ без низькорівневого фасаду) — у PR; 6b-2 (`base` ↔ mixins / `registry`) — далі |
+| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a злито (#126); 6b-1 злито (#127); 6b-2 (`base` ↔ `registry` / `schema` / `queryset`) — у PR; 6b-3 (mixins → сервіси вище — через події) — далі |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | |
 | 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
 | 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | |
@@ -264,3 +264,21 @@
   клас за замовчуванням). Це 6b-2.
 - Результат: 2257 passed, pyright 0; CodeQL локально 285 → 281, нових 0 (алерт `publish →
   api.v1.ws` змінив клас з `unsafe-cyclic-import` на `cyclic-import` — той самий цикл).
+
+### 2026-11-10 — крок 6b-2: `base` ↔ `registry` / `schema` / `queryset`
+
+- **Базовий клас реєструється сам:** `document.base` викликає `document_registry.use_base(Document)`;
+  `document_registry.base` — для DocType без контролера і для перевірок «контролер перевизначив
+  хук» (`collection`, `tree`). `document.registry` більше не імпортує `base`.
+- Фабрики — через клас: `lifecycle` — `self.load(...)`, `update_side_effects` / `collection` —
+  `document_registry.base.new(...)` / `.load(...)` (новий classmethod `Document.new`).
+- `DocumentList` — окремий лист `document/document_list.py` (`collection`, `query_cache`,
+  `document_api` імпортують звідти).
+- `schema` / `queryset` — без імпорту `Document` (лише анотації); `collaboration_rpc` — без
+  імпорту контролера `Comment` (за назвою DocType).
+- Базовий список 115 → 111: `document.registry`, `document.schema`, `Comment`, `cache.query_cache`.
+- Що лишилось у документі: високорівневий фасад у ядрі (`grunt.get_doc / get_list / new_doc /
+  context` → `app.document_api` → документ) — крок 9; mixins / `base` імпортують сервіси вище
+  (`api.v1.ws`, `webhook.service`, `workflow`, `auth.users`), а ті — контролери DocType → `base`
+  — 6b-3 (події).
+- Результат: 2258 passed, pyright 0; CodeQL локально 281 → 256, нових 0.
