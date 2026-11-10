@@ -11,10 +11,13 @@ from typing import Any
 from fastapi import HTTPException
 
 import grunt
-from grunt import _
 from grunt.activity import record_activity
+from grunt.api.context import whitelist
 from grunt.document.versioning import version_service
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import doc_guard
 lazy from grunt.activity.reactions import reactions_for
 lazy from grunt.auth.users import get_users_by_emails
@@ -24,22 +27,22 @@ class DocumentHistoryRPCMixin:
     """Version history / activity log / timeline, exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_versions(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return version history for a document."""
         # Ensure document exists and user has access
         await doc_guard(doctype, doc_id)
 
-        return await version_service.get_versions(grunt.get_session(), doctype, doc_id)
+        return await version_service.get_versions(require_session(), doctype, doc_id)
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def restore_version(doctype: str, doc_id: str, version_id: str) -> dict[str, Any]:
         """Restore a document to a previous version."""
         # Get current doc and verify access
         current_doc = await grunt.get_doc(doctype, doc_id)
 
-        session = grunt.get_session()
+        session = require_session()
         target = await version_service.get_version(session, version_id)
         if target is None:
             raise HTTPException(status_code=404, detail=_("Version not found"))
@@ -58,7 +61,7 @@ class DocumentHistoryRPCMixin:
 
         # Apply as a regular update
 
-        meta = await grunt.get_meta(doctype)
+        meta = await doctype_registry.get_meta(doctype)
         if meta is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
@@ -85,7 +88,7 @@ class DocumentHistoryRPCMixin:
         return {"document": result, "restored_to_version": target["version"]}
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_activity_log(
         doctype: str, doc_id: str, per_page: int = 10
     ) -> list[dict[str, Any]]:
@@ -114,12 +117,12 @@ class DocumentHistoryRPCMixin:
         ]
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Return a merged timeline of activity, field-value versions and comments."""
         await doc_guard(doctype, doc_id)
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         track_changes = bool(dt and dt.track_changes)
 
         act_rows = await grunt.get_list(
@@ -150,7 +153,7 @@ class DocumentHistoryRPCMixin:
             )
 
         if track_changes:
-            versions = await version_service.get_versions(grunt.get_session(), doctype, doc_id)
+            versions = await version_service.get_versions(require_session(), doctype, doc_id)
             for v in versions:
                 items.append(
                     {

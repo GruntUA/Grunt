@@ -11,7 +11,7 @@ cannot be renewed and expires on its own after
 from typing import Any
 
 from grunt import _, log
-lazy from grunt.api.messages import throw
+from grunt.errors import throw
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.service import create_access_token
 lazy from grunt.auth.users import _auth_user_dump, get_user_by_id

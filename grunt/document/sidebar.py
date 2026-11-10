@@ -40,7 +40,9 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import grunt
-from grunt import _, log
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.i18n.service import translation_service
 lazy from grunt.website.generator import WEB_URL_KEY, with_web_url
 lazy from grunt.website.preview import PREVIEW_URL_KEY
@@ -122,7 +124,7 @@ async def collect_sections(doctype: str, doc_id: str, doc: Any) -> dict[str, lis
 
 async def status_rows(doctype: str, doc_id: str, doc: Any) -> list[dict[str, Any]]:
     """Status and, when it lives in another field, the workflow state - as badges."""
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         return []
     indicators = {i.value: i for i in meta.doc.status_indicators}

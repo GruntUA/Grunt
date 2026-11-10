@@ -16,7 +16,6 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt import _, log
 from grunt.document.base import (
     Document,
     DocumentList,
@@ -37,7 +36,9 @@ from grunt.document.update_side_effects import (
     run_bulk_delete_writes,
 )
 from grunt.errors import unprocessable
+from grunt.i18n import _
 from grunt.local import _user_ctx
+from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions import reads
@@ -226,7 +227,7 @@ async def count_documents(
 
 
 async def _require_meta(doctype_name: str) -> Any:
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -247,7 +248,7 @@ async def field_years(
     Under the same row-level permissions as ``count_documents``; the list's own
     filters are not applied, so picking one year doesn't hide the others.
     """
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -315,7 +316,7 @@ async def bulk_delete(
     if not ids:
         return 0, []
 
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -495,7 +496,7 @@ async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -
     """Best-effort update of _RENAME_SYSTEM_REFS rows pointing at *old_id*."""
     for sys_dt_name, sys_fieldname in _RENAME_SYSTEM_REFS:
         try:
-            sys_dt = await grunt.get_meta(sys_dt_name)
+            sys_dt = await doctype_registry.get_meta(sys_dt_name)
             if sys_dt is None:
                 continue
             sys_table = sys_dt.table
@@ -597,7 +598,7 @@ async def rename_document(
     if old_id == new_id:
         return await _load(old_id)
 
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

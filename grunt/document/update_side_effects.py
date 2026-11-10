@@ -13,12 +13,13 @@ from typing import Any
 from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.document.registry import document_registry
 from grunt.document.serde import audit_fields
 from grunt.document.versioning import _SKIP_FIELDS, version_service
 from grunt.errors import ApplicationError
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
 from grunt.store.sql import delete_child_rows
 from grunt.webhook.service import webhook_service
@@ -282,7 +283,7 @@ async def write_bulk_delete_activity_log(
     _now = now or datetime.now(UTC)
 
     try:
-        dt_log = await grunt.get_meta("ActivityLog")
+        dt_log = await doctype_registry.get_meta("ActivityLog")
         if dt_log is None:
             raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": "ActivityLog"})
         t_log = dt_log.table

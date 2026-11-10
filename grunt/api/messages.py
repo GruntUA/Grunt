@@ -1,7 +1,7 @@
 """Message and notification API.
 
 Example:
-    from grunt import msgprint, throw
+    from grunt import msgprint, throw  # throw: grunt.errors
 
     msgprint("Operation complete!", type="success")
 
@@ -10,11 +10,8 @@ Example:
 
 """
 
-from typing import NoReturn
-
 from grunt.api.context import add_message, get_session
 from grunt.email.service import email_service
-from grunt.errors import ApplicationError
 from grunt.local import _messages_ctx
 from grunt.notification.service import NotificationService
 from grunt.publish import notify as _notify
@@ -46,22 +43,6 @@ def msgprint_list(items: list[str], title: str = "") -> None:
     """
     for item in items:
         msgprint(item, title=title, msg_type="info")
-
-
-def throw(message: str, code: str = "ERROR", title: str = "") -> NoReturn:
-    """Raise an ApplicationError (translates to HTTP exception + message).
-
-    This stops execution and returns an error response to the frontend.
-
-    Args:
-        message: Error message shown to user
-        code: Error code (e.g., "VALIDATION_ERROR", "PERMISSION_DENIED")
-        title: Optional error title
-
-    Raises:
-        ApplicationError
-    """
-    raise ApplicationError(message, code=code, title=title)
 
 
 async def notify_all(

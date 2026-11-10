@@ -12,8 +12,11 @@ an explicitly entered value under an unchanged Link is kept, as in the form.
 
 from typing import Any
 
-import grunt
+from grunt.db.api import GruntDB
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.doctype import DocType
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def apply_fetch_from(
@@ -39,10 +42,10 @@ async def apply_fetch_from(
         wanted = [(fn, src) for fn, src in targets if changed or data.get(fn) in (None, "")]
         if not wanted:
             continue
-        target = await grunt.get_meta(str(link_field.options))
+        target = await doctype_registry.get_meta(str(link_field.options))
         if target is None or not target.has_table:
             continue
-        row = await grunt.db.get_value(
+        row = await _db.get_value(
             str(link_field.options), str(value), [src for _, src in wanted], as_dict=True
         )
         if row is None:

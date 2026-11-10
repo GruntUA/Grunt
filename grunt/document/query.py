@@ -6,8 +6,8 @@ from typing import Any
 
 from sqlalchemy import select
 
-import grunt
 from grunt.document.meta import Meta
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.doctype import DocType
 
 # Filters become a query predicate in grunt.query.sql.filter_expr (parsed by
@@ -38,7 +38,7 @@ async def expand_child_of_filters(
 
         linked_doctype: str = field.options  # type: ignore[assignment]
 
-        linked_dt = await grunt.get_meta(linked_doctype)
+        linked_dt = await doctype_registry.get_meta(linked_doctype)
         if linked_dt is None:
             result[f"{fieldname}__eq"] = value
             continue

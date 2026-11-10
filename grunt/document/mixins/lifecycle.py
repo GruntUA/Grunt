@@ -17,8 +17,6 @@ from typing import Any, Concatenate
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
-import grunt
-from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
 from grunt.document.fetch import apply_fetch_from
 from grunt.document.formula import compute_formulas
@@ -34,7 +32,9 @@ from grunt.document.update_side_effects import (
 from grunt.document.validation import _validate_data, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
+from grunt.i18n import _
 from grunt.local import require_session_user
+from grunt.log import log
 from grunt.monitoring import perf
 from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
@@ -144,7 +144,7 @@ class DocumentLifecycleMixin:
         fresh = await doctype_registry._lazy_load(doctype_name)
         if fresh is not None:
             return Meta(fresh)
-        dt = await grunt.get_meta(doctype_name)
+        dt = await doctype_registry.get_meta(doctype_name)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype_name})
         return dt
@@ -152,7 +152,7 @@ class DocumentLifecycleMixin:
     async def _run_lifecycle_hooks(self, *hook_names: str) -> None:
         """Call the named controller lifecycle hooks, in order.
 
-        A ``grunt.throw()`` from any hook becomes an HTTP error with the status
+        A ``throw()`` from any hook becomes an HTTP error with the status
         its code maps to - the one place that translates "controller rejected
         the save" into HTTP, shared by insert/update/delete.
         """

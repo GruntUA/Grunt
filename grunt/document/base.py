@@ -17,7 +17,6 @@ from typing import Any, ClassVar
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt import _, log
 from grunt.api.v1.ws import manager
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
@@ -32,7 +31,10 @@ from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
-from grunt.local import _user_ctx, require_engine, session_user
+from grunt.i18n import _
+from grunt.local import _user_ctx, require_engine, require_session, session_user
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.store import Store, store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
@@ -59,7 +61,7 @@ SYS_FIELDS: frozenset[str] = frozenset(
 
 
 async def _meta(doctype: str) -> Any:
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     return dt
@@ -123,7 +125,7 @@ class Document(
 
             async def validate(self) -> None:
                 if self.amount <= 0:
-                    grunt.throw("Сума повинна бути більше нуля")
+                    throw("Сума повинна бути більше нуля")
 
     A DocType whose documents aren't rows of its table names its store::
 
@@ -264,7 +266,7 @@ class Document(
         """
         if self.session is None:
             with contextlib.suppress(RuntimeError):
-                self.session = grunt.get_session()
+                self.session = require_session()
         if self.engine is None:
             with contextlib.suppress(RuntimeError):
                 self.engine = require_engine()
@@ -360,7 +362,7 @@ class Document(
         """After the row is deleted."""
 
     async def validate(self) -> None:
-        """Before every write. Call ``grunt.throw()`` to abort the save."""
+        """Before every write. Call ``throw()`` to abort the save."""
 
     async def publish_progress(
         self,

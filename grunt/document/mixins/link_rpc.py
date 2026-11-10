@@ -16,9 +16,11 @@ from typing import Any
 from sqlalchemy import select
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.errors import not_found
-from grunt.local import require_session_user
+from grunt.i18n import _
+from grunt.local import require_session, require_session_user
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
 from grunt.search.terms import match_columns
@@ -46,7 +48,7 @@ async def _identifier_search(
     allowed = {c for c in cols_needed if c in table.c}
 
     stmt = select(*[table.c[c] for c in cols_needed if c in table.c])
-    session = grunt.get_session()
+    session = require_session()
     condition = match_columns(query, [table.c[c] for c in allowed], session)
     if condition is not None:
         stmt = stmt.where(condition)
@@ -84,7 +86,7 @@ class DocumentLinkRPCMixin:
     """Link-field search, exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def link_search(
         doctype: str,
         search: str = "",
@@ -92,7 +94,7 @@ class DocumentLinkRPCMixin:
         filters: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search documents for a Link field dropdown."""
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         extra_filters: dict[str, Any] = filters or {}

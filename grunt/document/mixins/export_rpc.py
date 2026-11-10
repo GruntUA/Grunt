@@ -15,8 +15,11 @@ from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
+from grunt.i18n import _
 from grunt.io import ListExportContext, get_exporter, get_exporters
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort
 lazy from grunt.print.pdf import PdfEngineError, html_to_pdf
 lazy from grunt.print.renderer import (
@@ -61,7 +64,7 @@ async def _export_via_registry(
             % {"format": fmt, "available": ", ".join(available)},
         )
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise HTTPException(
             status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
@@ -107,7 +110,7 @@ class DocumentExportRPCMixin:
     """Export/print operations for documents, exposed via the RPC dispatcher."""
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def export_csv(
         doctype: str,
         sort_by: str = "modified_at",
@@ -147,7 +150,7 @@ class DocumentExportRPCMixin:
         )
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def print(
         doctype: str,
         doc_id: str,
@@ -159,12 +162,12 @@ class DocumentExportRPCMixin:
         """Generate document in requested format: html, pdf, xlsx, or docx."""
 
         doc = await grunt.get_doc(doctype, doc_id)
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
             )
-        session = grunt.get_session()
+        session = require_session()
 
         if fmt == "xlsx":
             content = _generate_xlsx_single(dt.doc, doc)
@@ -236,7 +239,7 @@ class DocumentExportRPCMixin:
         )
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def preview(
         doctype: str,
         template: str,
@@ -254,7 +257,7 @@ class DocumentExportRPCMixin:
         if not template_str:
             raise HTTPException(422, detail=_("template is required"))
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
@@ -292,7 +295,7 @@ class DocumentExportRPCMixin:
         return Response(content=signed, media_type="text/html")
 
     @staticmethod
-    @grunt.whitelist()
+    @whitelist()
     async def export_file(
         doctype: str,
         fmt: str = "xlsx",

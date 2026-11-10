@@ -42,9 +42,7 @@ grunt.cache.query_cache
 grunt.document.base
 grunt.document.collection
 grunt.document.doctypes.Comment.comment
-grunt.document.fetch
 grunt.document.formula
-grunt.document.links
 grunt.document.mixins.collaboration_rpc
 grunt.document.mixins.export_rpc
 grunt.document.mixins.history_rpc
@@ -53,7 +51,6 @@ grunt.document.mixins.link_rpc
 grunt.document.mixins.meta_rpc
 grunt.document.mixins.tree_rpc
 grunt.document.mixins.workflow_rpc
-grunt.document.query
 grunt.document.queryset
 grunt.document.registry
 grunt.document.schema
@@ -61,9 +58,6 @@ grunt.document.sidebar
 grunt.document.titles
 grunt.document.tree
 grunt.document.update_side_effects
-grunt.document.validation
-grunt.document.validators
-grunt.document.versioning
 grunt.email.inbound
 grunt.email.service
 grunt.email.tasks

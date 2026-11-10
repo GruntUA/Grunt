@@ -26,7 +26,8 @@ import importlib.util
 import inspect
 from pathlib import Path
 
-from grunt import _, log
+from grunt.i18n import _
+from grunt.log import log
 from grunt.validators.base import Validator
 
 # name -> Validator instance (singleton per class)

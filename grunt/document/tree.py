@@ -30,9 +30,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 import grunt
-from grunt import _, log
 from grunt.db.dialects import dialect_for
 from grunt.document.registry import document_registry
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.search.terms import match_columns
 from grunt.store import SQL, supports
 lazy from grunt.document.base import Document
@@ -121,7 +123,7 @@ class TreeService:
         permissions); a visible node whose parent is outside it counts as a root.
         """
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
@@ -234,7 +236,7 @@ class TreeService:
         node whose parent is hidden is returned as a root.
         """
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
@@ -411,7 +413,7 @@ class TreeService:
         ancestors are left out of the path.
         """
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
@@ -461,7 +463,7 @@ class TreeService:
         Prevents cycles: new_parent must not be in the node's own subtree.
         """
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise HTTPException(
                 status.HTTP_404_NOT_FOUND,
