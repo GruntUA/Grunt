@@ -1,8 +1,6 @@
 """User HTTP endpoints - registration, sign-in, profile, MFA, password reset.
 
-The public method paths stay ``grunt.auth.doctypes.User.user.<name>``: the
-User controller module re-exports everything here, and the method dispatcher
-resolves names with ``getattr`` on that module.
+Method paths: ``grunt.auth.user_api.<name>``.
 """
 
 from typing import Any
@@ -10,7 +8,7 @@ from typing import Any
 from fastapi import HTTPException, Request, Response
 
 import grunt
-from grunt import log
+from grunt.api.context import whitelist
 from grunt.auth.doctypes.UserSession.user_session import (
     client_device_id,
     client_ip,
@@ -31,6 +29,7 @@ from grunt.auth.mfa import (
     mfa_setup_required,
 )
 from grunt.auth.password_policy import enforce_password_policy
+from grunt.auth.passwords import hash_password
 from grunt.auth.service import (
     access_token_minutes,
     consume_password_reset_token,
@@ -54,20 +53,25 @@ from grunt.auth.users import (
     create_user,
     get_user_by_email,
     get_user_by_id,
-    hash_password,
     is_account_locked,
     list_users,
     register_failed_attempt,
 )
+from grunt.db.api import GruntDB
+from grunt.errors import throw
 from grunt.i18n import _, translation_service
+from grunt.local import require_session
+from grunt.log import log
 from grunt.utils.http import public_base_url
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
 lazy from grunt.auth.mfa import disable_mfa as _disable_mfa
 lazy from grunt.email.service import email_service
 lazy from grunt.i18n import use_language
 
+_db = GruntDB()  # stateless: reads through the context's session
 
-@grunt.whitelist(allow_guest=True)
+
+@whitelist(allow_guest=True)
 async def register(
     email: str,
     password: str,
@@ -81,7 +85,7 @@ async def register(
 
     existing = await get_user_by_email(email)
     if existing is not None:
-        grunt.throw(_("User with email '%(email)s' already exists") % {"email": email}, "CONFLICT")
+        throw(_("User with email '%(email)s' already exists") % {"email": email}, "CONFLICT")
 
     user = await create_user(email, password, first_name or "", last_name or "", middle_name)
     await _assign_default_role(user.id)
@@ -89,7 +93,7 @@ async def register(
     return {**UserPublic.dump(user), "approval_pending": pending}
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def register_full_name_api(email: str, password: str, full_name: str) -> dict[str, Any]:
     """Register a new user using a single full_name string."""
     await _guard_registration()
@@ -105,7 +109,7 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
     return {**_auth_user_dump(user), "approval_pending": pending}
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def login_api(
     email: str, password: str, response: Response, request: Request | None = None
 ) -> dict[str, Any]:
@@ -114,11 +118,11 @@ async def login_api(
         user = await authenticate(email, password)
     except ValueError as exc:
         if str(exc) == "locked":
-            grunt.throw(_("Account temporarily locked. Try again later."), "TOO_MANY_REQUESTS")
+            throw(_("Account temporarily locked. Try again later."), "TOO_MANY_REQUESTS")
         raise
 
     if user is None:
-        grunt.throw(_("Incorrect email or password"), "UNAUTHORIZED")
+        throw(_("Incorrect email or password"), "UNAUTHORIZED")
 
     return await issue_login(
         user,
@@ -130,7 +134,7 @@ async def login_api(
     )
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def mfa_login_api(
     mfa_token: str,
     code: str,
@@ -140,16 +144,16 @@ async def mfa_login_api(
     """Verify MFA challenge token+code and issue full auth tokens."""
     payload = verify_mfa_token(mfa_token)
     if not payload:
-        grunt.throw(_("Invalid or expired MFA token"), "UNAUTHORIZED")
+        throw(_("Invalid or expired MFA token"), "UNAUTHORIZED")
 
     user = await get_user_by_id(payload["uid"])
     if not user or not user.is_active:
-        grunt.throw(_("User not found"), "UNAUTHORIZED")
+        throw(_("User not found"), "UNAUTHORIZED")
 
     # The password step already reset the failure counter, so a wrong second
     # factor must count against the same lockout - a 6-digit code is guessable.
     if await is_account_locked(user):
-        grunt.throw(_("Account temporarily locked. Try again later."), "TOO_MANY_REQUESTS")
+        throw(_("Account temporarily locked. Try again later."), "TOO_MANY_REQUESTS")
     try:
         await check_mfa_code(user, code)
     except HTTPException:
@@ -176,20 +180,20 @@ async def _user_for_mfa_setup(mfa_token: str) -> User:
     """Resolve the user behind an ``mfa_setup`` token who still has to enroll."""
     payload = verify_mfa_setup_token(mfa_token)
     if not payload:
-        grunt.throw(_("Invalid or expired MFA setup token"), "UNAUTHORIZED")
+        throw(_("Invalid or expired MFA setup token"), "UNAUTHORIZED")
     user = await get_user_by_id(payload["uid"])
     if not user or not user.is_active or not await mfa_setup_required(user):
-        grunt.throw(_("MFA setup is unavailable"), "UNAUTHORIZED")
+        throw(_("MFA setup is unavailable"), "UNAUTHORIZED")
     return user
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def mfa_enroll_begin(mfa_token: str) -> MfaSetup:
     """Login-time MFA enrollment, step 1: a fresh TOTP secret + QR code."""
     return await begin_mfa_setup(await _user_for_mfa_setup(mfa_token))
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def mfa_enroll_complete(
     mfa_token: str,
     code: str,
@@ -215,7 +219,7 @@ async def mfa_enroll_complete(
     return {**payload, "backup_codes": backup_codes}
 
 
-@grunt.whitelist()
+@whitelist()
 async def whoami() -> dict[str, Any]:
     """Return the currently authenticated user.
 
@@ -235,7 +239,7 @@ async def whoami() -> dict[str, Any]:
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def update_me_api(
     theme: str | None = None,
     language: str | None = None,
@@ -247,12 +251,12 @@ async def update_me_api(
     values: dict[str, Any] = {}
     if theme is not None:
         if theme not in ("light", "dark", "system"):
-            grunt.throw(_("Invalid theme value"), "VALIDATION_ERROR")
+            throw(_("Invalid theme value"), "VALIDATION_ERROR")
         values["theme"] = theme
     if language is not None:
         # "" clears the preference (follow the site default).
         if language and language not in translation_service.ui_languages():
-            grunt.throw(_("Invalid language value"), "VALIDATION_ERROR")
+            throw(_("Invalid language value"), "VALIDATION_ERROR")
         values["language"] = language or None
     if timezone is not None:
         values["timezone"] = timezone.strip()
@@ -263,26 +267,26 @@ async def update_me_api(
 
     updated = await get_user_by_id(user.id)
     if updated is None:
-        grunt.throw(_("User not found"), "NOT_FOUND")
+        throw(_("User not found"), "NOT_FOUND")
     return _auth_user_dump(updated)
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def refresh_api(response: Response, request: Request | None = None) -> dict[str, Any]:
     """A new access token for the browser's session (the session cookie), which
     is rotated on the way."""
 
     refresh_token = session_token(request)
     if not refresh_token or not same_origin(request):
-        grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
+        throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
     rotated = await rotate_session(refresh_token, client_ip(request))
     if rotated is None:
-        grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
+        throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
 
     sid, new_refresh_token, user_id = rotated
     user = await get_user_by_id(user_id)
     if user is None or not user.is_active:
-        grunt.throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
+        throw(_("Invalid or expired refresh token"), "UNAUTHORIZED")
 
     # A role started requiring MFA after this session was opened (or MFA was
     # turned off), or the session moved to an address the user's role does not
@@ -290,13 +294,11 @@ async def refresh_api(response: Response, request: Request | None = None) -> dic
 
     if not await sign_in_ip_allowed(user, client_ip(request)):
         await end_session(sid)
-        grunt.throw(_("Sign-in from this IP address is not allowed for your role"), "UNAUTHORIZED")
+        throw(_("Sign-in from this IP address is not allowed for your role"), "UNAUTHORIZED")
 
     if await mfa_setup_required(user):
         await end_session(sid)
-        grunt.throw(
-            _("Your role requires two-factor authentication; sign in again"), "UNAUTHORIZED"
-        )
+        throw(_("Your role requires two-factor authentication; sign in again"), "UNAUTHORIZED")
 
     if new_refresh_token:
         await set_session_cookie(response, new_refresh_token)
@@ -309,7 +311,7 @@ async def refresh_api(response: Response, request: Request | None = None) -> dic
     }
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def logout_api(response: Response, request: Request | None = None) -> bool:
     """End this browser's session (other devices stay signed in) and drop its cookie.
 
@@ -321,7 +323,7 @@ async def logout_api(response: Response, request: Request | None = None) -> bool
     return True
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     """Open a short-lived session as another user. System Manager only.
 
@@ -332,7 +334,7 @@ async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     return await start_impersonation(actor, user_id)
 
 
-@grunt.whitelist()
+@whitelist()
 async def stop_impersonation_api() -> bool:
     """Log the end of an impersonation session.
 
@@ -350,11 +352,11 @@ async def stop_impersonation_api() -> bool:
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_colleagues_api() -> list[dict[str, Any]]:
     """The people directory for any signed-in user: active accounts with just
     what a picker shows (sharing, assigning) - no roles, no account state."""
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "User",
         filters={"is_active": True},
         fields=["name", "email", "full_name", "avatar"],
@@ -364,7 +366,7 @@ async def list_colleagues_api() -> list[dict[str, Any]]:
     return [r for r in rows if r.get("email") != SYSTEM_USER.email]
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def list_users_detailed_api() -> list[dict[str, Any]]:
     """List all users with fields needed by the admin REST endpoint."""
     users = await list_users()
@@ -385,7 +387,7 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
     ]
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def list_pending_users_api() -> list[dict[str, Any]]:
     """Self-registered users awaiting approval. System Manager only."""
     rows = await grunt.get_list(
@@ -401,7 +403,7 @@ async def list_pending_users_api() -> list[dict[str, Any]]:
 async def _set_signup_state(user_id: str, state: str) -> bool:
     user = await get_user_by_id(user_id)
     if not user or not user.id:
-        grunt.throw(_("User not found"), "NOT_FOUND")
+        throw(_("User not found"), "NOT_FOUND")
     await grunt.set_value(
         "User",
         user.id,
@@ -411,19 +413,19 @@ async def _set_signup_state(user_id: str, state: str) -> bool:
     return True
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def approve_user_api(user_id: str) -> bool:
     """Approve a pending registration - the user can now sign in. System Manager only."""
     return await _set_signup_state(user_id, "approved")
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def reject_user_api(user_id: str) -> bool:
     """Reject a pending registration. System Manager only."""
     return await _set_signup_state(user_id, "rejected")
 
 
-@grunt.whitelist()
+@whitelist()
 async def set_user_password_api(
     user_id: str, new_password: str, current_password: str | None = None
 ) -> bool:
@@ -436,7 +438,7 @@ async def set_user_password_api(
     """
     user = await get_user_by_id(user_id)
     if not user or not user.id:
-        grunt.throw(_("User not found"), "NOT_FOUND")
+        throw(_("User not found"), "NOT_FOUND")
 
     current = grunt.get_user()
     is_self = bool(
@@ -450,12 +452,12 @@ async def set_user_password_api(
 
     if not is_admin:
         if not is_self:
-            grunt.throw(_("Not permitted to change another user's password"), "PERMISSION_DENIED")
+            throw(_("Not permitted to change another user's password"), "PERMISSION_DENIED")
         # A first-time set (no existing password) needs no current-password proof.
         if user.hashed_password and (
             not current_password or not await user.check_password(current_password)
         ):
-            grunt.throw(_("The current password is incorrect"), "PERMISSION_DENIED")
+            throw(_("The current password is incorrect"), "PERMISSION_DENIED")
 
     await enforce_password_policy(new_password)
     # Authorised above (self + current password, or an admin): the hash is a
@@ -470,37 +472,37 @@ async def _current_user_doc() -> User:
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
-        grunt.throw(_("User not found"), "NOT_FOUND")
+        throw(_("User not found"), "NOT_FOUND")
     return user
 
 
-@grunt.whitelist()
+@whitelist()
 async def setup_mfa() -> MfaSetup:
     """Start MFA setup for the current user."""
     return await begin_mfa_setup(await _current_user_doc())
 
 
-@grunt.whitelist()
+@whitelist()
 async def confirm_mfa(code: str) -> MfaConfirmed:
     """Confirm MFA setup for the current user."""
     return {"backup_codes": await confirm_mfa_setup(await _current_user_doc(), code)}
 
 
-@grunt.whitelist()
+@whitelist()
 async def verify_mfa(code: str) -> bool:
     """Verify a TOTP or backup code for the current user."""
     await check_mfa_code(await _current_user_doc(), code)
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def disable_mfa() -> bool:
     """Disable MFA for the current user."""
     await _disable_mfa(await _current_user_doc())
     return True
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def forgot_password_api(email: str, request: Request | None = None) -> bool:
     """Queue a password reset email if the user exists (always returns success)."""
     user = await get_user_by_email(email)
@@ -528,7 +530,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
                 ]
             )
             subject = _("Password reset")
-        session = grunt.get_session()
+        session = require_session()
         await email_service.queue_email(
             session=session,
             to=user.email,
@@ -546,12 +548,12 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
     return True
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def reset_password_api(token: str, new_password: str) -> bool:
     """Reset password using a valid reset token."""
     await enforce_password_policy(new_password)
 
     reset_ok = await consume_password_reset_token(token, new_password)
     if not reset_ok:
-        grunt.throw(_("Invalid or expired reset token"), "VALIDATION_ERROR")
+        throw(_("Invalid or expired reset token"), "VALIDATION_ERROR")
     return True

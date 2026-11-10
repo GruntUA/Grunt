@@ -4,10 +4,11 @@ from datetime import datetime
 from typing import Any
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.auth.api_key_service import generate_api_key
 from grunt.document.base import Document
-from grunt.errors import forbidden
+from grunt.errors import forbidden, throw
+from grunt.i18n import _
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -24,7 +25,7 @@ class ApiKey(Document):
     allowed_ips: str | None
 
 
-@grunt.whitelist()
+@whitelist()
 async def create_api_key(
     label: str,
     expires_at: datetime | None = None,
@@ -38,7 +39,7 @@ async def create_api_key(
     user = user or grunt.get_user()
     clean_label = label.strip()
     if not clean_label:
-        grunt.throw(_("Label is required"), "VALIDATION")
+        throw(_("Label is required"), "VALIDATION")
 
     assert user.id is not None
     full_key, key_prefix, key_hash = generate_api_key()
@@ -66,7 +67,7 @@ async def create_api_key(
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     """List API keys (secrets are never returned)."""
     user = user or grunt.get_user()
@@ -93,7 +94,7 @@ async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     )
 
 
-@grunt.whitelist()
+@whitelist()
 async def update_api_key(
     key_id: str,
     label: str | None = None,
@@ -111,7 +112,7 @@ async def update_api_key(
     if label is not None:
         clean_label = label.strip()
         if not clean_label:
-            grunt.throw(_("label cannot be empty"), "VALIDATION")
+            throw(_("label cannot be empty"), "VALIDATION")
         updates["label"] = clean_label
     if is_active is not None:
         updates["is_active"] = is_active
@@ -121,7 +122,7 @@ async def update_api_key(
         updates["allowed_ips"] = allowed_ips
 
     if not updates:
-        grunt.throw(_("No fields to update"), "VALIDATION")
+        throw(_("No fields to update"), "VALIDATION")
 
     doc = await grunt.save_doc("ApiKey", key_id, updates)
     return {
@@ -134,7 +135,7 @@ async def update_api_key(
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or grunt.get_user()

@@ -22,14 +22,14 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, cli
         await ctx.db._session().commit()
 
     login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "cache-invalidation@grunt.example.com", "password": "Str0ngPass"},
     )
     assert login.status_code == 200
     headers = {"Authorization": f"Bearer {login.json()['data']['access_token']}"}
 
     # Warm the auth cache for this uid.
-    warm = await client.get("/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers)
+    warm = await client.get("/api/v1/method/grunt.auth.user_api.whoami", headers=headers)
     assert warm.status_code == 200
 
     # Deactivate through the generic document API - the same path an admin's
@@ -39,9 +39,7 @@ async def test_deactivation_takes_effect_immediately_despite_auth_cache(ctx, cli
         await ctx.save_doc("User", user.id, {"is_active": False})
         await ctx.db._session().commit()
 
-    blocked = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers
-    )
+    blocked = await client.get("/api/v1/method/grunt.auth.user_api.whoami", headers=headers)
     assert blocked.status_code == 401
 
 
@@ -56,7 +54,7 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
         await ctx.db._session().commit()
 
     login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "admin@grunt.example.com", "password": "Str0ngPass"},
     )
     assert login.status_code == 200
@@ -66,16 +64,16 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
     assert body["user"]["timezone"] == "Europe/Warsaw"
 
     headers = {"Authorization": f"Bearer {body['access_token']}"}
-    me = (
-        await client.get("/api/v1/method/grunt.auth.doctypes.User.user.whoami", headers=headers)
-    ).json()["data"]
+    me = (await client.get("/api/v1/method/grunt.auth.user_api.whoami", headers=headers)).json()[
+        "data"
+    ]
     assert me["email"] == "admin@grunt.example.com"
     assert me["full_name"] == "Root Admin"
     assert me["language"] == "en"
     assert me["timezone"] == "Europe/Warsaw"
 
     upd = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
+        "/api/v1/method/grunt.auth.user_api.update_me_api",
         json={"language": "uk", "timezone": "UTC"},
         headers=headers,
     )
@@ -85,7 +83,7 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
     assert data["timezone"] == "UTC"
 
     bad = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.update_me_api",
+        "/api/v1/method/grunt.auth.user_api.update_me_api",
         json={"language": "de"},
         headers=headers,
     )
@@ -96,7 +94,7 @@ async def test_session_lifecycle(ctx, client: AsyncClient):
 async def test_invalid_token_returns_401(client: AsyncClient):
     """An invalid JWT -> 401 on whoami."""
     resp = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.whoami",
+        "/api/v1/method/grunt.auth.user_api.whoami",
         headers={"Authorization": "Bearer invalid.token.here"},
     )
     assert resp.status_code == 401
@@ -116,7 +114,7 @@ async def test_authenticated_requests_load_current_roles(ctx, client: AsyncClien
         await ctx.db._session().commit()
 
     response = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.whoami",
+        "/api/v1/method/grunt.auth.user_api.whoami",
         headers={"Authorization": f"Bearer {token}"},
     )
 
@@ -173,7 +171,7 @@ async def _set_settings(ctx, **values) -> None:
 async def test_first_user_system_manager_and_registration_gate(ctx):
     """First user is always allowed and gets the "System Manager" role; later
     self-signup obeys allow_user_registration and receives default_role."""
-    from grunt.auth.doctypes.User.user import register
+    from grunt.auth.user_api import register
     from grunt.auth.users import get_user_by_email
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
@@ -257,7 +255,7 @@ async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
         await _set_settings(ctx, allow_user_registration=True, default_role="Newcomer")
 
     resp = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={"email": "http@grunt.example.com", "password": "x", "full_name": "Http User"},
     )
     assert resp.status_code == 200, resp.text
@@ -276,7 +274,7 @@ async def test_register_via_http_assigns_default_role(ctx, client: AsyncClient):
 @pytest.mark.asyncio
 async def test_register_rejects_weak_password(ctx):
     """The register endpoint enforces the SystemSettings password policy."""
-    from grunt.auth.doctypes.User.user import register
+    from grunt.auth.user_api import register
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         await _set_settings(
@@ -320,7 +318,7 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
 
     # Self sign-up -> pending.
     reg = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={
             "email": "newbie@grunt.example.com",
             "password": "Str0ngPass",
@@ -332,7 +330,7 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
 
     # Login is refused with a soft 'approval_pending' payload, no tokens.
     login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "newbie@grunt.example.com", "password": "Str0ngPass"},
     )
     assert login.status_code == 200, login.text
@@ -342,18 +340,18 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
 
     # System Manager approves.
     admin_login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "root@grunt.example.com", "password": "Str0ngPass"},
     )
     headers = {"Authorization": f"Bearer {admin_login.json()['data']['access_token']}"}
 
     pending = await client.get(
-        "/api/v1/method/grunt.auth.doctypes.User.user.list_pending_users_api", headers=headers
+        "/api/v1/method/grunt.auth.user_api.list_pending_users_api", headers=headers
     )
     assert [u["email"] for u in pending.json()["data"]] == ["newbie@grunt.example.com"]
 
     approve = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.approve_user_api",
+        "/api/v1/method/grunt.auth.user_api.approve_user_api",
         json={"user_id": "newbie@grunt.example.com"},
         headers=headers,
     )
@@ -361,7 +359,7 @@ async def test_signup_approval_flow(ctx, client: AsyncClient):
 
     # Now the user can log in for real.
     ok = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "newbie@grunt.example.com", "password": "Str0ngPass"},
     )
     data = ok.json()["data"]
@@ -376,7 +374,7 @@ async def test_signup_approval_off_by_default(ctx, client: AsyncClient):
         await _set_settings(ctx, allow_user_registration=True)
 
     reg = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={
             "email": "immediate@grunt.example.com",
             "password": "Str0ngPass",
@@ -386,13 +384,13 @@ async def test_signup_approval_off_by_default(ctx, client: AsyncClient):
     assert reg.json()["data"]["approval_pending"] is False
 
     login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "immediate@grunt.example.com", "password": "Str0ngPass"},
     )
     assert login.json()["data"]["access_token"]
 
 
-_SET_PWD = "/api/v1/method/grunt.auth.doctypes.User.user.set_user_password_api"
+_SET_PWD = "/api/v1/method/grunt.auth.user_api.set_user_password_api"
 
 
 @pytest.mark.asyncio
@@ -411,7 +409,7 @@ async def test_set_user_password_self_service(ctx, client: AsyncClient):
 
     async def _login(email: str, password: str) -> dict[str, str]:
         r = await client.post(
-            "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+            "/api/v1/method/grunt.auth.user_api.login_api",
             json={"email": email, "password": password},
         )
         assert r.status_code == 200, r.text
@@ -471,7 +469,8 @@ async def test_set_user_password_self_service(ctx, client: AsyncClient):
 async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncClient):
     """A user provisioned via email link / OIDC has no password; they set one
     from their profile without being asked for a "current" password."""
-    from grunt.auth.doctypes.User.user import User, set_user_password_api, whoami
+    from grunt.auth.doctypes.User.user import User
+    from grunt.auth.user_api import set_user_password_api, whoami
     from grunt.auth.users import create_user
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
@@ -484,7 +483,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
 
     # A no-op whoami-style check: the account cannot sign in with a password yet.
     denied = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "passwordless@grunt.example.com", "password": "anything-at-all"},
     )
     assert denied.status_code != 200
@@ -521,7 +520,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
         await ctx.db._session().commit()
 
     ok = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "passwordless@grunt.example.com", "password": "N3wStr0ngPass"},
     )
     assert ok.status_code == 200, ok.text

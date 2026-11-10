@@ -274,7 +274,7 @@ async def test_colleagues_directory_is_open_to_everyone_without_roles(
     ctx, people, db_session, engine
 ):
     import grunt
-    from grunt.auth.doctypes.User.user import list_colleagues_api
+    from grunt.auth.user_api import list_colleagues_api
 
     async with grunt.context(db_session, engine, _as(ANN)):
         people_list = await list_colleagues_api()

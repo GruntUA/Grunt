@@ -10,8 +10,9 @@ cannot be renewed and expires on its own after
 
 from typing import Any
 
-from grunt import _, log
 from grunt.errors import throw
+from grunt.i18n import _
+from grunt.log import log
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.service import create_access_token
 lazy from grunt.auth.users import _auth_user_dump, get_user_by_id

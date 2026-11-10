@@ -14,7 +14,7 @@ import pytest
 from grunt.auth.service import create_mfa_setup_token, create_mfa_token
 from grunt.auth.users import create_user
 
-M = "/api/v1/method/grunt.auth.doctypes.User.user"
+M = "/api/v1/method/grunt.auth.user_api"
 EMAIL = "mfa-victim@grunt.example.com"
 
 

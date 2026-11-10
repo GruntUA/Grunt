@@ -1,24 +1,28 @@
 """User accounts service - password hashing, lookups, creation, sign-in lockout.
 
-The User DocType controller lives in ``grunt.auth.doctypes.User.user`` and the
-HTTP endpoints in ``grunt.auth.user_api``; both re-export what they need from
-here. Everything is still importable from ``grunt.auth.doctypes.User.user``.
+The User DocType controller lives in ``grunt.auth.doctypes.User.user``, the
+HTTP endpoints in ``grunt.auth.user_api``, password hashing in
+``grunt.auth.passwords``.
 """
 
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import anyio.to_thread
-import bcrypt
-
 import grunt
-from grunt import _, log
 from grunt.auth.doctypes.UserRole.user_role import get_user_roles
+from grunt.auth.passwords import verify_password
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
 lazy from grunt.auth.doctypes.User.user import User
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _MAX_ATTEMPTS = 10
 _LOCKOUT_MINUTES = 30
@@ -54,36 +58,6 @@ AUTH_CONTEXT_FIELDS: list[str] = [
 ]
 
 
-# Password helpers
-
-
-def _hash_password_sync(plain: str) -> str:
-    return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
-
-
-def _verify_password_sync(plain: str, hashed: str) -> bool:
-    try:
-        return bcrypt.checkpw(plain.encode(), hashed.encode())
-    except AttributeError, ValueError:
-        return False
-
-
-async def hash_password(plain: str) -> str:
-    """Hash a password off the event loop.
-
-    bcrypt is deliberately slow (~100ms+); running it inline would block every
-    other request served by the same worker for that whole time.
-    """
-    return await anyio.to_thread.run_sync(_hash_password_sync, plain)
-
-
-async def verify_password(plain: str, hashed: str | None) -> bool:
-    """Verify a password off the event loop (see :func:`hash_password`)."""
-    if not hashed:
-        return False
-    return await anyio.to_thread.run_sync(_verify_password_sync, plain, hashed)
-
-
 # User CRUD
 
 
@@ -94,7 +68,7 @@ async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) ->
     ``fields`` restricts the SELECT to those columns (see ``AUTH_CONTEXT_FIELDS``);
     omit it to fetch the full row, including password/token/MFA columns.
     """
-    session = grunt.get_session()
+    session = require_session()
     async with grunt.system_context(session):
         query = User.objects.filter(**filter_kwargs)
         if fields is not None:
@@ -121,7 +95,7 @@ async def get_users_by_emails(emails: list[str], *, fields: list[str] | None = N
     if not emails:
         return []
 
-    session = grunt.get_session()
+    session = require_session()
     async with grunt.system_context(session):
         query = User.objects.filter(email__in=emails)
         if fields is not None:
@@ -151,7 +125,7 @@ async def get_auth_context_user(uid: str) -> User | None:
 
     cached = await grunt.doc_cache.get("User", uid)
     if cached is not None:
-        return User(doctype="User", data=dict(cached), session=grunt.get_session())
+        return User(doctype="User", data=dict(cached), session=require_session())
 
     user = await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
     if user is not None:
@@ -162,7 +136,7 @@ async def get_auth_context_user(uid: str) -> User | None:
 async def list_users() -> list[User]:
     """List all users. Runs as SYSTEM_USER - callers (CLI, admin API) gate access
     themselves before calling this."""
-    session = grunt.get_session()
+    session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
         users = await User.objects.limit(10_000).all()
@@ -179,7 +153,7 @@ async def create_user(
     middle_name: str | None,
 ) -> User:
     """Create a new user. The first user automatically gets the "System Manager" role."""
-    session = grunt.get_session()
+    session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with grunt.system_context(session, engine):
         is_first_user = await User.objects.count() == 0
@@ -203,7 +177,7 @@ async def create_user(
 async def _grant_system_manager(user_id: str) -> None:
     """Ensure the "System Manager" role exists and assign it to *user_id* -
     used to make the first user on a site an administrator."""
-    if not await grunt.db.exists("Role", {"role_name": "System Manager"}):
+    if not await _db.exists("Role", {"role_name": "System Manager"}):
         await Role.objects.create(role_name="System Manager")
     await grunt.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
 
@@ -234,10 +208,10 @@ async def register_failed_attempt(user: User) -> None:
         await get_setting("account_lockout_duration", _LOCKOUT_MINUTES) or _LOCKOUT_MINUTES
     )
     assert user.name
-    session = grunt.get_session()
+    session = require_session()
     async with grunt.system_context(session):
         # Fresh count, not the copy loaded at the start of the request.
-        stored = await grunt.db.get_value("User", user.name, "login_attempts")
+        stored = await _db.get_value("User", user.name, "login_attempts")
         new_attempts = int(stored or 0) + 1
         updates: dict = {"login_attempts": new_attempts}
         if new_attempts >= max_attempts:
@@ -256,7 +230,7 @@ async def clear_failed_attempts(user: User) -> None:
     """Reset the failed-sign-in counter and any lock after a success."""
 
     assert user.name
-    async with grunt.system_context(grunt.get_session()):
+    async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
 
 
@@ -275,7 +249,7 @@ async def authenticate(email: str, password: str) -> User | None:
     if await is_account_locked(user):
         raise ValueError("locked")
 
-    async with grunt.system_context(grunt.get_session()):
+    async with grunt.system_context(require_session()):
         valid = bool(user.hashed_password) and await verify_password(password, user.hashed_password)
 
     if not valid:
@@ -314,10 +288,10 @@ async def _guard_registration() -> None:
     The very first user is always allowed - that path is the setup wizard /
     ``grunt site create`` bootstrap, not public sign-up.
     """
-    if await grunt.db.count("User") == 0:
+    if await _db.count("User") == 0:
         return
     if not await get_setting("allow_user_registration", False):
-        grunt.throw(_("Registration of new users is disabled"), "FORBIDDEN")
+        throw(_("Registration of new users is disabled"), "FORBIDDEN")
 
 
 async def _assign_default_role(user_id: str | None) -> None:
@@ -330,10 +304,10 @@ async def _assign_default_role(user_id: str | None) -> None:
     if not role or not user_id:
         return
 
-    async with grunt.system_context(grunt.get_session()):
-        if not await grunt.db.exists("Role", {"role_name": role}):
+    async with grunt.system_context(require_session()):
+        if not await _db.exists("Role", {"role_name": role}):
             return
-        current = await grunt.db.get_all(
+        current = await _db.get_all(
             "UserRole",
             filters={"parent_name": user_id, "parent_doctype": "User"},
             fields=["role_name"],
@@ -357,7 +331,7 @@ async def _apply_signup_approval(user: User) -> bool:
         return False
 
     assert user.id is not None
-    async with grunt.system_context(grunt.get_session()):
+    async with grunt.system_context(require_session()):
         await grunt.db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
     user.data["signup_state"] = "pending"
     user.data["is_active"] = False

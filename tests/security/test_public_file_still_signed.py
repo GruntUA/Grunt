@@ -11,11 +11,11 @@ M = "/api/v1/method/grunt.storage.doctypes.File.file"
 
 async def _login(client, email: str) -> dict[str, str]:
     await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={"email": email, "password": "Secret-pass-123", "full_name": "T U"},
     )
     r = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": email, "password": "Secret-pass-123"},
     )
     assert r.status_code == 200, r.text

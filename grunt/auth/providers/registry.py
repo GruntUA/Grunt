@@ -13,9 +13,10 @@ over a declared provider of the same name.
 
 import importlib
 
-import grunt
-from grunt import _, log
 from grunt.auth.providers.declarations import take
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.log import log
 lazy from grunt.auth.providers.base import AuthProvider
 
 _PROVIDERS: dict[str, AuthProvider] = {}
@@ -54,7 +55,7 @@ def get(name: str) -> AuthProvider:
     _load_declared()
     provider = _PROVIDERS.get(name)
     if provider is None:
-        grunt.throw(_("Unknown auth provider: %(name)s") % {"name": name}, "NOT_FOUND")
+        throw(_("Unknown auth provider: %(name)s") % {"name": name}, "NOT_FOUND")
     return provider
 
 

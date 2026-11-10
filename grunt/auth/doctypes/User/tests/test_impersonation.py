@@ -5,14 +5,14 @@ from httpx2 import AsyncClient
 
 from grunt.auth.users import create_user
 
-_START = "/api/v1/method/grunt.auth.doctypes.User.user.start_impersonation_api"
-_STOP = "/api/v1/method/grunt.auth.doctypes.User.user.stop_impersonation_api"
-_WHOAMI = "/api/v1/method/grunt.auth.doctypes.User.user.whoami"
+_START = "/api/v1/method/grunt.auth.user_api.start_impersonation_api"
+_STOP = "/api/v1/method/grunt.auth.user_api.stop_impersonation_api"
+_WHOAMI = "/api/v1/method/grunt.auth.user_api.whoami"
 
 
 async def _login(client: AsyncClient, email: str, password: str) -> str:
     resp = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": email, "password": password},
     )
     assert resp.status_code == 200, resp.text

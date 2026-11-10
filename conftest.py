@@ -236,13 +236,13 @@ async def ctx(db_session: AsyncSession, engine: AsyncEngine):
 async def auth_headers(client: AsyncClient) -> dict[str, str]:
     """Register a System Manager user and return auth headers."""
     r_reg = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={"email": "admin@grunt.example.com", "password": "secret", "full_name": "Admin User"},
     )
     assert r_reg.status_code in (201, 200, 409)  # 409 if user somehow persisted
 
     resp = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "admin@grunt.example.com", "password": "secret"},
     )
     assert resp.status_code == 200, f"Auth failed: {resp.text}"

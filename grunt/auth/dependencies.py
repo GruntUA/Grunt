@@ -8,21 +8,20 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt import _, log
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.service import decode_access_token
 from grunt.auth.users import get_auth_context_user
 from grunt.db.session import get_engine, get_session
+from grunt.i18n import _
 from grunt.i18n.middleware import apply_user_language
 from grunt.local import _messages_ctx, _user_ctx
+from grunt.log import log
 lazy from grunt.auth.api_key_service import authenticate_api_key
 lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api"
-)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/method/grunt.auth.user_api.login_api")
 _oauth2_scheme_optional = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+    tokenUrl="/api/v1/method/grunt.auth.user_api.login_api",
     auto_error=False,
 )
 

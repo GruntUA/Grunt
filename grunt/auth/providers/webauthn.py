@@ -23,13 +23,15 @@ lazy from webauthn.helpers.structs import (
 )
 
 import grunt
-from grunt import _, log
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.auth.users import get_user_by_email, get_user_by_id
 from grunt.config import settings
 from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.log import log
 lazy from grunt.utils.http import public_base_url
 
 _AUTH_PURPOSE = "webauthn-auth"
@@ -90,7 +92,7 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
 
 
 async def _credentials_for_user(user_id: str) -> list[dict]:
-    async with grunt.system_context(grunt.get_session()):
+    async with grunt.system_context(require_session()):
         return await grunt.get_list(
             _CRED,
             filters={"user": user_id},
@@ -100,7 +102,7 @@ async def _credentials_for_user(user_id: str) -> list[dict]:
 
 
 async def _credential_by_id(credential_id: str) -> dict | None:
-    async with grunt.system_context(grunt.get_session()):
+    async with grunt.system_context(require_session()):
         rows = await grunt.get_list(
             _CRED,
             filters={"credential_id": credential_id},
@@ -208,7 +210,7 @@ class WebAuthnProvider(AuthProvider):
             log.warning("webauthn.verify_failed", error=str(exc))
             throw(_("Passkey verification failed"), "UNAUTHORIZED")
 
-        async with grunt.system_context(grunt.get_session()):
+        async with grunt.system_context(require_session()):
             await grunt.db.set_value(
                 _CRED,
                 cred["name"],
@@ -303,7 +305,7 @@ class WebAuthnProvider(AuthProvider):
             throw(_("This passkey is already registered"), "CONFLICT")
 
         transports = ",".join((response.get("response") or {}).get("transports") or [])
-        async with grunt.system_context(grunt.get_session()):
+        async with grunt.system_context(require_session()):
             doc = await grunt.new_doc(
                 _CRED,
                 {

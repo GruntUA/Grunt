@@ -136,7 +136,7 @@ export const useAuthStore = defineStore('auth', () => {
     mfa_token?: string
     expected_code?: string
   }> {
-    const { data: body } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.login_api', {
+    const { data: body } = await client.post('/api/v1/method/grunt.auth.user_api.login_api', {
       email,
       password,
     })
@@ -282,7 +282,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function _refreshOnce(staleAccess: string | null): Promise<RefreshOutcome> {
     if (token.value && token.value !== staleAccess && !isJwtExpired(token.value)) return 'ok'
     try {
-      const { data: body } = await client.post('/api/v1/method/grunt.auth.doctypes.User.user.refresh_api')
+      const { data: body } = await client.post('/api/v1/method/grunt.auth.user_api.refresh_api')
       _adopt(body.data)
       return 'ok'
     } catch (err: any) {
@@ -303,7 +303,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     if (!_fetchMePromise) {
-      _fetchMePromise = client.get('/api/v1/method/grunt.auth.doctypes.User.user.whoami')
+      _fetchMePromise = client.get('/api/v1/method/grunt.auth.user_api.whoami')
         .then(({ data }) => {
           const u = data.data ?? data
           user.value = u
@@ -325,13 +325,13 @@ export const useAuthStore = defineStore('auth', () => {
   async function setTheme(theme: Theme) {
     useColorMode().setTheme(theme)
     if (user.value) user.value.theme = theme
-    await client.post('/api/v1/method/grunt.auth.doctypes.User.user.update_me_api', { theme })
+    await client.post('/api/v1/method/grunt.auth.user_api.update_me_api', { theme })
   }
 
   async function setLanguage(language: SupportedLocale) {
     setLocale(language)
     if (user.value) user.value.language = language
-    await client.post('/api/v1/method/grunt.auth.doctypes.User.user.update_me_api', { language })
+    await client.post('/api/v1/method/grunt.auth.user_api.update_me_api', { language })
   }
 
   function _logout() {
@@ -349,7 +349,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     try {
       // Ends the session the cookie names and clears the cookie.
-      await client.post('/api/v1/method/grunt.auth.doctypes.User.user.logout_api')
+      await client.post('/api/v1/method/grunt.auth.user_api.logout_api')
     } catch {
       // best-effort
     }

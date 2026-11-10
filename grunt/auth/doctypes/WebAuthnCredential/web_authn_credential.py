@@ -10,8 +10,11 @@ from datetime import UTC, datetime
 from typing import Any
 
 import grunt
-from grunt import _, log
+from grunt.api.context import whitelist
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.log import log
 
 
 class WebAuthnCredential(Document):
@@ -53,11 +56,11 @@ async def _owned_passkey(name: str, user_id: str) -> str:
         limit=1,
     )
     if not rows:
-        grunt.throw(_("Passkey not found"), "NOT_FOUND")
+        throw(_("Passkey not found"), "NOT_FOUND")
     return rows[0]["name"]
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_my_passkeys() -> list[dict[str, Any]]:
     """Passkeys registered by the current user."""
     current = grunt.get_user()
@@ -71,14 +74,14 @@ async def list_my_passkeys() -> list[dict[str, Any]]:
     return [_row_view(r) for r in rows]
 
 
-@grunt.whitelist()
+@whitelist()
 async def rename_passkey(name: str, label: str) -> bool:
     """Rename one of the current user's passkeys."""
     current = grunt.get_user()
     assert current.id is not None
     label = (label or "").strip()
     if not label:
-        grunt.throw(_("Label is required"), "VALIDATION_ERROR")
+        throw(_("Label is required"), "VALIDATION_ERROR")
     # Ownership is checked by _owned_passkey; the role grants no `write`
     # (credentials change only through these endpoints), so the field is set
     # past the role rules.
@@ -88,7 +91,7 @@ async def rename_passkey(name: str, label: str) -> bool:
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def delete_passkey(name: str) -> bool:
     """Remove one of the current user's passkeys."""
     current = grunt.get_user()
@@ -99,7 +102,7 @@ async def delete_passkey(name: str) -> bool:
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def touch_passkey(name: str) -> bool:
     """Update ``last_used_at`` (used by the frontend after a successful ceremony)."""
     current = grunt.get_user()

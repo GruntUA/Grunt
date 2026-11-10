@@ -6,8 +6,9 @@ low-level ``create_user()`` is deliberately *not* guarded so that first-admin
 bootstrap (``grunt site create`` / setup wizard) is never blocked.
 """
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.site.settings import get_setting
 
 
@@ -26,7 +27,7 @@ async def get_password_policy() -> dict[str, int | bool]:
     }
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def password_policy_api() -> dict[str, int | bool]:
     """Expose :func:`get_password_policy` to the frontend (live strength hints)."""
     return await get_password_policy()
@@ -56,7 +57,7 @@ async def enforce_password_policy(password: str) -> None:
         problems.append(_("contain a special character"))
 
     if problems:
-        grunt.throw(
+        throw(
             _("The password must %(requirements)s.") % {"requirements": "; ".join(problems)},
             "VALIDATION_ERROR",
         )

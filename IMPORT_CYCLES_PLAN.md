@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — злито #120–#132 (кроки 0–6b-3, 9a–9c); 6b-4 (HTTP-методи з `Document` в `grunt.api.v1.document`) — у PR.
+Оновлено: 2026-11-10 — злито #120–#133 (кроки 0–6, 9a–9c); крок 7 (auth) — у PR.
 
 ---
 
@@ -90,7 +90,7 @@
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | злито (#124) |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | злито (#125) |
 | 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a злито (#126); 6b-1 злито (#127); 6b-2 (`base` ↔ `registry` / `schema` / `queryset`) — у PR; 6b-3 (mixins → сервіси вище — через події) — далі |
-| 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | |
+| 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | у PR |
 | 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
 | 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | |
 | 10 | Храповик рахує й неявні імпорти батьківських пакетів; базовий список порожній; CodeQL локально і в CI — 0 | |
@@ -365,4 +365,21 @@
 - Результат: 2262 passed, vitest 335, vue-tsc і pyright 0; CodeQL локально 224 → 147;
   алерти `documents` після #131 зникли; 3 «нові» — ті самі цикли `auth`, перекласифіковані з
   `unsafe-cyclic-import` на `cyclic-import`.
+
+### 2026-11-10 — крок 7: auth-сервіси
+
+- **Реекспорти внизу `User/user.py` прибрано.** HTTP-методи входу — за власним шляхом
+  `grunt.auth.user_api.<name>` (було `grunt.auth.doctypes.User.user.<name>`); імпорти сервісів —
+  з `grunt.auth.users`. Оновлено фронтенд (`stores/auth.ts`, `api/client.ts`, `auth-admin.ts`,
+  `browserHealth.ts`, тести), `User.js`, `rate_limit`, `dependencies`, `document_cache`, тести,
+  `methods.generated.d.ts`. Інші додатки bench цих шляхів не використовують.
+- **Хешування паролів** — лист `auth/passwords.py`; контролер `User` більше не імпортує
+  `auth.users`.
+- **`UserSession ↔ service`:** `session_ttl_minutes` (налаштування сесій) — у `UserSession`.
+- Низькорівневий фасад прибрано з `auth.*`.
+- Базовий список 70 → 64 (`user_api`, `login`, `mfa`, `impersonation`, `session_cookie`,
+  `password_policy`). Решту `auth` (`User`, `UserRole`, `Role`, `users`, `UserSession`,
+  `service`, `ip_policy`) тримає високорівневий фасад (`grunt.*` у контролерах, `document.base`)
+  — крок 9.
+- Результат: 2262 passed, vitest 335, vue-tsc і pyright 0; CodeQL локально 147 → 38, нових 0.
 

@@ -16,9 +16,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 lazy import segno
 
 import grunt
-from grunt import _, log
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.log import log
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.site.manager import site_manager
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _APP_NAME = "Grunt"
 _BACKUP_CODE_COUNT = 8
@@ -86,7 +90,7 @@ async def mfa_setup_required(user: User) -> bool:
     roles = list(getattr(user, "roles", None) or [])
     if not roles:
         return False
-    enforcing = await grunt.db.get_all(
+    enforcing = await _db.get_all(
         "Role", filters={"name__in": roles, "require_mfa": True}, pluck="name", limit=1
     )
     return bool(enforcing)
@@ -128,7 +132,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Returns a list of plain-text backup codes that the user should save.
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
-    rows = await grunt.db.get_all("User", filters={"name": user.id}, fields=["mfa_secret"], limit=1)
+    rows = await _db.get_all("User", filters={"name": user.id}, fields=["mfa_secret"], limit=1)
     if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(422, detail=_("MFA is not set up. Run the setup first."))
 
@@ -184,7 +188,7 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
         ctx = contextlib.nullcontext()
 
     async with ctx:
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             "User",
             filters={"name": user.id},
             fields=["mfa_secret", "mfa_backup_codes"],

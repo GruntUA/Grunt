@@ -228,54 +228,6 @@ interface GruntMethods {
   "grunt.auth.doctypes.ApiKey.api_key.revoke_api_key": { args: { key_id: string }; result: boolean }
   /** Update label, active state, allowed IPs, or expiry of a key. */
   "grunt.auth.doctypes.ApiKey.api_key.update_api_key": { args: { key_id: string; label?: string | null; is_active?: boolean | null; expires_at?: string | null; allowed_ips?: string | null }; result: Record<string, any> }
-  /** Approve a pending registration - the user can now sign in. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.approve_user_api": { args: { user_id: string }; result: boolean }
-  /** Confirm MFA setup for the current user. */
-  "grunt.auth.doctypes.User.user.confirm_mfa": { args: { code: string }; result: GruntApi.grunt.MfaConfirmed }
-  /** Disable MFA for the current user. */
-  "grunt.auth.doctypes.User.user.disable_mfa": { args: {}; result: boolean }
-  /** Queue a password reset email if the user exists (always returns success). Allowed for guests. */
-  "grunt.auth.doctypes.User.user.forgot_password_api": { args: { email: string }; result: boolean }
-  /** The people directory for any signed-in user: active accounts with just what a picker shows (sharing, assigning) - no roles, no account state. */
-  "grunt.auth.doctypes.User.user.list_colleagues_api": { args: {}; result: Record<string, any>[] }
-  /** Self-registered users awaiting approval. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.list_pending_users_api": { args: {}; result: Record<string, any>[] }
-  /** List all users with fields needed by the admin REST endpoint. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.list_users_detailed_api": { args: {}; result: Record<string, any>[] }
-  /** Authenticate a user and issue auth tokens or MFA challenge token. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.login_api": { args: { email: string; password: string }; result: Record<string, any> }
-  /** End this browser's session (other devices stay signed in) and drop its cookie. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.logout_api": { args: {}; result: boolean }
-  /** Login-time MFA enrollment, step 1: a fresh TOTP secret + QR code. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.mfa_enroll_begin": { args: { mfa_token: string }; result: GruntApi.grunt.MfaSetup }
-  /** Login-time MFA enrollment, step 2: confirm the code, then sign in. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.mfa_enroll_complete": { args: { mfa_token: string; code: string }; result: Record<string, any> }
-  /** Verify MFA challenge token+code and issue full auth tokens. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.mfa_login_api": { args: { mfa_token: string; code: string }; result: Record<string, any> }
-  /** A new access token for the browser's session (the session cookie), which is rotated on the way. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.refresh_api": { args: {}; result: Record<string, any> }
-  /** Register a new user. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.register": { args: { email: string; password: string; first_name?: string | null; last_name?: string | null; middle_name?: string | null }; result: Record<string, any> }
-  /** Register a new user using a single full_name string. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.register_full_name_api": { args: { email: string; password: string; full_name: string }; result: Record<string, any> }
-  /** Reject a pending registration. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.reject_user_api": { args: { user_id: string }; result: boolean }
-  /** Reset password using a valid reset token. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.reset_password_api": { args: { token: string; new_password: string }; result: boolean }
-  /** Set a new password for a user. */
-  "grunt.auth.doctypes.User.user.set_user_password_api": { args: { user_id: string; new_password: string; current_password?: string | null }; result: boolean }
-  /** Start MFA setup for the current user. */
-  "grunt.auth.doctypes.User.user.setup_mfa": { args: {}; result: GruntApi.grunt.MfaSetup }
-  /** Open a short-lived session as another user. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.start_impersonation_api": { args: { user_id: string }; result: Record<string, any> }
-  /** Log the end of an impersonation session. */
-  "grunt.auth.doctypes.User.user.stop_impersonation_api": { args: {}; result: boolean }
-  /** Update current user preferences and return updated profile. */
-  "grunt.auth.doctypes.User.user.update_me_api": { args: { theme?: string | null; language?: string | null; timezone?: string | null }; result: Record<string, any> }
-  /** Verify a TOTP or backup code for the current user. */
-  "grunt.auth.doctypes.User.user.verify_mfa": { args: { code: string }; result: boolean }
-  /** Return the currently authenticated user. */
-  "grunt.auth.doctypes.User.user.whoami": { args: {}; result: Record<string, any> }
   /** Active sessions of the current user; ``current`` marks this device. */
   "grunt.auth.doctypes.UserSession.user_session.list_my_sessions": { args: {}; result: Record<string, any>[] }
   /** Sign out one of the current user's devices. */

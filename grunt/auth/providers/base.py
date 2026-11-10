@@ -25,7 +25,7 @@ from typing import Any, ClassVar, Literal
 
 from fastapi import Request
 
-from grunt import _
+from grunt.i18n import _
 from grunt.utils.http import public_base_url
 lazy from grunt.auth.doctypes.User.user import User
 

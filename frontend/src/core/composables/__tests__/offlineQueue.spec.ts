@@ -10,7 +10,7 @@ describe('offline queue scope', () => {
 
   it('never queues actions, RPCs or login', () => {
     expect(parseDocUrl('post', '/api/v1/docs/ToDo/abc')).toBeNull() // POST on a document = an action
-    expect(parseDocUrl('post', '/api/v1/method/grunt.auth.doctypes.User.user.login_api')).toBeNull()
+    expect(parseDocUrl('post', '/api/v1/method/grunt.auth.user_api.login_api')).toBeNull()
     expect(parseDocUrl('put', '/api/v1/docs/ToDo')).toBeNull()
     expect(parseDocUrl('post', '/api/v1/auth/webauthn/complete')).toBeNull()
   })
