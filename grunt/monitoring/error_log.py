@@ -17,6 +17,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import grunt
+from grunt.local import session_user
 from grunt.log import log
 from grunt.site.manager import site_manager
 
@@ -113,12 +114,7 @@ async def record_error(
             app = _app_of_traceback(tb_text)
 
         if user is None:
-            try:
-                from grunt.api.context import get_user
-
-                user = get_user().email
-            except Exception:
-                user = None
+            user = session_user()
 
         payload: dict[str, Any] = {
             "title": _clip(title, _TITLE_MAX),

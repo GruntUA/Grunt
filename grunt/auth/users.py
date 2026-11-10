@@ -15,7 +15,6 @@ import grunt
 from grunt import _, log
 from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 from grunt.config import settings
-from grunt.permissions.roles import user_has_roles
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
@@ -356,9 +355,7 @@ async def _apply_signup_approval(user: User) -> bool:
 
     Returns True when the user was left pending.
     """
-    if user_has_roles(user, ["System Manager"]) or not await get_setting(
-        "require_signup_approval", False
-    ):
+    if user.has_role("System Manager") or not await get_setting("require_signup_approval", False):
         return False
 
     assert user.id is not None

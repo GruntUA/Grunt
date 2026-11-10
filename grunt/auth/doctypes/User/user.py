@@ -14,13 +14,12 @@ from typing import Any
 
 import grunt
 from grunt import log
-from grunt.auth.constants import SYSTEM_USER_EMAIL
+from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.users import hash_password, verify_password
 from grunt.document.base import Document
 from grunt.document.schema import Schema
 from grunt.i18n import N_, _
-from grunt.permissions.roles import user_has_roles
 
 # When a non-privileged user saves their *own* record via the generic form (the
 # "All" permission row lets them), these fields must not change. Roles live in
@@ -107,7 +106,7 @@ class User(Document):
 
     def has_role(self, *roles: str) -> bool:
         """True if the user holds any of *roles*."""
-        return user_has_roles(self, list(roles))
+        return any(r in roles for r in self.role_names)
 
     async def validate(self) -> None:
         if not self.email:
@@ -134,7 +133,7 @@ class User(Document):
             return
         if current is None or not getattr(current, "id", None):
             return
-        if user_has_roles(current, ["System Manager"]):
+        if current.has_role("System Manager"):
             return
         if await _is_internal_context():
             return
@@ -259,7 +258,7 @@ SYSTEM_USER = User(
 
 # Anonymous visitors of the public site (form submissions, uploads) act as
 # this identity - the Guest role's permissions only.
-GUEST_USER = "guest@grunt.local"
+GUEST_USER = GUEST_USER_EMAIL
 
 
 def guest_user() -> User:

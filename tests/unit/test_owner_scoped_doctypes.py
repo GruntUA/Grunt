@@ -26,8 +26,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
@@ -57,9 +56,9 @@ async def test_bookmark_owner_can_manage_own_row():
     dt = _load(_BOOKMARK_JSON)
     owner = _user("owner@example.com")
     own_row = {"owner": "owner@example.com"}
-    assert await permission_checker.check(owner, dt, "read", own_row) is True
-    assert await permission_checker.check(owner, dt, "write", own_row) is True
-    assert await permission_checker.check(owner, dt, "delete", own_row) is True
+    assert await check_as(owner, dt, "read", own_row) is True
+    assert await check_as(owner, dt, "write", own_row) is True
+    assert await check_as(owner, dt, "delete", own_row) is True
 
 
 @pytest.mark.asyncio
@@ -67,9 +66,9 @@ async def test_bookmark_other_user_cannot_see_or_touch_it():
     dt = _load(_BOOKMARK_JSON)
     attacker = _user("attacker@example.com")
     someone_elses_row = {"owner": "owner@example.com"}
-    assert await permission_checker.check(attacker, dt, "read", someone_elses_row) is False
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_row) is False
-    assert await permission_checker.check(attacker, dt, "delete", someone_elses_row) is False
+    assert await check_as(attacker, dt, "read", someone_elses_row) is False
+    assert await check_as(attacker, dt, "write", someone_elses_row) is False
+    assert await check_as(attacker, dt, "delete", someone_elses_row) is False
 
 
 # ── DocTag ────────────────────────────────────────────────────────────────
@@ -83,8 +82,8 @@ def test_doctag_has_permissions_defined():
 async def test_doctag_any_authenticated_user_can_read_and_create():
     dt = _load(_DOCTAG_JSON)
     user = _user("someone-else@example.com")
-    assert await permission_checker.check(user, dt, "read") is True
-    assert await permission_checker.check(user, dt, "create") is True
+    assert await check_as(user, dt, "read") is True
+    assert await check_as(user, dt, "create") is True
 
 
 @pytest.mark.asyncio
@@ -92,8 +91,8 @@ async def test_doctag_owner_can_edit_and_delete_own_tag():
     dt = _load(_DOCTAG_JSON)
     owner = _user("owner@example.com")
     own_tag = {"owner": "owner@example.com"}
-    assert await permission_checker.check(owner, dt, "write", own_tag) is True
-    assert await permission_checker.check(owner, dt, "delete", own_tag) is True
+    assert await check_as(owner, dt, "write", own_tag) is True
+    assert await check_as(owner, dt, "delete", own_tag) is True
 
 
 @pytest.mark.asyncio
@@ -101,8 +100,8 @@ async def test_doctag_other_user_cannot_edit_or_delete_someone_elses_tag():
     dt = _load(_DOCTAG_JSON)
     attacker = _user("attacker@example.com")
     someone_elses_tag = {"owner": "owner@example.com"}
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_tag) is False
-    assert await permission_checker.check(attacker, dt, "delete", someone_elses_tag) is False
+    assert await check_as(attacker, dt, "write", someone_elses_tag) is False
+    assert await check_as(attacker, dt, "delete", someone_elses_tag) is False
 
 
 # ── ToDo ──────────────────────────────────────────────────────────────────
@@ -117,8 +116,8 @@ async def test_todo_assignee_can_read_and_update_own_task():
     dt = _load(_TODO_JSON)
     assignee = _user("assignee@example.com")
     own_task = {"assigned_to": "assignee@example.com"}
-    assert await permission_checker.check(assignee, dt, "read", own_task) is True
-    assert await permission_checker.check(assignee, dt, "write", own_task) is True
+    assert await check_as(assignee, dt, "read", own_task) is True
+    assert await check_as(assignee, dt, "write", own_task) is True
 
 
 @pytest.mark.asyncio
@@ -126,11 +125,11 @@ async def test_todo_any_authenticated_user_can_create():
     """Assigning a task to someone else must not require a special role."""
     dt = _load(_TODO_JSON)
     user = _user("anyone@example.com")
-    assert await permission_checker.check(user, dt, "create") is True
+    assert await check_as(user, dt, "create") is True
     # ...but only create — they still can't read/write a task that is neither
     # assigned to them nor created by them.
     someone_elses_task = {"assigned_to": "victim@example.com", "owner": "boss@example.com"}
-    assert await permission_checker.check(user, dt, "read", someone_elses_task) is False
+    assert await check_as(user, dt, "read", someone_elses_task) is False
 
 
 @pytest.mark.asyncio
@@ -138,8 +137,8 @@ async def test_todo_other_user_cannot_read_or_touch_someone_elses_task():
     dt = _load(_TODO_JSON)
     attacker = _user("attacker@example.com")
     someone_elses_task = {"assigned_to": "victim@example.com"}
-    assert await permission_checker.check(attacker, dt, "read", someone_elses_task) is False
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_task) is False
+    assert await check_as(attacker, dt, "read", someone_elses_task) is False
+    assert await check_as(attacker, dt, "write", someone_elses_task) is False
 
 
 @pytest.mark.asyncio
@@ -147,7 +146,7 @@ async def test_todo_system_manager_has_full_access_regardless_of_assignee():
     dt = _load(_TODO_JSON)
     admin = _user("admin@example.com", roles=["System Manager"])
     someone_elses_task = {"assigned_to": "victim@example.com"}
-    assert await permission_checker.check(admin, dt, "read", someone_elses_task) is True
-    assert await permission_checker.check(admin, dt, "write", someone_elses_task) is True
-    assert await permission_checker.check(admin, dt, "create") is True
-    assert await permission_checker.check(admin, dt, "delete", someone_elses_task) is True
+    assert await check_as(admin, dt, "read", someone_elses_task) is True
+    assert await check_as(admin, dt, "write", someone_elses_task) is True
+    assert await check_as(admin, dt, "create") is True
+    assert await check_as(admin, dt, "delete", someone_elses_task) is True

@@ -11,7 +11,6 @@ cannot be renewed and expires on its own after
 from typing import Any
 
 from grunt import _, log
-from grunt.permissions.roles import user_has_roles
 lazy from grunt.api.messages import throw
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.service import create_access_token
@@ -28,7 +27,7 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
     ``impersonated_by`` block naming *actor*.
     """
 
-    if not user_has_roles(actor, ["System Manager"]):
+    if not actor.has_role("System Manager"):
         throw(_("System Manager rights are required."), "PERMISSION_DENIED")
 
     target = await get_user_by_id(target_user_id)
@@ -36,7 +35,7 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
         throw(_("User not found"), "NOT_FOUND")
     if target.id == actor.id:
         throw(_("You cannot impersonate your own account."), "VALIDATION_ERROR")
-    if user_has_roles(target, ["System Manager"]):
+    if target.has_role("System Manager"):
         throw(_("You cannot impersonate another administrator."), "PERMISSION_DENIED")
     if not target.is_active:
         throw(_("The account is disabled."), "VALIDATION_ERROR")

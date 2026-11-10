@@ -6,6 +6,8 @@ from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+from grunt.errors import ApplicationError
+from grunt.i18n import _
 from grunt.local import (
     _bootstrap_ctx,
     _engine_ctx,
@@ -16,6 +18,18 @@ from grunt.local import (
 
 class ContextAPI:
     """Context management and engine/session access helpers for GruntApp."""
+
+    def get_user(self) -> User:
+        """The user the current request or task runs as, as a ``User`` document.
+
+        Never invents one: without a user in context (a guest request, or a task
+        that didn't enter ``grunt.context`` / ``grunt.system_context``) it raises
+        a 401 instead of letting a permission check pass on a stand-in.
+        """
+        user = _user_ctx.get()
+        if user is None:
+            raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
+        return user
 
     def set_context(
         self,

@@ -2,7 +2,7 @@
 
 import pytest
 
-from tests.support import make_user
+from tests.support import check_as, make_user
 
 ITEM = {
     "name": "CaseItem",
@@ -49,14 +49,13 @@ async def _row(ctx, parent: str) -> dict:
 @pytest.mark.asyncio
 async def test_rows_readable_with_their_parent(ctx, cases, db_session, engine):
     import grunt
-    from grunt.permissions.rbac import permission_checker
 
     mine, other = cases
     ann = make_user("ann@example.com", roles=["Investigator"])
     item = await grunt.get_meta("CaseItem")
     assert item is not None
-    assert await permission_checker.check(ann, item, "read", await _row(ctx, mine))
-    assert not await permission_checker.check(ann, item, "read", await _row(ctx, other))
+    assert await check_as(ann, item, "read", await _row(ctx, mine))
+    assert not await check_as(ann, item, "read", await _row(ctx, other))
 
     async with grunt.context(db_session, engine, ann):
         rows = await grunt.get_list("CaseItem", fields=["note", "parent_name"])
@@ -69,22 +68,20 @@ async def test_rows_change_only_through_the_parent(ctx, cases, action):
     """Even a parent writer can't touch rows directly - the parent's save
     (and its controller) is the only way in."""
     import grunt
-    from grunt.permissions.rbac import permission_checker
 
     _, other = cases
     editor = make_user("ed@example.com", roles=["Editor"])
     item = await grunt.get_meta("CaseItem")
     assert item is not None
     doc = None if action == "create" else await _row(ctx, other)
-    assert not await permission_checker.check(editor, item, action, doc)
+    assert not await check_as(editor, item, action, doc)
 
 
 @pytest.mark.asyncio
 async def test_no_parent_access_closes_child_doctype(ctx, cases):
     import grunt
-    from grunt.permissions.rbac import permission_checker
 
     stranger = make_user("x@example.com", roles=["Nobody"])
     item = await grunt.get_meta("CaseItem")
     assert item is not None
-    assert not await permission_checker.check(stranger, item, "read")
+    assert not await check_as(stranger, item, "read")

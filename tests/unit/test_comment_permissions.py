@@ -20,8 +20,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _COMMENT_JSON = Path(__file__).resolve().parents[2] / "grunt/document/doctypes/Comment/Comment.json"
@@ -45,8 +44,8 @@ def test_comment_has_permissions_defined():
 async def test_any_authenticated_user_can_read_and_create():
     dt = _load_comment_doctype()
     user = _user("someone-else@example.com")
-    assert await permission_checker.check(user, dt, "read") is True
-    assert await permission_checker.check(user, dt, "create") is True
+    assert await check_as(user, dt, "read") is True
+    assert await check_as(user, dt, "create") is True
 
 
 @pytest.mark.asyncio
@@ -54,8 +53,8 @@ async def test_author_can_edit_and_delete_own_comment():
     dt = _load_comment_doctype()
     author = _user("author@example.com")
     own_comment = {"owner": "author@example.com", "content": "hello"}
-    assert await permission_checker.check(author, dt, "write", own_comment) is True
-    assert await permission_checker.check(author, dt, "delete", own_comment) is True
+    assert await check_as(author, dt, "write", own_comment) is True
+    assert await check_as(author, dt, "delete", own_comment) is True
 
 
 @pytest.mark.asyncio
@@ -63,5 +62,5 @@ async def test_other_user_cannot_edit_or_delete_someone_elses_comment():
     dt = _load_comment_doctype()
     attacker = _user("attacker@example.com")
     someone_elses_comment = {"owner": "author@example.com", "content": "hello"}
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_comment) is False
-    assert await permission_checker.check(attacker, dt, "delete", someone_elses_comment) is False
+    assert await check_as(attacker, dt, "write", someone_elses_comment) is False
+    assert await check_as(attacker, dt, "delete", someone_elses_comment) is False

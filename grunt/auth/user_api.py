@@ -60,7 +60,6 @@ from grunt.auth.users import (
     register_failed_attempt,
 )
 from grunt.i18n import _, translation_service
-from grunt.permissions.roles import user_has_roles
 from grunt.utils.http import public_base_url
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
 lazy from grunt.auth.mfa import disable_mfa as _disable_mfa
@@ -322,7 +321,7 @@ async def logout_api(response: Response, request: Request | None = None) -> bool
     return True
 
 
-@grunt.whitelist(require=lambda user: user_has_roles(user, ["System Manager"]))
+@grunt.whitelist(roles=["System Manager"])
 async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     """Open a short-lived session as another user. System Manager only.
 
@@ -447,7 +446,7 @@ async def set_user_password_api(
             or (current.email and current.email == user.email)
         )
     )
-    is_admin = bool(current and user_has_roles(current, ["System Manager"]))
+    is_admin = bool(current and current.has_role("System Manager"))
 
     if not is_admin:
         if not is_self:

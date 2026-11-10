@@ -24,8 +24,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
@@ -59,7 +58,7 @@ def test_shipped_doctype_has_permissions_defined(doctype_name):
 @pytest.mark.asyncio
 async def test_any_authenticated_user_can_read(doctype_name):
     dt = _load(doctype_name)
-    assert await permission_checker.check(_plain_user(), dt, "read") is True
+    assert await check_as(_plain_user(), dt, "read") is True
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
@@ -71,7 +70,7 @@ async def test_plain_user_cannot_write_create_or_delete(doctype_name, action):
     data via the grunt.db.aggregate() permission-bypass.
     """
     dt = _load(doctype_name)
-    assert await permission_checker.check(_plain_user(), dt, action) is False
+    assert await check_as(_plain_user(), dt, action) is False
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
@@ -79,4 +78,4 @@ async def test_plain_user_cannot_write_create_or_delete(doctype_name, action):
 @pytest.mark.asyncio
 async def test_system_manager_can_write_create_and_delete(doctype_name, action):
     dt = _load(doctype_name)
-    assert await permission_checker.check(_system_manager(), dt, action) is True
+    assert await check_as(_system_manager(), dt, action) is True

@@ -5,15 +5,18 @@ setting session / engine / user in one place is immediately visible everywhere.
 """
 
 from contextvars import ContextVar
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.site.manager import site_manager
 
 _session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
 _engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default=None)
-_user_ctx: ContextVar[User | None] = ContextVar("grunt_user", default=None)
+# The ``User`` document the context runs as. Below the auth layer it is read as
+# an email (:func:`session_user`) and roles (:func:`session_roles`), as in
+# Frappe; ``grunt.get_user()`` hands out the document itself.
+_user_ctx: ContextVar[Any] = ContextVar("grunt_user", default=None)
 _site_ctx: ContextVar[str | None] = ContextVar("grunt_site", default=None)
 _messages_ctx: ContextVar[list[dict] | None] = ContextVar("grunt_messages", default=None)
 _bootstrap_ctx: ContextVar[bool] = ContextVar("grunt_bootstrap", default=False)
@@ -50,9 +53,24 @@ def require_engine() -> AsyncEngine:
     return e
 
 
-def require_user() -> User:
+def require_user() -> Any:
     """Return the active user or raise if none is bound to the context."""
     u = _user_ctx.get()
     if u is None:
         raise RuntimeError("grunt: no active user.")
     return u
+
+
+def session_user() -> str | None:
+    """Email of the user the context runs as; ``None`` without one."""
+    user = _user_ctx.get()
+    return None if user is None else user.email
+
+
+def session_roles() -> list[str]:
+    """Role names of the user the context runs as (``[]`` without one)."""
+    user = _user_ctx.get()
+    if user is None:
+        return []
+    rows = getattr(user, "roles", None) or []
+    return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]

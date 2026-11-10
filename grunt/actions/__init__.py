@@ -51,7 +51,6 @@ from grunt.actions.registry import (
     register_doc_action,
 )
 from grunt.errors import forbidden, not_found
-lazy from grunt.permissions.roles import user_has_roles
 
 __all__ = [
     "DOC_ACTION_SOURCE",
@@ -174,7 +173,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
     if spec.roles:
         user = grunt.get_user()
-        if not user_has_roles(user, [*spec.roles, "System Manager"]):
+        if not user.has_role(*spec.roles, "System Manager"):
             raise forbidden(_("Not permitted to run this action"))
 
     doc = await grunt.get_doc(doctype, doc_id)  # enforces read permission

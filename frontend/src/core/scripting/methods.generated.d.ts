@@ -212,7 +212,7 @@ interface GruntMethods {
   "grunt.auth.doctypes.User.user.set_user_password_api": { args: { user_id: string; new_password: string; current_password?: string | null }; result: boolean }
   /** Start MFA setup for the current user. */
   "grunt.auth.doctypes.User.user.setup_mfa": { args: {}; result: GruntApi.grunt.MfaSetup }
-  /** Open a short-lived session as another user. System Manager only. */
+  /** Open a short-lived session as another user. System Manager only. Roles: System Manager. */
   "grunt.auth.doctypes.User.user.start_impersonation_api": { args: { user_id: string }; result: Record<string, any> }
   /** Log the end of an impersonation session. */
   "grunt.auth.doctypes.User.user.stop_impersonation_api": { args: {}; result: boolean }
@@ -276,7 +276,7 @@ interface GruntMethods {
   "grunt.auth.user_api.set_user_password_api": { args: { user_id: string; new_password: string; current_password?: string | null }; result: boolean }
   /** Start MFA setup for the current user. */
   "grunt.auth.user_api.setup_mfa": { args: {}; result: GruntApi.grunt.MfaSetup }
-  /** Open a short-lived session as another user. System Manager only. */
+  /** Open a short-lived session as another user. System Manager only. Roles: System Manager. */
   "grunt.auth.user_api.start_impersonation_api": { args: { user_id: string }; result: Record<string, any> }
   /** Log the end of an impersonation session. */
   "grunt.auth.user_api.stop_impersonation_api": { args: {}; result: boolean }

@@ -15,7 +15,7 @@ whose field is empty is in, an empty link is not.
 import pytest
 import pytest_asyncio
 
-from tests.support import make_user
+from tests.support import check_as, make_user
 
 TEAM = {
     "name": "CpTeam",
@@ -218,15 +218,10 @@ async def test_child_rows_follow_the_parent(ctx, permission_data, db_session, en
 async def _opens(db_session, engine, user, doctype: str, rows: dict[str, dict]) -> set[str]:
     """The *rows* (name -> stored row) *user* may read one by one."""
     import grunt
-    from grunt.permissions.rbac import permission_checker
 
     async with grunt.context(db_session, engine, user):
         meta = await grunt.get_meta(doctype)
-        return {
-            name
-            for name, row in rows.items()
-            if await permission_checker.check(user, meta, "read", row)
-        }
+        return {name for name, row in rows.items() if await check_as(user, meta, "read", row)}
 
 
 async def _stored(db_session, engine, doctype: str, key: str = "name") -> dict[str, dict]:

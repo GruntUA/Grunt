@@ -1,17 +1,50 @@
-"""Bare role-name check - no DocType involved.
+"""Roles of a user, by email - as ``frappe.get_roles``.
+
+Below the auth layer a user is their email; roles come from here. The user the
+context runs as answers from the context (loaded with them on authentication),
+the built-in system and guest identities from constants, anyone else from their
+``UserRole`` rows.
 
 Distinct from ``permission_checker``/``RoleAccess`` (``rbac.py``/``access.py``),
-which are always doctype+action shaped. This is the primitive behind
-``@grunt.whitelist(roles=[...])`` for RPC-style methods that aren't CRUD on a
-single doctype.
+which are always doctype+action shaped. :func:`has_roles` is the primitive
+behind ``@grunt.whitelist(roles=[...])`` for RPC-style methods that aren't CRUD
+on a single doctype.
 """
 
-lazy from grunt.auth.doctypes.User.user import User
+from collections.abc import Iterable
+
+from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
+from grunt.local import _session_ctx, session_roles, session_user
+lazy import grunt
+
+_BUILT_IN: dict[str, list[str]] = {
+    SYSTEM_USER_EMAIL: ["System Manager"],
+    GUEST_USER_EMAIL: ["Guest"],
+}
 
 
-def user_has_roles(user: User | None, roles: list[str]) -> bool:
-    """True if ``user`` holds at least one of ``roles``."""
-    if user is None:
-        return False
-    user_roles = getattr(user, "roles", None) or []
-    return any(r in user_roles for r in roles)
+async def get_roles(user: str | None = None) -> list[str]:
+    """Role names of *user* (an email); ``None`` - the user the context runs as."""
+    if user is None or user == session_user():
+        return session_roles()
+    if user in _BUILT_IN:
+        return list(_BUILT_IN[user])
+    if _session_ctx.get() is None:
+        return []  # no database in context (a bare unit test): no roles to load
+    # UserRole rows hang off the User's name - usually, not always, the email.
+    name = await grunt.db.get_value("User", {"email": user}, "name")
+    if not name:
+        return []
+    rows = await grunt.db.get_all(
+        "UserRole",
+        filters={"parent_name": name, "parent_doctype": "User"},
+        fields=["role_name"],
+        limit=100,
+    )
+    return [r["role_name"] for r in rows]
+
+
+async def has_roles(roles: Iterable[str], *, user: str | None = None) -> bool:
+    """True if *user* (an email; ``None`` - the context's) holds any of *roles*."""
+    wanted = set(roles)
+    return any(r in wanted for r in await get_roles(user))
