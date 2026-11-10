@@ -9,10 +9,10 @@ Enforcement lives in :mod:`grunt.permissions.user_permissions`, wired into
 ``PermissionChecker.check`` (single-document read / write / delete).
 """
 
-import grunt
-from grunt import _
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.permissions.user_permissions import invalidate_user_permission_cache
+lazy from grunt.document.api import documents
 
 
 class UserPermission(Document):
@@ -35,7 +35,7 @@ class UserPermission(Document):
         if self.apply_to_all_doctypes:
             self.applicable_for = None
 
-        dupes = await grunt.get_list(
+        dupes = await documents.get_list(
             "UserPermission",
             filters={
                 "for_user": self.for_user,

@@ -5,27 +5,30 @@ import json
 from typing import Any, cast
 
 import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.data_import.tasks import run_data_import
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.permissions.guards import read_guard, write_guard
 from grunt.tasks.enqueue import enqueue
+lazy from grunt.document.api import documents
 lazy from grunt.io.doctypes.DataImport.data_import import DataImport
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_import_preview(data_import_id: str) -> dict[str, Any]:
     """Return column headers, preview rows, and auto-suggested field mapping."""
 
-    di_doc = cast("DataImport", await grunt.get_doc_instance("DataImport", data_import_id))
+    di_doc = cast("DataImport", await documents.get_doc_instance("DataImport", data_import_id))
     return await di_doc.get_import_preview()
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_import_status(data_import_id: str) -> dict[str, Any]:
     """Return the current status and progress of a DataImport record."""
-    doc = await grunt.find_doc(DataImport, data_import_id)
+    doc = await documents.find_doc(DataImport, data_import_id)
     if not doc:
-        grunt.throw(_("DataImport not found"), "NOT_FOUND")
+        throw(_("DataImport not found"), "NOT_FOUND")
     return {
         "name": doc.name,
         "status": doc.status,
@@ -36,7 +39,7 @@ async def get_import_status(data_import_id: str) -> dict[str, Any]:
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def run_import_job(data_import_id: str) -> dict[str, Any]:
     """Start an import job via the background task queue.
 
@@ -60,7 +63,7 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
     return {"name": data_import_id, "message": "Import started in background"}
 
 
-@grunt.whitelist()
+@whitelist()
 async def download_template(doctype: str, fmt: str = "csv") -> dict[str, Any]:
     """Return template data (base64) and filename."""
 
@@ -76,10 +79,10 @@ async def download_template(doctype: str, fmt: str = "csv") -> dict[str, Any]:
             else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         }
     except KeyError:
-        grunt.throw(_("DocType “%(doctype)s” not found") % {"doctype": doctype}, "NOT_FOUND")
+        throw(_("DocType “%(doctype)s” not found") % {"doctype": doctype}, "NOT_FOUND")
 
 
-@grunt.whitelist()
+@whitelist()
 async def export_quick(
     doctype: str,
     fmt: str = "csv",
@@ -109,4 +112,4 @@ async def export_quick(
             else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         }
     except Exception as e:
-        grunt.throw(str(e))
+        throw(str(e))

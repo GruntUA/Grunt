@@ -2,8 +2,8 @@
 
 import secrets
 
-import grunt
 from grunt.document.base import Document
+lazy from grunt.document.api import documents
 
 
 class DocumentShare(Document):
@@ -25,7 +25,7 @@ class DocumentShare(Document):
         target_doctype = self.data.get("doctype_name")
         target_id = self.data.get("doc_id")
         if target_doctype and target_id:
-            await grunt.get_doc(target_doctype, target_id)
+            await documents.get_doc(target_doctype, target_id)
 
         if not self.data.get("token"):
             self.data["token"] = secrets.token_urlsafe(32)

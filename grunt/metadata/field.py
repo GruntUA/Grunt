@@ -13,8 +13,8 @@ from sqlalchemy import Column, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeEngine
 
-from grunt import log
 from grunt.db.types import CheckBool, IsoDate, UtcDateTime
+from grunt.log import log
 
 # sa_type_name (column_spec's first tuple element) -> SQLAlchemy column type
 # builder. Shared by every DocField.to_sa_column() call instead of being

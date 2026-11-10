@@ -1,5 +1,6 @@
 """HtmlExporter - list view export rendered from templates/list_export.html."""
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -17,7 +18,10 @@ def _field(fieldname: str, fieldtype: str = "Data", options: str | None = None) 
 
 async def _render(rows, fields, ctx=None, settings=None) -> str:
     with (
-        patch("grunt.io.exporters.html.grunt.get_meta", AsyncMock(return_value=None)),
+        patch(
+            "grunt.io.exporters.html.doctype_registry",
+            SimpleNamespace(get_meta=AsyncMock(return_value=None)),
+        ),
         patch(
             "grunt.io.exporters.html.get_system_settings",
             AsyncMock(return_value=settings or {"date_format": "dd.mm.yyyy", "timezone": "UTC"}),

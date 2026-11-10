@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — злито #120–#133 (кроки 0–6, 9a–9c); крок 7 (auth) — у PR.
+Оновлено: 2026-11-10 — злито #120–#134 (кроки 0–7, 9a–9c); 9d (ядро без фасаду як точки входу) — у PR.
 
 ---
 
@@ -382,4 +382,19 @@
   `service`, `ip_policy`) тримає високорівневий фасад (`grunt.*` у контролерах, `document.base`)
   — крок 9.
 - Результат: 2262 passed, vitest 335, vue-tsc і pyright 0; CodeQL локально 147 → 38, нових 0.
+
+### 2026-11-10 — крок 9d: ядро без фасаду (механічний прохід)
+
+- 196 модулів ядра (крім `grunt/__init__`, `grunt/app/*`, `document.api`, `local`): `grunt.get_meta /
+  get_session / get_engine / throw / whitelist / log`, `grunt.db.*` (`GruntDB()`),
+  `grunt.system_context` (новий асинхронний `grunt.local.system_context` поверх `as_system`) і
+  CRUD (`grunt.get_doc / get_list / new_doc / save_doc / delete_doc / count / ...` →
+  `documents.*`, імпорт `lazy` — модулі, які `document.api` тягне під час завантаження,
+  кличуть його назад).
+- `Document.objects` (`queryset`) — без імпорту `document.api`: той реєструє себе
+  (`queryset.use_document_api`).
+- Лишилось у ядрі: `grunt.get_user` (89), `grunt.context` (24), `notify` / `publish` /
+  `render_template` — живуть у шарі `app` (документ `User`, пошук користувача за email) — 9e.
+- Базовий список 64 → 63; цикли тепер видно прямими ребрами (`documents`) замість фасаду.
+- Результат: 2262 passed, pyright 0; CodeQL локально 38 → 38, нових 0.
 

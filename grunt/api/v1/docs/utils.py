@@ -9,10 +9,10 @@ import openpyxl
 from fastapi import Request
 from openpyxl.styles import Alignment, Font, PatternFill
 
-import grunt
-from grunt import _
 from grunt.document.meta import Meta
+from grunt.i18n import _
 from grunt.io.exporters.sanitize import escape_formula
+from grunt.metadata.registry import doctype_registry
 
 
 async def default_sort(
@@ -24,7 +24,7 @@ async def default_sort(
     """
     if sort_by:
         return sort_by, sort_order or "desc"
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is not None and meta.doc.sort_field:
         return meta.doc.sort_field, sort_order or meta.doc.sort_order
     return "modified_at", sort_order or "desc"

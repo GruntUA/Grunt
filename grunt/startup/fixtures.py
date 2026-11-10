@@ -5,8 +5,8 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import log
 from grunt.fixtures import apply_doctype_fixture
+from grunt.log import log
 from grunt.standard_records import apply_records
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/../ = grunt/

@@ -18,7 +18,7 @@ from urllib.parse import unquote, urljoin, urlsplit
 
 import httpx2
 
-from grunt import _
+from grunt.i18n import _
 from grunt.storage import files
 from grunt.storage.backends import get_storage_backend
 

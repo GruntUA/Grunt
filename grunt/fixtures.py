@@ -34,11 +34,16 @@ from typing import Any
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
 from grunt.document.serde import to_json, with_doctype
+from grunt.local import system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.utils.strings import to_snake_case
+lazy from grunt.document.api import documents
 lazy from grunt.document.meta import Meta
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,7 +95,7 @@ async def clean_record(meta: Meta, data: dict[str, Any], *, child: bool = False)
         if value is None or f.fieldname == "name":
             continue
         if f.fieldname in table_fieldnames:
-            child_meta = await grunt.get_meta(f.options or "")
+            child_meta = await doctype_registry.get_meta(f.options or "")
             if child_meta is None or not value:
                 continue
             out[f.fieldname] = [
@@ -116,11 +121,11 @@ async def export_records(spec: FixtureSpec) -> list[dict[str, Any]]:
 
     Must run inside a grunt context (e.g. ``grunt.system_context``).
     """
-    meta = await grunt.get_meta(spec.doctype)
+    meta = await doctype_registry.get_meta(spec.doctype)
     if meta is None:
         raise ValueError(f"DocType “{spec.doctype}” not found")
 
-    names = await grunt.db.get_all(
+    names = await _db.get_all(
         spec.doctype,
         filters=spec.filters or None,
         pluck="name",
@@ -128,7 +133,7 @@ async def export_records(spec: FixtureSpec) -> list[dict[str, Any]]:
         order_by="name",
         order="asc",
     )
-    return [await clean_record(meta, await grunt.get_doc(spec.doctype, name)) for name in names]
+    return [await clean_record(meta, await documents.get_doc(spec.doctype, name)) for name in names]
 
 
 async def export_fixtures(specs: list[FixtureSpec], fixtures_dir: Path) -> list[tuple[Path, int]]:
@@ -199,7 +204,7 @@ async def apply_doctype_fixture(
 
     Returns how many records were inserted or updated.
     """
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         log.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
         return 0
@@ -208,13 +213,13 @@ async def apply_doctype_fixture(
 
     physical_fields = dt.get_physical_fields()
 
-    async with grunt.system_context(session, eng):
+    async with system_context(session, eng):
         for rec in records:
             name_val = rec.get("name") or rec.get(dt.title_field or "")
             if not name_val:
                 continue
 
-            existing_id = await grunt.exists(doctype_name, {"name": name_val})
+            existing_id = await documents.exists(doctype_name, {"name": name_val})
             if existing_id:
                 if sync and await _sync_fixture_record(dt, doctype_name, existing_id, rec):
                     written += 1
@@ -236,7 +241,7 @@ async def apply_doctype_fixture(
             # only, not everything the caller did earlier in the session.
             try:
                 async with session.begin_nested():
-                    await grunt.new_doc(doctype_name, payload)
+                    await documents.new_doc(doctype_name, payload)
                 written += 1
             except IntegrityError:
                 log.warning("startup.fixture_record_conflict", doctype=doctype_name, name=name_val)
@@ -276,7 +281,9 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
     every migrate). Fields absent from the fixture - in child rows too - are
     left untouched.
     """
-    current = _without_doctype(await clean_record(dt, await grunt.get_doc(doctype_name, doc_id)))
+    current = _without_doctype(
+        await clean_record(dt, await documents.get_doc(doctype_name, doc_id))
+    )
     desired = _without_doctype(to_json_compatible(rec))
     changed = {k: v for k, v in desired.items() if k != "name" and not _matches(current.get(k), v)}
     if not changed:
@@ -287,7 +294,7 @@ async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: di
         k: _coerce_fixture_value(fieldtypes[k], v) if k in fieldtypes else v
         for k, v in changed.items()
     }
-    await grunt.save_doc(doctype_name, doc_id, payload)
+    await documents.save_doc(doctype_name, doc_id, payload)
     log.info(
         "startup.fixture_synced", doctype=doctype_name, name=rec.get("name"), fields=sorted(changed)
     )

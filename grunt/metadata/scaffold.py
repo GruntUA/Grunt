@@ -12,8 +12,8 @@ the colocated file structure to disk::
 import json
 from pathlib import Path
 
-from grunt import log
 from grunt.document.base import SYS_FIELDS, is_shadowed_field
+from grunt.log import log
 from grunt.metadata.field import DocField, get_python_type, has_trait, is_physical_fieldtype
 from grunt.site.manager import site_manager
 from grunt.utils.codegen import render_template, sync_controller_types

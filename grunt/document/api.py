@@ -18,6 +18,7 @@ from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.db.profiler import profile
 from grunt.document import collection
+from grunt.document.queryset import use_document_api
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
 from grunt.errors import forbidden, not_found, unprocessable
 from grunt.events import fire
@@ -872,3 +873,4 @@ class DocumentAPI:
 
 
 documents = DocumentAPI()
+use_document_api(documents)

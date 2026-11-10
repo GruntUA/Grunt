@@ -9,11 +9,12 @@ and as worked examples of the ``@doc_action`` contract.
 
 from typing import Any
 
-import grunt
-from grunt import _
 from grunt.actions.registry import doc_action
 from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.reports.delivery import send_report_now
+lazy from grunt.document.api import documents
 lazy from grunt.webpush.doctypes.PushSubscription.push_subscription import PushSubscription
 lazy from grunt.webpush.service import PushUnavailableError, webpush_service
 
@@ -27,7 +28,7 @@ lazy from grunt.webpush.service import PushUnavailableError, webpush_service
 )
 async def duplicate(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Create a fresh copy of the current document."""
-    copy = await grunt.copy_doc(doc["doctype"], doc["name"])
+    copy = await documents.copy_doc(doc["doctype"], doc["name"])
     return {"message": _("Copy created: %(name)s") % {"name": copy["name"]}, "refresh": False}
 
 
@@ -44,7 +45,7 @@ async def recalc(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]
 
     A validation error in the controller propagates to the client as-is.
     """
-    await grunt.save_doc(doc["doctype"], doc["name"], {})
+    await documents.save_doc(doc["doctype"], doc["name"], {})
     return {"message": _("Document re-saved; formulas and hooks recalculated"), "refresh": True}
 
 
@@ -82,7 +83,7 @@ async def copy_reference(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[s
 )
 async def auto_repeat(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Create an AutoRepeat rule that copies this document on a schedule."""
-    rule = await grunt.new_doc(
+    rule = await documents.new_doc(
         "AutoRepeat",
         {
             "reference_doctype": doc["doctype"],
@@ -129,7 +130,7 @@ async def trash_restore_as_copy(doc: dict[str, Any], *, args: dict[str, Any]) ->
 
 async def _set_todo_status(name: str, status: str) -> dict[str, Any]:
     """Flip a ToDo's status through the controller (stamps + notifications run)."""
-    await grunt.save_doc("ToDo", name, {"status": status})
+    await documents.save_doc("ToDo", name, {"status": status})
     return {"refresh": True}
 
 
@@ -224,7 +225,7 @@ _PUSH_DIALOG_FIELDS = [
 async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Push a test message to this one browser subscription and report the outcome."""
 
-    sub = await grunt.get_doc(PushSubscription, doc["name"])
+    sub = await documents.get_doc(PushSubscription, doc["name"])
     result = await webpush_service.send_test(
         sub.data,
         title=args.get("title") or _("Test notification"),
@@ -232,14 +233,14 @@ async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str
         url=args.get("url") or "/",
     )
     if result.expired:
-        grunt.throw(
+        throw(
             _("The browser no longer accepts this subscription (HTTP %(status)s); deleted it")
             % {"status": result.status},
             code="PUSH_EXPIRED",
         )
     if not result.ok:
         status = f"HTTP {result.status}: " if result.status else ""
-        grunt.throw(
+        throw(
             _("Push service rejected the message: %(error)s") % {"error": status + result.error},
             code="PUSH_FAILED",
         )
@@ -270,9 +271,9 @@ async def webpush_send_to_user(doc: dict[str, Any], *, args: dict[str, Any]) -> 
             url=args.get("url") or "/",
         )
     except PushUnavailableError as exc:
-        grunt.throw(str(exc), code="PUSH_UNAVAILABLE")
+        throw(str(exc), code="PUSH_UNAVAILABLE")
     if not results:
-        grunt.throw(
+        throw(
             _("The user has not enabled push notifications in any browser"),
             code="NO_PUSH_SUBSCRIPTIONS",
         )
@@ -281,7 +282,7 @@ async def webpush_send_to_user(doc: dict[str, Any], *, args: dict[str, Any]) -> 
     failed = [r for r in results if not r.ok and not r.expired]
     if not sent:
         detail = failed[0].error if failed else _("all subscriptions have expired")
-        grunt.throw(_("Push was not delivered: %(error)s") % {"error": detail}, code="PUSH_FAILED")
+        throw(_("Push was not delivered: %(error)s") % {"error": detail}, code="PUSH_FAILED")
     message = _("Sent to %(sent)s of %(total)s browsers") % {"sent": sent, "total": len(results)}
     if expired:
         message += ". " + _("Expired subscriptions removed: %(n)s") % {"n": expired}

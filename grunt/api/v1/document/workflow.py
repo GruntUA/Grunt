@@ -10,10 +10,11 @@ import grunt
 from grunt.api.context import whitelist
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import require_session
+from grunt.local import require_engine, require_session
 from grunt.metadata.registry import doctype_registry
 from grunt.workflow.engine import workflow_engine
 from grunt.workflow.registry import get_active_workflow
+lazy from grunt.document.api import documents
 
 
 @whitelist()
@@ -26,7 +27,7 @@ async def get_workflow_transitions(doctype: str, doc_id: str) -> list[dict[str, 
     if not await get_active_workflow(doctype):
         return []
 
-    doc = await grunt.get_doc(doctype, doc_id)
+    doc = await documents.get_doc(doctype, doc_id)
     user = grunt.get_user()
     transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user.email)
     return [
@@ -58,5 +59,5 @@ async def apply_workflow_transition(
     session = require_session()
 
     return await workflow_engine.apply_transition(
-        dt.doc, doc_id, action, user.email, session, grunt.get_engine(), values
+        dt.doc, doc_id, action, user.email, session, require_engine(), values
     )

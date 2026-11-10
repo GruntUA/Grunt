@@ -1,6 +1,6 @@
-from grunt import log
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.data_import.service import DataImportService
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 

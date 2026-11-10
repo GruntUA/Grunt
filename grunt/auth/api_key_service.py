@@ -21,6 +21,7 @@ from grunt.auth.doctypes.User.user import User
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 from grunt.auth.users import get_user_by_id
 from grunt.db.api import GruntDB
+from grunt.local import system_context
 from grunt.log import log
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -73,7 +74,7 @@ async def authenticate_api_key(
 
     key_prefix = raw[:8]
 
-    async with grunt.system_context(session):
+    async with system_context(session):
         rows = await _db.get_all(
             "ApiKey",
             filters={"key_prefix": key_prefix, "is_active": True},
@@ -125,10 +126,8 @@ async def authenticate_api_key(
 
     # Update last_used_at (best-effort, don't fail the request)
     try:
-        async with grunt.system_context(session):
-            await grunt.db.set_value(
-                "ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC)
-            )
+        async with system_context(session):
+            await _db.set_value("ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC))
     except Exception:
         log.exception("suppressed_error")
 

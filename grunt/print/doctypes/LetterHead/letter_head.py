@@ -1,7 +1,9 @@
 """LetterHead controller - keeps a single default letterhead."""
 
-import grunt
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class LetterHead(Document):
@@ -15,6 +17,6 @@ class LetterHead(Document):
         if not self.get("is_default"):
             return
         # Setting a new default clears the old one.
-        await grunt.db.bulk_update(
+        await _db.bulk_update(
             "LetterHead", {"is_default": True, "name__ne": self.id}, {"is_default": False}
         )

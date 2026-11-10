@@ -4,8 +4,8 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from grunt import log
 from grunt.db.write_intent import READ_ONLY_METHODS, set_write_intent
+from grunt.log import log
 from grunt.metadata.compiler import clear_table_cache
 from grunt.metadata.registry import get_registry
 from grunt.scripting.file_scripts import FILE_CLIENT_SCRIPT_REGISTRY, _client_script_scanned

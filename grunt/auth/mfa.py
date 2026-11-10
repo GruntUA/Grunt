@@ -15,9 +15,9 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy import segno
 
-import grunt
 from grunt.db.api import GruntDB
 from grunt.i18n import _
+from grunt.local import system_context
 from grunt.log import log
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.site.manager import site_manager
@@ -118,7 +118,7 @@ async def begin_mfa_setup(user: User) -> MfaSetup:
 
     assert user.id
     secret = generate_mfa_secret()
-    await grunt.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
+    await _db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
     log.info("mfa.setup_started", user=user.email)
     return {
         "secret": secret,
@@ -143,7 +143,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     assert user.id
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
-    await grunt.db.set_value(
+    await _db.set_value(
         "User",
         user.id,
         {
@@ -159,7 +159,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
 async def disable_mfa(user: User) -> None:
     """Disable MFA and clear stored secrets for the user."""
     assert user.id
-    await grunt.db.set_value(
+    await _db.set_value(
         "User",
         user.id,
         {
@@ -183,7 +183,7 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
     """
     if session is not None:
         eng = site_manager.get_engine(site_manager.get_active_site())
-        ctx = grunt.system_context(session, eng)
+        ctx = system_context(session, eng)
     else:
         ctx = contextlib.nullcontext()
 
@@ -210,7 +210,7 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
         matched, remaining = verify_backup_code(backup_hashes, code)
         if matched:
             assert user.id
-            await grunt.db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
+            await _db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
             log.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
             return
 

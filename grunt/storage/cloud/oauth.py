@@ -33,10 +33,14 @@ from fastapi.responses import RedirectResponse
 import grunt
 from grunt import _, log, whitelist
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
 from grunt.storage.cloud import load_remote
 from grunt.storage.cloud.providers import get_provider
 from grunt.storage.cloud.rclone import RemoteError
 from grunt.utils.http import public_base_url
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 CALLBACK = "/api/v1/method/grunt.storage.cloud.oauth.callback"
 STATE_TTL_SECONDS = 15 * 60
@@ -139,7 +143,7 @@ async def save_token(remote: dict[str, Any], token: str) -> str:
     account, extra = await _describe_account(remote.get("provider") or "", access)
     if remote.get("provider") == "OneDrive" and not extra.get("drive_id"):
         raise RemoteError(_("Could not read the OneDrive drive of this account"))
-    await grunt.db.set_value(
+    await _db.set_value(
         "StorageRemote",
         remote["name"],
         {
@@ -223,7 +227,7 @@ async def callback(
         raise HTTPException(400, _("The sign-in link is invalid or expired")) from exc
     if error or not code:
         return _back_to_form(name, "error", error_description or error or _("No code returned"))
-    async with grunt.system_context(grunt.get_session()):
+    async with system_context(require_session()):
         remote = await load_remote(name)
         endpoints = get_provider(remote.get("provider")).oauth
         if endpoints is None:
@@ -248,5 +252,5 @@ async def callback(
             await save_token(remote, rclone_token(data))
         except (httpx2.HTTPError, ValueError, RemoteError) as exc:
             return _back_to_form(name, "error", str(exc)[:300])
-        await grunt.get_session().commit()
+        await require_session().commit()
     return _back_to_form(name, "ok")

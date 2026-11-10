@@ -4,8 +4,8 @@ Both ``grunt.api.context`` and ``grunt.app`` import these objects so that
 setting session / engine / user in one place is immediately visible everywhere.
 """
 
-from collections.abc import Iterator
-from contextlib import contextmanager
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from typing import Any
 
@@ -145,3 +145,13 @@ def as_system(session: AsyncSession, engine: AsyncEngine | None = None) -> Itera
         _session_ctx.reset(tokens[0])
         _engine_ctx.reset(tokens[1])
         _user_ctx.reset(tokens[2])
+
+
+@asynccontextmanager
+async def system_context(
+    session: AsyncSession, engine: AsyncEngine | None = None
+) -> AsyncIterator[None]:
+    """``async with`` form of :func:`as_system` - ``grunt.system_context`` for the
+    layers below the facade."""
+    with as_system(session, engine):
+        yield

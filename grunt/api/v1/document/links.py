@@ -15,7 +15,6 @@ from typing import Any
 
 from sqlalchemy import select
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.errors import not_found
 from grunt.i18n import _
@@ -24,6 +23,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
 from grunt.search.terms import match_columns
+lazy from grunt.document.api import documents
 lazy from grunt.query import run
 lazy from grunt.query.query import Query
 lazy from grunt.store import SQL, Unavailable, supports
@@ -158,7 +158,7 @@ async def link_search(
 
     query = search
     if has_read:
-        rows = await grunt.get_list(
+        rows = await documents.get_list(
             doctype,
             filters=extra_filters if extra_filters else None,
             fields=cols_needed,

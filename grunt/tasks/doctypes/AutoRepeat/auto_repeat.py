@@ -7,9 +7,11 @@ schedule arithmetic in :mod:`grunt.tasks.repeat_schedule`.
 from datetime import date
 from typing import Any
 
-import grunt
-from grunt import _
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.tasks.repeat_schedule import (
     FREQUENCIES,
@@ -19,6 +21,9 @@ from grunt.tasks.repeat_schedule import (
     first_date,
     status_for,
 )
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # Changing any of these re-plans the next run.
 _SCHEDULE_FIELDS = (
@@ -47,9 +52,7 @@ class AutoRepeat(Document):
         prev: dict[str, Any] = {}
         if self.id:
             prev = (
-                await grunt.db.get_value(
-                    "AutoRepeat", self.id, list(_SCHEDULE_FIELDS), as_dict=True
-                )
+                await _db.get_value("AutoRepeat", self.id, list(_SCHEDULE_FIELDS), as_dict=True)
                 or {}
             )
         replan = (
@@ -68,24 +71,24 @@ class AutoRepeat(Document):
         self.status = status_for(self.data, as_date(self.get("next_schedule_date")))
 
     async def _validate_reference(self) -> None:
-        meta = await grunt.get_meta(self.reference_doctype)
+        meta = await doctype_registry.get_meta(self.reference_doctype)
         if meta is None:
-            grunt.throw(
+            throw(
                 _("DocType “%(doctype)s” not found") % {"doctype": self.reference_doctype},
                 "VALIDATION_ERROR",
             )
         dt = meta.doc
         if dt.is_child or dt.is_singleton or not dt.has_table or dt.name == "AutoRepeat":
-            grunt.throw(
+            throw(
                 _("Documents of “%(doctype)s” cannot be repeated") % {"doctype": dt.name},
                 "VALIDATION_ERROR",
             )
 
         # The template must be readable and new documents creatable - by whoever
         # sets the rule up, since copies are later made as the rule's owner.
-        await grunt.get_doc(self.reference_doctype, self.reference_document)
+        await documents.get_doc(self.reference_doctype, self.reference_document)
         if not await permission_checker.check(meta, "create"):
-            grunt.throw(
+            throw(
                 _("You are not allowed to create “%(doctype)s” documents") % {"doctype": dt.name},
                 "PERMISSION_DENIED",
             )
@@ -95,7 +98,7 @@ class AutoRepeat(Document):
         if date_field:
             field = meta.get_field(date_field)
             if field is None or not field.is_date:
-                grunt.throw(
+                throw(
                     _("“%(field)s” is not a date field of %(doctype)s")
                     % {"field": date_field, "doctype": dt.name},
                     "VALIDATION_ERROR",
@@ -103,13 +106,13 @@ class AutoRepeat(Document):
 
     def _validate_schedule(self) -> None:
         if self.frequency not in FREQUENCIES:
-            grunt.throw(_("Unknown frequency: %(f)s") % {"f": self.frequency}, "VALIDATION_ERROR")
+            throw(_("Unknown frequency: %(f)s") % {"f": self.frequency}, "VALIDATION_ERROR")
         day = self.get("repeat_on_day")
         if day and not 1 <= int(day) <= 31:
-            grunt.throw(_("Day of month must be between 1 and 31"), "VALIDATION_ERROR")
+            throw(_("Day of month must be between 1 and 31"), "VALIDATION_ERROR")
         if self.frequency not in MONTHS_BY_FREQUENCY:
             self.repeat_on_day = None
             self.repeat_on_last_day = False
         start, end = as_date(self.get("start_date")), as_date(self.get("end_date"))
         if start and end and end < start:
-            grunt.throw(_("End date cannot be before the start date"), "VALIDATION_ERROR")
+            throw(_("End date cannot be before the start date"), "VALIDATION_ERROR")

@@ -3,11 +3,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-import grunt
-from grunt import _, log
 from grunt.document.base import Document
+from grunt.i18n import _
 from grunt.io.exporters.registry import get_exporter
 from grunt.io.importers.registry import get_importer_for_file
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 lazy from grunt.errors import not_found
 lazy from grunt.storage.cloud.files import blob_path
 lazy from grunt.storage.doctypes.File.file import File
@@ -259,14 +261,14 @@ class DataImport(Document):
         if exporter is None:
             raise ValueError(_("Unknown export format: %(format)s") % {"format": fmt})
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         exportable = dt.get_physical_fields()
         if fields:
             exportable = [f for f in exportable if f.fieldname in fields]
 
-        rows = await grunt.get_list(
+        rows = await documents.get_list(
             doctype,
             filters=filters,
             fields=[f.fieldname for f in exportable],
@@ -288,7 +290,7 @@ class DataImport(Document):
         if exporter is None:
             raise ValueError(_("Unknown format: %(format)s") % {"format": fmt})
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         exportable = dt.get_physical_fields()

@@ -19,14 +19,18 @@ from fastapi import Request
 from redis.asyncio import Redis
 from sqlalchemy import func
 
-import grunt
-from grunt import log
 from grunt.api.context import whitelist
+from grunt.db.api import GruntDB
+from grunt.local import system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 lazy from grunt.config import settings
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.site.settings import get_setting
 lazy from grunt.utils.redis import connect
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 FIELD = "view_count"
 REPEAT_SECONDS = 30 * 60
@@ -56,7 +60,7 @@ def _pending_key(site: str) -> str:
 async def _counted_meta(doctype: str) -> Any:
     """The DocType's meta when its documents count views (have ``view_count``)."""
 
-    dt = await grunt.get_meta(doctype) if _NAME_RE.match(doctype or "") else None
+    dt = await doctype_registry.get_meta(doctype) if _NAME_RE.match(doctype or "") else None
     return dt if dt is not None and any(f.fieldname == FIELD for f in dt.fields) else None
 
 
@@ -107,7 +111,7 @@ async def _apply(counts: dict[str, int]) -> None:
         if dt is None:
             continue
         column = dt.table.c[FIELD]
-        await grunt.db.set_value(doctype, name, {FIELD: func.coalesce(column, 0) + n})
+        await _db.set_value(doctype, name, {FIELD: func.coalesce(column, 0) + n})
 
 
 async def _flush_site(redis: Redis, site: str) -> int:
@@ -127,7 +131,7 @@ async def _flush_site(redis: Redis, site: str) -> int:
     }
     if counts:
         maker = site_manager.get_session_maker(site)
-        async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+        async with maker() as session, system_context(session, site_manager.get_engine(site)):
             await _apply(counts)
             await session.commit()
     await redis.delete(flushing)

@@ -2,9 +2,11 @@
 
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.api.context import whitelist
 from grunt.document.base import Document
+from grunt.local import require_session, system_context
+from grunt.log import log
+lazy from grunt.document.api import documents
 
 
 class AssignmentLog(Document):
@@ -50,8 +52,8 @@ class AssignmentLog(Document):
         }
 
         try:
-            async with grunt.system_context(grunt.get_session()):
-                await grunt.bulk_insert("AssignmentLog", [log_doc])
+            async with system_context(require_session()):
+                await documents.bulk_insert("AssignmentLog", [log_doc])
         except Exception as exc:
             log.exception("assignment.log_error", exc_info=exc)
 
@@ -59,7 +61,7 @@ class AssignmentLog(Document):
 # Whitelisted API
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_logs(
     doctype: str | None = None,
     document_id: str | None = None,
@@ -78,13 +80,13 @@ async def list_logs(
     if status:
         filters["status"] = status
 
-    logs = await grunt.get_list(
+    logs = await documents.get_list(
         "AssignmentLog",
         filters=filters,
         limit=int(limit),
         order_by="timestamp",
         order="desc",
     )
-    total = await grunt.count("AssignmentLog", filters=filters)
+    total = await documents.count("AssignmentLog", filters=filters)
 
     return {"data": logs, "count": total}

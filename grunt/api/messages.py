@@ -11,11 +11,13 @@ Example:
 """
 
 from grunt.api.context import add_message, get_session
+from grunt.db.api import GruntDB
 from grunt.email.service import email_service
 from grunt.local import _messages_ctx
 from grunt.notification.service import NotificationService
 from grunt.publish import notify as _notify
-lazy import grunt
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 def msgprint(message: str, title: str = "", msg_type: str = "info") -> None:
@@ -65,7 +67,7 @@ async def notify_all(
     if roles:
         emails = await svc._resolve_role_recipients(roles, session)
     else:
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             "User",
             filters={"is_active": True},
             fields=["email"],

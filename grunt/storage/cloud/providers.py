@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from grunt import _
+from grunt.i18n import _
 lazy from grunt.storage.cloud.rclone import RemoteError, obscure
 
 

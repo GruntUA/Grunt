@@ -51,6 +51,7 @@ from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json
+from grunt.local import system_context
 from grunt.main import app
 from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.doctype import DocType
@@ -63,6 +64,7 @@ lazy from grunt.apps.loader import load_app
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
 lazy from grunt.auth.session_cookie import SESSION_COOKIE
 lazy from grunt.auth.users import create_user
+lazy from grunt.document.api import documents
 
 settings.rate_limit_enabled = False
 
@@ -424,7 +426,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     @pytest_asyncio.fixture
     async def ctx(db_session: AsyncSession, engine: AsyncEngine):
         """Provide an active grunt context with SYSTEM_USER for tests."""
-        async with grunt.system_context(db_session, engine):
+        async with system_context(db_session, engine):
             yield grunt
 
     return {
@@ -444,7 +446,7 @@ async def signed_in_cookie(email: str, roles: tuple[str, ...] = ()) -> str:
     user = await create_user(email, "Str0ngPass", "Test", "Reader", None)
     assert user.id is not None
     # Explicitly: the first user of a database becomes a System Manager.
-    await grunt.save_doc("User", user.id, {"roles": [{"role_name": r} for r in roles]})
+    await documents.save_doc("User", user.id, {"roles": [{"role_name": r} for r in roles]})
     _sid, token = await open_session(user.id, None, None)
     await grunt.db._session().commit()
     return f"{SESSION_COOKIE}={token}"

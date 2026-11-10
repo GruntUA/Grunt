@@ -1,15 +1,20 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import grunt
 import grunt as _grunt
-from grunt import _, log
 from grunt.auth.constants import GUEST_USER_EMAIL
+from grunt.db.api import GruntDB
 from grunt.db.commit import on_commit
 from grunt.document.titles import resolve_reference_titles
 from grunt.document.versioning import _SKIP_FIELDS
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 lazy from grunt.errors import not_found
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def should_log_activity(doctype: str) -> bool | None:
@@ -19,7 +24,7 @@ async def should_log_activity(doctype: str) -> bool | None:
     pass names that aren't (or no longer are) real DocTypes, in which case
     nothing is logged.
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     return dt.track_activity if dt else None
 
 
@@ -67,8 +72,8 @@ async def attach_user_names(entries: list[dict[str, Any]]) -> None:
     if not emails:
         return
 
-    async with grunt.system_context(grunt.get_session()):
-        rows = await grunt.get_list(
+    async with system_context(require_session()):
+        rows = await documents.get_list(
             "User",
             filters={"name__in": list(emails)},
             fields=["name", "full_name"],
@@ -112,8 +117,8 @@ async def record_activity(
     if not doctype or not await should_log_activity(doctype):
         return
     try:
-        async with grunt.system_context(grunt.get_session()):
-            doc = await grunt.new_doc(
+        async with system_context(require_session()):
+            doc = await documents.new_doc(
                 "ActivityLog",
                 {
                     "ref_doctype": doctype,
@@ -153,8 +158,8 @@ async def _broadcast_activity(
             # System context: the "All" role can only read its own User row
             # (match: name == user) - the broadcaster must resolve the
             # *acting* user's name regardless of who ends up viewing the feed.
-            async with grunt.system_context(grunt.get_session()):
-                rows = await grunt.get_list(
+            async with system_context(require_session()):
+                rows = await documents.get_list(
                     "User", filters={"name": user_email}, fields=["full_name"], limit=1
                 )
             if rows and rows[0].get("full_name"):
@@ -247,7 +252,7 @@ async def record_view(
     if not doc_id:
         return
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         return
     # ``track_activity`` is not consulted here: seen/view tracking is a separate,
@@ -261,7 +266,7 @@ async def record_view(
     if not user_email or user_email in (GUEST_USER_EMAIL, "system", "Guest"):
         return
 
-    session = grunt.get_session()
+    session = require_session()
 
     if dt.track_seen:
         seen = doc.get("_seen")
@@ -269,16 +274,16 @@ async def record_view(
         if user_email not in seen:
             seen.append(user_email)
             try:
-                async with grunt.system_context(session):
-                    await grunt.db.set_value(doctype, str(doc_id), "_seen", seen)
+                async with system_context(session):
+                    await _db.set_value(doctype, str(doc_id), "_seen", seen)
                 doc["_seen"] = seen
             except Exception as e:
                 log.warning("view.seen_failed", error=str(e), doctype=doctype, doc_id=doc_id)
 
     if dt.track_views:
         try:
-            async with grunt.system_context(session):
-                recent = await grunt.db.get_all(
+            async with system_context(session):
+                recent = await _db.get_all(
                     "ViewLog",
                     filters={
                         "ref_doctype": doctype,
@@ -290,7 +295,7 @@ async def record_view(
                     limit=1,
                 )
                 if not recent:
-                    await grunt.new_doc(
+                    await documents.new_doc(
                         "ViewLog",
                         {
                             "ref_doctype": doctype,
@@ -311,17 +316,17 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
     the total ViewLog row count and ``viewers`` the distinct viewer count
     (track_views). Fields the DocType hasn't opted into come back empty/zero.
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     out: dict[str, Any] = {"seen": [], "views": 0, "viewers": 0}
 
     if dt.track_seen:
-        seen = await grunt.db.get_value(doctype, doc_id, "_seen")
+        seen = await _db.get_value(doctype, doc_id, "_seen")
         out["seen"] = seen if isinstance(seen, list) else []
 
     if dt.track_views:
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             "ViewLog",
             filters={"ref_doctype": doctype, "doc_id": str(doc_id)},
             fields=["viewed_by"],

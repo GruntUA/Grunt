@@ -3,9 +3,12 @@ import asyncio
 import click
 
 from grunt.cli.utils import _site_session
+from grunt.db.api import GruntDB
 lazy import grunt
 lazy from grunt.auth.passwords import hash_password
 lazy from grunt.auth.users import create_user, get_user_by_email, list_users
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 @click.group("users")
@@ -96,9 +99,7 @@ def users_set_password(email, password, site):
                 raise SystemExit(1)
 
             assert user.id
-            await grunt.db.set_value(
-                "User", user.id, {"hashed_password": await hash_password(password)}
-            )
+            await _db.set_value("User", user.id, {"hashed_password": await hash_password(password)})
             await session.commit()
 
         click.echo(f"Password changed for {email}.")

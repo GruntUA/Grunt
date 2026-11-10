@@ -12,9 +12,9 @@ from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
 import grunt
-from grunt import log
 from grunt.errors import ApplicationError
-from grunt.local import session_user
+from grunt.local import require_session, session_user
+from grunt.log import log
 from grunt.mcp.registry import get_tool, list_tools
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
@@ -95,14 +95,14 @@ async def _call_tool(params: dict[str, Any]) -> dict[str, Any]:
     try:
         result = await tool.handler(**arguments)
     except ApplicationError as e:
-        await grunt.get_session().rollback()
+        await require_session().rollback()
         return _tool_error(f"{e.code}: {e.message}")
     except HTTPException as e:
-        await grunt.get_session().rollback()
+        await require_session().rollback()
         code = getattr(e, "code", None) or str(e.status_code)
         return _tool_error(f"{code}: {e.detail}")
     except Exception:
-        await grunt.get_session().rollback()
+        await require_session().rollback()
         log.exception("mcp.tool_failed", tool=tool.name)
         return _tool_error("Internal error while running the tool")
 

@@ -5,9 +5,15 @@ from typing import Any
 from fastapi import HTTPException, Request
 
 import grunt
+from grunt.api.context import whitelist
 from grunt.api.router import GruntRouter
+from grunt.db.api import GruntDB
+from grunt.local import require_session
 from grunt.webhook.incoming_service import incoming_webhook_service
 from grunt.webhook.service import webhook_service
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 router = GruntRouter(optional_auth=True)
 
@@ -28,18 +34,18 @@ async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any
     return {"success": True, **result}
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
     user = grunt.get_user()
-    result = await webhook_service.test_delivery(grunt.get_session(), webhook_id, user.email)
+    result = await webhook_service.test_delivery(require_session(), webhook_id, user.email)
     return result
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def list_incoming_logs(webhook_id: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
     """List recent delivery logs for an incoming webhook."""
-    logs = await grunt.get_list(
+    logs = await documents.get_list(
         "IncomingWebhookLog",
         filters={"webhook": webhook_id},
         fields=["name", "slug", "status", "action_taken", "duration_ms", "error", "created_at"],
@@ -48,5 +54,5 @@ async def list_incoming_logs(webhook_id: str, page: int = 1, per_page: int = 20)
         limit=int(per_page),
         page=int(page),
     )
-    total = await grunt.db.count("IncomingWebhookLog", filters={"webhook": webhook_id})
+    total = await _db.count("IncomingWebhookLog", filters={"webhook": webhook_id})
     return {"items": logs, "total": total, "page": int(page), "per_page": int(per_page)}

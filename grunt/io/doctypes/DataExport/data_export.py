@@ -10,9 +10,9 @@ from typing import Any
 
 lazy import openpyxl
 
-from grunt import log
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
+from grunt.log import log
 from grunt.storage import store
 
 

@@ -11,22 +11,27 @@ don't count.
 
 from sqlalchemy import Table, func, select
 
-import grunt
-from grunt import _
+from grunt.db.api import GruntDB
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 from grunt.site.settings import get_setting
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _MB = 1024 * 1024
 
 
 async def table_of(doctype: str) -> Table:
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     assert meta is not None, doctype
     return meta.table
 
 
 async def space_quota(space_user: str) -> int | None:
     """The space's limit in bytes, ``None`` when unlimited."""
-    own = await grunt.db.get_value("User", space_user, "storage_quota_mb")
+    own = await _db.get_value("User", space_user, "storage_quota_mb")
     mb = own if own and own > 0 else await get_setting("personal_storage_quota_mb", 1024)
     return int(mb) * _MB if mb and mb > 0 else None
 
@@ -36,7 +41,7 @@ async def space_usage(space_user: str) -> int:
     files = await table_of("File")
     folders = await table_of("FileFolder")
     in_space = select(folders.c.name).where(folders.c.space_user == space_user)
-    total = await grunt.get_session().scalar(
+    total = await require_session().scalar(
         select(func.coalesce(func.sum(files.c.file_size), 0)).where(files.c.folder.in_(in_space))
     )
     return int(total or 0)
@@ -49,7 +54,7 @@ async def ensure_room(space_user: str, size: int) -> None:
         return
     used = await space_usage(space_user)
     if used + size > quota:
-        grunt.throw(
+        throw(
             _("Not enough space: %(used)s MB of %(quota)s MB used, the file needs %(size)s MB")
             % {"used": _mb(used), "quota": _mb(quota), "size": _mb(size)}
         )

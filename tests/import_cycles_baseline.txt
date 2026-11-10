@@ -27,7 +27,6 @@ grunt.auth.users
 grunt.backups
 grunt.document.api
 grunt.document.base
-grunt.document.queryset
 grunt.document.sidebar
 grunt.email.inbound
 grunt.email.service

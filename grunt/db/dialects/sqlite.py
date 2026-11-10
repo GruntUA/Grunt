@@ -14,7 +14,6 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
 
-from grunt import log
 from grunt.db.dialects.archive import BackupError, zstd_options
 from grunt.db.dialects.base import (
     LIKE_ESCAPE,
@@ -26,6 +25,7 @@ from grunt.db.dialects.base import (
 from grunt.db.dialects.fulltext import FullText, FullTextSpec, SqliteFts5
 from grunt.db.write_intent import begin_statement
 from grunt.i18n import _
+from grunt.log import log
 
 # "NOT NULL constraint failed: t.c", "UNIQUE constraint failed: t.a, t.b"
 _SQLITE_COLUMNS_FAILED = re.compile(

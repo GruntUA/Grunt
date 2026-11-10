@@ -14,10 +14,10 @@ note in ``description``.
 from datetime import UTC, datetime
 from typing import Any
 
-from grunt import _, log
 from grunt.auth.language import language_of
 from grunt.document.base import Document
-from grunt.i18n import use_language
+from grunt.i18n import _, use_language
+from grunt.log import log
 from grunt.notification.service import notification_service
 
 _DONE_STATES = ("Closed", "Cancelled")

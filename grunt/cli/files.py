@@ -3,7 +3,7 @@ import asyncio
 import click
 
 from grunt.cli.utils import _site_session
-lazy import grunt
+from grunt.local import system_context
 lazy from grunt.storage.doctypes.File.file import generate_missing_thumbnails
 lazy from grunt.storage.gc import collect_garbage, verify
 lazy from grunt.storage.images import compress_existing
@@ -24,7 +24,7 @@ def files_thumbnails(site: str | None, limit: int):
 
     async def _run():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             made = await generate_missing_thumbnails(limit)
             await session.commit()
         click.echo(f"Thumbnails created: {made}")
@@ -42,7 +42,7 @@ def files_gc(site: str | None, grace: int):
 
     async def _run():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             report = await collect_garbage(grace)
         click.echo(
             f"Freed {report['freed_blobs']} file(s), {report['freed_bytes'] / 1048576:.1f} MB; "
@@ -60,7 +60,7 @@ def files_verify(site: str | None, rehash: bool):
 
     async def _run():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             report = await verify(rehash)
         labels = {
             "missing": "File records without a stored file",
@@ -87,7 +87,7 @@ def files_compress(site: str | None, apply: bool, limit: int | None):
 
     async def _run():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             report = await compress_existing(apply=apply, limit=limit)
         mb = 1024 * 1024
         saved = report["before"] - report["after"]
@@ -110,7 +110,7 @@ def files_assign_spaces(site: str | None, apply: bool, fallback_owner: str | Non
 
     async def _run():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             report = await assign_spaces(apply=apply, fallback_owner=fallback_owner)
         for item in report["folders"]:
             click.echo(f"folder  {item['folder']}  ->  {item['owner']}")

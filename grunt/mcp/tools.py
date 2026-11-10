@@ -7,12 +7,13 @@ permissions (DocType RBAC, row-level rules, permission-hidden fields).
 from typing import Any
 
 import grunt
-from grunt import _
+from grunt.i18n import _
 from grunt.mcp.registry import mcp_tool
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import read_guard
 from grunt.permissions.rbac import permission_checker
 lazy from grunt.api.v1.search import global_search
+lazy from grunt.document.api import documents
 
 # Besides layout fields, these only shape the form and carry no data.
 _UI_FIELDTYPES = frozenset({"Button", "HTML"})
@@ -126,7 +127,7 @@ async def describe_doctype(doctype: str) -> dict[str, Any]:
     fields = _fields(meta, hidden)
     for info in fields:
         if info["fieldtype"] == "Table" and info.get("options"):
-            child = await grunt.get_meta(info["options"])
+            child = await doctype_registry.get_meta(info["options"])
             if child is not None:
                 child_hidden = await permission_checker.hidden_fields(child, user=user)
                 info["child_fields"] = _fields(child, child_hidden)
@@ -181,7 +182,7 @@ async def get_list(
     limit: int = 20,
     page: int = 1,
 ) -> dict[str, Any]:
-    res = await grunt.get_list(
+    res = await documents.get_list(
         doctype,
         filters=filters,
         fields=fields,
@@ -209,7 +210,7 @@ async def get_list(
     read_only=True,
 )
 async def get_doc(doctype: str, name: str) -> dict[str, Any]:
-    return await grunt.get_doc(doctype, name)
+    return await documents.get_doc(doctype, name)
 
 
 @mcp_tool(
@@ -255,7 +256,7 @@ async def aggregate(
     order: str = "desc",
     limit: int = 100,
 ) -> list[dict[str, Any]]:
-    return await grunt.aggregate(
+    return await documents.aggregate(
         doctype,
         filters=filters,
         group_by=group_by,
@@ -303,7 +304,7 @@ async def search(query: str, doctype: str | None = None, limit: int = 10) -> lis
     },
 )
 async def create_doc(doctype: str, data: dict[str, Any]) -> dict[str, Any]:
-    return await grunt.new_doc(doctype, data)
+    return await documents.new_doc(doctype, data)
 
 
 @mcp_tool(
@@ -324,7 +325,7 @@ async def create_doc(doctype: str, data: dict[str, Any]) -> dict[str, Any]:
     },
 )
 async def update_doc(doctype: str, name: str, data: dict[str, Any]) -> dict[str, Any]:
-    return await grunt.save_doc(doctype, name, data)
+    return await documents.save_doc(doctype, name, data)
 
 
 @mcp_tool(
@@ -342,5 +343,5 @@ async def update_doc(doctype: str, name: str, data: dict[str, Any]) -> dict[str,
     destructive=True,
 )
 async def delete_doc(doctype: str, name: str) -> dict[str, Any]:
-    await grunt.delete_doc(doctype, name)
+    await documents.delete_doc(doctype, name)
     return {"deleted": True, "doctype": doctype, "name": name}

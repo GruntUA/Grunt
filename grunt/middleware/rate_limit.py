@@ -29,10 +29,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from grunt import _, log
 from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.config import settings
 from grunt.errors import error_body
+from grunt.i18n import _
+from grunt.log import log
 from grunt.utils.redis import shared
 
 # Memory fallback: sweep expired windows once this many keys pile up.

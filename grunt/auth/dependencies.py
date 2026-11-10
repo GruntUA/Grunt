@@ -152,7 +152,7 @@ async def grunt_context(
 
         @router.get("/")
         async def my_endpoint(_: None = Depends(grunt_context)) -> dict:
-            items = await grunt.get_list("MyDocType", filters={"status": "Active"})
+            items = await documents.get_list("MyDocType", filters={"status": "Active"})
             return {"data": items}
     """
     tokens = grunt.set_context(session, engine, user)

@@ -18,14 +18,19 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-import grunt
-from grunt import _, log
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 from grunt.website.generator import app_mount, render_doc_page, sitemap_urls
 from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
 from grunt.website.spa import DIST_DIR, static_file
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/startup/website.py -> grunt/
 _CORE_WEBSITE_DIR = _GRUNT_PKG / "website"
@@ -75,10 +80,10 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
         return None
     has_site = any(page.app == first for page in website_registry.pages)
     try:
-        async with grunt.system_context(session):
-            if not await grunt.db.exists("AppMenu", first):
+        async with system_context(session):
+            if not await _db.exists("AppMenu", first):
                 return None
-            if has_site and await grunt.get_meta(rest.split("/", 1)[0]) is None:
+            if has_site and await doctype_registry.get_meta(rest.split("/", 1)[0]) is None:
                 return None
     except Exception as e:  # noqa: BLE001 - a lookup failure must not turn a 404 into a 500
         log.warning("website.legacy_workspace.error", path=request.url.path, error=str(e))

@@ -2,11 +2,11 @@
 
 from typing import Any
 
-import grunt
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.i18n import _
 from grunt.permissions.roles import has_roles
+lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -61,7 +61,7 @@ class Comment(Document):
                 _("Others replied to this comment - only an administrator can delete the thread")
             )
         for reply in replies:
-            await grunt.delete_doc("Comment", reply["name"])
+            await documents.delete_doc("Comment", reply["name"])
 
     # Helper Classmethods
 
@@ -75,7 +75,7 @@ class Comment(Document):
         parent_comment: str | None = None,
     ) -> dict[str, Any]:
         """Add a comment (or, with ``parent_comment``, a reply) to a document."""
-        return await grunt.new_doc(
+        return await documents.new_doc(
             "Comment",
             {
                 "reference_doctype": doctype,
@@ -90,7 +90,7 @@ class Comment(Document):
     @classmethod
     async def get_all(cls, doctype: str, doc_id: str) -> list[dict[str, Any]]:
         """Get all comments on a document."""
-        return await grunt.get_list(
+        return await documents.get_list(
             "Comment",
             filters={"reference_doctype": doctype, "reference_id": doc_id},
             order_by="created_at",

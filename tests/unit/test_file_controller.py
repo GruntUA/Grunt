@@ -152,14 +152,20 @@ async def test_upload_attachment_is_public_when_doctype_opts_in(ctx, monkeypatch
     """DocType.public_attachments → an attachment defaults to is_public (website content)."""
     from types import SimpleNamespace
 
-    real_get_meta = grunt.get_meta
+    from grunt.storage.doctypes.File import file as file_module
 
-    async def fake_get_meta(doctype: str):
-        if doctype == "WebNews":
-            return SimpleNamespace(public_attachments=True)
-        return await real_get_meta(doctype)
+    real = file_module.doctype_registry
 
-    monkeypatch.setattr(grunt, "get_meta", fake_get_meta)
+    class _Registry:
+        def __getattr__(self, name):
+            return getattr(real, name)
+
+        async def get_meta(self, doctype: str):
+            if doctype == "WebNews":
+                return SimpleNamespace(public_attachments=True)
+            return await real.get_meta(doctype)
+
+    monkeypatch.setattr(file_module, "doctype_registry", _Registry())
 
     public = await upload(
         _upload_file("cover.txt"), attached_to_doctype="WebNews", attached_to_id="N-1"

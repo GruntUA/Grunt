@@ -11,7 +11,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from grunt import log
+from grunt.log import log
 from grunt.metadata.dynamic_options import register_option
 
 DOC_ACTION_SOURCE = "grunt.doc_action"

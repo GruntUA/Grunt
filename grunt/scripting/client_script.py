@@ -8,9 +8,9 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import log
 from grunt.app import GruntDB
 from grunt.local import _session_ctx
+from grunt.log import log
 
 
 async def get_client_scripts(

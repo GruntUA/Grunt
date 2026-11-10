@@ -25,15 +25,17 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import log
 from grunt.config import settings
 from grunt.document.serde import to_json, with_doctype
 from grunt.fixtures import apply_doctype_fixture, clean_record
+from grunt.local import require_session, system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.utils.slug import slugify
 from grunt.utils.strings import to_snake_case
 lazy from grunt.apps.manifest import read_manifest
+lazy from grunt.document.api import documents
 lazy from grunt.document.meta import Meta
 
 _GRUNT_ROOT = Path(__file__).parent  # the grunt package dir
@@ -168,7 +170,7 @@ async def sync_files(event: str, **kwargs: Any) -> None:
     doctype = kwargs.get("doctype")
     if not settings.debug or not doctype:
         return
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None or not meta.doc.standard_records:
         return
 
@@ -185,8 +187,8 @@ async def sync_files(event: str, **kwargs: Any) -> None:
     if not name:
         return
 
-    async with grunt.system_context(grunt.get_session()):
-        doc = await grunt.get_doc(doctype, str(name))
+    async with system_context(require_session()):
+        doc = await documents.get_doc(doctype, str(name))
     if doc.get("is_standard") and not doc.get("app"):
         # Nowhere to write it - but that's no reason to delete the files it has
         # (a test saving a shipped record with app=None used to wipe them).
@@ -225,7 +227,7 @@ async def apply_records(app: str, session: AsyncSession, eng: AsyncEngine) -> in
         if json_file.stem == json_file.parent.name
     ]
     count = 0
-    async with grunt.system_context(session, eng):
+    async with system_context(session, eng):
         for folder in folders:
             count += await _apply_folder(app, folder, session, eng)
     return count
@@ -237,7 +239,7 @@ async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: Asyn
     if record is None:
         log.warning("standard_records.unreadable", path=str(folder))
         return 0
-    meta = await grunt.get_meta(record["doctype"])
+    meta = await doctype_registry.get_meta(record["doctype"])
     if meta is None or not meta.doc.standard_records:
         log.warning("standard_records.not_standard", path=str(folder))
         return 0

@@ -7,8 +7,8 @@ and written through the registry, which validates and syncs physical tables.
 from collections.abc import Mapping
 from typing import Any
 
-import grunt
 from grunt.document.base import Document
+from grunt.local import require_engine
 from grunt.metadata import store
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
@@ -62,7 +62,7 @@ class DocTypeStore(SqlStore):
         """Register the new DocType, create its table and export its files."""
         dt = DocType(**doc)
         _drop_default_table_name(dt)
-        engine = grunt.get_engine()
+        engine = require_engine()
         if await doctype_registry.get_or_none(dt.name) is not None:
             raise ValueError(f"DocType '{dt.name}' already exists")
         await doctype_registry.register(dt, self.session, engine)
@@ -83,7 +83,7 @@ class DocTypeStore(SqlStore):
         """Update the DocType, sync its table and export its files."""
         dt = DocType(**doc)
         _drop_default_table_name(dt)
-        engine = grunt.get_engine()
+        engine = require_engine()
         await doctype_registry.update(dt, self.session, engine)
         if dt.has_table and not dt.is_child:
             await sync_table(dt, engine, session=self.session)
@@ -101,6 +101,6 @@ class DocTypeController(Document):
     """The controller of DocType definitions - stored by :class:`DocTypeStore`."""
 
     # The class can't be named DocType (that's the metadata model imported
-    # above), so grunt.get_doc(DocTypeController, ...) takes the name from here.
+    # above), so documents.get_doc(DocTypeController, ...) takes the name from here.
     doctype = "DocType"
     store_class = DocTypeStore

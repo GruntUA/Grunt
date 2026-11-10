@@ -17,8 +17,24 @@ Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gt
 
 from typing import Any
 
-import grunt
 from grunt.local import _user_ctx, require_session
+
+# The document API (grunt.document.api.documents) - it registers itself
+# (:func:`use_document_api`), since it imports the document class this
+# QuerySet belongs to.
+_api: Any = None
+
+
+def use_document_api(api: Any) -> None:
+    """Register the document API ``Document.objects`` queries go through."""
+    global _api
+    _api = api
+
+
+def _documents() -> Any:
+    if _api is None:
+        raise RuntimeError("grunt.document.api is not loaded yet")
+    return _api
 
 
 class QuerySet[T]:
@@ -80,7 +96,7 @@ class QuerySet[T]:
     # Execution
 
     async def all(self) -> list[T]:
-        return await grunt.get_all(
+        return await _documents().get_all(
             self._model_cls,
             filters=self._filters or None,
             fields=self._fields,
@@ -102,7 +118,7 @@ class QuerySet[T]:
         # rather than raising, mirroring the old behaviour there.
 
         respect = _user_ctx.get() is not None
-        return await grunt.count(
+        return await _documents().count(
             self._doctype, filters=self._filters or None, respect_permissions=respect
         )
 
@@ -111,7 +127,7 @@ class QuerySet[T]:
 
     async def create(self, **data: Any) -> T:
         """Create a new document and return it as a typed controller instance."""
-        created = await grunt.new_doc(self._doctype, data)
+        created = await _documents().new_doc(self._doctype, data)
         return self._model_cls(
             doctype=self._doctype,
             data=created,

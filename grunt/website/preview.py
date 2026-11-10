@@ -15,10 +15,13 @@ from typing import Any
 
 from fastapi import Request
 
-import grunt
+from grunt.db.api import GruntDB
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.auth.session_cookie import cookie_user
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.storage.signing import sign_authorized_file_urls
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 PREVIEW_PARAM = "preview"
 PREVIEW_URL_KEY = "__preview_url"
@@ -40,10 +43,10 @@ async def find_unpublished(request: Request, doctype: str, filters: dict[str, An
     if not request.query_params.get(PREVIEW_PARAM):
         return None
     reader = await cookie_user(request)
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if reader is None or dt is None:
         return None
-    rows = await grunt.db.get_all(doctype, filters=filters, limit=1)
+    rows = await _db.get_all(doctype, filters=filters, limit=1)
     if not rows or not await permission_checker.check(dt, "read", rows[0], user=reader.email):
         return None
     request.state.preview_reader = reader.email

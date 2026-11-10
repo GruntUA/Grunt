@@ -17,10 +17,13 @@ import json
 import time
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import require_session
+from grunt.log import log
 from grunt.storage.backends import CHUNK_SIZE, get_storage_backend
 lazy from grunt.storage.cloud.files import collect_remote_garbage, remote_listing
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 GRACE_SECONDS = 3600
 
@@ -28,11 +31,11 @@ GRACE_SECONDS = 3600
 async def referenced_keys() -> set[str]:
     """Content hashes still needed: live ``File`` rows + unrestored trashed ones."""
     keys = set(
-        await grunt.db.get_all(
+        await _db.get_all(
             "File", filters={"content_hash__isnull": False}, pluck="content_hash", limit=None
         )
     )
-    trashed = await grunt.db.get_all(
+    trashed = await _db.get_all(
         "DeletedDocument",
         filters={"deleted_doctype": "File", "restored": 0},
         pluck="data",
@@ -61,7 +64,7 @@ async def collect_garbage(grace_seconds: int = GRACE_SECONDS) -> dict[str, Any]:
         lambda: {key for key, mtime in storage.iter_keys() if mtime < cutoff}
     )
     keep = await referenced_keys()
-    await grunt.get_session().commit()
+    await require_session().commit()
 
     freed = freed_bytes = 0
     for key in candidates - keep:
@@ -98,10 +101,8 @@ async def verify(rehash: bool = False) -> dict[str, list[str]]:
     """
 
     storage = get_storage_backend()
-    rows = await grunt.db.get_all(
-        "File", fields=["name", "content_hash", "storage_remote"], limit=None
-    )
-    await grunt.get_session().commit()
+    rows = await _db.get_all("File", fields=["name", "content_hash", "storage_remote"], limit=None)
+    await require_session().commit()
 
     # Blobs moved to cloud storage are checked against its listing.
     in_remote: dict[str, set[str]] = {}

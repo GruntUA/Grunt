@@ -23,7 +23,6 @@ from typing import Any
 
 from sqlalchemy import distinct, func, select
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.errors import not_found
 from grunt.i18n import _
@@ -32,6 +31,7 @@ from grunt.log import log
 from grunt.metadata.doctype import DocTypeLink
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import doc_guard
+lazy from grunt.document.api import documents
 
 _PREVIEW_LIMIT = 5
 
@@ -63,14 +63,14 @@ async def _child_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list
 async def _direct_link_stats(link: DocTypeLink, doc_name: str) -> tuple[int, list[dict[str, Any]]]:
     """Count + preview for a direct reverse-Link link."""
     filters = {link.link_fieldname: doc_name}
-    total = await grunt.count(link.link_doctype, filters=filters)
+    total = await documents.count(link.link_doctype, filters=filters)
 
     link_dt = await doctype_registry.get_meta(link.link_doctype)
     if link_dt is None:
         raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": link.link_doctype})
     title_field = link_dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         link.link_doctype,
         filters=filters,
         fields=fields,
@@ -91,7 +91,7 @@ async def _resolve_titles(doctype: str, names: list[str]) -> list[dict[str, Any]
         raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     title_field = dt.title_field or "name"
     fields = ["name"] if title_field == "name" else ["name", title_field]
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         doctype, filters={"name__in": names}, fields=fields, limit=len(names)
     )
     by_name = {r["name"]: (r.get(title_field) or r["name"]) for r in rows}

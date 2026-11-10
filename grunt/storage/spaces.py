@@ -11,9 +11,13 @@ from typing import Any
 
 from sqlalchemy import or_, select
 
-import grunt
+from grunt.db.api import GruntDB
+from grunt.local import require_session
 from grunt.permissions.user_permissions import expand_tree_values
 from grunt.storage.quota import table_of
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def assign_spaces(*, apply: bool, fallback_owner: str | None = None) -> dict[str, Any]:
@@ -24,7 +28,7 @@ async def assign_spaces(*, apply: bool, fallback_owner: str | None = None) -> di
     """
     folders = await table_of("FileFolder")
     files = await table_of("File")
-    session = grunt.get_session()
+    session = require_session()
     users = set((await session.execute(select((await table_of("User")).c.name))).scalars())
 
     def owner_of(*candidates: str | None) -> str | None:
@@ -38,10 +42,10 @@ async def assign_spaces(*, apply: bool, fallback_owner: str | None = None) -> di
 
     async def home_of(email: str) -> str:
         if email not in homes:
-            name = await grunt.db.get_value("FileFolder", {"space_user": email, "is_home": True})
+            name = await _db.get_value("FileFolder", {"space_user": email, "is_home": True})
             if not name and apply:
-                title = await grunt.db.get_value("User", email, "full_name") or email
-                doc = await grunt.new_doc(
+                title = await _db.get_value("User", email, "full_name") or email
+                doc = await documents.new_doc(
                     "FileFolder", {"folder_name": title, "is_home": True, "space_user": email}
                 )
                 name = doc["name"]

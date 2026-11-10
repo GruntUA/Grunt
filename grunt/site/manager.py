@@ -12,10 +12,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from grunt import log
 from grunt.config import settings
 from grunt.db.dialects import dialect_for
 from grunt.document.serde import to_json
+from grunt.log import log
 from grunt.site import bench
 
 # Context variable to hold the name of the currently active site

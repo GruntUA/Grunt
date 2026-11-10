@@ -22,9 +22,9 @@ from pathlib import Path
 from taskiq import TaskiqEvents, TaskiqState
 
 import grunt
-from grunt import log
 from grunt.cache import bus
 from grunt.db.write_intent import set_process_default
+from grunt.log import log
 from grunt.monitoring import perf
 from grunt.site.manager import site_manager
 from grunt.startup.lifespan import boot

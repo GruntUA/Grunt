@@ -10,12 +10,15 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.auth.language import language_of
+from grunt.db.api import GruntDB
 from grunt.document.titles import resolve_reference_titles
-from grunt.i18n import use_language
+from grunt.i18n import _, use_language
+from grunt.local import system_context
+from grunt.log import log
 from grunt.notification.service import notification_service
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # How many changed field labels a notification spells out before "і ще N".
 _MAX_FIELDS = 5
@@ -25,7 +28,7 @@ async def _followers(doctype: str, doc_id: str, actor_email: str | None) -> list
     filters: dict[str, Any] = {"reference_doctype": doctype, "reference_id": str(doc_id)}
     if actor_email:
         filters["user__ne"] = actor_email
-    return await grunt.db.get_all("DocFollow", filters=filters, pluck="user", limit=None)
+    return await _db.get_all("DocFollow", filters=filters, pluck="user", limit=None)
 
 
 async def _title(doctype: str, doc_id: str) -> str:
@@ -77,7 +80,7 @@ async def notify_followers_of_update(
     """Called from the update pipeline with the fields that actually changed."""
     if not changed_fields or doctype == "DocFollow":
         return
-    async with grunt.system_context(session):
+    async with system_context(session):
         users = await _followers(doctype, doc_id, actor_email)
         if not users:
             return
@@ -107,7 +110,7 @@ async def notify_followers_of_comment(
         return
 
     actor = user or doc.get("owner")  # user: the email of who commented
-    async with grunt.system_context(session):
+    async with system_context(session):
         users = await _followers(doctype, doc_id, actor)
         if not users:
             return
@@ -138,5 +141,5 @@ async def drop_follows(
     ref = doc_id or (doc.get("name") if isinstance(doc, dict) else None)
     if not doctype or not ref or session is None or doctype == "DocFollow":
         return
-    async with grunt.system_context(session):
-        await grunt.db.delete("DocFollow", {"reference_doctype": doctype, "reference_id": str(ref)})
+    async with system_context(session):
+        await _db.delete("DocFollow", {"reference_doctype": doctype, "reference_id": str(ref)})

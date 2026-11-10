@@ -11,11 +11,12 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt import _, log
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
+from grunt.i18n import _
+from grunt.log import log
 lazy from grunt.auth.session_cookie import cookie_user
 lazy from grunt.document.base import Document
 lazy from grunt.errors import forbidden
@@ -192,7 +193,7 @@ async def _invoke_with_context(
     # Activate context
     async with grunt.context(session, engine, user):
         # Validate required parameters
-        # (@grunt.whitelist(roles=..., require=...) enforcement happens inside
+        # (@whitelist(roles=..., require=...) enforcement happens inside
         # `method` itself now - see grunt.api.context.whitelist - so it applies
         # uniformly whether `method` is called via this dispatcher or directly.)
 

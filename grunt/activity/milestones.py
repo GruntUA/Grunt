@@ -15,10 +15,14 @@ import time
 from datetime import UTC, datetime
 from typing import Any
 
-import grunt
-from grunt import log
 from grunt.cache.bus import fanout
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.site.manager import current_site
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 TRACKER = "MilestoneTracker"
 MILESTONE = "Milestone"
@@ -42,8 +46,8 @@ async def tracked_fields(doctype: str) -> list[str]:
     site = current_site.get()
     hit = _trackers.get(site)
     if hit is None or time.monotonic() - hit[0] > _CACHE_TTL:
-        async with grunt.system_context(grunt.get_session()):
-            rows = await grunt.db.get_all(
+        async with system_context(require_session()):
+            rows = await _db.get_all(
                 TRACKER,
                 filters={"disabled": False},
                 fields=["ref_doctype", "track_field"],
@@ -70,7 +74,7 @@ def _hours(start: Any, end: datetime) -> float:
 
 
 async def _open_row(doctype: str, name: str, field: str) -> dict[str, Any] | None:
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         MILESTONE,
         filters={
             "ref_doctype": doctype,
@@ -101,12 +105,12 @@ async def record(
     if current is not None:
         if current["value"] == value:
             return False
-        await grunt.db.set_value(
+        await _db.set_value(
             MILESTONE,
             current["name"],
             {"left_at": now, "duration_hours": _hours(current["entered_at"], now)},
         )
-    await grunt.new_doc(
+    await documents.new_doc(
         MILESTONE,
         {
             "ref_doctype": doctype,
@@ -132,7 +136,7 @@ async def on_document_saved(**kwargs: Any) -> None:
     if not fields:
         return
     user = kwargs.get("user")  # lifecycle events carry the email
-    async with grunt.system_context(grunt.get_session()):
+    async with system_context(require_session()):
         for field in fields:
             try:
                 await record(doctype, doc, field, user=user)
@@ -147,8 +151,8 @@ async def on_document_deleted(**kwargs: Any) -> None:
     name = doc.get("name") if isinstance(doc, dict) else kwargs.get("doc_id")
     if not doctype or not name or not await tracked_fields(doctype):
         return
-    async with grunt.system_context(grunt.get_session()):
-        await grunt.db.delete(MILESTONE, {"ref_doctype": doctype, "ref_name": name})
+    async with system_context(require_session()):
+        await _db.delete(MILESTONE, {"ref_doctype": doctype, "ref_name": name})
 
 
 async def seed(doctype: str, field: str) -> int:
@@ -158,7 +162,7 @@ async def seed(doctype: str, field: str) -> int:
     used and the row is marked ``approximate``. Returns rows created.
     """
     created = 0
-    rows = await grunt.db.get_all(doctype, fields=["name", field, "modified_at"], limit=MAX_SEED)
+    rows = await _db.get_all(doctype, fields=["name", field, "modified_at"], limit=MAX_SEED)
     for row in rows:
         if await _open_row(doctype, str(row["name"]), field) is not None:
             continue
@@ -177,7 +181,7 @@ async def history(doctype: str, name: str) -> list[dict[str, Any]]:
     """A document's milestones, oldest first - for the form sidebar."""
     if not await tracked_fields(doctype):
         return []
-    rows = await grunt.get_list(
+    rows = await documents.get_list(
         MILESTONE,
         filters={"ref_doctype": doctype, "ref_name": name},
         fields=[

@@ -29,7 +29,6 @@ from sqlalchemy import literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
-import grunt
 from grunt.db.dialects import dialect_for
 from grunt.document.registry import document_registry
 from grunt.i18n import _
@@ -37,6 +36,7 @@ from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.search.terms import match_columns
 from grunt.store import SQL, supports
+lazy from grunt.document.api import documents
 lazy from grunt.query.sql import filter_expr, where
 
 # doctype -> async fn(session, nodes, as_of_date) -> {node_id: display_title}
@@ -482,7 +482,7 @@ class TreeService:
 
         # Through the update pipeline: per-document write permission, the
         # controller's hooks (a folder carries its space down) and the audit log.
-        row = await grunt.save_doc(doctype, node_id, {parent_field: new_parent_id or None})
+        row = await documents.save_doc(doctype, node_id, {parent_field: new_parent_id or None})
 
         log.info("tree.node_moved", doctype=doctype, node=node_id, new_parent=new_parent_id)
         return row

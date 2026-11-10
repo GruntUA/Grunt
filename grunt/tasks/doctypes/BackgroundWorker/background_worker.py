@@ -6,9 +6,9 @@ from fastapi import HTTPException, status
 from redis.asyncio import Redis
 from taskiq_redis import RedisStreamBroker
 
-from grunt import _, log
 from grunt.document.base import Document
-from grunt.i18n import N_
+from grunt.i18n import N_, _
+from grunt.log import log
 from grunt.query.query import Query
 from grunt.store import DELETE, Unavailable, VirtualStore
 from grunt.tasks.redis_introspect import (
