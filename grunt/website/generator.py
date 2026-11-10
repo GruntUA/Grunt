@@ -38,7 +38,8 @@ from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
 import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.log import log
 from grunt.utils.slug import slugify
 from grunt.website.host import current_web_app
 lazy from grunt.apps.loader import CORE_APP, primary_web_app
@@ -53,6 +54,8 @@ lazy from grunt.website.preview import (
     preview_url,
 )
 lazy from grunt.website.router import page_context, website_registry
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 WEB_URL_KEY = "__web_url"
 ROUTE_FIELD = "route"
@@ -129,7 +132,7 @@ async def with_web_url(doctype: str, doc: Any) -> Any:
         url = custom(doc)
         preview = getattr(controller, "get_preview_url", lambda _doc: None)(doc)
     else:
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         url = web_url(dt, doc) if dt is not None else None
         preview = draft_preview_url(dt, doc) if dt is not None else None
     if url:
@@ -184,7 +187,7 @@ async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | No
         filters: dict[str, Any] = {key: route}
         if dt.is_published_field:
             filters[dt.is_published_field] = True
-        rows = await grunt.db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
+        rows = await _db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
         if rows:
             return dt, rows[0]["name"]
         if dt.is_published_field and (
@@ -314,6 +317,6 @@ async def sitemap_urls(
         filters = {dt.is_published_field: True} if dt.is_published_field else None
         extra = (ROUTE_FIELD, dt.is_published_field)
         fields = ["name", "modified_at", *[f for f in extra if f and _has_field(dt, f)]]
-        rows = await grunt.db.get_all(dt.name, filters=filters, fields=fields, limit=None)
+        rows = await _db.get_all(dt.name, filters=filters, fields=fields, limit=None)
         urls.extend((url, row.get("modified_at")) for row in rows if (url := web_url(dt, row)))
     return urls

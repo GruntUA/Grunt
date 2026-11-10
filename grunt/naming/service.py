@@ -14,9 +14,10 @@ from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.naming.patterns import (
     build_prefix,
     format_name,
@@ -86,7 +87,7 @@ class NamingService:
 
         Uses SELECT ... FOR UPDATE to prevent race conditions.
         """
-        ns_dt = await grunt.get_meta("NamingSeries")
+        ns_dt = await doctype_registry.get_meta("NamingSeries")
         if ns_dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NamingSeries"})
         table = ns_dt.table

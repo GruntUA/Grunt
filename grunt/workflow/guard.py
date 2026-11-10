@@ -18,10 +18,10 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
-import grunt
-from grunt import _
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.roles import get_roles
 lazy from grunt.workflow.engine import (
     ActiveTransition,
@@ -161,7 +161,7 @@ async def _check_edit_roles(workflow: Any, state: str | None, user: str | None) 
 
 
 async def _meta(doctype: str) -> Any:
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     return meta.doc

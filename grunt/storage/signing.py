@@ -20,8 +20,11 @@ import time
 from typing import Any
 
 from grunt.config import settings
-lazy import grunt
+from grunt.db.api import GruntDB
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # How long a signed URL stays usable (plus up to one hour of rounding).
 SIGNED_URL_TTL_SECONDS = 12 * 3600
@@ -132,7 +135,7 @@ async def _authorized_file_ids(ids: set[str], user: str | None) -> set[str]:
     """
 
     authorized: set[str] = set()
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "File",
         filters={"name__in": list(ids)},
         fields=[
@@ -166,7 +169,7 @@ async def _authorized_file_ids(ids: set[str], user: str | None) -> set[str]:
             continue
 
         if meta is None:
-            meta = await grunt.get_meta("File")
+            meta = await doctype_registry.get_meta("File")
         if meta is not None and await permission_checker.check(meta, "read", doc, user=user):
             authorized.add(fid)
     return authorized

@@ -282,3 +282,18 @@
   (`api.v1.ws`, `webhook.service`, `workflow`, `auth.users`), а ті — контролери DocType → `base`
   — 6b-3 (події).
 - Результат: 2258 passed, pyright 0; CodeQL локально 281 → 256, нових 0.
+
+### 2026-11-10 — крок 9a: сервіси під документом без низькорівневого фасаду
+
+- `workflow.engine / guard / registry`, `storage.references / signing`, `naming.service`,
+  `website.generator`: `get_meta`, `grunt.db.*` (зокрема `bulk_update`), `get_session`, `_` / `log`
+  — напряму. Базовий список 111 → 106 (`naming`, `naming.service`, `storage.references`,
+  `storage.signing`, `workflow.registry`).
+- **Вузол, що лишився.** Сервіси (workflow-переходи, коментарі й журнал, сторінки сайту, формули)
+  кличуть `grunt.get_doc / new_doc / save_doc / count / get_list` — повний конвеєр із правами з
+  `app.document_api`, а він сам імпортує ці сервіси (`workflow_engine`). Рішення: високорівневий
+  CRUD із правами — у шар документа (`document/api.py`), фасад делегує; сервіси кличуть його.
+  Порядок: 9b — `document/api.py` (поведінка та сама); 9c — сервіси на нього; потім 6b-3 (події
+  для `api.v1.ws`, вебхуків, `events`) і 6b-4 (HTTP-методи з `Document` в API, нові шляхи —
+  рішення власника 2026-11-10).
+

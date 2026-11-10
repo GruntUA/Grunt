@@ -65,8 +65,6 @@ grunt.middleware.rate_limit
 grunt.monitoring.error_log
 grunt.monitoring.health
 grunt.monitoring.updates
-grunt.naming
-grunt.naming.service
 grunt.notification.rule_index
 grunt.notification.service
 grunt.notification.tasks
@@ -87,8 +85,6 @@ grunt.storage.cloud.rclone
 grunt.storage.files
 grunt.storage.gc
 grunt.storage.images
-grunt.storage.references
-grunt.storage.signing
 grunt.storage.tasks
 grunt.tasks.broker
 grunt.tasks.doc_method
@@ -110,4 +106,3 @@ grunt.website.router
 grunt.workflow.engine
 grunt.workflow.guard
 grunt.workflow.notify
-grunt.workflow.registry
