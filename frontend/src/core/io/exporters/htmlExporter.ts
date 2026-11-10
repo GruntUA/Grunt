@@ -30,7 +30,7 @@ export const htmlExporter: Exporter = {
     }
 
     const a = document.createElement('a')
-    a.href = `/api/v1/method/grunt.document.base.Document.export_file?${params}`
+    a.href = `/api/v1/method/grunt.api.v1.document.export.export_file?${params}`
     a.download = ''
     document.body.appendChild(a)
     a.click()

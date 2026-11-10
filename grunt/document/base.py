@@ -19,14 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import grunt
 from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
-from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
-from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
-from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
 from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
-from grunt.document.mixins.link_rpc import DocumentLinkRPCMixin
-from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
-from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
-from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
@@ -75,13 +68,6 @@ class _ObjectsDescriptor:
 
 
 class Document(
-    DocumentTreeRPCMixin,
-    DocumentLinkRPCMixin,
-    DocumentExportRPCMixin,
-    DocumentHistoryRPCMixin,
-    DocumentCollaborationRPCMixin,
-    DocumentWorkflowRPCMixin,
-    DocumentMetaRPCMixin,
     DocumentLifecycleMixin,
 ):
     """A document: its values in ``self.data``, its lifecycle hooks, and the

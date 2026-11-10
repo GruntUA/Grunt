@@ -4,6 +4,8 @@ the thread's author, and a thread with others' replies is deleted only by an adm
 import pytest
 from fastapi import HTTPException
 
+from grunt.api.v1.document import collaboration as collaboration_api
+from grunt.api.v1.document import history as history_api
 from grunt.errors import ApplicationError
 from tests.support import make_user
 
@@ -39,11 +41,10 @@ async def boxes(ctx):
 def comment(db_session, engine):
     """add_comment as *user* (an Editor unless roles are given)."""
     import grunt
-    from grunt.document.base import Document
 
     async def add(email, box, text, parent=None, roles=("Editor",)):
         async with grunt.context(db_session, engine, make_user(email, roles=list(roles))):
-            row = await Document.add_comment(
+            row = await collaboration_api.add_comment(
                 doctype="ThreadBox", doc_id=box, content=text, parent_comment=parent
             )
         await db_session.commit()
@@ -98,12 +99,11 @@ async def test_reply_notifies_thread_author_once(ctx, boxes, comment):
 @pytest.mark.asyncio
 async def test_timeline_carries_parent(ctx, boxes, comment, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     root = await comment(ALICE, boxes[0], "Root")
     await comment(BOB, boxes[0], "Reply", parent=root["name"])
     async with grunt.context(db_session, engine, make_user(ALICE, roles=["Editor"])):
-        items = await Document.get_timeline(doctype="ThreadBox", doc_id=boxes[0])
+        items = await history_api.get_timeline(doctype="ThreadBox", doc_id=boxes[0])
     parents = {i["content"]: i["parent_comment"] for i in items if i["type"] == "comment"}
     assert parents == {"Root": None, "Reply": root["name"]}
 
@@ -111,11 +111,12 @@ async def test_timeline_carries_parent(ctx, boxes, comment, db_session, engine):
 @pytest.mark.asyncio
 async def test_deleting_threads(ctx, boxes, comment, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     async def delete(email, name, roles=("Editor",)):
         async with grunt.context(db_session, engine, make_user(email, roles=list(roles))):
-            await Document.delete_comment(doctype="ThreadBox", doc_id=boxes[0], comment_id=name)
+            await collaboration_api.delete_comment(
+                doctype="ThreadBox", doc_id=boxes[0], comment_id=name
+            )
         await db_session.commit()
 
     async def remaining():

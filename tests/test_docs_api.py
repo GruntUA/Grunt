@@ -2,6 +2,8 @@
 
 import pytest
 
+from grunt.api.v1.document import links as links_api
+
 TEST_DOCTYPE = {
     "name": "TestItem",
     "label": "Test Item",
@@ -761,14 +763,13 @@ async def test_list_partial_fields(ctx, setup_doctype):
 async def test_link_search_returns_compact_items(ctx, setup_doctype):
     """Document.link_search should return compact rows and honor title/search fields."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.base import Document
 
     await ctx.new_doc("TestItem", {"title": "Alpha Item", "status": "Draft"})
     await ctx.new_doc("TestItem", {"title": "Beta Item", "status": "Active"})
     await ctx.db._session().commit()
 
     async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
-        items = await Document.link_search(
+        items = await links_api.link_search(
             "TestItem",
             search="Alpha",
             filters={"status": "Draft"},
@@ -790,7 +791,6 @@ async def test_link_search_returns_all_search_fields(ctx):
     user searched by."""
     from grunt.api.v1.meta import save_doctype
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.base import Document
 
     await save_doctype(
         doctype_data={
@@ -820,7 +820,7 @@ async def test_link_search_returns_all_search_fields(ctx):
     await ctx.db._session().commit()
 
     async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
-        items = await Document.link_search("Correspondentish", search="34620942")
+        items = await links_api.link_search("Correspondentish", search="34620942")
 
     assert len(items) == 1
     item = items[0]

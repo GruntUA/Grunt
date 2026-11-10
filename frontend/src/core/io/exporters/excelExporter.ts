@@ -8,7 +8,7 @@ export const excelExporter: Exporter = {
   icon: 'Sheet',
   export(ctx: ExportContext) {
     const auth = useAuthStore()
-    const url = `/api/v1/method/grunt.document.base.Document.export_file?doctype=${ctx.doctypeName}&token=${auth.token}`
+    const url = `/api/v1/method/grunt.api.v1.document.export.export_file?doctype=${ctx.doctypeName}&token=${auth.token}`
     const a = document.createElement('a')
     a.href = url
     a.download = ''

@@ -238,7 +238,7 @@ export const docsApi = {
     filters: Record<string, string | string[]> = {},
     perPage = 10,
   ): Promise<LinkSearchItem[]> => {
-    const r = await client.get('/api/v1/method/grunt.document.base.Document.link_search', {
+    const r = await client.get('/api/v1/method/grunt.api.v1.document.links.link_search', {
       params: { doctype, search, filters: JSON.stringify(filters), per_page: perPage },
     })
     return r.data.data ?? []
@@ -318,38 +318,38 @@ export const docsApi = {
 
   /** What still references these documents - the impact of deleting them. */
   getDeleteImpact: (doctype: string, ids: string[]): Promise<DeleteImpact> =>
-    client.post('/api/v1/method/grunt.document.base.Document.get_delete_impact', {
+    client.post('/api/v1/method/grunt.api.v1.document.meta.get_delete_impact', {
       doctype, doc_ids: ids,
     }).then(r => r.data.data),
 
   getTransitions: (doctype: string, id: string): Promise<{ data: WorkflowTransitionItem[] }> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_workflow_transitions', {
+    client.get('/api/v1/method/grunt.api.v1.document.workflow.get_workflow_transitions', {
       params: { doctype, doc_id: id },
     }).then(r => r.data),
 
   applyTransition: (doctype: string, id: string, action: string, values?: Record<string, unknown>): Promise<{ success: boolean; data: GruntDocument }> =>
-    client.post('/api/v1/method/grunt.document.base.Document.apply_workflow_transition', {
+    client.post('/api/v1/method/grunt.api.v1.document.workflow.apply_workflow_transition', {
       doctype, doc_id: id, action, values,
     }).then(r => r.data),
 
   /** Years present in a Date/Datetime field, newest first - options of a year quick filter. */
   getFieldYears: (doctype: string, fieldname: string): Promise<number[]> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_field_years', {
+    client.get('/api/v1/method/grunt.api.v1.document.meta.get_field_years', {
       params: { doctype, fieldname },
     }).then(r => r.data.data ?? []),
 
   getLinks: (doctype: string, id: string): Promise<BacklinkItem[]> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_backlinks', {
+    client.get('/api/v1/method/grunt.api.v1.document.meta.get_backlinks', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
 
   getPreview: (doctype: string, id: string): Promise<DocPreview | null> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_preview', {
+    client.get('/api/v1/method/grunt.api.v1.document.meta.get_preview', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? null),
 
   getSidebar: (doctype: string, id: string): Promise<SidebarBundle> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_sidebar', {
+    client.get('/api/v1/method/grunt.api.v1.document.meta.get_sidebar', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data),
 
@@ -377,7 +377,7 @@ export const docsApi = {
     if (params?.sort_order) queryParams.sort_order = params.sort_order
     if (Object.keys(merged).length) queryParams.filters = JSON.stringify(merged)
 
-    const r = await client.get('/api/v1/method/grunt.document.base.Document.get_tree', {
+    const r = await client.get('/api/v1/method/grunt.api.v1.document.tree.get_tree', {
       params: queryParams,
     })
     return r.data.data ?? []
@@ -389,19 +389,19 @@ export const docsApi = {
     nodeId?: string | null,
     params?: { sort_by?: string; sort_order?: 'asc' | 'desc' },
   ): Promise<TreeNode[]> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_tree_children', {
+    client.get('/api/v1/method/grunt.api.v1.document.tree.get_tree_children', {
       params: { doctype, ...(nodeId ? { node_id: nodeId } : {}), ...params },
     }).then(r => r.data.data ?? []),
 
   /** Path from the root down to the node's parent (closest ancestor last). */
   getTreeAncestors: (doctype: string, nodeId: string): Promise<TreeNode[]> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_tree_ancestors', {
+    client.get('/api/v1/method/grunt.api.v1.document.tree.get_tree_ancestors', {
       params: { doctype, node_id: nodeId },
     }).then(r => r.data.data ?? []),
 
   /** Re-parent a tree node (`null` -> root). 409 when it would create a cycle. */
   moveTreeNode: (doctype: string, nodeId: string, newParentId: string | null): Promise<GruntDocument> =>
-    client.post('/api/v1/method/grunt.document.base.Document.move_tree_node', {
+    client.post('/api/v1/method/grunt.api.v1.document.tree.move_tree_node', {
       doctype,
       node_id: nodeId,
       new_parent_id: newParentId,
@@ -443,43 +443,43 @@ export const docsApi = {
   // Comments
 
   addComment: (doctype: string, id: string, content: string, parentComment?: string): Promise<CommentItem> =>
-    client.post('/api/v1/method/grunt.document.base.Document.add_comment', {
+    client.post('/api/v1/method/grunt.api.v1.document.collaboration.add_comment', {
       doctype, doc_id: id, content, parent_comment: parentComment ?? null,
     }).then(r => r.data.data),
 
   deleteComment: (doctype: string, id: string, commentId: string): Promise<void> =>
-    client.post('/api/v1/method/grunt.document.base.Document.delete_comment', {
+    client.post('/api/v1/method/grunt.api.v1.document.collaboration.delete_comment', {
       doctype, doc_id: id, comment_id: commentId,
     }).then(() => undefined),
 
   // Reminders
 
   addReminder: (doctype: string, id: string, remindAt: string, description = ''): Promise<SidebarReminder> =>
-    client.post('/api/v1/method/grunt.document.base.Document.add_reminder', {
+    client.post('/api/v1/method/grunt.api.v1.document.collaboration.add_reminder', {
       doctype, doc_id: id, remind_at: remindAt, description,
     }).then(r => r.data.data),
 
   // Bookmarks
 
   addBookmark: (doctype: string, id: string, title?: string): Promise<GruntDocument> =>
-    client.post('/api/v1/method/grunt.document.base.Document.add_bookmark', {
+    client.post('/api/v1/method/grunt.api.v1.document.collaboration.add_bookmark', {
       doctype, doc_id: id, title: title ?? '',
     }).then(r => r.data.data),
 
   removeBookmark: (doctype: string, id: string): Promise<void> =>
-    client.post('/api/v1/method/grunt.document.base.Document.remove_bookmark', {
+    client.post('/api/v1/method/grunt.api.v1.document.collaboration.remove_bookmark', {
       doctype, doc_id: id,
     }).then(() => undefined),
 
   // Timeline
 
   getTimeline: (doctype: string, id: string): Promise<TimelineItem[]> =>
-    client.get('/api/v1/method/grunt.document.base.Document.get_timeline', {
+    client.get('/api/v1/method/grunt.api.v1.document.history.get_timeline', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
 
   restoreVersion: (doctype: string, id: string, versionId: string): Promise<{ document: GruntDocument; restored_to_version: number }> =>
-    client.post('/api/v1/method/grunt.document.base.Document.restore_version', {
+    client.post('/api/v1/method/grunt.api.v1.document.history.restore_version', {
       doctype, doc_id: id, version_id: versionId,
     }).then(r => r.data.data),
 

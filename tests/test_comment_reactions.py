@@ -4,6 +4,7 @@ configured emoji, only on readable documents; reactions die with the comment."""
 import pytest
 from fastapi import HTTPException
 
+from grunt.api.v1.document import history as history_api
 from tests.support import make_user
 
 BOX = {
@@ -56,12 +57,11 @@ async def test_toggle_reaction(ctx, comment, db_session, engine):
 @pytest.mark.asyncio
 async def test_reactions_in_timeline(ctx, comment, db_session, engine):
     from grunt.activity.reactions import toggle_reaction
-    from grunt.document.base import Document
 
     box, c = comment
     await _as(db_session, engine, lambda: toggle_reaction(c, "✅"))
     await _as(db_session, engine, lambda: toggle_reaction(c, "👍"))
-    items = await _as(db_session, engine, lambda: Document.get_timeline("ReactBox", box))
+    items = await _as(db_session, engine, lambda: history_api.get_timeline("ReactBox", box))
     item = next(i for i in items if i["type"] == "comment")
     # Ordered as the choices are, not as they were added.
     assert [r["emoji"] for r in item["reactions"]] == ["👍", "✅"]

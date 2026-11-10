@@ -8,6 +8,8 @@ guards in ``validate_replacement``.
 import pytest
 from fastapi import HTTPException
 
+from grunt.api.v1.document import meta as meta_api
+
 pytestmark = pytest.mark.asyncio
 
 
@@ -129,16 +131,15 @@ async def test_get_delete_impact_counts(ctx, rpl_doctypes):
 
 async def test_get_delete_impact_rpc(ctx, rpl_doctypes):
     """The whitelisted RPC wrapper does its own per-id permission check."""
-    from grunt.document.base import Document
 
     a = await ctx.new_doc("RplTarget", {"title": "A"})
     await ctx.new_doc("RplSource", {"ref": a["name"]})
     await ctx.db._session().commit()
 
-    impact = await Document.get_delete_impact("RplTarget", doc_id=a["name"])
+    impact = await meta_api.get_delete_impact("RplTarget", doc_id=a["name"])
     assert impact["total"] == 1
 
-    impact = await Document.get_delete_impact("RplTarget", doc_ids=[a["name"]])
+    impact = await meta_api.get_delete_impact("RplTarget", doc_ids=[a["name"]])
     assert impact["total"] == 1
 
 

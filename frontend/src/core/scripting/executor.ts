@@ -197,7 +197,7 @@ export function createFormProxy(
       if (options.autoprint) params.set('autoprint', '1')
       const token = accessToken.value
       if (token) params.set('token', token)
-      window.open(`/api/v1/method/grunt.document.base.Document.print?${params}`, '_blank', 'noopener')
+      window.open(`/api/v1/method/grunt.api.v1.document.export.print?${params}`, '_blank', 'noopener')
     },
 
     get_selected() {

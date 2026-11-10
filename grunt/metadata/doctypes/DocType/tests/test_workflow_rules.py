@@ -9,8 +9,8 @@ import pytest_asyncio
 from fastapi import HTTPException
 
 import grunt
+from grunt.api.v1.document import workflow as workflow_api
 from grunt.api.v1.meta import save_doctype
-from grunt.document.base import Document
 from grunt.hooks import on_doc
 from grunt.workflow.engine import current_transition
 from grunt.workflow.registry import clear_cache
@@ -94,7 +94,7 @@ async def _state(name: str) -> tuple[str, int]:
 
 
 async def _buttons(name: str) -> set[str]:
-    return {t["action"] for t in await Document.get_workflow_transitions("Article", name)}
+    return {t["action"] for t in await workflow_api.get_workflow_transitions("Article", name)}
 
 
 @pytest.mark.asyncio
