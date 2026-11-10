@@ -82,7 +82,7 @@ class AuthProvider(ABC):
 
 ```python
 # myapp/auth/telegram.py
-from grunt.api.messages import throw
+from grunt.errors import throw
 from grunt.auth.providers import AuthProvider
 
 
@@ -118,7 +118,7 @@ never the other way round: a provider module does not import the registry. The
 built-in ones are declared the same way in `grunt/core_hooks.py`; an app that
 declares a provider with a built-in `name` replaces it.
 
-> Raise API errors with `grunt.api.messages.throw(msg, "UNAUTHORIZED")` — the
+> Raise API errors with `grunt.errors.throw(msg, "UNAUTHORIZED")` — the
 > **code-based** `throw`. The `grunt.throw` bound on the app instance takes a
 > *title*, not a code, and won't map to the right HTTP status.
 
