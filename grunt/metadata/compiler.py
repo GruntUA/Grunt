@@ -15,16 +15,16 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import log
 from grunt.db.dialects import dialect_for
 from grunt.db.schema.apply import apply, check
 from grunt.db.schema.changes import Change
 from grunt.db.schema.diff import describe, diff, read_actual
 from grunt.db.types import UtcDateTime
+from grunt.log import log
 from grunt.metadata.field import NON_PHYSICAL_FIELDS, get_storage_class
+from grunt.site.manager import site_cache_key
 from grunt.utils.strings import to_snake_case
 lazy from grunt.metadata.doctype import DocType
-lazy from grunt.metadata.registry import _resolve_site_key
 
 # SA MetaData for fixed-shape infrastructure tables that never vary by
 # DocType or by site (MULTI_LINK_TABLE, OUTBOX_TABLE below). Kept as a
@@ -32,7 +32,7 @@ lazy from grunt.metadata.registry import _resolve_site_key
 SA_METADATA = MetaData()
 
 # Per-site MetaData for *compiled DocType* tables, keyed by site (the same
-# key grunt.metadata.registry._resolve_site_key() resolves). One process can
+# key grunt.site.manager.site_cache_key() resolves). One process can
 # serve multiple sites; a compiled Table's shape (columns) depends entirely
 # on that site's DocType definition, so it must never be shared across sites
 # - a stale/foreign Table object would build SQL against columns that don't
@@ -50,17 +50,17 @@ def get_compiled_metadata(site: str | None = None) -> MetaData:
     """Return the MetaData holding compiled per-DocType tables for *site*.
 
     Defaults to the ambient current site (see
-    ``grunt.metadata.registry._resolve_site_key``). Created lazily and cached.
+    ``grunt.site.manager.site_cache_key``). Created lazily and cached.
     """
 
-    key = site or _resolve_site_key()
+    key = site or site_cache_key()
     return _SA_METADATA.setdefault(key, MetaData())
 
 
 def invalidate_table_cache(doctype_name: str) -> None:
     """Remove a cached Table for the given DocType (call on update/delete)."""
 
-    _TABLE_CACHE.get(_resolve_site_key(), {}).pop(doctype_name, None)
+    _TABLE_CACHE.get(site_cache_key(), {}).pop(doctype_name, None)
 
 
 def clear_table_cache(site: str) -> None:
@@ -147,7 +147,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     """
     metadata = get_compiled_metadata()
 
-    cache = _TABLE_CACHE.setdefault(_resolve_site_key(), {})
+    cache = _TABLE_CACHE.setdefault(site_cache_key(), {})
     cached = cache.get(doctype.name)
     # Guard against stale entries: if the site's MetaData no longer holds the
     # Table (e.g. dropped during tests or hot-reload), rebuild and re-cache.
