@@ -33,7 +33,7 @@ class SiteManager:
     """
 
     def __init__(self) -> None:
-        self.sites_dir = self.bench_dir / "sites"
+        self._sites_dir: Path | None = None  # set explicitly; else the bench's sites/
 
         # Caches
         self.engines: dict[str, AsyncEngine] = {}
@@ -60,6 +60,15 @@ class SiteManager:
     @bench_dir.setter
     def bench_dir(self, path: Path) -> None:
         bench.set_bench_dir(path)
+
+    @property
+    def sites_dir(self) -> Path:
+        """``sites/`` of the bench - or the directory set explicitly."""
+        return self._sites_dir if self._sites_dir is not None else self.bench_dir / "sites"
+
+    @sites_dir.setter
+    def sites_dir(self, path: Path) -> None:
+        self._sites_dir = path
 
     def get_sites(self) -> list[str]:
         """List all valid site directories in the bench."""

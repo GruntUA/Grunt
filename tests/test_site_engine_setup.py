@@ -4,6 +4,7 @@ manager knowing them (IMPORT_CYCLES_PLAN.md, step 3)."""
 from sqlalchemy import event
 
 from grunt.monitoring import perf
+from grunt.site import bench
 from grunt.site.manager import SiteManager, site_manager
 
 
@@ -35,3 +36,16 @@ async def test_the_sql_counter_registers_itself_on_site_engines(tmp_path, monkey
 
     assert event.contains(engine.sync_engine, "before_cursor_execute", perf._before_cursor)
     await engine.dispose()
+
+
+def test_sites_follow_the_bench_unless_set(tmp_path, monkeypatch):
+    manager = SiteManager()
+    monkeypatch.setattr(bench, "_bench_dir", tmp_path / "one")
+    assert manager.sites_dir == tmp_path / "one" / "sites"
+
+    bench.set_bench_dir(tmp_path / "two")
+    assert manager.sites_dir == (tmp_path / "two").resolve() / "sites"
+
+    manager.sites_dir = tmp_path / "mine"
+    bench.set_bench_dir(tmp_path / "three")
+    assert manager.sites_dir == tmp_path / "mine"
