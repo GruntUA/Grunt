@@ -322,7 +322,7 @@ async def bulk_delete(
         )
 
     if not store_for(dt, session).can(BULK):
-        return await bulk_delete_one_by_one(session, engine, doctype_name, ids, user)
+        return await bulk_delete_one_by_one(session, engine, doctype_name, ids)
 
     table = dt.table
 

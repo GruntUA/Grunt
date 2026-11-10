@@ -235,9 +235,9 @@ from grunt.hooks import on_doc
 
 @on_doc("Customer", "after_insert")
 async def on_customer_insert(doc, user, **kwargs):
-    """Called after any Customer document is created."""
+    """Called after any Customer document is created. *user* - the email of who created it."""
     await grunt.publish(
-        user=user.email,
+        user=user,
         event="msgprint",
         message=f"Welcome, {doc['full_name']}!",
         type="success",

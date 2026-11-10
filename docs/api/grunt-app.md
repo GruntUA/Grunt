@@ -459,7 +459,8 @@ user to use — it's set up for you before your code ever runs. Writing a CLI
 command or a background task means setting that context up yourself first:
 
 ```python
-async with grunt.context(session, engine, user):
+# user - a User document or an email (as frappe.set_user)
+async with grunt.context(session, engine, "jane@example.com"):
     await grunt.get_doc("Invoice", invoice_id)
 
 # No specific user — run as the internal system identity (bypasses

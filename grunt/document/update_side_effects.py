@@ -239,10 +239,10 @@ async def bulk_delete_one_by_one(
     engine: Any,
     doctype_name: str,
     ids: list[str],
-    user: str,
 ) -> tuple[int, list[str]]:
     """Delete documents one at a time through the delete pipeline - for a
-    controller without a table to batch the DELETE on. Aggregates errors."""
+    controller without a table to batch the DELETE on - as the context's user.
+    Aggregates errors."""
 
     deleted = 0
     errors: list[str] = []

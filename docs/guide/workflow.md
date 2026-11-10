@@ -23,7 +23,7 @@ While a DocType has an active workflow:
 
   async def validate(self):
       if (t := current_transition()) and t.to_state == "Approved":
-          self.approved_by = self.user.email
+          self.approved_by = self.user  # the session user's email
   ```
 
 - After it: an `ActivityLog` entry (`action="Workflow"`), the comment (if any)
