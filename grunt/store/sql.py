@@ -7,6 +7,7 @@ through :mod:`grunt.query.sql`, the order and keyset through the
 """
 
 from datetime import UTC, datetime
+from itertools import islice
 from typing import Any
 
 from sqlalchemy import Select, and_, func, literal, or_, select
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.db.dialects import Dialect, dialect_for
 from grunt.document.meta import Meta
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.query.aggregates import GROUP_FN_RE, parse_aggregation
 from grunt.query.compile_sql import typed_value
@@ -40,7 +42,6 @@ lazy from grunt.document.relations import (
     attach_multi_link_values,
 )
 lazy from grunt.document.serde import serialize_datetimes, with_doctype
-lazy from grunt.document.update_side_effects import delete_row_and_links
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # "sum(amount)" / "count()" - see parse_aggregation.
@@ -437,3 +438,49 @@ class SqlStore(Store):
 
 
 __all__ = ["SqlStore", "search_condition"]
+
+
+# Deleting rows
+
+# Below SQLite's 999-parameter limit.
+_IN_CHUNK = 900
+
+
+async def delete_child_rows(session: AsyncSession, dt: Any, parent_ids: list[str]) -> None:
+    """Delete the child table rows of the *parent_ids* documents of *dt*.
+
+    A child DocType may serve several parents, so rows are matched by parent
+    DocType as well. A DocType that no longer exists must not block the delete.
+    """
+    for field in Meta(dt).get_child_table_fields():
+        try:
+            child_table = Meta(await doctype_registry.get(field.options)).table
+        except Exception as e:  # noqa: BLE001
+            log.warning(
+                "child_table.delete_skipped", doctype=dt.name, field=field.fieldname, error=str(e)
+            )
+            continue
+        it = iter(parent_ids)
+        while chunk := list(islice(it, _IN_CHUNK)):
+            await session.execute(
+                child_table.delete().where(
+                    child_table.c.parent_name.in_(chunk),
+                    child_table.c.parent_doctype == dt.name,
+                )
+            )
+
+
+async def delete_row_and_links(
+    *,
+    session: AsyncSession,
+    ml: Any,
+    dt: Any,
+    table: Any,
+    doctype_name: str,
+    real_id: str,
+) -> None:
+    """Delete main row, child rows and MultiLink relations, then flush pending writes."""
+    await session.execute(table.delete().where(table.c.name == real_id))
+    await delete_child_rows(session, dt, [real_id])
+    await ml.delete_all_for_doc(doctype_name, real_id)
+    await session.flush()

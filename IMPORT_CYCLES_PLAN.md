@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–4 злито (#120–#124); крок 5 (права всередині) — у PR.
+Оновлено: 2026-11-10 — кроки 0–5 злито (#120–#125); крок 6a (шар даних поза циклами) — у PR.
 
 ---
 
@@ -88,8 +88,8 @@
 | 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | злито (#121, #122) |
 | 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | злито (#123) |
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | злито (#124) |
-| 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | у PR |
-| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | |
+| 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | злито (#125) |
+| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a (шар даних: store, query.run, db.*, права) — у PR; 6b (документ і mixins) — далі |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | |
 | 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
 | 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | |
@@ -228,3 +228,23 @@
   циклі. Права, `query.run`, `store`, `db.api` лишаються в циклі через `store → document.registry`
   і `store.sql → document.update_side_effects / aggregate` — крок 6.
 - Результат: 2257 passed, pyright 0; CodeQL локально 295 → 285, нових 0.
+
+### 2026-11-10 — крок 6a: шар даних поза циклами
+
+Крок 6 поділено: 6a — сховище, запити, `db.*` і права виходять із циклу; 6b — сам документ.
+
+- **store → document.registry:** `store_class` бере контролер через `use_controllers(lookup)`;
+  `document.registry` реєструє `document_registry.get` сам. Пошук сховища (`store_for`,
+  `store_class`, `supports`) — модуль `store/lookup.py`; `store.virtual` бере з нього сховище
+  цільового DocType для Link-вузла (замість `query.run`).
+- **store.sql → document.update_side_effects:** `delete_child_rows` і `delete_row_and_links` —
+  операції над таблицями — переїхали в `store.sql`.
+- **db.session → api.context:** контекст сесії/рушія — напряму через `grunt.local`;
+  `clear_context()` — у `grunt.local`. Новий `local.bound_session(session, engine)` — сесія без
+  користувача для службової роботи (`cache.bus`, запис метрик у `monitoring.perf`).
+- **Без фасаду:** `db.errors`, `document.aggregate`, `monitoring.perf`, `document.registry`.
+- Базовий список 141 → 121 (−20): `store*`, `query.run`, `db.*`, усі `permissions.*`,
+  `api.context`, `monitoring.perf`; обидва винятки (`auth.language`, `permissions.reads`) теж
+  вийшли.
+- Результат: 2257 passed, pyright 0; CodeQL локально 285 → 285, нових 0 (його алерти тримає
+  велика компонента через фасад і документ — 6b, 9).

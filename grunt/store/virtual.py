@@ -14,12 +14,15 @@ own store.
 
 from typing import Any
 
+from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 from grunt.query import nodes as q
 from grunt.query.evaluate import iso, matches
 from grunt.query.query import Query, Sort
 from grunt.search.terms import matches_text
 from grunt.store.base import Store
-lazy from grunt.query import run
+from grunt.store.lookup import store_for
 
 
 class Unavailable(Exception):  # noqa: N818 - a state of the source, not a failure of the code
@@ -39,9 +42,10 @@ async def resolve_linked(expr: q.Expr) -> q.Expr:
         case q.Or(items=items):
             return q.or_(*[await resolve_linked(i) for i in items])
         case q.Linked(field=field, doctype=doctype, where=where, select=column, negate=negate):
-            rows = await run.fetch(
-                Query(doctype, where=where, fields=(column,)), ignore_permissions=True
-            )
+            target = await doctype_registry.get_meta(doctype)
+            if target is None:
+                raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+            rows = await store_for(target).fetch(Query(doctype, where=where, fields=(column,)))
             values = tuple(dict.fromkeys(r.get(column) for r in rows if r.get(column) is not None))
             if negate:
                 # "not among them" - NULL is neither, as in SQL's NOT IN.

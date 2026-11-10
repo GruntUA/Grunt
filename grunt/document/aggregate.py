@@ -20,9 +20,9 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
 from grunt.document.meta import Meta
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.doctype import DocType
 
 
@@ -68,7 +68,7 @@ async def compute_aggregations(
             )
             continue
 
-        child_dt = await grunt.get_meta(table_field.options)
+        child_dt = await doctype_registry.get_meta(table_field.options)
         if child_dt is None:
             log.warning(
                 "aggregate.child_doctype_not_found",

@@ -4,8 +4,9 @@ import inspect
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from grunt import log
+from grunt.log import log
 from grunt.startup.doctypes import _find_doctype_dirs
+from grunt.store import use_controllers
 from grunt.utils.strings import to_snake_case
 lazy from grunt.document.base import Document
 
@@ -244,3 +245,4 @@ class DocumentRegistry:
 
 
 document_registry = DocumentRegistry()
+use_controllers(document_registry.get)

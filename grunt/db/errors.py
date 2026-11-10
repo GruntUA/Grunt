@@ -5,9 +5,9 @@ from typing import Any
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
-from grunt import _
 from grunt.db.dialects import dialect_for
 from grunt.document.meta import Meta
+from grunt.i18n import _
 
 
 def _field_label(dt: Any, col_name: str) -> str:
