@@ -29,9 +29,10 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
-from grunt import _, log
 from grunt.db.commit import on_commit
 from grunt.events import fire as fire_hook
+from grunt.i18n import _
+from grunt.log import log
 from grunt.permissions.roles import get_roles
 from grunt.workflow.notify import notify_transition, previous_actor
 from grunt.workflow.registry import get_active_workflow
