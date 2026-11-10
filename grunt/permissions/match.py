@@ -16,8 +16,8 @@ saved or loaded.
 
 from collections.abc import Collection
 
-import grunt
 from grunt.metadata.permission import MATCH_RE, is_literal
+from grunt.metadata.registry import doctype_registry
 from grunt.query.nodes import Cmp, Expr, Linked
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
@@ -48,7 +48,7 @@ async def _resolve_link_target(
     if field is None or not field.has_trait("link") or not field.options:
         return None
 
-    target_dt = await grunt.get_meta(field.options)
+    target_dt = await doctype_registry.get_meta(field.options)
     if target_dt is None:
         return None
     return field.options, target_dt.columns

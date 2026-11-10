@@ -40,6 +40,7 @@ from grunt.errors import unprocessable
 from grunt.local import _user_ctx
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions import reads
 from grunt.permissions.query import read_predicate
 from grunt.query import nodes as q
 from grunt.query import run
@@ -172,7 +173,7 @@ async def list_documents(
         search=search or None,
     )
     try:
-        rows, total = await run.page(query, user=user, with_total=include_total, session=session)
+        rows, total = await reads.page(query, user=user, with_total=include_total, session=session)
     except Unavailable as exc:
         # The source can't be reached - an empty list that says so.
         return DocumentList(
@@ -219,7 +220,7 @@ async def count_documents(
     dt = await _require_meta(doctype_name)
     query = Query(dt.name, where=await _list_where(session, dt, filters), search=search or None)
     try:
-        return await run.count(query, user=user, session=session)
+        return await reads.count(query, user=user, session=session)
     except Unavailable:
         return 0
 

@@ -7,16 +7,18 @@ the built-in system and guest identities from constants, anyone else from their
 
 Distinct from ``permission_checker``/``RoleAccess`` (``rbac.py``/``access.py``),
 which are always doctype+action shaped. :func:`has_roles` is the primitive
-behind ``@grunt.whitelist(roles=[...])`` for RPC-style methods that aren't CRUD
+behind ``@whitelist(roles=[...])`` for RPC-style methods that aren't CRUD
 on a single doctype.
 """
 
 from collections.abc import Iterable
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
+from grunt.db.api import GruntDB
 from grunt.local import _session_ctx, session_roles, session_user
 from grunt.permissions.access import RoleAccess, Target
-lazy import grunt
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _BUILT_IN: dict[str, list[str]] = {
     SYSTEM_USER_EMAIL: ["System Manager"],
@@ -33,10 +35,10 @@ async def get_roles(user: str | None = None) -> list[str]:
     if _session_ctx.get() is None:
         return []  # no database in context (a bare unit test): no roles to load
     # UserRole rows hang off the User's name - usually, not always, the email.
-    name = await grunt.db.get_value("User", {"email": user}, "name")
+    name = await _db.get_value("User", {"email": user}, "name")
     if not name:
         return []
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "UserRole",
         filters={"parent_name": name, "parent_doctype": "User"},
         fields=["role_name"],

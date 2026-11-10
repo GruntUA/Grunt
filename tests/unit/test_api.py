@@ -327,7 +327,9 @@ class TestGruntAppLayerPermissions:
                 return_value=(dt, user, frozenset()),
             ) as mock_guard,
             patch(
-                "grunt.query.run.fetch", new_callable=AsyncMock, return_value=[{"name": "INV-001"}]
+                "grunt.permissions.reads.fetch",
+                new_callable=AsyncMock,
+                return_value=[{"name": "INV-001"}],
             ) as mock_fetch,
             patch.object(grunt.db, "exists", new_callable=AsyncMock) as mock_db_exists,
             patch("grunt.app.document_api.fire", new_callable=AsyncMock),
@@ -366,7 +368,9 @@ class TestGruntAppLayerPermissions:
                 new_callable=AsyncMock,
             ) as mock_require,
             patch("grunt.app.document_api.list_query", return_value=query) as mock_list_query,
-            patch("grunt.query.run.fetch", new_callable=AsyncMock, return_value=rows) as mock_fetch,
+            patch(
+                "grunt.permissions.reads.fetch", new_callable=AsyncMock, return_value=rows
+            ) as mock_fetch,
             patch("grunt.app.document_api.fire", new_callable=AsyncMock) as mock_fire,
         ):
             result = await grunt.get_all(

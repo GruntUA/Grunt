@@ -1,14 +1,13 @@
 """Role-based access control."""
 
+from grunt.document.meta import Meta
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
 from grunt.local import session_user
-from grunt.permissions import query, shares
-from grunt.permissions.child import child_allowed, is_child
+from grunt.metadata.doctype import DocType
+from grunt.permissions import query
 from grunt.permissions.roles import role_access
 from grunt.permissions.types import PermissionAction
-lazy from grunt.document.meta import Meta
-lazy from grunt.metadata.doctype import DocType
 
 # Human-readable action names for the "insufficient permissions" message, so a
 # toast says *which* DocType and *which* operation was denied instead of a bare
@@ -33,35 +32,9 @@ class PermissionChecker:
         user: str | None = None,
     ) -> bool:
         """Check whether *user* (an email; ``None`` - the user the context runs as)
-        may perform *action* on *doctype* (optionally *doc*).
-
-        With *doc* the answer is the row predicate of *action* evaluated against
-        it (``query.row_allowed``) - the very expression a
-        list query filters by, so a document opens exactly when a list would
-        hold it.
-
-        ``doc=None`` is the DocType-level pre-flight: may the user perform
-        *action* on *some* row - a role grants it (whatever its ``match``), a
-        parent of a child DocType is readable, or a document is shared. Rows are
-        then narrowed by the predicate.
-        """
-        if user is None:
-            user = session_user()
-        if not user:
-            return False  # nobody in context: fail closed, even for an "All" row
-        access = await role_access(doctype, user)
-        if access.is_unrestricted:
-            return True
-        if doc is not None:
-            meta = doctype if isinstance(doctype, Meta) else Meta(doctype)
-            return await query.row_allowed(user, meta, action, doc)
-        if is_child(doctype):
-            return await child_allowed(user, doctype, action)
-        if any(perm.grants(action) for perm in access.matching_permissions()):
-            return True
-        if action not in shares.SHAREABLE_ACTIONS or getattr(doctype, "is_singleton", False):
-            return False
-        return await shares.has_share(user, doctype.name, action)
+        may perform *action* on *doctype* (optionally *doc*) - see
+        :func:`grunt.permissions.query.allowed`."""
+        return await query.allowed(doctype, action, doc, user=user)
 
     async def require(
         self,

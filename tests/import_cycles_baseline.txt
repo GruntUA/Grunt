@@ -90,12 +90,10 @@ grunt.notification.rule_index
 grunt.notification.service
 grunt.notification.tasks
 grunt.outbox
-grunt.permissions.child
 grunt.permissions.guards
-grunt.permissions.match
 grunt.permissions.query
 grunt.permissions.rbac
-grunt.permissions.reference
+grunt.permissions.reads
 grunt.permissions.roles
 grunt.permissions.shares
 grunt.permissions.user_permissions
@@ -103,7 +101,6 @@ grunt.print.renderer
 grunt.progress
 grunt.publish
 grunt.query.run
-grunt.query.sql
 grunt.reports.delivery
 grunt.reports.engine
 grunt.reports.joins
@@ -121,7 +118,6 @@ grunt.storage.references
 grunt.storage.signing
 grunt.storage.tasks
 grunt.store
-grunt.store.base
 grunt.store.sql
 grunt.store.virtual
 grunt.tasks.broker

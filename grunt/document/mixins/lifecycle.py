@@ -38,8 +38,8 @@ from grunt.local import require_session_user
 from grunt.monitoring import perf
 from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
+from grunt.permissions.query import reference_readable
 from grunt.permissions.rbac import permission_checker
-from grunt.permissions.reference import reference_readable
 from grunt.permissions.roles import role_access
 from grunt.permissions.user_permissions import doc_violation
 from grunt.query.query import Query
