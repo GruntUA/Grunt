@@ -297,3 +297,18 @@
   для `api.v1.ws`, вебхуків, `events`) і 6b-4 (HTTP-методи з `Document` в API, нові шляхи —
   рішення власника 2026-11-10).
 
+### 2026-11-10 — крок 9b: `document/api.py` і шина подій без підсистем
+
+- **Високорівневий CRUD із правами — у шарі документа.** `app/document_api.py` → `document/api.py`
+  (`git mv`, поведінка та сама): один екземпляр `documents` зі своїм `db` і кешами (запитів,
+  документів); `GruntApp` і фасад (`grunt.get_doc`, `get_list`, `new_doc`, ...) делегують у нього
+  — один набір кешів. `grunt.submit` (workflow) лишився в `app` — `app/workflow_api.py`.
+- **Шина подій без підсистем.** `grunt.events` — лише шина (`fire`, `subscribe`); основні етапи
+  (серверні скрипти, зв'язки, файли, правила сповіщень і призначень) — `grunt/core_events.py`,
+  який шина імпортує за шляхом перед першою подією (не можуть загубитися через порядок
+  імпорту). `grunt.hooks` — без фасаду.
+- Базовий список 106 → 101 (−7: `events`, `scripting`, `notification.rule_index / tasks`,
+  `AssignmentLog`, `ToDo`, старий `app.document_api`; +2: `document.api` — це перейменований
+  `app.document_api`, `app.workflow_api` — виділений з нього `submit`; обидва в циклі через
+  `collection` / `workflow.engine` → фасад — 9c).
+

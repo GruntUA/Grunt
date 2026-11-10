@@ -321,7 +321,7 @@ class TestGruntAppLayerPermissions:
 
         with (
             patch(
-                "grunt.app.document_api.read_guard",
+                "grunt.document.api.read_guard",
                 new_callable=AsyncMock,
                 return_value=(dt, user, frozenset()),
             ) as mock_guard,
@@ -331,7 +331,7 @@ class TestGruntAppLayerPermissions:
                 return_value=[{"name": "INV-001"}],
             ) as mock_fetch,
             patch.object(grunt.db, "exists", new_callable=AsyncMock) as mock_db_exists,
-            patch("grunt.app.document_api.fire", new_callable=AsyncMock),
+            patch("grunt.document.api.fire", new_callable=AsyncMock),
         ):
             result = await grunt.exists("Invoice", {"name": "INV-001"})
 
@@ -366,11 +366,11 @@ class TestGruntAppLayerPermissions:
                 "grunt.permissions.rbac.permission_checker.require",
                 new_callable=AsyncMock,
             ) as mock_require,
-            patch("grunt.app.document_api.list_query", return_value=query) as mock_list_query,
+            patch("grunt.document.api.list_query", return_value=query) as mock_list_query,
             patch(
                 "grunt.permissions.reads.fetch", new_callable=AsyncMock, return_value=rows
             ) as mock_fetch,
-            patch("grunt.app.document_api.fire", new_callable=AsyncMock) as mock_fire,
+            patch("grunt.document.api.fire", new_callable=AsyncMock) as mock_fire,
         ):
             result = await grunt.get_all(
                 InvoiceModel,

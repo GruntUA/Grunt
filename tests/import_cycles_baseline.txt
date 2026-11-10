@@ -14,14 +14,13 @@ grunt.api.v1.meta
 grunt.api.v1.ws
 grunt.app
 grunt.app.context_api
-grunt.app.document_api
 grunt.app.permission_api
 grunt.app.realtime_api
 grunt.app.utility_api
+grunt.app.workflow_api
 grunt.apps.consumers
 grunt.apps.loader
 grunt.assignment
-grunt.assignment.doctypes.AssignmentLog.assignment_log
 grunt.assignment.doctypes.AssignmentRule.assignment_rule
 grunt.assignment.service
 grunt.auth.doctypes.Role.role
@@ -38,6 +37,7 @@ grunt.auth.session_cookie
 grunt.auth.user_api
 grunt.auth.users
 grunt.backups
+grunt.document.api
 grunt.document.base
 grunt.document.collection
 grunt.document.formula
@@ -57,7 +57,6 @@ grunt.document.update_side_effects
 grunt.email.inbound
 grunt.email.service
 grunt.email.tasks
-grunt.events
 grunt.i18n.meta
 grunt.io.exporters.html
 grunt.metadata.scaffold
@@ -65,9 +64,7 @@ grunt.middleware.rate_limit
 grunt.monitoring.error_log
 grunt.monitoring.health
 grunt.monitoring.updates
-grunt.notification.rule_index
 grunt.notification.service
-grunt.notification.tasks
 grunt.outbox
 grunt.print.renderer
 grunt.progress
@@ -75,7 +72,6 @@ grunt.publish
 grunt.reports.delivery
 grunt.reports.engine
 grunt.reports.joins
-grunt.scripting
 grunt.scripting.server_script
 grunt.storage
 grunt.storage.cloud
@@ -88,7 +84,6 @@ grunt.storage.images
 grunt.storage.tasks
 grunt.tasks.broker
 grunt.tasks.doc_method
-grunt.tasks.doctypes.ToDo.to_do
 grunt.tasks.job_log
 grunt.tasks.middleware
 grunt.tasks.redis_introspect
