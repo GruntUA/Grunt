@@ -92,9 +92,10 @@ def clear_context() -> None:
 def bound_session(session: AsyncSession, engine: AsyncEngine) -> Iterator[None]:
     """Bind *session* / *engine* for the block - no user: for framework work that
     reads and writes tables on no one's behalf (metrics, cache invalidation)."""
-    tokens = (_session_ctx.set(session), _engine_ctx.set(engine))
+    tokens = (_session_ctx.set(session), _engine_ctx.set(engine), _user_ctx.set(None))
     try:
         yield
     finally:
         _session_ctx.reset(tokens[0])
         _engine_ctx.reset(tokens[1])
+        _user_ctx.reset(tokens[2])
