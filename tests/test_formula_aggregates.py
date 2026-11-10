@@ -1,12 +1,11 @@
 """``count`` / ``sum_docs`` in formulas read every matching row, not a page of them."""
 
-from typing import cast
+from typing import Any
 
 import pytest
 
 from grunt.document import formula
 from grunt.document.formula import _evaluate_formulas
-lazy from grunt.metadata.doctype import DocType
 
 DOCTYPE = "FormulaLedger"
 
@@ -61,12 +60,12 @@ async def ledger(ctx):
 
 
 async def test_sum_docs_adds_up_every_row(ctx, ledger, probe):
-    dt = cast("DocType", _DT(f"sum_docs('{DOCTYPE}', 'amount')"))
+    dt: Any = _DT(f"sum_docs('{DOCTYPE}', 'amount')")
     row = await _evaluate_formulas(dt, {"name": "p1", "out": None}, "read_formula")
     assert float(row["out"]) == sum(range(1, 26))
 
 
 async def test_count_counts_every_row(ctx, ledger, probe):
-    dt = cast("DocType", _DT(f"count('{DOCTYPE}')"))
+    dt: Any = _DT(f"count('{DOCTYPE}')")
     row = await _evaluate_formulas(dt, {"name": "p1", "out": None}, "read_formula")
     assert int(row["out"]) == 25
