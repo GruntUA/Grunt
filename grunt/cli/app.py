@@ -20,8 +20,8 @@ lazy from grunt.apps.required import (
     clone_missing,
     dependents,
 )
-lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.db.dialects import dialect_for
+lazy from grunt.db.dialects.archive import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.db.schema import column_drops, read_actual
 lazy from grunt.db.schema.apply import apply as apply_schema
 lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table

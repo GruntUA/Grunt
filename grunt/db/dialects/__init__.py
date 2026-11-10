@@ -75,20 +75,12 @@ def dialect_for(obj: Any) -> Dialect:
         ) from None
 
 
-def current_dialect() -> Dialect:
-    """Dialect of the active session (raises outside of one)."""
-    import grunt
-
-    return dialect_for(grunt.get_session())
-
-
 __all__ = [
     "Dialect",
     "MysqlDialect",
     "PostgresDialect",
     "SqliteDialect",
     "UnknownDatabaseError",
-    "current_dialect",
     "dialect_for",
     "dialect_name",
 ]

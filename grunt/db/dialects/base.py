@@ -14,9 +14,9 @@ from sqlalchemy import String, Table, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
 
+from grunt.db.dialects.archive import BackupError
 from grunt.db.dialects.fulltext import FullText, FullTextSpec
 from grunt.i18n import _
-lazy from grunt.backups import BackupError
 
 LIKE_ESCAPE = "\\"
 

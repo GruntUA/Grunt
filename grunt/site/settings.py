@@ -21,8 +21,11 @@ auth, email, webpush - all run inside one).
 import time
 from typing import Any
 
-import grunt
+from sqlalchemy import select
+
 from grunt.cache.bus import fanout
+from grunt.local import require_session
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site
 
 _SINGLETON = "SystemSettings"
@@ -45,8 +48,14 @@ async def get_system_settings(*, fresh: bool = False) -> dict[str, Any]:
 
     # A singleton has exactly one row; read it positionally rather than by name
     # (the row may be autonamed to a hash on some sites).
-    rows = await grunt.db.get_all(_SINGLETON, fields=None, limit=1)
-    row = rows[0] if rows else {}
+    # Straight from the table: the settings sit below queries and permissions
+    # (which read them), so they can't go through grunt.db.
+    meta = await doctype_registry.get_meta(_SINGLETON)
+    found = None
+    if meta is not None:
+        result = await require_session().execute(select(meta.table).limit(1))
+        found = result.mappings().first()
+    row = dict(found) if found is not None else {}
     _cache[site] = (time.monotonic(), row)
     return row
 

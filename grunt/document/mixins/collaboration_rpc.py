@@ -15,7 +15,8 @@ from fastapi import HTTPException, status
 
 import grunt
 from grunt import _
-from grunt.i18n import language_of, use_language
+from grunt.auth.language import language_of
+from grunt.i18n import use_language
 from grunt.permissions.guards import doc_guard
 lazy from grunt.document.doctypes.Comment.comment import Comment
 

@@ -10,11 +10,11 @@ from pathlib import Path
 import pytest
 
 import grunt.i18n.service as svc
-from grunt.i18n import LANGUAGE_OPTIONS_SOURCE, _, ngettext, pgettext
+from grunt.i18n import _, ngettext, pgettext
 from grunt.i18n.meta import translate_doctype_meta
 from grunt.i18n.plurals import plural_form_count, plural_index
 from grunt.i18n.service import TranslationService, _parse_po_file, translation_service
-from grunt.metadata.dynamic_options import get_option_labels, get_options
+from grunt.metadata.dynamic_options import LANGUAGE_OPTIONS_SOURCE, get_option_labels, get_options
 
 REAL_LOCALES_DIR = Path(__file__).parent.parent / "locales"
 

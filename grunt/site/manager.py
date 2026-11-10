@@ -1,4 +1,5 @@
 import json
+from collections.abc import Callable
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,7 @@ from grunt import log
 from grunt.config import settings
 from grunt.db.dialects import dialect_for
 from grunt.document.serde import to_json
-lazy from grunt.db.profiler import attach_query_profiler
-lazy from grunt.monitoring.perf import attach_sql_counter
+from grunt.site import bench
 
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
@@ -33,41 +33,42 @@ class SiteManager:
     """
 
     def __init__(self) -> None:
-        # Шукаємо bench_dir: спочатку вгору від cwd, потім від розташування пакету
-        bench_dir = self._find_bench_dir(Path.cwd()) or self._find_bench_dir(
-            Path(__file__).resolve()
-        )
-        if bench_dir is None:
-            # No ancestor of cwd or of this file has both apps/ and sites/ -
-            # guess two levels up from cwd (matches apps/<app>/ as cwd, the
-            # common case when running a bench command from an app dir).
-            bench_dir = Path.cwd().parent.parent.resolve()
-            log.warning(
-                "site_manager.bench_dir_guessed",
-                cwd=str(Path.cwd()),
-                guessed=str(bench_dir),
-            )
-
-        self.bench_dir = bench_dir.resolve()
-        self.sites_dir = self.bench_dir / "sites"
+        self._sites_dir: Path | None = None  # set explicitly; else the bench's sites/
 
         # Caches
         self.engines: dict[str, AsyncEngine] = {}
         self.session_makers: dict[str, async_sessionmaker[AsyncSession]] = {}
+        self._engine_setups: list[Callable[[AsyncEngine], None]] = []
         self._primary_web_app: Any = _UNSET
         self._web_domains: dict[str, tuple[str, str]] | None = None
 
-    @staticmethod
-    def _find_bench_dir(start: Path) -> Path | None:
-        """Walk up from *start* looking for a directory that has both apps/ and sites/."""
-        check = start if start.is_dir() else start.parent
-        for _ in range(8):
-            if (check / "apps").is_dir() and (check / "sites").is_dir():
-                return check.resolve()
-            if check == check.parent:
-                break
-            check = check.parent
-        return None
+    def on_engine(self, setup: Callable[[AsyncEngine], None]) -> None:
+        """Run *setup* on every site engine - those already made and each new one.
+
+        How the layers above hook into engines (SQL counters, the query
+        profiler) without this module knowing them: they register themselves.
+        """
+        self._engine_setups.append(setup)
+        for engine in self.engines.values():
+            setup(engine)
+
+    @property
+    def bench_dir(self) -> Path:
+        """The bench directory (:mod:`grunt.site.bench`)."""
+        return bench.bench_dir()
+
+    @bench_dir.setter
+    def bench_dir(self, path: Path) -> None:
+        bench.set_bench_dir(path)
+
+    @property
+    def sites_dir(self) -> Path:
+        """``sites/`` of the bench - or the directory set explicitly."""
+        return self._sites_dir if self._sites_dir is not None else self.bench_dir / "sites"
+
+    @sites_dir.setter
+    def sites_dir(self, path: Path) -> None:
+        self._sites_dir = path
 
     def get_sites(self) -> list[str]:
         """List all valid site directories in the bench."""
@@ -222,11 +223,8 @@ class SiteManager:
             # to_json: документи тримають date/Decimal, а типовий json.dumps їх не вміє
             engine = create_async_engine(db_url, json_serializer=to_json, **engine_kwargs)
             dialect.setup_engine(engine)
-
-            attach_sql_counter(engine)
-
-            if settings.sql_profiler_enabled:
-                attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)
+            for setup in self._engine_setups:
+                setup(engine)
 
             self.engines[site_name] = engine
             self.session_makers[site_name] = async_sessionmaker(

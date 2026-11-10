@@ -8,13 +8,13 @@ lazy from sqlalchemy import inspect
 lazy import grunt
 lazy from grunt.apps.required import DependencyCycleError, MissingAppError
 lazy from grunt.backups import (
-    BackupError,
     create_backup,
     get_backup,
     list_backups,
     restore_backup,
 )
 lazy from grunt.cli.utils import _site_session, resolve_site
+lazy from grunt.db.dialects.archive import BackupError
 lazy from grunt.db.write_intent import set_process_default
 lazy from grunt.metadata.compiler import (
     SA_METADATA,

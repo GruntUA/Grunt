@@ -5,14 +5,15 @@ from typing import Any
 
 import grunt
 from grunt import _, log, log_error
+from grunt.auth.language import language_of
 from grunt.backups import (
-    DEFAULT_COMPRESSION_LEVEL,
     BackupBusyError,
     create_backup,
     list_backups,
     rotate,
 )
-from grunt.i18n import language_of, use_language
+from grunt.db.dialects.archive import DEFAULT_COMPRESSION_LEVEL
+from grunt.i18n import use_language
 from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting

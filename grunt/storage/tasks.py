@@ -2,7 +2,8 @@
 
 import grunt
 from grunt import _, log
-from grunt.i18n import language_of, use_language
+from grunt.auth.language import language_of
+from grunt.i18n import use_language
 from grunt.progress import track_progress
 from grunt.site.manager import site_manager
 from grunt.storage.gc import collect_garbage as collect

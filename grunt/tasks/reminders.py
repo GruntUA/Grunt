@@ -9,7 +9,8 @@ from typing import Any
 
 import grunt
 from grunt import _, log
-from grunt.i18n import language_of, use_language
+from grunt.auth.language import language_of
+from grunt.i18n import use_language
 from grunt.tasks.broker import retryable_task
 lazy from grunt.document.titles import resolve_reference_titles
 lazy from grunt.notification.service import notification_service
