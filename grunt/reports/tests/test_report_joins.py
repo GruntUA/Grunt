@@ -6,7 +6,7 @@ import pytest
 
 from grunt.api.v1.meta import save_doctype
 from grunt.reports.engine import report_engine
-from tests.support import make_user
+from tests.support import acting_as, make_user
 
 CUSTOMER = {
     "name": "JnCustomer",
@@ -74,9 +74,11 @@ def _col(fieldname, **kw):
 
 
 async def _run(ctx, user=None, filters=None, **report):
-    return await report_engine._run_list_report(
-        "JnInvoice", report, filters or {}, user or ctx.get_user(), ctx.db._session()
-    )
+    user = user or ctx.get_user()
+    with acting_as(user):
+        return await report_engine._run_list_report(
+            "JnInvoice", report, filters or {}, user.email, ctx.db._session()
+        )
 
 
 def _by(res, key, value):
@@ -174,7 +176,8 @@ async def test_builder_offers_only_what_the_report_reads(ctx, invoices):
     meta = await ctx.get_meta("JnInvoice")
 
     async def offered(user):
-        return {f["fieldname"] for f in await report_fields(meta, user)}
+        with acting_as(user):
+            return {f["fieldname"] for f in await report_fields(meta, user.email)}
 
     admin = await offered(ctx.get_user())
     assert {"customer", "amount", "margin", "customer.region", "customer.credit"} <= admin

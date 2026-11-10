@@ -111,7 +111,7 @@ async def test_count_comes_from_the_store(ctx, notes):
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.collection import count_documents
 
-    assert await count_documents(ctx.get_session(), DOCTYPE, SYSTEM_USER) == 3
+    assert await count_documents(ctx.get_session(), DOCTYPE, SYSTEM_USER.email) == 3
     assert await ctx.count(DOCTYPE, respect_permissions=True) == 3
 
 

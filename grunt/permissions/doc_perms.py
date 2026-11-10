@@ -8,7 +8,7 @@ server would refuse instead of letting the user edit and then answering 403.
 from typing import Any
 
 import grunt
-from grunt.local import require_user
+from grunt.local import require_session_user
 from grunt.permissions.rbac import permission_checker
 
 PERMS_KEY = "__perms"
@@ -19,12 +19,12 @@ async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
     dt = await grunt.get_meta(doctype)
     if dt is None:
         return dict.fromkeys(_ACTIONS, False)
-    user = require_user()
+    user = require_session_user()
     perms = {}
     for action in _ACTIONS:
         # create is DocType-level: duplicating this document makes a new one.
         target = None if action == "create" else doc
-        perms[action] = await permission_checker.check(user, dt, action, target)
+        perms[action] = await permission_checker.check(dt, action, target, user=user)
     return perms
 
 

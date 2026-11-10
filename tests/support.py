@@ -54,21 +54,21 @@ async def check_as(user: Any, *args: Any, **kwargs: Any) -> bool:
     """``permission_checker.check(user, *args)``, with *user* also bound to the context
     (:func:`acting_as`) for code the check reaches."""
     with acting_as(user):
-        return await permission_checker.check(user, *args, **kwargs)
+        return await permission_checker.check(*args, **kwargs)
 
 
 async def require_as(user: Any, *args: Any, **kwargs: Any) -> None:
     """``permission_checker.require(user, *args)``, with *user* also bound to the context
     (:func:`acting_as`) for code the check reaches."""
     with acting_as(user):
-        await permission_checker.require(user, *args, **kwargs)
+        await permission_checker.require(*args, **kwargs)
 
 
 async def hidden_fields_as(user: Any, doctype: Any) -> frozenset[str]:
     """``permission_checker.hidden_fields(user, doctype)``, with *user* also bound to
     the context (:func:`acting_as`)."""
     with acting_as(user):
-        return permission_checker.hidden_fields(user, doctype)
+        return await permission_checker.hidden_fields(doctype)
 
 
 async def read_predicate_as(user: Any, meta: Any) -> Any:
@@ -77,11 +77,11 @@ async def read_predicate_as(user: Any, meta: Any) -> Any:
     from grunt.permissions.query import read_predicate
 
     with acting_as(user):
-        return await read_predicate(user, meta)
+        return await read_predicate(user.email, meta)
 
 
 def access_of(doctype: Any, user: Any) -> Any:
-    """``RoleAccess`` of an in-memory *user*."""
+    """``RoleAccess`` of an in-memory *user* (its email and roles)."""
     from grunt.permissions.access import RoleAccess
 
-    return RoleAccess(doctype, user)
+    return RoleAccess(doctype, user.email, user.role_names)

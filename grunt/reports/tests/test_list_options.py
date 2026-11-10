@@ -38,7 +38,7 @@ async def sales(ctx):
 
 async def _run(ctx, **report):
     return await report_engine._run_list_report(
-        "RptSale", report, {}, ctx.get_user(), ctx.db._session()
+        "RptSale", report, {}, ctx.get_user().email, ctx.db._session()
     )
 
 
@@ -152,7 +152,7 @@ async def test_child_of_in_filters_and_conditions(ctx):
 
     async def run(report, filters):
         res = await report_engine._run_list_report(
-            "RptItem", report, filters, ctx.get_user(), ctx.db._session()
+            "RptItem", report, filters, ctx.get_user().email, ctx.db._session()
         )
         return res, sorted(r["title"] for r in res["data"])
 

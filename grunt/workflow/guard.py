@@ -20,8 +20,9 @@ from fastapi import HTTPException, status
 
 import grunt
 from grunt import _
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.errors import not_found
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+from grunt.permissions.roles import get_roles
 lazy from grunt.workflow.engine import (
     ActiveTransition,
     current_transition,
@@ -34,9 +35,9 @@ lazy from grunt.workflow.registry import get_active_workflow
 _SYSTEM_FIELDS = frozenset({"name", "owner", "created_at", "modified_at", "modified_by", "idx"})
 
 
-def is_exempt(user: User) -> bool:
+def is_exempt(user: str) -> bool:
 
-    return current_transition() is not None or user.email == SYSTEM_USER.email
+    return current_transition() is not None or user == SYSTEM_USER_EMAIL
 
 
 def _norm(value: Any) -> str:
@@ -66,7 +67,7 @@ def _label(workflow: Any, state: str | None) -> str:
     return (found.label if found and found.label else state) or ""
 
 
-async def check_create(doctype: str, data: dict[str, Any], user: User | None) -> None:
+async def check_create(doctype: str, data: dict[str, Any], user: str | None) -> None:
     """A new document starts in the initial state - no other state on create."""
 
     workflow = await get_active_workflow(doctype)
@@ -83,7 +84,7 @@ async def check_create(doctype: str, data: dict[str, Any], user: User | None) ->
 
 
 async def check_update(
-    doctype: str, existing: dict[str, Any], data: dict[str, Any], user: User | None
+    doctype: str, existing: dict[str, Any], data: dict[str, Any], user: str | None
 ) -> ActiveTransition | None:
     """Validate an edit; returns the ``on_edit`` transition it turned into, if any.
 
@@ -123,11 +124,11 @@ async def check_update(
                 action=transition.action,
                 transition=transition,
             )
-    _check_edit_roles(workflow, state, user)
+    await _check_edit_roles(workflow, state, user)
     return None
 
 
-async def check_delete(doctype: str, existing: dict[str, Any], user: User | None) -> None:
+async def check_delete(doctype: str, existing: dict[str, Any], user: str | None) -> None:
     """``edit_roles`` govern deletion too; so does ``on_edit`` - whose edits go
     to review can't remove the document without it either."""
 
@@ -135,7 +136,7 @@ async def check_delete(doctype: str, existing: dict[str, Any], user: User | None
     if not workflow or user is None or is_exempt(user):
         return
     state = existing.get(workflow.state_field)
-    _check_edit_roles(workflow, state, user)
+    await _check_edit_roles(workflow, state, user)
     meta = await _meta(doctype)
     if await workflow_engine.get_available_transitions(meta, existing, user, on_edit=True):
         raise HTTPException(
@@ -145,11 +146,11 @@ async def check_delete(doctype: str, existing: dict[str, Any], user: User | None
         )
 
 
-def _check_edit_roles(workflow: Any, state: str | None, user: User | None) -> None:
+async def _check_edit_roles(workflow: Any, state: str | None, user: str | None) -> None:
     found = next((s for s in workflow.states if s.state == state), None)
     if not found or not found.edit_roles:
         return
-    roles = set(getattr(user, "roles", []) or [])
+    roles = set(await get_roles(user))
     if roles.intersection(found.edit_roles) or "System Manager" in roles:
         return
     raise HTTPException(

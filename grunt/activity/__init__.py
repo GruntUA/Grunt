@@ -4,11 +4,11 @@ from typing import Any
 import grunt
 import grunt as _grunt
 from grunt import _, log
+from grunt.auth.constants import GUEST_USER_EMAIL
 from grunt.db.commit import on_commit
 from grunt.document.titles import resolve_reference_titles
 from grunt.document.versioning import _SKIP_FIELDS
 from grunt.metadata.registry import doctype_registry
-lazy from grunt.auth.doctypes.User.user import GUEST_USER
 lazy from grunt.errors import not_found
 
 
@@ -212,7 +212,7 @@ async def log_activity(
     resolved_id = str(doc_ref.get("name") or "") if isinstance(doc_ref, dict) else str(doc_ref)
     if not resolved_id:
         return
-    user_email = user.email if hasattr(user, "email") else str(user)
+    user_email = str(user)  # lifecycle events carry the email
 
     details: dict | None = None
     if action == "Update" and changed_fields:
@@ -257,8 +257,8 @@ async def record_view(
     if not (dt.track_seen or dt.track_views):
         return
 
-    user_email = getattr(user, "email", None) or str(user or "")
-    if not user_email or user_email in (GUEST_USER, "system", "Guest"):
+    user_email = str(user or "")
+    if not user_email or user_email in (GUEST_USER_EMAIL, "system", "Guest"):
         return
 
     session = grunt.get_session()

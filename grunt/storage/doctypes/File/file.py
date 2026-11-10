@@ -9,7 +9,7 @@ import grunt
 from grunt import _
 from grunt.api.context import whitelist
 from grunt.document.base import Document
-from grunt.local import _user_ctx
+from grunt.local import session_user
 from grunt.storage import files, quota
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
 from grunt.storage.cloud.files import blob_path
@@ -331,12 +331,12 @@ async def get_content(
     # A private file needs an authenticated user who may read it - which, for
     # an attachment, means reading the document it is attached to.
     if not doc.get("is_public") and not verify(file_id, exp, sig):
-        user = _user_ctx.get()
+        user = session_user()
         if user is None:
             raise HTTPException(401, _("Authentication required to access this file"))
 
         meta = await grunt.get_meta("File")
-        if meta is None or not await permission_checker.check(user, meta, "read", doc):
+        if meta is None or not await permission_checker.check(meta, "read", doc, user=user):
             raise HTTPException(403, _("No access to the file"))
 
     key = doc.get("content_hash") or ""

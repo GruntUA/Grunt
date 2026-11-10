@@ -102,7 +102,7 @@ class ToDo(Document):
     # helpers
 
     def _actor_email(self) -> str:
-        return getattr(getattr(self, "user", None), "email", "") or ""
+        return self.user or ""
 
     def _target(self) -> str:
         ref_dt = (self.get("reference_doctype") or "").strip()

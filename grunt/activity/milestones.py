@@ -131,7 +131,7 @@ async def on_document_saved(**kwargs: Any) -> None:
     fields = await tracked_fields(doctype)
     if not fields:
         return
-    user = getattr(kwargs.get("user"), "email", None)
+    user = kwargs.get("user")  # lifecycle events carry the email
     async with grunt.system_context(grunt.get_session()):
         for field in fields:
             try:

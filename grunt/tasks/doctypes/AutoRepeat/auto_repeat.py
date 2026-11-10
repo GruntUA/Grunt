@@ -85,7 +85,7 @@ class AutoRepeat(Document):
         # sets the rule up, since copies are later made as the rule's owner.
         await grunt.get_doc(self.reference_doctype, self.reference_document)
         user = grunt.get_user()
-        if not await permission_checker.check(user, meta, "create"):
+        if not await permission_checker.check(meta, "create", user=user.email):
             grunt.throw(
                 _("You are not allowed to create “%(doctype)s” documents") % {"doctype": dt.name},
                 "PERMISSION_DENIED",

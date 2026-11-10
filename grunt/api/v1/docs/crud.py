@@ -25,7 +25,7 @@ async def _decorate(doctype: str, doc: Any) -> Any:
     """The form's computed extras: ``__perms`` and, for a web page, ``__web_url``."""
 
     decorated = await with_web_url(doctype, await with_permissions(doctype, doc))
-    return await sign_authorized_file_urls(decorated, grunt.get_user())
+    return await sign_authorized_file_urls(decorated, grunt.get_user().email)
 
 
 @router.get("/{doctype}")
@@ -58,7 +58,7 @@ async def list_documents(
         cursor=cursor,
     )
 
-    payload = await sign_authorized_file_urls(result.to_dict(), user)
+    payload = await sign_authorized_file_urls(result.to_dict(), user.email)
     return ok(**payload)
 
 
@@ -160,7 +160,7 @@ async def bulk_delete(
                     doctype,
                     filters=filters,
                     search=search,
-                    user=user,
+                    user=user.email,
                     user_email=user_email,
                     engine=engine,
                 )
@@ -175,7 +175,7 @@ async def bulk_delete(
                 doctype,
                 filters=filters,
                 search=search,
-                user=user,
+                user=user.email,
                 user_email=user_email,
                 engine=engine,
             )
@@ -195,7 +195,7 @@ async def bulk_delete(
         await task.run(
             doctype,
             ids,
-            user=user,
+            user=user.email,
             user_email=user_email,
             engine=engine,
             replace_with=replace_with,

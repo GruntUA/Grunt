@@ -55,7 +55,9 @@ class Report(Document):
 @grunt.whitelist()
 async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a report and return results."""
-    result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
+    result = await report_engine.run(
+        name, filters or {}, grunt.get_user().email, grunt.get_session()
+    )
     return result
 
 
@@ -67,8 +69,8 @@ async def fields(doctype: str) -> list[dict[str, Any]]:
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     user = grunt.get_user()
-    await permission_checker.require(user, meta, "read")
-    return await report_fields(meta, user)
+    await permission_checker.require(meta, "read", user=user.email)
+    return await report_fields(meta, user.email)
 
 
 @grunt.whitelist()
@@ -92,7 +94,7 @@ async def preview(
             "row_limit": row_limit,
         },
         filters or {},
-        grunt.get_user(),
+        grunt.get_user().email,
         grunt.get_session(),
     )
     return result
@@ -105,7 +107,9 @@ async def export_xlsx(
     token: str | None = None,  # unused: absorbs ?token= query param consumed by auth, not by us
 ) -> Response:
     """Run a report and return the result as an xlsx file download."""
-    result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
+    result = await report_engine.run(
+        name, filters or {}, grunt.get_user().email, grunt.get_session()
+    )
     xlsx_bytes = await report_engine.export_excel(result, name)
     return Response(
         content=xlsx_bytes,

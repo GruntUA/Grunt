@@ -45,7 +45,6 @@ from sqlalchemy.ext.asyncio import (
 import grunt
 from grunt.apps.manifest import read_manifest
 from grunt.apps.required import dependencies
-from grunt.auth.doctypes.User.user import SYSTEM_USER
 from grunt.config import settings
 from grunt.db.dialects import dialect_for
 from grunt.db.session import get_engine as _get_engine_dep
@@ -425,7 +424,7 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
     @pytest_asyncio.fixture
     async def ctx(db_session: AsyncSession, engine: AsyncEngine):
         """Provide an active grunt context with SYSTEM_USER for tests."""
-        async with grunt.context(db_session, engine, SYSTEM_USER):
+        async with grunt.system_context(db_session, engine):
             yield grunt
 
     return {

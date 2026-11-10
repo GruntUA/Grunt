@@ -27,13 +27,8 @@ class PermissionAPI:
         dt = await grunt.get_meta(doctype)
         if dt is None:
             return False
-        user = grunt.get_user()
+        grunt.get_user()  # 401 without a user, as before
         doc: dict[str, Any] | None = None
         if doc_id:
             doc = await grunt.db.get_value(doctype, doc_id, "*")
-        return await permission_checker.check(
-            user,
-            dt.doc,
-            action,
-            doc,
-        )
+        return await permission_checker.check(dt.doc, action, doc)

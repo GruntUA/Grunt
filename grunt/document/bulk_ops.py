@@ -14,8 +14,8 @@ from grunt.api.v1.ws import manager
 from grunt.db.session import async_session_factory
 from grunt.document.update_side_effects import delete_child_rows
 from grunt.metadata.compiler import MULTI_LINK_TABLE
+from grunt.permissions.roles import has_roles
 from grunt.search.service import _search_index_table
-lazy from grunt.auth.doctypes.User.user import User
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]
 
@@ -55,7 +55,7 @@ class BulkDeleteTask:
         doctype: str,
         ids: Sequence[str],
         *,
-        user: User,
+        user: str,
         user_email: str,
         engine: Any,
         replace_with: str | None = None,
@@ -98,7 +98,7 @@ class BulkDeleteTask:
         *,
         filters: dict[str, str] | None,
         search: str | None,
-        user: User,
+        user: str,
         user_email: str,
         engine: Any,
         batch_size: int = _DELETE_ALL_BATCH,
@@ -233,7 +233,7 @@ class BulkDeleteTask:
         *,
         filters: dict[str, str] | None,
         search: str | None = None,
-        user: User,
+        user: str,
         user_email: str,
         engine: Any,
         batch_size: int = _DELETE_ALL_BATCH,
@@ -251,7 +251,7 @@ class BulkDeleteTask:
         Then one summary ActivityLog entry.
         """
 
-        if "System Manager" not in (getattr(user, "roles", None) or []):
+        if not await has_roles(["System Manager"], user=user):
             await self._manager.send_to_user(
                 user_email,
                 {

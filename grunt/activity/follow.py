@@ -105,7 +105,7 @@ async def notify_followers_of_comment(
     if not doctype or not doc_id:
         return
 
-    actor = getattr(user, "email", None) or doc.get("owner")
+    actor = user or doc.get("owner")  # user: the email of who commented
     async with grunt.system_context(session):
         users = await _followers(doctype, doc_id, actor)
         if not users:

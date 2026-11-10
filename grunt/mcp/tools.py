@@ -92,7 +92,7 @@ async def list_doctypes(module: str | None = None, search: str | None = None) ->
         if needle and needle not in dt.name.casefold() and needle not in label.casefold():
             continue
         try:
-            if not await permission_checker.check(user, dt, "read"):
+            if not await permission_checker.check(dt, "read", user=user.email):
                 continue
         except Exception:
             continue
@@ -128,7 +128,7 @@ async def describe_doctype(doctype: str) -> dict[str, Any]:
         if info["fieldtype"] == "Table" and info.get("options"):
             child = await grunt.get_meta(info["options"])
             if child is not None:
-                child_hidden = permission_checker.hidden_fields(user, child)
+                child_hidden = await permission_checker.hidden_fields(child, user=user)
                 info["child_fields"] = _fields(child, child_hidden)
     result: dict[str, Any] = {
         "name": dt.name,

@@ -347,10 +347,9 @@ class TestGruntAppLayerPermissions:
         class InvoiceModel:
             doctype = "Invoice"
 
-            def __init__(self, doctype, data, user, session):
+            def __init__(self, doctype, data, session):
                 self.doctype = doctype
                 self.data = data
-                self.user = user
                 self.session = session
 
         dt = Mock()

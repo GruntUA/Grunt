@@ -116,7 +116,7 @@ async def require_folder_write(folder: dict[str, Any]) -> None:
 
     meta = await grunt.get_meta("FileFolder")
     assert meta is not None
-    if not await permission_checker.check(grunt.get_user(), meta, "write", folder):
+    if not await permission_checker.check(meta, "write", folder):
         grunt.throw(
             _("No access to the folder “%(folder)s”") % {"folder": folder.get("folder_name")},
             "PERMISSION_DENIED",

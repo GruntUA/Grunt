@@ -100,7 +100,7 @@ async def _widget_report_series(widget: Any) -> Any:
             cfg = json.loads(cfg or "{}")
         cfg = cfg or {}
 
-        result = await report_engine.run(report_name, {}, user, session)
+        result = await report_engine.run(report_name, {}, user.email, session)
         rows = result.get("data") or []
         col_names = [c["fieldname"] for c in result.get("columns") or []]
 

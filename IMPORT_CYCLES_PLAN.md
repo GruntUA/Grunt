@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–1 злито (#120); крок 2 ділиться на 2a (ролі) і 2b (email замість об'єкта).
+Оновлено: 2026-11-10 — кроки 0–1 злито (#120); крок 2 — PR #121 (2a, ролі) і 2b (email замість об'єкта).
 
 ---
 
@@ -85,7 +85,7 @@
 |---|---|---|
 | 0 | Тест-храповик, граф, локальний CodeQL, цей план | у PR |
 | 1 | Малі цикли: auth.providers ↔ registry, dialects.fulltext ↔ search.terms, standard_records ↔ startup.fixtures, tasks.auto_repeat ↔ AutoRepeat | у PR |
-| 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | 2a (ролі за email, `User.has_role`, `grunt.get_user` на фасаді) — у PR; 2b — наступний PR |
+| 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | 2a (ролі за email, `User.has_role`, `grunt.get_user` на фасаді) і 2b (email замість об'єкта) — у PR |
 | 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | |
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | |
@@ -138,3 +138,39 @@
   `startup/fixtures.py` у `grunt/fixtures.py` поруч з експортом.
 - **auto_repeat:** арифметика розкладу — лист `tasks/repeat_schedule.py`.
 - Лишається на кроці 2: `providers.base` тягне `User` лише заради анотацій.
+
+### 2026-11-10 — крок 2: користувач за моделлю Frappe
+
+Розбито на два PR через ліміт CodeRabbit: 2a — ролі за email (`get_roles` / `has_roles`,
+`User.has_role`), `grunt.get_user` на фасаді, тестові хелпери `tests/support.py`;
+2b — email замість об'єкта в правах, `Document` і подіях.
+
+Перша версія (протокол `Identity`) відкинута — дублювала `User`. Подивились Frappe:
+`frappe.session.user` — рядок, `get_roles(user)`, `has_permission(..., user=None)`,
+`Document` без користувача. Зроблено так само.
+
+- `local`: `session_user()`, `require_session_user()`, `session_roles()`; `require_user` прибрано.
+- `permissions.roles`: `get_roles`, `has_roles`, `role_access`; `user_has_roles` прибрано — код із
+  документом користується `User.has_role(*roles)`. `permissions.*` — email замість об'єкта.
+- `rbac`: новий порядок аргументів (`user=` в кінці), `hidden_fields` асинхронний.
+- `Document.user` → властивість (email сесії); `_set_grunt_context()` перев'язує лише
+  сесію/рушій. Ручні анотації поля `user` (ErrorLog, WebAuthnCredential) — коментар, як
+  у генератора.
+- `get_user()` — метод `ContextAPI` (`grunt.get_user`); `api.context.get_user/set_user` прибрано.
+- Знайдено pyright-невидимі місця (через `Any` / `getattr`), що мовчки ламалися б від email
+  замість об'єкта: ключ кешу запитів (ролі й email → порожні — змішав би видачу різних
+  користувачів), ролі переходів workflow, автор коментаря для підписників, автор ToDo,
+  `entered_by` у milestones, підпис файлів, маска SMTP-пароля, масове видалення. Усі —
+  через `get_roles` / email.
+- `User.name` не завжди email (ім'я можна задати) — ролі інших користувачів шукаються через
+  рядок `User` за email.
+- `page_visible(page, roles)`; онбординг передає ролі явно (працює під `system_context`).
+- Тести: `tests/support.py` — `acting_as`, `check_as`, `require_as`, `hidden_fields_as`,
+  `read_predicate_as`, `access_of`; виклики переписано через AST.
+- Skill `grunt-dev` (`references/hooks.md`, обидві копії): `user` в обробнику — email.
+- Результат: 2240 passed, pyright 0. CodeQL локально 590 → 325 (у представленні CodeQL
+  велика компонента 105 → 57 модулів). Базовий список 178: `permissions.roles` повернуто
+  (був на develop; тримає фасад — крок 9).
+- Додатки не оновлено (рішення власника — спершу фреймворк): ламаються виклики
+  `permission_checker.check(user, …)`, `user_has_roles`, `Document(..., user=)`,
+  хуки з `user.email`.

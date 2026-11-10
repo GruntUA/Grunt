@@ -15,6 +15,7 @@ from collections.abc import Iterable
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
 from grunt.local import _session_ctx, session_roles, session_user
+from grunt.permissions.access import RoleAccess, Target
 lazy import grunt
 
 _BUILT_IN: dict[str, list[str]] = {
@@ -48,3 +49,8 @@ async def has_roles(roles: Iterable[str], *, user: str | None = None) -> bool:
     """True if *user* (an email; ``None`` - the context's) holds any of *roles*."""
     wanted = set(roles)
     return any(r in wanted for r in await get_roles(user))
+
+
+async def role_access(doctype: Target, user: str | None) -> RoleAccess:
+    """:class:`RoleAccess` of *user* (an email; ``None`` - nobody) with their roles."""
+    return RoleAccess(doctype, user, await get_roles(user) if user is not None else [])

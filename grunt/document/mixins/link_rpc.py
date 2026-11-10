@@ -18,9 +18,9 @@ from sqlalchemy import select
 import grunt
 from grunt import _
 from grunt.errors import not_found
-from grunt.local import require_user
-from grunt.permissions.access import RoleAccess
+from grunt.local import require_session_user
 from grunt.permissions.rbac import permission_checker
+from grunt.permissions.roles import role_access
 from grunt.search.terms import match_columns
 lazy from grunt.query import run
 lazy from grunt.query.query import Query
@@ -107,16 +107,16 @@ class DocumentLinkRPCMixin:
         # (2) has to beat (3): a role granted "select" alongside a match-scoped
         # "read" wants an unfiltered picker, and check(user, dt, "read") can't
         # see that its "read" is row-scoped when there's no doc to match against.
-        user = require_user()
-        access = RoleAccess(dt.doc, user)
+        user = require_session_user()
+        access = await role_access(dt.doc, user)
         if access.has_unrestricted_read:
             has_read = True
         elif access.has_explicit_select:
             has_read = False
-        elif await permission_checker.check(user, dt.doc, "read"):
+        elif await permission_checker.check(dt.doc, "read", user=user):
             has_read = True
         else:
-            await permission_checker.require(user, dt.doc, "select")  # raises 403
+            await permission_checker.require(dt.doc, "select", user=user)  # raises 403
             has_read = False
 
         # Not a table - the store's rows, searched like its list

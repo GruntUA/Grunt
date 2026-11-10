@@ -11,8 +11,8 @@ class DocFollow(Document):
 
     async def validate(self) -> None:
         # ``user`` is a field here, but ``self.user`` is the acting user.
-        if self.user is not None and self.user.email:
-            self.data["user"] = self.user.email
+        if self.user is not None and self.user:
+            self.data["user"] = self.user
         if not self.data.get("user"):
             self.grunt.throw(_("Specify a user"))
 
@@ -20,7 +20,7 @@ class DocFollow(Document):
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
             self.grunt.throw(_("Document not found"), "NOT_FOUND")
-        if self.user is not None and not await permission_checker.check(self.user, dt, "read", doc):
+        if self.user is not None and not await permission_checker.check(dt, "read", doc):
             self.grunt.throw(_("No access to the document"), "PERMISSION_DENIED")
 
     async def before_insert(self) -> None:

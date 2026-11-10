@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from grunt.local import require_user
+from grunt.local import require_session_user
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
 from grunt.tasks.doc_method import enqueue_doc_method
@@ -28,10 +28,10 @@ class UtilityAPI:
 
             await grunt.enqueue_doc("Report", report_id, "generate", format="pdf")
         """
-        user = require_user()
+        user = require_session_user()
         await enqueue_doc_method(
             site=site_manager.get_active_site(),
-            user_email=user.email,
+            user_email=user,
             doctype=doctype,
             doc_id=doc_id,
             method=method,

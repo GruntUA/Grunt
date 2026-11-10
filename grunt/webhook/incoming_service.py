@@ -29,7 +29,7 @@ from typing import Any
 
 import grunt
 from grunt import log
-from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.metadata.registry import doctype_registry
 from grunt.scripting.server_script import ServerScriptRunner
 lazy from grunt.scripting.doctypes.ServerScript.server_script import ServerScript
@@ -203,7 +203,7 @@ class IncomingWebhookService:
             doc={},
             session=session,
             extra_context={"payload": payload, "webhook": webhook},
-            user_email=SYSTEM_USER.email,
+            user_email=SYSTEM_USER_EMAIL,
         )
 
         if not result.success:

@@ -240,12 +240,12 @@ class DocumentMetaRPCMixin:
             [],
         )
 
-        user = grunt.get_user()
+        grunt.get_user()  # 401 without a user, as before
         dt = await grunt.get_meta(doctype)
 
         async def can(target: str, action: PermissionAction, row: dict | None = None) -> bool:
             meta = dt if target == doctype else await grunt.get_meta(target)
-            return meta is not None and await permission_checker.check(user, meta, action, row)
+            return meta is not None and await permission_checker.check(meta, action, row)
 
         # The same checks the add endpoints enforce, so the UI hides what would be refused.
         perms = {

@@ -33,7 +33,7 @@ async def test_returned_controller_does_not_leak_its_internals(client, auth_head
     async def note() -> Document:
         # Bound to the caller - encoded as an object, `user` (with its
         # password hash) and `session` would go out with it.
-        return Document(doctype="Note", data={"name": "N1", "title": "Hi"}, user=grunt.get_user())
+        return Document(doctype="Note", data={"name": "N1", "title": "Hi"})
 
     module = types.ModuleType(MOD)
     module.note = note

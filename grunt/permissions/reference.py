@@ -16,7 +16,6 @@ from typing import Any
 
 from grunt.query.nodes import Cmp, Empty, Expr, Linked, and_, or_
 lazy import grunt
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.permissions.query import read_predicate
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.store import store_for
@@ -42,7 +41,7 @@ def _link_target(doctype: Any, fieldname: str) -> str | None:
     return field.options if field is not None and field.has_trait("link") else None
 
 
-async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> bool | None:
+async def reference_readable(user: str | None, doctype: Any, doc: dict[str, Any]) -> bool | None:
     """Whether *user* can read one of the documents *doc* points at.
 
     ``None`` when *doc* points at nothing (or only at a removed DocType): the
@@ -61,21 +60,27 @@ async def reference_readable(user: User, doctype: Any, doc: dict[str, Any]) -> b
         bound = True
         lookup = parent_meta.name if parent_meta.is_singleton else ref_id
         parent = await grunt.db.get_value(ref_doctype, lookup, "*")
-        if parent is not None and await permission_checker.check(user, parent_meta, "read", parent):
+        if parent is not None and await permission_checker.check(
+            parent_meta, "read", parent, user=user
+        ):
             return True
     return False if bound else None
 
 
-async def readable_predicate(user: User, parent_meta: Any) -> Expr | None:
+async def readable_predicate(user: str | None, parent_meta: Any) -> Expr | None:
     """The rows of *parent_meta* that *user* may read, as a predicate on them -
     ``None`` when *user* can't read that DocType at all."""
-    if not await permission_checker.check(user, parent_meta, "read"):
+    if not await permission_checker.check(parent_meta, "read", user=user):
         return None
     return await read_predicate(user, parent_meta)
 
 
 async def reference_predicates(
-    columns: Collection[str], user: User, doctype: Any, *, row: Mapping[str, Any] | None = None
+    columns: Collection[str],
+    user: str | None,
+    doctype: Any,
+    *,
+    row: Mapping[str, Any] | None = None,
 ) -> tuple[Expr, Expr] | None:
     """``(points at nothing, points at a readable document)``, or ``None`` when
     *doctype* doesn't inherit access.

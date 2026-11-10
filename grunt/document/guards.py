@@ -17,8 +17,8 @@ import inspect
 from collections.abc import Callable
 from typing import Any
 
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.errors import ApplicationError
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 
 _GUARDS: list[Callable[..., Any]] = []
 
@@ -29,9 +29,9 @@ def register_write_guard(fn: Callable[..., Any]) -> None:
 
 
 async def check_write(
-    action: str, doctype: str, existing: dict[str, Any], changes: dict[str, Any], user: User
+    action: str, doctype: str, existing: dict[str, Any], changes: dict[str, Any], user: str
 ) -> None:
-    if not _GUARDS or user.email == SYSTEM_USER.email:
+    if not _GUARDS or user == SYSTEM_USER_EMAIL:
         return
     try:
         for guard in _GUARDS:

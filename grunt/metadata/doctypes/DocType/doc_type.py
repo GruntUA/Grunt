@@ -15,7 +15,6 @@ from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
 from grunt.store import AGGREGATE, DELETE, INSERT, SQL, UPDATE, SqlStore, Store
-lazy from grunt.auth.doctypes.User.user import User
 
 
 def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:
@@ -58,7 +57,7 @@ class DocTypeStore(SqlStore):
         return None if row is None else _row_to_doc(row)
 
     async def insert(
-        self, doc: dict[str, Any], *, input: dict[str, Any], user: User
+        self, doc: dict[str, Any], *, input: dict[str, Any], user: str
     ) -> dict[str, Any]:
         """Register the new DocType, create its table and export its files."""
         dt = DocType(**doc)
@@ -79,7 +78,7 @@ class DocTypeStore(SqlStore):
         *,
         before: dict[str, Any],
         input: dict[str, Any],
-        user: User,
+        user: str,
     ) -> dict[str, Any]:
         """Update the DocType, sync its table and export its files."""
         dt = DocType(**doc)

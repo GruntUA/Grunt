@@ -66,7 +66,7 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     doctype, doc, user = kwargs.get("doctype"), kwargs.get("doc"), kwargs.get("user")
     if not doctype or doctype == "File" or not isinstance(doc, dict) or not doc.get("name"):
         return
-    email = getattr(user, "email", None)
+    email = user  # lifecycle events carry the email
     if not email:
         return
     meta = await grunt.get_meta(doctype)
@@ -128,7 +128,7 @@ async def release_dropped_files(
         log.debug("storage.files_released", doctype=doctype, doc_id=before["name"], count=released)
 
 
-async def _publish(ids: set[str], user: Any) -> None:
+async def _publish(ids: set[str], user: str | None) -> None:
     """Make the private files among *ids* that *user* may read public."""
 
     meta = await grunt.get_meta("File")
@@ -140,7 +140,7 @@ async def _publish(ids: set[str], user: Any) -> None:
     readable = [
         r["name"]
         for r in rows
-        if not r.get("is_public") and await permission_checker.check(user, meta, "read", r)
+        if not r.get("is_public") and await permission_checker.check(meta, "read", r, user=user)
     ]
     if readable:
         await grunt.db.bulk_update("File", {"name__in": readable}, {"is_public": True})

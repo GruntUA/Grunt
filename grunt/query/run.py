@@ -20,13 +20,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import grunt
 from grunt import _
 from grunt.errors import forbidden, not_found
-from grunt.permissions.access import RoleAccess
 from grunt.permissions.query import read_predicate
+from grunt.permissions.roles import role_access
 from grunt.query.aggregates import group_field, parse_aggregation
 from grunt.query.nodes import And, Expr, Linked, Or
 from grunt.query.query import Query
 from grunt.store import Store, store_for
-lazy from grunt.auth.doctypes.User.user import User
 
 
 async def _meta(doctype: str) -> Any:
@@ -37,7 +36,7 @@ async def _meta(doctype: str) -> Any:
 
 
 async def _secured(
-    query: Query, user: User | None, ignore_permissions: bool, session: AsyncSession | None
+    query: Query, user: str | None, ignore_permissions: bool, session: AsyncSession | None
 ) -> tuple[Store, Query, frozenset[str]]:
     """The DocType's store, *query* narrowed to what *user* may read, and the
     fields hidden from them (to drop from the rows)."""
@@ -46,7 +45,7 @@ async def _secured(
     dt = await _meta(query.doctype)
     hidden: frozenset[str] = frozenset()
     if user is not None:
-        hidden = RoleAccess(dt, user).hidden_fields
+        hidden = (await role_access(dt, user)).hidden_fields
         used = await _hidden_used(query, dt, user, hidden)
         if used:
             raise forbidden(
@@ -60,7 +59,7 @@ async def _secured(
     return store_for(dt, session), query, hidden
 
 
-async def _hidden_used(query: Query, dt: Any, user: User, hidden: frozenset[str]) -> set[str]:
+async def _hidden_used(query: Query, dt: Any, user: str, hidden: frozenset[str]) -> set[str]:
     """Fields hidden from *user* that *query* filters, sorts, groups or
     aggregates by - a Link hop's target fields against the target's rules."""
     used = await _hidden_in(query.where, dt, user, hidden)
@@ -77,7 +76,7 @@ async def _hidden_used(query: Query, dt: Any, user: User, hidden: frozenset[str]
     return used
 
 
-async def _hidden_in(expr: Expr, dt: Any, user: User, hidden: frozenset[str]) -> set[str]:
+async def _hidden_in(expr: Expr, dt: Any, user: str, hidden: frozenset[str]) -> set[str]:
     """Fields of *expr* hidden from *user*; a ``Linked`` node's inner fields
     against its target DocType's rules, reported as ``link_field.target_field``."""
     if isinstance(expr, (And, Or)):
@@ -90,13 +89,13 @@ async def _hidden_in(expr: Expr, dt: Any, user: User, hidden: frozenset[str]) ->
     if isinstance(expr, Linked):
         target = await grunt.get_meta(expr.doctype)
         if target is not None:
-            target_hidden = RoleAccess(target, user).hidden_fields
+            target_hidden = (await role_access(target, user)).hidden_fields
             inner = await _hidden_in(expr.where, target, user, target_hidden)
             out |= {f"{expr.field}.{f}" for f in inner}
     return out
 
 
-async def _hidden_behind_links(dt: Any, user: User) -> frozenset[str]:
+async def _hidden_behind_links(dt: Any, user: str) -> frozenset[str]:
     """``link_field.target_field`` for every column the search box would read
     through a Link (the target's title / search fields) that the target's
     rules hide from *user*."""
@@ -107,7 +106,7 @@ async def _hidden_behind_links(dt: Any, user: User) -> frozenset[str]:
             continue
         target = await grunt.get_meta(field.options)
         if target is not None:
-            out |= {f"{fname}.{f}" for f in RoleAccess(target, user).hidden_fields}
+            out |= {f"{fname}.{f}" for f in (await role_access(target, user)).hidden_fields}
     return frozenset(out)
 
 
@@ -123,7 +122,7 @@ def _visible(rows: list[dict[str, Any]], hidden: frozenset[str]) -> list[dict[st
 async def fetch(
     query: Query,
     *,
-    user: User | None = None,
+    user: str | None = None,
     ignore_permissions: bool = False,
     session: AsyncSession | None = None,
 ) -> list[dict[str, Any]]:
@@ -135,7 +134,7 @@ async def fetch(
 async def count(
     query: Query,
     *,
-    user: User | None = None,
+    user: str | None = None,
     ignore_permissions: bool = False,
     session: AsyncSession | None = None,
 ) -> int:
@@ -147,7 +146,7 @@ async def count(
 async def page(
     query: Query,
     *,
-    user: User | None = None,
+    user: str | None = None,
     ignore_permissions: bool = False,
     with_total: bool = True,
     session: AsyncSession | None = None,
@@ -162,7 +161,7 @@ async def page(
 async def aggregate(
     query: Query,
     *,
-    user: User | None = None,
+    user: str | None = None,
     ignore_permissions: bool = False,
     session: AsyncSession | None = None,
 ) -> list[dict[str, Any]]:

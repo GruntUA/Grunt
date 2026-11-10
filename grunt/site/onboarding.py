@@ -16,7 +16,7 @@ from typing import Any
 import grunt
 from grunt import _
 from grunt.api.v1.dashboard import page_visible
-from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.i18n.meta import translate_record
 
 AUTO_ACTIONS = ("Create Entry", "Update Settings", "Take a Tour")
@@ -30,13 +30,13 @@ _MARKS = ("Completed", "Skipped")
 # the caller's user is taken first and passed along.
 
 
-def _scope_user(onboarding: dict[str, Any], user: User) -> str:
-    return user.email if onboarding.get("progress_scope") == "User" else ""
+def _scope_user(onboarding: dict[str, Any], user: str) -> str:
+    return user if onboarding.get("progress_scope") == "User" else ""
 
 
-async def _progress(onboarding: dict[str, Any], user: User) -> tuple[dict[str, str], bool]:
+async def _progress(onboarding: dict[str, Any], user: str) -> tuple[dict[str, str], bool]:
     """``({step_id: status}, hidden)`` for *user*."""
-    me = user.email
+    me = user
     rows = await grunt.db.get_all(
         "OnboardingProgress",
         filters={
@@ -70,7 +70,7 @@ async def _fact(step: dict[str, Any], user: str) -> bool:
     if meta is None:
         return False
     if step.get("action") == "Create Entry":
-        owner = {"owner": user} if user else {"owner__ne": SYSTEM_USER.email}
+        owner = {"owner": user} if user else {"owner__ne": SYSTEM_USER_EMAIL}
         return await grunt.db.count(doctype, owner) > 0
     fieldname = step.get("field") or ""
     rows = await grunt.db.get_all(doctype, fields=None, limit=1)
@@ -109,7 +109,7 @@ async def _target(step: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-async def _visible(app: str | None, user: User) -> list[dict[str, Any]]:
+async def _visible(app: str | None, roles: list[str]) -> list[dict[str, Any]]:
     filters: dict[str, Any] = {"is_published": True}
     if app:
         filters["app"] = app
@@ -117,10 +117,10 @@ async def _visible(app: str | None, user: User) -> list[dict[str, Any]]:
         "ModuleOnboarding", filters=filters, fields=["name"], order_by="name", limit=None
     )
     docs = [await grunt.get_doc("ModuleOnboarding", r["name"]) for r in rows]
-    return [d for d in docs if page_visible({**d, "is_published": True}, user)]
+    return [d for d in docs if page_visible({**d, "is_published": True}, roles)]
 
 
-async def _summary(onboarding: dict[str, Any], user: User) -> dict[str, Any] | None:
+async def _summary(onboarding: dict[str, Any], user: str) -> dict[str, Any] | None:
     marks, hidden = await _progress(onboarding, user)
     if hidden:
         return None
@@ -160,13 +160,13 @@ async def get_onboardings(app: str | None = None) -> list[dict[str, Any]]:
     """Checklists the user sees (all, or *app*'s), with each step's status."""
     user = grunt.get_user()
     async with grunt.system_context(grunt.get_session()):
-        out = [await _summary(o, user) for o in await _visible(app or None, user)]
+        out = [await _summary(o, user.email) for o in await _visible(app or None, user.role_names)]
     return [o for o in out if o and o["total"]]
 
 
-async def _require(onboarding: str, user: User) -> dict[str, Any]:
+async def _require(onboarding: str, roles: list[str]) -> dict[str, Any]:
     async with grunt.system_context(grunt.get_session()):
-        for o in await _visible(None, user):
+        for o in await _visible(None, roles):
             if o["name"] == onboarding:
                 return o
     grunt.throw(_("Onboarding not found"), "NOT_FOUND")
@@ -184,15 +184,15 @@ async def _set(key: dict[str, str], status: str | None) -> None:
 async def mark_step(onboarding: str, step_id: str, status: str = "Completed") -> dict[str, Any]:
     """Mark a step Completed or Skipped, or ``Pending`` to take the mark back."""
     user = grunt.get_user()
-    o = await _require(onboarding, user)
+    o = await _require(onboarding, user.role_names)
     if not any(s.get("step_id") == step_id for s in o.get("steps") or []):
         grunt.throw(_("Step not found"), "NOT_FOUND")
     if status not in (*_MARKS, "Pending"):
         grunt.throw(_("Unknown step status"))
-    key = {"onboarding": onboarding, "step_id": step_id, "user": _scope_user(o, user)}
+    key = {"onboarding": onboarding, "step_id": step_id, "user": _scope_user(o, user.email)}
     await _set(key, None if status == "Pending" else status)
     async with grunt.system_context(grunt.get_session()):
-        summary = await _summary(o, user)
+        summary = await _summary(o, user.email)
     return summary or {}
 
 
@@ -200,7 +200,7 @@ async def mark_step(onboarding: str, step_id: str, status: str = "Completed") ->
 async def hide_onboarding(onboarding: str) -> None:
     """Hide the checklist for the current user."""
     user = grunt.get_user()
-    await _require(onboarding, user)
+    await _require(onboarding, user.role_names)
     await _set({"onboarding": onboarding, "step_id": "", "user": user.email}, "Hidden")
 
 
@@ -208,7 +208,7 @@ async def hide_onboarding(onboarding: str) -> None:
 # the user; taking one is a ``Completed`` progress row of that user.
 
 
-async def _tours(doctype: str, user: User, view: str) -> list[dict[str, Any]]:
+async def _tours(doctype: str, roles: list[str], view: str) -> list[dict[str, Any]]:
     names = await grunt.db.get_all(
         "FormTour",
         filters={"is_published": True, "reference_doctype": doctype},
@@ -220,7 +220,7 @@ async def _tours(doctype: str, user: User, view: str) -> list[dict[str, Any]]:
     return [
         d
         for d in docs
-        if (d.get("view") or "Form") == view and page_visible({**d, "is_published": True}, user)
+        if (d.get("view") or "Form") == view and page_visible({**d, "is_published": True}, roles)
     ]
 
 
@@ -232,7 +232,7 @@ async def get_form_tours(doctype: str, view: str = "Form") -> list[dict[str, Any
         grunt.throw(_("Unknown view: %(view)s") % {"view": view})
     user = grunt.get_user()
     async with grunt.system_context(grunt.get_session()):
-        tours = await _tours(doctype, user, view)
+        tours = await _tours(doctype, user.role_names, view)
         taken = set(
             await grunt.db.get_all(
                 "OnboardingProgress",
@@ -276,7 +276,7 @@ async def complete_form_tour(tour: str) -> None:
         doctype = (row or {}).get("reference_doctype")
         view = (row or {}).get("view") or "Form"
         visible = bool(doctype) and any(
-            t["name"] == tour for t in await _tours(doctype, user, view)
+            t["name"] == tour for t in await _tours(doctype, user.role_names, view)
         )
     if not visible:
         grunt.throw(_("Form tour not found"), "NOT_FOUND")

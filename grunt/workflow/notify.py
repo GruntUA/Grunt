@@ -18,7 +18,6 @@ from typing import Any
 
 import grunt
 from grunt import _, log
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.notification.service import notification_service
 lazy from grunt.permissions.rbac import permission_checker
@@ -29,7 +28,7 @@ lazy from grunt.workflow.registry import get_active_workflow
 
 
 async def notify_transition(
-    active: ActiveTransition, doc: dict[str, Any], user: User, *, previous: str | None = None
+    active: ActiveTransition, doc: dict[str, Any], user: str, *, previous: str | None = None
 ) -> None:
     tokens = set(active.transition.notify)
     if not tokens:
@@ -41,7 +40,7 @@ async def notify_transition(
         recipients.append(previous)
     if "next" in tokens:
         recipients.extend(await next_actors(active.doctype, doc))
-    recipients = [r for r in dict.fromkeys(recipients) if r and r != user.email]
+    recipients = [r for r in dict.fromkeys(recipients) if r and r != user]
     if not recipients:
         return
 
@@ -98,11 +97,11 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     for candidate in users:
         if candidate is None or not candidate.get("is_active", True):
             continue
-        if not any(user_may_take(t, candidate) for t in transitions):
+        if not [t for t in transitions if await user_may_take(t, candidate.email)]:
             continue
-        if not await permission_checker.check(candidate, meta, "read", doc):
+        if not await permission_checker.check(meta, "read", doc, user=candidate.email):
             continue
-        if not await doc_passes(candidate, meta, doc):
+        if not await doc_passes(candidate.email, meta, doc):
             continue
         result.append(candidate.email)
     return result
@@ -130,8 +129,8 @@ def _doc_title(meta: Any, doc: dict[str, Any]) -> str:
     return str(doc.get(field) or doc.get("name") or "")
 
 
-async def _message(active: ActiveTransition, user: User, meta: Any) -> str:
-    who = user.get("full_name") or user.email
+async def _message(active: ActiveTransition, user: str, meta: Any) -> str:
+    who = await grunt.db.get_value("User", user, "full_name") or user
     lines = [
         _("%(user)s: “%(action)s” — %(from)s → %(to)s")
         % {

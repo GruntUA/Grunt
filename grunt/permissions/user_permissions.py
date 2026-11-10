@@ -31,9 +31,10 @@ import grunt
 from grunt import _
 from grunt.cache.bus import fanout
 from grunt.errors import not_found
+from grunt.local import session_user
+from grunt.permissions.roles import has_roles
 from grunt.query.nodes import FALSE, TRUE, Expr, In, Null, and_, or_
 from grunt.site.settings import get_setting
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
 
@@ -51,11 +52,11 @@ def invalidate_user_permission_cache(user_id: str | None = None) -> None:
         _UP_CACHE.pop(user_id, None)
 
 
-def user_permissions_apply_to(user: User | None) -> bool:
-    """User Permissions bind everyone except System Manager."""
-    if user is None:
+async def user_permissions_apply_to(user: str | None) -> bool:
+    """User Permissions bind everyone (by email) except System Manager."""
+    if not user:
         return False
-    return "System Manager" not in (getattr(user, "roles", None) or [])
+    return not await has_roles(["System Manager"], user=user)
 
 
 async def _strict_mode() -> bool:
@@ -77,16 +78,14 @@ async def _load(user_email: str) -> dict[str, dict[str, set[str]]]:
     return out
 
 
-async def get_user_permissions_for(user: User | None, doctype_name: str) -> dict[str, set[str]]:
+async def get_user_permissions_for(user: str | None, doctype_name: str) -> dict[str, set[str]]:
     """``{allow_doctype: {allowed for_values}}`` that constrain *doctype_name*.
 
     Empty when the user is exempt or has no relevant rows.
     """
-    if not user_permissions_apply_to(user):
+    if not user or not await user_permissions_apply_to(user):
         return {}
-    email = getattr(user, "email", None) or getattr(user, "id", None)
-    if not email:
-        return {}
+    email = user
 
     by_allow = _UP_CACHE.get(email)
     if by_allow is None:
@@ -158,7 +157,7 @@ def _link_fieldnames(doctype: DocType | Meta, allow: str) -> list[str]:
 
 async def user_permission_predicate(
     columns: Collection[str],
-    user: User | None,
+    user: str | None,
     doctype: DocType | Meta,
 ) -> Expr:
     """*user*'s permissions on *doctype* as a query predicate (``TRUE`` when none
@@ -183,7 +182,7 @@ async def user_permission_predicate(
 
 
 async def doc_violation(
-    user: User | None, doctype: DocType | Meta, doc: dict[str, Any]
+    user: str | None, doctype: DocType | Meta, doc: dict[str, Any]
 ) -> str | None:
     """Python-level check of a single *doc* against *user*'s permissions - the
     per-document counterpart of :func:`user_permission_predicate`.
@@ -215,12 +214,12 @@ async def doc_violation(
     return None
 
 
-async def doc_passes(user: User | None, doctype: DocType | Meta, doc: dict[str, Any]) -> bool:
+async def doc_passes(user: str | None, doctype: DocType | Meta, doc: dict[str, Any]) -> bool:
     """True when *doc* satisfies *user*'s permissions (see :func:`doc_violation`)."""
     return await doc_violation(user, doctype, doc) is None
 
 
-async def allowed_values(user: User | None, doctype_name: str, allow: str) -> set[str] | None:
+async def allowed_values(user: str | None, doctype_name: str, allow: str) -> set[str] | None:
     """Values of *allow* that *user* is limited to on *doctype_name* (tree
     ``allow`` - with every descendant), or ``None`` when unrestricted."""
     values = (await get_user_permissions_for(user, doctype_name)).get(allow)
@@ -236,11 +235,10 @@ async def allowed_values(user: User | None, doctype_name: str, allow: str) -> se
 async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
     """Rows for the list-view "Restrictions" popup: which fields on *doctype*
     are constrained, and to which values, for the current user."""
-    user = grunt.get_user()
     dt = await grunt.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-    up = await get_user_permissions_for(user, doctype)
+    up = await get_user_permissions_for(session_user(), doctype)
     if not up:
         return []
 
@@ -257,11 +255,8 @@ async def get_active_restrictions(doctype: str) -> list[dict[str, Any]]:
 async def get_user_permission_defaults(doctype: str) -> dict[str, str]:
     """``{fieldname: value}`` to pre-fill on a new *doctype* form from the
     current user's ``is_default`` UserPermission rows."""
-    user = grunt.get_user()
-    if not user_permissions_apply_to(user):
-        return {}
-    email = getattr(user, "email", None)
-    if not email:
+    email = session_user()
+    if not email or not await user_permissions_apply_to(email):
         return {}
 
     rows = await grunt.db.get_all(

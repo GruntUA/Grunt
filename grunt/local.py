@@ -13,9 +13,10 @@ lazy from grunt.site.manager import site_manager
 
 _session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
 _engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default=None)
-# The ``User`` document the context runs as. Below the auth layer it is read as
-# an email (:func:`session_user`) and roles (:func:`session_roles`), as in
-# Frappe; ``grunt.get_user()`` hands out the document itself.
+# The ``User`` document the context runs as. Below the auth layer nothing reads
+# it as a document: the user is their email (:func:`session_user`) and roles
+# (:func:`session_roles`), as in Frappe. ``grunt.get_user()`` hands out the
+# document itself (``ContextAPI.get_user`` in ``grunt.app.context_api``).
 _user_ctx: ContextVar[Any] = ContextVar("grunt_user", default=None)
 _site_ctx: ContextVar[str | None] = ContextVar("grunt_site", default=None)
 _messages_ctx: ContextVar[list[dict] | None] = ContextVar("grunt_messages", default=None)
@@ -53,18 +54,18 @@ def require_engine() -> AsyncEngine:
     return e
 
 
-def require_user() -> Any:
-    """Return the active user or raise if none is bound to the context."""
-    u = _user_ctx.get()
-    if u is None:
-        raise RuntimeError("grunt: no active user.")
-    return u
-
-
 def session_user() -> str | None:
     """Email of the user the context runs as; ``None`` without one."""
     user = _user_ctx.get()
     return None if user is None else user.email
+
+
+def require_session_user() -> str:
+    """:func:`session_user`, or raise if no user is bound to the context."""
+    email = session_user()
+    if email is None:
+        raise RuntimeError("grunt: no active user.")
+    return email
 
 
 def session_roles() -> list[str]:

@@ -26,7 +26,6 @@ from grunt.website import make_website_handler, robots_txt, sitemap_xml, website
 from grunt.website.generator import app_mount, render_doc_page, sitemap_urls
 from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
 from grunt.website.spa import DIST_DIR, static_file
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
 
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/startup/website.py -> grunt/
 _CORE_WEBSITE_DIR = _GRUNT_PKG / "website"
@@ -76,7 +75,7 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
         return None
     has_site = any(page.app == first for page in website_registry.pages)
     try:
-        async with grunt.context(session, user=SYSTEM_USER):
+        async with grunt.system_context(session):
             if not await grunt.db.exists("AppMenu", first):
                 return None
             if has_site and await grunt.get_meta(rest.split("/", 1)[0]) is None:

@@ -5,7 +5,8 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.auth.doctypes.User.user import SYSTEM_USER, User
+from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
+from grunt.auth.doctypes.User.user import SYSTEM_USER, User, guest_user
 from grunt.errors import ApplicationError
 from grunt.i18n import _
 from grunt.local import (
@@ -14,6 +15,7 @@ from grunt.local import (
     _session_ctx,
     _user_ctx,
 )
+lazy from grunt.auth.users import get_auth_context_user
 
 
 class ContextAPI:
@@ -21,6 +23,10 @@ class ContextAPI:
 
     def get_user(self) -> User:
         """The user the current request or task runs as, as a ``User`` document.
+
+        Below the auth layer the user is their email and roles
+        (:func:`grunt.local.session_user`, :func:`grunt.permissions.roles.get_roles`),
+        as in Frappe; code above it - auth, the API, apps - gets the document here.
 
         Never invents one: without a user in context (a guest request, or a task
         that didn't enter ``grunt.context`` / ``grunt.system_context``) it raises
@@ -58,23 +64,49 @@ class ContextAPI:
         _engine_ctx.reset(tokens[1])
         _user_ctx.reset(tokens[2])
 
+    async def _user_document(
+        self, session: AsyncSession, engine: AsyncEngine | None, user: User | str | None
+    ) -> User | None:
+        """*user* as a ``User`` document - an email is looked up (as ``frappe.set_user``)."""
+        if not isinstance(user, str):
+            return user
+        current = _user_ctx.get()
+        if current is not None and current.email == user:
+            return current
+        if user == SYSTEM_USER_EMAIL:
+            return SYSTEM_USER
+        if user == GUEST_USER_EMAIL:
+            return guest_user()
+        tokens = self.set_context(session, engine, SYSTEM_USER)
+        try:
+            found = await get_auth_context_user(user)
+        finally:
+            self.reset_context(tokens)
+        if found is None:
+            raise LookupError(f"grunt.context: no user {user!r}")
+        return found
+
     @contextlib.asynccontextmanager
     async def context(
         self,
         session: AsyncSession,
         engine: AsyncEngine | None = None,
-        user: User | None = None,
+        user: User | str | None = None,
     ) -> AsyncGenerator[None]:
         """Async context manager that activates a grunt context for background tasks.
 
         Use this in background tasks and CLI commands instead of calling
         :meth:`set_context` / :meth:`reset_context` directly::
 
-            async with grunt.context(session, engine, SYSTEM_USER):
+            async with grunt.context(session, engine, "jane@example.com"):
                 doc = await grunt.get_doc("Invoice", invoice_id)
                 await doc.submit()
+
+        *user* - a ``User`` document or an email (code below the auth layer
+        knows users by email only).
         """
-        tokens = self.set_context(session, engine, user)
+        doc = await self._user_document(session, engine, user)
+        tokens = self.set_context(session, engine, doc)
         try:
             yield
         finally:

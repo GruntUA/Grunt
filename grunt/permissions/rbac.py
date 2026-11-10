@@ -2,11 +2,11 @@
 
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
+from grunt.local import session_user
 from grunt.permissions import query, shares
-from grunt.permissions.access import RoleAccess
 from grunt.permissions.child import child_allowed, is_child
+from grunt.permissions.roles import role_access
 from grunt.permissions.types import PermissionAction
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
 
@@ -26,12 +26,14 @@ _ACTION_VERBS: dict[str, str] = {
 class PermissionChecker:
     async def check(
         self,
-        user: User,
         doctype: DocType | Meta,
         action: PermissionAction,
         doc: dict | None = None,
+        *,
+        user: str | None = None,
     ) -> bool:
-        """Check whether *user* may perform *action* on *doctype* (optionally *doc*).
+        """Check whether *user* (an email; ``None`` - the user the context runs as)
+        may perform *action* on *doctype* (optionally *doc*).
 
         With *doc* the answer is the row predicate of *action* evaluated against
         it (``query.row_allowed``) - the very expression a
@@ -43,7 +45,9 @@ class PermissionChecker:
         parent of a child DocType is readable, or a document is shared. Rows are
         then narrowed by the predicate.
         """
-        access = RoleAccess(doctype, user)
+        if user is None:
+            user = session_user()
+        access = await role_access(doctype, user)
         if access.is_unrestricted:
             return True
         if doc is not None:
@@ -59,12 +63,14 @@ class PermissionChecker:
 
     async def require(
         self,
-        user: User,
         doctype: DocType | Meta,
         action: PermissionAction,
         doc: dict | None = None,
+        *,
+        user: str | None = None,
     ) -> None:
-        allowed = await self.check(user, doctype, action, doc)
+        """:meth:`check`, raising 403 when it says no."""
+        allowed = await self.check(doctype, action, doc, user=user)
         if not allowed:
             label = getattr(doctype, "label", None) or getattr(doctype, "name", "")
             verb = _ACTION_VERBS.get(action, action)
@@ -73,14 +79,15 @@ class PermissionChecker:
                 % {"action": pgettext("permission", verb), "doctype": _(label)}
             )
 
-    def hidden_fields(
+    async def hidden_fields(
         self,
-        user: User,
         doctype: DocType | Meta,
+        *,
+        user: str | None = None,
     ) -> frozenset[str]:
-        """The field names *user* may not see on *doctype* (see
-        :attr:`RoleAccess.hidden_fields`)."""
-        return RoleAccess(doctype, user).hidden_fields
+        """The field names *user* (``None`` - the context's) may not see on
+        *doctype* (see :attr:`RoleAccess.hidden_fields`)."""
+        return (await role_access(doctype, user or session_user())).hidden_fields
 
 
 permission_checker = PermissionChecker()

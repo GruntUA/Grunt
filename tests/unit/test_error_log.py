@@ -11,8 +11,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _ERROR_LOG_JSON = (
@@ -52,17 +51,17 @@ def test_error_log_permissions_are_read_delete_for_system_manager_only():
 async def test_plain_user_has_no_access():
     dt = _load()
     for action in ("read", "write", "create", "delete"):
-        assert await permission_checker.check(_plain_user(), dt, action) is False
+        assert await check_as(_plain_user(), dt, action) is False
 
 
 @pytest.mark.asyncio
 async def test_system_manager_can_read_and_delete_but_not_write():
     dt = _load()
     admin = _system_manager()
-    assert await permission_checker.check(admin, dt, "read") is True
-    assert await permission_checker.check(admin, dt, "delete") is True
-    assert await permission_checker.check(admin, dt, "write") is False
-    assert await permission_checker.check(admin, dt, "create") is False
+    assert await check_as(admin, dt, "read") is True
+    assert await check_as(admin, dt, "delete") is True
+    assert await check_as(admin, dt, "write") is False
+    assert await check_as(admin, dt, "create") is False
 
 
 # ── grunt.log_error write path ───────────────────────────────────────────
@@ -125,7 +124,9 @@ async def test_record_view_marks_error_log_seen(ctx):
     await session.commit()
 
     doc = await ctx.get_doc("ErrorLog", name)
-    await record_view(event="after_read", doctype="ErrorLog", doc=dict(doc), user=_plain_user())
+    await record_view(
+        event="after_read", doctype="ErrorLog", doc=dict(doc), user=_plain_user().email
+    )
 
     stored = await ctx.db.get_value("ErrorLog", name, "_seen")
     assert "plain@example.com" in (stored or [])

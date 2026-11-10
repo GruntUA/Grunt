@@ -122,8 +122,8 @@ def _sign_in_structure(data: Any, authorized: set[str], exp: int) -> Any:
     return data
 
 
-async def _authorized_file_ids(ids: set[str], user: Any) -> set[str]:
-    """Of *ids*, those the current *user* may actually read.
+async def _authorized_file_ids(ids: set[str], user: str | None) -> set[str]:
+    """Of *ids*, those *user* (an email) may actually read.
 
     A public file is readable by anyone (guests included). A private file is
     signed only for an authenticated user who passes the File read check - the
@@ -146,7 +146,7 @@ async def _authorized_file_ids(ids: set[str], user: Any) -> set[str]:
         limit=None,
     )
     by_id = {str(r["name"]): r for r in rows}
-    user_email = getattr(user, "email", None) if user is not None else None
+    user_email = user
 
     meta = None
     for fid in ids:
@@ -169,13 +169,13 @@ async def _authorized_file_ids(ids: set[str], user: Any) -> set[str]:
         assert user is not None  # user_email was set, so user is a real User
         if meta is None:
             meta = await grunt.get_meta("File")
-        if meta is not None and await permission_checker.check(user, meta, "read", doc):
+        if meta is not None and await permission_checker.check(meta, "read", doc, user=user):
             authorized.add(fid)
     return authorized
 
 
-async def sign_authorized_file_urls(data: Any, user: Any) -> Any:
-    """Sign file URLs in *data*, but only for files *user* may read.
+async def sign_authorized_file_urls(data: Any, user: str | None) -> Any:
+    """Sign file URLs in *data*, but only for files *user* (an email) may read.
 
     Replaces the blanket response-wide signing: walks the response structure,
     finds unsigned ``get_content`` URLs, resolves which files the user is

@@ -240,7 +240,7 @@ async def _invoke_with_context(
         _walkable = (str, dict, list, tuple, bool, int, float)
         if result is not None and not isinstance(result, _walkable):
             result = jsonable_encoder(result)
-        return await sign_authorized_file_urls(result, user)
+        return await sign_authorized_file_urls(result, user.email if user is not None else None)
 
 
 @router.get("/{path:path}")
