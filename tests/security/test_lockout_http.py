@@ -7,7 +7,7 @@ import pytest
 
 from grunt.auth.users import create_user
 
-M = "/api/v1/method/grunt.auth.doctypes.User.user"
+M = "/api/v1/method/grunt.auth.user_api"
 EMAIL = "lockme@grunt.example.com"
 
 

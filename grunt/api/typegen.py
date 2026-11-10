@@ -311,7 +311,7 @@ def _candidate_modules(package_dir: Path, package: str) -> list[str]:
     """Modules that define a ``@whitelist`` method or import from one that does.
 
     Only those get imported. The second kind re-exports a method under its own
-    path (``…User.user.approve_user_api`` from ``grunt.auth.user_api``), which
+    path (a method imported into another module of the app), which
     the dispatcher resolves just as well.
     """
     decorated: set[str] = set()

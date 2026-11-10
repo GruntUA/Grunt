@@ -7,8 +7,10 @@ Entries are single addresses or CIDR networks, separated by commas or newlines.
 import ipaddress
 import re
 
-import grunt
+from grunt.db.api import GruntDB
 lazy from grunt.auth.doctypes.User.user import User
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # https://www.cloudflare.com/ips/ - edge ranges that set CF-Connecting-IP.
 CLOUDFLARE_RANGES = frozenset(
@@ -72,7 +74,7 @@ async def role_ip_allowlist(user: User) -> set[str] | None:
     roles = list(getattr(user, "roles", None) or [])
     if not roles:
         return None
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "Role",
         filters={"name__in": roles},
         fields=["allowed_ips"],

@@ -3,7 +3,7 @@ required ``last_name`` instead of failing validation."""
 
 import pytest
 
-_REGISTER = "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api"
+_REGISTER = "/api/v1/method/grunt.auth.user_api.register_full_name_api"
 
 
 @pytest.mark.asyncio
@@ -14,7 +14,7 @@ async def test_register_with_single_word_name(client):
     )
     assert resp.status_code == 200, resp.text
     login = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": "nick@example.com", "password": "Secret-pass-123"},
     )
     assert login.status_code == 200, login.text

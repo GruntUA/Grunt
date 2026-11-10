@@ -115,7 +115,7 @@ async def test_endpoint_injects_request_into_method(client, ctx, monkeypatch):
     """The /method dispatcher supplies `request` so the link uses the caller host."""
     monkeypatch.setattr(settings, "allowed_origins", ["https://portal.example"])
     await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={"email": "ep@example.com", "password": "secret", "full_name": "Ep User"},
     )
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
@@ -125,7 +125,7 @@ async def test_endpoint_injects_request_into_method(client, ctx, monkeypatch):
         await ctx.db._session().commit()
 
     r = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api",
+        "/api/v1/method/grunt.auth.user_api.forgot_password_api",
         json={"email": "ep@example.com"},
         headers={"origin": "https://portal.example"},
     )

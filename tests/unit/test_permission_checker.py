@@ -147,7 +147,8 @@ async def test_list_users_requires_system_manager(ctx):
     """list_users requires the System Manager role (contextual check)."""
 
     import grunt
-    from grunt.auth.doctypes.User.user import User, list_users_detailed_api
+    from grunt.auth.doctypes.User.user import User
+    from grunt.auth.user_api import list_users_detailed_api
 
     # 1. Create a regular user
     reg_user_data = {
@@ -174,7 +175,7 @@ async def test_list_users_requires_system_manager(ctx):
 @pytest.mark.asyncio
 async def test_list_users_as_system_manager(ctx):
     """list_users works for System Manager."""
-    from grunt.auth.doctypes.User.user import list_users_detailed_api, register
+    from grunt.auth.user_api import list_users_detailed_api, register
 
     # Register at least one user to list
     await register(email="admin@example.com", password="pass", first_name="Admin", last_name="User")
@@ -188,7 +189,7 @@ async def test_list_users_as_system_manager(ctx):
 @pytest.mark.asyncio
 async def test_user_roles_child_table(ctx):
     """Roles are managed through the ``User.roles`` child table."""
-    from grunt.auth.doctypes.User.user import list_users_detailed_api
+    from grunt.auth.user_api import list_users_detailed_api
 
     await ctx.new_doc("Role", {"role_name": "Manager"})
     target_data = {

@@ -10,9 +10,9 @@ from grunt.auth.session_cookie import SESSION_COOKIE
 from grunt.config import settings as cfg
 
 _M = "/api/v1/method/grunt.auth.doctypes"
-_LOGIN = f"{_M}.User.user.login_api"
-_REFRESH = f"{_M}.User.user.refresh_api"
-_LOGOUT = f"{_M}.User.user.logout_api"
+_LOGIN = "/api/v1/method/grunt.auth.user_api.login_api"
+_REFRESH = "/api/v1/method/grunt.auth.user_api.refresh_api"
+_LOGOUT = "/api/v1/method/grunt.auth.user_api.logout_api"
 _LIST = f"{_M}.UserSession.user_session.list_my_sessions"
 _OTHERS = f"{_M}.UserSession.user_session.revoke_other_sessions"
 

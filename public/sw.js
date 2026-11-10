@@ -21,6 +21,11 @@ const SHELL_CACHE = 'grunt-shell-v4'
 const STATIC_PREFIXES = ['/assets/', '/fonts/', '/icons/', '/js/']
 const API_CACHE = 'grunt-api-v1'
 const SHELL_KEY = '/__offline_shell__'
+// API paths that moved: offline, a copy cached under the old path still serves
+// the new one (the session profile survives an upgrade made while offline).
+const MOVED_API = {
+  '/api/v1/method/grunt.auth.user_api.whoami': '/api/v1/method/grunt.auth.doctypes.User.user.whoami',
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -94,7 +99,11 @@ async function networkFirst(request, cacheName) {
     if (response.ok) cache.put(request, response.clone())
     return response
   } catch (err) {
-    const cached = await cache.match(request)
+    const url = new URL(request.url)
+    const moved = MOVED_API[url.pathname]
+    const cached =
+      (await cache.match(request)) ??
+      (moved ? await cache.match(new URL(moved + url.search, url.origin).href) : undefined)
     if (!cached) throw err
     // Tell the page this is an offline copy (it then knows the server is unreachable).
     const headers = new Headers(cached.headers)

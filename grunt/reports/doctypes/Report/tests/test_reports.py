@@ -29,13 +29,13 @@ async def _register_regular_user(client: AsyncClient, email: str) -> dict[str, s
     any subsequent registration is a plain user (see grunt/auth/doctypes/User/user.py).
     """
     r_reg = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api",
+        "/api/v1/method/grunt.auth.user_api.register_full_name_api",
         json={"email": email, "password": "secret", "full_name": "Regular User"},
     )
     assert r_reg.status_code in (200, 201, 409)
 
     resp = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": email, "password": "secret"},
     )
     assert resp.status_code == 200, f"Auth failed: {resp.text}"

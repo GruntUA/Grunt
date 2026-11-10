@@ -3,7 +3,7 @@
 ``QueryCache`` caches *lists*, keyed by a whole query signature. This caches a
 single document's data, keyed by ``(doctype, name)`` - the shape needed by a
 hot "load this one document on every request" path. The first consumer is
-``grunt.auth.doctypes.User.user.get_auth_context_user`` (the profile+roles
+``grunt.auth.users.get_auth_context_user`` (the profile+roles
 lookup ``current_user``/``optional_user`` run on nearly every request), but
 nothing here is auth-specific: any doctype with a similar hot get-by-id path
 can use it the same way.

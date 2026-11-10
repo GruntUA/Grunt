@@ -41,7 +41,7 @@ def test_verify_mfa_token_invalid():
 @pytest.mark.asyncio
 async def test_check_mfa_code_pyotp_available(mock_user):
     # This confirms pyotp is installed and 501 is not raised
-    with patch("grunt.app.grunt.db.get_all", new_callable=AsyncMock) as mock_get:
+    with patch("grunt.auth.mfa._db.get_all", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = [{"mfa_secret": "JBSWY3DPEHPK3PXP"}]  # Example secret
 
         # We don't need to verify the code logic itself here (handled by pyotp)

@@ -21,14 +21,8 @@ grunt.auth.doctypes.Role.role
 grunt.auth.doctypes.User.user
 grunt.auth.doctypes.UserRole.user_role
 grunt.auth.doctypes.UserSession.user_session
-grunt.auth.impersonation
 grunt.auth.ip_policy
-grunt.auth.login
-grunt.auth.mfa
-grunt.auth.password_policy
 grunt.auth.service
-grunt.auth.session_cookie
-grunt.auth.user_api
 grunt.auth.users
 grunt.backups
 grunt.document.api

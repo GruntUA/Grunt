@@ -4,7 +4,8 @@ import click
 
 from grunt.cli.utils import _site_session
 lazy import grunt
-lazy from grunt.auth.users import create_user, get_user_by_email, hash_password, list_users
+lazy from grunt.auth.passwords import hash_password
+lazy from grunt.auth.users import create_user, get_user_by_email, list_users
 
 
 @click.group("users")

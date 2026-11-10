@@ -1,11 +1,13 @@
 """Auth tasks - run by the task worker."""
 
 import grunt
-from grunt import log
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
-lazy from grunt.auth.doctypes.UserSession.user_session import deactivate_expired
-lazy from grunt.auth.service import session_ttl_minutes
+lazy from grunt.auth.doctypes.UserSession.user_session import (
+    deactivate_expired,
+    session_ttl_minutes,
+)
 
 
 @retryable_task()
