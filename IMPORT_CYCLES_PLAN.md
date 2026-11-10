@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — кроки 0–2 злито (#120–#122); крок 3 (контекстний шар) — у PR.
+Оновлено: 2026-11-10 — кроки 0–3 злито (#120–#123); крок 4 (метадані) — у PR.
 
 ---
 
@@ -86,8 +86,8 @@
 | 0 | Тест-храповик, граф, локальний CodeQL, цей план | злито (#120) |
 | 1 | Малі цикли: auth.providers ↔ registry, dialects.fulltext ↔ search.terms, standard_records ↔ startup.fixtures, tasks.auto_repeat ↔ AutoRepeat | злито (#120) |
 | 2 | Користувач за моделлю Frappe: нижче auth — email і ролі (`get_roles`), `Document.user` — email сесії, API прав `check(doctype, action, doc, *, user=None)`; документ `User` — лише `grunt.get_user()` | злито (#121, #122) |
-| 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | у PR |
-| 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | |
+| 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | злито (#123) |
+| 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | у PR |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | |
 | 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | |
@@ -198,3 +198,14 @@
   сесія) — налаштування нижче запитів і прав, які їх читають. Переїхав у шар даних; у циклі
   через `metadata.registry → grunt` (кроки 4, 9).
 - Результат: 2250 passed, pyright 0; CodeQL локально 325 → 311, нових 0.
+
+### 2026-11-10 — крок 4: метадані
+
+- `metadata.compiler / registry / store`, `document.meta`, `search.service`, `db.schema.apply`,
+  `site.settings` — поза циклами (разом 11 модулів). Базовий список 156 → 145.
+- **compiler → registry:** ключ сайту для кешів (`_resolve_site_key`) — `site_cache_key()` у
+  `site.manager`; `compiler` більше не імпортує реєстр.
+- **registry → search.service:** реєстр кличе обробники `on_doctype_updated(session, doctype,
+  previous)`; пошуковий індекс підписується сам (`search.service._follow_doctype_update`).
+- **registry, db.schema.apply, compiler → фасад:** `_` / `log` — з `grunt.i18n` / `grunt.log`.
+- Результат: 2253 passed, pyright 0; CodeQL локально 311 → 295, нових 0.

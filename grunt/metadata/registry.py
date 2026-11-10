@@ -14,24 +14,25 @@ This keeps startup fast regardless of how many DocTypes an application has.
 
 import asyncio
 import re
+from collections.abc import Awaitable, Callable
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import _, log
 from grunt.cache import bus
 from grunt.db.dialects import dialect_for
+from grunt.i18n import _
 from grunt.local import _session_ctx
+from grunt.log import log
 from grunt.metadata import store
 from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
 from grunt.metadata.permission import DocPermission
-from grunt.site.manager import current_site, site_manager
+from grunt.site.manager import site_cache_key, site_manager
 lazy from grunt.document.meta import Meta
-lazy from grunt.search.service import is_indexable, search_index_service
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
@@ -115,6 +116,19 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "no_history",
     }
 )
+
+
+#: ``(session, doctype, previous)`` after a DocType update is stored and its table
+#: synced; *previous* - the definition before (``None`` if it wasn't loaded).
+DocTypeUpdated = Callable[[AsyncSession, DocType, DocType | None], Awaitable[None]]
+_on_updated: list[DocTypeUpdated] = []
+
+
+def on_doctype_updated(handler: DocTypeUpdated) -> DocTypeUpdated:
+    """Run *handler* after every DocType update (decorator) - how the layers
+    above react (the search index) without the registry knowing them."""
+    _on_updated.append(handler)
+    return handler
 
 
 class DocTypeRegistry:
@@ -715,13 +729,8 @@ class DocTypeRegistry:
         # the Table with the new column list when sync_table calls it internally.
         invalidate_table_cache(doctype.name)
         await sync_table(doctype, async_engine, session=session)
-        if not is_indexable(doctype) and (previous is None or is_indexable(previous)):
-            # Switched out of the global search (in_global_search off, is_log on...).
-            await search_index_service.remove_doctype(session, doctype.name)
-        elif is_indexable(doctype):
-            # A field hidden since, a search field changed: entries are rebuilt
-            # so none keeps what the DocType no longer allows.
-            await search_index_service.refresh_stale(session, [doctype])
+        for handler in _on_updated:
+            await handler(session, doctype, previous)
         self._doctypes[doctype.name] = doctype
         self._index_add(doctype.name)
         bus.publish(_CHANGED, name=doctype.name)
@@ -800,17 +809,6 @@ class DocTypeRegistry:
 # engines/session makers).
 
 _registries: dict[str, DocTypeRegistry] = {}
-_DEFAULT_KEY = "__no_site__"  # process has no ambient site concept at all
-
-
-def _resolve_site_key() -> str:
-    site = current_site.get()
-    if site:
-        return site
-    try:
-        return site_manager.get_active_site()
-    except Exception:
-        return _DEFAULT_KEY
 
 
 def _forget_changed(name: str, deleted: bool = False) -> None:
@@ -827,7 +825,7 @@ def get_registry(site: str | None = None) -> DocTypeRegistry:
 
     Created lazily and cached, mirroring ``SiteManager.get_engine()``.
     """
-    key = site or _resolve_site_key()
+    key = site or site_cache_key()
     reg = _registries.get(key)
     if reg is None:
         reg = DocTypeRegistry()

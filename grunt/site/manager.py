@@ -256,3 +256,19 @@ class SiteManager:
 
 
 site_manager = SiteManager()
+
+
+#: Key of a process with no ambient site at all (see :func:`site_cache_key`).
+NO_SITE_KEY = "__no_site__"
+
+
+def site_cache_key() -> str:
+    """The site per-site caches (DocType registry, compiled tables) are keyed by:
+    the context's site, else the active one, else :data:`NO_SITE_KEY`."""
+    site = current_site.get()
+    if site:
+        return site
+    try:
+        return site_manager.get_active_site()
+    except Exception:
+        return NO_SITE_KEY

@@ -44,7 +44,7 @@ from grunt.db.dialects import Dialect, dialect_for
 from grunt.db.dialects.fulltext import FullText, FullTextSpec
 from grunt.document.meta import Meta
 from grunt.metadata.compiler import compile_doctype_to_table
-from grunt.metadata.registry import doctype_registry
+from grunt.metadata.registry import doctype_registry, on_doctype_updated
 from grunt.search.terms import match_columns
 lazy from grunt.metadata.doctype import DocType
 
@@ -395,3 +395,17 @@ class SearchIndexService:
 
 
 search_index_service = SearchIndexService()
+
+
+@on_doctype_updated
+async def _follow_doctype_update(
+    session: AsyncSession, doctype: DocType, previous: DocType | None
+) -> None:
+    """Keep the global search index in step with an edited DocType."""
+    if not is_indexable(doctype) and (previous is None or is_indexable(previous)):
+        # Switched out of the global search (in_global_search off, is_log on...).
+        await search_index_service.remove_doctype(session, doctype.name)
+    elif is_indexable(doctype):
+        # A field hidden since, a search field changed: entries are rebuilt
+        # so none keeps what the DocType no longer allows.
+        await search_index_service.refresh_stale(session, [doctype])

@@ -12,7 +12,6 @@ from typing import Any
 
 from sqlalchemy import text, update
 
-from grunt import _, log
 from grunt.db.dialects import Dialect
 from grunt.db.schema.changes import (
     AddColumn,
@@ -26,6 +25,8 @@ from grunt.db.schema.changes import (
     DropUnique,
 )
 from grunt.db.schema.diff import is_varchar_reduction
+from grunt.i18n import _
+from grunt.log import log
 
 
 class DuplicateDataError(Exception):

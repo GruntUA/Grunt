@@ -45,7 +45,6 @@ grunt.db
 grunt.db.api
 grunt.db.errors
 grunt.db.profiler
-grunt.db.schema.apply
 grunt.db.session
 grunt.document.aggregate
 grunt.document.base
@@ -54,7 +53,6 @@ grunt.document.doctypes.Comment.comment
 grunt.document.fetch
 grunt.document.formula
 grunt.document.links
-grunt.document.meta
 grunt.document.mixins.collaboration_rpc
 grunt.document.mixins.export_rpc
 grunt.document.mixins.history_rpc
@@ -63,11 +61,9 @@ grunt.document.mixins.link_rpc
 grunt.document.mixins.meta_rpc
 grunt.document.mixins.tree_rpc
 grunt.document.mixins.workflow_rpc
-grunt.document.multi_link
 grunt.document.query
 grunt.document.queryset
 grunt.document.registry
-grunt.document.relations
 grunt.document.schema
 grunt.document.sidebar
 grunt.document.titles
@@ -82,10 +78,7 @@ grunt.email.tasks
 grunt.events
 grunt.i18n.meta
 grunt.io.exporters.html
-grunt.metadata.compiler
-grunt.metadata.registry
 grunt.metadata.scaffold
-grunt.metadata.store
 grunt.middleware.rate_limit
 grunt.monitoring.error_log
 grunt.monitoring.health
@@ -109,7 +102,6 @@ grunt.permissions.user_permissions
 grunt.print.renderer
 grunt.progress
 grunt.publish
-grunt.query.compile_sql
 grunt.query.run
 grunt.query.sql
 grunt.reports.delivery
@@ -117,9 +109,6 @@ grunt.reports.engine
 grunt.reports.joins
 grunt.scripting
 grunt.scripting.server_script
-grunt.search.service
-grunt.site.settings
-grunt.startup.doctypes
 grunt.storage
 grunt.storage.cloud
 grunt.storage.cloud.files
