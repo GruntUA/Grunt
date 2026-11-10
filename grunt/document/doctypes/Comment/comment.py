@@ -5,7 +5,6 @@ from typing import Any
 import grunt
 from grunt import _
 from grunt.document.base import Document
-from grunt.permissions.roles import user_has_roles
 
 
 class Comment(Document):
@@ -43,7 +42,7 @@ class Comment(Document):
             self.parent_comment = parent.parent_comment
 
     async def before_delete(self) -> None:
-        is_admin = bool(self.user) and user_has_roles(self.user, ["System Manager"])
+        is_admin = bool(self.user) and self.user.has_role("System Manager")
         if self.user and not is_admin and self.owner != self.user.email:
             self.grunt.throw(_("Only the author or an administrator can delete a comment"))
 

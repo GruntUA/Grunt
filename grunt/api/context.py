@@ -3,8 +3,9 @@
 Uses contextvars (defined in grunt.core.context) to store the current session,
 user, engine, and site for the duration of each request or task.
 
-So app code reads ``grunt.get_user()`` / ``grunt.get_session()`` without
-passing session/user/engine through every call.
+So app code reads ``grunt.get_session()`` without passing session/engine
+through every call. The user is read as a ``User`` document from
+``grunt.get_user()`` (``grunt.app.context_api``) - this module sits below it.
 """
 
 import functools
@@ -12,11 +13,9 @@ import inspect as _inspect
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.errors import ApplicationError, forbidden
-from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx, require_user
-from grunt.permissions.roles import user_has_roles
-lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.i18n import _
+from grunt.errors import forbidden
+from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx
+from grunt.permissions.roles import has_roles
 lazy from grunt.site.manager import site_manager
 
 
@@ -34,24 +33,6 @@ def get_session() -> AsyncSession:
             "Grunt API must be called from within a request or task with active session."
         )
     return session
-
-
-def set_user(user: User) -> None:
-    """Set the current user."""
-    _user_ctx.set(user)
-
-
-def get_user() -> User:
-    """The user the current request or task runs as.
-
-    Never invents one: without a user in context (a guest request, or a task
-    that didn't enter ``grunt.context`` / ``grunt.system_context``) it raises
-    a 401 instead of letting a permission check pass on a stand-in.
-    """
-    user = _user_ctx.get()
-    if user is None:
-        raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
-    return user
 
 
 def set_engine(engine: AsyncEngine) -> None:
@@ -133,11 +114,10 @@ def whitelist(
 
             @functools.wraps(fn)
             async def wrapper(*args, **kwargs):
-                try:
-                    user = require_user()
-                except RuntimeError:
-                    raise forbidden() from None
-                if roles and not user_has_roles(user, roles):
+                user = _user_ctx.get()  # the User document - ``require`` gets it
+                if user is None:
+                    raise forbidden()
+                if roles and not await has_roles(roles):
                     raise forbidden()
                 if require is not None:
                     ok = require(user)

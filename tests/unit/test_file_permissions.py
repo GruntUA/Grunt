@@ -21,8 +21,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _FILE_JSON = Path(__file__).resolve().parents[2] / "grunt/storage/doctypes/File/File.json"
@@ -50,8 +49,8 @@ async def test_any_authenticated_user_can_read_and_create():
     """
     dt = _load_file_doctype()
     user = _user("someone-else@example.com")
-    assert await permission_checker.check(user, dt, "read") is True
-    assert await permission_checker.check(user, dt, "create") is True
+    assert await check_as(user, dt, "read") is True
+    assert await check_as(user, dt, "create") is True
 
 
 @pytest.mark.asyncio
@@ -59,8 +58,8 @@ async def test_owner_can_write_and_delete_own_file():
     dt = _load_file_doctype()
     owner = _user("owner@example.com")
     own_file = {"owner": "owner@example.com", "file_name": "mine.pdf"}
-    assert await permission_checker.check(owner, dt, "write", own_file) is True
-    assert await permission_checker.check(owner, dt, "delete", own_file) is True
+    assert await check_as(owner, dt, "write", own_file) is True
+    assert await check_as(owner, dt, "delete", own_file) is True
 
 
 @pytest.mark.asyncio
@@ -68,5 +67,5 @@ async def test_non_owner_cannot_write_or_delete_others_file():
     dt = _load_file_doctype()
     attacker = _user("attacker@example.com")
     someone_elses_file = {"owner": "owner@example.com", "file_name": "secret.pdf"}
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_file) is False
-    assert await permission_checker.check(attacker, dt, "delete", someone_elses_file) is False
+    assert await check_as(attacker, dt, "write", someone_elses_file) is False
+    assert await check_as(attacker, dt, "delete", someone_elses_file) is False

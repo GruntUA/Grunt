@@ -56,3 +56,18 @@ def require_user() -> User:
     if u is None:
         raise RuntimeError("grunt: no active user.")
     return u
+
+
+def session_user() -> str | None:
+    """Email of the user the context runs as; ``None`` without one."""
+    user = _user_ctx.get()
+    return None if user is None else user.email
+
+
+def session_roles() -> list[str]:
+    """Role names of the user the context runs as (``[]`` without one)."""
+    user = _user_ctx.get()
+    if user is None:
+        return []
+    rows = getattr(user, "roles", None) or []
+    return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]

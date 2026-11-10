@@ -41,7 +41,6 @@ from typing import Any, Literal
 
 import grunt
 from grunt import _, log
-from grunt.permissions.roles import user_has_roles
 lazy from grunt.i18n.service import translation_service
 lazy from grunt.website.generator import WEB_URL_KEY, with_web_url
 lazy from grunt.website.preview import PREVIEW_URL_KEY
@@ -90,8 +89,7 @@ def sections_for(doctype: str) -> list[SidebarSection]:
     applicable = [
         s
         for s in _SECTIONS.values()
-        if (not s.doctypes or doctype in s.doctypes)
-        and (not s.roles or user_has_roles(user, list(s.roles)))
+        if (not s.doctypes or doctype in s.doctypes) and (not s.roles or user.has_role(*s.roles))
     ]
     # Stable: equal orders keep registration order (core first, then apps).
     return sorted(applicable, key=lambda s: s.order)

@@ -13,7 +13,6 @@ import grunt
 from grunt import _, log
 from grunt.document.base import Document
 from grunt.metadata.registry import doctype_registry
-from grunt.permissions.roles import user_has_roles
 
 # Ключі знімка, які не можна передавати в insert відновлюваного документа:
 # per-user "seen" стан і аудит-поля (ядро проставляє власні).
@@ -33,7 +32,7 @@ class DeletedDocument(Document):
 
 
 def _require_system_manager() -> None:
-    if not user_has_roles(grunt.get_user(), ["System Manager"]):
+    if not grunt.get_user().has_role("System Manager"):
         grunt.throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
 
 

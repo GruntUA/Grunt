@@ -21,8 +21,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _ACTIVITY_LOG_JSON = (
@@ -50,7 +49,7 @@ def test_activity_log_has_permissions_defined():
 @pytest.mark.asyncio
 async def test_any_authenticated_user_can_read():
     dt = _load()
-    assert await permission_checker.check(_plain_user(), dt, "read") is True
+    assert await check_as(_plain_user(), dt, "read") is True
 
 
 @pytest.mark.asyncio
@@ -62,19 +61,19 @@ async def test_plain_user_cannot_create_write_or_delete():
     """
     dt = _load()
     user = _plain_user()
-    assert await permission_checker.check(user, dt, "create") is False
-    assert await permission_checker.check(user, dt, "write") is False
-    assert await permission_checker.check(user, dt, "delete") is False
+    assert await check_as(user, dt, "create") is False
+    assert await check_as(user, dt, "write") is False
+    assert await check_as(user, dt, "delete") is False
 
 
 @pytest.mark.asyncio
 async def test_system_manager_has_full_access():
     dt = _load()
     admin = _system_manager()
-    assert await permission_checker.check(admin, dt, "read") is True
-    assert await permission_checker.check(admin, dt, "create") is True
-    assert await permission_checker.check(admin, dt, "write") is True
-    assert await permission_checker.check(admin, dt, "delete") is True
+    assert await check_as(admin, dt, "read") is True
+    assert await check_as(admin, dt, "create") is True
+    assert await check_as(admin, dt, "write") is True
+    assert await check_as(admin, dt, "delete") is True
 
 
 @pytest.mark.asyncio

@@ -15,14 +15,13 @@ from grunt.api.context import (
     clear_context,
     get_engine,
     get_session,
-    get_user,
     set_engine,
     set_session,
-    set_user,
 )
 from grunt.api.messages import msgprint, throw
 from grunt.app import GruntDB
 from grunt.errors import ApplicationError
+from grunt.local import _user_ctx
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 from grunt.query.nodes import Cmp
@@ -112,7 +111,7 @@ def mock_engine():
 def setup_context(mock_session, mock_user, mock_engine):
     """Setup context with session, user, engine."""
     set_session(mock_session)
-    set_user(mock_user)
+    _user_ctx.set(mock_user)
     set_engine(mock_engine)
     yield
     clear_context()
@@ -133,8 +132,8 @@ class TestContext:
 
     def test_set_and_get_user(self, mock_user):
         """Test setting and getting user."""
-        set_user(mock_user)
-        assert get_user() == mock_user
+        _user_ctx.set(mock_user)
+        assert grunt.get_user() == mock_user
 
     def test_set_and_get_engine(self, mock_engine):
         """Test setting and getting engine."""
@@ -142,20 +141,20 @@ class TestContext:
         assert get_engine() == mock_engine
 
     def test_get_user_without_context_raises(self):
-        """Without a user in context get_user() refuses instead of inventing one."""
+        """Without a user in context grunt.get_user() refuses instead of inventing one."""
         clear_context()
         with pytest.raises(ApplicationError) as exc_info:
-            get_user()
+            grunt.get_user()
         assert exc_info.value.code == "UNAUTHORIZED"
 
     def test_clear_context(self, mock_session, mock_user):
         """Clearing the context drops the user too."""
         set_session(mock_session)
-        set_user(mock_user)
+        _user_ctx.set(mock_user)
         clear_context()
 
         with pytest.raises(ApplicationError):
-            get_user()
+            grunt.get_user()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -453,7 +452,7 @@ class TestPermissions:
         test_sensitive_doctype_permissions.py)."""
         from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-        set_user(SYSTEM_USER)
+        _user_ctx.set(SYSTEM_USER)
         dt = _dt("Invoice")
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is True
@@ -463,22 +462,22 @@ class TestPermissions:
     @pytest.mark.asyncio
     async def test_regular_user_no_permission_rows_denied(self, setup_context, mock_user):
         """A DocType with no permission rows at all is closed to non-admins."""
-        set_user(mock_user)
+        _user_ctx.set(mock_user)
         dt = _dt("Invoice", [])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
             assert await grunt.has_permission("Invoice", "delete") is False
 
     def test_get_user(self, setup_context, mock_user):
-        """get_user() returns the user from context."""
-        set_user(mock_user)
-        assert get_user() == mock_user
+        """grunt.get_user() returns the user from context."""
+        _user_ctx.set(mock_user)
+        assert grunt.get_user() == mock_user
 
     @pytest.mark.asyncio
     async def test_permission_row_wrong_role_denied(self, setup_context):
         """A permission row exists, but not for the user's role."""
         user = Mock(email="guest@example.com", roles=["Guest"])
-        set_user(user)
+        _user_ctx.set(user)
         dt = _dt("Invoice", [DocPermission(role="Admin", read=True)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
@@ -487,7 +486,7 @@ class TestPermissions:
     async def test_permission_row_matches_role_but_action_false_denied(self, setup_context):
         """A permission row matches the role, but doesn't grant this action."""
         user = Mock(email="guest@example.com", roles=["Guest"])
-        set_user(user)
+        _user_ctx.set(user)
         dt = _dt("Invoice", [DocPermission(role="Guest", read=False)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
@@ -495,7 +494,7 @@ class TestPermissions:
     @pytest.mark.asyncio
     async def test_permission_row_matches_role_and_action_allowed(self, setup_context):
         user = Mock(email="user@example.com", roles=["User"])
-        set_user(user)
+        _user_ctx.set(user)
         dt = _dt("Invoice", [DocPermission(role="User", write=True)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "write") is True
@@ -504,7 +503,7 @@ class TestPermissions:
     async def test_user_with_no_roles_denied(self, setup_context):
         """A user with no roles doesn't match any role-scoped permission row."""
         user = Mock(email="nouser@example.com", roles=[])
-        set_user(user)
+        _user_ctx.set(user)
         dt = _dt("Invoice", [DocPermission(role="User", read=True)])
         with _registry_returning(dt):
             assert await grunt.has_permission("Invoice", "read") is False
@@ -529,10 +528,10 @@ class TestPermissions:
             # succeeds, so this needs mocking too, not just get_value().
             patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]),
         ):
-            set_user(owner)
+            _user_ctx.set(owner)
             assert await grunt.has_permission("Contract", "read", "CONTRACT-1") is True
 
-            set_user(attacker)
+            _user_ctx.set(attacker)
             assert await grunt.has_permission("Contract", "read", "CONTRACT-1") is False
 
 
@@ -565,7 +564,7 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_permission_check_before_operation(self, setup_context, mock_user):
         """Test permission gate before an operation."""
-        set_user(mock_user)
+        _user_ctx.set(mock_user)
 
         # User with matching write permission row → allowed
         dt = _dt("Invoice", [DocPermission(role="User", write=True)])
