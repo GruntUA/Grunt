@@ -12,9 +12,7 @@ def test_core_extensions_load_on_first_use():
 
 
 def test_without_the_workflow_guard_a_write_is_refused(monkeypatch):
-    monkeypatch.setattr(pipeline, "_core_loaded", True)
-    monkeypatch.setattr(
-        pipeline, "_extensions", [e for e in pipeline.extensions() if e.name != "workflow"]
-    )
+    without_workflow = [e for e in pipeline.extensions() if e.name != "workflow"]
+    monkeypatch.setattr(pipeline, "_extensions", without_workflow)
     with pytest.raises(RuntimeError, match="workflow"):
         pipeline.extensions()
