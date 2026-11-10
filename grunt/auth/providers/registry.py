@@ -19,25 +19,34 @@ from grunt.auth.providers.declarations import take
 lazy from grunt.auth.providers.base import AuthProvider
 
 _PROVIDERS: dict[str, AuthProvider] = {}
+# Names whose provider came from :func:`register` - a declaration never replaces them.
+_REGISTERED: set[str] = set()
 
 
 def register(provider: AuthProvider) -> None:
     """Add (or replace) a provider instance. Idempotent per ``provider.name``."""
     _PROVIDERS[provider.name] = provider
+    _REGISTERED.add(provider.name)
     log.debug("auth.provider.registered", provider=provider.name)
 
 
 def _load_declared() -> None:
-    """Import declared providers. A later declaration of a name wins over an earlier one."""
-    loaded: dict[str, AuthProvider] = {}
-    # Taken before importing: a provider that fails to import is not retried every call.
+    """Import declared providers. A later declaration of a name wins over an earlier one.
+
+    Each path is imported on its own: a broken one is logged and skipped, the
+    rest still load. Taken before importing, so a failure is not retried on
+    every call.
+    """
     for path in take():
-        module_path, attr = path.rsplit(".", 1)
-        provider = getattr(importlib.import_module(module_path), attr)()
-        loaded[provider.name] = provider
-    for name, provider in loaded.items():
-        if name not in _PROVIDERS:
-            register(provider)
+        try:
+            module_path, attr = path.rsplit(".", 1)
+            provider = getattr(importlib.import_module(module_path), attr)()
+        except Exception:
+            log.exception("auth.provider.load_failed", path=path)
+            continue
+        if provider.name not in _REGISTERED:
+            _PROVIDERS[provider.name] = provider
+            log.debug("auth.provider.declared", provider=provider.name, path=path)
 
 
 def get(name: str) -> AuthProvider:
@@ -50,6 +59,7 @@ def get(name: str) -> AuthProvider:
 
 
 def all_providers() -> list[AuthProvider]:
+    """Every provider - registered or declared - configured or not."""
     _load_declared()
     return list(_PROVIDERS.values())
 

@@ -36,6 +36,7 @@ def fake_app(monkeypatch):
     mod.Passkey = _provider("webauthn", "App passkey")
     monkeypatch.setitem(sys.modules, "fake_auth_app", mod)
     monkeypatch.setattr(registry, "_PROVIDERS", {})
+    monkeypatch.setattr(registry, "_REGISTERED", set())
     monkeypatch.setattr(declarations, "_DECLARED", [])
     return mod
 
@@ -72,3 +73,20 @@ def test_a_registered_instance_wins_over_a_declaration(fake_app):
     registry.register(mine)
 
     assert registry.get("telegram") is mine
+
+
+def test_a_declaration_in_a_later_batch_replaces_an_earlier_one(fake_app):
+    """An app's startup handler may read the registry before the next app's hooks load."""
+    declarations.declare("grunt.auth.providers.webauthn.WebAuthnProvider")
+    assert registry.get("webauthn").label != "App passkey"
+
+    declarations.declare("fake_auth_app.Passkey")
+    assert registry.get("webauthn").label == "App passkey"
+
+
+def test_a_broken_declaration_does_not_drop_the_rest(fake_app):
+    declarations.declare("fake_auth_app.Missing")
+    declarations.declare("no_such_module.Provider")
+    declarations.declare("fake_auth_app.Telegram")
+
+    assert [p.name for p in registry.all_providers()] == ["telegram"]
