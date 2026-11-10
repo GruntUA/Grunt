@@ -28,7 +28,7 @@ from uuid import uuid4
 
 from grunt.db.commit import drain as drain_commits
 from grunt.db.commit import on_commit
-from grunt.local import _engine_ctx, _session_ctx
+from grunt.local import bound_session
 from grunt.log import log
 lazy from grunt.config import settings
 lazy from grunt.site.manager import current_site, site_manager
@@ -151,12 +151,8 @@ async def _await_in_site(site: str, awaitable: Any) -> None:
         await awaitable
         return
     async with site_manager.get_session_maker(site)() as session:
-        tokens = (_session_ctx.set(session), _engine_ctx.set(site_manager.get_engine(site)))
-        try:
+        with bound_session(session, site_manager.get_engine(site)):
             await awaitable
-        finally:
-            _session_ctx.reset(tokens[0])
-            _engine_ctx.reset(tokens[1])
 
 
 async def _listen() -> None:

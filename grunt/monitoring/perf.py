@@ -30,9 +30,10 @@ from typing import Any
 from sqlalchemy import bindparam, event, select
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-import grunt
-from grunt import log
 from grunt.db.write_intent import set_write_intent
+from grunt.local import bound_session, require_session
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
 lazy from grunt.site.settings import get_setting
 
@@ -263,11 +264,11 @@ def _merge(existing: dict[str, Any] | None, key: Key, stat: Stat) -> dict[str, A
 async def persist(stats: dict[Key, Stat]) -> int:
     """Merge *stats* into ``PerfStat`` on the current session; returns rows
     written. The caller commits."""
-    dt = await grunt.get_meta("PerfStat")
+    dt = await doctype_registry.get_meta("PerfStat")
     if dt is None:  # not migrated yet
         return 0
     table = dt.table
-    session = grunt.get_session()
+    session = require_session()
     names = {row_name(key): key for key in stats}
     cols = [table.c.name, *(table.c[f] for f in _MERGED_FIELDS)]
     existing: dict[str, dict[str, Any]] = {}
@@ -309,10 +310,11 @@ async def _write_site(site: str, stats: dict[Key, Stat]) -> None:
         maker = site_manager.get_session_maker(site)
         engine = site_manager.get_engine(site)
         set_write_intent(True)
-        async with maker() as session, grunt.system_context(session, engine):
-            if await get_setting("perf_monitoring_enabled", True):
-                await persist(stats)
-                await session.commit()
+        async with maker() as session:
+            with bound_session(session, engine):
+                if await get_setting("perf_monitoring_enabled", True):
+                    await persist(stats)
+                    await session.commit()
     finally:
         current_site.reset(token)
 

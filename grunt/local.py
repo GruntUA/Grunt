@@ -4,6 +4,8 @@ Both ``grunt.api.context`` and ``grunt.app`` import these objects so that
 setting session / engine / user in one place is immediately visible everywhere.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any
 
@@ -75,3 +77,24 @@ def session_roles() -> list[str]:
         return []
     rows = getattr(user, "roles", None) or []
     return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]
+
+
+def clear_context() -> None:
+    """Clear all context variables (on request end)."""
+    _session_ctx.set(None)
+    _user_ctx.set(None)
+    _engine_ctx.set(None)
+    _site_ctx.set(None)
+    _messages_ctx.set(None)
+
+
+@contextmanager
+def bound_session(session: AsyncSession, engine: AsyncEngine) -> Iterator[None]:
+    """Bind *session* / *engine* for the block - no user: for framework work that
+    reads and writes tables on no one's behalf (metrics, cache invalidation)."""
+    tokens = (_session_ctx.set(session), _engine_ctx.set(engine))
+    try:
+        yield
+    finally:
+        _session_ctx.reset(tokens[0])
+        _engine_ctx.reset(tokens[1])

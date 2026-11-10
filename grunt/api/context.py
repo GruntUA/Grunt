@@ -150,12 +150,3 @@ def get_messages() -> list[dict]:
 def clear_messages() -> None:
     """Clear the message queue."""
     _messages_ctx.set(None)
-
-
-def clear_context() -> None:
-    """Clear all context variables (on request end)."""
-    _session_ctx.set(None)
-    _user_ctx.set(None)
-    _engine_ctx.set(None)
-    _site_ctx.set(None)
-    _messages_ctx.set(None)

@@ -8,7 +8,6 @@ grunt.activity.doctypes.DeletedDocument.deleted_document
 grunt.activity.follow
 grunt.activity.milestones
 grunt.activity.reactions
-grunt.api.context
 grunt.api.messages
 grunt.api.v1.docs.utils
 grunt.api.v1.meta
@@ -31,7 +30,6 @@ grunt.auth.doctypes.UserRole.user_role
 grunt.auth.doctypes.UserSession.user_session
 grunt.auth.impersonation
 grunt.auth.ip_policy
-grunt.auth.language
 grunt.auth.login
 grunt.auth.mfa
 grunt.auth.password_policy
@@ -41,12 +39,6 @@ grunt.auth.user_api
 grunt.auth.users
 grunt.backups
 grunt.cache.query_cache
-grunt.db
-grunt.db.api
-grunt.db.errors
-grunt.db.profiler
-grunt.db.session
-grunt.document.aggregate
 grunt.document.base
 grunt.document.collection
 grunt.document.doctypes.Comment.comment
@@ -82,7 +74,6 @@ grunt.metadata.scaffold
 grunt.middleware.rate_limit
 grunt.monitoring.error_log
 grunt.monitoring.health
-grunt.monitoring.perf
 grunt.monitoring.updates
 grunt.naming
 grunt.naming.service
@@ -90,17 +81,9 @@ grunt.notification.rule_index
 grunt.notification.service
 grunt.notification.tasks
 grunt.outbox
-grunt.permissions.guards
-grunt.permissions.query
-grunt.permissions.rbac
-grunt.permissions.reads
-grunt.permissions.roles
-grunt.permissions.shares
-grunt.permissions.user_permissions
 grunt.print.renderer
 grunt.progress
 grunt.publish
-grunt.query.run
 grunt.reports.delivery
 grunt.reports.engine
 grunt.reports.joins
@@ -117,9 +100,6 @@ grunt.storage.images
 grunt.storage.references
 grunt.storage.signing
 grunt.storage.tasks
-grunt.store
-grunt.store.sql
-grunt.store.virtual
 grunt.tasks.broker
 grunt.tasks.doc_method
 grunt.tasks.doctypes.ToDo.to_do

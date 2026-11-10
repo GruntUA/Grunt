@@ -12,10 +12,10 @@ import grunt
 from grunt import _, log
 from grunt.api.v1.ws import manager
 from grunt.db.session import async_session_factory
-from grunt.document.update_side_effects import delete_child_rows
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.permissions.roles import has_roles
 from grunt.search.service import _search_index_table
+from grunt.store.sql import delete_child_rows
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]
 

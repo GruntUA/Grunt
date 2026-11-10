@@ -15,13 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 import grunt
 from grunt import _, log
-from grunt.document.meta import Meta
 from grunt.document.registry import document_registry
 from grunt.document.serde import audit_fields
 from grunt.document.versioning import _SKIP_FIELDS, version_service
 from grunt.errors import ApplicationError
-from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
+from grunt.store.sql import delete_child_rows
 from grunt.webhook.service import webhook_service
 lazy from grunt.document.base import new_document
 
@@ -186,30 +185,6 @@ async def run_bulk_after_delete_hooks(
     )
 
 
-async def delete_child_rows(session: AsyncSession, dt: Any, parent_ids: list[str]) -> None:
-    """Delete the child table rows of the *parent_ids* documents of *dt*.
-
-    A child DocType may serve several parents, so rows are matched by parent
-    DocType as well. A DocType that no longer exists must not block the delete.
-    """
-    for field in Meta(dt).get_child_table_fields():
-        try:
-            child_table = Meta(await doctype_registry.get(field.options)).table
-        except Exception as e:  # noqa: BLE001
-            log.warning(
-                "child_table.delete_skipped", doctype=dt.name, field=field.fieldname, error=str(e)
-            )
-            continue
-        it = iter(parent_ids)
-        while chunk := list(islice(it, _IN_CHUNK)):
-            await session.execute(
-                child_table.delete().where(
-                    child_table.c.parent_name.in_(chunk),
-                    child_table.c.parent_doctype == dt.name,
-                )
-            )
-
-
 async def run_bulk_delete_writes(
     *,
     session: AsyncSession,
@@ -254,22 +229,6 @@ async def bulk_delete_one_by_one(
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
     return deleted, errors
-
-
-async def delete_row_and_links(
-    *,
-    session: AsyncSession,
-    ml: Any,
-    dt: Any,
-    table: Any,
-    doctype_name: str,
-    real_id: str,
-) -> None:
-    """Delete main row, child rows and MultiLink relations, then flush pending writes."""
-    await session.execute(table.delete().where(table.c.name == real_id))
-    await delete_child_rows(session, dt, [real_id])
-    await ml.delete_all_for_doc(doctype_name, real_id)
-    await session.flush()
 
 
 async def collect_bulk_delete_candidates(

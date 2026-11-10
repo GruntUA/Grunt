@@ -12,7 +12,6 @@ import grunt
 
 # Import API modules
 from grunt.api.context import (
-    clear_context,
     get_engine,
     get_session,
     set_engine,
@@ -21,7 +20,7 @@ from grunt.api.context import (
 from grunt.api.messages import msgprint, throw
 from grunt.app import GruntDB
 from grunt.errors import ApplicationError
-from grunt.local import _user_ctx
+from grunt.local import _user_ctx, clear_context
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 from grunt.query.nodes import Cmp
