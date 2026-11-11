@@ -1,6 +1,5 @@
 import shutil
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
 from grunt.api.context import whitelist
@@ -9,6 +8,7 @@ from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.log import log
+from grunt.site.bench import bench_dir
 lazy from grunt.document.api import documents
 
 
@@ -34,10 +34,7 @@ class GruntInstalledApp(Document):
             )
             return
 
-        apps_dir = (
-            Path(__file__).resolve().parents[6]
-        )  # .../apps/grunt/grunt/startup/doctypes/X/x.py
-        app_path = apps_dir / name
+        app_path = bench_dir() / "apps" / name
 
         if app_path.exists() and app_path.is_dir():
             shutil.rmtree(app_path)
