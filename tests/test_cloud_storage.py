@@ -210,7 +210,7 @@ def storage(tmp_path, monkeypatch):
 
 
 async def _old_file(ctx, content: bytes, days: int = 100, **values) -> dict:
-    from grunt.storage import store
+    from grunt.storage.files import store
 
     row = await store(content, "old.txt", "text/plain", **values)
     await ctx.db.set_value(
@@ -221,9 +221,9 @@ async def _old_file(ctx, content: bytes, days: int = 100, **values) -> dict:
 
 @pytest.mark.asyncio
 async def test_offload_read_through_cache_recall_and_gc(ctx, storage, tmp_path):
-    from grunt.storage import read
     from grunt.storage.cloud import load_remote
     from grunt.storage.cloud.files import blob_path, cache_path, offload, recall
+    from grunt.storage.files import read
     from grunt.storage.gc import collect_garbage
 
     await ctx.new_doc(

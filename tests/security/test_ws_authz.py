@@ -103,7 +103,7 @@ async def test_virtual_doctype_room_checks_the_stored_document(ctx, _point_site_
     from grunt.auth.users import create_user
     from grunt.document.base import Document
     from grunt.document.registry import document_registry
-    from grunt.store import VirtualStore
+    from grunt.store.virtual import VirtualStore
 
     class _Store(VirtualStore):
         async def rows(self, query):

@@ -15,7 +15,8 @@ from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.metadata.registry import doctype_registry
 from grunt.query.query import Query
-from grunt.store import Store, store_for
+from grunt.store.base import Store
+from grunt.store.lookup import store_for
 
 
 async def _store(query: Query, ignore_permissions: bool, session: AsyncSession | None) -> Store:

@@ -19,8 +19,7 @@ from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.monitoring.perf import HIST_FIELDS, percentile
 from grunt.query.query import Query
-from grunt.store import VirtualStore
-from grunt.store.virtual import equals
+from grunt.store.virtual import VirtualStore, equals
 
 _db = GruntDB()  # stateless: reads through the context's session
 

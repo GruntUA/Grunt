@@ -50,7 +50,7 @@ from grunt.permissions.user_permissions import user_permission_predicate
 from grunt.query.evaluate import matches_linked
 from grunt.query.nodes import FALSE, TRUE, Cmp, Empty, Expr, Linked, and_, or_
 from grunt.query.query import Query
-lazy from grunt.store import store_for
+lazy from grunt.store.lookup import store_for
 
 # Actions whose access can be inherited (child rows, comments, files): seeing
 # what a document holds, never changing it through someone else's rights.

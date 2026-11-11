@@ -31,7 +31,8 @@ lazy from grunt.metadata.extensions import extensions_for_site, revert_propertie
 lazy from grunt.metadata.field import is_physical_fieldtype
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site, site_manager
-lazy from grunt.startup import load_core_doctypes, sync_installed_apps
+lazy from grunt.startup.app_install import sync_installed_apps
+lazy from grunt.startup.doctypes import load_core_doctypes
 lazy from grunt.utils.app_helpers import load_app_hook_module
 lazy from grunt.utils.boilerplate import make_boilerplate
 

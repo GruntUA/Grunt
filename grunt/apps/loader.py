@@ -30,11 +30,12 @@ import grunt.core_hooks as core_hooks
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
 from grunt.apps.required import CORE_APP
 from grunt.document.registry import document_registry
-from grunt.io import register_exporter, register_importer
 from grunt.io.exporters.csv import CsvExporter
 from grunt.io.exporters.html import HtmlExporter
+from grunt.io.exporters.registry import register_exporter
 from grunt.io.exporters.xlsx import XlsxExporter
 from grunt.io.importers.csv import CsvImporter
+from grunt.io.importers.registry import register_importer
 from grunt.io.importers.xlsx import XlsxImporter
 from grunt.log import log
 from grunt.scripting.file_scripts import _load_doctype_dir_scripts, register_client_script_dir
@@ -42,8 +43,7 @@ from grunt.scripting.file_scripts import discover_file_scripts as _discover_scri
 from grunt.site.manager import site_manager
 from grunt.startup.doctypes import _find_doctype_dirs
 from grunt.version import compatibility_error
-from grunt.website import make_website_handler, website_registry
-from grunt.website.router import PAGE_METHODS
+from grunt.website.router import PAGE_METHODS, make_website_handler, website_registry
 
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> grunt/
 

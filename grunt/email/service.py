@@ -16,7 +16,7 @@ from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.site.settings import get_setting
-from grunt.storage import store
+from grunt.storage.files import store
 from grunt.tasks.broker import by_name
 lazy from grunt.document.api import documents
 

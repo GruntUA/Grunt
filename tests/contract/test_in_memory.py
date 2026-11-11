@@ -12,7 +12,7 @@ import pytest
 from grunt.query.parse import parse_filters
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr
-from grunt.store import VirtualStore
+from grunt.store.virtual import VirtualStore
 
 from .conftest import TEXT_ORDER
 from .test_filters import CASES

@@ -7,7 +7,8 @@ from grunt.i18n import N_
 from grunt.query.query import Query
 from grunt.site.manager import site_manager
 from grunt.storage.cloud.backups import load_state
-from grunt.store import DELETE, VirtualStore
+from grunt.store.base import DELETE
+from grunt.store.virtual import VirtualStore
 from grunt.utils.sizes import human_size
 
 

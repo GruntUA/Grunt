@@ -26,16 +26,17 @@ from grunt.document.guards import register_write_guard
 from grunt.document.registry import document_registry
 from grunt.document.tree import register_tree_title_resolver
 from grunt.hooks import register_doc_events
-from grunt.io import register_exporter, register_importer
+from grunt.io.exporters.registry import register_exporter
+from grunt.io.importers.registry import register_importer
 from grunt.log import log
 from grunt.middleware.rate_limit import register_path_limit
 from grunt.scripting.file_scripts import register_doctype_js
 from grunt.tasks.scheduler import register_scheduler_events
-from grunt.website import website_registry
 from grunt.website.router import (
     register_context_processor,
     register_page_resolver,
     register_sitemap_source,
+    website_registry,
 )
 lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
 

@@ -35,7 +35,8 @@ from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.search.terms import match_columns
-from grunt.store import SQL, supports
+from grunt.store.base import SQL
+from grunt.store.lookup import supports
 lazy from grunt.document.api import documents
 lazy from grunt.query.sql import filter_expr, where
 

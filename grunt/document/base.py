@@ -28,7 +28,8 @@ from grunt.i18n import _
 from grunt.local import _user_ctx, bind, require_engine, require_session, session_user, unbind
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
-from grunt.store import Store, store_for
+from grunt.store.base import Store
+from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.

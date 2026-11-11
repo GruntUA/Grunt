@@ -10,7 +10,8 @@ from fastapi import HTTPException
 from grunt.document.base import Document
 from grunt.events import subscribe, unsubscribe
 from grunt.query.query import Query
-from grunt.store import DELETE, INSERT, UPDATE, VirtualStore
+from grunt.store.base import DELETE, INSERT, UPDATE
+from grunt.store.virtual import VirtualStore
 
 DOCTYPE = "VirtualNote"
 

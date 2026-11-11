@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from grunt.io import ListExportContext
 from grunt.io.exporters.html import HtmlExporter, _Formatter
+from grunt.io.exporters.registry import ListExportContext
 from grunt.metadata.field import DocField
 
 

@@ -13,7 +13,7 @@ class Importer(ABC):
     Example (external app)::
 
         # myapp/mymodule/hooks.py
-        from grunt.io import register_importer
+        from grunt.io.importers.registry import register_importer
         from myapp.importers import MyImporter
 
         io_importers = [MyImporter()]

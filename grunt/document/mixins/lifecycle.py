@@ -37,8 +37,8 @@ from grunt.i18n import _
 from grunt.local import require_session_user
 from grunt.log import log
 from grunt.monitoring import perf
-from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
+from grunt.naming.service import naming_service
 from grunt.permissions.query import reference_readable
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
@@ -47,7 +47,8 @@ from grunt.query.query import Query
 from grunt.search.service import search_index_service
 from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
-from grunt.store import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store, store_for
+from grunt.store.base import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store
+from grunt.store.lookup import store_for
 lazy from grunt.document.collection import repoint_references, validate_replacement
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.registry import doctype_registry

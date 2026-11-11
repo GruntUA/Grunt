@@ -12,9 +12,10 @@ from starlette.datastructures import Headers
 from starlette.responses import FileResponse
 
 import grunt
-from grunt.storage import backends, files, read, store
+from grunt.storage import backends, files
 from grunt.storage.backends import FileTooLargeError, LocalStorageBackend
 from grunt.storage.doctypes.File.file import get_content, remove, upload
+from grunt.storage.files import read, store
 from grunt.storage.gc import collect_garbage, verify
 
 

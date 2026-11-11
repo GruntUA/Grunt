@@ -25,9 +25,16 @@ from grunt.local import system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
-from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
 from grunt.website.generator import app_mount, render_doc_page, sitemap_urls
-from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
+from grunt.website.router import (
+    PAGE_METHODS,
+    make_website_handler,
+    render_not_found,
+    render_page_by_route,
+    robots_txt,
+    sitemap_xml,
+    website_registry,
+)
 from grunt.website.spa import DIST_DIR, static_file
 
 _db = GruntDB()  # stateless: reads through the context's session

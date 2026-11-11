@@ -7,8 +7,8 @@ from grunt.auth.current import acting_user
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import require_session
-from grunt.scripting import server_script_runner
 from grunt.scripting.client_script import get_client_scripts as _get
+from grunt.scripting.server_script import server_script_runner
 
 
 @whitelist()

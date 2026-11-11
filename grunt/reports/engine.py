@@ -26,7 +26,8 @@ from grunt.query.sql import filter_expr, where
 from grunt.reports.joins import report_source
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
-from grunt.store import SQL, supports
+from grunt.store.base import SQL
+from grunt.store.lookup import supports
 lazy from grunt.document.api import documents
 
 

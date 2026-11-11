@@ -16,7 +16,7 @@ from fastapi.responses import Response, StreamingResponse
 
 from grunt.api.context import whitelist
 from grunt.i18n import _
-from grunt.io import ListExportContext, get_exporter, get_exporters
+from grunt.io.exporters.registry import ListExportContext, get_exporter, get_exporters
 from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort

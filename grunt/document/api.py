@@ -26,7 +26,7 @@ from grunt.i18n import _
 from grunt.local import require_engine, require_session, require_session_user
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
-from grunt.naming import naming_service
+from grunt.naming.service import naming_service
 from grunt.permissions.guards import (
     apply_hidden_fields_to_doc,
     apply_hidden_fields_to_rows,
@@ -48,7 +48,8 @@ lazy from grunt.query.nodes import linked_doctypes
 lazy from grunt.query.parse import FILTER_OPS
 lazy from grunt.query.query import Query
 lazy from grunt.query.sql import filter_expr
-lazy from grunt.store import AGGREGATE, SQL, supports
+lazy from grunt.store.base import AGGREGATE, SQL
+lazy from grunt.store.lookup import supports
 
 
 class DocumentAPI:

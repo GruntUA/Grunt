@@ -26,7 +26,9 @@ from grunt.search.terms import match_columns
 lazy from grunt.document.api import documents
 lazy from grunt.query import run
 lazy from grunt.query.query import Query
-lazy from grunt.store import SQL, Unavailable, supports
+lazy from grunt.store.base import SQL
+lazy from grunt.store.lookup import supports
+lazy from grunt.store.virtual import Unavailable
 
 
 async def _identifier_search(
