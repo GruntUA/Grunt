@@ -75,3 +75,26 @@ export function formPermissions(
   for (const a of DOC_ACTIONS) perms[a] = !!server[a]
   return perms
 }
+
+/**
+ * Fields the form shows but doesn't let the user change: the server's
+ * `__perms.readonly_fields`, or - without it - those every role row granting
+ * write lists as read-only (or hidden). A new document takes their value.
+ */
+export function formReadonlyFields(
+  dt: DocType | null | undefined,
+  doc: Record<string, unknown> | null | undefined,
+  isNew: boolean,
+  roles: string[],
+): string[] {
+  if (!dt || isNew) return []
+  const server = (doc?.[PERMS_KEY] as { readonly_fields?: string[] } | undefined)?.readonly_fields
+  if (server) return server
+  let locked = null as Set<string> | null
+  for (const p of dt.permissions ?? []) {
+    if (!p.actions?.includes('write') || (p.role !== 'All' && !roles.includes(p.role))) continue
+    const rule = new Set([...(p.readonly_fields ?? []), ...(p.hidden_fields ?? [])])
+    locked = locked ? new Set([...locked].filter((f) => rule.has(f))) : rule
+  }
+  return [...(locked ?? [])]
+}

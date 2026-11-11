@@ -15,7 +15,7 @@ PERMS_KEY = "__perms"
 _ACTIONS = ("write", "delete", "create", "print", "share")
 
 
-async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
+async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, Any]:
     dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         return dict.fromkeys(_ACTIONS, False)
@@ -28,6 +28,10 @@ async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
             perms[action] = await permission_checker.can_share(dt, doc, user=user)
         else:
             perms[action] = await permission_checker.check(dt, action, target, user=user)
+    # What the form shows but doesn't let the user change.
+    perms["readonly_fields"] = (
+        sorted(await permission_checker.readonly_fields(dt, user=user)) if perms["write"] else []
+    )
     return perms
 
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formPermissions, NO_PERMS, roleAllows, rolePermissions } from '@/core/permissions'
+import { formPermissions, formReadonlyFields, NO_PERMS, roleAllows, rolePermissions } from '@/core/permissions'
 import type { DocType } from '@/types'
 
 const dt = {
@@ -61,3 +61,31 @@ describe('formPermissions', () => {
     expect(rolePermissions(dt, ['Reader'])).toEqual({ ...NO_PERMS, create: true, print: true })
   })
 })
+
+describe('formReadonlyFields', () => {
+  const card = {
+    name: 'Card',
+    permissions: [
+      { role: 'Accountant', actions: ['read', 'write'], readonly_fields: ['salary', 'bonus'] },
+      { role: 'Clerk', actions: ['read', 'write'], readonly_fields: ['salary'], hidden_fields: ['bonus'] },
+      { role: 'HR', actions: ['read', 'write'] },
+      { role: 'Viewer', actions: ['read'], readonly_fields: ['note'] },
+    ],
+  } as unknown as DocType
+
+  it("trusts the server's __perms", () => {
+    expect(formReadonlyFields(card, { __perms: { readonly_fields: ['x'] } }, false, ['HR'])).toEqual(['x'])
+  })
+
+  it('locks a field only when every write rule does', () => {
+    expect(formReadonlyFields(card, {}, false, ['Accountant']).sort()).toEqual(['bonus', 'salary'])
+    expect(formReadonlyFields(card, {}, false, ['Accountant', 'Clerk']).sort()).toEqual(['bonus', 'salary'])
+    expect(formReadonlyFields(card, {}, false, ['Accountant', 'HR'])).toEqual([])
+    expect(formReadonlyFields(card, {}, false, ['Viewer'])).toEqual([]) // no write rule
+  })
+
+  it('leaves a new document editable', () => {
+    expect(formReadonlyFields(card, null, true, ['Accountant'])).toEqual([])
+  })
+})
+

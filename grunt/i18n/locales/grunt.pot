@@ -7556,6 +7556,10 @@ msgstr ""
 msgid "Not shared with anyone"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Not shown to this role, and not changed, filtered or searched by."
+msgstr ""
+
 #: grunt/frontend/src/components/fields/Signature/Signature.vue
 msgid "Not signed"
 msgstr ""
@@ -8324,6 +8328,10 @@ msgstr ""
 msgid "Permission"
 msgstr ""
 
+#: grunt/grunt/metadata/registry.py
+msgid "Permission for “%(role)s” names unknown fields: %(fields)s"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Permissions"
 msgstr ""
@@ -8752,6 +8760,10 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Read-only"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Read-only fields (comma-separated)"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
@@ -10362,6 +10374,12 @@ msgstr ""
 
 #: grunt/frontend/src/components/debug/ServerErrorModal.vue
 msgid "Shown only in debug mode · Click outside or press ESC to close"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"Shown to this role but kept as they are once the document exists; a new "
+"document takes their value. A role that may change them wins."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json

@@ -94,8 +94,12 @@ class DocPermission(BaseModel):
     actions: list[str] = []
     # Row-level filter - e.g. "owner == user", "team.lead == user"
     match: str | None = None
-    # Fields hidden for this role (field names)
+    # Fields hidden for this role (field names) - not read, written, filtered,
+    # sorted, grouped or searched by.
     hidden_fields: list[str] = []
+    # Fields this role sees but may not change once the document exists (a new
+    # document takes their value). Only rows that grant ``write`` count.
+    readonly_fields: list[str] = []
 
     def grants(self, action: str) -> bool:
         """Whether this row grants *action* - ``read`` implies ``select``."""
@@ -115,6 +119,14 @@ class DocPermission(BaseModel):
                     'list them as "actions": [...]'
                 )
         return data
+
+    @field_validator("hidden_fields", "readonly_fields", mode="before")
+    @classmethod
+    def _field_list(cls, value: Any) -> Any:
+        # Studio edits them as text: "salary, bonus".
+        if isinstance(value, str):
+            return [name.strip() for name in value.replace("\n", ",").split(",") if name.strip()]
+        return value
 
     @field_validator("actions")
     @classmethod

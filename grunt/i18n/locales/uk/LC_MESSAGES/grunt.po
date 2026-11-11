@@ -7818,6 +7818,10 @@ msgstr "Не опубліковано — відкрити попередній 
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Not shown to this role, and not changed, filtered or searched by."
+msgstr "Ця роль їх не бачить, не змінює, не фільтрує й не шукає за ними."
+
 #: grunt/frontend/src/components/fields/Signature/Signature.vue
 msgid "Not signed"
 msgstr "Не підписано"
@@ -8622,6 +8626,10 @@ msgstr "Перемикач періоду"
 msgid "Permission"
 msgstr "Дозвіл"
 
+#: grunt/grunt/metadata/registry.py
+msgid "Permission for “%(role)s” names unknown fields: %(fields)s"
+msgstr "Права для «%(role)s» згадують невідомі поля: %(fields)s"
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Permissions"
 msgstr "Дозволи"
@@ -9073,6 +9081,10 @@ msgstr "Запитано підтвердження прочитання"
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Read-only"
 msgstr "Лише читання"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Read-only fields (comma-separated)"
+msgstr "Поля лише для читання (через кому)"
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "Reading file structure…"
@@ -10745,6 +10757,15 @@ msgstr ""
 msgid "Shown only in debug mode · Click outside or press ESC to close"
 msgstr ""
 "Показується лише в режимі debug · Клацніть поза вікном або ESC, щоб закрити"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"Shown to this role but kept as they are once the document exists; a new "
+"document takes their value. A role that may change them wins."
+msgstr ""
+"Ця роль їх бачить, але в наявному документі не змінює; новий документ "
+"приймає їхнє значення. Якщо інша роль користувача дозволяє їх змінювати — "
+"вона має перевагу."
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Shows the sign-up form on the login page."

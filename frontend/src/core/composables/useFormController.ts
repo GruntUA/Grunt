@@ -36,7 +36,7 @@ import { useActionShortcuts } from './useActionShortcuts'
 
 import type { DocType } from '@/types'
 import { docUrl } from '@/core/workspaceUrl'
-import { formPermissions } from '@/core/permissions'
+import { formPermissions, formReadonlyFields } from '@/core/permissions'
 import { docsApi } from '@/core/api/docs'
 import type { WorkflowTransition } from '@/core/scripting/executor'
 import { getLayoutTypeSet } from '@/core/fieldRegistry'
@@ -137,6 +137,11 @@ export function useFormController(
   const auth = useAuthStore()
   const perms = computed(() =>
     formPermissions(dt.value, document.value as Record<string, unknown> | null, !id, auth.user?.roles ?? []),
+  )
+
+  // Fields read-only for this user's roles: shown, but kept (the server refuses a change).
+  const readonlyFields = computed(() =>
+    formReadonlyFields(dt.value, document.value as Record<string, unknown> | null, !id, auth.user?.roles ?? []),
   )
 
   const {
@@ -400,6 +405,13 @@ export function useFormController(
   }
 
   // Public surface
+  // Client-script df overrides, with permission read-only fields on top.
+  const fieldPropOverrides = computed(() => {
+    const merged: Record<string, Record<string, unknown>> = { ...dfPropOverrides }
+    for (const f of readonlyFields.value) merged[f] = { ...merged[f], read_only: true }
+    return merged
+  })
+
   return {
     // State
     dt,
@@ -440,7 +452,7 @@ export function useFormController(
     applyTransition,
     displayOverrides,
     reqdOverrides,
-    dfPropOverrides,
+    dfPropOverrides: fieldPropOverrides,
     sidebarHidden,
     dashboard,
 

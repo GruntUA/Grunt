@@ -107,6 +107,35 @@ class RoleAccess:
             hidden = rule if hidden is None else hidden & rule
         return frozenset(hidden or ())
 
+    @property
+    def readonly_fields(self) -> frozenset[str]:
+        """Field names the user sees but may not change on an existing document:
+        every matching rule that grants ``write`` lists it as read-only (or
+        hidden). Any rule leaving it writable makes it writable. Empty when no
+        rule grants ``write`` (the write guard refuses then anyway)."""
+        if self.is_unrestricted:
+            return frozenset()
+        locked: set[str] | None = None
+        for perm in self.matching_permissions():
+            if not perm.grants("write"):
+                continue
+            rule = set(perm.readonly_fields) | set(perm.hidden_fields)
+            locked = rule if locked is None else locked & rule
+        return frozenset((locked or set()) - self.hidden_fields)
+
+    def forbidden_changes(self, data: dict, existing: dict | None = None) -> set[str]:
+        """Fields writing *data* would change that the user may not: hidden ones
+        (:meth:`hidden_changes`) and, over *existing*, read-only ones - a new
+        document takes a read-only field's value."""
+        changed = self.hidden_changes(data, existing)
+        if existing is not None:
+            changed |= {
+                field
+                for field in self.readonly_fields & data.keys()
+                if data[field] != existing.get(field)
+            }
+        return changed
+
     def hidden_changes(self, data: dict, existing: dict | None = None) -> set[str]:
         """Hidden fields that writing *data* would change - over *existing*, or on
         a new document past the field's default (a form may send defaults back).

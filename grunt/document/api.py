@@ -804,7 +804,8 @@ class DocumentAPI:
         """Update one or more fields directly - lightweight, no lifecycle hooks.
 
         Checks write permission on that very document (and that no field hidden
-        from the user is set), then issues a single SQL UPDATE.
+        from the user, or read-only for them, is set), then issues a single SQL
+        UPDATE.
         Use :meth:`save_doc` when you need ``before_save``/``after_save`` hooks
         to run (e.g. validation, audit log)::
 
@@ -817,11 +818,13 @@ class DocumentAPI:
         dt, user, _session = await write_guard(doctype, "write")
         await doc_guard(doctype, id_or_name, "write")
         names = set(fieldname) if isinstance(fieldname, dict) else {fieldname}
-        hidden = names & (await permission_checker.hidden_fields(dt, user=user))
-        if hidden:
+        locked = (await permission_checker.hidden_fields(dt, user=user)) | (
+            await permission_checker.readonly_fields(dt, user=user)
+        )
+        if names & locked:
             raise forbidden(
                 _("Not permitted to change fields: %(fields)s")
-                % {"fields": ", ".join(sorted(dt.get_label(f) for f in hidden))}
+                % {"fields": ", ".join(sorted(dt.get_label(f) for f in names & locked))}
             )
         await self.db.set_value(doctype, id_or_name, fieldname, value)
         await self._invalidate_list_cache(doctype, id_or_name)

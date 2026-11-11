@@ -52,6 +52,7 @@ async def test_reader_can_only_read(box, db_session, engine):
         "create": False,
         "print": True,
         "share": False,
+        "readonly_fields": [],
     }
 
 
@@ -66,6 +67,7 @@ async def test_row_level_match_decides_per_document(box, db_session, engine, ctx
         "create": True,
         "print": True,
         "share": False,
+        "readonly_fields": [],
     }
 
 
@@ -84,6 +86,7 @@ async def test_write_share_grants_write_but_not_delete(box, db_session, engine, 
         "create": False,
         "print": False,
         "share": False,
+        "readonly_fields": [],
     }
 
 
@@ -111,6 +114,7 @@ async def test_api_returns_perms_and_ignores_them_on_save(client, auth_headers):
         "create": True,
         "print": True,
         "share": True,
+        "readonly_fields": [],
     }
 
     got = (await client.get(f"{url}/{doc['name']}", headers=auth_headers)).json()["data"]
