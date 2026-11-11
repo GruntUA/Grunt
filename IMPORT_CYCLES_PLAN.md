@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-11 — злито #120–#136 (кроки 0–7, 9); крок 8 (решта циклів: базовий список порожній, CodeQL локально 0) — у PR; далі крок 10.
+Оновлено: 2026-11-11 — злито #120–#136 (кроки 0–7, 9); злито #137 (крок 8: базовий список порожній, CodeQL 0 і локально, і в CI); крок 10 (храповик рахує батьківські пакети, 0) — у PR. Далі — оновлення додатків під нові API.
 
 ---
 
@@ -91,9 +91,9 @@
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | злито (#125) |
 | 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | злито (#126–#128, #131–#133) |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | злито (#134) |
-| 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | у PR |
+| 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | злито (#137) |
 | 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | злито (#129–#131, #135, #136) |
-| 10 | Храповик рахує й неявні імпорти батьківських пакетів; базовий список порожній; CodeQL локально і в CI — 0 | |
+| 10 | Храповик рахує й неявні імпорти батьківських пакетів; базовий список порожній; CodeQL локально і в CI — 0 | у PR |
 
 Кожен крок — окремий PR у `develop`; великий крок ділиться (ліміт CodeRabbit 100 файлів).
 
@@ -455,3 +455,23 @@
 - Результат: 2265 passed, 2 skipped; pyright 0; ruff чисто.
 - **Далі — крок 10:** храповик рахує й неявні імпорти батьківських пакетів; перевірити CodeQL
   у CI.
+
+### 2026-11-11 — крок 10: неявні імпорти батьківських пакетів
+
+- `grunt/utils/import_graph.py`: імпорт `a.b.c` — ще й ребро до кожного пакета над ним
+  (`a/__init__`, `a/b/__init__` виконуються першими), крім пакетів самого імпортера — вони
+  вже імпортуються. Так рахує й храповик.
+- З таким підрахунком у циклах було 136 модулів — одна компонента через `__init__.py`, що
+  реекспортують підмодулі. Порожні тепер (лише docstring): `apps`, `auth.providers`, `db`
+  (і без проксі `__getattr__` — фасад сам задає `grunt.db`), `io`, `io.exporters`, `metadata`,
+  `naming`, `scripting`, `startup`, `storage`, `store`, `website`. Імпортери ядра (78 файлів)
+  беруть імена з модулів, що їх визначають. `naming_service` → `grunt.naming.service`,
+  `server_script_runner` → `grunt.scripting.server_script`.
+- `__init__` з кодом (`actions`, `activity`, `startup.doctypes`, `storage.cloud`) у цикли не
+  потрапили — лишаються, шляхи методів не змінюються.
+- Базовий список порожній і за суворим підрахунком; CodeQL локально 0.
+- **Ламає (додатки):** `from grunt.storage import store, read, FileTooLargeError` →
+  `grunt.storage.files` / `grunt.storage.backends` (esign, mlt_portal, official_documents,
+  inventory, tsnap, letter, hromada_it, cms); `from grunt.store import …` →
+  `grunt.store.base` / `virtual` (translate); так само решта пакетів вище.
+- Результат: 2265 passed, 2 skipped; pyright 0; ruff чисто.

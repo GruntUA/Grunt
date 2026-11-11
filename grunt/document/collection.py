@@ -43,7 +43,9 @@ from grunt.query import run
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
-from grunt.store import BULK, REFERENCES, SQL, Unavailable, store_for, supports
+from grunt.store.base import BULK, REFERENCES, SQL
+from grunt.store.lookup import store_for, supports
+from grunt.store.virtual import Unavailable
 
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:

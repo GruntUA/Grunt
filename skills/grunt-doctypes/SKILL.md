@@ -58,7 +58,8 @@ description: Довідник по всіх типах полів, налашт�
 ```python
 from grunt.document.base import Document
 from grunt.query.query import Query, Sort
-from grunt.store import DELETE, INSERT, UPDATE, Unavailable, VirtualStore
+from grunt.store.base import DELETE, INSERT, UPDATE
+from grunt.store.virtual import Unavailable, VirtualStore
 
 
 class ExternalCustomerStore(VirtualStore):

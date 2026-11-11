@@ -13,7 +13,7 @@ import grunt.hooks as hooks
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
-from grunt.store import VirtualStore
+from grunt.store.virtual import VirtualStore
 lazy from grunt.document.api import documents
 
 

@@ -14,7 +14,8 @@ from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
-from grunt.store import AGGREGATE, DELETE, INSERT, SQL, UPDATE, SqlStore, Store
+from grunt.store.base import AGGREGATE, DELETE, INSERT, SQL, UPDATE, Store
+from grunt.store.sql import SqlStore
 
 
 def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:

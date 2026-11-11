@@ -83,7 +83,7 @@ class AuthProvider(ABC):
 ```python
 # myapp/auth/telegram.py
 from grunt.errors import throw
-from grunt.auth.providers import AuthProvider
+from grunt.auth.providers.base import AuthProvider
 
 
 class TelegramProvider(AuthProvider):

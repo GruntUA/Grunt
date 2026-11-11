@@ -7,8 +7,8 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
-from grunt.store import DELETE, VirtualStore
-from grunt.store.virtual import equals
+from grunt.store.base import DELETE
+from grunt.store.virtual import VirtualStore, equals
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session

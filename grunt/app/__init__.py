@@ -11,7 +11,7 @@ from grunt.app.permission_api import PermissionAPI
 from grunt.app.realtime_api import RealtimeAPI
 from grunt.app.utility_api import UtilityAPI
 from grunt.app.workflow_api import WorkflowAPI
-from grunt.db import GruntDB
+from grunt.db.api import GruntDB
 from grunt.document.api import documents
 from grunt.metadata.registry import doctype_registry
 from grunt.utils.templates import use_app

@@ -10,7 +10,8 @@ from grunt.document.base import Document
 from grunt.i18n import N_, _
 from grunt.log import log
 from grunt.query.query import Query
-from grunt.store import DELETE, Unavailable, VirtualStore
+from grunt.store.base import DELETE
+from grunt.store.virtual import Unavailable, VirtualStore
 from grunt.tasks.redis_introspect import (
     DEAD_CONSUMER_IDLE_MS,
     read_task_info,

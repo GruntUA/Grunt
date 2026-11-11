@@ -14,7 +14,8 @@ from grunt.query import run
 from grunt.query.nodes import TRUE, Expr, and_, conjuncts, or_
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
-from grunt.store import SQL, store_for, supports
+from grunt.store.base import SQL
+from grunt.store.lookup import store_for, supports
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.multi_link import MultiLinkService
 

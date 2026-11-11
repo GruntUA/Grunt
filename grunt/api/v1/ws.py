@@ -389,7 +389,7 @@ async def _ws_user_can_read(
             dt = await doctype_registry.get_meta(doctype)
             if dt is None:
                 return False
-            from grunt.store import store_for
+            from grunt.store.lookup import store_for
 
             if doc_id is None:
                 # List room: the DocType-level read grant is all there is to check.

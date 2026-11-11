@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from grunt.metadata.doctype import DocType
 from grunt.query.query import Query
-from grunt.store import Store
+from grunt.store.base import Store
 
 
 def _store() -> Store:

@@ -18,7 +18,7 @@ from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 
-from grunt.apps import load_external_apps
+from grunt.apps.loader import load_external_apps
 from grunt.auth.current import user_context
 from grunt.cache import bus
 from grunt.config import settings
@@ -30,7 +30,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.monitoring import perf
 from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
-from grunt.startup import load_validators
+from grunt.startup.validators import load_validators
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import start_scheduler, stop_scheduler
 from grunt.utils.redis import shared

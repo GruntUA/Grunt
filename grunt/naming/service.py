@@ -120,3 +120,6 @@ class NamingService:
         )
         await session.flush()
         return 1
+
+
+naming_service = NamingService()

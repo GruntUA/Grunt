@@ -6,7 +6,9 @@ cycle must leave the list too, so the baseline only shrinks. The goal is an
 empty file.
 
 Every import statement counts, function-local, ``TYPE_CHECKING`` and ``lazy``
-ones included - see :mod:`grunt.utils.import_graph`.
+ones included, and so do the packages an import runs on the way
+(``a.b.c`` runs ``a/__init__`` and ``a/b/__init__``) - see
+:mod:`grunt.utils.import_graph`.
 """
 
 from collections import deque

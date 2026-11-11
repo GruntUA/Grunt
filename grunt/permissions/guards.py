@@ -16,7 +16,7 @@ from grunt.local import require_session, require_session_user
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction, WriteAction
-lazy from grunt.store import store_for
+lazy from grunt.store.lookup import store_for
 
 
 def apply_hidden_fields_to_doc(

@@ -17,7 +17,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.notification import rule_index
 from grunt.notification.service import notification_service
 from grunt.notification.tasks import evaluate_notification_rules_task
-from grunt.scripting import server_script_runner
+from grunt.scripting.server_script import server_script_runner
 from grunt.storage.cloud import REMOTE_FAILED
 from grunt.storage.references import claim_referenced_files
 from grunt.tasks.enqueue import enqueue

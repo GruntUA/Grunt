@@ -28,16 +28,15 @@ lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.store import meta_table
 lazy from grunt.search.service import search_index_service
 lazy from grunt.site.manager import current_site, site_manager
-lazy from grunt.startup import (
-    bundled_core_doctypes,
-    load_core_doctypes,
-    load_core_fixtures,
+lazy from grunt.startup.app_install import (
+    record_migrated_versions,
     register_installed_app_doctypes,
-    seed_grunt_workspace,
-    seed_system_settings,
     sync_installed_apps,
 )
-lazy from grunt.startup.app_install import record_migrated_versions
+lazy from grunt.startup.doctypes import bundled_core_doctypes, load_core_doctypes
+lazy from grunt.startup.fixtures import load_core_fixtures
+lazy from grunt.startup.settings import seed_system_settings
+lazy from grunt.startup.workspaces import seed_grunt_workspace
 lazy from grunt.storage.cloud import Rclone, RemoteError, load_remote
 lazy from grunt.storage.cloud.backups import (
     fetch_backup,

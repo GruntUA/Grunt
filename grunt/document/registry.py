@@ -7,7 +7,7 @@ from typing import Any
 
 from grunt.log import log
 from grunt.startup.doctypes import _find_doctype_dirs
-from grunt.store import use_controllers
+from grunt.store.lookup import use_controllers
 from grunt.utils.strings import to_snake_case
 
 # The base controller (``grunt.document.base.Document``) - it registers itself

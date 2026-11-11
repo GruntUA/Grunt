@@ -13,7 +13,7 @@ lazy import openpyxl
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
 from grunt.log import log
-from grunt.storage import store
+from grunt.storage.files import store
 
 
 class DataExport(Document):

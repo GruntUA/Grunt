@@ -679,3 +679,6 @@ class ServerScriptRunner:
             trusted=script.get("trusted", False),
             user_email=user_email,
         )
+
+
+server_script_runner = ServerScriptRunner()

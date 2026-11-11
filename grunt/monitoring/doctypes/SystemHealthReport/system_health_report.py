@@ -4,7 +4,7 @@ from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.monitoring.health import skeleton
 from grunt.query.query import Query
-from grunt.store import VirtualStore
+from grunt.store.virtual import VirtualStore
 
 
 class SystemHealthReportStore(VirtualStore):
