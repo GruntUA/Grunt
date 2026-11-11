@@ -21,9 +21,9 @@ CASE = {
         {"fieldname": "items", "label": "Items", "fieldtype": "Table", "options": "CaseItem"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Investigator", "read": True, "match": "owner == user"},
-        {"role": "Editor", "read": True, "write": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Investigator", "actions": ["read"], "match": "owner == user"},
+        {"role": "Editor", "actions": ["read", "write"]},
     ],
 }
 

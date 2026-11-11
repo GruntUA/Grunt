@@ -52,7 +52,7 @@ SIMPLE_DOCTYPE = {
     "title_field": "title",
     "search_fields": ["title"],
     "autoname": "prompt",
-    "permissions": [{"role": "All", "read": True, "write": True, "create": True, "delete": True}],
+    "permissions": [{"role": "All", "actions": ["read", "write", "create", "delete"]}],
 }
 
 
@@ -410,7 +410,7 @@ async def test_search_restricted_doctype_hidden_from_regular_user(ctx):
         "module": "test",
         "fields": [{"fieldname": "title", "label": "Назва", "fieldtype": "Data"}],
         "search_fields": ["title"],
-        "permissions": [{"role": "Manager", "read": True}],
+        "permissions": [{"role": "Manager", "actions": ["read"]}],
     }
     await create_and_sync(ctx, restricted_dt)
     await create_doc(ctx, "СекретнийДок", {"name": "СЕК-001", "title": "Секретний вміст XYZ123"})
@@ -433,7 +433,7 @@ async def test_search_restricted_doctype_visible_to_system_manager(ctx):
         "module": "test",
         "fields": [{"fieldname": "title", "label": "Назва", "fieldtype": "Data"}],
         "search_fields": ["title"],
-        "permissions": [{"role": "Manager", "read": True}],
+        "permissions": [{"role": "Manager", "actions": ["read"]}],
     }
     await create_and_sync(ctx, restricted_dt)
     await create_doc(ctx, "АдмінДок", {"name": "АД-001", "title": "Тільки для адміна ABC"})
@@ -485,7 +485,7 @@ PERSON_DOCTYPE = {
     "title_field": "full_name",
     "search_fields": ["first_name", "last_name"],
     "autoname": "prompt",
-    "permissions": [{"role": "All", "read": True, "write": True, "create": True, "delete": True}],
+    "permissions": [{"role": "All", "actions": ["read", "write", "create", "delete"]}],
 }
 
 
@@ -721,7 +721,10 @@ async def test_hiding_a_field_rebuilds_the_index(ctx):
     assert await global_search(q="Таємниця")
 
     current = await get_doctype(name="Ховання")
-    rows = [*current["permissions"], {"role": "Clerk", "read": True, "hidden_fields": ["secret"]}]
+    rows = [
+        *current["permissions"],
+        {"role": "Clerk", "actions": ["read"], "hidden_fields": ["secret"]},
+    ]
     await save_doctype(doctype_data={**current, "permissions": rows})
     await ctx.db._session().commit()
     assert not await global_search(q="Таємниця")
@@ -750,7 +753,7 @@ async def test_migrate_rebuilds_entries_from_before_signatures(ctx):
         ],
         "permissions": [
             *SIMPLE_DOCTYPE["permissions"],
-            {"role": "Clerk", "read": True, "hidden_fields": ["secret"]},
+            {"role": "Clerk", "actions": ["read"], "hidden_fields": ["secret"]},
         ],
     }
     await create_and_sync(ctx, doctype)
@@ -788,8 +791,8 @@ async def test_global_search_respects_row_level_match(ctx, db_session, engine):
             **SIMPLE_DOCTYPE,
             "name": "СвоїЗаписи",
             "permissions": [
-                {"role": "System Manager", "read": True, "write": True, "create": True},
-                {"role": "Author", "read": True, "create": True, "match": "owner == user"},
+                {"role": "System Manager", "actions": ["read", "write", "create"]},
+                {"role": "Author", "actions": ["read", "create"], "match": "owner == user"},
             ],
         },
     )

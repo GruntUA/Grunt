@@ -27,43 +27,21 @@ LEDGER = {
 # The row model
 
 
-def test_legacy_flags_read_as_actions():
-    row = DocPermission.model_validate(
-        {"role": "X", "write": True, "read": 1, "delete": False, "report": 0}
-    )
-    assert row.actions == ["read", "write"]
-    assert row.grants("select")  # implied by read
-    assert not row.grants("delete")
-    assert "write" not in row.model_dump()  # written back in the new shape
-
-
 def test_actions_keep_one_order():
     a = DocPermission(role="X", actions=["print", "read"])
     b = DocPermission(role="X", actions=["read", "print"])
     assert a.model_dump() == b.model_dump()
 
 
+def test_old_flags_are_refused():
+    """A row still in the old format would grant nothing - say so instead."""
+    with pytest.raises(ValidationError, match="old flags"):
+        DocPermission.model_validate({"role": "X", "read": True})
+
+
 def test_unknown_action_is_refused():
     with pytest.raises(ValidationError):
         DocPermission(role="X", actions=["read", "wirte"])
-
-
-def test_migration_converts_stored_rows():
-    from importlib import import_module
-
-    mig = import_module("grunt.db.migrations.versions.0021_permission_actions")
-    data = {
-        "permissions": [{"role": "A", "read": True, "write": 1, "create": False}],
-        "permissions_base": [{"role": "A", "read": True}],
-    }
-    assert mig._clean("Thing", data)
-    assert data["permissions"] == [{"role": "A", "actions": ["read", "write"]}]
-    assert data["permissions_base"] == [{"role": "A", "actions": ["read"]}]
-    assert not mig._clean("Thing", data)  # idempotent
-
-    form = {"fields": [{"fieldname": "role"}, {"fieldname": "read"}, {"fieldname": "actions"}]}
-    assert mig._clean("DocPermission", form)
-    assert [f["fieldname"] for f in form["fields"]] == ["role", "actions"]
 
 
 # The endpoints

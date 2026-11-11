@@ -16,7 +16,7 @@ VIEWED = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "view_count", "label": "Views", "fieldtype": "Int"},
     ],
-    "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "All", "actions": ["read", "write", "create"]}],
 }
 
 

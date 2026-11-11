@@ -18,8 +18,13 @@ CUSTOMER = {
         {"fieldname": "credit", "label": "Credit", "fieldtype": "Float"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True},
-        {"role": "Seller", "read": True, "match": "region == 'North'", "hidden_fields": ["credit"]},
+        {"role": "System Manager", "actions": ["read", "write", "create"]},
+        {
+            "role": "Seller",
+            "actions": ["read"],
+            "match": "region == 'North'",
+            "hidden_fields": ["credit"],
+        },
     ],
 }
 
@@ -39,9 +44,9 @@ INVOICE = {
         {"fieldname": "margin", "label": "Margin", "fieldtype": "Float"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True},
-        {"role": "Seller", "read": True, "hidden_fields": ["margin"]},
-        {"role": "Clerk", "read": True},
+        {"role": "System Manager", "actions": ["read", "write", "create"]},
+        {"role": "Seller", "actions": ["read"], "hidden_fields": ["margin"]},
+        {"role": "Clerk", "actions": ["read"]},
     ],
 }
 

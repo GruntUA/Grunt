@@ -231,7 +231,7 @@ async def test_row_level_match_filters_list_count_and_get(ctx, db_session, engin
             "module": "core",
             "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
-            "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
+            "permissions": [{"role": "Employee", "actions": ["read"], "match": "owner == user"}],
             "__is_new": True,
         }
     )
@@ -275,7 +275,7 @@ async def test_shared_virtual_document_is_listed(ctx, db_session, engine):
             "module": "core",
             "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
-            "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
+            "permissions": [{"role": "Employee", "actions": ["read"], "match": "owner == user"}],
             "__is_new": True,
         }
     )

@@ -383,7 +383,7 @@ GUARDED_TREE_DOCTYPE = {
             "options": "GuardedTreeCategory",
         },
     ],
-    "permissions": [{"role": "TreeManager", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "TreeManager", "actions": ["read", "write", "create"]}],
 }
 
 

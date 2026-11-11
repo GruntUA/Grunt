@@ -299,7 +299,7 @@ async def test_linking_from_website_content_publishes_readable_files(
             "module": "core",
             "public_attachments": True,
             "fields": [{"fieldname": "content", "label": "Content", "fieldtype": "RichText"}],
-            "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
+            "permissions": [{"role": "All", "actions": ["read", "write", "create"]}],
             "__is_new": True,
         }
     )

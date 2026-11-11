@@ -22,7 +22,7 @@ ARTICLE = {
         {"fieldname": "body", "label": "Body", "fieldtype": "RichText"},
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Data", "hidden": True},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create"]}],
 }
 
 

@@ -67,11 +67,11 @@ def _roles(perms):
 async def test_untouched_permissions_follow_the_json(ctx, db_session, engine, warnings):
     from grunt.metadata.permission import DocPermission
 
-    seeded = [DocPermission(role="System Manager", read=True)]
+    seeded = [DocPermission(role="System Manager", actions=["read"])]
     await _seed(db_session, engine, "FollowTarget", seeded, base=seeded)
 
     active, persisted = await _inject(
-        db_session, "FollowTarget", [DocPermission(role="Manager", read=True, write=True)]
+        db_session, "FollowTarget", [DocPermission(role="Manager", actions=["read", "write"])]
     )
 
     assert not [w for w in warnings if w["event"] == DRIFT]
@@ -88,12 +88,12 @@ async def test_customised_permissions_warn_but_are_kept(ctx, db_session, engine,
         db_session,
         engine,
         "CustomTarget",
-        [DocPermission(role="Studio Role", read=True)],
-        base=[DocPermission(role="System Manager", read=True)],
+        [DocPermission(role="Studio Role", actions=["read"])],
+        base=[DocPermission(role="System Manager", actions=["read"])],
     )
 
     active, persisted = await _inject(
-        db_session, "CustomTarget", [DocPermission(role="Manager", read=True)]
+        db_session, "CustomTarget", [DocPermission(role="Manager", actions=["read"])]
     )
 
     drift = [w for w in warnings if w["event"] == DRIFT]
@@ -107,11 +107,15 @@ async def test_unknown_baseline_warns_but_is_kept(ctx, db_session, engine, warni
     from grunt.metadata.permission import DocPermission
 
     await _seed(
-        db_session, engine, "DriftTarget", [DocPermission(role="System Manager", read=True)], None
+        db_session,
+        engine,
+        "DriftTarget",
+        [DocPermission(role="System Manager", actions=["read"])],
+        None,
     )
 
     active, _ = await _inject(
-        db_session, "DriftTarget", [DocPermission(role="Manager", read=True, write=True)]
+        db_session, "DriftTarget", [DocPermission(role="Manager", actions=["read", "write"])]
     )
 
     drift = [w for w in warnings if w["event"] == DRIFT]
@@ -125,7 +129,7 @@ async def test_matching_permissions_are_silent_and_record_baseline(
 ):
     from grunt.metadata.permission import DocPermission
 
-    same = [DocPermission(role="System Manager", read=True)]
+    same = [DocPermission(role="System Manager", actions=["read"])]
     await _seed(db_session, engine, "NoDriftTarget", same, None)
 
     _, persisted = await _inject(db_session, "NoDriftTarget", same)
@@ -140,7 +144,7 @@ async def test_studio_update_keeps_baseline(ctx, db_session, engine):
     from grunt.metadata.permission import DocPermission
     from grunt.metadata.registry import doctype_registry
 
-    base = [DocPermission(role="System Manager", read=True)]
+    base = [DocPermission(role="System Manager", actions=["read"])]
     await _seed(db_session, engine, "StudioTarget", base, base)
 
     # Studio sends the doctype back without `permissions_base`.
@@ -149,8 +153,36 @@ async def test_studio_update_keeps_baseline(ctx, db_session, engine):
         label="StudioTarget",
         module="test",
         fields=[],
-        permissions=[DocPermission(role="Studio Role", read=True)],
+        permissions=[DocPermission(role="Studio Role", actions=["read"])],
     )
     await doctype_registry.update(edited, db_session, engine)
 
     assert _roles(doctype_registry._doctypes["StudioTarget"].permissions_base) == ["System Manager"]
+
+
+@pytest.mark.asyncio
+async def test_unmigrated_stored_rows_stop_the_sync(ctx, db_session, engine, warnings):
+    """A definition stored before migration 0021 (old permission flags) is not
+    "invalid" - falling back to the JSON would drop its Studio customisations.
+    The sync stops instead and the stored row stays as it was."""
+    from sqlalchemy import update
+
+    from grunt.metadata import store
+    from grunt.metadata.permission import DocPermission
+
+    await _seed(
+        db_session, engine, "OldFlags", [DocPermission(role="Studio Role", actions=["read"])], None
+    )
+    old = await store.get_definition(db_session, "OldFlags")
+    old["permissions"] = [{"role": "Studio Role", "read": True}]
+    table = store.meta_table()
+    await db_session.execute(
+        update(table).where(table.c.name == "OldFlags").values({store.DEFINITION: old})
+    )
+    await db_session.commit()
+
+    with pytest.raises(RuntimeError, match="old permission flags"):
+        await _inject(db_session, "OldFlags", [DocPermission(role="Manager", actions=["read"])])
+    assert (await store.get_definition(db_session, "OldFlags"))["permissions"] == [
+        {"role": "Studio Role", "read": True}
+    ]

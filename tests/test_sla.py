@@ -61,9 +61,7 @@ TICKET = {
         {"fieldname": "due", "label": "Due", "fieldtype": "Date"},
         {"fieldname": "assignee", "label": "Assignee", "fieldtype": "Data"},
     ],
-    "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True}
-    ],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create", "delete"]}],
 }
 
 ASSIGNEE = "worker@grunt.example.com"

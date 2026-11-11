@@ -16,7 +16,7 @@ SETTINGS_DT = {
         {"fieldname": "current_period", "label": "Period", "fieldtype": "Data"},
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Password"},
     ],
-    "permissions": [{"role": "Reader", "read": True}],
+    "permissions": [{"role": "Reader", "actions": ["read"]}],
 }
 
 

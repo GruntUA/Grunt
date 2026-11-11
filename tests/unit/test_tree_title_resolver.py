@@ -28,7 +28,7 @@ RESOLVER_TREE_DOCTYPE = {
             "options": "ResolverTestTree",
         },
     ],
-    "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "All", "actions": ["read", "write", "create"]}],
 }
 
 

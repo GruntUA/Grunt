@@ -14,7 +14,7 @@ ITEM = {
     "label": "Onb Item",
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
-    "permissions": [{"role": "All", "read": True, "create": True, "write": True}],
+    "permissions": [{"role": "All", "actions": ["read", "write", "create"]}],
 }
 SETTINGS = {
     "name": "OnbSettings",
@@ -26,7 +26,7 @@ SETTINGS = {
         {"fieldname": "mode", "label": "Mode", "fieldtype": "Data"},
         {"fieldname": "app_name", "label": "App name", "fieldtype": "Data", "default": "Grunt"},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create"]}],
 }
 STEPS = [
     {"title": "Add an item", "action": "Create Entry", "reference_doctype": "OnbItem"},

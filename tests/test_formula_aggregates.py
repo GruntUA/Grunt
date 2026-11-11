@@ -51,7 +51,7 @@ async def ledger(ctx):
             "label": "Formula ledger",
             "module": "Core",
             "fields": [{"fieldname": "amount", "label": "Amount", "fieldtype": "Int"}],
-            "permissions": [{"role": "System Manager", "read": True, "write": True}],
+            "permissions": [{"role": "System Manager", "actions": ["read", "write"]}],
         }
     )
     await sync_doctype(name=DOCTYPE)

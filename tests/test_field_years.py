@@ -16,7 +16,7 @@ LEDGER = {
         {"fieldname": "signed_on", "label": "Signed on", "fieldtype": "Date"},
     ],
     "permissions": [
-        {"role": "Reader", "read": True},
+        {"role": "Reader", "actions": ["read"]},
     ],
 }
 

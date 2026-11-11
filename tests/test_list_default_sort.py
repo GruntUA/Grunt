@@ -15,7 +15,7 @@ SORTED_DT = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data", "in_list_view": True},
         {"fieldname": "rank", "label": "Rank", "fieldtype": "Int"},
     ],
-    "permissions": [{"role": "All", "read": True}],
+    "permissions": [{"role": "All", "actions": ["read"]}],
 }
 
 

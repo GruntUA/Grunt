@@ -21,7 +21,7 @@ POST_DOCTYPE = {
         {"fieldname": "team", "label": "Team", "fieldtype": "Link", "options": "Role"},
     ],
     "permissions": [
-        {"role": "Employee", "read": True, "write": True, "create": True, "delete": True},
+        {"role": "Employee", "actions": ["read", "write", "create", "delete"]},
     ],
 }
 
@@ -161,7 +161,7 @@ TREE_DOCTYPE = {
             "options": "UPTestUnit",
         },
     ],
-    "permissions": [{"role": "Employee", "read": True}],
+    "permissions": [{"role": "Employee", "actions": ["read"]}],
 }
 
 TREE_ASSET_DOCTYPE = {
@@ -172,7 +172,7 @@ TREE_ASSET_DOCTYPE = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "unit", "label": "Unit", "fieldtype": "Link", "options": "UPTestUnit"},
     ],
-    "permissions": [{"role": "Employee", "read": True}],
+    "permissions": [{"role": "Employee", "actions": ["read"]}],
 }
 
 
