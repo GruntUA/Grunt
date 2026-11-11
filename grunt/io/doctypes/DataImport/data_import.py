@@ -245,7 +245,6 @@ class DataImport(Document):
     @classmethod
     async def export_doctype(
         cls,
-        grunt: Any,
         doctype: str,
         *,
         filters: dict[str, Any] | None = None,

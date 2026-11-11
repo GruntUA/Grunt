@@ -9,7 +9,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy from openpyxl.cell import Cell
 
-import grunt
+from grunt.auth.current import user_context
 from grunt.db.dialects import dialect_for
 from grunt.db.session import get_engine as _engine_factory
 from grunt.document.query import expand_child_of_filters
@@ -38,7 +38,7 @@ class ReportEngine:
         user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        async with grunt.context(session, None, user):
+        async with user_context(session, None, user):
             rows = await documents.get_list(
                 "Report",
                 filters={"report_name": report_name},
@@ -178,7 +178,7 @@ class ReportEngine:
         assert compiled.code is not None  # no errors -> compiled
 
         engine = await _engine_factory()
-        async with grunt.context(session, engine, user):
+        async with user_context(session, engine, user):
             extra_globals = build_safe_globals()
             extra_globals["filters"] = filters
             extra_globals["db_dialect"] = session.get_bind().dialect.name

@@ -5,13 +5,12 @@ from fastapi import HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import String, cast, or_, select
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, session_user
+from grunt.local import require_session, session_user, user_email
 from grunt.storage import files, quota
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
 from grunt.storage.cloud.files import blob_path
@@ -213,7 +212,7 @@ async def upload(
     existing = await File.objects.filter(
         file_name=blob.filename,
         content_hash=blob.key,
-        uploaded_by=grunt.get_user().email,
+        uploaded_by=user_email(),
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
         folder=folder or None,

@@ -7,12 +7,12 @@ from typing import Any
 
 from fastapi import HTTPException
 
-import grunt
-from grunt import _, whitelist
+from grunt.api.context import whitelist
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
-from grunt.local import require_session
+from grunt.i18n import _
+from grunt.local import require_session, user_email
 from grunt.site.manager import site_manager
 from grunt.storage.cloud import MASK, SECRET_FIELDS, RemoteError, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone, config_text
@@ -142,7 +142,7 @@ class StorageRemote(Document):
 
 
 def _user() -> str:
-    return grunt.get_user().email
+    return user_email()
 
 
 async def _remote(name: str) -> dict[str, Any]:

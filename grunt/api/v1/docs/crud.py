@@ -5,17 +5,17 @@ from typing import Any
 
 from fastapi import Body, Depends, Query, Request, status
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import default_sort, parse_query_filters
 from grunt.api.v1.schemas.response import ok
+from grunt.auth.current import acting_user
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_engine
+from grunt.local import require_engine, user_email
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
 from grunt.site.manager import current_site
 from grunt.website.generator import WEB_URL_KEY, with_web_url
@@ -29,7 +29,7 @@ async def _decorate(doctype: str, doc: Any) -> Any:
     """The form's computed extras: ``__perms`` and, for a web page, ``__web_url``."""
 
     decorated = await with_web_url(doctype, await with_permissions(doctype, doc))
-    return await sign_authorized_file_urls(decorated, grunt.get_user().email)
+    return await sign_authorized_file_urls(decorated, user_email())
 
 
 @router.get("/{doctype}")
@@ -148,7 +148,7 @@ async def bulk_delete(
     optional ``filters``/``search`` (delete all matching, in rolling batches
     so datasets of any size are supported).
     """
-    user = grunt.get_user()
+    user = acting_user()
     user_email = user.email
     engine = require_engine()
     task = BulkDeleteTask()

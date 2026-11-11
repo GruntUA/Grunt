@@ -4,6 +4,7 @@ The grant itself is enforced in :mod:`grunt.permissions.shares`.
 """
 
 from grunt.document.base import Document
+from grunt.errors import throw
 from grunt.i18n import _
 from grunt.permissions.rbac import permission_checker
 
@@ -17,12 +18,12 @@ class SharedWith(Document):
         # ``user`` is a field here, but ``self.user`` is the acting user.
         target = (self.data.get("user") or "").strip()
         if not target:
-            self.grunt.throw(_("Specify a user"))
+            throw(_("Specify a user"))
         self.data["user"] = target
         if self.permission not in ("Read", "Write"):
             self.data["permission"] = "Read"
         if not await self.grunt.db.exists("User", target):
-            self.grunt.throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
+            throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
         await self._require_write_on_reference()
 
     async def before_delete(self) -> None:
@@ -34,9 +35,9 @@ class SharedWith(Document):
         dt = await self.grunt.get_meta(self.reference_doctype)
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
-            self.grunt.throw(_("Document not found"), "NOT_FOUND")
+            throw(_("Document not found"), "NOT_FOUND")
         if not await permission_checker.check(dt, "write", doc):
-            self.grunt.throw(
+            throw(
                 _("Only someone who can edit the document can share it"),
                 "PERMISSION_DENIED",
             )

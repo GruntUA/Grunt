@@ -31,8 +31,8 @@ from sqlalchemy import bindparam, inspect, text
 from grunt.cli.utils import _site_session
 from grunt.local import system_context
 from grunt.metadata.registry import doctype_registry
-lazy import grunt
 lazy from grunt.db.write_intent import set_process_default
+lazy from grunt.document.api import documents
 lazy from grunt.storage.backends import get_storage_backend
 lazy from grunt.storage.cloud.files import blob_path
 
@@ -205,8 +205,8 @@ def data_import(bundle: Path, site: str | None, yes: bool):
             await session.commit()
 
             for doctype in [*touched, "File"]:
-                await grunt.doc_cache.invalidate_doctype(doctype)
-                await grunt.query_cache.invalidate_doctype(doctype)
+                await documents.doc_cache.invalidate_doctype(doctype)
+                await documents.query_cache.invalidate_doctype(doctype)
         click.echo("Done. Restart the services so their in-process caches refresh: grunt restart")
 
     asyncio.run(_run())

@@ -8,8 +8,8 @@ from typing import Any, cast
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.engine import CursorResult
 
-import grunt
 from grunt.api.v1.ws import manager
+from grunt.auth.current import user_context
 from grunt.db.session import async_session_factory
 from grunt.i18n import _
 from grunt.log import log
@@ -68,7 +68,7 @@ class BulkDeleteTask:
         progress_cb = self._make_progress_cb(user_email, total)
 
         try:
-            async with async_session_factory() as session, grunt.context(session, engine, user):
+            async with async_session_factory() as session, user_context(session, engine, user):
                 deleted, errors = await documents.bulk_delete_docs(
                     doctype,
                     list(ids),
@@ -118,7 +118,7 @@ class BulkDeleteTask:
 
         # One-time count for accurate progress display.
         try:
-            async with async_session_factory() as session, grunt.context(session, engine, user):
+            async with async_session_factory() as session, user_context(session, engine, user):
                 grand_total: int = await documents.count(doctype, filters=filters)  # type: ignore[arg-type]
         except Exception:
             grand_total = 0
@@ -135,7 +135,7 @@ class BulkDeleteTask:
                 # Fetch the next batch of IDs that still exist.
                 async with (
                     async_session_factory() as session,
-                    grunt.context(session, engine, user),
+                    user_context(session, engine, user),
                 ):
                     rows = await documents.get_list(
                         doctype,
@@ -154,7 +154,7 @@ class BulkDeleteTask:
                 # Delete the batch.
                 async with (
                     async_session_factory() as session,
-                    grunt.context(session, engine, user),
+                    user_context(session, engine, user),
                 ):
                     deleted, errors = await documents.bulk_delete_docs(doctype, ids)
 
@@ -269,7 +269,7 @@ class BulkDeleteTask:
             return
 
         try:
-            async with async_session_factory() as session, grunt.context(session, engine, user):
+            async with async_session_factory() as session, user_context(session, engine, user):
                 dt = await doctype_registry.get_meta(doctype)
                 if dt is None:
                     raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})

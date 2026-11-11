@@ -31,14 +31,13 @@ from typing import Any
 import httpx2
 from packaging.version import InvalidVersion, Version
 
-import grunt
 from grunt.apps.manifest import is_app
 from grunt.config import settings
 from grunt.i18n import _
 from grunt.log import log
 from grunt.monitoring.health import ERROR, INFO, OK, WARNING, Row, row
 from grunt.site.manager import site_manager
-from grunt.version import FRAMEWORK_DIR, app_version
+from grunt.version import FRAMEWORK_DIR, app_version, framework_version
 lazy from grunt.apps.deps import app_updates as plan
 lazy from grunt.storage.cloud import rclone
 
@@ -245,7 +244,7 @@ async def repo_update(path: Path) -> str | None:
 
 async def code_rows(cat: str) -> list[Row]:
     async def one(name: str, path: Path) -> Row:
-        current = grunt.__version__ if name == "grunt" else app_version(path)
+        current = framework_version() if name == "grunt" else app_version(path)
         try:
             target = await cached(f"git:{path}", lambda: repo_update(path))
         except UnavailableError as e:

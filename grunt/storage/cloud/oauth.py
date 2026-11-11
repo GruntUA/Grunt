@@ -30,11 +30,12 @@ import httpx2
 from fastapi import HTTPException, Request
 from fastapi.responses import RedirectResponse
 
-import grunt
-from grunt import _, log, whitelist
+from grunt.api.context import whitelist
 from grunt.config import settings
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
+from grunt.i18n import _
+from grunt.local import require_session, system_context, user_email
+from grunt.log import log
 from grunt.storage.cloud import load_remote
 from grunt.storage.cloud.providers import get_provider
 from grunt.storage.cloud.rclone import RemoteError
@@ -196,7 +197,7 @@ async def authorize(name: str, request: Request | None = None) -> AuthorizeLink:
         "client_id": remote["client_id"],
         "redirect_uri": redirect_uri(request),
         "response_type": "code",
-        "state": make_state(name, grunt.get_user().email),
+        "state": make_state(name, user_email()),
         **endpoints.extra_params,
     }
     if endpoints.scope:

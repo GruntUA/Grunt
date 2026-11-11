@@ -10,10 +10,10 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
 from grunt.db.api import GruntDB
 from grunt.local import system_context
 from grunt.log import log
+from grunt.version import framework_version
 lazy from grunt.document.api import documents
 lazy from grunt.site.doctypes.AppMenu.app_menu import AppMenu, default_color
 
@@ -182,7 +182,7 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
                 {
                     "name": "grunt",
                     "title": "Grunt",
-                    "version": grunt.__version__,
+                    "version": framework_version(),
                     "modules": ["core"],
                 },
             )

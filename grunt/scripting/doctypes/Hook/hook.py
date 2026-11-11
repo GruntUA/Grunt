@@ -9,7 +9,7 @@ Read-only: list + load. Insert/update/delete are not supported.
 
 from typing import Any
 
-from grunt import hooks
+import grunt.hooks as hooks
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
@@ -69,7 +69,7 @@ async def _collect_server_scripts() -> list[dict[str, Any]]:
             limit=1000,
         )
     except Exception:
-        from grunt import log
+        from grunt.log import log
 
         log.exception("hook.server_scripts_failed")
         return rows

@@ -9,10 +9,9 @@ from typing import Any
 
 from sqlalchemy import func, select
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
+from grunt.local import require_session, system_context, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import doc_guard
 lazy from grunt.document.api import documents
@@ -53,7 +52,7 @@ async def get_list_badges(doctype: str, ids: list[str]) -> dict[str, dict[str, A
     if not ids:
         return {}
 
-    me = grunt.get_user().email
+    me = user_email()
     async with system_context(require_session()):
         comments = await _counts("Comment", doctype, ids, comment_type="Comment")
         likes = await _counts("DocLike", doctype, ids)
@@ -75,7 +74,7 @@ async def get_list_badges(doctype: str, ids: list[str]) -> dict[str, dict[str, A
 async def toggle_like(doctype: str, doc_id: str) -> dict[str, Any]:
     """Like the document, or take the like back. Returns ``{"liked", "likes"}``."""
     await doc_guard(doctype, doc_id)
-    me = grunt.get_user().email
+    me = user_email()
     ref = {"reference_doctype": doctype, "reference_id": str(doc_id)}
     async with system_context(require_session()):
         existing = await _db.get_all("DocLike", filters={**ref, "user": me}, pluck="name", limit=1)

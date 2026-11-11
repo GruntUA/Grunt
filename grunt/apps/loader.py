@@ -26,7 +26,7 @@ from types import ModuleType
 from fastapi import FastAPI
 lazy from fastapi.staticfiles import StaticFiles
 
-from grunt import core_hooks, log
+import grunt.core_hooks as core_hooks
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
 from grunt.document.registry import document_registry
 from grunt.io import register_exporter, register_importer
@@ -35,6 +35,7 @@ from grunt.io.exporters.html import HtmlExporter
 from grunt.io.exporters.xlsx import XlsxExporter
 from grunt.io.importers.csv import CsvImporter
 from grunt.io.importers.xlsx import XlsxImporter
+from grunt.log import log
 from grunt.scripting.file_scripts import _load_doctype_dir_scripts, register_client_script_dir
 from grunt.scripting.file_scripts import discover_file_scripts as _discover_scripts
 from grunt.site.manager import site_manager

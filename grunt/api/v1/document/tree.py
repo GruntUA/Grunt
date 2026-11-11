@@ -11,8 +11,8 @@ from typing import Any
 
 from sqlalchemy import select
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.document.tree import TREE_TITLE_RESOLVERS, tree_service
 from grunt.errors import not_found
 from grunt.i18n import _
@@ -37,7 +37,7 @@ async def _tree_read_gate(doctype: str) -> tuple[Any, list[str] | None]:
     dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-    user = grunt.get_user()
+    user = acting_user()
     access = await role_access(dt.doc, user.email)
 
     # An explicit ``select`` grant (without unrestricted ``read``) limits the
@@ -69,7 +69,7 @@ async def _tree_row_scope(dt: Any, restricted: list[str] | None) -> Any | None:
     if restricted is not None:
         return None
 
-    user = grunt.get_user()
+    user = acting_user()
     table = dt.table
     readable = await read_predicate(user.email, dt)
     return None if readable == TRUE else await where(select(table.c.name), readable, table, dt.name)

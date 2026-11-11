@@ -2,8 +2,8 @@
 
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
@@ -19,7 +19,7 @@ async def list_notifications(
     unread_only: bool = False, page: int = 1, per_page: int = 20
 ) -> dict[str, Any]:
     """Get notifications for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
     filters: dict[str, Any] = {"user": user.email}
     if str(unread_only).lower() == "true":
         filters["is_read"] = False
@@ -39,7 +39,7 @@ async def list_notifications(
 @whitelist()
 async def mark_as_read(notification_id: str) -> bool:
     """Mark a notification as read - only if it belongs to the current user."""
-    user = grunt.get_user()
+    user = acting_user()
     count = await _db.bulk_update(
         "Notification",
         filters={"name": notification_id, "user": user.email},
@@ -51,7 +51,7 @@ async def mark_as_read(notification_id: str) -> bool:
 @whitelist()
 async def mark_all_as_read() -> dict[str, Any]:
     """Mark all notifications as read for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
     count = await _db.bulk_update(
         "Notification",
         filters={"user": user.email, "is_read": False},
@@ -63,7 +63,7 @@ async def mark_all_as_read() -> dict[str, Any]:
 @whitelist()
 async def get_unread_count() -> int:
     """Get the count of unread notifications for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
     return await documents.count("Notification", filters={"user": user.email, "is_read": False})
 
 
@@ -89,7 +89,7 @@ async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str 
     if not await get_setting("enable_web_push", False):
         throw(_("Web Push is disabled in the system settings"), "FORBIDDEN")
 
-    user = grunt.get_user()
+    user = acting_user()
 
     await webpush_service.save_subscription(user.email, endpoint, p256dh, auth, user_agent)
     return True
@@ -98,7 +98,7 @@ async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str 
 @whitelist()
 async def unsubscribe_push(endpoint: str) -> bool:
     """Remove a browser push subscription for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
 
     await webpush_service.remove_subscription(endpoint, user.email)
     return True

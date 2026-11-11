@@ -47,3 +47,24 @@ async def render_template(
 
     tpl = env.get_template(template if is_file else "_")
     return await tpl.render_async(**ctx)
+
+
+# The ``grunt`` facade templates get as a global - it registers itself
+# (:func:`use_app`), so the core renders without importing it.
+_app: Any = None
+
+
+def use_app(app: Any) -> None:
+    """Register the facade object templates see as ``grunt``."""
+    global _app
+    _app = app
+
+
+async def render(
+    template: str, context: dict[str, Any] | None = None, *, autoescape: bool = True
+) -> str:
+    """:func:`render_template` with the registered facade - ``grunt.render_template``
+    for the core."""
+    if _app is None:
+        raise RuntimeError("grunt: the app facade is not loaded yet")
+    return await render_template(_app, template, context, autoescape=autoescape)

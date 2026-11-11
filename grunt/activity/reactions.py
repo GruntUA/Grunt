@@ -7,11 +7,11 @@ comments (``reactions_for``), so reading them needs no extra round trip.
 
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.db.api import GruntDB
 from grunt.errors import throw
-from grunt.local import require_session, system_context
+from grunt.i18n import _
+from grunt.local import require_session, system_context, user_email
 from grunt.permissions.guards import doc_guard
 from grunt.site.settings import get_setting
 lazy from grunt.auth.users import get_users_by_emails
@@ -50,7 +50,7 @@ async def reactions_for(comment_ids: list[str]) -> dict[str, list[dict[str, Any]
             order="asc",
             limit=None,
         )
-    me = grunt.get_user().email
+    me = user_email()
     order = {e: i for i, e in enumerate(await reaction_choices())}
     grouped: dict[str, dict[str, dict[str, Any]]] = {}
     for r in rows:
@@ -81,10 +81,10 @@ async def toggle_reaction(comment: str, emoji: str) -> list[dict[str, Any]]:
             "Comment", comment, ["reference_doctype", "reference_id"], as_dict=True
         )
     if ref is None:
-        throw(grunt._("Comment not found"), "NOT_FOUND")
+        throw(_("Comment not found"), "NOT_FOUND")
     await doc_guard(ref.reference_doctype, ref.reference_id)
 
-    key = {"comment": comment, "emoji": emoji, "user": grunt.get_user().email}
+    key = {"comment": comment, "emoji": emoji, "user": user_email()}
     async with system_context(require_session()):
         existing = await _db.get_all("CommentReaction", filters=key, pluck="name", limit=1)
     if existing:

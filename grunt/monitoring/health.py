@@ -24,8 +24,7 @@ from jinja2 import Environment, FileSystemLoader
 from packaging.version import InvalidVersion, Version
 from sqlalchemy import inspect, text
 
-import grunt
-from grunt import log, whitelist
+from grunt.api.context import whitelist
 from grunt.api.v1.ws import manager
 from grunt.apps.deps import app_packages
 from grunt.apps.manifest import is_app
@@ -35,7 +34,8 @@ from grunt.db.dialects import dialect_for
 from grunt.errors import throw
 from grunt.i18n import N_, _
 from grunt.i18n.jinja import install as install_i18n
-from grunt.local import require_session
+from grunt.local import require_session, user_email
+from grunt.log import log
 from grunt.metadata.compiler import get_table_name
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
@@ -43,7 +43,7 @@ from grunt.site.settings import get_setting
 from grunt.tasks import scheduler as cron
 from grunt.tasks.redis_introspect import DEAD_CONSUMER_IDLE_MS, redis_conn, s, stream_broker
 from grunt.utils.redis import connect
-from grunt.version import app_version, compatibility_error
+from grunt.version import app_version, compatibility_error, framework_version
 lazy from grunt.config import DEFAULT_SECRET_KEY, settings
 lazy from grunt.db.alembic_utils import migration_state
 lazy from grunt.document.api import documents
@@ -507,9 +507,7 @@ async def check_realtime() -> list[Row]:
 async def ws_echo(nonce: str) -> dict[str, Any]:
     """Push a test event to the caller's own user channel - the browser half
     of the report checks it arrives exactly once (grunt/api/v1/ws.py)."""
-    await manager.send_to_user(
-        grunt.get_user().email, {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}}
-    )
+    await manager.send_to_user(user_email(), {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}})
     return {"sent": True}
 
 
@@ -797,7 +795,7 @@ async def _version_rows(cat: str) -> list[Row]:
             )
         return row(cat, name, INFO, code)
 
-    rows = [version_row("grunt", grunt.__version__)]
+    rows = [version_row("grunt", framework_version())]
     apps_dir = site_manager.bench_dir / "apps"
     for app_dir in sorted(apps_dir.iterdir() if apps_dir.is_dir() else []):
         if app_dir.name == "grunt" or not is_app(app_dir):

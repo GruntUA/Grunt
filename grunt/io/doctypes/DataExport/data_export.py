@@ -43,7 +43,6 @@ class DataExport(Document):
             limit = int(self.limit or 10_000)
 
             file_bytes, filename = await DataImport.export_doctype(
-                self.grunt,
                 self.doctype_name,
                 filters=filters,
                 fields=fields,

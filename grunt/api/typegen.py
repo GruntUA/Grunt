@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-lazy from grunt import log
+from grunt.log import log
 lazy from grunt.document.base import Document
 
 #: Parameters the dispatcher fills itself (``api/v1/method.py``).

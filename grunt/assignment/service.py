@@ -3,7 +3,7 @@
 import json
 from typing import Any
 
-import grunt
+from grunt.auth.current import user_context
 from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
@@ -118,7 +118,7 @@ class AssignmentService:
         """Завантажити всі enabled правила для DocType з БД."""
 
         try:
-            async with grunt.context(require_session()):
+            async with user_context(require_session()):
                 rows = await _db.get_all(
                     "AssignmentRule",
                     filters={"doctype_target": doctype, "enabled": True},

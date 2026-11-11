@@ -51,7 +51,7 @@ from grunt.db.session import get_engine as _get_engine_dep
 from grunt.db.session import get_session
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json
-from grunt.local import system_context
+from grunt.local import require_session, system_context
 from grunt.main import app
 from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table, get_compiled_metadata
 from grunt.metadata.doctype import DocType
@@ -448,5 +448,5 @@ async def signed_in_cookie(email: str, roles: tuple[str, ...] = ()) -> str:
     # Explicitly: the first user of a database becomes a System Manager.
     await documents.save_doc("User", user.id, {"roles": [{"role_name": r} for r in roles]})
     _sid, token = await open_session(user.id, None, None)
-    await grunt.db._session().commit()
+    await require_session().commit()
     return f"{SESSION_COOKIE}={token}"

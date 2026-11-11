@@ -13,13 +13,14 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.auth.language import language_of
 from grunt.db.api import GruntDB
 from grunt.i18n import _, use_language
-from grunt.local import require_session, system_context
+from grunt.local import require_session, system_context, user_email
 from grunt.permissions.guards import doc_guard
+from grunt.publish import notify as notify_users
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -81,14 +82,12 @@ async def add_comment(
 
     # @mention notifications
     mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
-    mentions.discard(grunt.get_user().email)  # do not notify self
+    mentions.discard(user_email())  # do not notify self
     if mentions:
         for mention in mentions:
             with use_language(await language_of(mention)):
-                subject = _("%(user)s mentioned you in a comment") % {
-                    "user": grunt.get_user().email
-                }
-            await grunt.notify(
+                subject = _("%(user)s mentioned you in a comment") % {"user": user_email()}
+            await notify_users(
                 users=[mention],
                 subject=subject,
                 message=content,
@@ -101,10 +100,10 @@ async def add_comment(
     if root:
         async with system_context(require_session()):
             root_author = await _db.get_value("Comment", root, "owner")
-        if root_author and root_author != grunt.get_user().email and root_author not in mentions:
+        if root_author and root_author != user_email() and root_author not in mentions:
             with use_language(await language_of(root_author)):
-                subject = _("%(user)s replied to your comment") % {"user": grunt.get_user().email}
-            await grunt.notify(
+                subject = _("%(user)s replied to your comment") % {"user": user_email()}
+            await notify_users(
                 users=[root_author],
                 subject=subject,
                 message=content,
@@ -120,7 +119,7 @@ async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
     """Delete a comment."""
 
     comment = await documents.get_doc("Comment", comment_id)
-    user = grunt.get_user()
+    user = acting_user()
     if comment.get("owner") != user.email and not user.has_role("System Manager"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
@@ -154,7 +153,7 @@ async def get_bookmark(doctype: str, doc_id: str) -> dict[str, Any] | None:
         filters={
             "reference_doctype": doctype,
             "reference_id": doc_id,
-            "owner": grunt.get_user().email,
+            "owner": user_email(),
         },
         limit=1,
     )
@@ -189,7 +188,7 @@ async def remove_bookmark(doctype: str, doc_id: str) -> None:
         filters={
             "reference_doctype": doctype,
             "reference_id": doc_id,
-            "owner": grunt.get_user().email,
+            "owner": user_email(),
         },
         limit=1,
     )

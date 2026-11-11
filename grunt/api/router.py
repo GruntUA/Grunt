@@ -13,7 +13,7 @@ class GruntRouter(APIRouter):
     This removes the need for developers to manually add `Depends(grunt_context)`
     (or, for guest-accessible routers, `Depends(grunt_context_optional)`) to every
     endpoint - and the need for individual route handlers to open their own
-    `async with grunt.context(...)`/`system_context(...)` just to make a session
+    `async with user_context(...)`/`system_context(...)` just to make a session
     visible to `grunt.get_doc`/`grunt.db`/etc.
 
     Pass ``optional_auth=True`` for routers that mix anonymous and authenticated

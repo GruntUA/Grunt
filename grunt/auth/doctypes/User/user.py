@@ -11,7 +11,6 @@ import re as _re
 from datetime import date, datetime
 from typing import Any
 
-import grunt
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.passwords import hash_password, verify_password
@@ -20,7 +19,7 @@ from grunt.document.base import Document
 from grunt.document.schema import Schema
 from grunt.errors import throw
 from grunt.i18n import N_, _
-from grunt.local import use_system_user
+from grunt.local import _user_ctx, use_system_user
 from grunt.log import log
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -131,10 +130,7 @@ class User(Document):
         internal/system code (registration, fixtures, ``_assign_default_role``)
         are unrestricted.
         """
-        try:
-            current = grunt.get_user()
-        except Exception:
-            return
+        current = _user_ctx.get()
         if current is None or not getattr(current, "id", None):
             return
         if current.has_role("System Manager"):
@@ -285,8 +281,5 @@ async def _is_internal_context() -> bool:
     """True when the active context is the internal SYSTEM_USER (bootstrap,
     fixtures, registration flows) or has no user at all - those paths must not
     be blocked by the interactive password policy."""
-    try:
-        current = grunt.get_user()
-    except Exception:
-        return True
+    current = _user_ctx.get()
     return not current or current.email == SYSTEM_USER.email

@@ -21,7 +21,6 @@ from pathlib import Path
 
 from taskiq import TaskiqEvents, TaskiqState
 
-import grunt
 from grunt.cache import bus
 from grunt.db.write_intent import set_process_default
 from grunt.log import log
@@ -55,7 +54,7 @@ def _task_modules(package_dir: Path) -> list[str]:
 
 def import_task_modules(apps_dir: Path | None = None) -> list[str]:
     """Import every task-declaring module of the framework and the bench's apps."""
-    packages = [Path(grunt.__file__).parent]
+    packages = [Path(__file__).resolve().parents[1]]  # the grunt package
     if apps_dir is not None and apps_dir.is_dir():
         for app_dir in sorted(apps_dir.iterdir()):
             package = app_dir / app_dir.name

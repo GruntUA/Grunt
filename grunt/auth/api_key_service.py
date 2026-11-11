@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
+from grunt.auth.current import user_context
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 from grunt.auth.users import get_user_by_id
@@ -119,7 +119,7 @@ async def authenticate_api_key(
         return None
 
     # Load user
-    async with grunt.context(session):
+    async with user_context(session):
         user = await get_user_by_id(matched_row["user_id"])
     if user is None or not user.is_active:
         return None

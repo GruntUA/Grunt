@@ -4,10 +4,10 @@ from datetime import date
 from functools import cache
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.api.v1.dashboard import page_visible
 from grunt.apps.manifest import extenders
+from grunt.auth.current import acting_user
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
 from grunt.site.doctypes.AppMenu.app_menu import (
@@ -23,7 +23,7 @@ lazy from grunt.document.api import documents
 
 async def _visible_pages() -> list[dict[str, Any]]:
     """Pages the current user may open, as dashboard candidates for the apps."""
-    user = grunt.get_user()
+    user = acting_user()
     pages = await documents.get_list(
         "Page",
         fields=["name", "label", "app", "is_published", "roles"],
@@ -89,7 +89,7 @@ async def _workspace_to_dict(
 ) -> dict[str, Any]:
     """Convert AppMenu document data to dict, filtering items by role."""
 
-    user = grunt.get_user()
+    user = acting_user()
     if pages is None:
         pages = await _visible_pages()
 
@@ -172,7 +172,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
 
     all_ws = await documents.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
-    user = grunt.get_user()
+    user = acting_user()
     if not user:
         return []
     pages = await _visible_pages()
@@ -264,7 +264,7 @@ async def get_my_work() -> dict[str, Any]:
 
     open tasks assigned to them (flagged when overdue) and unread notifications.
     """
-    user = grunt.get_user()
+    user = acting_user()
     email = user.email
     today = date.today().isoformat()
 

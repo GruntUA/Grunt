@@ -18,8 +18,8 @@ from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 
-import grunt
 from grunt.apps import load_external_apps
+from grunt.auth.current import user_context
 from grunt.cache import bus
 from grunt.config import settings
 from grunt.db.api import GruntDB
@@ -94,7 +94,7 @@ async def _seed_supported_languages() -> None:
         token = current_site.set(site)
         try:
             maker = site_manager.get_session_maker(site)
-            async with maker() as session, grunt.context(session):
+            async with maker() as session, user_context(session):
                 translation_service.set_default(await get_setting("language"))
                 rows = await _db.get_all(
                     "Language",

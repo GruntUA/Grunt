@@ -9,8 +9,8 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
@@ -40,7 +40,7 @@ class DeletedDocument(Document):
 
 
 def _require_system_manager() -> None:
-    if not grunt.get_user().has_role("System Manager"):
+    if not acting_user().has_role("System Manager"):
         throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
 
 

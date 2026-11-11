@@ -13,10 +13,10 @@ empty ``user`` for a site checklist; so are the tours a user has taken.
 import copy
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.api.v1.dashboard import page_visible
 from grunt.auth.constants import SYSTEM_USER_EMAIL
+from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
@@ -34,7 +34,7 @@ _MARKS = ("Completed", "Skipped")
 
 
 # Everything below reads under ``system_context`` (progress rows are not the
-# user's to read directly), where ``grunt.get_user()`` is the system user - so
+# user's to read directly), where ``acting_user()`` is the system user - so
 # the caller's user is taken first and passed along.
 
 
@@ -161,7 +161,7 @@ async def _summary(onboarding: dict[str, Any], user: str) -> dict[str, Any] | No
 @whitelist()
 async def get_onboardings(app: str | None = None) -> list[dict[str, Any]]:
     """Checklists the user sees (all, or *app*'s), with each step's status."""
-    user = grunt.get_user()
+    user = acting_user()
     async with system_context(require_session()):
         out = [await _summary(o, user.email) for o in await _visible(app or None, user.role_names)]
     return [o for o in out if o and o["total"]]
@@ -186,7 +186,7 @@ async def _set(key: dict[str, str], status: str | None) -> None:
 @whitelist()
 async def mark_step(onboarding: str, step_id: str, status: str = "Completed") -> dict[str, Any]:
     """Mark a step Completed or Skipped, or ``Pending`` to take the mark back."""
-    user = grunt.get_user()
+    user = acting_user()
     o = await _require(onboarding, user.role_names)
     if not any(s.get("step_id") == step_id for s in o.get("steps") or []):
         throw(_("Step not found"), "NOT_FOUND")
@@ -202,7 +202,7 @@ async def mark_step(onboarding: str, step_id: str, status: str = "Completed") ->
 @whitelist()
 async def hide_onboarding(onboarding: str) -> None:
     """Hide the checklist for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
     await _require(onboarding, user.role_names)
     await _set({"onboarding": onboarding, "step_id": "", "user": user.email}, "Hidden")
 
@@ -233,7 +233,7 @@ async def get_form_tours(doctype: str, view: str = "Form") -> list[dict[str, Any
     whether they have taken each."""
     if view not in TOUR_VIEWS:
         throw(_("Unknown view: %(view)s") % {"view": view})
-    user = grunt.get_user()
+    user = acting_user()
     async with system_context(require_session()):
         tours = await _tours(doctype, user.role_names, view)
         taken = set(
@@ -271,7 +271,7 @@ async def get_form_tours(doctype: str, view: str = "Form") -> list[dict[str, Any
 @whitelist()
 async def complete_form_tour(tour: str) -> None:
     """Note that the user has taken *tour* (finished or closed it)."""
-    user = grunt.get_user()
+    user = acting_user()
     async with system_context(require_session()):
         row = await _db.get_value("FormTour", tour, ["reference_doctype", "view"], as_dict=True)
         doctype = (row or {}).get("reference_doctype")

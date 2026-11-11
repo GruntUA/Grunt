@@ -8,7 +8,6 @@ HTTP endpoints in ``grunt.auth.user_api``, password hashing in
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import grunt
 from grunt.auth.doctypes.UserRole.user_role import get_user_roles
 from grunt.auth.passwords import verify_password
 from grunt.config import settings
@@ -114,7 +113,7 @@ async def get_auth_context_user(uid: str) -> User | None:
     plus display profile fields (``AUTH_CONTEXT_FIELDS``).
 
     Used by :func:`grunt.auth.dependencies.current_user`/``optional_user`` on
-    (almost) every request, so this goes through ``grunt.doc_cache`` (a
+    (almost) every request, so this goes through ``documents.doc_cache`` (a
     generic per-document cache, see ``grunt/cache/document_cache.py``) instead
     of hitting the DB each time. The cache is invalidated on every ``User``
     write (see ``DocumentAPI._invalidate_list_cache``), so a role change or
@@ -124,13 +123,13 @@ async def get_auth_context_user(uid: str) -> User | None:
     if not settings.doc_cache_enabled:
         return await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
 
-    cached = await grunt.doc_cache.get("User", uid)
+    cached = await documents.doc_cache.get("User", uid)
     if cached is not None:
         return User(doctype="User", data=dict(cached), session=require_session())
 
     user = await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
     if user is not None:
-        await grunt.doc_cache.set("User", uid, dict(user.data))
+        await documents.doc_cache.set("User", uid, dict(user.data))
     return user
 
 

@@ -4,7 +4,6 @@ import base64
 import json
 from typing import Any, cast
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.data_import.tasks import run_data_import
 from grunt.errors import throw
@@ -97,7 +96,6 @@ async def export_quick(
 
     try:
         file_bytes, filename = await DataImport.export_doctype(
-            grunt,
             doctype,
             filters=parsed_filters,
             fields=parsed_fields,

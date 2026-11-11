@@ -18,8 +18,8 @@ from pathlib import Path
 import click
 import dotenv
 
+from grunt.auth.current import user_context
 from grunt.cli.utils import AliasedGroup
-lazy import grunt
 lazy from grunt.auth.users import create_user, get_user_by_email
 lazy from grunt.metadata.compiler import SA_METADATA, sync_table
 lazy from grunt.metadata.extensions import extensions_for_site
@@ -297,7 +297,7 @@ async def _create_admin(site_name: str, email: str, password: str) -> None:
         maker = site_manager.get_session_maker(site_name)
         async with maker() as session:
             try:
-                async with grunt.context(session):
+                async with user_context(session):
                     if await get_user_by_email(email) is not None:
                         click.echo("  [info] Admin already exists, skipping")
                         return

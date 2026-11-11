@@ -26,8 +26,8 @@ from typing import Any
 from fastapi import Request
 from starlette.requests import HTTPConnection
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
 from grunt.config import settings
 from grunt.db.api import GruntDB
@@ -323,7 +323,7 @@ async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
 @whitelist()
 async def list_my_sessions() -> list[dict[str, Any]]:
     """Active sessions of the current user; ``current`` marks this device."""
-    current = grunt.get_user()
+    current = acting_user()
     assert current.id is not None
     async with system_context(require_session()):
         await deactivate_expired(current.id, await session_ttl_minutes())
@@ -343,7 +343,7 @@ async def list_my_sessions() -> list[dict[str, Any]]:
 async def revoke_my_session(session_id: str) -> bool:
     """Sign out one of the current user's devices."""
 
-    current = grunt.get_user()
+    current = acting_user()
     async with system_context(require_session()):
         owner = await _db.get_value("UserSession", session_id, "user")
     if owner is None or owner != current.id:
@@ -355,6 +355,6 @@ async def revoke_my_session(session_id: str) -> bool:
 @whitelist()
 async def revoke_other_sessions() -> int:
     """Sign out every device of the current user except this one."""
-    current = grunt.get_user()
+    current = acting_user()
     assert current.id is not None
     return await end_all_sessions(current.id, keep_sid=current.data.get("_sid"))

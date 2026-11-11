@@ -14,11 +14,10 @@ from typing import Any
 from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.i18n import _
 from grunt.io import ListExportContext, get_exporter, get_exporters
-from grunt.local import require_session
+from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort
 lazy from grunt.document.api import documents
@@ -203,7 +202,7 @@ async def print(
         # PrintFormat (or the standard template) + letterhead.
         html = await render_print_html(doctype, doc, print_format)
 
-        html = await sign_authorized_file_urls(html, grunt.get_user().email)
+        html = await sign_authorized_file_urls(html, user_email())
         if fmt == "html":
             if autoprint:
                 html = html.replace("</body>", f"{_AUTOPRINT_SCRIPT}</body>", 1)
@@ -280,7 +279,7 @@ async def preview(
         if rendered_lh and "letter_head" not in template_str:
             html = apply_letter_head(html, rendered_lh)
 
-    signed = await sign_authorized_file_urls(html, grunt.get_user().email)
+    signed = await sign_authorized_file_urls(html, user_email())
     return Response(content=signed, media_type="text/html")
 
 
