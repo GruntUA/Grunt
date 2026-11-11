@@ -1,5 +1,70 @@
 # Changelog
 
+## v0.3.0 - 2026-11-11
+
+### Breaking changes
+
+- **permissions:** refuse the old permission flags (#141)
+- **permissions:** permission rows grant a list of actions (#139)
+- **imports:** auth services leave the User controller's re-exports (#134)
+- **imports:** document HTTP methods move from Document to grunt.api.v1.document (#133)
+
+### Features
+
+- update permissions plan with validation results and refactor skill documentation
+- update IMPORT_CYCLES_PLAN and add FRAPPE_GAP_PLAN for functionality gaps
+- **permissions:** read-only fields per role (#142)
+- **permissions:** enforce export, import, print, share and report (#140)
+- **scheduler:** log only failures of jobs that fire more often than hourly (#115)
+- **versions:** no_history fields and max_versions per document (#114)
+- **website:** serve an app's www pages at the root of its own domain (#109)
+- **sla:** the document's deadlines in its form sidebar (#112)
+- **onboarding:** tours of a list, not only of a form (#111)
+- **website:** page views in the core - view_count, beacon, Redis batches (#110)
+
+### Fixes
+
+- **permissions:** close every path to a field hidden from the user (#119)
+- **permissions:** one predicate decides lists and single documents (#118)
+- **dependencies:** update pypdfium2 to version 5.15.2 (#117)
+- **deps:** sync package-lock.json with package.json, inline @unovis in vitest (#116)
+- **query:** order_by takes "field asc|desc" and rejects unknown fields (#108)
+- **permissions:** no cache for role checks - answers never outlive their rows (#104)
+
+### Performance
+
+- **db:** implicit indexes, SQLite tuning and nightly maintenance (#113)
+
+### Other
+
+- empty only the tables a test wrote to (#143)
+- count parent-package imports, empty re-export __init__ files (step 10) (#138)
+- untangle the remaining import cycles (step 8) (#137)
+- **imports:** the core no longer imports the grunt facade at all (#136)
+- **imports:** the core stops going through the grunt facade (#135)
+- **imports:** the write pipeline reaches workflow, webhooks and the rest through extension points (#132)
+- **imports:** services call the document API and grunt.local instead of the facade (#131)
+- **imports:** document CRUD moves into the document layer; the event bus loses its subsystems (#130)
+- **imports:** services under the document layer stop reaching the facade for low-level calls (#129)
+- **imports:** document.base and its registry stop importing each other (#128)
+- **imports:** the document layer stops reaching the facade for low-level calls (#127)
+- **imports:** the data layer and permissions leave import cycles (#126)
+- **imports:** permissions untangle their own cycle; query.run reads without permissions (#125)
+- **imports:** the metadata layer leaves import cycles (#124)
+- **imports:** the context layer leaves import cycles (#123)
+- **permissions:** below the auth layer a user is their email (#122)
+- **roles:** roles by email, User.has_role, grunt.get_user on the facade (#121)
+- **imports:** import-cycle ratchet and the first small cycles (#120)
+- Refactor code structure for improved readability and maintainability
+- drop on-demand Claude workflow (#107)
+- CodeQL scanning and on-demand Claude review (#106)
+- check PR titles in CI, minimatch 11, DB layers plan done (#105)
+
+### Database migrations
+
+- `0020_version_history_limits`
+- `0021_permission_actions`
+
 ## v0.2.0 - 2026-11-08
 
 ### Highlights
