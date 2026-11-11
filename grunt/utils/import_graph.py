@@ -102,8 +102,13 @@ def build(root: Path, package: str, *, skip: Iterable[str] = ()) -> ImportGraph:
                 edges[mod][dep].append(node.lineno)
                 own = mod if is_package else mod.rpartition(".")[0]
                 parent = dep.rpartition(".")[0]
-                while parent and parent in modules:
-                    if parent != own and not own.startswith(f"{parent}.") and parent != mod:
+                while parent:  # a namespace package (no __init__) in between runs nothing
+                    if (
+                        parent in modules
+                        and parent != own
+                        and not own.startswith(f"{parent}.")
+                        and parent != mod
+                    ):
                         edges[mod][parent].append(node.lineno)
                     parent = parent.rpartition(".")[0]
 
