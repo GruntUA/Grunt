@@ -4,11 +4,11 @@ from grunt.backups import BackupSet, delete_backup, get_backup, list_backups
 from grunt.backups.api import download_url
 from grunt.document.base import Document
 from grunt.i18n import N_
-from grunt.monitoring.health import human_size
 from grunt.query.query import Query
 from grunt.site.manager import site_manager
 from grunt.storage.cloud.backups import load_state
 from grunt.store import DELETE, VirtualStore
+from grunt.utils.sizes import human_size
 
 
 def _site() -> str:

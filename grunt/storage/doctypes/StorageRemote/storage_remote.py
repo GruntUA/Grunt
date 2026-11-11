@@ -16,10 +16,10 @@ from grunt.local import require_session, user_email
 from grunt.site.manager import site_manager
 from grunt.storage.cloud import MASK, SECRET_FIELDS, RemoteError, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone, config_text
-lazy from grunt.monitoring.health import human_size
 lazy from grunt.storage.cloud.backups import forget_remote, list_remote_backups
 lazy from grunt.storage.cloud.providers import get_provider
 lazy from grunt.storage.cloud.tasks import upload_latest_backup
+lazy from grunt.utils.sizes import human_size
 
 _db = GruntDB()  # stateless: reads through the context's session
 

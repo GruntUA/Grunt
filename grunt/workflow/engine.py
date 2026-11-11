@@ -2,7 +2,8 @@
 
 A transition is applied through the regular update pipeline (``grunt.save_doc``),
 so the controller's ``validate``/``after_save`` and every hook run as for any
-save; :func:`current_transition` tells them which transition is in progress.
+save; :func:`grunt.workflow.transition.current_transition` tells them which
+transition is in progress.
 
 While a DocType has an active workflow (see grunt/workflow/guard.py):
 
@@ -18,9 +19,6 @@ the document, notifications (``notify``, grunt/workflow/notify.py), the
 """
 
 import contextlib
-from collections.abc import Collection
-from contextvars import ContextVar
-from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 from typing import Any
@@ -37,38 +35,12 @@ from grunt.log import log
 from grunt.permissions.roles import get_roles
 from grunt.workflow.notify import notify_transition, previous_actor
 from grunt.workflow.registry import get_active_workflow
+from grunt.workflow.transition import ActiveTransition, _active, user_may_take
 lazy from grunt.api.v1.ws import manager
 lazy from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 
 # Values key carrying the dialog's comment for a `require_comment` transition.
 COMMENT_KEY = "__comment"
-
-
-@dataclass(frozen=True, slots=True)
-class ActiveTransition:
-    """The transition being applied - visible to controllers via :func:`current_transition`."""
-
-    doctype: str
-    doc_id: str
-    from_state: str | None
-    to_state: str
-    action: str
-    transition: WorkflowTransition
-    comment: str | None = None
-
-
-_active: ContextVar[ActiveTransition | None] = ContextVar("grunt_workflow_transition", default=None)
-
-
-def current_transition() -> ActiveTransition | None:
-    """The workflow transition being saved right now, if any.
-
-    Set while the update pipeline runs for a transition (a button or an
-    ``on_edit`` transition), so ``validate``/``after_save`` can react to it::
-
-        if (t := current_transition()) and t.to_state == "Approved": ...
-    """
-    return _active.get()
 
 
 class WorkflowEngine:
@@ -286,14 +258,6 @@ class WorkflowEngine:
         except Exception:
             log.warning("workflow.condition_eval_failed", condition=condition, user=user)
             return True  # Don't block on error
-
-
-def user_may_take(transition: WorkflowTransition, roles: Collection[str]) -> bool:
-    """Role check of a transition for a user holding *roles* (System Manager may take any)."""
-    if not transition.allowed_roles:
-        return True
-    held = set(roles)
-    return bool(held.intersection(transition.allowed_roles)) or "System Manager" in held
 
 
 def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:

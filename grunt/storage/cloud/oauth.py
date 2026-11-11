@@ -37,8 +37,7 @@ from grunt.i18n import _
 from grunt.local import require_session, system_context, user_email
 from grunt.log import log
 from grunt.storage.cloud import load_remote
-from grunt.storage.cloud.providers import get_provider
-from grunt.storage.cloud.rclone import RemoteError
+from grunt.storage.cloud.providers import RemoteError, get_provider
 from grunt.utils.http import public_base_url
 
 _db = GruntDB()  # stateless: reads through the context's session

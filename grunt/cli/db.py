@@ -26,7 +26,6 @@ lazy from grunt.metadata.compiler import (
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.store import meta_table
-lazy from grunt.monitoring.health import human_size
 lazy from grunt.search.service import search_index_service
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup import (
@@ -46,6 +45,7 @@ lazy from grunt.storage.cloud.backups import (
     upload_backup,
 )
 lazy from grunt.tasks.broker import broker
+lazy from grunt.utils.sizes import human_size
 
 
 @click.group("db")

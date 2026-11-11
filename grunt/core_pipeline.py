@@ -18,9 +18,10 @@ from grunt.local import rebound
 from grunt.log import log
 from grunt.webhook.service import webhook_service
 from grunt.website.generator import fill_route
-from grunt.workflow.engine import ActiveTransition, _active, workflow_engine
+from grunt.workflow.engine import workflow_engine
 from grunt.workflow.guard import check_create, check_delete, check_update, is_exempt
 from grunt.workflow.registry import get_active_workflow
+from grunt.workflow.transition import ActiveTransition, _active
 
 
 class _TransitionScope(UpdateScope):

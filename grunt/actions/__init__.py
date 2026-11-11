@@ -15,7 +15,7 @@ types (``cms.blocks``) populate ``WebPageBlock.block_type``.
 Flow at runtime:
 
 * the frontend reads ``dt.actions`` (bindings, enriched with registry
-  defaults by ``grunt.api.v1.meta._dump_doctype``) and renders a toolbar
+  defaults by the meta API, grunt/api/v1/meta.py) and renders a toolbar
   button per visible binding;
 * clicking a button calls ``POST /api/v1/method/grunt.actions.run`` with the
   DocType, the action key and the document id - if the action declares

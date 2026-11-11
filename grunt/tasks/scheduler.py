@@ -125,7 +125,19 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
             _add_scheduled_job(path, cron_expr, log_runs=log_runs)
 
 
-def _add_scheduled_job(path: str, cron_expr: str, *, log_runs: bool | None = None) -> None:
+def _add_scheduled_job(
+    path: str,
+    cron_expr: str,
+    *args: Any,
+    job_id: str | None = None,
+    log_runs: bool | None = None,
+) -> None:
+    """Run the function at dotted *path* with *args* on *cron_expr*.
+
+    By path, so the scheduler does not import the modules whose jobs it runs.
+    *job_id* names the job (its log and state rows); the path by default.
+    """
+    job_id = job_id or path
     try:
         module_path, func_name = path.rsplit(".", 1)
         module = importlib.import_module(module_path)
@@ -133,19 +145,19 @@ def _add_scheduled_job(path: str, cron_expr: str, *, log_runs: bool | None = Non
 
         async def trigger_task():
             log.info("scheduler.triggering_task", path=path)
-            await _run_logged(path, cron_expr, task_fn, log_runs=log_runs)
+            await _run_logged(job_id, cron_expr, task_fn, *args, log_runs=log_runs)
 
         scheduler.add_job(
             trigger_task,
             CronTrigger.from_crontab(cron_expr),
-            id=path,
+            id=job_id,
             replace_existing=True,
         )
-        failed_jobs.pop(path, None)
+        failed_jobs.pop(job_id, None)
         log.info("scheduler.job_added", path=path, cron=cron_expr)
 
     except (ImportError, AttributeError, ValueError) as e:
-        failed_jobs[path] = str(e)
+        failed_jobs[job_id] = str(e)
         log.warning("scheduler.register_failed", path=path, error=str(e))
 
 
@@ -233,28 +245,9 @@ def _register_framework_jobs() -> None:
     # Page views gathered in Redis -> view_count (no-op without Redis).
     _add_scheduled_job("grunt.website.views.flush", "* * * * *")  # every minute
 
-    # Imported here, not at module level: grunt.email reaches back to this module
-    # (through the apps and the web layer).
-    from grunt.email.tasks import send_notification_digest
-
-    async def _daily_digest():
-        await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")
-
-    async def _weekly_digest():
-        await _run_logged("grunt.digest.weekly", "0 8 * * 1", send_notification_digest, "weekly")
-
-    scheduler.add_job(
-        _daily_digest,
-        CronTrigger.from_crontab("0 8 * * *"),
-        id="grunt.digest.daily",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        _weekly_digest,
-        CronTrigger.from_crontab("0 8 * * 1"),
-        id="grunt.digest.weekly",
-        replace_existing=True,
-    )
+    digest = "grunt.email.tasks.send_notification_digest"
+    _add_scheduled_job(digest, "0 8 * * *", "daily", job_id="grunt.digest.daily")
+    _add_scheduled_job(digest, "0 8 * * 1", "weekly", job_id="grunt.digest.weekly")
 
     # Hourly check; the backup itself runs when SystemSettings' interval has passed.
     _add_scheduled_job("grunt.backups.tasks.scheduled_backup", "15 * * * *")

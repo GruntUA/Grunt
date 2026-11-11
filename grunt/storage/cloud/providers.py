@@ -7,13 +7,37 @@ its options as typed - any of rclone's ~70 backends works that way.
 wins over the generated values.
 """
 
+import base64
 import json
+import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
 from grunt.i18n import _
-lazy from grunt.storage.cloud.rclone import RemoteError, obscure
+
+# rclone's fixed key for "obscured" config values (lib/obscure). Obscuring is
+# not encryption - it only keeps secrets from being read over a shoulder -
+# but rclone refuses plain passwords in these fields.
+_OBSCURE_KEY = bytes.fromhex("9c935b48730a554d6bfd7c63c886a92bd390198eb8128afbf4de162b8b95f638")
+
+
+class RemoteError(RuntimeError):
+    """A remote can't be used: a bad setting, or an rclone call failed (rclone's last error)."""
+
+    def __init__(self, message: str, code: int | None = None) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def obscure(value: str) -> str:
+    """``rclone obscure``: AES-CTR with rclone's fixed key, random IV, base64url."""
+    iv = os.urandom(16)
+    encryptor = Cipher(algorithms.AES(_OBSCURE_KEY), modes.CTR(iv)).encryptor()
+    data = iv + encryptor.update(value.encode()) + encryptor.finalize()
+    return base64.urlsafe_b64encode(data).decode().rstrip("=")
 
 
 @dataclass(frozen=True)

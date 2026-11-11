@@ -36,7 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.log import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
-lazy from grunt.app import GruntDB
+lazy from grunt.db.api import GruntDB
 lazy from grunt.document.api import documents
 lazy from grunt.local import _session_ctx
 lazy from grunt.publish import notify as _notify

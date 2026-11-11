@@ -1,7 +1,7 @@
 """Write-pipeline checks for DocTypes with an active workflow.
 
 Called from grunt/document/mixins/lifecycle.py. Outside a transition (see
-:func:`grunt.workflow.engine.current_transition`):
+:func:`grunt.workflow.transition.current_transition`):
 
 * the state field can't be set to anything but the initial state on create,
   and can't be changed on update - only transitions move it;
@@ -23,13 +23,9 @@ from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.roles import get_roles
-lazy from grunt.workflow.engine import (
-    ActiveTransition,
-    current_transition,
-    state_updates,
-    workflow_engine,
-)
+lazy from grunt.workflow.engine import state_updates, workflow_engine
 lazy from grunt.workflow.registry import get_active_workflow
+lazy from grunt.workflow.transition import ActiveTransition, current_transition
 
 # Never compared when deciding whether an edit changed the document.
 _SYSTEM_FIELDS = frozenset({"name", "owner", "created_at", "modified_at", "modified_by", "idx"})

@@ -7,8 +7,8 @@ from grunt.log import log
 from grunt.progress import track_progress
 from grunt.site.manager import site_manager
 from grunt.storage.gc import collect_garbage as collect
+from grunt.storage.images import compress_existing
 from grunt.tasks.broker import retryable_task, task
-lazy from grunt.storage.images import compress_existing
 
 
 @retryable_task()

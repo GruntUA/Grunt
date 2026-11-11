@@ -21,12 +21,12 @@ from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+from grunt.workflow.transition import ActiveTransition, user_may_take
 lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.notification.service import notification_service
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.user_permissions import doc_passes
 lazy from grunt.site.manager import current_site
-lazy from grunt.workflow.engine import ActiveTransition, user_may_take
 lazy from grunt.workflow.registry import get_active_workflow
 
 _db = GruntDB()  # stateless: reads through the context's session

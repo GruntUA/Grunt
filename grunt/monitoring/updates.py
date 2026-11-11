@@ -35,7 +35,7 @@ from grunt.apps.manifest import is_app
 from grunt.config import settings
 from grunt.i18n import _
 from grunt.log import log
-from grunt.monitoring.health import ERROR, INFO, OK, WARNING, Row, row
+from grunt.monitoring.rows import ERROR, INFO, OK, WARNING, Row, row
 from grunt.site.manager import site_manager
 from grunt.version import FRAMEWORK_DIR, app_version, framework_version
 lazy from grunt.apps.deps import app_updates as plan
