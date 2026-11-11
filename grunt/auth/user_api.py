@@ -7,8 +7,8 @@ from typing import Any
 
 from fastapi import HTTPException, Request, Response
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.auth.doctypes.UserSession.user_session import (
     client_device_id,
     client_ip,
@@ -63,6 +63,7 @@ from grunt.i18n import _, translation_service
 from grunt.local import require_session
 from grunt.log import log
 from grunt.utils.http import public_base_url
+from grunt.utils.templates import render as render_template_text
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
 lazy from grunt.auth.mfa import disable_mfa as _disable_mfa
 lazy from grunt.document.api import documents
@@ -227,7 +228,7 @@ async def whoami() -> dict[str, Any]:
     Re-reads the row from the DB (the context user is built from JWT claims and
     lacks profile fields like ``mfa_enabled`` / ``language`` / ``timezone``).
     """
-    ctx_user = grunt.get_user()
+    ctx_user = acting_user()
     user = (await get_user_by_id(ctx_user.id) if ctx_user.id else None) or ctx_user
     return {
         **UserPublic.dump(user),
@@ -247,7 +248,7 @@ async def update_me_api(
     timezone: str | None = None,
 ) -> dict[str, Any]:
     """Update current user preferences and return updated profile."""
-    user = grunt.get_user()
+    user = acting_user()
 
     values: dict[str, Any] = {}
     if theme is not None:
@@ -331,7 +332,7 @@ async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     Returns an access token (no refresh token) that authenticates as
     ``user_id`` with that user's roles, plus an ``impersonated_by`` block.
     """
-    actor = grunt.get_user()
+    actor = acting_user()
     return await start_impersonation(actor, user_id)
 
 
@@ -342,7 +343,7 @@ async def stop_impersonation_api() -> bool:
     The real session is restored client-side from the tokens it stashed before
     starting; this endpoint only records that the view-as session was closed.
     """
-    user = grunt.get_user()
+    user = acting_user()
     imp = user.data.get("_impersonator") if hasattr(user, "data") else None
     if imp:
         log.warning(
@@ -441,7 +442,7 @@ async def set_user_password_api(
     if not user or not user.id:
         throw(_("User not found"), "NOT_FOUND")
 
-    current = grunt.get_user()
+    current = acting_user()
     is_self = bool(
         current
         and (
@@ -469,7 +470,7 @@ async def set_user_password_api(
 
 async def _current_user_doc() -> User:
     """The signed-in user's full row (with MFA columns), for the MFA endpoints."""
-    current = grunt.get_user()
+    current = acting_user()
     assert current.id is not None
     user = await get_user_by_id(current.id)
     if not user:
@@ -518,7 +519,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
     try:
         # The mail is for the account owner - render it in *their* language.
         with use_language(user.language):
-            html_body = await grunt.render_template(
+            html_body = await render_template_text(
                 "password_reset.html",
                 {"full_name": user.full_name, "reset_url": reset_url},
             )

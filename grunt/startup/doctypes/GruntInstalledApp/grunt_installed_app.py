@@ -3,8 +3,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
@@ -34,7 +34,9 @@ class GruntInstalledApp(Document):
             )
             return
 
-        apps_dir = Path(grunt.__file__).resolve().parents[3]
+        apps_dir = (
+            Path(__file__).resolve().parents[6]
+        )  # .../apps/grunt/grunt/startup/doctypes/X/x.py
         app_path = apps_dir / name
 
         if app_path.exists() and app_path.is_dir():
@@ -75,7 +77,7 @@ async def register_app(
     modules: list[str] | None = None,
 ) -> dict[str, Any]:
     """Register a new installed app. System Manager only."""
-    user = grunt.get_user()
+    user = acting_user()
     if "System Manager" not in (user.roles or []):
         throw(_("Not authorized"), "PERMISSION_DENIED")
 
@@ -125,7 +127,7 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
 @whitelist()
 async def delete_app(name: str) -> bool:
     """Uninstall an app. System Manager only."""
-    user = grunt.get_user()
+    user = acting_user()
     if "System Manager" not in (user.roles or []):
         throw(_("Not authorized"), "PERMISSION_DENIED")
 

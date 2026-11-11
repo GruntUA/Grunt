@@ -2,13 +2,13 @@ from typing import Any
 
 from sqlalchemy import func, select
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _, pgettext
-from grunt.local import require_session
+from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.user_permissions import expand_tree_values
 from grunt.storage import files, quota
@@ -64,7 +64,7 @@ class FileFolder(Document):
             self.space_user = prev.get("space_user")
             return
         self.parent_folder = None
-        user = grunt.get_user()
+        user = acting_user()
         if not self.space_user:
             self.space_user = user.email
         if self.space_user != user.email and not user.has_role("System Manager"):
@@ -100,7 +100,7 @@ class FileFolder(Document):
         (System Manager, shared folders) after it."""
         if parent is not None:
             return children
-        me = grunt.get_user().email
+        me = user_email()
         for node in children:
             if node.get("is_home") and node.get("space_user") == me:
                 node["display_title"] = _("My files")
@@ -142,7 +142,7 @@ async def _subtree_size(folder: str) -> int:
 @whitelist()
 async def get_home_folder() -> dict[str, Any]:
     """Whitelisted method: the current user's home folder, created on first use."""
-    user = grunt.get_user()
+    user = acting_user()
     row = await _db.get_value(
         "FileFolder",
         {"space_user": user.email, "is_home": True},
@@ -162,7 +162,7 @@ async def get_home_folder() -> dict[str, Any]:
 async def get_storage_usage(user: str | None = None) -> dict[str, Any]:
     """Whitelisted method: ``{used, quota}`` in bytes for a space (``quota``
     is ``None`` when unlimited). Another user's space - System Manager only."""
-    current = grunt.get_user()
+    current = acting_user()
     space = user or current.email
     if space != current.email and not current.has_role("System Manager"):
         throw(_("Not permitted"), "PERMISSION_DENIED")

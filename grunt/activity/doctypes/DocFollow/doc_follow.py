@@ -1,6 +1,7 @@
 """DocFollow controller - you follow documents for yourself, and only ones you can read."""
 
 from grunt.document.base import Document
+from grunt.errors import throw
 from grunt.i18n import _
 from grunt.permissions.rbac import permission_checker
 
@@ -14,14 +15,14 @@ class DocFollow(Document):
         if self.user:
             self.data["user"] = self.user
         if not self.data.get("user"):
-            self.grunt.throw(_("Specify a user"))
+            throw(_("Specify a user"))
 
         dt = await self.grunt.get_meta(self.reference_doctype)
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
-            self.grunt.throw(_("Document not found"), "NOT_FOUND")
+            throw(_("Document not found"), "NOT_FOUND")
         if self.user and not await permission_checker.check(dt, "read", doc):
-            self.grunt.throw(_("No access to the document"), "PERMISSION_DENIED")
+            throw(_("No access to the document"), "PERMISSION_DENIED")
 
     async def before_insert(self) -> None:
         if await self.grunt.db.exists(
@@ -32,4 +33,4 @@ class DocFollow(Document):
                 "user": self.data["user"],
             },
         ):
-            self.grunt.throw(_("You are already following this document"), "DUPLICATE_DATA")
+            throw(_("You are already following this document"), "DUPLICATE_DATA")

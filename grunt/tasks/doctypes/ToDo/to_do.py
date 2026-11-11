@@ -73,7 +73,7 @@ class ToDo(Document):
                 or {}
             )
 
-        was_done = self._prev.get("status") in _DONE_STATES
+        was_done = (self._prev or {}).get("status") in _DONE_STATES
         is_done = self.status in _DONE_STATES
         if is_done and not was_done:
             if not self.get("completed_on"):

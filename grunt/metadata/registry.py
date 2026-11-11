@@ -271,7 +271,7 @@ class DocTypeRegistry:
     async def _lazy_load(self, name: str) -> DocType | None:
         """Load a single DocType from the DB and cache it.
 
-        Prefers the ambient request/test session (whatever ``grunt.context()``
+        Prefers the ambient request/test session (whatever ``user_context()``
         currently has bound) over site_manager's own per-site session.
         site_manager resolves "the current site" via a process-global fallback
         (``sites/currentsite.txt`` when no ContextVar is set) - correct for a

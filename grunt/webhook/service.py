@@ -19,9 +19,11 @@ from typing import Any
 import httpx2
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import _, log, outbox
+import grunt.outbox as outbox
 from grunt.db.api import GruntDB
+from grunt.i18n import _
 from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.document.api import documents
 lazy from grunt.webhook.doctypes.OutgoingWebhook.outgoing_webhook import OutgoingWebhook

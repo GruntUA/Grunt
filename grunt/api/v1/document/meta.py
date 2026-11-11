@@ -10,10 +10,10 @@ from typing import Any
 
 from fastapi import HTTPException
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.i18n import _
-from grunt.local import require_session
+from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.activity.milestones import history as milestone_history
 lazy from grunt.auth.users import get_users_by_emails
@@ -203,7 +203,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     bookmarks = await _optional(
         documents.get_list(
             "Bookmark",
-            filters={**ref, "owner": grunt.get_user().email},
+            filters={**ref, "owner": user_email()},
             limit=1,
             include_total=False,
         ),
@@ -213,7 +213,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     follows = await _optional(
         documents.get_list(
             "DocFollow",
-            filters={**ref, "user": grunt.get_user().email},
+            filters={**ref, "user": user_email()},
             limit=1,
             include_total=False,
         ),
@@ -228,7 +228,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
             filters={
                 "reference_doctype": doctype,
                 "reference_name": doc_id,
-                "owner": grunt.get_user().email,
+                "owner": user_email(),
                 "notified": False,
             },
             fields=["name", "remind_at", "description"],
@@ -240,7 +240,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         [],
     )
 
-    grunt.get_user()  # 401 without a user, as before
+    acting_user()  # 401 without a user, as before
     dt = await doctype_registry.get_meta(doctype)
 
     async def can(target: str, action: PermissionAction, row: dict | None = None) -> bool:

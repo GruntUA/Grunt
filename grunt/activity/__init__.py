@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import grunt as _grunt
+from grunt.api.context import whitelist
 from grunt.auth.constants import GUEST_USER_EMAIL
 from grunt.db.api import GruntDB
 from grunt.db.commit import on_commit
@@ -308,7 +308,7 @@ async def record_view(
             log.warning("view.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
 
 
-@_grunt.whitelist()
+@whitelist()
 async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
     """Return ``{"seen": [...emails], "views": <int>, "viewers": <int>}`` for a document.
 

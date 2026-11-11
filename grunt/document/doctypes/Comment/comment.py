@@ -4,6 +4,7 @@ from typing import Any
 
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
+from grunt.errors import throw
 from grunt.i18n import _
 from grunt.permissions.roles import has_roles
 lazy from grunt.document.api import documents
@@ -19,7 +20,7 @@ class Comment(Document):
 
     async def validate(self) -> None:
         if not (self.content or "").strip():
-            self.grunt.throw(_("The comment cannot be empty"))
+            throw(_("The comment cannot be empty"))
         await self._validate_parent()
 
     async def _validate_parent(self) -> None:
@@ -28,7 +29,7 @@ class Comment(Document):
         if not parent_id:
             return
         if parent_id == self.id:
-            self.grunt.throw(_("A comment cannot reply to itself"))
+            throw(_("A comment cannot reply to itself"))
         parent = await _db.get_value(
             "Comment",
             parent_id,
@@ -36,19 +37,19 @@ class Comment(Document):
             as_dict=True,
         )
         if parent is None:
-            self.grunt.throw(_("The comment you reply to no longer exists"), "NOT_FOUND")
+            throw(_("The comment you reply to no longer exists"), "NOT_FOUND")
         if (parent.reference_doctype, str(parent.reference_id)) != (
             self.reference_doctype,
             str(self.reference_id),
         ):
-            self.grunt.throw(_("A reply must belong to the same document"))
+            throw(_("A reply must belong to the same document"))
         if parent.parent_comment:
             self.parent_comment = parent.parent_comment
 
     async def before_delete(self) -> None:
         is_admin = bool(self.user) and await has_roles(["System Manager"])
         if self.user and not is_admin and self.owner != self.user:
-            self.grunt.throw(_("Only the author or an administrator can delete a comment"))
+            throw(_("Only the author or an administrator can delete a comment"))
 
         replies = await _db.get_all(
             "Comment", filters={"parent_comment": self.id}, fields=["name", "owner"], limit=10_000
@@ -57,9 +58,7 @@ class Comment(Document):
             return
         # The thread goes with its root - someone else's replies only by an admin.
         if self.user and not is_admin and any(r["owner"] != self.user for r in replies):
-            self.grunt.throw(
-                _("Others replied to this comment - only an administrator can delete the thread")
-            )
+            throw(_("Others replied to this comment - only an administrator can delete the thread"))
         for reply in replies:
             await documents.delete_doc("Comment", reply["name"])
 

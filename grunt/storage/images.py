@@ -27,12 +27,13 @@ from pathlib import PurePath
 
 lazy from PIL import Image, ImageOps
 
-import grunt
-from grunt import _, log, whitelist
+from grunt.api.context import whitelist
 from grunt.api.results import Queued
 from grunt.db.api import GruntDB
 from grunt.errors import throw
-from grunt.local import require_session
+from grunt.i18n import _
+from grunt.local import require_session, user_email
+from grunt.log import log
 from grunt.site.settings import get_setting
 lazy from grunt.progress import Progress
 lazy from grunt.storage import files
@@ -244,5 +245,5 @@ async def start_compression() -> Queued:
 
     if await image_options() is None:
         throw(_("Image compression is turned off in System Settings"))
-    await compress_images.kiq(user=grunt.get_user().email)
+    await compress_images.kiq(user=user_email())
     return {"queued": True}

@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-import grunt
+from grunt.auth.current import user_context
 from grunt.cache.bus import SENDER
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
@@ -382,7 +382,7 @@ async def _ws_user_can_read(
     try:
         maker = site_manager.get_session_maker(site)
         engine = site_manager.get_engine(site)
-        async with maker() as session, grunt.context(session, engine):
+        async with maker() as session, user_context(session, engine):
             user = await get_user_by_email(user_email)
             if user is None or not user.is_active:
                 return False

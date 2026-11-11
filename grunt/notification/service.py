@@ -11,11 +11,12 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import log, outbox
+import grunt.outbox as outbox
 from grunt.api.v1.ws import manager
 from grunt.db.api import GruntDB
 from grunt.db.commit import on_commit
 from grunt.local import require_session, system_context
+from grunt.log import log
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session

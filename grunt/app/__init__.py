@@ -14,6 +14,7 @@ from grunt.app.workflow_api import WorkflowAPI
 from grunt.db import GruntDB
 from grunt.document.api import documents
 from grunt.metadata.registry import doctype_registry
+from grunt.utils.templates import use_app
 
 # Main API
 
@@ -63,6 +64,7 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, WorkflowAPI, UtilityAPI):
         self.db = documents.db
         self.query_cache = documents.query_cache
         self.doc_cache = documents.doc_cache
+        use_app(self)
 
 
 # Module-level singleton

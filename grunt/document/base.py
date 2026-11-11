@@ -12,11 +12,11 @@ there for IDEs and type checkers.
 
 import contextlib
 import copy
+import sys
 from typing import Any, ClassVar
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
 from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
@@ -25,7 +25,7 @@ from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import _user_ctx, require_engine, require_session, session_user
+from grunt.local import _user_ctx, bind, require_engine, require_session, session_user, unbind
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.store import Store, store_for
@@ -194,9 +194,11 @@ class Document(
         return self.data.get("parenttype")
 
     @property
-    def grunt(self):
-        """The ``grunt`` package, so hooks can call ``self.grunt.db...``."""
-        return grunt
+    def grunt(self) -> Any:
+        """The ``grunt`` package, so hooks can call ``self.grunt.db...``. Taken from
+        ``sys.modules``: it is always loaded first (this is its subpackage), and the
+        document layer must not import the facade built on top of it."""
+        return sys.modules["grunt"]
 
     def as_dict(self) -> dict[str, Any]:
         """The document as a JSON object naming its DocType - child rows included."""
@@ -217,7 +219,7 @@ class Document(
         """Fill in session/engine from the active grunt context if not given.
 
         Lets the same controller work inside a request and from scripts/CLI
-        running under ``grunt.context(...)``. Whatever can't be resolved stays
+        running under ``user_context(...)``. Whatever can't be resolved stays
         None and only fails once it's actually used.
         """
         if self.session is None:
@@ -231,11 +233,11 @@ class Document(
 
     def _set_grunt_context(self) -> tuple:
         """Bind this document's session/engine for its hooks; the user stays the context's."""
-        return grunt.set_context(session=self.session, engine=self.engine, user=_user_ctx.get())
+        return bind(session=self.session, engine=self.engine, user=_user_ctx.get())
 
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None:
-        grunt.reset_context(tokens)
+        unbind(tokens)
 
     def _replace_data(self, values: dict[str, Any]) -> None:
         # Mutate in place: callers may still hold a reference to self.data.

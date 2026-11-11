@@ -20,12 +20,12 @@ from typing import Any
 
 from fastapi.responses import Response
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.document.base import Document
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import require_session
+from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.engine import report_engine
@@ -58,7 +58,7 @@ class Report(Document):
 @whitelist()
 async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a report and return results."""
-    result = await report_engine.run(name, filters or {}, grunt.get_user().email, require_session())
+    result = await report_engine.run(name, filters or {}, user_email(), require_session())
     return result
 
 
@@ -69,7 +69,7 @@ async def fields(doctype: str) -> list[dict[str, Any]]:
     meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-    user = grunt.get_user()
+    user = acting_user()
     await permission_checker.require(meta, "read", user=user.email)
     return await report_fields(meta, user.email)
 
@@ -95,7 +95,7 @@ async def preview(
             "row_limit": row_limit,
         },
         filters or {},
-        grunt.get_user().email,
+        user_email(),
         require_session(),
     )
     return result
@@ -108,7 +108,7 @@ async def export_xlsx(
     token: str | None = None,  # unused: absorbs ?token= query param consumed by auth, not by us
 ) -> Response:
     """Run a report and return the result as an xlsx file download."""
-    result = await report_engine.run(name, filters or {}, grunt.get_user().email, require_session())
+    result = await report_engine.run(name, filters or {}, user_email(), require_session())
     xlsx_bytes = await report_engine.export_excel(result, name)
     return Response(
         content=xlsx_bytes,

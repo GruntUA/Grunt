@@ -11,6 +11,8 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from grunt.errors import ApplicationError
+from grunt.i18n import _
 lazy from grunt.site.manager import site_manager
 
 _session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
@@ -155,3 +157,29 @@ async def system_context(
     layers below the facade."""
     with as_system(session, engine):
         yield
+
+
+def user_email() -> str:
+    """Email of the user the request or task runs as - a 401 without one
+    (``grunt.get_user().email`` for the layers below auth)."""
+    email = session_user()
+    if email is None:
+        raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
+    return email
+
+
+def bind(session: AsyncSession, engine: AsyncEngine | None = None, user: Any = None) -> tuple:
+    """Bind *session* / *engine* (else the one in context) / *user* (a ``User``
+    document); the tokens restore the previous state (:func:`unbind`)."""
+    return (
+        _session_ctx.set(session),
+        _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
+        _user_ctx.set(user),
+    )
+
+
+def unbind(tokens: tuple) -> None:
+    """Restore the context :func:`bind` changed."""
+    _session_ctx.reset(tokens[0])
+    _engine_ctx.reset(tokens[1])
+    _user_ctx.reset(tokens[2])

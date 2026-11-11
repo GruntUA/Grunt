@@ -6,8 +6,8 @@ RPC: grunt.api.v1.document.workflow.apply_workflow_transition
 
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.local import require_engine, require_session
@@ -28,7 +28,7 @@ async def get_workflow_transitions(doctype: str, doc_id: str) -> list[dict[str, 
         return []
 
     doc = await documents.get_doc(doctype, doc_id)
-    user = grunt.get_user()
+    user = acting_user()
     transitions = await workflow_engine.get_available_transitions(dt.doc, doc, user.email)
     return [
         {
@@ -55,7 +55,7 @@ async def apply_workflow_transition(
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
 
-    user = grunt.get_user()
+    user = acting_user()
     session = require_session()
 
     return await workflow_engine.apply_transition(

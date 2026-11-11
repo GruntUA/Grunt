@@ -7,12 +7,12 @@ from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.document.query import expand_child_of_filters
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session
+from grunt.local import require_session, user_email
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.widget import WIDGET_PERIOD_DAYS, get_widget_type_class
@@ -80,7 +80,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
     resolved: dict[str, Any] = {}
     for key, value in filters.items():
         if value == "@me":
-            resolved[key] = grunt.get_user().email
+            resolved[key] = user_email()
             continue
         match = _SETTING_TOKEN_RE.match(value) if isinstance(value, str) else None
         if match is None:
@@ -229,7 +229,7 @@ async def _load_widgets(
         throw(_("Page not found"), "NOT_FOUND")
     page = dict(doc.data)
 
-    if not page_visible(page, grunt.get_user().role_names):
+    if not page_visible(page, acting_user().role_names):
         throw(_("The page is not published"), "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = page.get("widgets") or []

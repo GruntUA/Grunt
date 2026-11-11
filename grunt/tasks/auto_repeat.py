@@ -13,7 +13,7 @@ per rule per run.
 from datetime import UTC, date, datetime
 from typing import Any
 
-import grunt
+from grunt.auth.current import user_context
 from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.local import require_engine, require_session, system_context
@@ -114,7 +114,7 @@ async def process_rule(name: str, today: date) -> int:
         and created < MAX_CATCH_UP
     ):
         try:
-            async with grunt.context(session, require_engine(), owner):
+            async with user_context(session, require_engine(), owner):
                 copy = await create_copy(rule.data, next_on)
             await session.commit()
         except Exception as e:

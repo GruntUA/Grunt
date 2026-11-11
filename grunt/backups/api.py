@@ -13,12 +13,13 @@ from urllib.parse import urlencode
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
-import grunt
-from grunt import _, whitelist
+from grunt.api.context import whitelist
 from grunt.api.results import Queued
 from grunt.backups import _NAME, backups_dir
 from grunt.backups.tasks import backup_now as task
 from grunt.config import settings
+from grunt.i18n import _
+from grunt.local import user_email
 from grunt.site.manager import site_manager
 
 DOWNLOAD_TTL_SECONDS = 15 * 60
@@ -63,6 +64,6 @@ async def backup_now(
         with_database=with_database,
         with_files=with_files,
         with_config=with_config,
-        user=grunt.get_user().email,
+        user=user_email(),
     )
     return {"queued": True}

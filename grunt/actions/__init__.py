@@ -39,7 +39,6 @@ bare string (treated as ``{"message": ...}``), or nothing.
 
 import importlib
 
-import grunt
 from grunt.actions.registry import (
     _REGISTRY,
     DOC_ACTION_SOURCE,
@@ -50,6 +49,7 @@ from grunt.actions.registry import (
     register_doc_action,
 )
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.errors import forbidden, not_found, throw
 from grunt.i18n import _
 from grunt.log import log
@@ -176,7 +176,7 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
         throw(_("Action “%(action)s” is not registered") % {"action": action}, "NOT_FOUND")
 
     if spec.roles:
-        user = grunt.get_user()
+        user = acting_user()
         if not user.has_role(*spec.roles, "System Manager"):
             raise forbidden(_("Not permitted to run this action"))
 

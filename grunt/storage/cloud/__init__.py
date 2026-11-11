@@ -19,9 +19,11 @@ Backend code reads rows with :func:`load_remote` (``grunt.db``, no hooks).
 from datetime import UTC, datetime
 from typing import Any
 
-from grunt import _, log, log_error
 from grunt.db.api import GruntDB
+from grunt.i18n import _
 from grunt.local import require_session
+from grunt.log import log
+from grunt.monitoring.error_log import record_error as log_error
 from grunt.storage.cloud.rclone import Rclone, RemoteError
 lazy from grunt.notification.service import notification_service
 

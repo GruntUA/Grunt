@@ -10,13 +10,12 @@ from typing import Any
 
 from fastapi import HTTPException
 
-import grunt
 from grunt.activity import record_activity
 from grunt.api.context import whitelist
 from grunt.document.versioning import version_service
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import require_session
+from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import doc_guard
 lazy from grunt.activity.reactions import reactions_for
@@ -76,7 +75,7 @@ async def restore_version(doctype: str, doc_id: str, version_id: str) -> dict[st
         doctype,
         doc_id,
         "restore",
-        user_email=grunt.get_user().email,
+        user_email=user_email(),
         details={"to_version": target["version"]},
     )
 

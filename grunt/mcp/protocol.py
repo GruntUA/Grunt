@@ -11,17 +11,17 @@ from typing import Any
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
-import grunt
 from grunt.errors import ApplicationError
 from grunt.local import require_session, session_user
 from grunt.log import log
 from grunt.mcp.registry import get_tool, list_tools
+from grunt.version import framework_version
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
 # Newest first; the first entry is offered when the client asks for one we lack.
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26")
 
-SERVER_INFO = {"name": "grunt", "title": "Ґрунт", "version": grunt.__version__}
+SERVER_INFO = {"name": "grunt", "title": "Ґрунт", "version": framework_version()}
 
 INSTRUCTIONS = (
     "Ґрунт is a metadata-driven business application platform: all data lives in "

@@ -80,7 +80,7 @@ async def _get_session() -> AsyncSession | None:
     """Return the ambient request/test session, falling back to the active site's.
 
     Mirrors ``DocTypeRegistry._lazy_load``'s session resolution: prefer whatever
-    session ``grunt.context()`` already has bound (correct even when more than
+    session ``user_context()`` already has bound (correct even when more than
     one site's DB is reachable from the same process), and only fall back to
     ``site_manager`` when nothing is bound (background tasks/schedulers).
     """

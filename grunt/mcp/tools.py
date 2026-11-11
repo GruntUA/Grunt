@@ -6,7 +6,7 @@ permissions (DocType RBAC, row-level rules, permission-hidden fields).
 
 from typing import Any
 
-import grunt
+from grunt.auth.current import acting_user
 from grunt.i18n import _
 from grunt.mcp.registry import mcp_tool
 from grunt.metadata.registry import doctype_registry
@@ -81,7 +81,7 @@ def _fields(meta: Any, hidden: frozenset[str]) -> list[dict[str, Any]]:
     read_only=True,
 )
 async def list_doctypes(module: str | None = None, search: str | None = None) -> list[dict]:
-    user = grunt.get_user()
+    user = acting_user()
     needle = (search or "").casefold()
     result = []
     for dt in await doctype_registry.list_all():

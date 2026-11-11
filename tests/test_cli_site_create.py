@@ -59,7 +59,7 @@ def test_site_create_admin_passes_user_validation(monkeypatch) -> None:
         async def __aexit__(self, *exc):
             return False
 
-    monkeypatch.setattr(site_cli.grunt, "context", lambda session: _Ctx())
+    monkeypatch.setattr(site_cli, "user_context", lambda session: _Ctx())
 
     asyncio.run(site_cli._create_admin("chat.example.test", "a@b.c", "pw"))
 

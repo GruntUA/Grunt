@@ -397,7 +397,7 @@ class ScriptContext:
 
         Usage::
 
-            grunt.notify(["user@example.com"], "Order ready", "Your order is ready.")
+            notify_users(["user@example.com"], "Order ready", "Your order is ready.")
         """
         return self._run_or_default(self._notify_impl(users, subject, message, doctype, doc_id), [])
 

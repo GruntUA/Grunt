@@ -24,7 +24,6 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any, ClassVar
 
-import grunt
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
@@ -43,6 +42,7 @@ from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
+from grunt.utils.templates import render as render_template_text
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -224,7 +224,7 @@ class EmailLoginProvider(AuthProvider):
             ]
         )
         try:
-            html_body: str | None = await grunt.render_template(
+            html_body: str | None = await render_template_text(
                 "email_login.html",
                 {"code": code, "login_url": login_url, "ttl_minutes": _TTL_MINUTES},
             )

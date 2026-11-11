@@ -4,9 +4,9 @@ from typing import Any
 
 from fastapi import HTTPException, Request
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.api.router import GruntRouter
+from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.local import require_session
 from grunt.webhook.incoming_service import incoming_webhook_service
@@ -37,7 +37,7 @@ async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any
 @whitelist(roles=["System Manager"])
 async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
-    user = grunt.get_user()
+    user = acting_user()
     result = await webhook_service.test_delivery(require_session(), webhook_id, user.email)
     return result
 

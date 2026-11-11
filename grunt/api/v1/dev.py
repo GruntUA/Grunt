@@ -2,7 +2,6 @@
 
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
 from grunt.config import settings
 from grunt.db.profiler import (
@@ -18,6 +17,7 @@ from grunt.db.profiler import (
     set_threshold,
 )
 from grunt.errors import throw
+lazy from grunt.document.api import documents
 
 
 def _require_debug() -> None:
@@ -101,7 +101,7 @@ async def update_profiler_settings(
 async def get_query_cache_stats() -> dict[str, Any]:
     """Return query cache runtime stats and config."""
     _require_debug()
-    cache = getattr(grunt, "query_cache", None)
+    cache = documents.query_cache
     if cache is None:
         return {
             "enabled": False,
@@ -123,7 +123,7 @@ async def get_query_cache_stats() -> dict[str, Any]:
 async def clear_query_cache() -> bool:
     """Clear in-memory query cache (dev helper)."""
     _require_debug()
-    cache = getattr(grunt, "query_cache", None)
+    cache = documents.query_cache
     if cache is not None:
         cache.clear()
     return True

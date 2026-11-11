@@ -1,4 +1,5 @@
 from grunt.document.base import Document
+from grunt.errors import throw
 from grunt.i18n import _
 
 
@@ -17,7 +18,7 @@ class Address(Document):
 
     async def validate(self) -> None:
         if not self.city and not self.city_text:
-            self.grunt.throw(_("A city is required: pick one from the list or type it in"))
+            throw(_("A city is required: pick one from the list or type it in"))
 
     async def on_load(self) -> None:
         self.full_address = self._build_full_address()

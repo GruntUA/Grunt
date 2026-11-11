@@ -39,8 +39,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
-import grunt
 from grunt.i18n import _
+from grunt.local import session_roles, user_email
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.i18n.service import translation_service
@@ -87,11 +87,13 @@ def register_sidebar_section(section: SidebarSection) -> None:
 
 
 def sections_for(doctype: str) -> list[SidebarSection]:
-    user = grunt.get_user()
+    user_email()  # 401 without a user
+    held = set(session_roles())
     applicable = [
         s
         for s in _SECTIONS.values()
-        if (not s.doctypes or doctype in s.doctypes) and (not s.roles or user.has_role(*s.roles))
+        if (not s.doctypes or doctype in s.doctypes)
+        and (not s.roles or any(r in held for r in s.roles))
     ]
     # Stable: equal orders keep registration order (core first, then apps).
     return sorted(applicable, key=lambda s: s.order)

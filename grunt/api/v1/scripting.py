@@ -2,8 +2,8 @@
 
 from typing import Any
 
-import grunt
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import require_session
@@ -25,7 +25,7 @@ async def run_server_script(method: str, params: dict[str, Any] | None = None) -
     if not script:
         throw(_("API method “%(method)s” not found") % {"method": method}, "NOT_FOUND")
 
-    user = grunt.get_user()
+    user = acting_user()
     result = await server_script_runner.execute(
         script["script"],
         session=session,

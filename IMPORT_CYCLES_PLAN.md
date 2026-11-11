@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-10 — злито #120–#134 (кроки 0–7, 9a–9c); 9d (ядро без фасаду як точки входу) — у PR.
+Оновлено: 2026-11-11 — злито #120–#135 (кроки 0–7, 9a–9d); 9e (ядро без фасаду повністю, тест-правило) — у PR.
 
 ---
 
@@ -92,7 +92,7 @@
 | 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a злито (#126); 6b-1 злито (#127); 6b-2 (`base` ↔ `registry` / `schema` / `queryset`) — у PR; 6b-3 (mixins → сервіси вище — через події) — далі |
 | 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | у PR |
 | 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
-| 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | |
+| 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | злито 9a–9d (#129–#131, #135); 9e — у PR |
 | 10 | Храповик рахує й неявні імпорти батьківських пакетів; базовий список порожній; CodeQL локально і в CI — 0 | |
 
 Кожен крок — окремий PR у `develop`; великий крок ділиться (ліміт CodeRabbit 100 файлів).
@@ -397,4 +397,24 @@
   `render_template` — живуть у шарі `app` (документ `User`, пошук користувача за email) — 9e.
 - Базовий список 64 → 63; цикли тепер видно прямими ребрами (`documents`) замість фасаду.
 - Результат: 2262 passed, pyright 0; CodeQL локально 38 → 38, нових 0.
+
+### 2026-11-11 — крок 9e: ядро без фасаду, тест-правило
+
+- `grunt.get_user()` → `grunt.local.user_email()` (лише email, 401 без користувача) або
+  `grunt.auth.current.acting_user()` (документ `User`, вище шару auth). `grunt.context(...)`
+  (з пошуком за email) → `grunt.auth.current.user_context(...)`; фасад (`ContextAPI`) делегує
+  туди. `set_context` / `reset_context` → `grunt.local.bind` / `unbind`.
+- `render_template` → `grunt.utils.templates.render` (фасад реєструє себе — `use_app`, бо
+  шаблон отримує його глобальною `grunt`); `notify` → `grunt.publish.notify`; кеші →
+  `documents.doc_cache / query_cache`; `__version__` → `framework_version()`; `__file__` → шлях
+  від модуля; `from grunt import log / _ / whitelist / log_error / outbox / hooks` — напряму.
+- `Document.grunt` (для контролерів додатків, `self.grunt.db...`) — `sys.modules["grunt"]`;
+  контролери ядра кличуть `throw` з `grunt.errors` (типізований `NoReturn`).
+  `DataImport.export_doctype` — без невикористаного параметра-фасаду.
+- **Правило:** `tests/test_no_facade_in_core.py` — ядро не імпортує `grunt` (крім самого
+  фасаду `grunt/__init__`, `grunt/app`, а також `testkit` і `utils/shell`, що віддають фасад
+  коду додатків навмисно).
+- Базовий список 63 → 38 (вся `auth`, `document.base / api`, `api.v1.ws`, `publish`,
+  `progress`, `outbox`, `tasks.broker / middleware`, `app.*`, ...).
+- Результат: 2263 passed, vitest 335, pyright 0; CodeQL локально 38 → 38, нових 0.
 

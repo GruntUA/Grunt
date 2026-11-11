@@ -5,37 +5,22 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
-from grunt.auth.doctypes.User.user import SYSTEM_USER, User, guest_user
-from grunt.errors import ApplicationError
-from grunt.i18n import _
+from grunt.auth.current import acting_user, user_context
+from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 from grunt.local import (
     _bootstrap_ctx,
-    _engine_ctx,
-    _session_ctx,
-    _user_ctx,
+    bind,
+    unbind,
 )
-lazy from grunt.auth.users import get_auth_context_user
 
 
 class ContextAPI:
     """Context management and engine/session access helpers for GruntApp."""
 
     def get_user(self) -> User:
-        """The user the current request or task runs as, as a ``User`` document.
-
-        Below the auth layer the user is their email and roles
-        (:func:`grunt.local.session_user`, :func:`grunt.permissions.roles.get_roles`),
-        as in Frappe; code above it - auth, the API, apps - gets the document here.
-
-        Never invents one: without a user in context (a guest request, or a task
-        that didn't enter ``grunt.context`` / ``grunt.system_context``) it raises
-        a 401 instead of letting a permission check pass on a stand-in.
-        """
-        user = _user_ctx.get()
-        if user is None:
-            raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
-        return user
+        """The ``User`` document the request or task runs as (401 without one) -
+        :func:`grunt.auth.current.acting_user`."""
+        return acting_user()
 
     def set_context(
         self,
@@ -52,39 +37,11 @@ class ContextAPI:
         App developers generally do NOT need to call this directly. Without an
         *engine* the one already in context is kept (same site, new session).
         """
-        return (
-            _session_ctx.set(session),
-            _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
-            _user_ctx.set(user),
-        )
+        return bind(session, engine, user)
 
     def reset_context(self, tokens: tuple) -> None:
         """Restore the context to its previous state using tokens from :meth:`set_context`."""
-        _session_ctx.reset(tokens[0])
-        _engine_ctx.reset(tokens[1])
-        _user_ctx.reset(tokens[2])
-
-    async def _user_document(
-        self, session: AsyncSession, engine: AsyncEngine | None, user: User | str | None
-    ) -> User | None:
-        """*user* as a ``User`` document - an email is looked up (as ``frappe.set_user``)."""
-        if not isinstance(user, str):
-            return user
-        current = _user_ctx.get()
-        if current is not None and current.email == user:
-            return current
-        if user == SYSTEM_USER_EMAIL:
-            return SYSTEM_USER
-        if user == GUEST_USER_EMAIL:
-            return guest_user()
-        tokens = self.set_context(session, engine, SYSTEM_USER)
-        try:
-            found = await get_auth_context_user(user)
-        finally:
-            self.reset_context(tokens)
-        if found is None:
-            raise LookupError(f"grunt.context: no user {user!r}")
-        return found
+        unbind(tokens)
 
     @contextlib.asynccontextmanager
     async def context(
@@ -93,24 +50,14 @@ class ContextAPI:
         engine: AsyncEngine | None = None,
         user: User | str | None = None,
     ) -> AsyncGenerator[None]:
-        """Async context manager that activates a grunt context for background tasks.
-
-        Use this in background tasks and CLI commands instead of calling
-        :meth:`set_context` / :meth:`reset_context` directly::
+        """Run the block as *user* - a ``User`` document or an email - in a
+        background task or CLI command (:func:`grunt.auth.current.user_context`)::
 
             async with grunt.context(session, engine, "jane@example.com"):
                 doc = await grunt.get_doc("Invoice", invoice_id)
-                await doc.submit()
-
-        *user* - a ``User`` document or an email (code below the auth layer
-        knows users by email only).
         """
-        doc = await self._user_document(session, engine, user)
-        tokens = self.set_context(session, engine, doc)
-        try:
+        async with user_context(session, engine, user):
             yield
-        finally:
-            self.reset_context(tokens)
 
     @contextlib.asynccontextmanager
     async def system_context(

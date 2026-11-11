@@ -19,8 +19,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-import grunt
 from grunt.activity import attach_titles, attach_user_names, feed_hidden_doctypes
+from grunt.auth.current import acting_user
 from grunt.document.meta import Meta
 from grunt.local import require_session
 from grunt.log import log
@@ -91,7 +91,7 @@ async def _widget_report_series(widget: Any) -> Any:
     """
     report_name = widget.get("report") or ""
     try:
-        user = grunt.get_user()
+        user = acting_user()
         session = require_session()
 
         cfg_rows = await documents.get_list(

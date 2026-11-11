@@ -1,6 +1,5 @@
 from datetime import UTC, datetime, timedelta
 
-import grunt
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.db.api import GruntDB
 from grunt.email.inbound import apply_report, pull_emails
@@ -10,6 +9,7 @@ from grunt.local import system_context
 from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
+from grunt.utils.templates import render as render_template_text
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -189,7 +189,7 @@ async def _render_digest(period: str, rows: list[dict], groups: dict[str, list])
         (pgettext(f"meta:{key}", key) if key else _("System")): items
         for key, items in groups.items()
     }
-    html_body = await grunt.render_template(
+    html_body = await render_template_text(
         "notification_digest.html",
         {"title": title, "summary": summary, "total": total, "groups": labelled},
     )
