@@ -18,7 +18,7 @@ While a DocType has an active workflow:
   controller which transition is being applied:
 
   ```python
-  from grunt.workflow.engine import current_transition
+  from grunt.workflow.transition import current_transition
 
 
   async def validate(self):
