@@ -74,6 +74,16 @@ def validate_match(expr: str | None) -> str | None:
     return expr
 
 
+def has_old_permission_flags(definition: dict) -> bool:
+    """Whether a stored DocType *definition* still has permission rows with the
+    old flags - stored before migration 0021, which converts them."""
+    return any(
+        isinstance(row, dict) and any(flag in row for flag in _OLD_FLAGS)
+        for key in ("permissions", "permissions_base")
+        for row in definition.get(key) or []
+    )
+
+
 class DocPermission(BaseModel):
     """Pydantic model for a single permission row inside DocType metadata."""
 

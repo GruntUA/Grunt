@@ -158,3 +158,31 @@ async def test_studio_update_keeps_baseline(ctx, db_session, engine):
     await doctype_registry.update(edited, db_session, engine)
 
     assert _roles(doctype_registry._doctypes["StudioTarget"].permissions_base) == ["System Manager"]
+
+
+@pytest.mark.asyncio
+async def test_unmigrated_stored_rows_stop_the_sync(ctx, db_session, engine, warnings):
+    """A definition stored before migration 0021 (old permission flags) is not
+    "invalid" - falling back to the JSON would drop its Studio customisations.
+    The sync stops instead and the stored row stays as it was."""
+    from sqlalchemy import update
+
+    from grunt.metadata import store
+    from grunt.metadata.permission import DocPermission
+
+    await _seed(
+        db_session, engine, "OldFlags", [DocPermission(role="Studio Role", actions=["read"])], None
+    )
+    old = await store.get_definition(db_session, "OldFlags")
+    old["permissions"] = [{"role": "Studio Role", "read": True}]
+    table = store.meta_table()
+    await db_session.execute(
+        update(table).where(table.c.name == "OldFlags").values({store.DEFINITION: old})
+    )
+    await db_session.commit()
+
+    with pytest.raises(RuntimeError, match="old permission flags"):
+        await _inject(db_session, "OldFlags", [DocPermission(role="Manager", actions=["read"])])
+    assert (await store.get_definition(db_session, "OldFlags"))["permissions"] == [
+        {"role": "Studio Role", "read": True}
+    ]

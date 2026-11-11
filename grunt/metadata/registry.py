@@ -30,7 +30,7 @@ from grunt.metadata.compiler import invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
-from grunt.metadata.permission import DocPermission
+from grunt.metadata.permission import DocPermission, has_old_permission_flags
 from grunt.site.manager import site_cache_key, site_manager
 lazy from grunt.document.meta import Meta
 
@@ -584,6 +584,13 @@ class DocTypeRegistry:
 
         if existing:
             # Load the stored definition (preserves Studio customisations).
+            if has_old_permission_flags(existing):
+                # Not invalid - not migrated yet (migration 0021). Falling back
+                # to the JSON would drop the site's Studio customisations.
+                raise RuntimeError(
+                    f"DocType {doctype.name!r} is stored with old permission flags: "
+                    "run `grunt migrate` with Alembic (revision 0021) first"
+                )
             try:
                 active_dt = DocType.model_validate(existing)
             except Exception:
