@@ -12,8 +12,8 @@ import grunt
 from grunt.api.v1.document import workflow as workflow_api
 from grunt.api.v1.meta import save_doctype
 from grunt.hooks import on_doc
-from grunt.workflow.engine import current_transition
 from grunt.workflow.registry import clear_cache
+from grunt.workflow.transition import current_transition
 
 AUTHOR = "author@grunt.example.com"
 REVIEWER = "reviewer@grunt.example.com"

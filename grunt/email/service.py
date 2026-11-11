@@ -17,6 +17,7 @@ from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.site.settings import get_setting
 from grunt.storage import store
+from grunt.tasks.broker import by_name
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -32,9 +33,7 @@ SMTP_PASSWORD_MASK = "••••••••"
 async def _kick_queue() -> None:
     """Best-effort nudge for the ``process_email_queue`` scheduled task."""
     try:
-        from grunt.email.tasks import process_email_queue
-
-        await process_email_queue.kiq()
+        await by_name("grunt.email.tasks:process_email_queue").kiq()
     except Exception:
         log.warning("email.queue_kick_failed", exc_info=True)
 

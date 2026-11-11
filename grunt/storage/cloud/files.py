@@ -33,8 +33,8 @@ from grunt.site.manager import site_manager
 from grunt.storage.backends import CHUNK_SIZE, LocalStorageBackend, get_storage_backend
 from grunt.storage.cloud import RemoteError, files_remote, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone
-lazy from grunt.monitoring.health import human_size
 lazy from grunt.progress import Progress
+lazy from grunt.utils.sizes import human_size
 
 _db = GruntDB()  # stateless: reads through the context's session
 

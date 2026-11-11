@@ -16,7 +16,7 @@ from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.storage.backends import get_storage_backend
-from grunt.storage.images import OPTIMIZABLE, optimize_image, renamed
+from grunt.storage.optimize import OPTIMIZABLE, optimize_image, renamed
 from grunt.storage.thumbnails import THUMB_WIDTH, WEB_WIDTHS, can_thumbnail, make_thumbnail
 lazy from grunt.document.api import documents
 lazy from grunt.local import _user_ctx
@@ -194,7 +194,7 @@ class StoredBlob:
 
 
 async def compress_stored(key: str, size: int, filename: str, content_type: str) -> StoredBlob:
-    """Swap a stored image for its compressed copy (grunt.storage.images).
+    """Swap a stored image for its compressed copy (grunt.storage.optimize).
 
     Returns the new blob - its extension following a format change, and
     ``original_size`` set - or the given one when the image stays as it is.
@@ -235,7 +235,7 @@ async def store(
 
     Raises FileTypeNotAllowedError / FileTooLargeError (both ValueError) before anything
     is written. Private by default - pass ``is_public`` for website content.
-    Photos are compressed per the site's settings (grunt.storage.images) -
+    Photos are compressed per the site's settings (grunt.storage.optimize) -
     pass ``compress=False`` to keep the exact bytes.
     """
     content_type = content_type or "application/octet-stream"

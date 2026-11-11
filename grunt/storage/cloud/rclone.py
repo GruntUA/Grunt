@@ -20,7 +20,6 @@ Usage::
 """
 
 import asyncio
-import base64
 import configparser
 import contextlib
 import hashlib
@@ -36,21 +35,15 @@ from pathlib import Path
 from typing import Any
 
 import httpx2
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.log import log
+from grunt.storage.cloud.providers import RemoteError, obscure, provider_section
 lazy from grunt.progress import Progress
-lazy from grunt.storage.cloud.providers import provider_section
 
 _db = GruntDB()  # stateless: reads through the context's session
-
-# rclone's fixed key for "obscured" config values (lib/obscure). Obscuring is
-# not encryption - it only keeps secrets from being read over a shoulder -
-# but rclone refuses plain passwords in these fields.
-_OBSCURE_KEY = bytes.fromhex("9c935b48730a554d6bfd7c63c886a92bd390198eb8128afbf4de162b8b95f638")
 
 # rclone exit codes (docs: "Exit Code")
 EXIT_DIR_NOT_FOUND = 3
@@ -58,22 +51,6 @@ EXIT_FILE_NOT_FOUND = 4
 
 BASE = "remote"  # section of the provider itself
 CRYPT = "secret"  # section wrapping it when encryption is on
-
-
-class RemoteError(RuntimeError):
-    """An rclone call failed - the message is rclone's own last error."""
-
-    def __init__(self, message: str, code: int | None = None) -> None:
-        super().__init__(message)
-        self.code = code
-
-
-def obscure(value: str) -> str:
-    """``rclone obscure``: AES-CTR with rclone's fixed key, random IV, base64url."""
-    iv = os.urandom(16)
-    encryptor = Cipher(algorithms.AES(_OBSCURE_KEY), modes.CTR(iv)).encryptor()
-    data = iv + encryptor.update(value.encode()) + encryptor.finalize()
-    return base64.urlsafe_b64encode(data).decode().rstrip("=")
 
 
 # Where rclone is put when the server has none: per user, shared by every site.

@@ -7,7 +7,7 @@
 `py/unsafe-cyclic-import` і 0 `py/cyclic-import`, включно з циклом через фасад `grunt/__init__`.
 Виключення запитів CodeQL не розглядаємо: алерт = неправильно розкладені залежності.
 
-Оновлено: 2026-11-11 — злито #120–#135 (кроки 0–7, 9a–9d); 9e (ядро без фасаду повністю, тест-правило) — у PR.
+Оновлено: 2026-11-11 — злито #120–#136 (кроки 0–7, 9); крок 8 (решта циклів: базовий список порожній, CodeQL локально 0) — у PR; далі крок 10.
 
 ---
 
@@ -89,10 +89,10 @@
 | 3 | Контекстний шар-лист: `site.manager` без `db.profiler`/`monitoring.perf`, `site.settings`, `cache.bus`, `db.commit` | злито (#123) |
 | 4 | Метадані: `document.meta` ↔ `metadata.compiler` ↔ `metadata.registry` ↔ `search.service` | злито (#124) |
 | 5 | Права всередині: `rbac` ↔ `query` ↔ `child` ↔ `shares` ↔ `user_permissions` ↔ `reference` | злито (#125) |
-| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | 6a злито (#126); 6b-1 злито (#127); 6b-2 (`base` ↔ `registry` / `schema` / `queryset`) — у PR; 6b-3 (mixins → сервіси вище — через події) — далі |
-| 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | у PR |
-| 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | |
-| 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | злито 9a–9d (#129–#131, #135); 9e — у PR |
+| 6 | Документ: `document.base` ↔ mixins ↔ `collection` / `queryset` / `registry`; mixins без `api.v1.ws`, `workflow`, `website` — через події | злито (#126–#128, #131–#133) |
+| 7 | Auth-сервіси: `User` ↔ `users` ↔ `user_api` (прибрати реекспорти внизу `user.py`), `login`, `service`, `UserSession` | злито (#134) |
+| 8 | Решта: storage (`files` ↔ `images` ↔ `tasks`, `cloud.*`), monitoring (`health` ↔ `updates`), workflow (`engine` ↔ `notify` ↔ `events`), `apps.loader` ↔ `consumers` ↔ `website.router`, `progress` → `ws` | у PR |
+| 9 | Фасад: ядро не імпортує `grunt` (`_`, `log`, `grunt.db`, `throw`, `whitelist`…) — прямі імпорти з модулів; правило в ruff/тесті; `grunt/__init__` лінивий | злито (#129–#131, #135, #136) |
 | 10 | Храповик рахує й неявні імпорти батьківських пакетів; базовий список порожній; CodeQL локально і в CI — 0 | |
 
 Кожен крок — окремий PR у `develop`; великий крок ділиться (ліміт CodeRabbit 100 файлів).
@@ -418,3 +418,40 @@
   `progress`, `outbox`, `tasks.broker / middleware`, `app.*`, ...).
 - Результат: 2263 passed, vitest 335, pyright 0; CodeQL локально 38 → 38, нових 0.
 
+### 2026-11-11 — крок 8: решта циклів
+
+Базовий список 38 → 0, CodeQL локально 38 → 0 (обидва запити). По вузлах:
+
+- **Фасад.** `api.messages` без невикористаних `notify_all` / `queue_email` (тягнули email і
+  сповіщення); `app.permission_api` і `scripting.server_script` — прямі імпорти замість `grunt`.
+- **workflow.** `ActiveTransition`, `current_transition()`, `user_may_take` — у новий
+  `workflow/transition.py`; `engine`, `guard`, `notify`, `core_pipeline` беруть звідти.
+- **assignment.** Перегляд правила — метод контролера `AssignmentRule.preview()`;
+  `AssignmentService.preview_rule` прибрано, контролер не імпортує сервіс.
+- **storage.cloud.** `RemoteError` і `obscure` — у `providers` (rclone імпортує їх звідти).
+  Сповіщення System Manager про збій сховища — через шину: `record_status` кидає подію
+  `storage_remote_failed`, підписник у `core_events` надсилає сповіщення (додатки теж можуть
+  підписатися).
+- **actions / reports.** `metadata/dump.py: dump_doctype` — серіалізація DocType без збагачення
+  `actions`; `api.v1.meta._dump_doctype` додає actions зверху, звіти (`reports.joins`) читають
+  лише поля.
+- **apps / website.** `website.*` бере головний веб-додаток із `site_manager.get_primary_web_app()`,
+  `CORE_APP` — з `apps.required` (дублікат у `apps.loader` прибрано).
+- **email / scheduler.** `broker.by_name("module:function")` — задача за назвою без імпорту її
+  модуля (зареєстрована — з мітками, інакше `AsyncKicker` за назвою). `email.service` штовхає
+  `process_email_queue` так. Дайджести планувальник ставить за шляхом
+  (`_add_scheduled_job(path, cron, *args, job_id=...)`), id `grunt.digest.daily/weekly` збережено.
+- **monitoring.** Рядок звіту (`OK`…`INFO`, `Row`, `row`) — `monitoring/rows.py`;
+  `human_size` — `grunt/utils/sizes.py`.
+- **storage.** Оптимізатор зображень — `storage/optimize.py` (його імпортує `files`);
+  `images.py` — лише стиснення вже збережених (`compress_existing`, `start_compression` за тим
+  самим шляхом методу), задачу ставить через `by_name`.
+- **Ламає:** `grunt.workflow.engine.current_transition` → `grunt.workflow.transition` (застосунок
+  `esign` імпортує старий шлях — оновити разом з рештою додатків);
+  `grunt.storage.cloud.rclone.RemoteError/obscure` → `providers`;
+  `grunt.monitoring.health.human_size` → `grunt.utils.sizes`; `grunt.storage.images.optimize_image`
+  / `ImageOptions` / `renamed` → `grunt.storage.optimize`; `AssignmentService.preview_rule` →
+  `AssignmentRule.preview`.
+- Результат: 2265 passed, 2 skipped; pyright 0; ruff чисто.
+- **Далі — крок 10:** храповик рахує й неявні імпорти батьківських пакетів; перевірити CodeQL
+  у CI.

@@ -28,6 +28,7 @@ lazy from fastapi.staticfiles import StaticFiles
 
 import grunt.core_hooks as core_hooks
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext, _resolve
+from grunt.apps.required import CORE_APP
 from grunt.document.registry import document_registry
 from grunt.io import register_exporter, register_importer
 from grunt.io.exporters.csv import CsvExporter
@@ -44,7 +45,6 @@ from grunt.version import compatibility_error
 from grunt.website import make_website_handler, website_registry
 from grunt.website.router import PAGE_METHODS
 
-CORE_APP = "grunt"
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/apps/loader.py -> grunt/
 
 

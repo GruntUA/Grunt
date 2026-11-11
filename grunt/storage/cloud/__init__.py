@@ -20,12 +20,15 @@ from datetime import UTC, datetime
 from typing import Any
 
 from grunt.db.api import GruntDB
+from grunt.events import fire
 from grunt.i18n import _
 from grunt.local import require_session
-from grunt.log import log
 from grunt.monitoring.error_log import record_error as log_error
-from grunt.storage.cloud.rclone import Rclone, RemoteError
-lazy from grunt.notification.service import notification_service
+from grunt.storage.cloud.providers import RemoteError
+from grunt.storage.cloud.rclone import Rclone
+
+# Fired when a remote turns from OK to Error: doctype, doc_id, message, session.
+REMOTE_FAILED = "storage_remote_failed"
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -98,8 +101,9 @@ async def record_status(
 ) -> None:
     """Store the outcome of an operation on *remote* (plus *values*), commit.
 
-    A failure goes to ErrorLog; System Managers are notified when the remote
-    turns from OK to Error (not on every failing night).
+    A failure goes to ErrorLog. When the remote turns from OK to Error (not on
+    every failing night) the ``storage_remote_failed`` event fires - the core
+    notifies System Managers (grunt/core_events.py), apps may hook it too.
     """
     name = remote["name"]
     now = datetime.now(UTC)
@@ -119,25 +123,13 @@ async def record_status(
             reference_name=name,
         )
         if remote.get("last_status") != "Error":
-            await _notify_managers(name, message)
+            await fire(
+                REMOTE_FAILED,
+                doctype="StorageRemote",
+                doc_id=name,
+                message=message,
+                session=require_session(),
+            )
     await _db.set_value("StorageRemote", name, values)
     remote.update(values)
     await require_session().commit()
-
-
-async def _notify_managers(name: str, message: str) -> None:
-
-    session = require_session()
-    try:
-        users = await notification_service._resolve_role_recipients(["System Manager"], session)
-        for user in users:
-            await notification_service.notify(
-                session,
-                user=user,
-                doctype="StorageRemote",
-                doc_id=name,
-                subject=_("Cloud storage “%(name)s” is failing") % {"name": name},
-                message=message,
-            )
-    except Exception:
-        log.warning("cloud.notify_failed", remote=name, exc_info=True)

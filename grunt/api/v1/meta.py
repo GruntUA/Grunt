@@ -16,65 +16,18 @@ from grunt.local import require_engine, require_session
 from grunt.log import log
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
-from grunt.metadata.dynamic_options import get_option_labels, get_schemas, resolve_field_options
+from grunt.metadata.dump import dump_doctype
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
-from grunt.workflow.registry import get_active_workflow
-lazy from grunt.i18n.meta import translate_doctype_meta
 
 _db = GruntDB()  # stateless: reads through the context's session
 
 
 async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, Any]:
-    """Serialize a DocType, resolving registry-backed options and field schemas.
-
-    Fields with `options_source` set draw their choices from the dynamic
-    options registry instead of the static `options` string. Fields with
-    `dynamic_schema_source` set get every registered {key: fields} variant
-    attached as `dynamic_schemas`, so the frontend can render the variant
-    matching a sibling field's value (e.g. WebPageBlock.settings picking its
-    form based on block_type) without a second round-trip.
-
-    `workflow_state_field` is resolved from the active `Workflow` document (if
-    any) rather than stored on the DocType itself - see grunt/workflow/registry.py.
-
-    ``translate=True`` runs labels/descriptions/Select options through the i18n
-    layer for the current request language (see grunt.i18n.meta). Only the
-    presentational render paths pass it - never file export / sync.
-    """
-    data = dt.model_dump()
-    for field, fdata in zip(dt.fields, data["fields"], strict=True):
-        if field.options_source:
-            fdata["options"] = resolve_field_options(field)
-            if labels := get_option_labels(field.options_source):
-                fdata["option_labels"] = labels
-        if field.dynamic_schema_source:
-            fdata["dynamic_schemas"] = {
-                key: [dict(sub) for sub in fields]
-                for key, fields in get_schemas(field.dynamic_schema_source).items()
-            }
-    workflow = await get_active_workflow(dt.name)
-    data["workflow_state_field"] = workflow.state_field if workflow else None
-    if workflow and translate:
-        # The form hides the state (shown in the sidebar) - it moves by the header's workflow
-        # actions (grunt/workflow/guard.py); the builder (raw) keeps the source.
-        for fdata in data["fields"]:
-            if fdata.get("fieldname") == workflow.state_field:
-                fdata["read_only"] = True
-
-    # Enrich `actions` bindings with defaults from the code registry and attach
-    # `_action_catalog` for the binding editor - see grunt.actions.
-
+    """:func:`dump_doctype` with the ``actions`` bindings enriched from the code
+    registry and ``_action_catalog`` attached for the binding editor - see grunt.actions."""
+    data = await dump_doctype(dt, translate=translate)
     enrich_doctype_actions(data)
-
-    if translate:
-        translate_doctype_meta(data)
-        for fdata in data["fields"]:
-            for variant in (fdata.get("dynamic_schemas") or {}).values():
-                for sub in variant:
-                    if sub.get("label"):
-                        sub["label"] = _(sub["label"])
-
     return data
 
 

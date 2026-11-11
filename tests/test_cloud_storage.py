@@ -16,7 +16,8 @@ import pytest
 import grunt.backups as backups
 from grunt.storage import backends
 from grunt.storage.cloud import MASK, mask_secrets
-from grunt.storage.cloud.rclone import CRYPT, Rclone, build_config, obscure
+from grunt.storage.cloud.providers import obscure
+from grunt.storage.cloud.rclone import CRYPT, Rclone, build_config
 
 pytestmark = pytest.mark.skipif(shutil.which("rclone") is None, reason="rclone not installed")
 

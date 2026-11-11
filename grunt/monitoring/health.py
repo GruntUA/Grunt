@@ -38,11 +38,13 @@ from grunt.local import require_session, user_email
 from grunt.log import log
 from grunt.metadata.compiler import get_table_name
 from grunt.metadata.registry import doctype_registry
+from grunt.monitoring.rows import ERROR, INFO, OK, WARNING, Row, row
 from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
 from grunt.tasks import scheduler as cron
 from grunt.tasks.redis_introspect import DEAD_CONSUMER_IDLE_MS, redis_conn, s, stream_broker
 from grunt.utils.redis import connect
+from grunt.utils.sizes import human_size
 from grunt.version import app_version, compatibility_error, framework_version
 lazy from grunt.config import DEFAULT_SECRET_KEY, settings
 lazy from grunt.db.alembic_utils import migration_state
@@ -53,8 +55,6 @@ lazy from grunt.storage.cloud import rclone
 lazy from grunt.storage.cloud.files import cache_root
 
 _db = GruntDB()  # stateless: reads through the context's session
-
-OK, WARNING, ERROR, INFO = "OK", "Warning", "Error", "Info"
 
 ERRORS_WARN_PER_DAY = 1
 ERRORS_ERROR_PER_DAY = 100
@@ -67,26 +67,6 @@ COUNT_CHUNK = 200
 _ROOT = Path(__file__).resolve().parents[2]  # apps/grunt
 FRONTEND_DIST = _ROOT / "dist"
 SERVICE_WORKER_SRC = _ROOT / "public" / "sw.js"
-
-Row = dict[str, Any]
-
-
-def row(category: str, check: str, status: str, value: Any = "", hint: str = "") -> Row:
-    return {
-        "category": category,
-        "check": check,
-        "status": status,
-        "value": "" if value is None else str(value),
-        "hint": hint,
-    }
-
-
-def human_size(n: float) -> str:
-    for unit in ("B", "KB", "MB", "GB"):
-        if n < 1024:
-            return f"{n:.0f} {_(unit)}" if unit == "B" else f"{n:.1f} {_(unit)}"
-        n /= 1024
-    return f"{n:.1f} {_('TB')}"
 
 
 def _since(delta: timedelta) -> datetime:

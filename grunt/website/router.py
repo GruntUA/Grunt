@@ -18,7 +18,6 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescap
 from grunt.local import system_context
 from grunt.log import log
 from grunt.website.host import current_web_app
-lazy from grunt.apps.loader import primary_web_app
 lazy from grunt.config import settings
 lazy from grunt.db.session import get_session
 lazy from grunt.i18n.jinja import install as install_i18n
@@ -398,7 +397,7 @@ async def render_not_found(request: Request, session: Any) -> Response | None:
     """
 
     first = request.url.path.strip("/").split("/", 1)[0]
-    for app in (first, primary_web_app()):
+    for app in (first, site_manager.get_primary_web_app()):
         if not app or website_registry.get_env(app) is None:
             continue
         www_dir = next((p.www_dir for p in website_registry.pages if p.app == app), None)

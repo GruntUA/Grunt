@@ -79,10 +79,8 @@ async def test_workspace_save_requires_system_manager(ctx):
 
 @pytest.mark.asyncio
 async def test_assignment_preview_rule_resolves_typed_doc(ctx):
-    """assignment/service.py's preview_rule() used to do
-    grunt.get_doc("AssignmentRule", id) + AssignmentRule(...) manually —
-    now a single typed grunt.get_doc(AssignmentRule, id) call."""
-    from grunt.assignment.service import AssignmentService
+    """test_rule loads the rule as a typed AssignmentRule and previews it."""
+    from grunt.assignment.doctypes.AssignmentRule.assignment_rule import test_rule
 
     admin = make_user("assign-admin@grunt.example.com", is_superadmin=True)
     async with ctx.context(ctx.db._session(), ctx.get_engine(), admin):
@@ -96,7 +94,7 @@ async def test_assignment_preview_rule_resolves_typed_doc(ctx):
         )
         await ctx.db._session().commit()
 
-        result = await AssignmentService().preview_rule(rule_doc["name"], {"name": "x"})
+        result = await test_rule(rule_doc["name"], {"name": "x"})
         assert result["rule_id"] == rule_doc["name"]
 
 

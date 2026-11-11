@@ -2,9 +2,10 @@ import os
 import socket
 import uuid
 from collections.abc import Callable
-from typing import ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 from taskiq import AsyncBroker, AsyncTaskiqDecoratedTask, InMemoryBroker, SmartRetryMiddleware
+from taskiq.kicker import AsyncKicker
 from taskiq_redis import RedisStreamBroker
 
 from grunt.config import settings
@@ -63,6 +64,14 @@ else:
         _retry_middleware,
     )
     log.warning("tasks.broker_initialized", type="in_memory", reason="REDIS_URL not set")
+
+
+def by_name(name: str) -> AsyncTaskiqDecoratedTask[..., Any] | AsyncKicker[..., Any]:
+    """The task registered as *name* (``"module:function"``), to ``.kiq()`` it
+    without importing its module - for a lower layer that only nudges a task
+    of a higher one. Before that module is loaded the message goes out by name
+    without the task's labels (no retries); the worker resolves the name."""
+    return broker.find_task(name) or AsyncKicker(name, broker, labels={})
 
 
 def task[**P, R](func: Callable[P, R]) -> AsyncTaskiqDecoratedTask[P, R]:

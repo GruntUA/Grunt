@@ -72,46 +72,6 @@ class AssignmentService:
         if assign_to_role:
             await self._assign_to_role(doctype, doc, str(assign_to_role), rule_id)
 
-    async def preview_rule(self, rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
-        """Evaluate a rule against a sample document and return preview details."""
-
-        rule = await documents.get_doc(AssignmentRule, rule_id)
-
-        matched = rule.match(test_doc)
-        filters = rule.parsed_filters()
-
-        will_assign_to: list[str] = []
-        if matched:
-            if rule.assign_to_user:
-                will_assign_to.append(rule.assign_to_user)
-            elif rule.assign_to_role:
-                ur_rows = await documents.get_list(
-                    "UserRole",
-                    filters={"role_name": rule.assign_to_role, "parent_doctype": "User"},
-                    fields=["parent_name"],
-                    limit=500,
-                )
-                for ur in ur_rows:
-                    u = await get_user_by_id(ur["parent_name"])
-                    if u and u.is_active:
-                        will_assign_to.append(u.email)
-
-        matching_fields = [field for field in filters if field in test_doc]
-
-        return {
-            "rule_id": rule_id,
-            "doctype_target": rule.doctype_target,
-            "filters": filters,
-            "matched": matched,
-            "matching_fields": matching_fields,
-            "will_assign_to": will_assign_to,
-            "message": (
-                f"Rule matches! Will assign to {len(will_assign_to)} user(s)"
-                if matched
-                else "Rule does not match"
-            ),
-        }
-
     # Приватні допоміжні методи оркестратора
 
     async def _get_enabled_rules(self, doctype: str) -> list[dict]:

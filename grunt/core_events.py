@@ -11,10 +11,14 @@ from typing import Any
 from grunt.assignment import assignment_service
 from grunt.document.links import link_service
 from grunt.events import EventSubscriber, register_subscriber
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.notification import rule_index
+from grunt.notification.service import notification_service
 from grunt.notification.tasks import evaluate_notification_rules_task
 from grunt.scripting import server_script_runner
+from grunt.storage.cloud import REMOTE_FAILED
 from grunt.storage.references import claim_referenced_files
 from grunt.tasks.enqueue import enqueue
 
@@ -125,6 +129,25 @@ async def _evaluate_assignment_rules(**kwargs: Any) -> None:
     await assignment_service.evaluate_and_assign(doctype=doctype, doc=kwargs["doc"])
 
 
+async def _alert_remote_failure(**kwargs: Any) -> None:
+    """A cloud storage remote turned from OK to Error: tell the System Managers."""
+    name = kwargs["doc_id"]
+    session = kwargs["session"]
+    try:
+        users = await notification_service._resolve_role_recipients(["System Manager"], session)
+        for user in users:
+            await notification_service.notify(
+                session,
+                user=user,
+                doctype="StorageRemote",
+                doc_id=name,
+                subject=_("Cloud storage “%(name)s” is failing") % {"name": name},
+                message=kwargs["message"],
+            )
+    except Exception:
+        log.warning("cloud.notify_failed", remote=name, exc_info=True)
+
+
 for _core_stage in (
     EventSubscriber("server_scripts", _run_server_scripts, _SERVER_SCRIPT_EVENTS, priority=30),
     EventSubscriber("document_links", _sync_document_links, _LINK_EVENTS, priority=40),
@@ -134,6 +157,9 @@ for _core_stage in (
     ),
     EventSubscriber(
         "assignment_rules", _evaluate_assignment_rules, _ASSIGNMENT_EVENTS, priority=60
+    ),
+    EventSubscriber(
+        "storage_remote_alert", _alert_remote_failure, frozenset({REMOTE_FAILED}), priority=70
     ),
 ):
     register_subscriber(_core_stage)

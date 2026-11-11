@@ -20,12 +20,12 @@ from sqlalchemy import Table, and_
 from sqlalchemy.sql import FromClause
 from sqlalchemy.sql.base import WriteableColumnCollection
 
+from grunt.metadata.dump import dump_doctype
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
 from grunt.query.nodes import TRUE
 from grunt.query.sql import where_clause
-lazy from grunt.api.v1.meta import _dump_doctype
 
 
 @dataclass
@@ -93,7 +93,7 @@ async def report_fields(meta: Any, user: str) -> list[dict[str, Any]]:
     hidden = await permission_checker.hidden_fields(meta, user=user)
     own = [
         f
-        for f in (await _dump_doctype(meta.doc, translate=True))["fields"]
+        for f in (await dump_doctype(meta.doc, translate=True))["fields"]
         if f["fieldname"] not in hidden
     ]
     fields = list(own)
@@ -105,7 +105,7 @@ async def report_fields(meta: Any, user: str) -> list[dict[str, Any]]:
         if target is None or not await permission_checker.check(target, "read", user=user):
             continue
         target_hidden = await permission_checker.hidden_fields(target, user=user)
-        for f in (await _dump_doctype(target.doc, translate=True))["fields"]:
+        for f in (await dump_doctype(target.doc, translate=True))["fields"]:
             if f["fieldname"] in target.columns and f["fieldname"] not in target_hidden:
                 fields.append(
                     {

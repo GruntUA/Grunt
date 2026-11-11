@@ -6,7 +6,6 @@ from fastapi import HTTPException, status
 from grunt.document.base import Document
 from grunt.i18n import N_, _
 from grunt.log import log
-from grunt.monitoring.health import human_size
 from grunt.progress import job_progress
 from grunt.query.query import Query
 from grunt.store import DELETE, Unavailable, VirtualStore
@@ -18,6 +17,7 @@ from grunt.tasks.redis_introspect import (
     stream_broker,
     unavailable_message,
 )
+from grunt.utils.sizes import human_size
 
 
 class BackgroundJobStore(VirtualStore):

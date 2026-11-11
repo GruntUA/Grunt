@@ -37,15 +37,16 @@ from fastapi.responses import HTMLResponse
 from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
+from grunt.apps.required import CORE_APP
 from grunt.db.api import GruntDB
 from grunt.document.api import documents
 from grunt.local import as_system
 from grunt.log import log
 from grunt.utils.slug import slugify
 from grunt.website.host import current_web_app
-lazy from grunt.apps.loader import CORE_APP, primary_web_app
 lazy from grunt.document.registry import document_registry
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import site_manager
 lazy from grunt.website.doc_layout import build_tabs
 lazy from grunt.website.preview import (
     PREVIEW_URL_KEY,
@@ -86,7 +87,7 @@ def app_mount(app: str | None) -> str:
     the app whose own domain the request came to (``web_domains``), ``/<app>``
     for every other app (the www/ rule)."""
 
-    if not app or app in (CORE_APP, primary_web_app(), current_web_app.get()):
+    if not app or app in (CORE_APP, site_manager.get_primary_web_app(), current_web_app.get()):
         return ""
     return f"/{app}"
 
