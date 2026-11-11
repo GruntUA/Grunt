@@ -13,11 +13,15 @@ lazy import openpyxl
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
 from grunt.log import log
+from grunt.permissions.guards import doctype_guard
 from grunt.storage.files import store
 
 
 class DataExport(Document):
     """DocType controller for DataExport."""
+
+    async def validate(self) -> None:
+        await doctype_guard(self.doctype_name, "export")
 
     async def run(self) -> None:
         """Execute the export, save result as a File, update status."""

@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Toggle } from '@/components/ui/toggle'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { accessToken } from '@/core/accessToken'
+import { PERMS_KEY } from '@/core/permissions'
 
 const { t } = useI18n()
 
@@ -111,6 +112,11 @@ async function remindMe() {
     /* the API error toast says why */
   }
 }
+
+// The server's answer for this document (`__perms`); hidden only when it says no.
+const canPrint = computed(
+  () => (props.document[PERMS_KEY] as Record<string, boolean> | undefined)?.print !== false,
+)
 
 function printDoc() {
   const params = new URLSearchParams({
@@ -258,7 +264,7 @@ function printDoc() {
         </TooltipTrigger>
         <TooltipContent>{{ t('Remind me') }}</TooltipContent>
       </Tooltip>
-      <Tooltip>
+      <Tooltip v-if="canPrint">
         <TooltipTrigger as-child>
           <Button variant="outline" size="icon-sm" :aria-label="t('Print')" @click="printDoc">
             <Printer />

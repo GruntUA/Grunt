@@ -1,4 +1,4 @@
-"""SharedWith controller - only someone who may write a document can share it.
+"""SharedWith controller - only someone who may share and write a document can share it.
 
 The grant itself is enforced in :mod:`grunt.permissions.shares`.
 """
@@ -24,20 +24,20 @@ class SharedWith(Document):
             self.data["permission"] = "Read"
         if not await self.grunt.db.exists("User", target):
             throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
-        await self._require_write_on_reference()
+        await self._require_share_on_reference()
 
     async def before_delete(self) -> None:
-        await self._require_write_on_reference()
+        await self._require_share_on_reference()
 
-    async def _require_write_on_reference(self) -> None:
+    async def _require_share_on_reference(self) -> None:
         if self.user is None:
             return
         dt = await self.grunt.get_meta(self.reference_doctype)
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
-        if not await permission_checker.check(dt, "write", doc):
+        if not await permission_checker.can_share(dt, doc):
             throw(
-                _("Only someone who can edit the document can share it"),
+                _("Only someone allowed to share and edit the document can share it"),
                 "PERMISSION_DENIED",
             )

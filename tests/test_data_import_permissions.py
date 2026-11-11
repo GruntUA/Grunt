@@ -5,6 +5,9 @@ DataImport itself is create/write/delete-restricted to "System Manager", but
 nothing enforced that on the one action that actually executes the write.
 download_template() had the same gap for the (much lower severity) template
 metadata endpoint.
+
+Both now also need the ``import`` permission on the target DocType - the
+import writes into it as SYSTEM_USER.
 """
 
 import pytest
@@ -19,7 +22,10 @@ GUARDED_IMPORT_TARGET = {
     "fields": [
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "DataOwner", "read": True, "write": True, "create": True}],
+    "permissions": [
+        {"role": "DataOwner", "actions": ["read", "write", "create", "import"]},
+        {"role": "DataReader", "actions": ["read"]},
+    ],
 }
 
 
@@ -43,18 +49,76 @@ async def test_run_import_job_denies_non_system_manager(ctx, db_session, engine)
     assert excinfo.value.status_code == 403
 
 
+async def _pending_import(db_session, engine) -> str:
+    """A DataImport into the target, set up by someone allowed to."""
+    import grunt
+    from grunt.document.api import documents
+
+    setter = make_user("setup@grunt.example.com", roles=["System Manager", "DataOwner"])
+    async with grunt.context(db_session, engine, setter):
+        doc = await documents.new_doc(
+            "DataImport",
+            {
+                "doctype_name": "ImportTargetSecret",
+                "file": "/files/rows.csv",
+                "import_type": "Insert New",
+            },
+        )
+    return doc["name"]
+
+
 @pytest.mark.asyncio
-async def test_run_import_job_allows_system_manager(ctx, db_session, engine):
+async def test_run_import_job_needs_import_on_the_target(
+    ctx, guarded_import_target, db_session, engine
+):
+    """System Manager may run DataImport, but not into a DocType they have no
+    ``import`` on - the task would write there as SYSTEM_USER."""
     import grunt
     from grunt.api.v1.data_import import run_import_job
 
+    name = await _pending_import(db_session, engine)
+
     manager = make_user("dm@grunt.example.com", roles=["System Manager"])
     async with grunt.context(db_session, engine, manager):
-        # The guard passes; the id doesn't exist so the queued task will
-        # itself fail later, in the background — this call only proves the
-        # permission check no longer blocks a legitimate System Manager.
-        result = await run_import_job("nonexistent-id")
-    assert result["name"] == "nonexistent-id"
+        with pytest.raises(HTTPException) as excinfo:
+            await run_import_job(name)
+    assert excinfo.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_run_import_job_allows_system_manager_with_import(
+    ctx, guarded_import_target, db_session, engine
+):
+    import grunt
+    from grunt.api.v1.data_import import run_import_job
+
+    name = await _pending_import(db_session, engine)
+
+    importer = make_user("di@grunt.example.com", roles=["System Manager", "DataOwner"])
+    async with grunt.context(db_session, engine, importer):
+        result = await run_import_job(name)
+    assert result["name"] == name
+
+
+@pytest.mark.asyncio
+async def test_data_import_needs_import_on_the_target_when_saved(
+    ctx, guarded_import_target, db_session, engine
+):
+    import grunt
+    from grunt.document.api import documents
+
+    manager = make_user("dm2@grunt.example.com", roles=["System Manager"])
+    async with grunt.context(db_session, engine, manager):
+        with pytest.raises(HTTPException) as excinfo:
+            await documents.new_doc(
+                "DataImport",
+                {
+                    "doctype_name": "ImportTargetSecret",
+                    "file": "/files/rows.csv",
+                    "import_type": "Insert New",
+                },
+            )
+    assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
@@ -72,7 +136,21 @@ async def test_download_template_denies_user_without_read(
 
 
 @pytest.mark.asyncio
-async def test_download_template_allows_user_with_read(
+async def test_download_template_denies_user_with_only_read(
+    ctx, guarded_import_target, db_session, engine
+):
+    import grunt
+    from grunt.api.v1.data_import import download_template
+
+    reader = make_user("reader@grunt.example.com", roles=["DataReader"])
+    async with grunt.context(db_session, engine, reader):
+        with pytest.raises(HTTPException) as excinfo:
+            await download_template("ImportTargetSecret")
+    assert excinfo.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_download_template_allows_user_with_import(
     ctx, guarded_import_target, db_session, engine
 ):
     import grunt
