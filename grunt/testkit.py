@@ -141,6 +141,14 @@ _DDL_TABLE = re.compile(
     re.IGNORECASE,
 )
 _DDL = ("CREATE", "ALTER", "DROP")
+# A statement that writes rows - the table it writes is emptied before the
+# next test. One whose table can't be told (a CTE, COPY, ...) empties them all.
+_DML = ("INSERT", "UPDATE", "DELETE", "REPLACE", "WITH", "MERGE", "COPY", "TRUNCATE")
+_DML_TABLE = re.compile(
+    r"^\s*(?:INSERT\s+(?:OR\s+\w+\s+)?INTO|REPLACE\s+INTO|UPDATE(?:\s+OR\s+\w+)?"
+    r"|DELETE\s+FROM)\s+(?:ONLY\s+)?(?:[`\"]?\w+[`\"]?\.)?[`\"]?(\w+)[`\"]?",
+    re.IGNORECASE,
+)
 
 
 class TestSchema:
@@ -148,7 +156,13 @@ class TestSchema:
 
     Creating and dropping every DocType table around each test cost more than
     most tests themselves (~200 ms on SQLite, ~280 ms on PostgreSQL); emptying
-    them takes a fraction of that. The DDL a test runs is watched:
+    them takes a fraction of that - and emptying only the tables written since
+    the last test a fraction again (a ``TRUNCATE`` of every table cost
+    PostgreSQL ~0.2 s a test, a quarter of the suite). The SQL a test runs is
+    watched:
+
+    * tables it wrote rows to are emptied before the next test - a write whose
+      table can't be told empties them all;
 
     * tables it created (its own DocTypes) are dropped after it - the rest of
       the schema stays;
@@ -165,16 +179,25 @@ class TestSchema:
         self._db_tables: set[str] = set()  # what the database holds then (search index too)
         self._touched: set[str] = set()
         self._unknown_ddl = False
+        self._written: set[str] = set()  # rows written since the tables were emptied
+        self._unknown_write = False
         self._own = False
         event.listen(engine.sync_engine, "before_cursor_execute", self._watch)
 
     def _watch(self, conn: Any, cursor: Any, statement: str, *args: Any) -> None:
-        if self._own or not statement.lstrip()[:6].upper().startswith(_DDL):
+        if self._own:
             return
-        if m := _DDL_TABLE.match(statement):
-            self._touched.add(m.group(1))
-        else:
-            self._unknown_ddl = True
+        head = statement.lstrip()[:8].upper()
+        if head.startswith(_DML):
+            if m := _DML_TABLE.match(statement):
+                self._written.add(m.group(1))
+            else:
+                self._unknown_write = True
+        elif head.startswith(_DDL):
+            if m := _DDL_TABLE.match(statement):
+                self._touched.add(m.group(1))
+            else:
+                self._unknown_ddl = True
 
     @staticmethod
     def _snapshot() -> dict[str, int]:
@@ -200,13 +223,20 @@ class TestSchema:
                     )
                 self._tables = self._snapshot()
             else:
+                written = (
+                    list(self._tables)
+                    if self._unknown_write
+                    else [name for name in self._tables if name in self._written]
+                )
                 async with self.engine.begin() as conn:
-                    await dialect_for(conn).empty_tables(conn, list(self._tables))
+                    await dialect_for(conn).empty_tables(conn, written)
                     await search_index_service.empty(conn)
         finally:
             self._own = False
         self._touched.clear()
         self._unknown_ddl = False
+        self._written.clear()
+        self._unknown_write = False
 
     async def finish(self) -> None:
         """After a test: drop the tables it created; drop the whole schema if it
