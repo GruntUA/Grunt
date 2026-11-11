@@ -137,7 +137,7 @@ _DDL_TABLE = re.compile(
     r"^\s*(?:"
     r"(?:CREATE|ALTER|DROP)\s+(?:VIRTUAL\s+|TEMP(?:ORARY)?\s+)?TABLE\s+(?:IF\s+(?:NOT\s+)?EXISTS\s+)?"
     r"|CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:CONCURRENTLY\s+)?(?:IF\s+NOT\s+EXISTS\s+)?\S+\s+ON\s+(?:ONLY\s+)?"
-    r')[`"]?(\w+)[`"]?',
+    r')[`"]?(\w+)[`"]?(?=[\s(;]|$)',
     re.IGNORECASE,
 )
 _DDL = ("CREATE", "ALTER", "DROP")
@@ -146,9 +146,15 @@ _DDL = ("CREATE", "ALTER", "DROP")
 _DML = ("INSERT", "UPDATE", "DELETE", "REPLACE", "WITH", "MERGE", "COPY", "TRUNCATE")
 _DML_TABLE = re.compile(
     r"^\s*(?:INSERT\s+(?:OR\s+\w+\s+)?INTO|REPLACE\s+INTO|UPDATE(?:\s+OR\s+\w+)?"
-    r"|DELETE\s+FROM)\s+(?:ONLY\s+)?(?:[`\"]?\w+[`\"]?\.)?[`\"]?(\w+)[`\"]?",
+    r"|DELETE\s+FROM)\s+(?:ONLY\s+)?(?:[`\"]?\w+[`\"]?\.)?[`\"]?(\w+)[`\"]?(?=[\s(;]|$)",
     re.IGNORECASE,
 )
+# Comments in front of a statement: "-- ...", "/* ... */".
+_LEADING_COMMENTS = re.compile(r"^(?:\s*(?:--[^\n]*(?:\n|$)|/\*.*?\*/))+", re.DOTALL)
+# Execution option marking TestSchema's own connections: what they run is the
+# cleanup itself, not a test's writes - anything else, a test's background task
+# writing during the cleanup included, stays watched.
+_OWN = "grunt_testkit_own"
 
 
 class TestSchema:
@@ -179,25 +185,31 @@ class TestSchema:
         self._db_tables: set[str] = set()  # what the database holds then (search index too)
         self._touched: set[str] = set()
         self._unknown_ddl = False
-        self._written: set[str] = set()  # rows written since the tables were emptied
+        # Tables rows were written to since the tables were emptied - lowercase:
+        # unquoted names fold (PostgreSQL) or compare case-blind (SQLite).
+        self._written: set[str] = set()
         self._unknown_write = False
-        self._own = False
         event.listen(engine.sync_engine, "before_cursor_execute", self._watch)
 
     def _watch(self, conn: Any, cursor: Any, statement: str, *args: Any) -> None:
-        if self._own:
+        if conn.get_execution_options().get(_OWN):
             return
-        head = statement.lstrip()[:8].upper()
+        statement = _LEADING_COMMENTS.sub("", statement).lstrip()
+        head = statement[:8].upper()
         if head.startswith(_DML):
             if m := _DML_TABLE.match(statement):
-                self._written.add(m.group(1))
+                self._written.add(m.group(1).lower())
             else:
                 self._unknown_write = True
         elif head.startswith(_DDL):
             if m := _DDL_TABLE.match(statement):
-                self._touched.add(m.group(1))
+                self._touched.add(m.group(1).lower())
             else:
                 self._unknown_ddl = True
+
+    def _own(self, conn: Any) -> Any:
+        """*conn* (an async connection) marked as the cleanup's own - not watched."""
+        return conn.execution_options(**{_OWN: True})
 
     @staticmethod
     def _snapshot() -> dict[str, int]:
@@ -209,34 +221,43 @@ class TestSchema:
 
     async def prepare(self) -> None:
         """Before a test, once its DocTypes are compiled: make the schema if there
-        is none, else empty every table."""
-        self._own = True
+        is none, else empty the tables written since the last test."""
+        # Taken now: what a test's leftover task writes during the cleanup
+        # stays noted for the next one.
+        written, unknown_write = self._written, self._unknown_write
+        self._written, self._unknown_write = set(), False
         try:
             if self._tables is None:
                 async with self.engine.begin() as conn:
+                    conn = await self._own(conn)
                     await conn.run_sync(SA_METADATA.create_all)
                     await conn.run_sync(get_compiled_metadata().create_all)
                 await search_index_service.ensure_table(self.engine)
                 async with self.engine.connect() as conn:
+                    conn = await self._own(conn)
                     self._db_tables = set(
                         await conn.run_sync(lambda c: inspect(c).get_table_names())
                     )
                 self._tables = self._snapshot()
             else:
-                written = (
+                names = (
                     list(self._tables)
-                    if self._unknown_write
-                    else [name for name in self._tables if name in self._written]
+                    if unknown_write
+                    else [name for name in self._tables if name.lower() in written]
                 )
                 async with self.engine.begin() as conn:
-                    await dialect_for(conn).empty_tables(conn, written)
+                    conn = await self._own(conn)
+                    await dialect_for(conn).empty_tables(conn, names)
                     await search_index_service.empty(conn)
-        finally:
-            self._own = False
+        except BaseException:
+            # Not emptied - the next attempt still has to.
+            self._written |= written
+            self._unknown_write |= unknown_write
+            raise
+        # The schema's own DDL (search index tables, made on their own
+        # connections) isn't a test's.
         self._touched.clear()
         self._unknown_ddl = False
-        self._written.clear()
-        self._unknown_write = False
 
     async def finish(self) -> None:
         """After a test: drop the tables it created; drop the whole schema if it
@@ -247,24 +268,22 @@ class TestSchema:
         changed = (
             base is None
             or self._unknown_ddl
-            or bool(self._touched & (base.keys() | self._db_tables))
+            or bool(self._touched & {n.lower() for n in (*base.keys(), *self._db_tables)})
             or any(current.get(name) != table_id for name, table_id in base.items())
         )
-        self._own = True
-        try:
-            if changed:
-                async with self.engine.begin() as conn:
-                    await conn.run_sync(metadata.drop_all)
-                    await conn.run_sync(SA_METADATA.drop_all)
-                await search_index_service.drop_table(self.engine)
-                self._tables = None
-            elif self._touched:
-                async with self.engine.begin() as conn:
-                    quote = conn.dialect.identifier_preparer.quote
-                    for name in self._touched:
-                        await conn.execute(text(f"DROP TABLE IF EXISTS {quote(name)}"))
-        finally:
-            self._own = False
+        if changed:
+            async with self.engine.begin() as conn:
+                conn = await self._own(conn)
+                await conn.run_sync(metadata.drop_all)
+                await conn.run_sync(SA_METADATA.drop_all)
+            await search_index_service.drop_table(self.engine)
+            self._tables = None
+        elif self._touched:
+            async with self.engine.begin() as conn:
+                conn = await self._own(conn)
+                quote = conn.dialect.identifier_preparer.quote
+                for name in self._touched:
+                    await conn.execute(text(f"DROP TABLE IF EXISTS {quote(name)}"))
         # The test's own tables leave the MetaData too (with or without DDL).
         keep = set() if changed or base is None else base.keys()
         for name in [t for t in metadata.tables if t.startswith("grunt_") and t not in keep]:
