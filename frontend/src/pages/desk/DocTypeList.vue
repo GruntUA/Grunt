@@ -40,7 +40,7 @@ import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
 import { docUrl } from '@/core/workspaceUrl'
-import { roleAllows } from '@/core/permissions'
+import { rolePermissions } from '@/core/permissions'
 import { getExporters } from '@/core/io/exporters/registry'
 import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi'
 import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
@@ -161,11 +161,7 @@ const {
   state: () => {
     const roles = auth.user?.roles ?? []
     return {
-      perm: {
-        create: roleAllows(dt.value, 'create', roles),
-        write: roleAllows(dt.value, 'write', roles),
-        delete: roleAllows(dt.value, 'delete', roles),
-      },
+      perm: rolePermissions(dt.value, roles),
       selected: selectedIds.value,
       isFetching: isFetching.value,
       exporters: getExporters().map((e) => ({ id: e.id, label: t(e.label) })),

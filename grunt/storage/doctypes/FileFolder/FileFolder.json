@@ -56,21 +56,16 @@
   "permissions": [
     {
       "role": "All",
-      "create": true
+      "actions": ["create"]
     },
     {
       "role": "All",
-      "read": true,
-      "write": true,
-      "delete": true,
+      "actions": ["read", "write", "delete"],
       "match": "space_user == user"
     },
     {
       "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
     }
   ]
 }

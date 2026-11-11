@@ -53,7 +53,7 @@
   "permissions": [
     {
       "role": "System Manager",
-      "read": true
+      "actions": ["read", "export", "print", "report"]
     }
   ]
 }

@@ -52,7 +52,7 @@
     }
   ],
   "permissions": [
-    {"role": "All", "read": true},
-    {"role": "System Manager", "write": true, "create": true, "delete": true}
+    {"role": "All", "actions": ["read"]},
+    {"role": "System Manager", "actions": ["write", "create", "delete", "import", "share"]}
   ]
 }

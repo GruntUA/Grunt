@@ -193,10 +193,15 @@ Create a JSON file in `my_crm/doctypes/Customer/`:
      "options": "Lead\nProspect\nCustomer\nInactive", "in_list_view": true}
   ],
   "permissions": [
-    {"role": "Sales", "read": true, "write": true, "create": true}
+    {"role": "Sales", "actions": ["read", "write", "create", "print", "export"]}
   ]
 }
 ```
+
+`actions` lists what the role may do: `read`, `select` (search a Link field's
+values only), `write`, `create`, `delete`, and - granted separately from read -
+`export`, `import`, `print`, `share` (also needs `write`) and `report` (reports
+on this DocType).
 
 Then sync the DocType to create the database table:
 

@@ -74,13 +74,22 @@ export interface DocType {
   links?: DocTypeLink[]
 }
 
+/** What a permission row can grant (grunt/metadata/permission.py `ACTIONS`). */
+export type PermissionAction =
+  | 'read'
+  | 'select'
+  | 'write'
+  | 'create'
+  | 'delete'
+  | 'export'
+  | 'import'
+  | 'print'
+  | 'share'
+  | 'report'
+
 export interface DocPermission {
   role: string
-  read?: boolean
-  write?: boolean
-  create?: boolean
-  delete?: boolean
-  report?: boolean
+  actions?: PermissionAction[]
   match?: string | null
   hidden_fields?: string[]
 }

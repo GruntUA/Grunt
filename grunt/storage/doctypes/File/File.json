@@ -129,31 +129,26 @@
   "permissions": [
     {
       "role": "All",
-      "create": true
+      "actions": ["create"]
     },
     {
       "role": "All",
-      "read": true,
+      "actions": ["read"],
       "match": "owner == user"
     },
     {
       "role": "All",
-      "write": true,
-      "delete": true,
+      "actions": ["write", "delete"],
       "match": "owner == user"
     },
     {
       "role": "All",
-      "write": true,
-      "delete": true,
+      "actions": ["write", "delete"],
       "match": "folder.space_user == user"
     },
     {
       "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
     }
   ]
 }

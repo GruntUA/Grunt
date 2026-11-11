@@ -40,26 +40,21 @@
   "permissions": [
     {
       "role": "All",
-      "create": true,
-      "write": true,
-      "delete": true
+      "actions": ["write", "create", "delete"]
     },
     {
       "role": "All",
-      "read": true,
+      "actions": ["read"],
       "match": "user == user"
     },
     {
       "role": "All",
-      "read": true,
+      "actions": ["read"],
       "match": "owner == user"
     },
     {
       "role": "System Manager",
-      "read": true,
-      "create": true,
-      "write": true,
-      "delete": true
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
     }
   ],
   "description": "Per-user share of one document (Read / Write). Only someone who can write the document may share it."

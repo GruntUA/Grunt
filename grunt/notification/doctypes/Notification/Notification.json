@@ -60,9 +60,7 @@
   "permissions": [
     {
       "role": "All",
-      "read": true,
-      "write": true,
-      "delete": true,
+      "actions": ["read", "write", "delete"],
       "match": "user == user"
     }
   ],

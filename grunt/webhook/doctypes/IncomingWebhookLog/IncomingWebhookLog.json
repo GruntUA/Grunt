@@ -60,10 +60,7 @@
   "permissions": [
     {
       "role": "System Manager",
-      "read": true,
-      "write": false,
-      "create": false,
-      "delete": true
+      "actions": ["read", "delete", "export", "print", "report"]
     }
   ]
 }
