@@ -27,6 +27,7 @@ Pages without ``allow_guest_to_view`` are never served: a page is rendered
 """
 
 import inspect
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote
@@ -36,13 +37,16 @@ from fastapi.responses import HTMLResponse
 from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader
 from sqlalchemy import select
 
-import grunt
-from grunt import log
+from grunt.apps.required import CORE_APP
+from grunt.db.api import GruntDB
+from grunt.document.api import documents
+from grunt.local import as_system
+from grunt.log import log
 from grunt.utils.slug import slugify
-lazy from grunt.apps.loader import CORE_APP, primary_web_app
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.website.host import current_web_app
 lazy from grunt.document.registry import document_registry
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.site.manager import site_manager
 lazy from grunt.website.doc_layout import build_tabs
 lazy from grunt.website.preview import (
     PREVIEW_URL_KEY,
@@ -53,6 +57,8 @@ lazy from grunt.website.preview import (
 )
 lazy from grunt.website.router import page_context, website_registry
 
+_db = GruntDB()  # stateless: reads through the context's session
+
 WEB_URL_KEY = "__web_url"
 ROUTE_FIELD = "route"
 
@@ -60,7 +66,8 @@ ROUTE_FIELD = "route"
 # the generic field layout.
 _TECHNICAL_FIELDS = {ROUTE_FIELD}
 
-_template_envs: dict[Path, Environment] = {}
+# template dir -> (website_registry.templates_version it was built at, env)
+_template_envs: dict[Path, tuple[int, Environment]] = {}
 
 
 # URLs
@@ -76,10 +83,13 @@ def is_public(dt: Any) -> bool:
 
 
 def app_mount(app: str | None) -> str:
-    """Where *app*'s pages live: ``""`` for the core and the primary web app,
-    ``/<app>`` for every other app (the www/ rule)."""
+    """Where *app*'s pages live: ``""`` for the core, the primary web app and
+    the app whose own domain the request came to (``web_domains``), ``/<app>``
+    for every other app (the www/ rule)."""
 
-    return "" if not app or app in (CORE_APP, primary_web_app()) else f"/{app}"
+    if not app or app in (CORE_APP, site_manager.get_primary_web_app(), current_web_app.get()):
+        return ""
+    return f"/{app}"
 
 
 def route_prefix(dt: Any) -> str:
@@ -124,7 +134,7 @@ async def with_web_url(doctype: str, doc: Any) -> Any:
         url = custom(doc)
         preview = getattr(controller, "get_preview_url", lambda _doc: None)(doc)
     else:
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         url = web_url(dt, doc) if dt is not None else None
         preview = draft_preview_url(dt, doc) if dt is not None else None
     if url:
@@ -179,7 +189,7 @@ async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | No
         filters: dict[str, Any] = {key: route}
         if dt.is_published_field:
             filters[dt.is_published_field] = True
-        rows = await grunt.db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
+        rows = await _db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
         if rows:
             return dt, rows[0]["name"]
         if dt.is_published_field and (
@@ -193,16 +203,18 @@ async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | No
 def _template_env(app: str | None, template_dir: Path) -> Environment | None:
     """The app's www/ env, searching *template_dir* first."""
 
-    env = _template_envs.get(template_dir)
-    if env is None:
-        base = website_registry.get_env(app or "grunt") or website_registry.get_env("grunt")
-        if base is None:
-            return None
-        loaders: list[BaseLoader] = [FileSystemLoader(str(template_dir))]
-        if base.loader is not None:
-            loaders.append(base.loader)
-        env = base.overlay(loader=ChoiceLoader(loaders))
-        _template_envs[template_dir] = env
+    version = website_registry.templates_version
+    cached = _template_envs.get(template_dir)
+    if cached is not None and cached[0] == version:
+        return cached[1]
+    base = website_registry.get_env(app or "grunt") or website_registry.get_env("grunt")
+    if base is None:
+        return None
+    loaders: list[BaseLoader] = [FileSystemLoader(str(template_dir))]
+    if base.loader is not None:
+        loaders.append(base.loader)
+    env = base.overlay(loader=ChoiceLoader(loaders))
+    _template_envs[template_dir] = (version, env)
     return env
 
 
@@ -217,7 +229,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
     """
 
     path = request.url.path.rstrip("/")
-    async with grunt.context(session, user=SYSTEM_USER):
+    with as_system(session):
         found = await _find_page(request, path)
         if found is None:
             return None
@@ -235,7 +247,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
             context.update(status_code=404, title="", doc=None)
             await _apply(hook(context), context)
         else:
-            doc = await grunt.get_doc(dt.name, name)
+            doc = await documents.get_doc(dt.name, name)
             title_field = dt.title_field or "name"
             context.update(
                 doc=doc,
@@ -252,7 +264,7 @@ async def render_doc_page(request: Request, session: Any) -> HTMLResponse | None
                     },
                 ),
             )
-            controller = controller_cls(dt.name, doc, SYSTEM_USER, session)
+            controller = controller_cls(dt.name, doc, session)
             hook = getattr(controller_cls, "get_web_context", None)
             if hook is not None:
                 await _apply(hook(controller, context), context)
@@ -294,16 +306,19 @@ async def _render(request: Request, dt: Any, context: dict[str, Any]) -> HTMLRes
     )
 
 
-async def sitemap_urls() -> list[tuple[str, Any]]:
-    """``(path, modified)`` of every indexed web view page (caller holds a grunt context)."""
+async def sitemap_urls(
+    include: Callable[[str | None], bool] = lambda app: True,
+) -> list[tuple[str, Any]]:
+    """``(path, modified)`` of every indexed web view page of the apps
+    *include* accepts (caller holds a grunt context)."""
 
     urls: list[tuple[str, Any]] = []
     for dt in await doctype_registry.list_all():
-        if not is_public(dt) or not dt.index_web_pages_for_search:
+        if not is_public(dt) or not dt.index_web_pages_for_search or not include(dt.app):
             continue
         filters = {dt.is_published_field: True} if dt.is_published_field else None
         extra = (ROUTE_FIELD, dt.is_published_field)
         fields = ["name", "modified_at", *[f for f in extra if f and _has_field(dt, f)]]
-        rows = await grunt.db.get_all(dt.name, filters=filters, fields=fields, limit=None)
+        rows = await _db.get_all(dt.name, filters=filters, fields=fields, limit=None)
         urls.extend((url, row.get("modified_at")) for row in rows if (url := web_url(dt, row)))
     return urls

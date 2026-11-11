@@ -5,27 +5,17 @@ from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import log
+from grunt.local import _engine_ctx, _session_ctx, clear_context
 from grunt.site.manager import site_manager
 
 
 def _bind_session_context(session: AsyncSession) -> None:
-    """Set *session* in the Grunt API context (lazy import to avoid cycles)."""
-    try:
-        from grunt.api.context import set_session as _set
-
-        _set(session)
-    except ImportError:
-        log.debug("suppressed_expected_error", exc_info=True)
+    """Set *session* in the Grunt context."""
+    _session_ctx.set(session)
 
 
 def _clear_session_context() -> None:
-    try:
-        from grunt.api.context import clear_context as _clear
-
-        _clear()
-    except ImportError:
-        log.debug("suppressed_expected_error", exc_info=True)
+    clear_context()
 
 
 @asynccontextmanager
@@ -67,13 +57,7 @@ async def get_engine() -> AsyncEngine:
     site_name = site_manager.get_active_site()
     engine = site_manager.get_engine(site_name)
 
-    # Also set in context (lazy import)
-    try:
-        from grunt.api.context import set_engine as _set
-
-        _set(engine)
-    except ImportError:
-        log.debug("suppressed_expected_error", exc_info=True)
+    _engine_ctx.set(engine)  # also in the Grunt context
 
     return engine
 

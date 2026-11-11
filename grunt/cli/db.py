@@ -5,16 +5,16 @@ import click
 from taskiq import InMemoryBroker
 lazy from sqlalchemy import inspect
 
-lazy import grunt
+from grunt.local import system_context
 lazy from grunt.apps.required import DependencyCycleError, MissingAppError
 lazy from grunt.backups import (
-    BackupError,
     create_backup,
     get_backup,
     list_backups,
     restore_backup,
 )
 lazy from grunt.cli.utils import _site_session, resolve_site
+lazy from grunt.db.dialects.archive import BackupError
 lazy from grunt.db.write_intent import set_process_default
 lazy from grunt.metadata.compiler import (
     SA_METADATA,
@@ -26,19 +26,17 @@ lazy from grunt.metadata.compiler import (
 lazy from grunt.metadata.extensions import extensions_for_site
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.store import meta_table
-lazy from grunt.monitoring.health import human_size
 lazy from grunt.search.service import search_index_service
 lazy from grunt.site.manager import current_site, site_manager
-lazy from grunt.startup import (
-    bundled_core_doctypes,
-    load_core_doctypes,
-    load_core_fixtures,
+lazy from grunt.startup.app_install import (
+    record_migrated_versions,
     register_installed_app_doctypes,
-    seed_grunt_workspace,
-    seed_system_settings,
     sync_installed_apps,
 )
-lazy from grunt.startup.app_install import record_migrated_versions
+lazy from grunt.startup.doctypes import bundled_core_doctypes, load_core_doctypes
+lazy from grunt.startup.fixtures import load_core_fixtures
+lazy from grunt.startup.settings import seed_system_settings
+lazy from grunt.startup.workspaces import seed_grunt_workspace
 lazy from grunt.storage.cloud import Rclone, RemoteError, load_remote
 lazy from grunt.storage.cloud.backups import (
     fetch_backup,
@@ -46,6 +44,7 @@ lazy from grunt.storage.cloud.backups import (
     upload_backup,
 )
 lazy from grunt.tasks.broker import broker
+lazy from grunt.utils.sizes import human_size
 
 
 @click.group("db")
@@ -245,6 +244,10 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
                             purged = await search_index_service.purge_excluded(session, all_dts)
                             if purged:
                                 click.echo(f"    search index: removed {purged} entries")
+                            # Entries built under other settings (a field hidden
+                            # since, a search field added) - rebuilt per DocType.
+                            for name in await search_index_service.refresh_stale(session, all_dts):
+                                click.echo(f"    search index: reindexed {name}")
 
                         if dry_run:
                             await session.rollback()
@@ -280,9 +283,7 @@ def db_migrate(dry_run: bool, site: str | None, no_alembic: bool) -> None:
 
                         # The versions this database is now migrated to.
                         if not any(f.startswith(f"{site_name}:") for f in failed):
-                            import grunt
-
-                            async with maker() as session, grunt.system_context(session, eng):
+                            async with maker() as session, system_context(session, eng):
                                 await record_migrated_versions()
                                 await session.commit()
 
@@ -348,14 +349,14 @@ def db_trim_tables(doctype: str | None, dry_run: bool, quiet: bool, site: str | 
                     # can iterate them - reads only, no schema/JSON merge here.
                     await doctype_registry.load_all(session)
 
-                    async with grunt.system_context(session, eng):
+                    async with system_context(session, eng):
                         from grunt.document.meta import Meta
 
                         all_metas = [
                             Meta(dt) for dt in await doctype_registry.list_all() if dt.has_table
                         ]
                         if doctype:
-                            target_meta = await grunt.get_meta(doctype)
+                            target_meta = await doctype_registry.get_meta(doctype)
                             if target_meta is None:
                                 click.echo(f"DocType '{doctype}' not found.", err=True)
                                 raise SystemExit(1)
@@ -460,7 +461,7 @@ def _cloud_remote(site: str, name: str):
 
     async def run(fn):
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             remote = await load_remote(name)
             await session.commit()
             result = await fn(remote)

@@ -2,8 +2,10 @@
 
 from typing import Any
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
+from grunt.errors import throw
+from grunt.i18n import _
+lazy from grunt.document.api import documents
 
 _PAGE_FIELDS = [
     "name",
@@ -27,41 +29,41 @@ _PAGE_UPDATABLE = {
 }
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_pages() -> list[dict[str, Any]]:
     """List all registered custom pages."""
-    return await grunt.get_list(
+    return await documents.get_list(
         "Page", limit=1000, order_by="sidebar_order", order="asc", fields=_PAGE_FIELDS
     )
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def register_page(page_data: dict[str, Any]) -> dict[str, Any]:
     """Register or update a custom page from an app. Admin only."""
     route = (page_data.get("route") or "").strip()
     if not route:
-        grunt.throw(_("route is required"), "VALIDATION_ERROR")
+        throw(_("route is required"), "VALIDATION_ERROR")
 
-    existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
+    existing = await documents.get_list("Page", filters={"route": route}, limit=1)
     page_id = existing[0]["name"] if existing else None
     update_data = {k: v for k, v in page_data.items() if k in _PAGE_UPDATABLE}
 
     if page_id:
-        doc = await grunt.save_doc("Page", page_id, update_data)
+        doc = await documents.save_doc("Page", page_id, update_data)
     else:
-        doc = await grunt.new_doc("Page", {"route": route, **update_data})
+        doc = await documents.new_doc("Page", {"route": route, **update_data})
 
     return {"route": route, "title": doc.get("title", route)}
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def delete_page(route: str) -> bool:
     """Remove a custom page registration. Admin only."""
     if not route.startswith("/"):
         route = f"/{route}"
-    existing = await grunt.get_list("Page", filters={"route": route}, limit=1)
+    existing = await documents.get_list("Page", filters={"route": route}, limit=1)
     if not existing:
-        grunt.throw(_("Page not found"), "NOT_FOUND")
+        throw(_("Page not found"), "NOT_FOUND")
 
-    await grunt.delete_doc("Page", existing[0]["name"])
+    await documents.delete_doc("Page", existing[0]["name"])
     return True

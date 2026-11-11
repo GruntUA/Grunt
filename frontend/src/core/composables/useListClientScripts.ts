@@ -36,6 +36,8 @@ interface UseListClientScriptsParams {
     exportWith: (exporterId: string) => void
     customizeQuickFilters: () => void
     createReport: () => void
+    /** Start a tour of the list (FormTour, view «List»). */
+    startTour: (name?: string) => void
     /** Re-fetch the DocType definition from the server. */
     reloadMeta: () => Promise<void>
     /** After a refresh - views that fetch on their own (tree, calendar…) reload too. */
@@ -105,6 +107,7 @@ export function useListClientScripts(params: UseListClientScriptsParams) {
       exportWith: params.ui.exportWith,
       customizeQuickFilters: params.ui.customizeQuickFilters,
       createReport: params.ui.createReport,
+      startTour: params.ui.startTour,
       setFilters(filters) {
         params.activeFilters.value = filters.map((f) => ({
           fieldname: f.fieldname,

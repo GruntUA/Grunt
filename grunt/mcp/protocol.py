@@ -11,17 +11,17 @@ from typing import Any
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
-import grunt
-from grunt import log
 from grunt.errors import ApplicationError
+from grunt.local import require_session, session_user
+from grunt.log import log
 from grunt.mcp.registry import get_tool, list_tools
-lazy from grunt.local import _user_ctx
+from grunt.version import framework_version
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
 # Newest first; the first entry is offered when the client asks for one we lack.
 PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26")
 
-SERVER_INFO = {"name": "grunt", "title": "Ґрунт", "version": grunt.__version__}
+SERVER_INFO = {"name": "grunt", "title": "Ґрунт", "version": framework_version()}
 
 INSTRUCTIONS = (
     "Ґрунт is a metadata-driven business application platform: all data lives in "
@@ -67,7 +67,7 @@ async def _to_text(value: Any) -> str:
     # read (grunt.storage.signing) - never blanket-signed, or the payload would
     # become an oracle for any file id. No user in context -> public files only.
 
-    return await sign_authorized_file_urls(text, _user_ctx.get())
+    return await sign_authorized_file_urls(text, session_user())
 
 
 def _tool_error(message: str) -> dict[str, Any]:
@@ -95,14 +95,14 @@ async def _call_tool(params: dict[str, Any]) -> dict[str, Any]:
     try:
         result = await tool.handler(**arguments)
     except ApplicationError as e:
-        await grunt.get_session().rollback()
+        await require_session().rollback()
         return _tool_error(f"{e.code}: {e.message}")
     except HTTPException as e:
-        await grunt.get_session().rollback()
+        await require_session().rollback()
         code = getattr(e, "code", None) or str(e.status_code)
         return _tool_error(f"{code}: {e.detail}")
     except Exception:
-        await grunt.get_session().rollback()
+        await require_session().rollback()
         log.exception("mcp.tool_failed", tool=tool.name)
         return _tool_error("Internal error while running the tool")
 

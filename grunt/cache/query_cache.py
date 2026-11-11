@@ -13,7 +13,7 @@ from typing import Any
 from grunt.cache import bus
 from grunt.config import settings
 from grunt.db.commit import on_commit
-from grunt.document.base import DocumentList
+from grunt.document.document_list import DocumentList
 from grunt.site.manager import current_site
 lazy from grunt.utils.redis import shared
 
@@ -40,6 +40,7 @@ class QueryCache:
         *,
         doctype: str,
         user_email: str,
+        access: str,
         filters: dict[str, Any] | None,
         fields: list[str] | None,
         limit: int,
@@ -52,6 +53,7 @@ class QueryCache:
         payload = {
             "doctype": doctype,
             "user": user_email,
+            "access": access,
             "filters": filters or {},
             "fields": fields or [],
             "limit": int(limit),
@@ -70,9 +72,15 @@ class QueryCache:
         *,
         doctype: str,
         user_email: str,
+        access: str,
         filters: dict[str, Any] | None,
     ) -> str:
-        payload = {"doctype": doctype, "user": user_email, "filters": filters or {}}
+        payload = {
+            "doctype": doctype,
+            "user": user_email,
+            "access": access,
+            "filters": filters or {},
+        }
         raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         digest = hashlib.sha256(raw.encode()).hexdigest()
         return f"{self._count_key_prefix(doctype)}{digest}"

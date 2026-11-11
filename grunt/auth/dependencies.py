@@ -7,24 +7,21 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import _, log
-from grunt.api.context import set_user
+from grunt.auth.current import user_context
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.service import decode_access_token
 from grunt.auth.users import get_auth_context_user
 from grunt.db.session import get_engine, get_session
+from grunt.i18n import _
 from grunt.i18n.middleware import apply_user_language
-from grunt.local import _messages_ctx
-from grunt.permissions.roles import user_has_roles
+from grunt.local import _messages_ctx, _user_ctx, bind, unbind
+from grunt.log import log
 lazy from grunt.auth.api_key_service import authenticate_api_key
 lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api"
-)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/method/grunt.auth.user_api.login_api")
 _oauth2_scheme_optional = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+    tokenUrl="/api/v1/method/grunt.auth.user_api.login_api",
     auto_error=False,
 )
 
@@ -63,7 +60,7 @@ async def current_user(
         if user is None:
             raise credentials_exception
 
-        set_user(user)
+        _user_ctx.set(user)
         apply_user_language(request, user.data.get("language"))
         return user
 
@@ -84,7 +81,7 @@ async def current_user(
     if not uid:
         raise credentials_exception
 
-    async with grunt.context(session):
+    async with user_context(session):
         user = await get_auth_context_user(uid)
     if user is None or user.email != email or not user.is_active:
         raise credentials_exception
@@ -102,7 +99,7 @@ async def current_user(
             "full_name": payload.get("imp_name"),
         }
 
-    set_user(user)
+    _user_ctx.set(user)
     apply_user_language(request, user.data.get("language"))
     return user
 
@@ -122,7 +119,7 @@ async def optional_user(
     if not email or not uid:
         return None
 
-    async with grunt.context(session):
+    async with user_context(session):
         user = await get_auth_context_user(uid)
     if user is None or user.email != email or not user.is_active:
         return None
@@ -133,7 +130,7 @@ async def superadmin_user(
     user: User = Depends(current_user),
 ) -> User:
     """Ensure the current user holds the "System Manager" role."""
-    if not user_has_roles(user, ["System Manager"]):
+    if not user.has_role("System Manager"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=_("System Manager privileges required"),
@@ -155,10 +152,10 @@ async def grunt_context(
 
         @router.get("/")
         async def my_endpoint(_: None = Depends(grunt_context)) -> dict:
-            items = await grunt.get_list("MyDocType", filters={"status": "Active"})
+            items = await documents.get_list("MyDocType", filters={"status": "Active"})
             return {"data": items}
     """
-    tokens = grunt.set_context(session, engine, user)
+    tokens = bind(session, engine, user)
     _messages_ctx.set([])
     try:
         yield
@@ -175,7 +172,7 @@ async def grunt_context(
                 except Exception:
                     log.warning("auth.msgprint_send_error", user=user.email)
         clear_messages()
-        grunt.reset_context(tokens)
+        unbind(tokens)
 
 
 async def grunt_context_optional(
@@ -184,8 +181,8 @@ async def grunt_context_optional(
     user: User | None = Depends(optional_user),
 ) -> AsyncGenerator[None, Any]:
     """FastAPI dependency: sets up grunt SDK context for the request, with an optional user."""
-    tokens = grunt.set_context(session, engine, user)
+    tokens = bind(session, engine, user)
     try:
         yield
     finally:
-        grunt.reset_context(tokens)
+        unbind(tokens)

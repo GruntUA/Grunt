@@ -17,11 +17,9 @@ from sqlalchemy import Column, MetaData, String, Table
 from grunt.document.meta import Meta
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
-from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
-from grunt.permissions.query import read_predicate
 from grunt.query.nodes import FALSE, TRUE, Cmp, Or
-from tests.support import make_user
+from tests.support import access_of, check_as, make_user, read_predicate_as
 lazy from grunt.auth.doctypes.User.user import User
 
 
@@ -91,94 +89,94 @@ def _doctype(perms: list[dict]) -> DocType:
 
 class TestPermissionMatchToExpr:
     async def test_owner_eq_user(self):
-        expr = await PermissionMatch("owner == user").to_expr(_COLUMNS, _user("alice@example.com"))
+        expr = await PermissionMatch("owner == user").to_expr(_COLUMNS, "alice@example.com")
         assert expr == Cmp("owner", "eq", "alice@example.com")
 
     async def test_status_eq_literal(self):
-        expr = await PermissionMatch("status == 'Published'").to_expr(
-            _COLUMNS, _user("alice@example.com")
-        )
+        expr = await PermissionMatch("status == 'Published'").to_expr(_COLUMNS, "alice@example.com")
         assert expr == Cmp("status", "eq", "Published")
 
     async def test_not_equal(self):
-        expr = await PermissionMatch("status != 'Archived'").to_expr(
-            _COLUMNS, _user("alice@example.com")
-        )
+        expr = await PermissionMatch("status != 'Archived'").to_expr(_COLUMNS, "alice@example.com")
         assert expr == Cmp("status", "ne", "Archived")
 
     async def test_unknown_field_is_none(self):
-        expr = await PermissionMatch("nonexistent == user").to_expr(
-            _COLUMNS, _user("alice@example.com")
-        )
+        expr = await PermissionMatch("nonexistent == user").to_expr(_COLUMNS, "alice@example.com")
         assert expr is None
 
     async def test_boolean_logic_is_unparseable(self):
         m = PermissionMatch("owner == user and status == 'Open'")
-        assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
+        assert await m.to_expr(_COLUMNS, "alice@example.com") is None
 
     async def test_numeric_literal_is_unparseable(self):
-        expr = await PermissionMatch("status == 5").to_expr(_COLUMNS, _user("alice@example.com"))
+        expr = await PermissionMatch("status == 5").to_expr(_COLUMNS, "alice@example.com")
         assert expr is None
 
     async def test_dotted_path_without_doctype_is_none(self):
         """A ``link.field`` expression can't be translated without the DocType
         that owns the Link — fail closed, don't leak."""
         m = PermissionMatch("asset_user.user_id == user")
-        assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
+        assert await m.to_expr(_COLUMNS, "alice@example.com") is None
 
     async def test_deep_path_is_unparseable(self):
         """Only a single hop is supported; ``a.b.c`` never parses."""
         m = PermissionMatch("a.b.c == user")
         assert m._parsed is None
-        assert await m.to_expr(_COLUMNS, _user("alice@example.com")) is None
+        assert await m.to_expr(_COLUMNS, "alice@example.com") is None
 
 
-# ── PermissionMatch.evaluate ─────────────────────────────────────────────
+# ── A single document: the read predicate evaluated against its row ─────
 
 
-class TestPermissionMatchEvaluate:
-    def test_owner_eq_user_true(self):
-        m = PermissionMatch("owner == user")
-        assert m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+async def _opens(dt: DocType, doc: dict, user: User, columns=_COLUMNS) -> bool:
 
-    def test_owner_eq_user_false(self):
-        m = PermissionMatch("owner == user")
-        assert not m.evaluate({"owner": "bob@example.com"}, _user("alice@example.com"))
+    meta = Meta(dt)
+    meta._columns = frozenset(columns)
+    return await check_as(user, meta, "read", doc)
 
-    def test_boolean_logic_supported(self):
-        """evaluate() supports full simpleeval syntax, wider than to_expr()'s
-        narrow "field == value" form — that's the whole point of having two
-        evaluation modes instead of forcing one.
-        """
-        m = PermissionMatch("owner == user and doc.get('status') == 'Open'")
-        doc = {"owner": "alice@example.com", "status": "Open"}
-        assert m.evaluate(doc, _user("alice@example.com"))
 
-    def test_eval_error_fails_closed(self):
-        """A broken/unsupported expression must deny, not grant."""
-        m = PermissionMatch("doc.this_field_does_not_exist")
-        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+@pytest.mark.asyncio
+class TestRowDecision:
+    async def test_owner_eq_user(self):
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "owner == user"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert await _opens(dt, {"owner": "alice@example.com"}, alice)
+        assert not await _opens(dt, {"owner": "bob@example.com"}, alice)
 
-    @pytest.mark.parametrize("expr", ["", "   "])
-    def test_empty_expression_denies(self, expr):
-        m = PermissionMatch(expr)
-        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+    async def test_rules_or_together(self):
+        dt = _doctype(
+            [
+                {"role": "Employee", "actions": ["read"], "match": "owner == user"},
+                {"role": "Employee", "actions": ["read"], "match": "status == 'Open'"},
+            ]
+        )
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert await _opens(dt, {"owner": "bob@example.com", "status": "Open"}, alice)
+        assert not await _opens(dt, {"owner": "bob@example.com", "status": "Closed"}, alice)
 
-    def test_field_named_user_is_not_shadowed_by_current_user_token(self):
-        """Regression: a field literally named `user` (the natural field
-        name for "who this row belongs to" on DocTypes like PushSubscription/
-        Notification) used to collide with the reserved `user` name meaning
-        "current user's email" in evaluate()'s simpleeval namespace — the
-        doc's own `user` field was never consulted, so "user == user" was
-        always True regardless of the document's actual owner.
-        """
-        m = PermissionMatch("user == user")
-        assert m.evaluate({"user": "alice@example.com"}, _user("alice@example.com"))
-        assert not m.evaluate({"user": "bob@example.com"}, _user("alice@example.com"))
+    async def test_field_named_user_is_not_shadowed_by_current_user_token(self):
+        """Regression: a field literally named `user` (PushSubscription,
+        Notification) once collided with the `user` token meaning "current
+        user's email" - "user == user" was always True. The predicate compares
+        the document's `user` column with the current user's email."""
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "user == user"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        columns = {*_COLUMNS, "user"}
+        assert await _opens(dt, {"user": "alice@example.com"}, alice, columns)
+        assert not await _opens(dt, {"user": "bob@example.com"}, alice, columns)
 
-    def test_narrow_form_denies_when_field_missing_from_doc(self):
-        m = PermissionMatch("status == 'Open'")
-        assert not m.evaluate({"owner": "alice@example.com"}, _user("alice@example.com"))
+    async def test_field_missing_from_doc_denies(self):
+        """A field the row doesn't carry is NULL - no comparison holds."""
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "status == 'Open'"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert not await _opens(dt, {"owner": "alice@example.com"}, alice)
+
+    async def test_rule_on_unknown_field_denies(self):
+        """A rule on a field the DocType doesn't have can't be enforced - it
+        grants nothing, in a list and for one document alike."""
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "nonexistent == user"}])
+        alice = _user("alice@example.com", roles=["Employee"])
+        assert not await _opens(dt, {"owner": "alice@example.com"}, alice)
 
 
 # ── RoleAccess ───────────────────────────────────────────────────────────
@@ -186,8 +184,8 @@ class TestPermissionMatchEvaluate:
 
 class TestRoleAccess:
     def test_system_user_is_unrestricted(self):
-        dt = _doctype([{"role": "Employee", "read": True}])
-        access = RoleAccess(dt, _system_user())
+        dt = _doctype([{"role": "Employee", "actions": ["read"]}])
+        access = access_of(dt, _system_user())
         assert access.is_unrestricted
         assert access.matching_permissions() == []
 
@@ -195,8 +193,8 @@ class TestRoleAccess:
         """A human holding "System Manager" is scoped by matching permission
         rows, not an unconditional bypass — only the internal SYSTEM_USER
         identity is (see test_system_user_is_unrestricted)."""
-        dt = _doctype([{"role": "Employee", "read": True}])
-        access = RoleAccess(dt, _user(roles=["System Manager"]))
+        dt = _doctype([{"role": "Employee", "actions": ["read"]}])
+        access = access_of(dt, _user(roles=["System Manager"]))
         assert not access.is_unrestricted
         assert access.matching_permissions() == []
 
@@ -205,42 +203,42 @@ class TestRoleAccess:
         access yet, not "open to anyone logged in". Only the internal
         SYSTEM_USER identity bypasses."""
         dt = DocType(name="Closed", label="Closed", module="test", fields=[])
-        access = RoleAccess(dt, _user(roles=["Employee"]))
+        access = access_of(dt, _user(roles=["Employee"]))
         assert not access.is_unrestricted
         assert access.matching_permissions() == []
 
     def test_matching_role_returned(self):
-        dt = _doctype([{"role": "Employee", "read": True}])
-        access = RoleAccess(dt, _user(roles=["Employee"]))
+        dt = _doctype([{"role": "Employee", "actions": ["read"]}])
+        access = access_of(dt, _user(roles=["Employee"]))
         assert not access.is_unrestricted
         matched = access.matching_permissions()
         assert len(matched) == 1
         assert matched[0].role == "Employee"
 
     def test_non_matching_role_excluded(self):
-        dt = _doctype([{"role": "Manager", "read": True}])
-        access = RoleAccess(dt, _user(roles=["Employee"]))
+        dt = _doctype([{"role": "Manager", "actions": ["read"]}])
+        access = access_of(dt, _user(roles=["Employee"]))
         assert access.matching_permissions() == []
 
     def test_all_role_always_matches(self):
-        dt = _doctype([{"role": "All", "read": True}])
-        access = RoleAccess(dt, _user(roles=[]))
+        dt = _doctype([{"role": "All", "actions": ["read"]}])
+        access = access_of(dt, _user(roles=[]))
         assert len(access.matching_permissions()) == 1
 
     def test_multiple_roles_only_matching_returned(self):
         dt = _doctype(
             [
-                {"role": "Employee", "read": True},
-                {"role": "Manager", "write": True},
-                {"role": "All", "read": True},
+                {"role": "Employee", "actions": ["read"]},
+                {"role": "Manager", "actions": ["write"]},
+                {"role": "All", "actions": ["read"]},
             ]
         )
-        access = RoleAccess(dt, _user(roles=["Employee"]))
+        access = access_of(dt, _user(roles=["Employee"]))
         assert {p.role for p in access.matching_permissions()} == {"Employee", "All"}
 
     def test_user_roles_exposed_as_frozenset(self):
-        dt = _doctype([{"role": "Employee", "read": True}])
-        access = RoleAccess(dt, _user(roles=["Employee", "Viewer"]))
+        dt = _doctype([{"role": "Employee", "actions": ["read"]}])
+        access = access_of(dt, _user(roles=["Employee", "Viewer"]))
         assert access.user_roles == frozenset({"Employee", "Viewer"})
 
 
@@ -249,52 +247,50 @@ class TestRoleAccess:
 
 class TestReadPredicate:
     async def test_system_user_unfiltered(self):
-        dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
-        assert await read_predicate(_system_user(), _meta(dt)) == TRUE
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "owner == user"}])
+        assert await read_predicate_as(_system_user(), _meta(dt)) == TRUE
 
     async def test_no_permissions_defined_denies_all_rows(self):
         """Deny-by-default: no permission rows means no role matched, so no
         row is readable rather than every row."""
         dt = DocType(name="Closed", label="Closed", module="test", fields=[])
         user = _user("bob@example.com", roles=["Employee"])
-        assert await read_predicate(user, _meta(dt)) == FALSE
+        assert await read_predicate_as(user, _meta(dt)) == FALSE
 
     async def test_rule_without_match_is_unrestricted(self):
-        dt = _doctype([{"role": "Employee", "read": True}])
+        dt = _doctype([{"role": "Employee", "actions": ["read"]}])
         user = _user("bob@example.com", roles=["Employee"])
-        assert await read_predicate(user, _meta(dt)) == TRUE
+        assert await read_predicate_as(user, _meta(dt)) == TRUE
 
     async def test_owner_eq_user_filters_to_own_rows(self):
-        dt = _doctype([{"role": "Employee", "read": True, "match": "owner == user"}])
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "owner == user"}])
         user = _user("alice@example.com", roles=["Employee"])
-        assert await read_predicate(user, _meta(dt)) == Cmp("owner", "eq", "alice@example.com")
+        assert await read_predicate_as(user, _meta(dt)) == Cmp("owner", "eq", "alice@example.com")
 
     async def test_unparseable_match_fails_closed_not_open(self):
         """Regression: an expression the mini-parser can't translate used to
         be treated as unrestricted (return everything). It must instead
         exclude all rows for that rule rather than leak them.
         """
-        dt = _doctype(
-            [{"role": "Employee", "read": True, "match": "owner == user and status == 'Open'"}]
-        )
+        dt = _doctype([{"role": "Employee", "actions": ["read"], "match": "nonexistent == user"}])
         user = _user("alice@example.com", roles=["Employee"])
-        assert await read_predicate(user, _meta(dt)) == FALSE
+        assert await read_predicate_as(user, _meta(dt)) == FALSE
 
     async def test_no_matching_role_fails_closed(self):
-        dt = _doctype([{"role": "Manager", "read": True, "match": "owner == user"}])
+        dt = _doctype([{"role": "Manager", "actions": ["read"], "match": "owner == user"}])
         user = _user("bob@example.com", roles=["Employee"])
-        assert await read_predicate(user, _meta(dt)) == FALSE
+        assert await read_predicate_as(user, _meta(dt)) == FALSE
 
     async def test_two_match_rules_or_together(self):
         """Several read rules with a translatable ``match`` widen access (OR):
         a row visible if I own it *or* its status is Published."""
         dt = _doctype(
             [
-                {"role": "Employee", "read": True, "match": "owner == user"},
-                {"role": "Employee", "read": True, "match": "status == 'Published'"},
+                {"role": "Employee", "actions": ["read"], "match": "owner == user"},
+                {"role": "Employee", "actions": ["read"], "match": "status == 'Published'"},
             ]
         )
         user = _user("alice@example.com", roles=["Employee"])
-        assert await read_predicate(user, _meta(dt)) == Or(
+        assert await read_predicate_as(user, _meta(dt)) == Or(
             (Cmp("owner", "eq", "alice@example.com"), Cmp("status", "eq", "Published"))
         )

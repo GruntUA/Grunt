@@ -91,10 +91,14 @@ export interface OnboardingStep {
 export interface FormTourStep {
   title: string
   description?: string | null
-  /** The form field to point at, or `element` - a CSS selector; neither - a centred step. */
+  /** The field to point at (a form field, or a list's column / quick filter), or
+   * `element` - a CSS selector; neither - a centred step. */
   fieldname?: string | null
   element?: string | null
 }
+
+/** Where a tour runs: a document's form or the list of documents. */
+export type TourView = 'Form' | 'List'
 
 export interface FormTour {
   name: string
@@ -177,8 +181,8 @@ export const workspaceApi = {
     await client.post('/api/v1/method/grunt.site.onboarding.hide_onboarding', { onboarding })
   },
 
-  getFormTours: async (doctype: string): Promise<FormTour[]> => {
-    const r = await client.get('/api/v1/method/grunt.site.onboarding.get_form_tours', { params: { doctype } })
+  getFormTours: async (doctype: string, view: TourView = 'Form'): Promise<FormTour[]> => {
+    const r = await client.get('/api/v1/method/grunt.site.onboarding.get_form_tours', { params: { doctype, view } })
     return r.data.data ?? []
   },
 

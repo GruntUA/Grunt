@@ -1,8 +1,9 @@
-"""Integration: ``Document.get_preview`` — the link hover card of a DocType with
+"""Integration: ``grunt.api.v1.document.meta.get_preview`` — the link hover card of a DocType with
 ``show_preview_popup`` (title, image, in_preview fields, read permissions)."""
 
 import pytest
 
+from grunt.api.v1.document import meta as meta_api
 from tests.support import make_user
 
 ASSET = {
@@ -17,7 +18,7 @@ ASSET = {
         {"fieldname": "status", "label": "Status", "fieldtype": "Data", "in_preview": True},
         {"fieldname": "notes", "label": "Notes", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "Reader", "read": True}],
+    "permissions": [{"role": "Reader", "actions": ["read"]}],
 }
 
 PLAIN = {
@@ -29,7 +30,7 @@ PLAIN = {
         {"fieldname": "code", "label": "Code", "fieldtype": "Data", "required": True},
         {"fieldname": "notes", "label": "Notes", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "Reader", "read": True}],
+    "permissions": [{"role": "Reader", "actions": ["read"]}],
 }
 
 
@@ -58,10 +59,9 @@ async def setup_preview(ctx):
 @pytest.mark.asyncio
 async def test_preview_has_title_and_in_preview_fields(ctx, setup_preview, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("r@example.com", roles=["Reader"])):
-        data = await Document.get_preview("PVAsset", setup_preview["asset"])
+        data = await meta_api.get_preview("PVAsset", setup_preview["asset"])
     assert data is not None
 
     assert data["title"] == "Generator"
@@ -73,10 +73,9 @@ async def test_preview_has_title_and_in_preview_fields(ctx, setup_preview, db_se
 @pytest.mark.asyncio
 async def test_preview_falls_back_to_required_fields(ctx, setup_preview, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("r@example.com", roles=["Reader"])):
-        data = await Document.get_preview("PVPlain", setup_preview["plain"])
+        data = await meta_api.get_preview("PVPlain", setup_preview["plain"])
     assert data is not None
 
     assert [f["fieldname"] for f in data["fields"]] == ["code"]
@@ -86,11 +85,10 @@ async def test_preview_falls_back_to_required_fields(ctx, setup_preview, db_sess
 @pytest.mark.asyncio
 async def test_preview_off_or_unreadable_is_none(ctx, setup_preview, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("r@example.com", roles=["Reader"])):
-        assert await Document.get_preview("PVOff", setup_preview["off"]) is None
-        assert await Document.get_preview("PVAsset", "missing") is None
+        assert await meta_api.get_preview("PVOff", setup_preview["off"]) is None
+        assert await meta_api.get_preview("PVAsset", "missing") is None
 
     async with grunt.context(db_session, engine, make_user("n@example.com", roles=["Nobody"])):
-        assert await Document.get_preview("PVAsset", setup_preview["asset"]) is None
+        assert await meta_api.get_preview("PVAsset", setup_preview["asset"]) is None

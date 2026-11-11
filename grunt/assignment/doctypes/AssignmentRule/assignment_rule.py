@@ -3,10 +3,12 @@
 import json
 from typing import Any
 
-import grunt
-from grunt import _
-from grunt.assignment import assignment_service
+from grunt.api.context import whitelist
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+lazy from grunt.auth.users import get_user_by_id
+lazy from grunt.document.api import documents
 
 
 class AssignmentRule(Document):
@@ -23,7 +25,7 @@ class AssignmentRule(Document):
             try:
                 json.loads(self.filters)
             except json.JSONDecodeError, TypeError:
-                grunt.throw(
+                throw(
                     _("The “Filters (JSON)” field must contain valid JSON.")
                     + ' Example: {"status": "Draft"}',
                     title=_("Validation error"),
@@ -81,15 +83,53 @@ class AssignmentRule(Document):
 
         return True
 
+    async def preview(self, test_doc: dict[str, Any]) -> dict[str, Any]:
+        """Evaluate the rule against a sample document: does it match, and whom it assigns."""
+        matched = self.match(test_doc)
+        filters = self.parsed_filters()
+
+        will_assign_to: list[str] = []
+        if matched:
+            if self.assign_to_user:
+                will_assign_to.append(self.assign_to_user)
+            elif self.assign_to_role:
+                ur_rows = await documents.get_list(
+                    "UserRole",
+                    filters={"role_name": self.assign_to_role, "parent_doctype": "User"},
+                    fields=["parent_name"],
+                    limit=500,
+                )
+                for ur in ur_rows:
+                    u = await get_user_by_id(ur["parent_name"])
+                    if u and u.is_active:
+                        will_assign_to.append(u.email)
+
+        matching_fields = [field for field in filters if field in test_doc]
+
+        return {
+            "rule_id": self.name,
+            "doctype_target": self.doctype_target,
+            "filters": filters,
+            "matched": matched,
+            "matching_fields": matching_fields,
+            "will_assign_to": will_assign_to,
+            "message": (
+                f"Rule matches! Will assign to {len(will_assign_to)} user(s)"
+                if matched
+                else "Rule does not match"
+            ),
+        }
+
 
 # Whitelisted API
 
 
-@grunt.whitelist()
+@whitelist()
 async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
     """Test an assignment rule against a sample document."""
     try:
-        return await assignment_service.preview_rule(rule_id, test_doc)
+        rule = await documents.get_doc(AssignmentRule, rule_id)
+        return await rule.preview(test_doc)
     except Exception as exc:
-        grunt.throw(str(exc))
+        throw(str(exc))
         raise RuntimeError(str(exc)) from exc

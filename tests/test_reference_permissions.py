@@ -12,8 +12,8 @@ SECRET = {
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Investigator", "read": True, "match": "owner == user"},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Investigator", "actions": ["read"], "match": "owner == user"},
     ],
 }
 

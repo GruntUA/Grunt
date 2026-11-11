@@ -9,9 +9,10 @@ grunt/auth/
 ├── login.py                # issue_login(): the ONLY place tokens are minted
 ├── providers/
 │   ├── base.py             # AuthProvider ABC + AuthFlowContext
-│   ├── registry.py         # register() / get() / available()
+│   ├── registry.py         # get() / available(); imports declared providers on first use
 │   ├── webauthn.py         # reference implementation (passkeys)
-│   └── oauth.py            # Google / Microsoft OIDC
+│   ├── oauth.py            # Google / Microsoft OIDC
+│   └── email_link.py       # magic link + one-time code
 └── doctypes/WebAuthnCredential/   # one row per registered passkey
 ```
 
@@ -81,8 +82,8 @@ class AuthProvider(ABC):
 
 ```python
 # myapp/auth/telegram.py
-from grunt.api.messages import throw
-from grunt.auth.providers import AuthProvider, register
+from grunt.errors import throw
+from grunt.auth.providers.base import AuthProvider
 
 
 class TelegramProvider(AuthProvider):
@@ -104,16 +105,20 @@ class TelegramProvider(AuthProvider):
         from grunt.auth.login import find_or_create_external_user
 
         return await find_or_create_external_user(data["email"], data["name"])
-
-
-def register_providers() -> None:
-    register(TelegramProvider())
 ```
 
-Call `register_providers()` from your app's `hooks.py` (or import the module for
-side effects). Built-in providers register lazily on first registry access.
+Declare the class in your app's `hooks.py`:
 
-> Raise API errors with `grunt.api.messages.throw(msg, "UNAUTHORIZED")` — the
+```python title="myapp/hooks.py"
+auth_providers = ["myapp.auth.telegram.TelegramProvider"]
+```
+
+The registry imports declared providers on first access, not at startup, and
+never the other way round: a provider module does not import the registry. The
+built-in ones are declared the same way in `grunt/core_hooks.py`; an app that
+declares a provider with a built-in `name` replaces it.
+
+> Raise API errors with `grunt.errors.throw(msg, "UNAUTHORIZED")` — the
 > **code-based** `throw`. The `grunt.throw` bound on the app instance takes a
 > *title*, not a code, and won't map to the right HTTP status.
 

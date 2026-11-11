@@ -1,8 +1,9 @@
 from typing import Any
 
-import grunt
 from grunt.activity import attach_titles, attach_user_names, feed_hidden_doctypes
+from grunt.api.context import whitelist
 from grunt.document.base import Document
+lazy from grunt.document.api import documents
 
 
 class ActivityLog(Document):
@@ -16,7 +17,7 @@ class ActivityLog(Document):
     async def before_insert(self) -> None:
         # Auto-set 'user' field from request context if caller didn't provide it.
         if not self.data.get("user") and self.user:
-            self.data["user"] = self.user.email
+            self.data["user"] = self.user
 
     # Helper Classmethods
 
@@ -29,7 +30,7 @@ class ActivityLog(Document):
         details: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Log an activity entry. Controller auto-fills user from context."""
-        return await grunt.new_doc(
+        return await documents.new_doc(
             "ActivityLog",
             {
                 "ref_doctype": doctype,
@@ -47,7 +48,7 @@ class ActivityLog(Document):
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         """Get activity log for a document (newest first)."""
-        return await grunt.get_list(
+        return await documents.get_list(
             "ActivityLog",
             filters={"ref_doctype": doctype, "doc_id": doc_id},
             order_by="created_at",
@@ -56,7 +57,7 @@ class ActivityLog(Document):
         )
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_activity(
     page: int = 1,
     per_page: int = 20,
@@ -98,8 +99,8 @@ async def list_activity(
 
     page = int(page)
     per_page = int(per_page)
-    total = await grunt.count("ActivityLog", filters=filters)
-    entries = await grunt.get_list(
+    total = await documents.count("ActivityLog", filters=filters)
+    entries = await documents.get_list(
         "ActivityLog",
         filters=filters,
         fields=["name", "ref_doctype", "doc_id", "action", "user", "details", "created_at"],

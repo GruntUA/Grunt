@@ -18,14 +18,26 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-import grunt
-from grunt import _, log
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
-from grunt.website import make_website_handler, robots_txt, sitemap_xml, website_registry
-from grunt.website.router import PAGE_METHODS, render_not_found, render_page_by_route
+from grunt.website.generator import app_mount, render_doc_page, sitemap_urls
+from grunt.website.router import (
+    PAGE_METHODS,
+    make_website_handler,
+    render_not_found,
+    render_page_by_route,
+    robots_txt,
+    sitemap_xml,
+    website_registry,
+)
 from grunt.website.spa import DIST_DIR, static_file
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _GRUNT_PKG = Path(__file__).resolve().parent.parent  # grunt/startup/website.py -> grunt/
 _CORE_WEBSITE_DIR = _GRUNT_PKG / "website"
@@ -50,6 +62,18 @@ def _is_spa_path(path: str) -> bool:
     return path == "/" or any(path == r or path.startswith(r + "/") for r in _SPA_ROUTES)
 
 
+def is_core_path(path: str) -> bool:
+    """Whether the catch-all serves *path* for the core whatever the host: a
+    Desk route (not ``/`` itself) or a root static file (built SPA, ``public/``)."""
+    if path.rstrip("/") and _is_spa_path(path):
+        return True
+    req_path = path.lstrip("/")
+    return bool(
+        (not settings.debug and static_file(DIST_DIR, req_path))
+        or static_file(_MAIN_PUBLIC_DIR, req_path)
+    )
+
+
 async def _legacy_workspace_url(request: Request, session) -> str | None:
     """``/app/<path>`` for an old bare ``/<workspace>/...`` bookmark, else None.
 
@@ -63,10 +87,10 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
         return None
     has_site = any(page.app == first for page in website_registry.pages)
     try:
-        async with grunt.context(session, user=SYSTEM_USER):
-            if not await grunt.db.exists("AppMenu", first):
+        async with system_context(session):
+            if not await _db.exists("AppMenu", first):
                 return None
-            if has_site and await grunt.get_meta(rest.split("/", 1)[0]) is None:
+            if has_site and await doctype_registry.get_meta(rest.split("/", 1)[0]) is None:
                 return None
     except Exception as e:  # noqa: BLE001 - a lookup failure must not turn a 404 into a 500
         log.warning("website.legacy_workspace.error", path=request.url.path, error=str(e))
@@ -76,6 +100,11 @@ async def _legacy_workspace_url(request: Request, session) -> str | None:
 
 
 def register_website_routes(app: FastAPI) -> None:
+    # <a href="{{ app_mount('opendata') }}/datasets"> - "" on the app's own domain
+    website_registry.add_global("app_mount", app_mount)
+    # Web view documents: after www/ pages, before the apps' page resolvers.
+    website_registry.doc_pages = render_doc_page
+    website_registry.doc_sitemap = sitemap_urls
     for page in website_registry.discover_app(_CORE_WEBSITE_DIR, "grunt", is_main_app=True):
         app.add_api_route(
             page.url_pattern,

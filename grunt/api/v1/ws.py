@@ -6,9 +6,10 @@ from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-import grunt
-from grunt import log
+from grunt.auth.current import user_context
 from grunt.cache.bus import SENDER
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
 lazy from grunt.auth.users import get_user_by_email
 lazy from grunt.local import _site_ctx
@@ -381,25 +382,25 @@ async def _ws_user_can_read(
     try:
         maker = site_manager.get_session_maker(site)
         engine = site_manager.get_engine(site)
-        async with maker() as session, grunt.context(session, engine):
+        async with maker() as session, user_context(session, engine):
             user = await get_user_by_email(user_email)
             if user is None or not user.is_active:
                 return False
-            dt = await grunt.get_meta(doctype)
+            dt = await doctype_registry.get_meta(doctype)
             if dt is None:
                 return False
-            from grunt.store import store_for
+            from grunt.store.lookup import store_for
 
             if doc_id is None:
                 # List room: the DocType-level read grant is all there is to check.
-                return await permission_checker.check(user, dt, "read")
+                return await permission_checker.check(dt, "read", user=user.email)
             # Document room: the row-level check, against the stored document -
             # the user is passed explicitly, so no user needs to be bound to the
             # context (this helper loads it, it does not run as it).
             row = await store_for(dt).get(doc_id, expand=[])
             if row is None:
                 return False
-            return await permission_checker.check(user, dt, "read", row)
+            return await permission_checker.check(dt, "read", row, user=user.email)
     except Exception:
         log.warning("ws.authz_failed", doctype=doctype, doc_id=doc_id)
         return False
@@ -491,7 +492,7 @@ async def ws_document(
     if not user_email:
         return
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
 
     if not await _ws_user_can_read(websocket, user_email, normalized_doctype, doc_id):
@@ -541,7 +542,7 @@ async def ws_list(
     if not user_email:
         return
 
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     normalized_doctype = dt.name if dt is not None else doctype
 
     if not await _ws_user_can_read(websocket, user_email, normalized_doctype, None):

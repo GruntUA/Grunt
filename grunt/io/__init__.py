@@ -1,35 +1,11 @@
 """grunt.io - pluggable export / import registry.
 
-Built-in exporters and importers are registered in grunt/main.py.
+Built-in exporters and importers are registered in grunt/apps/loader.py.
 External apps add their own via hooks.py:
 
     # myapp/mymodule/hooks.py
     from myapp.exporters import MyExporter
     io_exporters = [MyExporter()]
+
+Registries: :mod:`grunt.io.exporters.registry`, :mod:`grunt.io.importers.registry`.
 """
-
-from grunt.io.exporters.registry import (
-    Exporter,
-    ListExportContext,
-    get_exporter,
-    get_exporters,
-    register_exporter,
-)
-from grunt.io.importers.registry import (
-    Importer,
-    get_importer,
-    get_importers,
-    register_importer,
-)
-
-__all__ = [
-    "Exporter",
-    "ListExportContext",
-    "register_exporter",
-    "get_exporter",
-    "get_exporters",
-    "Importer",
-    "register_importer",
-    "get_importer",
-    "get_importers",
-]

@@ -5,17 +5,22 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from grunt.auth.current import acting_user, user_context
 from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 from grunt.local import (
     _bootstrap_ctx,
-    _engine_ctx,
-    _session_ctx,
-    _user_ctx,
+    bind,
+    unbind,
 )
 
 
 class ContextAPI:
     """Context management and engine/session access helpers for GruntApp."""
+
+    def get_user(self) -> User:
+        """The ``User`` document the request or task runs as (401 without one) -
+        :func:`grunt.auth.current.acting_user`."""
+        return acting_user()
 
     def set_context(
         self,
@@ -32,39 +37,27 @@ class ContextAPI:
         App developers generally do NOT need to call this directly. Without an
         *engine* the one already in context is kept (same site, new session).
         """
-        return (
-            _session_ctx.set(session),
-            _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
-            _user_ctx.set(user),
-        )
+        return bind(session, engine, user)
 
     def reset_context(self, tokens: tuple) -> None:
         """Restore the context to its previous state using tokens from :meth:`set_context`."""
-        _session_ctx.reset(tokens[0])
-        _engine_ctx.reset(tokens[1])
-        _user_ctx.reset(tokens[2])
+        unbind(tokens)
 
     @contextlib.asynccontextmanager
     async def context(
         self,
         session: AsyncSession,
         engine: AsyncEngine | None = None,
-        user: User | None = None,
+        user: User | str | None = None,
     ) -> AsyncGenerator[None]:
-        """Async context manager that activates a grunt context for background tasks.
+        """Run the block as *user* - a ``User`` document or an email - in a
+        background task or CLI command (:func:`grunt.auth.current.user_context`)::
 
-        Use this in background tasks and CLI commands instead of calling
-        :meth:`set_context` / :meth:`reset_context` directly::
-
-            async with grunt.context(session, engine, SYSTEM_USER):
+            async with grunt.context(session, engine, "jane@example.com"):
                 doc = await grunt.get_doc("Invoice", invoice_id)
-                await doc.submit()
         """
-        tokens = self.set_context(session, engine, user)
-        try:
+        async with user_context(session, engine, user):
             yield
-        finally:
-            self.reset_context(tokens)
 
     @contextlib.asynccontextmanager
     async def system_context(

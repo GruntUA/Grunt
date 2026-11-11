@@ -10,11 +10,17 @@ from typing import Any
 import aiosmtplib
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
+from grunt.db.api import GruntDB
 from grunt.db.commit import on_commit
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.site.settings import get_setting
-from grunt.storage import store
+from grunt.storage.files import store
+from grunt.tasks.broker import by_name
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # Placeholder returned instead of a stored SMTP password on every read by a
 # non-System-Manager (see grunt.email.hooks.mask_smtp_password). Saving the
@@ -27,9 +33,7 @@ SMTP_PASSWORD_MASK = "••••••••"
 async def _kick_queue() -> None:
     """Best-effort nudge for the ``process_email_queue`` scheduled task."""
     try:
-        from grunt.email.tasks import process_email_queue
-
-        await process_email_queue.kiq()
+        await by_name("grunt.email.tasks:process_email_queue").kiq()
     except Exception:
         log.warning("email.queue_kick_failed", exc_info=True)
 
@@ -210,7 +214,7 @@ class EmailService:
     ) -> str | None:
         """Best-effort: persist one ``EmailMessage`` row (dedup by Message-ID)."""
         try:
-            sess = session or grunt.get_session()
+            sess = session or require_session()
         except RuntimeError:
             log.warning("email.record_no_session")
             return None
@@ -218,10 +222,10 @@ class EmailService:
         mid = (message_id or "").strip() or None
         att_rows = attachments or []
         try:
-            async with grunt.system_context(sess):
-                if mid and await grunt.db.exists("EmailMessage", {"message_id": mid}):
+            async with system_context(sess):
+                if mid and await _db.exists("EmailMessage", {"message_id": mid}):
                     return None
-                doc = await grunt.new_doc(
+                doc = await documents.new_doc(
                     "EmailMessage",
                     {
                         "direction": direction,
@@ -275,11 +279,11 @@ class EmailService:
         ``SystemSettings.default_email_account`` when it points at a real account,
         otherwise the first ``EmailAccount`` with ``enable_outgoing=True``.
         """
-        async with grunt.system_context(session):
+        async with system_context(session):
             configured = await get_setting("default_email_account")
-            if configured and await grunt.db.exists("EmailAccount", {"name": configured}):
+            if configured and await _db.exists("EmailAccount", {"name": configured}):
                 return str(configured)
-            accounts = await grunt.db.get_all(
+            accounts = await _db.get_all(
                 "EmailAccount",
                 filters={"enable_outgoing": True},
                 fields=["name"],
@@ -310,7 +314,7 @@ class EmailService:
         footer: str = ""
         try:
             email_account_id = await EmailService.resolve_outgoing_account_id(session)
-            async with grunt.system_context(session):
+            async with system_context(session):
                 raw_footer = (await get_setting("email_footer") or "").strip()
                 # Ignore markup-only footers like "<p></p>" that a rich-text
                 # editor leaves behind when the field is "empty".
@@ -336,8 +340,8 @@ class EmailService:
         now = datetime.now(UTC)
 
         try:
-            async with grunt.system_context(session):
-                await grunt.db.insert_one(
+            async with system_context(session):
+                await _db.insert_one(
                     "EmailQueue",
                     {
                         "name": record_id,

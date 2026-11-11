@@ -2,7 +2,9 @@
 
 from typing import Any
 
-import grunt
+from grunt.db.api import GruntDB
+from grunt.local import user_email
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction
 
@@ -24,16 +26,11 @@ class PermissionAPI:
             if not await grunt.has_permission("Invoice", "delete"):
                 grunt.throw("You cannot delete invoices")
         """
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             return False
-        user = grunt.get_user()
+        user_email()  # 401 without a user, as before
         doc: dict[str, Any] | None = None
         if doc_id:
-            doc = await grunt.db.get_value(doctype, doc_id, "*")
-        return await permission_checker.check(
-            user,
-            dt.doc,
-            action,
-            doc,
-        )
+            doc = await GruntDB().get_value(doctype, doc_id, "*")
+        return await permission_checker.check(dt.doc, action, doc)

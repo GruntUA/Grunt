@@ -19,44 +19,13 @@
       "fieldtype": "Section"
     },
     {
-      "fieldname": "read",
-      "label": "Read",
-      "fieldtype": "Check",
-      "default": false,
-      "in_list_view": true
-    },
-    {
-      "fieldname": "select",
-      "label": "Field picker",
-      "fieldtype": "Check",
-      "default": false,
-      "description": "Lets a user search Link-field values (name, title, search fields) without access to the list or the full document. Granted automatically together with Read."
-    },
-    {
-      "fieldname": "write",
-      "label": "Edit",
-      "fieldtype": "Check",
-      "default": false,
-      "in_list_view": true
-    },
-    {
-      "fieldname": "create",
-      "label": "Create",
-      "fieldtype": "Check",
-      "default": false,
-      "in_list_view": true
-    },
-    {
-      "fieldname": "delete",
-      "label": "Delete",
-      "fieldtype": "Check",
-      "default": false
-    },
-    {
-      "fieldname": "report",
-      "label": "Reports",
-      "fieldtype": "Check",
-      "default": false
+      "fieldname": "actions",
+      "label": "Actions",
+      "fieldtype": "MultiSelect",
+      "options": "read\nselect\nwrite\ncreate\ndelete\nexport\nimport\nprint\nshare\nreport",
+      "translatable": true,
+      "in_list_view": true,
+      "description": "What this role may do. Field picker - search Link-field values without the list or the full document (implied by Read). Export, import, print, share and reports are granted separately from Read and Edit; Share also needs Edit."
     },
     {
       "fieldname": "sec_advanced",
@@ -65,13 +34,21 @@
     },
     {
       "fieldname": "match",
-      "label": "Match condition (eval:)",
-      "fieldtype": "Data"
+      "label": "Row condition",
+      "fieldtype": "Data",
+      "description": "Which rows this rule covers: field == user, field != 'value' or link_field.field == user. Empty - all rows."
     },
     {
       "fieldname": "hidden_fields",
       "label": "Hidden fields (comma-separated)",
-      "fieldtype": "LongText"
+      "fieldtype": "LongText",
+      "description": "Not shown to this role, and not changed, filtered or searched by."
+    },
+    {
+      "fieldname": "readonly_fields",
+      "label": "Read-only fields (comma-separated)",
+      "fieldtype": "LongText",
+      "description": "Shown to this role but kept as they are once the document exists; a new document takes their value. A role that may change them wins."
     }
   ]
 }

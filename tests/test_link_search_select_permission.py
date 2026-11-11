@@ -5,6 +5,8 @@ access, no full-document read, no field unmasking."""
 import pytest
 from fastapi import HTTPException
 
+from grunt.api.v1.document import links as links_api
+from grunt.api.v1.document import tree as tree_api
 from tests.support import make_user
 lazy from grunt.auth.doctypes.User.user import User
 
@@ -20,7 +22,7 @@ CATALOG = {
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "Picker", "select": True},
+        {"role": "Picker", "actions": ["select"]},
     ],
 }
 
@@ -42,16 +44,15 @@ def _picker(email: str) -> User:
 @pytest.mark.asyncio
 async def test_select_only_user_can_search_link(ctx, setup_catalog, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, _picker("p@example.com")):
-        hits = await Document.link_search("LSCatalog", search="Bet")
+        hits = await links_api.link_search("LSCatalog", search="Bet")
         assert any(h["title"] == "Beta" for h in hits)
 
         # search field also works — assert by presence, not position: the
         # search also matches against `name` (an unpredictable autoname), so
         # another row's generated id could coincidentally also contain "C2".
-        hits = await Document.link_search("LSCatalog", search="C2")
+        hits = await links_api.link_search("LSCatalog", search="C2")
         assert any(h["title"] == "Gamma" for h in hits)
 
         # ...but list and full read stay denied
@@ -66,11 +67,10 @@ async def test_select_only_user_can_search_link(ctx, setup_catalog, db_session, 
 @pytest.mark.asyncio
 async def test_no_select_no_read_denies_link_search(ctx, setup_catalog, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("x@example.com", roles=[])):
         with pytest.raises(HTTPException) as e:
-            await Document.link_search("LSCatalog", search="Alpha")
+            await links_api.link_search("LSCatalog", search="Alpha")
         assert e.value.status_code == 403
 
 
@@ -85,8 +85,8 @@ MIXED = {
     ],
     # A row-scoped "read" for everyone PLUS an explicit "select" for one role.
     "permissions": [
-        {"role": "All", "read": True, "match": "owner == user"},
-        {"role": "Picker", "select": True},
+        {"role": "All", "actions": ["read"], "match": "owner == user"},
+        {"role": "Picker", "actions": ["select"]},
     ],
 }
 
@@ -107,10 +107,9 @@ async def test_explicit_select_beats_row_scoped_read(ctx, setup_mixed, db_sessio
     when the caller also matches a row-scoped ``read`` rule (here: owns none of
     the rows, so the plain "read" path would return nothing)."""
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, _picker("outsider@example.com")):
-        hits = await Document.link_search("LSMixedCat", search="")
+        hits = await links_api.link_search("LSMixedCat", search="")
         assert sorted(h["title"] for h in hits) == ["Alpha", "Beta", "Gamma"]
         assert all("secret" not in h for h in hits)
 
@@ -120,10 +119,9 @@ async def test_row_scoped_read_without_select_still_filters(ctx, setup_mixed, db
     """No ``select`` grant → the picker keeps the legacy row-filtered "read"
     path (no 403, just the caller's own subset — empty here)."""
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("nobody@example.com", roles=[])):
-        hits = await Document.link_search("LSMixedCat", search="")
+        hits = await links_api.link_search("LSMixedCat", search="")
         assert hits == []
 
 
@@ -140,7 +138,7 @@ LSTREE = {
         {"fieldname": "parent_unit", "label": "Parent", "fieldtype": "Link", "options": "LSUnit"},
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "Picker", "select": True}],
+    "permissions": [{"role": "Picker", "actions": ["select"]}],
 }
 
 
@@ -148,7 +146,6 @@ LSTREE = {
 async def test_select_only_user_can_load_tree_picker(ctx, db_session, engine):
     import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.document.base import Document
 
     await save_doctype(doctype_data={**LSTREE, "__is_new": True})
     await ctx.new_doc("LSUnit", {"title": "Root", "secret": "s0"})
@@ -156,7 +153,7 @@ async def test_select_only_user_can_load_tree_picker(ctx, db_session, engine):
     await ctx.db._session().commit()
 
     async with grunt.context(db_session, engine, _picker("p@example.com")):
-        tree = await Document.get_tree("LSUnit")
+        tree = await tree_api.get_tree("LSUnit")
         assert [n["name"] for n in tree] == ["Root"]
         assert [c["name"] for c in tree[0]["children"]] == ["Child"]
         assert "secret" not in tree[0]  # identifier columns only
@@ -167,5 +164,5 @@ async def test_select_only_user_can_load_tree_picker(ctx, db_session, engine):
 
     async with grunt.context(db_session, engine, make_user("z@example.com", roles=[])):
         with pytest.raises(HTTPException) as e:
-            await Document.get_tree("LSUnit")
+            await tree_api.get_tree("LSUnit")
         assert e.value.status_code == 403

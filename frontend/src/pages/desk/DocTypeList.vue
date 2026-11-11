@@ -22,6 +22,7 @@ import { useQuickFilters } from '@/core/composables/useQuickFilters'
 import { buildQuickFiltersFromFields, applyFieldSelection, withAsOfDateFilter } from '@/core/quickFilters'
 import { useQuickFilterPrefs } from '@/core/composables/useQuickFilterPrefs'
 import { useDebounce } from '@/core/composables/useDebounce'
+import { useFormTour } from '@/core/composables/useFormTour'
 import { useBulkDeleteProgress } from '@/core/composables/useBulkDeleteProgress'
 import { useListSelection } from '@/core/composables/useListSelection'
 import type { DocType, QuickFilter } from '@/types'
@@ -30,6 +31,7 @@ import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
+import FormTour from '@/components/views/form/FormTour.vue'
 import BulkActionDialogs from '@/components/views/BulkActionDialogs.vue'
 import ListHeader from '@/components/views/list/ListHeader.vue'
 import AppBreadcrumb from '@/components/app/AppBreadcrumb.vue'
@@ -38,7 +40,7 @@ import DocTypeToolbar from '@/components/views/DocTypeToolbar.vue'
 import ListViewRouter from '@/components/views/list/ListViewRouter.vue'
 import ListPagination from '@/components/views/ListPagination.vue'
 import { docUrl } from '@/core/workspaceUrl'
-import { roleAllows } from '@/core/permissions'
+import { rolePermissions } from '@/core/permissions'
 import { getExporters } from '@/core/io/exporters/registry'
 import { LIST_BULK_UI, type BulkRequest } from '@/core/composables/useListBulkUi'
 import { LIST_FILTER_RESET } from '@/core/composables/useListFilterReset'
@@ -139,6 +141,9 @@ const { data, isLoading, isFetching, meta, rows, exportCtx } = useDocTypeListDat
   dt,
 })
 
+// List tours (FormTour, view «List») - once the DocType and the first rows are in.
+const tour = useFormTour(props.doctype, computed(() => !!dt.value && !isLoading.value), 'List')
+
 const {
   actions: listActions,
   runListClientSetup,
@@ -156,16 +161,13 @@ const {
   state: () => {
     const roles = auth.user?.roles ?? []
     return {
-      perm: {
-        create: roleAllows(dt.value, 'create', roles),
-        write: roleAllows(dt.value, 'write', roles),
-        delete: roleAllows(dt.value, 'delete', roles),
-      },
+      perm: rolePermissions(dt.value, roles),
       selected: selectedIds.value,
       isFetching: isFetching.value,
       exporters: getExporters().map((e) => ({ id: e.id, label: t(e.label) })),
       canExport: !!exportCtx.value,
       filters: activeFilters.value,
+      hasTours: tour.hasTours.value,
     }
   },
   ui: {
@@ -181,6 +183,7 @@ const {
       if (exporter && exportCtx.value) void exporter.export(exportCtx.value)
     },
     customizeQuickFilters: () => { showQuickFilterDialog.value = true },
+    startTour: (name) => tour.start(name),
     createReport: () => {
       router.push({
         name: 'report-builder',
@@ -509,6 +512,9 @@ void (async () => {
         </div>
       </DialogContent>
     </Dialog>
+
+    <FormTour v-if="tour.active.value" :key="tour.active.value.name" :tour="tour.active.value" view="List"
+      @close="tour.finish" />
 
     <QuickFilterSettingsDialog
       v-if="dt"

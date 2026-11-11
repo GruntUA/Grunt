@@ -6,7 +6,7 @@ from httpx2 import AsyncClient
 import grunt
 from grunt.auth.session_cookie import SESSION_COOKIE, SIGNED_IN_COOKIE
 
-_M = "/api/v1/method/grunt.auth.doctypes.User.user"
+_M = "/api/v1/method/grunt.auth.user_api"
 _HERE = "/api/v1/method/tests.test_session_cookie_rpc"
 EMAIL = "cookie@grunt.example.com"
 PASSWORD = "Str0ngPass"

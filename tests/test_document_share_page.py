@@ -15,7 +15,7 @@ SHARE_PAGE_OWNER_DOCTYPE = {
         {"fieldname": "full_name", "label": "Full Name", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True},
+        {"role": "System Manager", "actions": ["read", "write", "create"]},
     ],
 }
 
@@ -40,7 +40,7 @@ SHARE_PAGE_DOCTYPE = {
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Data", "hidden": True},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True},
+        {"role": "System Manager", "actions": ["read", "write", "create"]},
     ],
 }
 

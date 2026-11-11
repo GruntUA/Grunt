@@ -3,8 +3,9 @@
 import re
 from typing import Any
 
-from grunt import _, log
 from grunt.document.validators import validate_field_value
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.field import get_field_type_class, is_physical_fieldtype
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType

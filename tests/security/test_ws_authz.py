@@ -20,7 +20,7 @@ SECRET = {
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
-        {"role": "Owner", "read": True, "write": True, "create": True, "match": "owner == user"},
+        {"role": "Owner", "actions": ["read", "write", "create"], "match": "owner == user"},
     ],
 }
 
@@ -103,7 +103,7 @@ async def test_virtual_doctype_room_checks_the_stored_document(ctx, _point_site_
     from grunt.auth.users import create_user
     from grunt.document.base import Document
     from grunt.document.registry import document_registry
-    from grunt.store import VirtualStore
+    from grunt.store.virtual import VirtualStore
 
     class _Store(VirtualStore):
         async def rows(self, query):
@@ -121,7 +121,7 @@ async def test_virtual_doctype_room_checks_the_stored_document(ctx, _point_site_
             "module": "core",
             "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "T", "fieldtype": "Data"}],
-            "permissions": [{"role": "All", "read": True}],
+            "permissions": [{"role": "All", "actions": ["read"]}],
             "__is_new": True,
         }
     )

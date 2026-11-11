@@ -8,7 +8,7 @@
  *   listview.actions.update('add', { label: 'Новий запис' })
  *
  * Ids: add · refresh · export:<exporter> · edit_doctype, customize_quick_filters ·
- * create_report, fast_delete · bulk_edit, bulk_delete. Labels are translation
+ * create_report, tour, fast_delete · bulk_edit, bulk_delete. Labels are translation
  * keys (English source strings).
  *
  * @param {ListViewProxy} listview
@@ -49,7 +49,7 @@ function setup_list(listview) {
             placement: 'menu',
             group: 'export',
             order: 100 + i,
-            visible: (lv) => lv.can_export,
+            visible: (lv) => lv.can_export && lv.perm.export,
             action: (lv) => lv.export(exporter.id),
         }),
     )
@@ -74,12 +74,23 @@ function setup_list(listview) {
         action: (lv) => lv.customize_quick_filters(),
     })
     actions.add({
+        id: 'tour',
+        label: __('Take a tour'),
+        icon: 'map',
+        placement: 'menu',
+        group: 'report',
+        order: 350,
+        visible: (lv) => lv.has_tours,
+        action: (lv) => lv.start_tour(),
+    })
+    actions.add({
         id: 'create_report',
         label: __('Create report'),
         icon: 'bar-chart-2',
         placement: 'menu',
         group: 'report',
         order: 300,
+        visible: (lv) => lv.perm.report,
         action: (lv) => lv.create_report(),
     })
 

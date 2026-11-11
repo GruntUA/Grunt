@@ -4,8 +4,9 @@ import pytest
 
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
+from grunt.permissions.match import PermissionMatch
 from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, hidden_fields_as, make_user, require_as
 
 # No TYPE_CHECKING needed for httpx2 in direct tests
 
@@ -30,8 +31,8 @@ async def test_system_user_always_allowed():
     where several DocTypes deliberately don't grant write to System Manager)."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert await permission_checker.check(SYSTEM_USER, dt, "read")
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert await check_as(SYSTEM_USER, dt, "read")
 
 
 @pytest.mark.asyncio
@@ -39,8 +40,8 @@ async def test_system_manager_without_matching_row_denied():
     """Holding "System Manager" doesn't bypass a DocType whose permissions
     don't name it — only a matching permission row grants access."""
     user = make_user("user@example.com", is_superadmin=True)
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert not await permission_checker.check(user, dt, "read")
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert not await check_as(user, dt, "read")
 
 
 @pytest.mark.asyncio
@@ -50,80 +51,82 @@ async def test_no_permissions_means_closed():
     granted access yet."""
     user = make_user("user@example.com")
     dt = DocType(name="Closed", label="Closed", module="x", fields=[])
-    assert not await permission_checker.check(user, dt, "read")
+    assert not await check_as(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_role_read_allowed():
     """User with correct role can read."""
     user = make_user("user@example.com", roles=["Manager"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert await permission_checker.check(user, dt, "read")
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert await check_as(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_wrong_role_denied():
     """User without required role is denied."""
     user = make_user("user@example.com", roles=["Viewer"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert not await permission_checker.check(user, dt, "read")
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert not await check_as(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_all_role_always_matches():
     """'All' role matches any user."""
     user = make_user("user@example.com", roles=[])
-    dt = _make_doctype_with_perms([{"role": "All", "read": True}])
-    assert await permission_checker.check(user, dt, "read")
+    dt = _make_doctype_with_perms([{"role": "All", "actions": ["read"]}])
+    assert await check_as(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_match_owner_eq_user():
     """Row-level match 'owner == user' works."""
     user = make_user("user@example.com", roles=["Employee"])
-    dt = _make_doctype_with_perms([{"role": "Employee", "read": True, "match": "owner == user"}])
+    dt = _make_doctype_with_perms(
+        [{"role": "Employee", "actions": ["read"], "match": "owner == user"}]
+    )
     doc_own = {"owner": "user@example.com"}
     doc_other = {"owner": "other@example.com"}
-    assert await permission_checker.check(user, dt, "read", doc_own)
-    assert not await permission_checker.check(user, dt, "read", doc_other)
+    assert await check_as(user, dt, "read", doc_own)
+    assert not await check_as(user, dt, "read", doc_other)
 
 
 @pytest.mark.asyncio
-async def test_match_eval_error_denies():
-    """Regression: a match expression that fails to evaluate must deny access
-    (fail closed), not silently grant it. Previously any exception inside
-    _eval_match (typo'd field, unsupported syntax, ...) returned True.
-    """
+async def test_match_on_unknown_field_denies():
+    """Regression: a match rule that can't be enforced must deny access (fail
+    closed), not silently grant it. Rules outside the grammar are refused when
+    saved (tests/contract/test_permissions.py); one naming a field the DocType
+    lacks grants no row."""
     user = make_user("user@example.com", roles=["Employee"])
     dt = _make_doctype_with_perms(
-        [{"role": "Employee", "read": True, "match": "doc.this_field_does_not_exist"}]
+        [{"role": "Employee", "actions": ["read"], "match": "this_field_does_not_exist == user"}]
     )
     doc = {"owner": "user@example.com"}
-    assert not await permission_checker.check(user, dt, "read", doc)
+    assert not await check_as(user, dt, "read", doc)
 
 
 @pytest.mark.asyncio
 async def test_select_granted_explicitly():
     """A role with only ``select`` can select but not read."""
     user = make_user("user@example.com", roles=["Picker"])
-    dt = _make_doctype_with_perms([{"role": "Picker", "select": True}])
-    assert await permission_checker.check(user, dt, "select")
-    assert not await permission_checker.check(user, dt, "read")
+    dt = _make_doctype_with_perms([{"role": "Picker", "actions": ["select"]}])
+    assert await check_as(user, dt, "select")
+    assert not await check_as(user, dt, "read")
 
 
 @pytest.mark.asyncio
 async def test_read_implies_select():
     """A role with ``read`` implicitly satisfies ``select`` too."""
     user = make_user("user@example.com", roles=["Manager"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert await permission_checker.check(user, dt, "select")
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert await check_as(user, dt, "select")
 
 
 @pytest.mark.asyncio
 async def test_select_denied_without_grant():
     user = make_user("user@example.com", roles=["Viewer"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
-    assert not await permission_checker.check(user, dt, "select")
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert not await check_as(user, dt, "select")
 
 
 @pytest.mark.asyncio
@@ -132,9 +135,9 @@ async def test_require_raises_on_deny():
     from fastapi import HTTPException
 
     user = make_user("user@example.com", roles=[])
-    dt = _make_doctype_with_perms([{"role": "Admin", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Admin", "actions": ["read"]}])
     with pytest.raises(HTTPException) as exc_info:
-        await permission_checker.require(user, dt, "read")
+        await require_as(user, dt, "read")
     assert exc_info.value.status_code == 403
 
 
@@ -146,7 +149,8 @@ async def test_list_users_requires_system_manager(ctx):
     """list_users requires the System Manager role (contextual check)."""
 
     import grunt
-    from grunt.auth.doctypes.User.user import User, list_users_detailed_api
+    from grunt.auth.doctypes.User.user import User
+    from grunt.auth.user_api import list_users_detailed_api
 
     # 1. Create a regular user
     reg_user_data = {
@@ -173,7 +177,7 @@ async def test_list_users_requires_system_manager(ctx):
 @pytest.mark.asyncio
 async def test_list_users_as_system_manager(ctx):
     """list_users works for System Manager."""
-    from grunt.auth.doctypes.User.user import list_users_detailed_api, register
+    from grunt.auth.user_api import list_users_detailed_api, register
 
     # Register at least one user to list
     await register(email="admin@example.com", password="pass", first_name="Admin", last_name="User")
@@ -187,7 +191,7 @@ async def test_list_users_as_system_manager(ctx):
 @pytest.mark.asyncio
 async def test_user_roles_child_table(ctx):
     """Roles are managed through the ``User.roles`` child table."""
-    from grunt.auth.doctypes.User.user import list_users_detailed_api
+    from grunt.auth.user_api import list_users_detailed_api
 
     await ctx.new_doc("Role", {"role_name": "Manager"})
     target_data = {
@@ -240,3 +244,35 @@ async def test_count_respects_permissions(ctx):
     async with ctx.context(ctx.db._session(), ctx.get_engine(), me_ctx):
         assert await grunt.count("User", respect_permissions=True) == 1
         assert await grunt.count("User") == raw_total  # default path unchanged
+
+
+@pytest.mark.asyncio
+async def test_a_changed_permission_row_applies_at_once():
+    """No answer outlives the rows it came from - a row edited in place, or a
+    new DocType object with another row set, is checked as it is now."""
+    user = make_user("user@example.com", roles=["Manager"])
+    dt = _make_doctype_with_perms(
+        [{"role": "Manager", "actions": ["read"], "hidden_fields": ["salary"]}]
+    )
+    assert await check_as(user, dt, "read")
+    assert (await hidden_fields_as(user, dt)) == {"salary"}
+
+    dt.permissions[0].actions = []
+    dt.permissions[0].hidden_fields = []
+    assert not await check_as(user, dt, "read")
+    assert (await hidden_fields_as(user, dt)) == frozenset()
+
+    other = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
+    assert await check_as(user, other, "read")
+
+
+async def test_nobody_in_context_is_denied_even_by_an_all_row():
+    """Without a user ``check`` fails closed - an "All" row with ``owner == user``
+    must not open the rows whose owner is empty."""
+    dt = _make_doctype_with_perms([{"role": "All", "actions": ["read"], "match": "owner == user"}])
+    assert await permission_checker.check(dt, "read") is False
+    assert await permission_checker.check(dt, "read", {"name": "x", "owner": ""}) is False
+
+
+async def test_match_user_without_a_user_is_untranslatable():
+    assert await PermissionMatch("owner == user").to_expr({"owner"}, None) is None

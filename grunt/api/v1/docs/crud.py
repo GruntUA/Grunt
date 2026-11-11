@@ -5,17 +5,21 @@ from typing import Any
 
 from fastapi import Body, Depends, Query, Request, status
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.api.router import GruntRouter
 from grunt.api.v1.docs.utils import default_sort, parse_query_filters
 from grunt.api.v1.schemas.response import ok
+from grunt.auth.current import acting_user
 from grunt.auth.dependencies import current_user
 from grunt.auth.doctypes.User.user import User
 from grunt.document.bulk_ops import BulkDeleteTask
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_engine, user_email
 from grunt.permissions.doc_perms import PERMS_KEY, with_permissions
 from grunt.site.manager import current_site
 from grunt.website.generator import WEB_URL_KEY, with_web_url
+lazy from grunt.document.api import documents
 lazy from grunt.storage.signing import sign_authorized_file_urls
 
 router = GruntRouter()
@@ -25,7 +29,7 @@ async def _decorate(doctype: str, doc: Any) -> Any:
     """The form's computed extras: ``__perms`` and, for a web page, ``__web_url``."""
 
     decorated = await with_web_url(doctype, await with_permissions(doctype, doc))
-    return await sign_authorized_file_urls(decorated, grunt.get_user())
+    return await sign_authorized_file_urls(decorated, user_email())
 
 
 @router.get("/{doctype}")
@@ -46,7 +50,7 @@ async def list_documents(
     field_list = [f.strip() for f in fields.split(",") if f.strip()] if fields else None
 
     order_by, order = await default_sort(doctype, sort_by, sort_order)
-    result = await grunt.get_list(
+    result = await documents.get_list(
         doctype,
         filters=merged_filters if merged_filters else None,
         fields=field_list,
@@ -58,7 +62,7 @@ async def list_documents(
         cursor=cursor,
     )
 
-    payload = await sign_authorized_file_urls(result.to_dict(), user)
+    payload = await sign_authorized_file_urls(result.to_dict(), user.email)
     return ok(**payload)
 
 
@@ -71,7 +75,7 @@ async def create_document(
     """Create a new document."""
     body.pop(PERMS_KEY, None)  # computed, never stored
     body.pop(WEB_URL_KEY, None)
-    doc = await grunt.new_doc(doctype, body)
+    doc = await documents.new_doc(doctype, body)
     return ok(await _decorate(doctype, doc))
 
 
@@ -84,7 +88,7 @@ async def get_document(
 ) -> dict[str, Any]:
     """Get document data."""
     expand_fields = [f.strip() for f in expand.split(",") if f.strip()] if expand else None
-    doc = await grunt.get_doc(doctype, doc_id, expand=expand_fields)
+    doc = await documents.get_doc(doctype, doc_id, expand=expand_fields)
     return ok(await _decorate(doctype, doc))
 
 
@@ -98,7 +102,7 @@ async def update_document(
     """Update an existing document."""
     body.pop(PERMS_KEY, None)  # computed, never stored
     body.pop(WEB_URL_KEY, None)
-    doc = await grunt.save_doc(doctype, doc_id, body)
+    doc = await documents.save_doc(doctype, doc_id, body)
     return ok(await _decorate(doctype, doc))
 
 
@@ -114,16 +118,16 @@ async def delete_document(
     ``replace_with`` - repoint every reference to this document at the given
     surviving document of the same DocType before deleting.
     """
-    await grunt.delete_doc(doctype, doc_id, replace_with)
+    await documents.delete_doc(doctype, doc_id, replace_with)
 
 
-@grunt.whitelist()
+@whitelist()
 async def rename(doctype: str, doc_id: str, new_name: str) -> dict[str, Any]:
     """Rename a document (change its id). RPC: grunt.api.v1.docs.crud.rename"""
-    return await grunt.rename_doc(doctype, doc_id, new_name)
+    return await documents.rename_doc(doctype, doc_id, new_name)
 
 
-@grunt.whitelist()
+@whitelist()
 async def bulk_delete(
     doctype: str,
     ids: list[str] | None = None,
@@ -144,9 +148,9 @@ async def bulk_delete(
     optional ``filters``/``search`` (delete all matching, in rolling batches
     so datasets of any size are supported).
     """
-    user = grunt.get_user()
+    user = acting_user()
     user_email = user.email
-    engine = grunt.get_engine()
+    engine = require_engine()
     task = BulkDeleteTask()
     active_site = current_site.get()
 
@@ -160,7 +164,7 @@ async def bulk_delete(
                     doctype,
                     filters=filters,
                     search=search,
-                    user=user,
+                    user=user.email,
                     user_email=user_email,
                     engine=engine,
                 )
@@ -175,7 +179,7 @@ async def bulk_delete(
                 doctype,
                 filters=filters,
                 search=search,
-                user=user,
+                user=user.email,
                 user_email=user_email,
                 engine=engine,
             )
@@ -185,7 +189,7 @@ async def bulk_delete(
 
     # Explicit IDs path
     if not ids:
-        grunt.throw(_("ids or delete_all is required"))
+        throw(_("ids or delete_all is required"))
 
     total = len(ids)
 
@@ -195,7 +199,7 @@ async def bulk_delete(
         await task.run(
             doctype,
             ids,
-            user=user,
+            user=user.email,
             user_email=user_email,
             engine=engine,
             replace_with=replace_with,
@@ -205,7 +209,7 @@ async def bulk_delete(
     return {"started": True, "total": total}
 
 
-@grunt.whitelist()
+@whitelist()
 async def bulk_update(
     doctype: str, ids: list[str], field: str, value: Any = None
 ) -> dict[str, Any]:
@@ -214,15 +218,15 @@ async def bulk_update(
     RPC: grunt.api.v1.docs.crud.bulk_update
     """
     if not ids:
-        grunt.throw(_("ids is required"))
+        throw(_("ids is required"))
     if not field:
-        grunt.throw(_("field is required"))
+        throw(_("field is required"))
 
     updated = 0
     errors: list[str] = []
     for doc_id in ids:
         try:
-            await grunt.save_doc(doctype, doc_id, {field: value})
+            await documents.save_doc(doctype, doc_id, {field: value})
             updated += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")

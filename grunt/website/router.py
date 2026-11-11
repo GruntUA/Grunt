@@ -5,6 +5,7 @@ Website page rendering engine - Enhanced routing for Grunt apps.
 import importlib.util
 import inspect
 import re
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -14,17 +15,15 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescape
 
-import grunt
-from grunt import log
-lazy from grunt.apps.loader import primary_web_app
-lazy from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.local import system_context
+from grunt.log import log
+from grunt.website.host import current_web_app
 lazy from grunt.config import settings
 lazy from grunt.db.session import get_session
 lazy from grunt.i18n.jinja import install as install_i18n
 lazy from grunt.site.manager import site_manager
 lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.files import image_srcset, sized_url
-lazy from grunt.website.generator import _template_envs, render_doc_page, sitemap_urls
 lazy from grunt.website.preview import finish_preview, preview_reader
 lazy from grunt.website.spa import spa_assets
 
@@ -116,6 +115,15 @@ class WebsiteRegistry:
         self._pages: list[WebsitePage] = []
         # Jinja2 Environment per app name
         self._envs: dict[str, Environment] = {}
+        # Bumped when a template dir is added - envs derived from these
+        # (web view pages) rebuild instead of serving a stale template.
+        self.templates_version = 0
+        # Web view documents (grunt.website.generator), plugged in at startup
+        # (grunt.startup.website) - the router doesn't import the generator.
+        self.doc_pages: Callable[[Request, Any], Awaitable[Response | None]] | None = None
+        self.doc_sitemap: (
+            Callable[[Callable[[str | None], bool]], Awaitable[list[tuple[str, Any]]]] | None
+        ) = None
 
     def discover_app(
         self, app_dir: Path, app_name: str, is_main_app: bool = False
@@ -199,7 +207,7 @@ class WebsiteRegistry:
             if env.cache is not None:
                 env.cache.clear()
 
-        _template_envs.clear()
+        self.templates_version += 1
 
     def add_global(self, name: str, value: Any) -> None:
         """A Jinja global in every app's env (``website_menu`` of the CMS)."""
@@ -253,7 +261,7 @@ async def render_page(
     ``RedirectResponse``) - it is sent as is.
     """
 
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with system_context(session):
         context = await page_context(request, session, path_params=path_params or {})
 
         # Controller errors propagate to the exception handlers (HTML error page):
@@ -288,7 +296,7 @@ async def render_page(
     template = env.get_template(template_name)
     context["page_preview"] = preview_reader(request) is not None
     # Templates query too (website_menu) - render inside the grunt context.
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with system_context(session):
         html = await template.render_async(**context)
     # A controller may set e.g. ``context["status_code"] = 404`` for a missing record,
     # ``content_type`` for a non-HTML page (an RSS feed), ``cache_seconds`` to let
@@ -299,7 +307,7 @@ async def render_page(
     cache_seconds = int(context.get("cache_seconds") or 0)
     if cache_seconds > 0 and status_code == 200 and request.method in ("GET", "HEAD"):
         headers["Cache-Control"] = f"public, max-age={cache_seconds}"
-    async with grunt.context(session, user=SYSTEM_USER):
+    async with system_context(session):
         html = await finish_preview(request, html, headers)
     return HTMLResponse(
         content=html,
@@ -360,7 +368,8 @@ async def render_page_by_route(
     # 2. Documents of web-view DocTypes (grunt.website.generator)
 
     try:
-        response = await render_doc_page(request, session)
+        doc_pages = website_registry.doc_pages
+        response = await doc_pages(request, session) if doc_pages else None
     except HTTPException:
         raise
     except Exception as e:
@@ -388,7 +397,7 @@ async def render_not_found(request: Request, session: Any) -> Response | None:
     """
 
     first = request.url.path.strip("/").split("/", 1)[0]
-    for app in (first, primary_web_app()):
+    for app in (first, site_manager.get_primary_web_app()):
         if not app or website_registry.get_env(app) is None:
             continue
         www_dir = next((p.www_dir for p in website_registry.pages if p.app == app), None)
@@ -442,13 +451,29 @@ def _lastmod(value: Any) -> str:
     return value.strftime("%Y-%m-%d") if hasattr(value, "strftime") else ""
 
 
-async def sitemap_entries() -> list[SitemapEntry]:
-    """Every listed page: www pages, web view documents and every app's
-    ``website_sitemap`` source (caller holds a grunt context)."""
+def _sitemap_scope() -> Callable[[str | None], bool]:
+    """Which apps' pages this host's sitemap lists: on an app's own domain that
+    app only; elsewhere every app but those with a domain of their own."""
+    web_app = current_web_app.get()
+    if web_app:
+        return lambda app: app == web_app
+    elsewhere = set(site_manager.domain_apps(site_manager.get_active_site()))
+    return lambda app: app not in elsewhere
 
-    entries: list[SitemapEntry] = [p.url_pattern for p in website_registry.pages if p.in_sitemap]
-    entries.extend(await sitemap_urls())
+
+async def sitemap_entries() -> list[SitemapEntry]:
+    """Every listed page of this host: www pages, web view documents and every
+    app's ``website_sitemap`` source (caller holds a grunt context)."""
+
+    include = _sitemap_scope()
+    entries: list[SitemapEntry] = [
+        p.url_pattern for p in website_registry.pages if p.in_sitemap and include(p.app)
+    ]
+    if website_registry.doc_sitemap is not None:
+        entries.extend(await website_registry.doc_sitemap(include))
     for source in _sitemap_sources:
+        if not include(getattr(source, "__module__", "").split(".")[0]):
+            continue
         try:
             entries.extend(await source())
         except Exception as e:  # noqa: BLE001 - one app's bug must not drop the sitemap
@@ -485,7 +510,7 @@ async def sitemap_xml(request: Request) -> Response:
 
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.context(session, user=SYSTEM_USER):
+    async with maker() as session, system_context(session):
         entries = await sitemap_entries()
     body = render_sitemap(str(request.base_url).rstrip("/"), entries)
     return Response(content=body, media_type="application/xml")

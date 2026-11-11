@@ -6,6 +6,7 @@ to matching nodes + their ancestors.
 
 import pytest
 
+from grunt.api.v1.document import tree as tree_api
 from tests.support import make_user
 
 TREE_DOCTYPE = {
@@ -382,7 +383,7 @@ GUARDED_TREE_DOCTYPE = {
             "options": "GuardedTreeCategory",
         },
     ],
-    "permissions": [{"role": "TreeManager", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "TreeManager", "actions": ["read", "write", "create"]}],
 }
 
 
@@ -405,22 +406,19 @@ async def guarded_tree_doctype(ctx):
 async def test_get_tree_denies_user_without_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.document.base import Document
-
     outsider = make_user("outsider@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx.get_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await Document.get_tree("GuardedTreeCategory")
+            await tree_api.get_tree("GuardedTreeCategory")
     assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_get_tree_allows_user_with_role(ctx, guarded_tree_doctype):
-    from grunt.document.base import Document
 
     manager = make_user("tree-manager@grunt.example.com", roles=["TreeManager"])
     async with ctx.context(ctx.db._session(), ctx.get_engine(), manager):
-        result = await Document.get_tree("GuardedTreeCategory")
+        result = await tree_api.get_tree("GuardedTreeCategory")
     assert _root_titles(result) == ["Root"]
 
 
@@ -428,12 +426,10 @@ async def test_get_tree_allows_user_with_role(ctx, guarded_tree_doctype):
 async def test_get_children_denies_user_without_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.document.base import Document
-
     outsider = make_user("outsider2@grunt.example.com")
     async with ctx.context(ctx.db._session(), ctx.get_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await Document.get_tree_children("GuardedTreeCategory")
+            await tree_api.get_tree_children("GuardedTreeCategory")
     assert excinfo.value.status_code == 403
 
 
@@ -441,13 +437,11 @@ async def test_get_children_denies_user_without_role(ctx, guarded_tree_doctype):
 async def test_get_ancestors_denies_user_without_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.document.base import Document
-
     outsider = make_user("outsider3@grunt.example.com")
     child_name = guarded_tree_doctype["child"]["name"]
     async with ctx.context(ctx.db._session(), ctx.get_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await Document.get_tree_ancestors("GuardedTreeCategory", child_name)
+            await tree_api.get_tree_ancestors("GuardedTreeCategory", child_name)
     assert excinfo.value.status_code == 403
 
 
@@ -455,24 +449,21 @@ async def test_get_ancestors_denies_user_without_role(ctx, guarded_tree_doctype)
 async def test_move_node_denies_user_without_write_role(ctx, guarded_tree_doctype):
     from fastapi import HTTPException
 
-    from grunt.document.base import Document
-
     outsider = make_user("outsider4@grunt.example.com")
     child_name = guarded_tree_doctype["child"]["name"]
     async with ctx.context(ctx.db._session(), ctx.get_engine(), outsider):
         with pytest.raises(HTTPException) as excinfo:
-            await Document.move_tree_node("GuardedTreeCategory", child_name, new_parent_id=None)
+            await tree_api.move_tree_node("GuardedTreeCategory", child_name, new_parent_id=None)
     assert excinfo.value.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_move_node_allows_user_with_write_role(ctx, guarded_tree_doctype):
-    from grunt.document.base import Document
 
     manager = make_user("tree-manager2@grunt.example.com", roles=["TreeManager"])
     child_name = guarded_tree_doctype["child"]["name"]
     async with ctx.context(ctx.db._session(), ctx.get_engine(), manager):
-        result = await Document.move_tree_node(
+        result = await tree_api.move_tree_node(
             "GuardedTreeCategory", child_name, new_parent_id=None
         )
     assert result["parent_category"] is None

@@ -90,3 +90,28 @@ async def test_cursor_by_name_with_mixed_case(ctx, dataset, order):
         if (cursor := result.meta["next_cursor"]) is None:
             break
     assert paged == whole
+
+
+@pytest.mark.asyncio
+async def test_direction_in_order_by_wins(ctx, dataset):
+    """``"field asc"`` - the direction travels with the field (grunt.get_all shares
+    ``list_query`` with grunt.db.get_all)."""
+    assert await _titles(ctx, order_by="title asc") == TEXT_ORDER
+    assert await _titles(ctx, order_by="title DESC", order="asc") == TEXT_ORDER[::-1]
+    rows = await ctx.db.get_all("ContractItem", fields=["name"], limit=100, order_by="title asc")
+    assert [TITLE[r["name"]] for r in rows] == TEXT_ORDER
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "order_by", ["creation desc", "title asc, qty desc", "title sideways", "title asc desc"]
+)
+async def test_bad_order_by_is_an_error_not_another_order(ctx, dataset, order_by):
+    """An unknown field or a malformed spec fails loudly - before it silently
+    sorted by ``modified_at``."""
+    from grunt.errors import APIError
+
+    for read in (ctx.get_list, ctx.db.get_all):
+        with pytest.raises(APIError) as exc:
+            await read("ContractItem", fields=["name"], order_by=order_by)
+        assert exc.value.status_code == 422

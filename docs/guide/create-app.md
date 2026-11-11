@@ -153,6 +153,7 @@ Every hook below works on any app's DocType, not only your own:
 | `doctype_js` | client scripts for the form |
 | `sidebar_sections` | panels in the form sidebar |
 | `scheduler_events` | background jobs |
+| `auth_providers` | sign-in methods ([Authentication providers](auth-providers.md)) |
 
 ```python title="crystal_finance/hooks.py"
 doctype_mixins = {"Asset": ["crystal_finance.asset.AssetFinance"]}
@@ -192,10 +193,15 @@ Create a JSON file in `my_crm/doctypes/Customer/`:
      "options": "Lead\nProspect\nCustomer\nInactive", "in_list_view": true}
   ],
   "permissions": [
-    {"role": "Sales", "read": true, "write": true, "create": true}
+    {"role": "Sales", "actions": ["read", "write", "create", "print", "export"]}
   ]
 }
 ```
+
+`actions` lists what the role may do: `read`, `select` (search a Link field's
+values only), `write`, `create`, `delete`, and - granted separately from read -
+`export`, `import`, `print`, `share` (also needs `write`) and `report` (reports
+on this DocType).
 
 Then sync the DocType to create the database table:
 
@@ -234,9 +240,9 @@ from grunt.hooks import on_doc
 
 @on_doc("Customer", "after_insert")
 async def on_customer_insert(doc, user, **kwargs):
-    """Called after any Customer document is created."""
+    """Called after any Customer document is created. *user* - the email of who created it."""
     await grunt.publish(
-        user=user.email,
+        user=user,
         event="msgprint",
         message=f"Welcome, {doc['full_name']}!",
         type="success",
@@ -462,3 +468,9 @@ scheduler_events = {
     ],
 }
 ```
+
+Each job's last run (status, error, run count) is in **Scheduled Job State**.
+The **Scheduled Job Log** keeps every run only of jobs that fire at most
+hourly; a job that fires more often (`* * * * *`, `*/5 * * * *`) leaves a
+row there only when it fails. Set `"log_runs": True` (every run) or `False`
+(failures only) in the item to override this.

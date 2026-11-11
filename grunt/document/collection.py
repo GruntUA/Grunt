@@ -15,13 +15,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import _, log
-from grunt.document.base import (
-    Document,
-    DocumentList,
-    load_document,
-)
+from grunt.document.document_list import DocumentList
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.meta import Meta
 from grunt.document.multi_link import MultiLinkService
@@ -36,16 +30,22 @@ from grunt.document.update_side_effects import (
     run_bulk_before_delete_hooks,
     run_bulk_delete_writes,
 )
+from grunt.errors import unprocessable
+from grunt.i18n import _
+from grunt.local import rebound
+from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions import reads
 from grunt.permissions.query import read_predicate
 from grunt.query import nodes as q
 from grunt.query import run
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.search.service import search_index_service
-from grunt.store import BULK, REFERENCES, SQL, Unavailable, store_for, supports
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.store.base import BULK, REFERENCES, SQL
+from grunt.store.lookup import store_for, supports
+from grunt.store.virtual import Unavailable
 
 
 def _encode_cursor(sort_val: Any, doc_id: str) -> str:
@@ -72,7 +72,7 @@ async def _resolve_list_filter_extra(
     """The controller's ``list_filter_extra`` clause as a ``Raw`` node (``TRUE``
     when it has none) - a SQL condition, so only a table's list takes one."""
     hook = document_registry.get(dt.name).list_filter_extra
-    if hook.__func__ is Document.list_filter_extra.__func__ or not supports(dt, SQL):
+    if hook.__func__ is document_registry.base.list_filter_extra.__func__ or not supports(dt, SQL):
         return q.TRUE
     clause = await hook(session, filters or {}, dt.table)
     return q.TRUE if clause is None else q.Raw(clause)
@@ -121,7 +121,7 @@ def _build_next_cursor(rows: list[dict[Any, Any]], per_page: int, sort_by: str) 
 async def list_documents(
     session: AsyncSession,
     doctype_name: str,
-    user: User,
+    user: str,
     *,
     page: int = 1,
     per_page: int = 20,
@@ -155,19 +155,23 @@ async def list_documents(
         except Exception:
             log.warning("list_documents.invalid_cursor", cursor=cursor)
 
+    try:
+        sort = Sort.parse(sort_by, sort_order, known=dt.columns)
+    except ValueError as e:
+        raise unprocessable(str(e)) from None
     query = Query(
         doctype_name,
         where=await _list_where(session, dt, filters),
         # name/modified_at always - list views and the cursor rely on them.
         fields=tuple(dict.fromkeys(["name", "modified_at", *fields])) if fields else None,
-        sort=Sort(sort_by, descending=sort_order != "asc"),
+        sort=sort,
         limit=per_page,
         offset=(page - 1) * per_page,
         after=after,
         search=search or None,
     )
     try:
-        rows, total = await run.page(query, user=user, with_total=include_total, session=session)
+        rows, total = await reads.page(query, user=user, with_total=include_total, session=session)
     except Unavailable as exc:
         # The source can't be reached - an empty list that says so.
         return DocumentList(
@@ -202,7 +206,7 @@ async def list_documents(
 async def count_documents(
     session: AsyncSession,
     doctype_name: str,
-    user: User,
+    user: str,
     *,
     filters: dict[str, str] | None = None,
     search: str | None = None,
@@ -214,13 +218,13 @@ async def count_documents(
     dt = await _require_meta(doctype_name)
     query = Query(dt.name, where=await _list_where(session, dt, filters), search=search or None)
     try:
-        return await run.count(query, user=user, session=session)
+        return await reads.count(query, user=user, session=session)
     except Unavailable:
         return 0
 
 
 async def _require_meta(doctype_name: str) -> Any:
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -232,7 +236,7 @@ async def _require_meta(doctype_name: str) -> Any:
 async def field_years(
     session: AsyncSession,
     doctype_name: str,
-    user: User,
+    user: str,
     fieldname: str,
 ) -> list[int]:
     """Distinct calendar years of a Date/Datetime field, newest first, over the
@@ -241,7 +245,7 @@ async def field_years(
     Under the same row-level permissions as ``count_documents``; the list's own
     filters are not applied, so picking one year doesn't hide the others.
     """
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -286,7 +290,7 @@ async def bulk_delete(
     engine: AsyncEngine,
     doctype_name: str,
     ids: list[str],
-    user: User,
+    user: str,
     *,
     replace_with: str | None = None,
     progress_cb: Any | None = None,
@@ -309,7 +313,7 @@ async def bulk_delete(
     if not ids:
         return 0, []
 
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -317,7 +321,7 @@ async def bulk_delete(
         )
 
     if not store_for(dt, session).can(BULK):
-        return await bulk_delete_one_by_one(session, engine, doctype_name, ids, user)
+        return await bulk_delete_one_by_one(session, engine, doctype_name, ids)
 
     table = dt.table
 
@@ -342,8 +346,7 @@ async def bulk_delete(
         if progress_cb is not None:
             await progress_cb(done, total, len(errors))
 
-    tokens = grunt.set_context(session=session, engine=engine, user=user)
-    try:
+    with rebound(session, engine):
         controllers = await run_bulk_before_delete_hooks(
             doctype_name=doctype_name,
             docs=to_delete,
@@ -352,16 +355,13 @@ async def bulk_delete(
             errors=errors,
             report=_report,
         )
-    finally:
-        grunt.reset_context(tokens)
 
     if not controllers:
         return 0, errors
 
     final_ids = [str(d["name"]) for d, _ in controllers]
 
-    tokens = grunt.set_context(session=session, engine=engine, user=user)
-    try:
+    with rebound(session, engine):
         await run_bulk_delete_writes(
             session=session,
             ml=ml,
@@ -376,8 +376,6 @@ async def bulk_delete(
             controllers=controllers,
             errors=errors,
         )
-    finally:
-        grunt.reset_context(tokens)
 
     deleted = len(final_ids)
     await _report(total)
@@ -489,7 +487,7 @@ async def _rename_system_refs(session: AsyncSession, old_id: str, new_id: str) -
     """Best-effort update of _RENAME_SYSTEM_REFS rows pointing at *old_id*."""
     for sys_dt_name, sys_fieldname in _RENAME_SYSTEM_REFS:
         try:
-            sys_dt = await grunt.get_meta(sys_dt_name)
+            sys_dt = await doctype_registry.get_meta(sys_dt_name)
             if sys_dt is None:
                 continue
             sys_table = sys_dt.table
@@ -580,18 +578,20 @@ async def rename_document(
     doctype_name: str,
     old_id: str,
     new_id: str,
-    user: User,
+    user: str,
 ) -> dict[str, Any]:
     """Update the primary ID of a document and cascade changes to all references."""
 
     async def _load(doc_id: str) -> dict[str, Any]:
-        doc = await load_document(doctype_name, doc_id, session=session, engine=engine, user=user)
+        doc = await document_registry.base.load(
+            doctype_name, doc_id, session=session, engine=engine
+        )
         return doc.as_dict()
 
     if old_id == new_id:
         return await _load(old_id)
 
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

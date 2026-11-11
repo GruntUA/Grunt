@@ -10,15 +10,20 @@ from dataclasses import dataclass
 from pathlib import PurePath
 from typing import Any, BinaryIO
 
-import grunt
-from grunt import _, log
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.storage.backends import get_storage_backend
-from grunt.storage.images import OPTIMIZABLE, optimize_image, renamed
+from grunt.storage.optimize import OPTIMIZABLE, optimize_image, renamed
 from grunt.storage.thumbnails import THUMB_WIDTH, WEB_WIDTHS, can_thumbnail, make_thumbnail
+lazy from grunt.document.api import documents
 lazy from grunt.local import _user_ctx
 lazy from grunt.site.settings import get_setting
 lazy from grunt.storage.cloud.files import read_blob
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 CONTENT_URL = "/api/v1/method/grunt.storage.doctypes.File.file.get_content?file_id={}"
 
@@ -46,7 +51,7 @@ async def allowed_file_types() -> set[str]:
     until the settings row has a value."""
     value = await get_setting("allowed_file_types")
     if value is None:
-        meta = await grunt.get_meta("SystemSettings")
+        meta = await doctype_registry.get_meta("SystemSettings")
         field = meta.get_field("allowed_file_types") if meta else None
         value = field.default if field else None
     return parse_file_types(value)
@@ -149,7 +154,7 @@ async def create_file(
     """
     if uploaded_by is None:
         uploaded_by = getattr(_user_ctx.get(), "email", None)
-    doc = await grunt.new_doc(
+    doc = await documents.new_doc(
         "File",
         {
             "file_name": filename,
@@ -172,7 +177,7 @@ async def create_file(
         "file_url": CONTENT_URL.format(file_id),
         "thumbnail_url": thumbnail_url(file_id, key, content_type),
     }
-    await grunt.db.set_value("File", file_id, values)
+    await _db.set_value("File", file_id, values)
     doc.update(values)
     return doc
 
@@ -189,7 +194,7 @@ class StoredBlob:
 
 
 async def compress_stored(key: str, size: int, filename: str, content_type: str) -> StoredBlob:
-    """Swap a stored image for its compressed copy (grunt.storage.images).
+    """Swap a stored image for its compressed copy (grunt.storage.optimize).
 
     Returns the new blob - its extension following a format change, and
     ``original_size`` set - or the given one when the image stays as it is.
@@ -230,7 +235,7 @@ async def store(
 
     Raises FileTypeNotAllowedError / FileTooLargeError (both ValueError) before anything
     is written. Private by default - pass ``is_public`` for website content.
-    Photos are compressed per the site's settings (grunt.storage.images) -
+    Photos are compressed per the site's settings (grunt.storage.optimize) -
     pass ``compress=False`` to keep the exact bytes.
     """
     content_type = content_type or "application/octet-stream"
@@ -257,7 +262,7 @@ async def store(
 
 async def read(file_id: str) -> bytes:
     """Bytes of the ``File`` *file_id* (no permission check - callers gate access)."""
-    key = await grunt.db.get_value("File", file_id, "content_hash")
+    key = await _db.get_value("File", file_id, "content_hash")
     if not key:
         raise FileNotFoundError(f"File not found: {file_id}")
 

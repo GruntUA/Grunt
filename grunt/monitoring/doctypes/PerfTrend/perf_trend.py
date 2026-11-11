@@ -14,13 +14,14 @@ import hashlib
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import grunt
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.monitoring.perf import HIST_FIELDS, percentile
 from grunt.query.query import Query
-from grunt.store import VirtualStore
-from grunt.store.virtual import equals
+from grunt.store.virtual import VirtualStore, equals
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 DEFAULT_PERIOD_DAYS = 7
 # Below this many calls in either period the change is noise, not a trend.
@@ -50,7 +51,7 @@ def _period_days(value: Any) -> int:
 
 
 async def _summarise(start: datetime, end: datetime) -> dict[tuple, dict[str, Any]]:
-    rows = await grunt.db.aggregate(
+    rows = await _db.aggregate(
         "PerfStat",
         filters={"period_start__gte": start, "period_start__lt": end},
         group_by=_GROUP_BY,

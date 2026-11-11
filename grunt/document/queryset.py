@@ -17,16 +17,31 @@ Filter keys support the same operator suffixes as ``grunt.db`` (``__gt``, ``__gt
 
 from typing import Any
 
-import grunt
-from grunt.local import _user_ctx, require_user
-lazy from grunt.document.base import Document
+from grunt.local import _user_ctx, require_session
+
+# The document API (grunt.document.api.documents) - it registers itself
+# (:func:`use_document_api`), since it imports the document class this
+# QuerySet belongs to.
+_api: Any = None
 
 
-class QuerySet[T: Document]:
+def use_document_api(api: Any) -> None:
+    """Register the document API ``Document.objects`` queries go through."""
+    global _api
+    _api = api
+
+
+def _documents() -> Any:
+    if _api is None:
+        raise RuntimeError("grunt.document.api is not loaded yet")
+    return _api
+
+
+class QuerySet[T]:
     """Immutable, chainable query builder bound to a single controller class."""
 
     def __init__(self, model_cls: type[T]) -> None:
-        self._model_cls = model_cls
+        self._model_cls: Any = model_cls  # a Document subclass
         self._doctype: str = getattr(model_cls, "doctype", model_cls.__name__)
         self._filters: dict[str, Any] = {}
         self._fields: list[str] | None = None
@@ -81,7 +96,7 @@ class QuerySet[T: Document]:
     # Execution
 
     async def all(self) -> list[T]:
-        return await grunt.get_all(
+        return await _documents().get_all(
             self._model_cls,
             filters=self._filters or None,
             fields=self._fields,
@@ -103,7 +118,7 @@ class QuerySet[T: Document]:
         # rather than raising, mirroring the old behaviour there.
 
         respect = _user_ctx.get() is not None
-        return await grunt.count(
+        return await _documents().count(
             self._doctype, filters=self._filters or None, respect_permissions=respect
         )
 
@@ -112,12 +127,11 @@ class QuerySet[T: Document]:
 
     async def create(self, **data: Any) -> T:
         """Create a new document and return it as a typed controller instance."""
-        created = await grunt.new_doc(self._doctype, data)
+        created = await _documents().new_doc(self._doctype, data)
         return self._model_cls(
             doctype=self._doctype,
             data=created,
-            user=require_user(),
-            session=grunt.get_session(),
+            session=require_session(),
         )
 
     async def get_or_create(

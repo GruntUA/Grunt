@@ -2,24 +2,30 @@
 
 from typing import Any
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
+from grunt.db.api import GruntDB
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.site.settings import get_setting
 from grunt.webpush.service import webpush_service
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_notifications(
     unread_only: bool = False, page: int = 1, per_page: int = 20
 ) -> dict[str, Any]:
     """Get notifications for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
     filters: dict[str, Any] = {"user": user.email}
     if str(unread_only).lower() == "true":
         filters["is_read"] = False
 
-    total = await grunt.count("Notification", filters=filters)
-    data = await grunt.get_list(
+    total = await documents.count("Notification", filters=filters)
+    data = await documents.get_list(
         "Notification",
         filters=filters,
         page=int(page),
@@ -30,11 +36,11 @@ async def list_notifications(
     return {"items": data, "total": total, "page": int(page), "per_page": int(per_page)}
 
 
-@grunt.whitelist()
+@whitelist()
 async def mark_as_read(notification_id: str) -> bool:
     """Mark a notification as read - only if it belongs to the current user."""
-    user = grunt.get_user()
-    count = await grunt.db.bulk_update(
+    user = acting_user()
+    count = await _db.bulk_update(
         "Notification",
         filters={"name": notification_id, "user": user.email},
         values={"is_read": True},
@@ -42,11 +48,11 @@ async def mark_as_read(notification_id: str) -> bool:
     return count > 0
 
 
-@grunt.whitelist()
+@whitelist()
 async def mark_all_as_read() -> dict[str, Any]:
     """Mark all notifications as read for the current user."""
-    user = grunt.get_user()
-    count = await grunt.db.bulk_update(
+    user = acting_user()
+    count = await _db.bulk_update(
         "Notification",
         filters={"user": user.email, "is_read": False},
         values={"is_read": True},
@@ -54,14 +60,14 @@ async def mark_all_as_read() -> dict[str, Any]:
     return {"count": count}
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_unread_count() -> int:
     """Get the count of unread notifications for the current user."""
-    user = grunt.get_user()
-    return await grunt.count("Notification", filters={"user": user.email, "is_read": False})
+    user = acting_user()
+    return await documents.count("Notification", filters={"user": user.email, "is_read": False})
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_vapid_public_key() -> str | None:
     """Return the VAPID public key needed to subscribe to Web Push.
 
@@ -77,22 +83,22 @@ async def get_vapid_public_key() -> str | None:
     return key
 
 
-@grunt.whitelist()
+@whitelist()
 async def subscribe_push(endpoint: str, p256dh: str, auth: str, user_agent: str = "") -> bool:
     """Save a browser push subscription for the current user."""
     if not await get_setting("enable_web_push", False):
-        grunt.throw(_("Web Push is disabled in the system settings"), "FORBIDDEN")
+        throw(_("Web Push is disabled in the system settings"), "FORBIDDEN")
 
-    user = grunt.get_user()
+    user = acting_user()
 
     await webpush_service.save_subscription(user.email, endpoint, p256dh, auth, user_agent)
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def unsubscribe_push(endpoint: str) -> bool:
     """Remove a browser push subscription for the current user."""
-    user = grunt.get_user()
+    user = acting_user()
 
     await webpush_service.remove_subscription(endpoint, user.email)
     return True

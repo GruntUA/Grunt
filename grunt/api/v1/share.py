@@ -3,23 +3,30 @@
 from datetime import UTC, datetime
 from typing import Any
 
-import grunt
-from grunt import _, log
+from grunt.api.context import whitelist
+from grunt.db.api import GruntDB
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 lazy from grunt.storage.signing import sign_all_file_urls
 
+_db = GruntDB()  # stateless: reads through the context's session
 
-@grunt.whitelist(allow_guest=True)
+
+@whitelist(allow_guest=True)
 async def get_shared_document(token: str) -> dict[str, Any]:
     """Return a publicly shared document by token. No authentication required."""
     # Use SYSTEM_USER for db queries since we are in guest mode
-    shares = await grunt.db.get_all(
+    shares = await _db.get_all(
         "DocumentShare",
         filters={"token": token, "is_active": True},
         limit=1,
     )
 
     if not shares:
-        grunt.throw(_("The link was not found or has been deactivated"), "NOT_FOUND")
+        throw(_("The link was not found or has been deactivated"), "NOT_FOUND")
 
     share = shares[0]
 
@@ -34,24 +41,25 @@ async def get_shared_document(token: str) -> dict[str, Any]:
         if expires_at:
             exp = expires_at if expires_at.tzinfo else expires_at.replace(tzinfo=UTC)
             if exp < datetime.now(UTC):
-                grunt.throw(_("The link has expired"), "GONE")
+                throw(_("The link has expired"), "GONE")
 
     doctype_name = share["doctype_name"]
     doc_id = share["doc_id"]
 
     # Fetch without permission guards - this is a guest-accessible share link
-    dt = await grunt.get_meta(doctype_name)
+    dt = await doctype_registry.get_meta(doctype_name)
     if dt is None:
-        grunt.throw(_("DocType not found"), "NOT_FOUND")
-    doc = await grunt.db.get_doc(doctype_name, doc_id)
+        throw(_("DocType not found"), "NOT_FOUND")
+    doc = await _db.get_doc(doctype_name, doc_id)
 
     if not doc:
-        grunt.throw(_("Document not found"), "NOT_FOUND")
+        throw(_("Document not found"), "NOT_FOUND")
 
     # Increment view count (best-effort)
     try:
         current = int(share.get("view_count") or 0)
-        await grunt.set_value("DocumentShare", share["name"], "view_count", current + 1)
+        # A counter the viewer bumps, not an edit of the share by them.
+        await _db.set_value("DocumentShare", share["name"], "view_count", current + 1)
     except Exception:
         log.exception("suppressed_error")
 
@@ -93,17 +101,17 @@ async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:
         raw = doc.get(lf.fieldname)
         if not raw:
             continue
-        target_dt = await grunt.get_meta(lf.options)
+        target_dt = await doctype_registry.get_meta(lf.options)
         if target_dt is None:
             continue
 
         title_field = target_dt.get_title_field()
-        row = await grunt.db.get_values(lf.options, raw, [title_field])
+        row = await _db.get_values(lf.options, raw, [title_field])
         if row:
             doc[f"{lf.fieldname}__label"] = str(row.get(title_field) or raw)
 
 
-@grunt.whitelist()
+@whitelist()
 async def create_share(
     doctype_name: str,
     doc_id: str,
@@ -112,9 +120,9 @@ async def create_share(
 ) -> dict[str, Any]:
     """Create a new document share link. Authenticated users only."""
     if not doctype_name or not doc_id:
-        grunt.throw(_("doctype_name and doc_id are required"), "VALIDATION_ERROR")
+        throw(_("doctype_name and doc_id are required"), "VALIDATION_ERROR")
 
-    doc = await grunt.new_doc(
+    doc = await documents.new_doc(
         "DocumentShare",
         {
             "doctype_name": doctype_name,

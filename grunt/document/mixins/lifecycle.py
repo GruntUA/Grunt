@@ -17,9 +17,8 @@ from typing import Any, Concatenate
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
-import grunt
-from grunt import _, log
 from grunt.db.errors import friendly_integrity_error
+from grunt.document import pipeline
 from grunt.document.fetch import apply_fetch_from
 from grunt.document.formula import compute_formulas
 from grunt.document.guards import check_write
@@ -34,25 +33,22 @@ from grunt.document.update_side_effects import (
 from grunt.document.validation import _validate_data, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
+from grunt.i18n import _
+from grunt.local import require_session_user
+from grunt.log import log
 from grunt.monitoring import perf
-from grunt.naming import naming_service
 from grunt.naming.patterns import has_counter, parse_pattern
-from grunt.permissions.access import RoleAccess
+from grunt.naming.service import naming_service
+from grunt.permissions.query import reference_readable
 from grunt.permissions.rbac import permission_checker
-from grunt.permissions.reference import reference_readable
+from grunt.permissions.roles import role_access
 from grunt.permissions.user_permissions import doc_violation
 from grunt.query.query import Query
 from grunt.search.service import search_index_service
 from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
-from grunt.store import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store, store_for
-from grunt.webhook.service import webhook_service
-from grunt.website.generator import fill_route
-from grunt.workflow.engine import _active, workflow_engine
-from grunt.workflow.guard import check_create, check_delete, check_update, is_exempt
-from grunt.workflow.registry import get_active_workflow
-lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.document.base import load_document
+from grunt.store.base import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store
+from grunt.store.lookup import store_for
 lazy from grunt.document.collection import repoint_references, validate_replacement
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.registry import doctype_registry
@@ -81,7 +77,6 @@ def _timed[**P, R](op: str) -> Callable[[_Pipeline[P, R]], _Pipeline[P, R]]:
 class DocumentLifecycleMixin:
     doctype: str
     data: dict[str, Any]
-    user: Any
     session: Any
     engine: Any
     # Set while a pipeline runs: the DocType meta, the values as the caller
@@ -93,7 +88,20 @@ class DocumentLifecycleMixin:
     doc_before_save: dict[str, Any] | None
 
     def _bind(self) -> None: ...
-    def _set_grunt_context(self, user: User) -> tuple: ...  # type: ignore[empty-body]
+    @classmethod
+    async def load(  # type: ignore[empty-body]  # Document.load
+        cls,
+        doctype: str,
+        name: str | None = None,
+        *,
+        expand: list[str] | None = None,
+        session: Any = None,
+        engine: Any = None,
+    ) -> Any: ...
+    @property
+    def user(self) -> str | None: ...  # type: ignore[empty-body]  # Document: the session user
+
+    def _set_grunt_context(self) -> tuple: ...  # type: ignore[empty-body]
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None: ...
 
@@ -110,7 +118,7 @@ class DocumentLifecycleMixin:
     async def _before_store(self, dt: Any) -> None:
         """Last changes to ``self.data`` after the hooks, before it is stored:
         a web page's route, computed fields."""
-        await fill_route(dt, self.data, self.session)
+        await pipeline.before_store(dt, self.data, self.session)
         await compute_formulas(dt.doc, self.data)
 
     async def _repoint_references(
@@ -142,7 +150,7 @@ class DocumentLifecycleMixin:
         fresh = await doctype_registry._lazy_load(doctype_name)
         if fresh is not None:
             return Meta(fresh)
-        dt = await grunt.get_meta(doctype_name)
+        dt = await doctype_registry.get_meta(doctype_name)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype_name})
         return dt
@@ -150,7 +158,7 @@ class DocumentLifecycleMixin:
     async def _run_lifecycle_hooks(self, *hook_names: str) -> None:
         """Call the named controller lifecycle hooks, in order.
 
-        A ``grunt.throw()`` from any hook becomes an HTTP error with the status
+        A ``throw()`` from any hook becomes an HTTP error with the status
         its code maps to - the one place that translates "controller rejected
         the save" into HTTP, shared by insert/update/delete.
         """
@@ -161,7 +169,22 @@ class DocumentLifecycleMixin:
             raise e.to_api_error() from e
 
     @staticmethod
-    async def _require_user_permissions(dt: Any, row: dict[str, Any], user: User) -> None:
+    async def _refuse_hidden_writes(
+        dt: Any, user: str | None, data: dict[str, Any], existing: dict[str, Any] | None = None
+    ) -> None:
+        """403 when *data* sets a field hidden from *user* - read-hidden means
+        write-hidden too, or a hidden value could be overwritten blind - or
+        changes one that is read-only for them on an existing document."""
+        changed = (await role_access(dt, user)).forbidden_changes(data, existing)
+        if changed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=_("Not permitted to change fields: %(fields)s")
+                % {"fields": ", ".join(sorted(dt.get_label(f) for f in changed))},
+            )
+
+    @staticmethod
+    async def _require_user_permissions(dt: Any, row: dict[str, Any], user: str | None) -> None:
         """403 when the values being written fall outside *user*'s User
         Permissions - the role check alone only looks at the stored row, so
         without this a restricted user could create a record in (or move one
@@ -183,16 +206,14 @@ class DocumentLifecycleMixin:
     async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
         """The stored document *doc_id*, read like ``grunt.get_doc`` reads it."""
 
-        doc = await load_document(
-            self.doctype, doc_id, session=self.session, engine=self.engine, user=self.user
-        )
+        doc = await self.load(self.doctype, doc_id, session=self.session, engine=self.engine)
         return doc.data
 
     async def _build_initial_row(
         self, dt: Any, data: dict[str, Any], now: datetime
     ) -> dict[str, Any]:
         """The new document: name, audit fields, coerced values and workflow state."""
-        user = self.user
+        user = require_session_user()
         # An explicit caller-supplied name wins over autoname for fixtures and
         # imports, which rely on stable names regardless of the DocType's
         # naming scheme - but NOT for counter-based series (e.g.
@@ -219,7 +240,7 @@ class DocumentLifecycleMixin:
             if columns is not None
             else {k: v for k, v in data.items() if k[:2] != "__" and k != "doctype"}
         )
-        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user.email, now)}
+        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user, now)}
         for k, v in standard.items():
             if columns is None or k in columns:
                 row[k] = v
@@ -230,23 +251,7 @@ class DocumentLifecycleMixin:
             if f.fieldname in data:
                 row[f.fieldname] = data[f.fieldname]
 
-        workflow = await get_active_workflow(dt.name)
-        if workflow:
-            await check_create(dt.name, data, user)
-            sf = workflow.state_field
-            if sf in data:
-                row[sf] = data[sf]
-            initial = next((s for s in workflow.states if s.is_initial), None)
-            if initial and row.get(sf) in (None, "", initial.state):
-                row[sf] = initial.state
-                # The state's update_field belongs to the workflow like the state
-                # itself: a duplicated published page must not stay published.
-                target = dt.get_field(initial.update_field or "")
-                if target is not None and (
-                    target.fieldname not in data or user is None or not is_exempt(user)
-                ):
-                    row[target.fieldname] = target.coerce(initial.update_value)
-
+        await pipeline.prepare_insert(dt, data, row, user)
         return row
 
     @_timed("insert")
@@ -258,7 +263,7 @@ class DocumentLifecycleMixin:
         backlink sync, activity log) fire identically regardless of the caller.
         """
         self._bind()
-        user = self.user
+        user = require_session_user()
         data = strip_file_signatures(self.data)
         await fire(
             "before_save", doctype=self.doctype, doc=dict(data), user=user, session=self.session
@@ -279,9 +284,11 @@ class DocumentLifecycleMixin:
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
+        await self._refuse_hidden_writes(dt, user, data)
+
         # A comment / tag / attachment may only be added to a readable document.
         if (
-            not RoleAccess(dt, user).is_unrestricted
+            not (await role_access(dt, user)).is_unrestricted
             and await reference_readable(user, dt, data) is False
         ):
             raise HTTPException(
@@ -296,7 +303,7 @@ class DocumentLifecycleMixin:
             if f.fieldname in data:
                 self.data[f.fieldname] = data[f.fieldname]
 
-        tokens = self._set_grunt_context(user)
+        tokens = self._set_grunt_context()
         try:
             await apply_fetch_from(dt.doc, self.data)
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
@@ -306,7 +313,7 @@ class DocumentLifecycleMixin:
             log.info("document.created", doctype=self.doctype, id=self.data.get("name"))
             await self._run_lifecycle_hooks("after_insert", "after_save")
             await search_index_service.index_document(self.session, self.doctype, dt.doc, self.data)
-            await webhook_service.fire(self.session, "after_insert", self.doctype, self.data)
+            await pipeline.after_write("after_insert", self.session, self.doctype, self.data)
         except IntegrityError as exc:
             raise friendly_integrity_error(exc, dt.doc, self.session) from exc
         finally:
@@ -326,7 +333,7 @@ class DocumentLifecycleMixin:
         Single entry point for updating a document - see :meth:`_insert`.
         """
         self._bind()
-        user = self.user
+        user = require_session_user()
         data = strip_file_signatures(data)
         # Optimistic-concurrency guard: the `modified_at` the client's edit was
         # based on (sent by offline replays). A newer server copy -> 409.
@@ -359,7 +366,7 @@ class DocumentLifecycleMixin:
         # `match`-restricted write permission (e.g. "owner == user") is never
         # evaluated there. `existing` is already fetched for the diff logic
         # below, so this row-level check is free - no extra DB round trip.
-        await permission_checker.require(user, dt, "write", existing)
+        await permission_checker.require(dt, "write", existing, user=user)
 
         if (
             base_modified_at
@@ -377,15 +384,16 @@ class DocumentLifecycleMixin:
         # Workflow: the state moves only by transitions; an edit may itself be
         # an `on_edit` transition (then *data* carries the new state).
         data = dict(data)
-        auto_transition = await check_update(self.doctype, existing, data, user)
+        scopes = await pipeline.begin_update(self.doctype, existing, data, user)
         await check_write("update", self.doctype, existing, data, user)
+        await self._refuse_hidden_writes(dt, user, data, existing)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
-        update_data = update_values(dt, data, store.columns, user.email)
+        update_data = update_values(dt, data, store.columns, user)
         real_id = existing["name"]
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
@@ -399,45 +407,55 @@ class DocumentLifecycleMixin:
         self.doc_before_save = existing
         self.data = merged
 
-        tokens = self._set_grunt_context(user)
-        transition_token = _active.set(auto_transition) if auto_transition else None
+        tokens = self._set_grunt_context()
         try:
-            await apply_fetch_from(dt.doc, self.data, existing)
-            await self._run_lifecycle_hooks("validate", "before_save")
-            await self._require_user_permissions(dt, self.data, user)
-            await self._before_store(dt)
-            result = await store.update(real_id, self.data, before=existing, input=data, user=user)
-            log.info("document.updated", doctype=self.doctype, id=real_id)
-
-            if store.can(HISTORY):
-                await record_update_changes(
-                    session=self.session,
-                    engine=self.engine,
-                    doctype_name=self.doctype,
-                    real_id=real_id,
-                    dt=dt,
-                    existing=existing,
-                    result=result,
-                    user=user,
-                )
-            await release_dropped_files(self.doctype, existing, result)
-
-            self.data = result
-            await self._run_lifecycle_hooks("after_save")
-
-            await fire_update_services(
-                session=self.session, doctype_name=self.doctype, dt=dt.doc, result=result
-            )
-            await self._fire_write_hooks("after_update", result)
+            with scopes.active():
+                result = await self._store_update(dt, store, existing, data, real_id, user)
         except IntegrityError as exc:
             raise friendly_integrity_error(exc, dt.doc, self.session) from exc
         finally:
-            if transition_token is not None:
-                _active.reset(transition_token)
             self._reset_grunt_context(tokens)
 
-        if auto_transition:
-            await workflow_engine.finish_transition(auto_transition, result, user, self.session)
+        await scopes.finish(result, user, self.session)
+        return result
+
+    async def _store_update(
+        self,
+        dt: Any,
+        store: Store,
+        existing: dict[str, Any],
+        data: dict[str, Any],
+        real_id: str,
+        user: str,
+    ) -> dict[str, Any]:
+        """The update from the hooks on: store it, record it, tell the services."""
+        await apply_fetch_from(dt.doc, self.data, existing)
+        await self._run_lifecycle_hooks("validate", "before_save")
+        await self._require_user_permissions(dt, self.data, user)
+        await self._before_store(dt)
+        result = await store.update(real_id, self.data, before=existing, input=data, user=user)
+        log.info("document.updated", doctype=self.doctype, id=real_id)
+
+        if store.can(HISTORY):
+            await record_update_changes(
+                session=self.session,
+                engine=self.engine,
+                doctype_name=self.doctype,
+                real_id=real_id,
+                dt=dt,
+                existing=existing,
+                result=result,
+                user=user,
+            )
+        await release_dropped_files(self.doctype, existing, result)
+
+        self.data = result
+        await self._run_lifecycle_hooks("after_save")
+
+        await fire_update_services(
+            session=self.session, doctype_name=self.doctype, dt=dt.doc, result=result
+        )
+        await self._fire_write_hooks("after_update", result)
         return result
 
     @_timed("delete")
@@ -450,7 +468,7 @@ class DocumentLifecycleMixin:
         reference to the deleted document is repointed to before it is removed.
         """
         self._bind()
-        user = self.user
+        user = require_session_user()
         doc_id = self.data.get("name")
         if doc_id is None:
             raise ValueError(f"Cannot delete {self.doctype}: document has no name")
@@ -464,9 +482,9 @@ class DocumentLifecycleMixin:
         # Same reasoning as update(): write_guard()'s pre-check can't see
         # `match`-restricted delete permissions (doc=None there); this reuses
         # the `existing` fetch already needed below, so it's free.
-        await permission_checker.require(user, dt, "delete", existing)
+        await permission_checker.require(dt, "delete", existing, user=user)
 
-        await check_delete(self.doctype, existing, user)
+        await pipeline.check_delete(self.doctype, existing, user)
         await check_write("delete", self.doctype, existing, {}, user)
 
         real_id = existing["name"]
@@ -480,7 +498,7 @@ class DocumentLifecycleMixin:
 
         self.doc_before_save = existing
         self.data = existing
-        tokens = self._set_grunt_context(user)
+        tokens = self._set_grunt_context()
         try:
             await self._run_lifecycle_hooks("before_delete")
             await store.delete(real_id, before=existing)

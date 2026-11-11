@@ -6,8 +6,9 @@ from pathlib import Path
 import click
 
 from grunt.cli.utils import _site_session
-lazy import grunt
+from grunt.local import system_context
 lazy from grunt.apps.loader import _ensure_on_syspath, _hooks_import_path
+lazy from grunt.document.api import documents
 lazy from grunt.fixtures import export_fixtures, parse_fixture_specs
 lazy from grunt.site.manager import site_manager
 
@@ -46,7 +47,7 @@ def fixtures_export(app: str, site: str | None):
             click.echo(f"The hooks.py of app '{app}' declares no `fixtures`; nothing to export.")
             return
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             for fixtures_dir, specs in targets:
                 for path, count in await export_fixtures(specs, fixtures_dir):
                     click.echo(f"  {path.relative_to(app_dir)}: {count} records")
@@ -78,9 +79,9 @@ def fixtures_dump(
     out = Path(output or f"{doctype.lower()}_fixtures.json")
 
     async def _run():
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             records = list(
-                await grunt.get_list(
+                await documents.get_list(
                     doctype, filters=parsed_filters, limit=limit, include_total=False
                 )
             )
@@ -94,7 +95,7 @@ def fixtures_dump(
 
 
 # Server-managed fields: never written back from a dump
-_SKIP_FIELDS = {"id", "docstatus", "creation", "modified", "modified_by"}
+_SKIP_FIELDS = {"id", "docstatus", "owner", "created_at", "modified_at", "modified_by"}
 
 
 @fixtures_group.command("load")
@@ -129,22 +130,22 @@ def fixtures_load(file: Path, mode: str, skip_errors: bool, site: str | None):
         rec_id = rec.get("id") or rec.get("name")
         clean = {k: v for k, v in rec.items() if k not in _SKIP_FIELDS}
         if mode == "create":
-            await grunt.new_doc(doctype, clean)
+            await documents.new_doc(doctype, clean)
         elif mode == "update":
             if not rec_id:
                 raise ValueError("id/name required for update mode")
-            await grunt.set_value(doctype, rec_id, clean)
+            await documents.set_value(doctype, rec_id, clean)
         elif rec_id:  # upsert
             try:
-                await grunt.set_value(doctype, rec_id, clean)
+                await documents.set_value(doctype, rec_id, clean)
             except Exception:
-                await grunt.new_doc(doctype, clean)
+                await documents.new_doc(doctype, clean)
         else:
-            await grunt.new_doc(doctype, clean)
+            await documents.new_doc(doctype, clean)
 
     async def _run() -> int:
         loaded = errors = 0
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             for i, rec in enumerate(records, 1):
                 try:
                     await _save(rec)

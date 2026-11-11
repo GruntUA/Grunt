@@ -3,12 +3,14 @@
 from datetime import datetime
 from typing import Any
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
 from grunt.auth.api_key_service import generate_api_key
+from grunt.auth.current import acting_user
 from grunt.document.base import Document
-from grunt.errors import forbidden
+from grunt.errors import forbidden, throw
+from grunt.i18n import _
 lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.document.api import documents
 
 
 class ApiKey(Document):
@@ -24,7 +26,7 @@ class ApiKey(Document):
     allowed_ips: str | None
 
 
-@grunt.whitelist()
+@whitelist()
 async def create_api_key(
     label: str,
     expires_at: datetime | None = None,
@@ -35,15 +37,15 @@ async def create_api_key(
 
     The full key is returned once; subsequent reads return only key_prefix.
     """
-    user = user or grunt.get_user()
+    user = user or acting_user()
     clean_label = label.strip()
     if not clean_label:
-        grunt.throw(_("Label is required"), "VALIDATION")
+        throw(_("Label is required"), "VALIDATION")
 
     assert user.id is not None
     full_key, key_prefix, key_hash = generate_api_key()
 
-    doc = await grunt.new_doc(
+    doc = await documents.new_doc(
         "ApiKey",
         {
             "label": clean_label,
@@ -66,16 +68,16 @@ async def create_api_key(
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     """List API keys (secrets are never returned)."""
-    user = user or grunt.get_user()
+    user = user or acting_user()
 
     filters: dict[str, Any] = {}
     if "System Manager" not in (user.roles or []):
         filters["user_id"] = user.id
 
-    return await grunt.get_list(
+    return await documents.get_list(
         "ApiKey",
         filters=filters,
         fields=[
@@ -93,7 +95,7 @@ async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     )
 
 
-@grunt.whitelist()
+@whitelist()
 async def update_api_key(
     key_id: str,
     label: str | None = None,
@@ -103,15 +105,15 @@ async def update_api_key(
     user: User | None = None,
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
-    user = user or grunt.get_user()
-    key_doc = await grunt.get_doc(ApiKey, key_id)
+    user = user or acting_user()
+    key_doc = await documents.get_doc(ApiKey, key_id)
     _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
     if label is not None:
         clean_label = label.strip()
         if not clean_label:
-            grunt.throw(_("label cannot be empty"), "VALIDATION")
+            throw(_("label cannot be empty"), "VALIDATION")
         updates["label"] = clean_label
     if is_active is not None:
         updates["is_active"] = is_active
@@ -121,9 +123,9 @@ async def update_api_key(
         updates["allowed_ips"] = allowed_ips
 
     if not updates:
-        grunt.throw(_("No fields to update"), "VALIDATION")
+        throw(_("No fields to update"), "VALIDATION")
 
-    doc = await grunt.save_doc("ApiKey", key_id, updates)
+    doc = await documents.save_doc("ApiKey", key_id, updates)
     return {
         "name": doc["name"],
         "label": doc["label"],
@@ -134,13 +136,13 @@ async def update_api_key(
     }
 
 
-@grunt.whitelist()
+@whitelist()
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
-    user = user or grunt.get_user()
-    key_doc = await grunt.get_doc(ApiKey, key_id)
+    user = user or acting_user()
+    key_doc = await documents.get_doc(ApiKey, key_id)
     _require_key_owner(key_doc, user)
-    await grunt.delete_doc("ApiKey", key_id)
+    await documents.delete_doc("ApiKey", key_id)
     return True
 
 

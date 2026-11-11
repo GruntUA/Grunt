@@ -4,9 +4,9 @@ A DocType describes a data structure (fields, views, workflow, permissions)
 and is the single source of truth for DB tables, REST API and UI forms.
 """
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from grunt.metadata.field import DocField
 from grunt.metadata.permission import DocPermission
@@ -272,6 +272,8 @@ class DocType(BaseModel):
     retention_date_field: str | None = None
     # to name the self-referential Link
     track_changes: bool = True  # audit log
+    # Versions kept per document (oldest dropped past it); 0 - all of them.
+    max_versions: Annotated[int, Field(ge=0)] = 50
     track_seen: bool = False  # record which users have opened each document (_seen column)
     track_views: bool = False  # log every document open to ViewLog (throttled 1/user/doc/hour)
     track_deletions: bool = True  # False -> skip the restorable DeletedDocument snapshot on delete
@@ -293,7 +295,7 @@ class DocType(BaseModel):
     # Sources of read access: [<doctype field>, <id field>] pairs and/or Link
     # fieldnames - a row pointing at a document is readable exactly when that
     # document is (comments, tags, attachments, files in a folder).
-    # See grunt.permissions.reference.
+    # See grunt.permissions.query.
     inherit_permission_from: list[str | list[str]] | None = None
     quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
     # Hovering a link to a document of this DocType pops up a card with its
@@ -491,7 +493,7 @@ class DocType(BaseModel):
 
     @model_validator(mode="after")
     def _drop_child_permissions(self) -> DocType:
-        """Child rows take their access from the parent document (grunt.permissions.child)."""
+        """Child rows take their access from the parent document (grunt.permissions.query)."""
         if self.is_child:
             self.permissions = []
         return self

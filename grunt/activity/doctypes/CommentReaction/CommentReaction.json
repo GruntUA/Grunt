@@ -32,7 +32,7 @@
     }
   ],
   "permissions": [
-    {"role": "All", "read": true, "create": true, "delete": true, "match": "user == user"},
-    {"role": "System Manager", "read": true, "create": true, "write": true, "delete": true}
+    {"role": "All", "actions": ["read", "create", "delete"], "match": "user == user"},
+    {"role": "System Manager", "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]}
   ]
 }

@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Toggle } from '@/components/ui/toggle'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { accessToken } from '@/core/accessToken'
+import { PERMS_KEY } from '@/core/permissions'
 
 const { t } = useI18n()
 
@@ -112,6 +113,11 @@ async function remindMe() {
   }
 }
 
+// The server's answer for this document (`__perms`); hidden only when it says no.
+const canPrint = computed(
+  () => (props.document[PERMS_KEY] as Record<string, boolean> | undefined)?.print !== false,
+)
+
 function printDoc() {
   const params = new URLSearchParams({
     doctype: props.doctype.name,
@@ -121,7 +127,7 @@ function printDoc() {
   })
   const token = accessToken.value
   if (token) params.set('token', token)
-  window.open(`/api/v1/method/grunt.document.base.Document.print?${params.toString()}`, '_blank', 'noopener')
+  window.open(`/api/v1/method/grunt.api.v1.document.export.print?${params.toString()}`, '_blank', 'noopener')
 }
 </script>
 
@@ -258,7 +264,7 @@ function printDoc() {
         </TooltipTrigger>
         <TooltipContent>{{ t('Remind me') }}</TooltipContent>
       </Tooltip>
-      <Tooltip>
+      <Tooltip v-if="canPrint">
         <TooltipTrigger as-child>
           <Button variant="outline" size="icon-sm" :aria-label="t('Print')" @click="printDoc">
             <Printer />

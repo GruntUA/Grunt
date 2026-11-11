@@ -1,21 +1,31 @@
 """Grunt database API helpers."""
 
+from collections.abc import Collection
 from typing import Any, Literal, cast, overload
 
 from sqlalchemy import CursorResult, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _
 from grunt.errors import not_found, unprocessable
+from grunt.i18n import _
 from grunt.local import _session_ctx
+from grunt.metadata.registry import doctype_registry
 from grunt.query import run
 from grunt.query.nodes import TRUE, Expr, and_, conjuncts, or_
 from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
-from grunt.store import SQL, store_for, supports
+from grunt.store.base import SQL
+from grunt.store.lookup import store_for, supports
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.multi_link import MultiLinkService
+
+
+def sort_spec(order_by: str, order: str, known: Collection[str] | None = None) -> Sort:
+    """:meth:`Sort.parse` with a bad spec as a 422 (it comes from the caller)."""
+    try:
+        return Sort.parse(order_by, order, known=known)
+    except ValueError as e:
+        raise unprocessable(str(e)) from None
 
 
 def list_query(
@@ -31,13 +41,16 @@ def list_query(
 ) -> Query:
     """A :class:`Query` from ``grunt.db``-style arguments: *filters* ANDed,
     *or_filters* ORed (unknown columns skipped in both), sorted by *order_by*
-    (``modified_at`` by default)."""
+    (``modified_at`` by default; ``"field asc"`` sets the direction too).
+
+    An unknown sort field or a malformed *order_by* is a 422, not a silent
+    fallback to another order."""
     any_of = conjuncts(filter_expr(or_filters, dt.columns, dt)) if or_filters else ()
     return Query(
         dt.name,
         where=and_(filter_expr(filters, dt.columns, dt), or_(*any_of) if any_of else TRUE),
         fields=tuple(fields) if fields else None,
-        sort=Sort(order_by or "modified_at", descending=order != "asc"),
+        sort=sort_spec(order_by or "modified_at", order, dt.columns),
         limit=limit,
         offset=offset,
     )
@@ -60,7 +73,7 @@ def aggregate_query(
         where=filter_expr(filters, dt.columns, dt),
         group_by=tuple(groups),
         aggregates=tuple((aggregations or {}).items()),
-        sort=Sort(order_by, descending=str(order).lower() == "desc") if order_by else None,
+        sort=sort_spec(order_by, order) if order_by else None,
         limit=limit,
     )
 
@@ -86,7 +99,7 @@ class GruntDB:
 
     @staticmethod
     async def _meta(doctype: str) -> Any:
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         return dt
@@ -303,7 +316,8 @@ class GruntDB:
         """Fetch a list of documents as plain dicts.
 
         No permission checks - ``grunt.get_all`` is the permission-aware
-        variant (both are :func:`grunt.query.run.fetch`). A MultiLink
+        variant (:func:`grunt.permissions.reads.fetch`; this one is
+        :func:`grunt.query.run.fetch`). A MultiLink
         field in ``fields`` comes back as a list of linked names (one extra
         query for the whole page).
         """

@@ -28,8 +28,8 @@ from uuid import uuid4
 
 from grunt.db.commit import drain as drain_commits
 from grunt.db.commit import on_commit
+from grunt.local import bound_session
 from grunt.log import log
-lazy import grunt
 lazy from grunt.config import settings
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.utils.redis import connect, shared
@@ -143,15 +143,16 @@ async def handle(raw: str | bytes) -> None:
 
 
 async def _await_in_site(site: str, awaitable: Any) -> None:
-    """Async handlers may read the DB: give them a system session of *site*."""
+    """Async handlers may read the DB (``grunt.db``): give them a session of *site*.
+
+    No user is bound - an invalidation acts on no one's behalf.
+    """
     if site not in site_manager.get_sites():
         await awaitable
         return
-    async with (
-        site_manager.get_session_maker(site)() as session,
-        grunt.system_context(session, site_manager.get_engine(site)),
-    ):
-        await awaitable
+    async with site_manager.get_session_maker(site)() as session:
+        with bound_session(session, site_manager.get_engine(site)):
+            await awaitable
 
 
 async def _listen() -> None:

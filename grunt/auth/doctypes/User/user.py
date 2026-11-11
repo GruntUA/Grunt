@@ -1,9 +1,8 @@
 """User DocType controller - validation, self-edit guard, built-in identities.
 
-Account services (password hashing, lookups, lockout) live in
-``grunt.auth.users`` and the HTTP endpoints in ``grunt.auth.user_api``. Both
-are re-exported at the bottom of this module: method paths stay
-``grunt.auth.doctypes.User.user.<name>`` and existing imports keep working.
+Account services (lookups, lockout) live in ``grunt.auth.users``, password
+hashing in ``grunt.auth.passwords``, the HTTP endpoints in
+``grunt.auth.user_api`` (method paths ``grunt.auth.user_api.<name>``).
 JWT access tokens live in ``grunt.auth.service``; per-device sessions and their
 refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
@@ -12,14 +11,18 @@ import re as _re
 from datetime import date, datetime
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
 from grunt.auth.password_policy import enforce_password_policy
-from grunt.auth.users import hash_password, verify_password
+from grunt.auth.passwords import hash_password, verify_password
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.document.schema import Schema
+from grunt.errors import throw
 from grunt.i18n import N_, _
-from grunt.permissions.roles import user_has_roles
+from grunt.local import _user_ctx, use_system_user
+from grunt.log import log
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # When a non-privileged user saves their *own* record via the generic form (the
 # "All" permission row lets them), these fields must not change. Roles live in
@@ -106,7 +109,7 @@ class User(Document):
 
     def has_role(self, *roles: str) -> bool:
         """True if the user holds any of *roles*."""
-        return user_has_roles(self, list(roles))
+        return any(r in roles for r in self.role_names)
 
     async def validate(self) -> None:
         if not self.email:
@@ -127,23 +130,20 @@ class User(Document):
         internal/system code (registration, fixtures, ``_assign_default_role``)
         are unrestricted.
         """
-        try:
-            current = grunt.get_user()
-        except Exception:
-            return
+        current = _user_ctx.get()
         if current is None or not getattr(current, "id", None):
             return
-        if user_has_roles(current, ["System Manager"]):
+        if current.has_role("System Manager"):
             return
         if await _is_internal_context():
             return
         if not self.name:
-            grunt.throw(_("Not permitted to create users"), "FORBIDDEN")
+            throw(_("Not permitted to create users"), "FORBIDDEN")
 
         # Roles are only in the merged payload when the client actually submitted
         # the child table (see the update pipeline) - so key presence == an attempt.
         if "roles" in self.data:
-            stored = await grunt.db.get_all(
+            stored = await _db.get_all(
                 "UserRole",
                 filters={"parent_name": self.name, "parent_doctype": "User"},
                 fields=["role_name"],
@@ -153,13 +153,13 @@ class User(Document):
                 r.get("role_name") for r in (self.data.get("roles") or []) if isinstance(r, dict)
             }
             if submitted != {r["role_name"] for r in stored}:
-                grunt.throw(_("Not permitted to change roles"), "FORBIDDEN")
+                throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back - quietly restore
         # the stored value rather than failing the save.
         for field in _SILENT_RESET_USER_FIELDS:
             if field in self.data:
-                self.data[field] = await grunt.db.get_value("User", self.name, field)
+                self.data[field] = await _db.get_value("User", self.name, field)
 
         # User-meaningful privileged fields - changing one is an escalation
         # attempt: reject and say exactly which field.
@@ -168,14 +168,14 @@ class User(Document):
                 continue
             if field == "password":
                 if self.data.get("password"):
-                    grunt.throw(
+                    throw(
                         _("Not permitted to set the password; use the Change password action"),
                         "FORBIDDEN",
                     )
                 continue
-            stored = await grunt.db.get_value("User", self.name, field)
+            stored = await _db.get_value("User", self.name, field)
             if _norm_scalar(self.data.get(field)) != _norm_scalar(stored):
-                grunt.throw(
+                throw(
                     _("Not permitted to change the field “%(field)s”") % {"field": _(label)},
                     "FORBIDDEN",
                 )
@@ -202,7 +202,7 @@ class User(Document):
             return
         file_id = m.group(1)
         try:
-            row = await grunt.db.get_values("File", file_id, ["owner", "is_public"])
+            row = await _db.get_values("File", file_id, ["owner", "is_public"])
             if not row:
                 return
             # SECURITY: publish ONLY a file the saving user owns. Without this an
@@ -212,7 +212,7 @@ class User(Document):
             if row.get("owner") != self.name:
                 return
             if not row.get("is_public"):
-                await grunt.db.set_value("File", file_id, "is_public", True)
+                await _db.set_value("File", file_id, "is_public", True)
         except Exception:
             # A missing/renamed file must not block saving the profile.
             log.debug("user.avatar_publish_skipped", file_id=file_id)
@@ -246,7 +246,7 @@ class UserPublic(Schema):
 SYSTEM_USER = User(
     doctype="User",
     data={
-        "email": "system@grunt.local",
+        "email": SYSTEM_USER_EMAIL,
         "full_name": "System",
         "roles": ["System Manager"],
         "is_active": True,
@@ -254,11 +254,12 @@ SYSTEM_USER = User(
         "language": "uk",
     },
 )
+use_system_user(SYSTEM_USER)
 
 
 # Anonymous visitors of the public site (form submissions, uploads) act as
 # this identity - the Guest role's permissions only.
-GUEST_USER = "guest@grunt.local"
+GUEST_USER = GUEST_USER_EMAIL
 
 
 def guest_user() -> User:
@@ -280,54 +281,5 @@ async def _is_internal_context() -> bool:
     """True when the active context is the internal SYSTEM_USER (bootstrap,
     fixtures, registration flows) or has no user at all - those paths must not
     be blocked by the interactive password policy."""
-    try:
-        current = grunt.get_user()
-    except Exception:
-        return True
+    current = _user_ctx.get()
     return not current or current.email == SYSTEM_USER.email
-
-
-# Re-exports: method paths (grunt.auth.doctypes.User.user.<name>) and existing
-# imports from this module keep resolving after the split.
-from grunt.auth.user_api import (  # noqa: E402, F401
-    approve_user_api,
-    confirm_mfa,
-    disable_mfa,
-    forgot_password_api,
-    list_colleagues_api,
-    list_pending_users_api,
-    list_users_detailed_api,
-    login_api,
-    logout_api,
-    mfa_enroll_begin,
-    mfa_enroll_complete,
-    mfa_login_api,
-    refresh_api,
-    register,
-    register_full_name_api,
-    reject_user_api,
-    reset_password_api,
-    set_user_password_api,
-    setup_mfa,
-    start_impersonation_api,
-    stop_impersonation_api,
-    update_me_api,
-    verify_mfa,
-    whoami,
-)
-from grunt.auth.users import (  # noqa: E402, F401
-    AUTH_CONTEXT_FIELDS,
-    _apply_signup_approval,
-    _auth_user_dump,
-    _guard_registration,
-    authenticate,
-    clear_failed_attempts,
-    create_user,
-    get_auth_context_user,
-    get_user_by_email,
-    get_user_by_id,
-    get_users_by_emails,
-    is_account_locked,
-    list_users,
-    register_failed_attempt,
-)

@@ -30,9 +30,12 @@ Attachments the document never referenced from a field are left alone.
 import re
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # RichText holds any number of file URLs in its HTML ("file" fields hold one).
 _FILE_HTML_TYPES = frozenset({"RichText"})
@@ -46,7 +49,7 @@ def file_ids_in(value: Any) -> set[str]:
 
 async def referenced_file_ids(doctype: str, doc: dict[str, Any]) -> set[str]:
     """File ids the document's Attach / Image / RichText fields point at."""
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         return set()
     ids: set[str] = set()
@@ -66,10 +69,10 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     doctype, doc, user = kwargs.get("doctype"), kwargs.get("doc"), kwargs.get("user")
     if not doctype or doctype == "File" or not isinstance(doc, dict) or not doc.get("name"):
         return
-    email = getattr(user, "email", None)
+    email = user  # lifecycle events carry the email
     if not email:
         return
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None or meta.is_child or not meta.has_table:
         return
     ids = await referenced_file_ids(doctype, doc)
@@ -78,7 +81,7 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     published = not meta.is_published_field or doc.get(meta.is_published_field)
     if meta.public_attachments and published:
         await _publish(ids, user)
-    claimed = await grunt.db.bulk_update(
+    claimed = await _db.bulk_update(
         "File",
         {
             "name__in": sorted(ids),
@@ -89,7 +92,7 @@ async def claim_referenced_files(**kwargs: Any) -> None:
         {"attached_to_id": str(doc["name"])},
     )
     # The user's own library files that no document holds yet.
-    claimed += await grunt.db.bulk_update(
+    claimed += await _db.bulk_update(
         "File",
         {
             "name__in": sorted(ids),
@@ -115,7 +118,7 @@ async def release_dropped_files(
     dropped = await referenced_file_ids(doctype, before) - await referenced_file_ids(doctype, after)
     if not dropped:
         return
-    released = await grunt.db.bulk_update(
+    released = await _db.bulk_update(
         "File",
         {
             "name__in": sorted(dropped),
@@ -128,20 +131,18 @@ async def release_dropped_files(
         log.debug("storage.files_released", doctype=doctype, doc_id=before["name"], count=released)
 
 
-async def _publish(ids: set[str], user: Any) -> None:
+async def _publish(ids: set[str], user: str | None) -> None:
     """Make the private files among *ids* that *user* may read public."""
 
-    meta = await grunt.get_meta("File")
+    meta = await doctype_registry.get_meta("File")
     if meta is None:
         return
-    rows = await grunt.db.get_all(
-        "File", filters={"name__in": sorted(ids)}, fields=["*"], limit=None
-    )
+    rows = await _db.get_all("File", filters={"name__in": sorted(ids)}, fields=["*"], limit=None)
     readable = [
         r["name"]
         for r in rows
-        if not r.get("is_public") and await permission_checker.check(user, meta, "read", r)
+        if not r.get("is_public") and await permission_checker.check(meta, "read", r, user=user)
     ]
     if readable:
-        await grunt.db.bulk_update("File", {"name__in": readable}, {"is_public": True})
+        await _db.bulk_update("File", {"name__in": readable}, {"is_public": True})
         log.debug("storage.files_published", count=len(readable))

@@ -29,8 +29,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
@@ -64,9 +63,9 @@ async def test_owner_can_access_own_row(doctype_name):
     dt = _load(doctype_name)
     owner = _user("owner@example.com")
     own_row = {"user": "owner@example.com"}
-    assert await permission_checker.check(owner, dt, "read", own_row) is True
-    assert await permission_checker.check(owner, dt, "write", own_row) is True
-    assert await permission_checker.check(owner, dt, "delete", own_row) is True
+    assert await check_as(owner, dt, "read", own_row) is True
+    assert await check_as(owner, dt, "write", own_row) is True
+    assert await check_as(owner, dt, "delete", own_row) is True
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
@@ -75,9 +74,9 @@ async def test_other_user_cannot_access_row(doctype_name):
     dt = _load(doctype_name)
     attacker = _user("attacker@example.com")
     someone_elses_row = {"user": "victim@example.com"}
-    assert await permission_checker.check(attacker, dt, "read", someone_elses_row) is False
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_row) is False
-    assert await permission_checker.check(attacker, dt, "delete", someone_elses_row) is False
+    assert await check_as(attacker, dt, "read", someone_elses_row) is False
+    assert await check_as(attacker, dt, "write", someone_elses_row) is False
+    assert await check_as(attacker, dt, "delete", someone_elses_row) is False
 
 
 def _load_user_session() -> DocType:
@@ -96,8 +95,8 @@ async def test_user_session_owner_can_read_but_not_edit_own_session():
     dt = _load_user_session()
     owner = _user("owner@example.com")
     own_row = {"user": "owner@example.com"}
-    assert await permission_checker.check(owner, dt, "read", own_row) is True
-    assert await permission_checker.check(owner, dt, "write", own_row) is False
+    assert await check_as(owner, dt, "read", own_row) is True
+    assert await check_as(owner, dt, "write", own_row) is False
 
 
 @pytest.mark.asyncio
@@ -105,5 +104,5 @@ async def test_user_session_other_user_cannot_read_or_touch_it():
     dt = _load_user_session()
     attacker = _user("attacker@example.com")
     someone_elses_row = {"user": "victim@example.com"}
-    assert await permission_checker.check(attacker, dt, "read", someone_elses_row) is False
-    assert await permission_checker.check(attacker, dt, "write", someone_elses_row) is False
+    assert await check_as(attacker, dt, "read", someone_elses_row) is False
+    assert await check_as(attacker, dt, "write", someone_elses_row) is False

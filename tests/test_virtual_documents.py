@@ -10,7 +10,8 @@ from fastapi import HTTPException
 from grunt.document.base import Document
 from grunt.events import subscribe, unsubscribe
 from grunt.query.query import Query
-from grunt.store import DELETE, INSERT, UPDATE, VirtualStore
+from grunt.store.base import DELETE, INSERT, UPDATE
+from grunt.store.virtual import VirtualStore
 
 DOCTYPE = "VirtualNote"
 
@@ -111,7 +112,7 @@ async def test_count_comes_from_the_store(ctx, notes):
     from grunt.auth.doctypes.User.user import SYSTEM_USER
     from grunt.document.collection import count_documents
 
-    assert await count_documents(ctx.get_session(), DOCTYPE, SYSTEM_USER) == 3
+    assert await count_documents(ctx.get_session(), DOCTYPE, SYSTEM_USER.email) == 3
     assert await ctx.count(DOCTYPE, respect_permissions=True) == 3
 
 
@@ -230,7 +231,7 @@ async def test_row_level_match_filters_list_count_and_get(ctx, db_session, engin
             "module": "core",
             "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
-            "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
+            "permissions": [{"role": "Employee", "actions": ["read"], "match": "owner == user"}],
             "__is_new": True,
         }
     )
@@ -274,7 +275,7 @@ async def test_shared_virtual_document_is_listed(ctx, db_session, engine):
             "module": "core",
             "storage": "virtual",
             "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
-            "permissions": [{"role": "Employee", "read": True, "match": "owner == user"}],
+            "permissions": [{"role": "Employee", "actions": ["read"], "match": "owner == user"}],
             "__is_new": True,
         }
     )

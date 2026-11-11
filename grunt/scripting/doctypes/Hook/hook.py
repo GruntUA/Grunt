@@ -9,12 +9,12 @@ Read-only: list + load. Insert/update/delete are not supported.
 
 from typing import Any
 
-import grunt
-from grunt import hooks
+import grunt.hooks as hooks
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
-from grunt.store import VirtualStore
+from grunt.store.virtual import VirtualStore
+lazy from grunt.document.api import documents
 
 
 def _handler_name(handler: Any) -> str:
@@ -62,14 +62,14 @@ async def _collect_server_scripts() -> list[dict[str, Any]]:
     """Gather enabled Server Scripts registered as event/API hooks."""
     rows: list[dict[str, Any]] = []
     try:
-        scripts = await grunt.get_list(
+        scripts = await documents.get_list(
             "ServerScript",
             filters={"disabled": False},
             fields=["event", "script_type", "api_method", "name", "reference_doctype"],
             limit=1000,
         )
     except Exception:
-        from grunt import log
+        from grunt.log import log
 
         log.exception("hook.server_scripts_failed")
         return rows

@@ -2,6 +2,8 @@
 
 import pytest
 
+from grunt.api.v1.document import meta as meta_api
+
 ASSIGNEE = "assignee@example.com"
 
 
@@ -322,7 +324,6 @@ async def test_due_reminder_sends_one_digest_per_assignee(ctx, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_sidebar_shows_in_progress_and_overdue_assignees(ctx):
-    from grunt.document.base import Document
 
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         role = await ctx.new_doc("Role", {"role_name": "Sidebar Test Role"})
@@ -352,7 +353,7 @@ async def test_sidebar_shows_in_progress_and_overdue_assignees(ctx):
         # connection may roll back whatever is still pending under a busy run.
         await ctx.db._session().commit()
 
-        bundle = await Document.get_sidebar("Role", role["name"])
+        bundle = await meta_api.get_sidebar("Role", role["name"])
 
     assert len(bundle["assignees"]) == 1  # In Progress in, Closed out
     row = bundle["assignees"][0]

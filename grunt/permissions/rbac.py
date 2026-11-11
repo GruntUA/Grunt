@@ -1,17 +1,13 @@
 """Role-based access control."""
 
+from grunt.document.meta import Meta
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
-from grunt.permissions import shares
-from grunt.permissions.access import RoleAccess
-from grunt.permissions.child import child_allowed, is_child
-from grunt.permissions.match import PermissionMatch
+from grunt.local import session_user
+from grunt.metadata.doctype import DocType
+from grunt.permissions import query
+from grunt.permissions.roles import role_access
 from grunt.permissions.types import PermissionAction
-lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.document.meta import Meta
-lazy from grunt.metadata.doctype import DocType
-lazy from grunt.permissions.reference import reference_readable, reference_sources
-lazy from grunt.permissions.user_permissions import doc_passes
 
 # Human-readable action names for the "insufficient permissions" message, so a
 # toast says *which* DocType and *which* operation was denied instead of a bare
@@ -23,140 +19,37 @@ _ACTION_VERBS: dict[str, str] = {
     "create": NP_("permission", "create"),
     "delete": NP_("permission", "delete"),
     "report": NP_("permission", "reports"),
+    "export": NP_("permission", "export"),
+    "import": NP_("permission", "import"),
+    "print": NP_("permission", "print"),
+    "share": NP_("permission", "share"),
 }
-
-
-# _PERM_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list), action)
-# _HIDDEN_CACHE key: (user_email, frozenset(roles), doctype_name, id(permissions_list))
-# id(permissions_list) distinguishes different DocType objects sharing the same name.
-# Only populated for the doc=None path (list/count operations).
-# Invalidated per-doctype via invalidate_permission_cache().
-#
-# Unbounded, no TTL: entries accumulate for the process lifetime - bounded in
-# practice by (distinct users x distinct role-sets x DocTypes x actions),
-# which for a typical deployment (roles come from a small fixed Role table,
-# not per-request) stays small relative to available memory. If that stops
-# holding (e.g. per-request synthetic roles), this needs a real eviction
-# policy, not just invalidate_permission_cache().
-_PERM_CACHE: dict[tuple, bool] = {}
-_HIDDEN_CACHE: dict[tuple, frozenset] = {}
-
-
-def invalidate_permission_cache(doctype_name: str | None = None) -> None:
-    """Evict cached permission results for a given DocType, or all if None."""
-    for cache in (_PERM_CACHE, _HIDDEN_CACHE):
-        if doctype_name is None:
-            cache.clear()
-        else:
-            stale = [k for k in cache if k[2] == doctype_name]
-            for k in stale:
-                cache.pop(k, None)
 
 
 class PermissionChecker:
     async def check(
         self,
-        user: User,
         doctype: DocType | Meta,
         action: PermissionAction,
         doc: dict | None = None,
+        *,
+        user: str | None = None,
     ) -> bool:
-        """Check whether *user* may perform *action* on *doctype* (optionally *doc*).
-
-        ``doc=None`` has two effects, not one: it means "no specific document to
-        check" (so any ``match`` expression on a matching permission row is
-        skipped - a list/count-style check), *and* it makes the result eligible
-        for the per-(user, doctype, action) cache below, since without a doc
-        there's nothing document-specific that could make the answer vary.
-        Passing a ``doc`` disables caching for that call (match evaluation is
-        necessarily per-document) - there's no separate flag for this, the two
-        behaviors are intentionally tied to the same argument.
-        """
-        access = RoleAccess(doctype, user)
-        if access.is_unrestricted:
-            return True
-
-        if is_child(doctype):
-            return await child_allowed(user, doctype, action, doc)
-
-        # Cache only when doc is None (list/count); match-expression checks are doc-specific.
-        # Include id(doctype.permissions) so that different DocType objects with the same
-        # name but different permission lists (common in tests) get separate cache entries.
-        cache_key: tuple | None = None
-        if doc is None:
-            cache_key = (
-                user.email,
-                access.user_roles,
-                doctype.name,
-                id(doctype.permissions),
-                action,
-            )
-            cached = _PERM_CACHE.get(cache_key)
-            if cached is not None:
-                return cached or await self._shared(user, doctype, action, doc)
-
-        # Comments / tags / attachments / files in a folder: a row that points
-        # at a document is readable exactly when that document is - the
-        # role's `match` only governs rows that point at nothing.
-        inherited: bool | None = None
-        if doc is not None and action in ("read", "select") and reference_sources(doctype):
-            inherited = await reference_readable(user, doctype, doc)
-
-        result = False
-        for perm in access.matching_permissions():
-            perm_val = getattr(perm, action, False)
-            # "read" implies "select" - a role that can read the whole
-            # document can certainly resolve its identifier for a picker.
-            if not perm_val and action == "select":
-                perm_val = getattr(perm, "read", False)
-            if not perm_val:
-                continue
-            # Check match expression
-            match_expr = perm.match if hasattr(perm, "match") else None
-            if match_expr and doc and inherited is None:
-                matched = await PermissionMatch(match_expr).evaluate_doc(doc, user, doctype)
-                if not matched:
-                    continue
-            result = True
-            break
-
-        # Row-level User Permissions narrow the role grant for a specific doc.
-        # (doc=None list/count checks are filtered by read_predicate.)
-        if result and doc is not None and not await doc_passes(user, doctype, doc):
-            result = False
-
-        if inherited is False:
-            result = False
-
-        if cache_key is not None:
-            _PERM_CACHE[cache_key] = result
-        return result or await self._shared(user, doctype, action, doc)
-
-    @staticmethod
-    async def _shared(
-        user: User, doctype: DocType | Meta, action: PermissionAction, doc: dict | None
-    ) -> bool:
-        """Fallback when roles deny: a ``SharedWith`` grant (never cached - shares
-        change without touching the role cache). With ``doc`` only a share of
-        that very document counts; without it, a share of any document of the
-        DocType lets the doctype-level pre-flight pass so the per-document
-        check can decide."""
-        if action not in shares.SHAREABLE_ACTIONS or getattr(doctype, "is_singleton", False):
-            return False
-        if doc is not None:
-            if not doc.get("name"):
-                return False
-            return await shares.has_share(user, doctype.name, action, doc["name"])
-        return await shares.has_share(user, doctype.name, action)
+        """Check whether *user* (an email; ``None`` - the user the context runs as)
+        may perform *action* on *doctype* (optionally *doc*) - see
+        :func:`grunt.permissions.query.allowed`."""
+        return await query.allowed(doctype, action, doc, user=user)
 
     async def require(
         self,
-        user: User,
         doctype: DocType | Meta,
         action: PermissionAction,
         doc: dict | None = None,
+        *,
+        user: str | None = None,
     ) -> None:
-        allowed = await self.check(user, doctype, action, doc)
+        """:meth:`check`, raising 403 when it says no."""
+        allowed = await self.check(doctype, action, doc, user=user)
         if not allowed:
             label = getattr(doctype, "label", None) or getattr(doctype, "name", "")
             verb = _ACTION_VERBS.get(action, action)
@@ -165,47 +58,49 @@ class PermissionChecker:
                 % {"action": pgettext("permission", verb), "doctype": _(label)}
             )
 
-    def hidden_fields(
+    async def can_share(
         self,
-        user: User,
         doctype: DocType | Meta,
+        doc: dict | None = None,
+        *,
+        user: str | None = None,
+    ) -> bool:
+        """``share`` - and ``write``: sharing must not hand out (a link to, or a
+        Write share of) a document beyond what the sharer may do with it."""
+        return await self.check(doctype, "share", doc, user=user) and await self.check(
+            doctype, "write", doc, user=user
+        )
+
+    async def require_share(
+        self,
+        doctype: DocType | Meta,
+        doc: dict | None = None,
+        *,
+        user: str | None = None,
+    ) -> None:
+        """:meth:`can_share`, raising 403 when it says no."""
+        await self.require(doctype, "share", doc, user=user)
+        await self.require(doctype, "write", doc, user=user)
+
+    async def readonly_fields(
+        self,
+        doctype: DocType | Meta,
+        *,
+        user: str | None = None,
     ) -> frozenset[str]:
-        """Return the set of field names the user is NOT allowed to see.
+        """The field names *user* (``None`` - the context's) sees but may not
+        change on *doctype* (see :attr:`RoleAccess.readonly_fields`)."""
+        return (await role_access(doctype, user or session_user())).readonly_fields
 
-        If no permissions are defined, returns empty set. For each matching
-        role permission, the union of hidden_fields from the *most permissive*
-        (first matching) rule is used - i.e., if any matching rule exposes a
-        field, it is visible.
-        """
-        access = RoleAccess(doctype, user)
-        if access.is_unrestricted:
-            return frozenset()
-
-        # id(doctype.permissions) distinguishes DocType objects with the same name
-        # but different permission lists (see check() for the same pattern).
-        cache_key = (user.email, access.user_roles, doctype.name, id(doctype.permissions))
-        cached_hidden = _HIDDEN_CACHE.get(cache_key)
-        if cached_hidden is not None:
-            return cached_hidden
-
-        hidden: set[str] = set()
-        matched = False
-
-        for perm in access.matching_permissions():
-            read_ok = getattr(perm, "read", False)
-            if not read_ok:
-                continue
-            perm_hidden = getattr(perm, "hidden_fields", [])
-            if not matched:
-                hidden = set(perm_hidden)
-                matched = True
-            else:
-                # Intersect: a field is hidden only if ALL matching rules hide it
-                hidden &= set(perm_hidden)
-
-        result = frozenset(hidden)
-        _HIDDEN_CACHE[cache_key] = result
-        return result
+    async def hidden_fields(
+        self,
+        doctype: DocType | Meta,
+        *,
+        user: str | None = None,
+    ) -> frozenset[str]:
+        """The field names *user* (``None`` - the context's) may not see on
+        *doctype* (see :attr:`RoleAccess.hidden_fields`)."""
+        return (await role_access(doctype, user or session_user())).hidden_fields
 
 
 permission_checker = PermissionChecker()

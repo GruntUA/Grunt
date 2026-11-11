@@ -15,7 +15,7 @@ async def _access_token(ctx, client: AsyncClient, email: str = "pk@grunt.example
         await ctx.db._session().commit()
 
     resp = await client.post(
-        "/api/v1/method/grunt.auth.doctypes.User.user.login_api",
+        "/api/v1/method/grunt.auth.user_api.login_api",
         json={"email": email, "password": "Str0ngPass"},
     )
     assert resp.status_code == 200, resp.text

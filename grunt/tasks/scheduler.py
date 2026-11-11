@@ -14,6 +14,7 @@ import os
 import socket
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -21,13 +22,19 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.base import STATE_STOPPED
 from apscheduler.triggers.cron import CronTrigger
 
-from grunt import log
 from grunt.config import settings
-from grunt.db.session import async_session_factory
 from grunt.db.write_intent import write_intent
-from grunt.email.tasks import send_notification_digest
-from grunt.scripting.server_script import ServerScriptRunner
-from grunt.tasks.job_log import LOG_LABEL, close_job_log, fail_stale_job_logs, open_job_log
+from grunt.log import log
+from grunt.tasks.job_log import (
+    CRON_LABEL,
+    JOB_LABEL,
+    LOG_LABEL,
+    STARTED_LABEL,
+    fail_stale_job_logs,
+    finish_job,
+    logs_every_run,
+    open_job_log,
+)
 from grunt.utils.redis import connect
 
 # Global scheduler instance
@@ -73,6 +80,10 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
             {"handler": "path.to.task", "expression": "0 * * * *"}
         ]
     }
+
+    A dict item may also set ``"log_runs"``: True keeps every run in the
+    Scheduled Job Log, False only the failed ones (the default for jobs
+    that fire more often than hourly - see grunt.tasks.job_log).
     """
     for event_type, tasks in events.items():
         # Support dict form for "cron": {"expr": ["handler", ...]} as well as list form
@@ -110,10 +121,23 @@ def register_scheduler_events(events: dict[str, list[str | dict]]) -> None:
                 log.warning("scheduler.invalid_task", event_type=event_type, item=item)
                 continue
 
-            _add_scheduled_job(path, cron_expr)
+            log_runs = item.get("log_runs") if isinstance(item, dict) else None
+            _add_scheduled_job(path, cron_expr, log_runs=log_runs)
 
 
-def _add_scheduled_job(path: str, cron_expr: str) -> None:
+def _add_scheduled_job(
+    path: str,
+    cron_expr: str,
+    *args: Any,
+    job_id: str | None = None,
+    log_runs: bool | None = None,
+) -> None:
+    """Run the function at dotted *path* with *args* on *cron_expr*.
+
+    By path, so the scheduler does not import the modules whose jobs it runs.
+    *job_id* names the job (its log and state rows); the path by default.
+    """
+    job_id = job_id or path
     try:
         module_path, func_name = path.rsplit(".", 1)
         module = importlib.import_module(module_path)
@@ -121,19 +145,19 @@ def _add_scheduled_job(path: str, cron_expr: str) -> None:
 
         async def trigger_task():
             log.info("scheduler.triggering_task", path=path)
-            await _run_logged(path, cron_expr, task_fn)
+            await _run_logged(job_id, cron_expr, task_fn, *args, log_runs=log_runs)
 
         scheduler.add_job(
             trigger_task,
             CronTrigger.from_crontab(cron_expr),
-            id=path,
+            id=job_id,
             replace_existing=True,
         )
-        failed_jobs.pop(path, None)
+        failed_jobs.pop(job_id, None)
         log.info("scheduler.job_added", path=path, cron=cron_expr)
 
     except (ImportError, AttributeError, ValueError) as e:
-        failed_jobs[path] = str(e)
+        failed_jobs[job_id] = str(e)
         log.warning("scheduler.register_failed", path=path, error=str(e))
 
 
@@ -218,31 +242,20 @@ def _register_framework_jobs() -> None:
     _add_scheduled_job("grunt.tasks.reminders.send_reminders", "* * * * *")  # every minute
     # Outbox retries and messages a crashed delivery left behind (new ones go out on commit).
     _add_scheduled_job("grunt.outbox.deliver", "* * * * *")  # every minute
+    # Page views gathered in Redis -> view_count (no-op without Redis).
+    _add_scheduled_job("grunt.website.views.flush", "* * * * *")  # every minute
 
-    async def _daily_digest():
-        await _run_logged("grunt.digest.daily", "0 8 * * *", send_notification_digest, "daily")
-
-    async def _weekly_digest():
-        await _run_logged("grunt.digest.weekly", "0 8 * * 1", send_notification_digest, "weekly")
-
-    scheduler.add_job(
-        _daily_digest,
-        CronTrigger.from_crontab("0 8 * * *"),
-        id="grunt.digest.daily",
-        replace_existing=True,
-    )
-    scheduler.add_job(
-        _weekly_digest,
-        CronTrigger.from_crontab("0 8 * * 1"),
-        id="grunt.digest.weekly",
-        replace_existing=True,
-    )
+    digest = "grunt.email.tasks.send_notification_digest"
+    _add_scheduled_job(digest, "0 8 * * *", "daily", job_id="grunt.digest.daily")
+    _add_scheduled_job(digest, "0 8 * * 1", "weekly", job_id="grunt.digest.weekly")
 
     # Hourly check; the backup itself runs when SystemSettings' interval has passed.
     _add_scheduled_job("grunt.backups.tasks.scheduled_backup", "15 * * * *")
     _add_scheduled_job("grunt.tasks.retention.purge_expired_documents", "0 3 * * *")  # daily 03:00
     _add_scheduled_job("grunt.auth.tasks.close_idle_sessions", "5 * * * *")  # hourly
     _add_scheduled_job("grunt.storage.tasks.collect_garbage", "30 3 * * *")  # daily 03:30
+    # Planner statistics + freed pages back to the OS (SQLite; no-op on PostgreSQL).
+    _add_scheduled_job("grunt.tasks.db_maintenance.run_maintenance", "45 3 * * *")  # daily 03:45
     # Old files into cloud storage (no-op without a StorageRemote «Move old files here»).
     _add_scheduled_job("grunt.storage.cloud.tasks.offload_files", "0 4 * * *")  # daily 04:00
     _add_scheduled_job("grunt.tasks.todo_reminders.send_due_reminders", "0 8 * * *")  # daily 08:00
@@ -277,6 +290,9 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
     """Register a single server script as an APScheduler cron job."""
 
     async def _execute() -> None:
+        from grunt.db.session import async_session_factory
+        from grunt.scripting.server_script import ServerScriptRunner
+
         async with async_session_factory() as session:
             result = await ServerScriptRunner().execute(
                 script, session=session, trusted=True, user_email="system"
@@ -301,35 +317,46 @@ def _register_server_script_cron(name: str, script: str, cron_expr: str) -> None
 
 
 async def _run_logged(
-    job_name: str, cron_expr: str, task_fn: Callable[..., Awaitable[Any]], *args: Any
+    job_name: str,
+    cron_expr: str,
+    task_fn: Callable[..., Awaitable[Any]],
+    *args: Any,
+    log_runs: bool | None = None,
 ) -> None:
-    """Run one scheduler firing with a ScheduledJobLog row around it.
+    """Run one scheduler firing and record it (grunt.tasks.job_log).
 
-    A TaskIQ task is only enqueued here: the row id rides in its labels and
-    ``ScheduledJobLogMiddleware`` closes the row once a worker has run it.
+    A TaskIQ task is only enqueued here: the run rides in its labels and
+    ``ScheduledJobLogMiddleware`` records it once a worker has run it.
 
     Runs in the web process, which defaults to a deferred ``BEGIN``: on SQLite
     the log row and inline jobs write, so take the write lock up front
     (grunt/db/write_intent.py) - else a concurrent request's commit fails
     them with "database is locked".
     """
+    started_at = datetime.now(UTC)
     with write_intent():
-        log_id = await open_job_log(job_name, cron_expr)
+        log_id = (
+            await open_job_log(job_name, cron_expr) if logs_every_run(cron_expr, log_runs) else None
+        )
         kicker = getattr(task_fn, "kicker", None)
         try:
             if kicker is None:
                 await task_fn(*args)
             else:
-                enqueue = kicker().with_labels(**{LOG_LABEL: log_id}) if log_id else kicker()
-                await enqueue.kiq(*args)
+                labels = {
+                    JOB_LABEL: job_name,
+                    CRON_LABEL: cron_expr,
+                    STARTED_LABEL: started_at.isoformat(),
+                }
+                if log_id:
+                    labels[LOG_LABEL] = log_id
+                await kicker().with_labels(**labels).kiq(*args)
                 return
         except Exception as exc:
             log.error("scheduler.job_failed", job_name=job_name, error=str(exc))
-            if log_id:
-                await close_job_log(log_id, error=exc)
+            await finish_job(job_name, cron_expr, started_at, log_id, error=exc)
             return
-        if log_id:
-            await close_job_log(log_id)
+        await finish_job(job_name, cron_expr, started_at, log_id)
 
 
 async def stop_scheduler() -> None:

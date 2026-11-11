@@ -4,8 +4,9 @@ Shared by activity feeds, workspace widgets, and anywhere else that needs to
 turn a raw document reference into a display label without one query per row.
 """
 
-import grunt
-from grunt import log
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 
 
 async def resolve_reference_titles(
@@ -23,7 +24,7 @@ async def resolve_reference_titles(
 
     titles: dict[tuple[str, str], str] = {}
     for dt_name, ids in by_doctype.items():
-        dt = await grunt.get_meta(dt_name)
+        dt = await doctype_registry.get_meta(dt_name)
         if dt is None:
             log.debug("titles.doctype_not_found", doctype=dt_name)
             continue
@@ -32,7 +33,7 @@ async def resolve_reference_titles(
         if not title_field or title_field == "name":
             continue
         try:
-            rows = await grunt.get_list(
+            rows = await documents.get_list(
                 dt_name,
                 filters={"name__in": list(ids)},
                 fields=["name", title_field],

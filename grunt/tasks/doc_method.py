@@ -2,12 +2,13 @@
 
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.auth.current import user_context
 from grunt.auth.users import get_user_by_email
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import task
 from grunt.tasks.enqueue import enqueue
+lazy from grunt.document.api import documents
 
 
 @task
@@ -25,7 +26,7 @@ async def _run_doc_method(
     engine = site_manager.get_engine(site)
 
     async with maker() as session:
-        async with grunt.context(session):
+        async with user_context(session):
             user = await get_user_by_email(user_email)
         if user is None:
             log.error(
@@ -33,10 +34,10 @@ async def _run_doc_method(
             )
             return
 
-        async with grunt.context(session, engine, user):
+        async with user_context(session, engine, user):
             try:
                 log.info("enqueue_doc.started", doctype=doctype, doc_id=doc_id, method=method)
-                doc = await grunt.get_doc_instance(doctype, doc_id)
+                doc = await documents.get_doc_instance(doctype, doc_id)
                 handler = getattr(doc, method, None)
                 if handler is None:
                     raise AttributeError(f"{doctype} controller has no method '{method}'")

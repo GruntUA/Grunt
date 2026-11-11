@@ -34,8 +34,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
@@ -85,7 +84,7 @@ def test_shipped_doctype_has_permissions_defined(doctype_name):
     quietly coming back (e.g. someone reverting the JSON edit by accident).
     """
     dt = _load(doctype_name)
-    # A child table takes its access from the parent (grunt.permissions.child).
+    # A child table takes its access from the parent (grunt.permissions.query).
     assert dt.permissions or dt.is_child, (
         f"{doctype_name} must declare permissions, not be open by default"
     )
@@ -103,7 +102,7 @@ _GENERIC_LOCKED = [n for n in _DOCTYPE_JSON if n not in ("User", "UserRole")]
 @pytest.mark.asyncio
 async def test_plain_user_has_no_access(doctype_name, action):
     dt = _load(doctype_name)
-    allowed = await permission_checker.check(_plain_user(), dt, action)
+    allowed = await check_as(_plain_user(), dt, action)
     assert allowed is False
 
 
@@ -113,7 +112,7 @@ async def test_plain_user_cannot_change_role_rows(action):
     """Self-assigning "System Manager" through a direct UserRole insert/edit
     must stay impossible - roles change only by saving the User."""
     dt = _load("UserRole")
-    assert await permission_checker.check(_plain_user(), dt, action) is False
+    assert await check_as(_plain_user(), dt, action) is False
 
 
 @pytest.mark.parametrize("action", ["create", "delete"])
@@ -121,7 +120,7 @@ async def test_plain_user_cannot_change_role_rows(action):
 async def test_plain_user_cannot_create_or_delete_users(action):
     """The "All" row grants only read+write — never create/delete."""
     dt = _load("User")
-    assert await permission_checker.check(_plain_user(), dt, action) is False
+    assert await check_as(_plain_user(), dt, action) is False
 
 
 @pytest.mark.asyncio
@@ -131,14 +130,8 @@ async def test_plain_user_write_is_scoped_to_own_row():
     controller — see test_auth.test_self_edit_scope.)"""
     dt = _load("User")
     attacker = _plain_user("victim@example.com")
-    assert (
-        await permission_checker.check(attacker, dt, "write", {"name": "someone-else@example.com"})
-        is False
-    )
-    assert (
-        await permission_checker.check(attacker, dt, "write", {"name": "victim@example.com"})
-        is True
-    )
+    assert await check_as(attacker, dt, "write", {"name": "someone-else@example.com"}) is False
+    assert await check_as(attacker, dt, "write", {"name": "victim@example.com"}) is True
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
@@ -146,7 +139,7 @@ async def test_plain_user_write_is_scoped_to_own_row():
 @pytest.mark.asyncio
 async def test_system_manager_has_full_access(doctype_name, action):
     dt = _load(doctype_name)
-    allowed = await permission_checker.check(_system_manager(), dt, action)
+    allowed = await check_as(_system_manager(), dt, action)
     # Child rows change only through the parent's save - for everyone.
     assert allowed is (action == "read" or not dt.is_child)
 
@@ -162,7 +155,7 @@ async def test_self_promotion_to_system_manager_denied():
     """
     dt = _load("User")
     attacker = _plain_user("victim@example.com")
-    assert await permission_checker.check(attacker, dt, "create") is False
+    assert await check_as(attacker, dt, "create") is False
 
 
 @pytest.mark.asyncio
@@ -173,5 +166,5 @@ async def test_self_grant_via_doctype_edit_denied_by_permission_check():
     """
     dt = _load("DocType")
     attacker = _plain_user("attacker@example.com")
-    allowed = await permission_checker.check(attacker, dt, "write")
+    allowed = await check_as(attacker, dt, "write")
     assert allowed is False

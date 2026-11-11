@@ -23,7 +23,7 @@ from typing import Any
 
 from grunt.i18n.service import translation_service
 from grunt.metadata.field import fieldtypes_with
-lazy import grunt
+from grunt.metadata.registry import doctype_registry
 
 # Types whose value is picked from ``options`` - their choices get translated.
 SELECT_FIELDTYPES = fieldtypes_with("options")
@@ -98,7 +98,7 @@ async def translate_record(doc: dict[str, Any], lang: str | None = None) -> dict
     user's language.
     """
 
-    meta = await grunt.get_meta(doc.get("doctype") or "")
+    meta = await doctype_registry.get_meta(doc.get("doctype") or "")
     if meta is None:
         return doc
     lang = lang or translation_service.get_lang()

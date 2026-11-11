@@ -8,14 +8,17 @@ from typing import Any, cast
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.engine import CursorResult
 
-import grunt
-from grunt import _, log
 from grunt.api.v1.ws import manager
+from grunt.auth.current import user_context
 from grunt.db.session import async_session_factory
-from grunt.document.update_side_effects import delete_child_rows
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
+from grunt.metadata.registry import doctype_registry
+from grunt.permissions.roles import has_roles
 from grunt.search.service import _search_index_table
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.store.sql import delete_child_rows
+lazy from grunt.document.api import documents
 
 ProgressCallback = Callable[[int, int, int], Awaitable[None]]
 
@@ -55,7 +58,7 @@ class BulkDeleteTask:
         doctype: str,
         ids: Sequence[str],
         *,
-        user: User,
+        user: str,
         user_email: str,
         engine: Any,
         replace_with: str | None = None,
@@ -65,8 +68,8 @@ class BulkDeleteTask:
         progress_cb = self._make_progress_cb(user_email, total)
 
         try:
-            async with async_session_factory() as session, grunt.context(session, engine, user):
-                deleted, errors = await grunt.bulk_delete_docs(
+            async with async_session_factory() as session, user_context(session, engine, user):
+                deleted, errors = await documents.bulk_delete_docs(
                     doctype,
                     list(ids),
                     replace_with=replace_with,
@@ -98,7 +101,7 @@ class BulkDeleteTask:
         *,
         filters: dict[str, str] | None,
         search: str | None,
-        user: User,
+        user: str,
         user_email: str,
         engine: Any,
         batch_size: int = _DELETE_ALL_BATCH,
@@ -115,8 +118,8 @@ class BulkDeleteTask:
 
         # One-time count for accurate progress display.
         try:
-            async with async_session_factory() as session, grunt.context(session, engine, user):
-                grand_total: int = await grunt.count(doctype, filters=filters)  # type: ignore[arg-type]
+            async with async_session_factory() as session, user_context(session, engine, user):
+                grand_total: int = await documents.count(doctype, filters=filters)  # type: ignore[arg-type]
         except Exception:
             grand_total = 0
 
@@ -132,9 +135,9 @@ class BulkDeleteTask:
                 # Fetch the next batch of IDs that still exist.
                 async with (
                     async_session_factory() as session,
-                    grunt.context(session, engine, user),
+                    user_context(session, engine, user),
                 ):
-                    rows = await grunt.get_list(
+                    rows = await documents.get_list(
                         doctype,
                         filters=filters,
                         search=search,
@@ -151,9 +154,9 @@ class BulkDeleteTask:
                 # Delete the batch.
                 async with (
                     async_session_factory() as session,
-                    grunt.context(session, engine, user),
+                    user_context(session, engine, user),
                 ):
-                    deleted, errors = await grunt.bulk_delete_docs(doctype, ids)
+                    deleted, errors = await documents.bulk_delete_docs(doctype, ids)
 
                 total_deleted += deleted
                 all_errors.extend(errors)
@@ -233,7 +236,7 @@ class BulkDeleteTask:
         *,
         filters: dict[str, str] | None,
         search: str | None = None,
-        user: User,
+        user: str,
         user_email: str,
         engine: Any,
         batch_size: int = _DELETE_ALL_BATCH,
@@ -251,7 +254,7 @@ class BulkDeleteTask:
         Then one summary ActivityLog entry.
         """
 
-        if "System Manager" not in (getattr(user, "roles", None) or []):
+        if not await has_roles(["System Manager"], user=user):
             await self._manager.send_to_user(
                 user_email,
                 {
@@ -266,15 +269,15 @@ class BulkDeleteTask:
             return
 
         try:
-            async with async_session_factory() as session, grunt.context(session, engine, user):
-                dt = await grunt.get_meta(doctype)
+            async with async_session_factory() as session, user_context(session, engine, user):
+                dt = await doctype_registry.get_meta(doctype)
                 if dt is None:
                     raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
                 table = dt.table
 
                 deleted = 0
                 while True:
-                    rows = await grunt.get_list(
+                    rows = await documents.get_list(
                         doctype,
                         filters=filters,
                         search=search,
@@ -317,7 +320,7 @@ class BulkDeleteTask:
 
                 # 4. Summary ActivityLog entry
                 try:
-                    dt_log = await grunt.get_meta("ActivityLog")
+                    dt_log = await doctype_registry.get_meta("ActivityLog")
                     if dt_log is None:
                         raise ValueError(
                             _("DocType “%(doctype)s” not found") % {"doctype": "ActivityLog"}

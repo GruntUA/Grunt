@@ -13,8 +13,8 @@ from sqlalchemy import Column, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeEngine
 
-from grunt import log
 from grunt.db.types import CheckBool, IsoDate, UtcDateTime
+from grunt.log import log
 
 # sa_type_name (column_spec's first tuple element) -> SQLAlchemy column type
 # builder. Shared by every DocField.to_sa_column() call instead of being
@@ -122,6 +122,7 @@ def parse_int(value: Any) -> Any:
 # from column_spec (see is_numeric_fieldtype / is_date_fieldtype).
 TRAITS: dict[str, str] = {
     "link": "value is the name of a document of the DocType in `options`",
+    "dynamic_link": "value is a document name; `options` names the field holding its DocType",
     "table": "child rows of the DocType in `options`, no column of its own",
     "file": "value is a single file URL",
     "sensitive": "secret - never exported, listed or shown in dashboards",
@@ -347,6 +348,9 @@ class DocField(BaseModel):
     required: bool = False
     unique: bool = False
     index: bool = False
+    # Changes of this field leave no version or activity entry - for values the
+    # system keeps up to date (sync status, last run, logs), not for user data.
+    no_history: bool = False
     read_only: bool = False
     hidden: bool = False
 

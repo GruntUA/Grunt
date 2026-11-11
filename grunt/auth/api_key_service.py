@@ -16,11 +16,15 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
+from grunt.auth.current import user_context
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 from grunt.auth.users import get_user_by_id
+from grunt.db.api import GruntDB
+from grunt.local import system_context
+from grunt.log import log
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _KEY_PREFIX = "grnt_"
 _KEY_BYTES = 32  # 64 hex chars
@@ -70,8 +74,8 @@ async def authenticate_api_key(
 
     key_prefix = raw[:8]
 
-    async with grunt.system_context(session):
-        rows = await grunt.db.get_all(
+    async with system_context(session):
+        rows = await _db.get_all(
             "ApiKey",
             filters={"key_prefix": key_prefix, "is_active": True},
             fields=["name", "key_hash", "user_id", "expires_at", "allowed_ips"],
@@ -115,17 +119,15 @@ async def authenticate_api_key(
         return None
 
     # Load user
-    async with grunt.context(session):
+    async with user_context(session):
         user = await get_user_by_id(matched_row["user_id"])
     if user is None or not user.is_active:
         return None
 
     # Update last_used_at (best-effort, don't fail the request)
     try:
-        async with grunt.system_context(session):
-            await grunt.db.set_value(
-                "ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC)
-            )
+        async with system_context(session):
+            await _db.set_value("ApiKey", matched_row["name"], "last_used_at", datetime.now(UTC))
     except Exception:
         log.exception("suppressed_error")
 

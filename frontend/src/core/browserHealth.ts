@@ -29,7 +29,7 @@ export interface HealthRow {
 export const SHELL_CACHE_PREFIX = 'grunt-shell-'
 export const API_CACHE = 'grunt-api-v1'
 const SHELL_KEY = '/__offline_shell__'
-const PROBE_URL = '/api/v1/method/grunt.auth.doctypes.User.user.whoami'
+const PROBE_URL = '/api/v1/method/grunt.auth.user_api.whoami'
 
 const OFFLINE = N_('Offline mode')
 const NETWORK = N_('Network')

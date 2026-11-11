@@ -4,9 +4,10 @@ from datetime import date
 from functools import cache
 from typing import Any
 
-import grunt
+from grunt.api.context import whitelist
 from grunt.api.v1.dashboard import page_visible
 from grunt.apps.manifest import extenders
+from grunt.auth.current import acting_user
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
 from grunt.site.doctypes.AppMenu.app_menu import (
@@ -17,18 +18,19 @@ from grunt.site.doctypes.AppMenu.app_menu import (
 )
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
+lazy from grunt.document.api import documents
 
 
 async def _visible_pages() -> list[dict[str, Any]]:
     """Pages the current user may open, as dashboard candidates for the apps."""
-    user = grunt.get_user()
-    pages = await grunt.get_list(
+    user = acting_user()
+    pages = await documents.get_list(
         "Page",
         fields=["name", "label", "app", "is_published", "roles"],
         limit=1000,
         include_total=False,
     )
-    visible = [p for p in pages if page_visible(p, user)]
+    visible = [p for p in pages if page_visible(p, user.role_names)]
     return sorted(visible, key=lambda p: str(p.get("label") or p["name"]).casefold())
 
 
@@ -87,7 +89,7 @@ async def _workspace_to_dict(
 ) -> dict[str, Any]:
     """Convert AppMenu document data to dict, filtering items by role."""
 
-    user = grunt.get_user()
+    user = acting_user()
     if pages is None:
         pages = await _visible_pages()
 
@@ -105,7 +107,7 @@ async def _workspace_to_dict(
         item_icon = item.get("icon", "")
         is_singleton = False
         if item_type == "DocType" and link_to:
-            dt_meta = await grunt.get_meta(link_to)
+            dt_meta = await doctype_registry.get_meta(link_to)
             if dt_meta is not None:
                 is_singleton = dt_meta.is_singleton
                 # Fall back to the DocType's own icon when the sidebar item
@@ -156,28 +158,28 @@ async def _get_ws_controller(name: str) -> AppMenu:
     # requires a real implementation for that in a non-stub .py file), so it
     # falls back to a looser `dict[str, Any] | D` union that doesn't narrow here.
 
-    return await grunt.get_doc(AppMenu, name)
+    return await documents.get_doc(AppMenu, name)
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_workspaces() -> list[dict[str, Any]]:
     """List workspaces visible to the current user."""
     # Sidebar items across all workspaces touch most of the app's DocTypes.
     # Batch-load them in one query up front instead of letting
-    # _workspace_to_dict's per-item grunt.get_meta() lazy-load each one
+    # _workspace_to_dict's per-item doctype_registry.get_meta() lazy-load each one
     # with its own SELECT.
     await doctype_registry.list_all()
 
-    all_ws = await grunt.get_list("AppMenu", fields=["name"], order_by="sequence")
+    all_ws = await documents.get_list("AppMenu", fields=["name"], order_by="sequence")
     data = []
-    user = grunt.get_user()
+    user = acting_user()
     if not user:
         return []
     pages = await _visible_pages()
 
     for ws_brief in all_ws:
         try:
-            ws_data = await grunt.get_doc(AppMenu, ws_brief["name"])
+            ws_data = await documents.get_doc(AppMenu, ws_brief["name"])
             if ws_data.is_hidden and "System Manager" not in (user.roles or []):
                 continue
             # Basic role check could be added here
@@ -187,14 +189,14 @@ async def list_workspaces() -> list[dict[str, Any]]:
     return data
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_workspace(name: str) -> dict[str, Any]:
     """Get a single workspace with filtered items."""
     ws_data = await _get_ws_controller(name)
     return await _workspace_to_dict(ws_data)
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a workspace. Admin only."""
     data = workspace_data.copy()
@@ -203,21 +205,21 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
 
     name = data.get("name")
     if name:
-        ws_data = await grunt.save_doc("AppMenu", name, data)
+        ws_data = await documents.save_doc("AppMenu", name, data)
     else:
-        ws_data = await grunt.new_doc("AppMenu", data)
+        ws_data = await documents.new_doc("AppMenu", data)
 
     return await _workspace_to_dict(ws_data)
 
 
-@grunt.whitelist(roles=["System Manager"])
+@whitelist(roles=["System Manager"])
 async def delete_workspace(name: str) -> bool:
     """Delete a workspace. Admin only."""
-    await grunt.delete_doc("AppMenu", name)
+    await documents.delete_doc("AppMenu", name)
     return True
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_counts(name: str) -> dict[str, int]:
     """Get document counts for workspace links."""
     ws = await _get_ws_controller(name)
@@ -226,7 +228,7 @@ async def get_counts(name: str) -> dict[str, int]:
     return {}
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_document_stats() -> dict[str, int]:
     """Return an honest, deduplicated document total for the home page.
 
@@ -235,7 +237,7 @@ async def get_document_stats() -> dict[str, int]:
     each business doctype exactly once and excludes infrastructural doctypes
     (logs, sessions, versions, queues, config/metadata).
 
-    Each per-doctype count goes through ``grunt.count(respect_permissions=True)``,
+    Each per-doctype count goes through ``documents.count(respect_permissions=True)``,
     which is itself cached per (doctype, user, filters) - see its docstring -
     so repeat page loads don't re-run dozens of COUNT queries.
     """
@@ -247,7 +249,7 @@ async def get_document_stats() -> dict[str, int]:
         if not dt.track_activity or dt.hide_from_activity_feed:
             continue
         try:
-            total += await grunt.count(dt.name, respect_permissions=True)
+            total += await documents.count(dt.name, respect_permissions=True)
             counted += 1
         except Exception:
             # A doctype without a physical table yet - skip it silently.
@@ -256,19 +258,19 @@ async def get_document_stats() -> dict[str, int]:
     return {"total": total, "doctypes": counted}
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_my_work() -> dict[str, Any]:
     """Return the current user's personal work items for the home page:
 
     open tasks assigned to them (flagged when overdue) and unread notifications.
     """
-    user = grunt.get_user()
+    user = acting_user()
     email = user.email
     today = date.today().isoformat()
 
     # Open tasks assigned to me.
     try:
-        todos = await grunt.get_list(
+        todos = await documents.get_list(
             "ToDo",
             filters={"assigned_to": email, "status": "Open"},
             fields=[
@@ -314,7 +316,7 @@ async def get_my_work() -> dict[str, Any]:
 
     # Unread notifications.
     try:
-        notifications = await grunt.get_list(
+        notifications = await documents.get_list(
             "Notification",
             filters={"user": email, "is_read": False},
             fields=["name", "subject", "ref_doctype", "doc_id", "created_at"],

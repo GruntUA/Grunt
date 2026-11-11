@@ -9,8 +9,8 @@ import pytest
 from PIL import Image
 
 import grunt
-from grunt.storage import backends, files, images
-from grunt.storage.images import ImageOptions, optimize_image, renamed
+from grunt.storage import backends, files, images, optimize
+from grunt.storage.optimize import ImageOptions, optimize_image, renamed
 
 WEBP = ImageOptions(max_size=1000, quality=85, webp=True)
 ORIGINAL = ImageOptions(max_size=1000, quality=85, webp=False)
@@ -145,7 +145,7 @@ def options(monkeypatch):
     async def fake():
         return state["value"]
 
-    monkeypatch.setattr(images, "image_options", fake)
+    monkeypatch.setattr(optimize, "image_options", fake)
     return state
 
 

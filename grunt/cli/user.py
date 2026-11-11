@@ -2,9 +2,13 @@ import asyncio
 
 import click
 
+from grunt.auth.current import user_context
 from grunt.cli.utils import _site_session
-lazy import grunt
-lazy from grunt.auth.users import create_user, get_user_by_email, hash_password, list_users
+from grunt.db.api import GruntDB
+lazy from grunt.auth.passwords import hash_password
+lazy from grunt.auth.users import create_user, get_user_by_email, list_users
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 @click.group("users")
@@ -37,7 +41,7 @@ def users_create(email, password, full_name, site):
             middle_name = " ".join(name_parts[1:-1])
 
         async with _site_session(site) as (session, _eng):
-            async with grunt.context(session, _eng):
+            async with user_context(session, _eng):
                 if await get_user_by_email(email) is not None:
                     click.echo(f"Error: user '{email}' already exists.", err=True)
                     raise SystemExit(1)
@@ -59,7 +63,7 @@ def users_list(site):
 
         async with (
             _site_session(site) as (session, _eng),
-            grunt.context(session, _eng),
+            user_context(session, _eng),
         ):
             users = await list_users()
 
@@ -87,7 +91,7 @@ def users_set_password(email, password, site):
 
         async with (
             _site_session(site) as (session, eng),
-            grunt.context(session, eng),
+            user_context(session, eng),
         ):
             user = await get_user_by_email(email)
             if user is None:
@@ -95,9 +99,7 @@ def users_set_password(email, password, site):
                 raise SystemExit(1)
 
             assert user.id
-            await grunt.db.set_value(
-                "User", user.id, {"hashed_password": await hash_password(password)}
-            )
+            await _db.set_value("User", user.id, {"hashed_password": await hash_password(password)})
             await session.commit()
 
         click.echo(f"Password changed for {email}.")

@@ -3,13 +3,13 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
-from grunt import _, log
 from grunt.document.base import Document
-from grunt.i18n import N_
-from grunt.monitoring.health import human_size
+from grunt.i18n import N_, _
+from grunt.log import log
 from grunt.progress import job_progress
 from grunt.query.query import Query
-from grunt.store import DELETE, Unavailable, VirtualStore
+from grunt.store.base import DELETE
+from grunt.store.virtual import Unavailable, VirtualStore
 from grunt.tasks.redis_introspect import (
     entry_timestamp_ms,
     read_task_info,
@@ -18,6 +18,7 @@ from grunt.tasks.redis_introspect import (
     stream_broker,
     unavailable_message,
 )
+from grunt.utils.sizes import human_size
 
 
 class BackgroundJobStore(VirtualStore):

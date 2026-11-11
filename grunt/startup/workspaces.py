@@ -10,9 +10,14 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import system_context
+from grunt.log import log
+from grunt.version import framework_version
+lazy from grunt.document.api import documents
 lazy from grunt.site.doctypes.AppMenu.app_menu import AppMenu, default_color
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _FIXTURES_DIR = __import__("pathlib").Path(__file__).parent.parent / "fixtures"
 
@@ -41,25 +46,27 @@ async def _upsert_workspace(
 
     Returns True if anything was written (and logs what).
     """
-    existing = await grunt.get_list("AppMenu", filters={"name": ws_name}, fields=["name"], limit=1)
+    existing = await documents.get_list(
+        "AppMenu", filters={"name": ws_name}, fields=["name"], limit=1
+    )
     written = False
 
     if existing:
         ws_id = existing[0]["name"]
-        current = await grunt.get_doc(AppMenu, ws_id)
+        current = await documents.get_doc(AppMenu, ws_id)
         clean_update = {
             k: v
             for k, v in update_fields.items()
             if v is not None and _norm(current.get(k)) != _norm(v)
         }
         if clean_update:
-            await grunt.save_doc("AppMenu", ws_id, clean_update)
+            await documents.save_doc("AppMenu", ws_id, clean_update)
             written = True
         if section_rows is not None and _rows_match(_own(current, "sections"), section_rows):
             section_rows = None
         sidebar_same = _rows_match(_own(current, "sidebar_items"), sidebar_rows)
     else:
-        ws = await grunt.new_doc("AppMenu", {"name": ws_name, **create_fields})
+        ws = await documents.new_doc("AppMenu", {"name": ws_name, **create_fields})
         ws_id = ws["name"]
         sidebar_same = False
         log.info("startup.workspace_created", workspace=ws_id)
@@ -91,9 +98,9 @@ async def _replace_rows(
     """Replace *source_app*'s rows of the menu's *field* table with *rows*."""
     doctype = _CHILD_DOCTYPE[field]
     owner = {"source_app": source_app} if source_app else {"source_app__is": "not set"}
-    await grunt.db.delete(doctype, {"parent_name": ws_id, **owner})
+    await _db.delete(doctype, {"parent_name": ws_id, **owner})
     if rows:
-        await grunt.bulk_insert(
+        await documents.bulk_insert(
             doctype,
             [
                 {"parent_name": ws_id, "parent_doctype": "AppMenu", "parent_field": field, **row}
@@ -167,15 +174,15 @@ async def seed_grunt_workspace(session: AsyncSession, eng: Any) -> None:
     data: dict[str, Any] = json.loads(fixture_file.read_text())
     ws_name: str = data["name"]
 
-    async with grunt.system_context(session, eng):
+    async with system_context(session, eng):
         # Register the grunt framework itself as an installed app (once)
-        if await grunt.exists("GruntInstalledApp", {"name": "grunt"}) is None:
-            await grunt.new_doc(
+        if await documents.exists("GruntInstalledApp", {"name": "grunt"}) is None:
+            await documents.new_doc(
                 "GruntInstalledApp",
                 {
                     "name": "grunt",
                     "title": "Grunt",
-                    "version": grunt.__version__,
+                    "version": framework_version(),
                     "modules": ["core"],
                 },
             )
@@ -281,10 +288,10 @@ async def _apply_menu_contribution(rec: dict[str, Any], app_name: str) -> bool:
     (:func:`order_menu`). Returns True if anything was written.
     """
     target = rec["extends"]
-    if await grunt.exists("AppMenu", {"name": target}) is None:
+    if await documents.exists("AppMenu", {"name": target}) is None:
         log.warning("startup.menu_contribution_target_missing", app=app_name, target=target)
         return False
-    current = await grunt.get_doc(AppMenu, target)
+    current = await documents.get_doc(AppMenu, target)
 
     item_rows = [
         {**row, "source_app": app_name, **_anchors(item)}

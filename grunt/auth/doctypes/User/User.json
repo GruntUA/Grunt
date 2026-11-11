@@ -337,15 +337,11 @@
   "permissions": [
     {
       "role": "System Manager",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
     },
     {
       "role": "All",
-      "read": true,
-      "write": true,
+      "actions": ["read", "write"],
       "match": "name == user",
       "hidden_fields": [
         "hashed_password",
@@ -357,15 +353,15 @@
     },
     {
       "role": "Діловод",
-      "select": true
+      "actions": ["select"]
     },
     {
       "role": "Інвентаризатор",
-      "select": true
+      "actions": ["select"]
     },
     {
       "role": "Адміністратор порталу",
-      "select": true
+      "actions": ["select"]
     }
   ],
   "autoname": "field:email",

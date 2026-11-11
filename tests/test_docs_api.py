@@ -2,6 +2,8 @@
 
 import pytest
 
+from grunt.api.v1.document import links as links_api
+
 TEST_DOCTYPE = {
     "name": "TestItem",
     "label": "Test Item",
@@ -220,15 +222,7 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
                 },
             ],
             "permissions": [
-                {
-                    "role": "System Manager",
-                    "read": True,
-                    "write": False,
-                    "create": False,
-                    "delete": False,
-                    "submit": False,
-                    "report": True,
-                }
+                {"role": "System Manager", "actions": ["read", "report"], "submit": False}
             ],
             "search_fields": ["title"],
             "__is_new": True,
@@ -255,6 +249,80 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
     await ctx.save_doc("CacheReadOnlyItem", first["name"], {"title": "Cached A+"})
     await ctx.db._session().commit()
     assert ctx.query_cache.stats()["keys"] == 0
+
+
+@pytest.mark.asyncio
+async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
+    """Regression: the list/count cache was keyed by the user's email alone - a
+    role taken away (or a rule tightened) kept serving the wider cached result
+    until the TTL ran out. The key now holds the roles and the row predicate.
+
+    ``ctx`` is the ``grunt`` module (tests/conftest.py)."""
+    from grunt.api.v1.meta import save_doctype
+    from tests.support import make_user
+
+    await save_doctype(
+        doctype_data={
+            "name": "CacheScopedItem",
+            "label": "Cache Scoped Item",
+            "module": "core",
+            "fields": [
+                {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+                {
+                    "fieldname": "assignee",
+                    "label": "Assignee",
+                    "fieldtype": "Link",
+                    "options": "User",
+                },
+            ],
+            "permissions": [
+                {"role": "Reader", "actions": ["read"]},
+                {"role": "Clerk", "actions": ["read"], "hidden_fields": ["title"]},
+                {"role": "Own", "actions": ["read"], "match": "owner == user"},
+            ],
+            "__is_new": True,
+        }
+    )
+    for email in ("cache-reader@example.com", "cache-other@example.com"):
+        await ctx.new_doc("User", {"email": email, "first_name": "Cache", "last_name": "User"})
+    await ctx.new_doc(
+        "CacheScopedItem", {"title": "Someone else's", "assignee": "cache-other@example.com"}
+    )
+    await ctx.db._session().commit()
+    ctx.query_cache.clear()
+
+    async def seen(roles: list[str]) -> tuple[list[dict], int]:
+        user = make_user("cache-reader@example.com", roles=roles)
+        async with ctx.context(db_session, engine, user):
+            rows = await ctx.get_list("CacheScopedItem", fields=["name", "title"], limit=10)
+            total = await ctx.count("CacheScopedItem", respect_permissions=True)
+        return [dict(r) for r in rows], total
+
+    # Both roles read every row with no row rule - their lists are cacheable,
+    # and are cached apart: the clerk never gets the reader's cached titles.
+    rows, total = await seen(["Reader"])
+    assert total == 1 and rows[0]["title"] == "Someone else's"
+    hits = ctx.query_cache.stats()["hits"]
+    assert (await seen(["Reader"]))[1] == 1
+    assert ctx.query_cache.stats()["hits"] > hits  # the same access does hit the cache
+    rows, total = await seen(["Clerk"])
+    assert total == 1 and "title" not in rows[0]
+
+    # Same user, same role, a User Permission added: the predicate changes and
+    # stays cacheable - the reader's cached list must not be served.
+    await ctx.new_doc(
+        "UserPermission",
+        {
+            "for_user": "cache-reader@example.com",
+            "allow": "User",
+            "for_value": "cache-reader@example.com",
+        },
+    )
+    await ctx.db._session().commit()
+    assert await seen(["Reader"]) == ([], 0)
+
+    # A row rule: the same user with narrower access gets nothing of the above.
+    assert await seen(["Own"]) == ([], 0)
 
 
 @pytest.mark.asyncio
@@ -687,14 +755,13 @@ async def test_list_partial_fields(ctx, setup_doctype):
 async def test_link_search_returns_compact_items(ctx, setup_doctype):
     """Document.link_search should return compact rows and honor title/search fields."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.base import Document
 
     await ctx.new_doc("TestItem", {"title": "Alpha Item", "status": "Draft"})
     await ctx.new_doc("TestItem", {"title": "Beta Item", "status": "Active"})
     await ctx.db._session().commit()
 
     async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
-        items = await Document.link_search(
+        items = await links_api.link_search(
             "TestItem",
             search="Alpha",
             filters={"status": "Draft"},
@@ -716,7 +783,6 @@ async def test_link_search_returns_all_search_fields(ctx):
     user searched by."""
     from grunt.api.v1.meta import save_doctype
     from grunt.auth.doctypes.User.user import SYSTEM_USER
-    from grunt.document.base import Document
 
     await save_doctype(
         doctype_data={
@@ -746,7 +812,7 @@ async def test_link_search_returns_all_search_fields(ctx):
     await ctx.db._session().commit()
 
     async with ctx.context(ctx.db._session(), ctx.get_engine(), SYSTEM_USER):
-        items = await Document.link_search("Correspondentish", search="34620942")
+        items = await links_api.link_search("Correspondentish", search="34620942")
 
     assert len(items) == 1
     item = items[0]

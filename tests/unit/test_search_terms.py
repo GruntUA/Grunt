@@ -1,19 +1,10 @@
-"""Unit tests for grunt.search.terms - query splitting and engine renderers."""
+"""Unit tests for grunt.search.tokens and grunt.search.terms - splitting, renderers, LIKE."""
 
 from sqlalchemy import column
 from sqlalchemy.dialects import sqlite
 
-from grunt.search.terms import (
-    MAX_TERMS,
-    escape_like,
-    fts5_query,
-    like_term,
-    match_columns,
-    matches_text,
-    mysql_boolean_query,
-    split_terms,
-    tsquery,
-)
+from grunt.search.terms import escape_like, like_term, match_columns, matches_text
+from grunt.search.tokens import MAX_TERMS, fts5_query, mysql_boolean_query, split_terms, tsquery
 
 
 def test_split_terms_dedupes_case_insensitively_and_caps():

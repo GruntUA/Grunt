@@ -363,7 +363,9 @@ async def test_activity_widget_merges_consecutive_entries_on_one_doc(monkeypatch
     async def noop(_items):
         return None
 
-    monkeypatch.setattr(widget_compute.grunt, "get_list", fake_get_list)
+    from grunt.document.api import documents
+
+    monkeypatch.setattr(documents, "get_list", fake_get_list)
     monkeypatch.setattr(widget_compute, "attach_titles", noop)
     monkeypatch.setattr(widget_compute, "attach_user_names", noop)
 

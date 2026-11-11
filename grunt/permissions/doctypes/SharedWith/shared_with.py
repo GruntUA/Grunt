@@ -1,10 +1,11 @@
-"""SharedWith controller - only someone who may write a document can share it.
+"""SharedWith controller - only someone who may share and write a document can share it.
 
 The grant itself is enforced in :mod:`grunt.permissions.shares`.
 """
 
-from grunt import _
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.permissions.rbac import permission_checker
 
 
@@ -17,26 +18,26 @@ class SharedWith(Document):
         # ``user`` is a field here, but ``self.user`` is the acting user.
         target = (self.data.get("user") or "").strip()
         if not target:
-            self.grunt.throw(_("Specify a user"))
+            throw(_("Specify a user"))
         self.data["user"] = target
         if self.permission not in ("Read", "Write"):
             self.data["permission"] = "Read"
         if not await self.grunt.db.exists("User", target):
-            self.grunt.throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
-        await self._require_write_on_reference()
+            throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
+        await self._require_share_on_reference()
 
     async def before_delete(self) -> None:
-        await self._require_write_on_reference()
+        await self._require_share_on_reference()
 
-    async def _require_write_on_reference(self) -> None:
+    async def _require_share_on_reference(self) -> None:
         if self.user is None:
             return
         dt = await self.grunt.get_meta(self.reference_doctype)
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
-            self.grunt.throw(_("Document not found"), "NOT_FOUND")
-        if not await permission_checker.check(self.user, dt, "write", doc):
-            self.grunt.throw(
-                _("Only someone who can edit the document can share it"),
+            throw(_("Document not found"), "NOT_FOUND")
+        if not await permission_checker.can_share(dt, doc):
+            throw(
+                _("Only someone allowed to share and edit the document can share it"),
                 "PERMISSION_DENIED",
             )

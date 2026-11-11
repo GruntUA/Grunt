@@ -72,7 +72,7 @@ async def test_fast_delete_respects_filters_and_search(ctx, db_session, engine, 
         "FastDelItem",
         filters={"kind__eq": "a"},
         search="alpha",
-        user=SYSTEM_USER,
+        user=SYSTEM_USER.email,
         user_email=SYSTEM_USER.email,
         engine=engine,
     )
@@ -142,7 +142,7 @@ async def test_fast_delete_removes_child_rows(ctx, db_session, engine, monkeypat
     await task.run_fast_delete_all(
         "FastDelParent",
         filters={"title__eq": "gone"},
-        user=SYSTEM_USER,
+        user=SYSTEM_USER.email,
         user_email=SYSTEM_USER.email,
         engine=engine,
     )

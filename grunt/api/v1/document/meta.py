@@ -1,0 +1,333 @@
+"""Cross-document metadata RPC methods (``/api/v1/method/...``).
+
+RPC: grunt.api.v1.document.meta.get_backlinks
+RPC: grunt.api.v1.document.meta.get_sidebar
+RPC: grunt.api.v1.document.meta.get_preview
+RPC: grunt.api.v1.document.meta.get_field_years
+"""
+
+from typing import Any
+
+from fastapi import HTTPException
+
+from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
+from grunt.i18n import _
+from grunt.local import require_session, user_email
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.activity.milestones import history as milestone_history
+lazy from grunt.auth.users import get_users_by_emails
+lazy from grunt.document import collection
+lazy from grunt.document.api import documents
+lazy from grunt.document.links import link_service
+lazy from grunt.document.sidebar import collect_sections
+lazy from grunt.document.titles import resolve_reference_titles
+lazy from grunt.permissions.guards import doc_guard, read_guard
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.types import PermissionAction
+
+
+def _iso(value: Any) -> str | None:
+    return str(value) if value else None
+
+
+async def _optional(coro: Any, fallback: Any) -> Any:
+    """Await *coro*, returning *fallback* if it fails with a permission error.
+
+    The sidebar bundles several auxiliary sections (assignees, shares, tags,
+    bookmark). A viewer who lacks read on one of those system DocTypes should
+    just get an empty section - not a failed sidebar and a stray "access
+    denied" toast.
+    """
+
+    try:
+        return await coro
+    except HTTPException as exc:
+        if exc.status_code == 403:
+            return fallback
+        raise
+
+
+@whitelist()
+async def get_field_years(doctype: str, fieldname: str) -> list[int]:
+    """Years present in a Date/Datetime field, newest first (year quick filter)."""
+
+    _dt, user, hidden_fields = await read_guard(doctype)
+    if fieldname in hidden_fields:
+        return []
+    return await collection.field_years(require_session(), doctype, user, fieldname)
+
+
+@whitelist()
+async def get_backlinks(doctype: str, doc_id: str) -> list[dict[str, Any]]:
+    """Return all documents that link to this document (backlinks).
+
+    Each row carries ``title`` - the source document's title_field value
+    (permission-aware, one query per source DocType), falling back to its id.
+    """
+
+    # Permission verification
+    await documents.get_doc(doctype, doc_id)
+
+    rows = await link_service.get_backlinks(require_session(), doctype, doc_id)
+    refs = [(r["source_doctype"], r["source_id"]) for r in rows]
+    titles = await resolve_reference_titles(refs)
+    return [
+        {**r, "title": str(titles.get(ref) or r["source_id"])}
+        for r, ref in zip(rows, refs, strict=True)
+    ]
+
+
+@whitelist()
+async def get_delete_impact(
+    doctype: str,
+    doc_id: str | None = None,
+    doc_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Summarise what references the given document(s) - see LinkService."""
+
+    ids = list(doc_ids) if doc_ids else ([doc_id] if doc_id else [])
+    for one in ids:
+        await doc_guard(doctype, one)  # permission check per id
+
+    return await link_service.get_delete_impact(require_session(), doctype, ids)
+
+
+@whitelist()
+async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
+    """Link hover card: title, image and the ``in_preview`` fields of a document.
+
+    ``None`` when the DocType has ``show_preview_popup`` off or the reader
+    can't see the document. Without ``in_preview`` fields the required
+    ones are shown instead (as Frappe does).
+    """
+    meta = await doctype_registry.get_meta(doctype)
+    if meta is None or not meta.doc.show_preview_popup:
+        return None
+
+    physical = [f for f in meta.get_physical_fields() if not f.has_trait("sensitive")]
+    fields = [f for f in physical if f.in_preview] or [f for f in physical if f.required]
+    title_field = meta.get_title_field()
+    image_field = meta.get_image_field()
+    fieldnames = {"name", title_field, *(f.fieldname for f in fields)}
+    if image_field:
+        fieldnames.add(image_field)
+
+    rows = await _optional(
+        documents.get_list(
+            doctype,
+            filters={"name": doc_id},
+            fields=sorted(fieldnames),
+            limit=1,
+            include_total=False,
+        ),
+        [],
+    )
+    if not rows:
+        return None
+    row = dict(rows[0])
+    return {
+        "name": str(row.get("name") or doc_id),
+        "title": str(row.get(title_field) or doc_id),
+        "image": row.get(image_field) if image_field else None,
+        "row": row,
+        "fields": [
+            {
+                "fieldname": f.fieldname,
+                "label": _(f.label or f.fieldname),
+                "fieldtype": f.fieldtype,
+                "options": f.options,
+            }
+            for f in fields
+            if f.fieldname not in (title_field, image_field)
+        ],
+    }
+
+
+@whitelist()
+async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
+    """Return the whole document-sidebar payload in one round-trip.
+
+    Bundles assignees, shares, tags, the current user's bookmark, what
+    the user may add (``perms``) and the ``sidebar_sections`` rows
+    (``properties`` and ``sections``, see grunt.document.sidebar), so
+    the desk sidebar needs a single request instead of one per section.
+    """
+
+    doc = await documents.get_doc(doctype, doc_id, expand=[])  # also the permission check
+
+    ref = {"reference_doctype": doctype, "reference_id": doc_id}
+
+    # Auxiliary sections - independent of each other and of the doc load
+    # above, but all run on the one request-scoped AsyncSession, which
+    # SQLAlchemy does not allow to be driven from concurrent coroutines
+    # (asyncio.gather here would race two queries onto the same session
+    # and raise IllegalStateChangeError under load) - so fetch them one
+    # at a time. A viewer who can't read one of these system DocTypes
+    # just gets an empty section, not a broken sidebar. None of these
+    # need pagination totals, so include_total is off to skip the extra
+    # COUNT(*) per section.
+    assignees = await _optional(
+        documents.get_list(
+            "ToDo",
+            filters={**ref, "status__in": ["Open", "In Progress"]},
+            order_by="created_at",
+            order="asc",
+            limit=100,
+            include_total=False,
+        ),
+        [],
+    )
+    shares = await _optional(
+        documents.get_list(
+            "SharedWith",
+            filters=ref,
+            order_by="created_at",
+            order="asc",
+            limit=100,
+            include_total=False,
+        ),
+        [],
+    )
+    tags = await _optional(
+        documents.get_list(
+            "DocTag",
+            filters=ref,
+            order_by="created_at",
+            order="asc",
+            limit=100,
+            include_total=False,
+        ),
+        [],
+    )
+    bookmarks = await _optional(
+        documents.get_list(
+            "Bookmark",
+            filters={**ref, "owner": user_email()},
+            limit=1,
+            include_total=False,
+        ),
+        [],
+    )
+
+    follows = await _optional(
+        documents.get_list(
+            "DocFollow",
+            filters={**ref, "user": user_email()},
+            limit=1,
+            include_total=False,
+        ),
+        [],
+    )
+
+    milestones = await _optional(milestone_history(doctype, doc_id), [])
+
+    reminders = await _optional(
+        documents.get_list(
+            "Reminder",
+            filters={
+                "reference_doctype": doctype,
+                "reference_name": doc_id,
+                "owner": user_email(),
+                "notified": False,
+            },
+            fields=["name", "remind_at", "description"],
+            order_by="remind_at",
+            order="asc",
+            limit=20,
+            include_total=False,
+        ),
+        [],
+    )
+
+    acting_user()  # 401 without a user, as before
+    dt = await doctype_registry.get_meta(doctype)
+
+    async def can(target: str, action: PermissionAction, row: dict | None = None) -> bool:
+        meta = dt if target == doctype else await doctype_registry.get_meta(target)
+        return meta is not None and await permission_checker.check(meta, action, row)
+
+    # The same checks the add endpoints enforce, so the UI hides what would be refused.
+    perms = {
+        "assign": await can("ToDo", "create"),
+        "share": dt is not None and await permission_checker.can_share(dt, doc),
+        "tag": await can("DocTag", "create"),
+    }
+    collected = await collect_sections(doctype, doc_id, doc)
+
+    bookmark = dict(bookmarks[0]) if bookmarks else None
+    if bookmark and bookmark.get("created_at"):
+        bookmark["created_at"] = _iso(bookmark["created_at"])
+
+    # Resolve display names/avatars for everyone referenced in the sidebar.
+    emails: set[str] = set()
+    for value in (doc.get("owner"), doc.get("modified_by")):
+        if value:
+            emails.add(value)
+    for row in assignees:
+        if row.get("assigned_to"):
+            emails.add(row["assigned_to"])
+    for row in shares:
+        if row.get("user"):
+            emails.add(row["user"])
+
+    people: dict[str, dict[str, Any]] = {}
+    if emails:
+        users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
+        for u in users:
+            email = u.email
+            people[email] = {
+                "name": getattr(u, "full_name", None) or email,
+                "avatar": u.data.get("avatar") or None,
+            }
+
+    return {
+        "assignees": [
+            {
+                "name": str(r["name"]),
+                "assigned_to": r.get("assigned_to"),
+                "description": r.get("description"),
+                "created_at": _iso(r.get("created_at")),
+                "status": r.get("status"),
+                "priority": r.get("priority"),
+                "due_date": r.get("due_date"),
+                "is_overdue": bool(r.get("is_overdue")),
+            }
+            for r in assignees
+        ],
+        "shares": [
+            {
+                "name": str(r["name"]),
+                "user": r.get("user"),
+                "permission": r.get("permission"),
+            }
+            for r in shares
+        ],
+        "tags": [{"name": str(r["name"]), "tag": r.get("tag")} for r in tags],
+        "bookmark": bookmark,
+        "follow": {"name": str(follows[0]["name"])} if follows else None,
+        "people": people,
+        "perms": perms,
+        "properties": collected["properties"],
+        "sections": collected["sections"],
+        "reminders": [
+            {
+                "name": str(r["name"]),
+                "remind_at": _iso(r.get("remind_at")),
+                "description": r.get("description"),
+            }
+            for r in reminders
+        ],
+        "milestones": [
+            {
+                "name": str(m["name"]),
+                "field": m.get("track_field"),
+                "value": m.get("value"),
+                "entered_at": _iso(m.get("entered_at")),
+                "left_at": _iso(m.get("left_at")),
+                "duration_hours": m.get("duration_hours"),
+                "approximate": bool(m.get("approximate")),
+            }
+            for m in milestones
+        ],
+    }

@@ -19,10 +19,16 @@ from typing import Any
 import httpx2
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log, outbox
+import grunt.outbox as outbox
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 lazy from grunt.webhook.doctypes.OutgoingWebhook.outgoing_webhook import OutgoingWebhook
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class WebhookService:
@@ -39,8 +45,8 @@ class WebhookService:
             return
 
         try:
-            async with grunt.system_context(session):
-                webhooks = await grunt.db.get_all(
+            async with system_context(session):
+                webhooks = await _db.get_all(
                     "OutgoingWebhook",
                     filters={"doctype_name": doctype, "event": event, "is_enabled": True},
                     limit=100,
@@ -90,8 +96,8 @@ class WebhookService:
         user_email: str,
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
-        async with grunt.system_context(session):
-            wh_data = await grunt.find_doc(OutgoingWebhook, webhook_id)
+        async with system_context(session):
+            wh_data = await documents.find_doc(OutgoingWebhook, webhook_id)
 
         if not wh_data:
             return {"success": False, "error": _("Webhook not found")}
@@ -185,8 +191,8 @@ class WebhookService:
         # Write WebhookLog best-effort
         if await doctype_registry.get_or_none("WebhookLog") is not None:
             try:
-                async with grunt.system_context(session):
-                    await grunt.new_doc("WebhookLog", log_entry)
+                async with system_context(session):
+                    await documents.new_doc("WebhookLog", log_entry)
             except Exception:
                 log.warning("webhook_log.write_failed", webhook_id=webhook_id)
 
@@ -204,8 +210,8 @@ async def deliver_webhook(message: dict[str, Any]) -> None:
     """Send one queued webhook (an outbox handler) with its current settings - a
     webhook disabled or deleted since is skipped. The attempt is logged and
     committed before a failure is raised, so a retry keeps the history."""
-    session = grunt.get_session()
-    rows = await grunt.db.get_all("OutgoingWebhook", filters={"name": message["webhook"]}, limit=1)
+    session = require_session()
+    rows = await _db.get_all("OutgoingWebhook", filters={"name": message["webhook"]}, limit=1)
     wh = rows[0] if rows else None
     if wh is None or not wh.get("is_enabled"):
         return

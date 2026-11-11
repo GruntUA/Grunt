@@ -25,27 +25,21 @@ import re
 import shutil
 import tarfile
 from collections.abc import Callable, Sequence
-from compression import zstd
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import NamedTuple
 
-from grunt import _, log
 from grunt.db.dialects import dialect_for
+from grunt.db.dialects.archive import DEFAULT_COMPRESSION_LEVEL, BackupError, zstd_options
+from grunt.i18n import _
+from grunt.log import log
 from grunt.progress import Progress
 from grunt.site.manager import site_manager
 
 KINDS = ("database", "files", "config")
-# zstd 9: ~40% smaller than gzip 6 and faster; 19 squeezes more at ~25× the time.
-DEFAULT_COMPRESSION_LEVEL = 9
-MAX_COMPRESSION_LEVEL = 19
 # The name becomes a path: the suffix is extension characters only (no "/").
 _NAME = re.compile(r"^(\d{8}-\d{6})-(database|files|config)(\.[A-Za-z0-9.]+)$")
-
-
-class BackupError(RuntimeError):
-    pass
 
 
 class BackupBusyError(BackupError):
@@ -116,17 +110,6 @@ def rotate(site: str, keep: int) -> list[str]:
 
 
 # Making a backup
-
-
-def zstd_options(level: int) -> dict:
-    """Compression *level* (clamped) on half the cores - the site keeps serving meanwhile."""
-    options = {
-        zstd.CompressionParameter.compression_level: min(max(level, 1), MAX_COMPRESSION_LEVEL)
-    }
-    workers = max((os.cpu_count() or 1) // 2, 1)
-    if workers > 1 and zstd.CompressionParameter.nb_workers.bounds()[1] > 0:
-        options[zstd.CompressionParameter.nb_workers] = workers
-    return options
 
 
 class _CountingReader:

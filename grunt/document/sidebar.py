@@ -20,10 +20,12 @@ properties (status, ID, web page) come through here too, from
 ``method(doctype, doc_id, doc)`` is awaited with the already permission-checked
 document and returns the rows, or ``None``/``[]`` to hide the section. A row is
 ``{"label", "value", "link"?, "external"?, "indicator"?, "copy"?, "mono"?,
-"tooltip"?}``: ``link`` is a desk path or URL (``external`` opens a path in a
+"tooltip"?, "datetime"?}``: ``link`` is a desk path or URL (``external`` opens a path in a
 new tab - a website page, not a desk route), ``indicator`` one of the status
 colours (green, red, orange, yellow, blue, gray, success, danger, ...), ``copy``
-adds a copy-to-clipboard button, ``mono`` sets the value in a monospace font.
+adds a copy-to-clipboard button, ``mono`` sets the value in a monospace font,
+``datetime`` (ISO) adds that moment after the value, relative ("in 3 hours"),
+in the reader's language and time zone.
 
 ``placement="section"`` draws the rows under their own heading below the
 built-in blocks; ``"properties"`` merges them, without a heading, into the
@@ -37,15 +39,26 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Literal
 
-import grunt
-from grunt import _, log
-from grunt.permissions.roles import user_has_roles
+from grunt.i18n import _
+from grunt.local import session_roles, user_email
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.i18n.service import translation_service
 lazy from grunt.website.generator import WEB_URL_KEY, with_web_url
 lazy from grunt.website.preview import PREVIEW_URL_KEY
 lazy from grunt.workflow.registry import get_active_workflow
 
-_ROW_KEYS = ("label", "value", "link", "external", "indicator", "copy", "mono", "tooltip")
+_ROW_KEYS = (
+    "label",
+    "value",
+    "link",
+    "external",
+    "indicator",
+    "copy",
+    "mono",
+    "tooltip",
+    "datetime",
+)
 
 Placement = Literal["properties", "section"]
 PLACEMENTS: tuple[Placement, ...] = ("properties", "section")
@@ -74,12 +87,13 @@ def register_sidebar_section(section: SidebarSection) -> None:
 
 
 def sections_for(doctype: str) -> list[SidebarSection]:
-    user = grunt.get_user()
+    user_email()  # 401 without a user
+    held = set(session_roles())
     applicable = [
         s
         for s in _SECTIONS.values()
         if (not s.doctypes or doctype in s.doctypes)
-        and (not s.roles or user_has_roles(user, list(s.roles)))
+        and (not s.roles or any(r in held for r in s.roles))
     ]
     # Stable: equal orders keep registration order (core first, then apps).
     return sorted(applicable, key=lambda s: s.order)
@@ -112,7 +126,7 @@ async def collect_sections(doctype: str, doc_id: str, doc: Any) -> dict[str, lis
 
 async def status_rows(doctype: str, doc_id: str, doc: Any) -> list[dict[str, Any]]:
     """Status and, when it lives in another field, the workflow state - as badges."""
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         return []
     indicators = {i.value: i for i in meta.doc.status_indicators}

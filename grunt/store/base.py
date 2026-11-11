@@ -2,8 +2,8 @@
 
 The layers above (documents, lists, reports) speak :class:`~grunt.query.query.Query`
 and plain row dicts; a store executes them. Permissions are not a store's
-concern: :mod:`grunt.query.run` ANDs them onto a query's ``where`` before it
-gets here, and the document pipeline checks them before a write.
+concern: :mod:`grunt.permissions.reads` ANDs them onto a query's ``where``
+before it gets here, and the document pipeline checks them before a write.
 
 A store says what it can do in :attr:`Store.capabilities`; the core refuses
 what's missing with a clear error instead of failing on a table that isn't
@@ -15,10 +15,9 @@ from typing import Any, ClassVar
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import _
 from grunt.document.serde import serialize_datetimes, with_doctype
+from grunt.i18n import _
 from grunt.query.query import Query
-lazy from grunt.auth.doctypes.User.user import User
 
 # What a store can do, beyond reading its rows (``fetch``/``count``/``get``).
 INSERT = "insert"
@@ -107,7 +106,7 @@ class Store:
     # Writing
 
     async def insert(
-        self, doc: dict[str, Any], *, input: dict[str, Any], user: User
+        self, doc: dict[str, Any], *, input: dict[str, Any], user: str
     ) -> dict[str, Any]:
         """Store the new document *doc* and return it as stored (a store may
         name it, add computed values). *input* - the values as submitted."""
@@ -120,7 +119,7 @@ class Store:
         *,
         before: dict[str, Any],
         input: dict[str, Any],
-        user: User,
+        user: str,
     ) -> dict[str, Any]:
         """Store *doc* - the document *name* (stored as *before*) with the
         changes *input* applied - and return it as :meth:`output` shows it."""

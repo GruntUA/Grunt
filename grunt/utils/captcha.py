@@ -13,8 +13,8 @@ from dataclasses import dataclass
 
 import httpx2
 
-from grunt import log
 from grunt.config import settings
+from grunt.log import log
 from grunt.site.settings import get_setting
 
 _VERIFY_URLS = {

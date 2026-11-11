@@ -28,9 +28,9 @@ from pathlib import Path
 
 lazy import polib
 
-import grunt
 from grunt.i18n.plurals import plural_index
 from grunt.log import log
+from grunt.site.bench import bench_dir
 
 # Directory containing locale files (uk/LC_MESSAGES/grunt.po)
 _LOCALE_DIR = Path(__file__).parent / "locales"
@@ -152,12 +152,7 @@ def _flatten_catalog(catalog: dict[str, str]) -> dict[str, str]:
 
 def _app_locale_po_files(lang: str) -> list[Path]:
     """Every installed app's PO file for *lang* (``apps/*/*/locales/<lang>.po``)."""
-    try:
-        from grunt.site.manager import site_manager
-
-        apps_dir = site_manager.bench_dir / "apps"
-    except Exception:
-        return []
+    apps_dir = bench_dir() / "apps"
     if not apps_dir.is_dir():
         return []
     files = list(apps_dir.glob(f"*/*/locales/{lang}.po"))
@@ -167,12 +162,7 @@ def _app_locale_po_files(lang: str) -> list[Path]:
 
 def _app_locale_codes() -> set[str]:
     """Locale codes of every installed app's PO files."""
-    try:
-        from grunt.site.manager import site_manager
-
-        apps_dir = site_manager.bench_dir / "apps"
-    except Exception:
-        return set()
+    apps_dir = bench_dir() / "apps"
     if not apps_dir.is_dir():
         return set()
     codes = {p.stem for p in apps_dir.glob("*/*/locales/*.po")}
@@ -433,21 +423,6 @@ class TranslationService:
         _app_catalogs.clear()
         _provider_cache.clear()
         self._bump_version()
-
-
-async def language_of(user: str | None) -> str | None:
-    """Stored UI language of *user* (email) - render mail/notifications to them in it.
-
-    Pair with :func:`use_language`; ``None`` (unknown user / no preference) keeps
-    the current language.
-    """
-    if not user:
-        return None
-
-    try:
-        return await grunt.db.get_value("User", user, "language")
-    except Exception:  # noqa: BLE001 - a missing user must not break delivery
-        return None
 
 
 def normalize_lang(lang: str | None) -> str:

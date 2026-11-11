@@ -18,12 +18,12 @@ While a DocType has an active workflow:
   controller which transition is being applied:
 
   ```python
-  from grunt.workflow.engine import current_transition
+  from grunt.workflow.transition import current_transition
 
 
   async def validate(self):
       if (t := current_transition()) and t.to_state == "Approved":
-          self.approved_by = self.user.email
+          self.approved_by = self.user  # the session user's email
   ```
 
 - After it: an `ActivityLog` entry (`action="Workflow"`), the comment (if any)

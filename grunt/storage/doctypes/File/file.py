@@ -5,22 +5,26 @@ from fastapi import HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy import String, cast, or_, select
 
-import grunt
-from grunt import _
 from grunt.api.context import whitelist
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
-from grunt.local import _user_ctx
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session, session_user, user_email
 from grunt.storage import files, quota
 from grunt.storage.backends import FileTooLargeError, get_storage_backend
 from grunt.storage.cloud.files import blob_path
 from grunt.storage.signing import verify
 from grunt.storage.thumbnails import THUMB_MIMETYPE, THUMB_WIDTH, WEB_WIDTHS, can_thumbnail
+lazy from grunt.document.api import documents
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.storage.doctypes.FileFolder.file_folder import require_folder_write
 lazy from grunt.storage.references import file_ids_in
 lazy from grunt.storage.remote import RemoteFileError, fetch_file
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class File(Document):
@@ -58,16 +62,16 @@ class File(Document):
         if not self.folder:
             return
         if self.id and self._prev_folder is None:
-            self._prev_folder = await grunt.db.get_value("File", self.id, "folder") or ""
+            self._prev_folder = await _db.get_value("File", self.id, "folder") or ""
         if self.folder == self._prev_folder:
             return
 
-        folder = await grunt.db.get_value("FileFolder", self.folder, "*")
+        folder = await _db.get_value("FileFolder", self.folder, "*")
         if folder is None:
-            grunt.throw(_("Folder “%(folder)s” not found") % {"folder": self.folder})
+            throw(_("Folder “%(folder)s” not found") % {"folder": self.folder})
         await require_folder_write(folder)
         prev_space = (
-            await grunt.db.get_value("FileFolder", self._prev_folder, "space_user")
+            await _db.get_value("FileFolder", self._prev_folder, "space_user")
             if self._prev_folder
             else None
         )
@@ -84,14 +88,14 @@ class File(Document):
         if (
             self.attached_to_doctype
             and self.attached_to_id
-            and await grunt.db.exists(self.attached_to_doctype, self.attached_to_id)
+            and await _db.exists(self.attached_to_doctype, self.attached_to_id)
         ):
-            grunt.throw(
+            throw(
                 _("The file can't be deleted: it is attached to %(doctype)s “%(doc)s”")
                 % {"doctype": self.attached_to_doctype, "doc": self.attached_to_id}
             )
         if used_in := await _documents_using(str(self.id)):
-            grunt.throw(
+            throw(
                 _("The file can't be deleted: it is used in %(doctype)s “%(doc)s”")
                 % {"doctype": used_in[0], "doc": used_in[1]}
             )
@@ -124,7 +128,7 @@ async def _documents_using(file_id: str) -> tuple[str, str] | None:
     A child-table row is reported as its parent document.
     """
 
-    session = grunt.get_session()
+    session = require_session()
     pattern = f"%file_id={file_id}%"
     for dt in await doctype_registry.list_all():
         if dt.name in _NOT_USERS or not dt.has_table:
@@ -171,14 +175,14 @@ async def upload(
     (FileFolder) - that needs write access to the folder and room in its quota.
     """
     if is_public is None:
-        meta = await grunt.get_meta(attached_to_doctype) if attached_to_doctype else None
+        meta = await doctype_registry.get_meta(attached_to_doctype) if attached_to_doctype else None
         is_public = bool(meta and meta.public_attachments)
     if not file.filename:
         raise HTTPException(400, _("No filename provided"))
     if folder:
         # Fail before streaming the body; File.before_save re-checks with the size.
 
-        row = await grunt.db.get_value("FileFolder", folder, "*")
+        row = await _db.get_value("FileFolder", folder, "*")
         if row is None:
             raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
         await require_folder_write(row)
@@ -208,7 +212,7 @@ async def upload(
     existing = await File.objects.filter(
         file_name=blob.filename,
         content_hash=blob.key,
-        uploaded_by=grunt.get_user().email,
+        uploaded_by=user_email(),
         attached_to_doctype=attached_to_doctype or None,
         attached_to_id=attached_to_id or None,
         folder=folder or None,
@@ -236,7 +240,7 @@ async def upload_from_url(url: str, folder: str | None = None) -> dict[str, Any]
     (see :mod:`grunt.storage.remote` for what links are allowed)."""
 
     if folder:
-        row = await grunt.db.get_value("FileFolder", folder, "*")
+        row = await _db.get_value("FileFolder", folder, "*")
         if row is None:
             raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
         await require_folder_write(row)
@@ -267,7 +271,7 @@ def _upload_payload(doc: dict[str, Any], *, deduped: bool) -> dict[str, Any]:
 
 async def generate_missing_thumbnails(limit: int = 500) -> int:
     """Backfill previews for files that have none (made before, or on a failure)."""
-    rows = await grunt.db.get_all(
+    rows = await _db.get_all(
         "File",
         filters={"thumbnail_url__isnull": True},
         fields=["name", "content_hash", "content_type"],
@@ -281,7 +285,7 @@ async def generate_missing_thumbnails(limit: int = 500) -> int:
         if not key or not can_thumbnail(ctype) or not await files.ensure_thumbnail(key, ctype):
             continue
         url = files.thumbnail_url(str(row["name"]), key, ctype)
-        await grunt.db.set_value("File", row["name"], {"thumbnail_url": url})
+        await _db.set_value("File", row["name"], {"thumbnail_url": url})
         made += 1
     return made
 
@@ -311,7 +315,7 @@ async def get_content(
     to every file URL the API hands out) or a user allowed to read it.
     """
     # Use grunt.db directly to avoid permission checks that require an active user.
-    doc = await grunt.db.get_values(
+    doc = await _db.get_values(
         "File",
         file_id,
         [
@@ -331,12 +335,12 @@ async def get_content(
     # A private file needs an authenticated user who may read it - which, for
     # an attachment, means reading the document it is attached to.
     if not doc.get("is_public") and not verify(file_id, exp, sig):
-        user = _user_ctx.get()
+        user = session_user()
         if user is None:
             raise HTTPException(401, _("Authentication required to access this file"))
 
-        meta = await grunt.get_meta("File")
-        if meta is None or not await permission_checker.check(user, meta, "read", doc):
+        meta = await doctype_registry.get_meta("File")
+        if meta is None or not await permission_checker.check(meta, "read", doc, user=user):
             raise HTTPException(403, _("No access to the file"))
 
     key = doc.get("content_hash") or ""
@@ -398,7 +402,7 @@ async def get_list(
     records = await query.limit(limit).page(page).all()
     # ``records`` is row-level filtered (grunt.get_all), so the total must be
     # too - a raw count would reveal how many files the user may NOT see.
-    total = await grunt.count("File", filters=all_filters or None, respect_permissions=True)
+    total = await documents.count("File", filters=all_filters or None, respect_permissions=True)
 
     return {
         "items": [
@@ -428,5 +432,5 @@ async def remove(file_id: str) -> bool:
     The blob stays until the storage garbage collector finds nothing - no
     other File row, no trashed snapshot - pointing at it (grunt.storage.gc).
     """
-    await grunt.delete_doc("File", file_id)
+    await documents.delete_doc("File", file_id)
     return True

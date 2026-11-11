@@ -11,20 +11,24 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
 lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import ensure_site_dependencies
+lazy from grunt.document.api import documents
 lazy from grunt.document.registry import document_registry
+lazy from grunt.fixtures import apply_doctype_fixture
 lazy from grunt.metadata.compiler import get_table_name
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import DoctypeExtension, apply_extensions, site_extensions
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import site_manager
 lazy from grunt.standard_records import apply_records
-lazy from grunt.startup.fixtures import _apply_doctype_fixture
 lazy from grunt.startup.workspaces import _apply_workspace_fixture, _auto_seed_workspace
 lazy from grunt.version import app_version, framework_version
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 def _ensure_on_syspath(path: Path) -> None:
@@ -46,10 +50,10 @@ async def record_migrated_versions() -> None:
     was just migrated with - "Стан системи" compares it with the running code.
     Runs inside a grunt context."""
 
-    for row in await grunt.get_list("GruntInstalledApp", fields=["name", "version"]):
+    for row in await documents.get_list("GruntInstalledApp", fields=["name", "version"]):
         version = _installed_version(row["name"])
         if row.get("version") != version:
-            await grunt.set_value("GruntInstalledApp", row["name"], "version", version)
+            await documents.set_value("GruntInstalledApp", row["name"], "version", version)
 
 
 async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
@@ -58,9 +62,9 @@ async def _register_app_if_new(app_name: str, app_meta: dict) -> bool:
     Returns True if this was the first install (the row didn't exist yet).
     """
 
-    is_first_install = await grunt.exists("GruntInstalledApp", {"name": app_name}) is None
+    is_first_install = await documents.exists("GruntInstalledApp", {"name": app_name}) is None
     if is_first_install:
-        await grunt.new_doc(
+        await documents.new_doc(
             "GruntInstalledApp",
             {
                 "name": app_name,
@@ -197,7 +201,7 @@ async def register_installed_app_doctypes(session: AsyncSession, site_name: str)
     extensions = site_extensions(site_manager.bench_dir / "apps", installed_apps)
 
     synced: set[str] = set()
-    async with grunt.system_context(session, eng):
+    async with system_context(session, eng):
         await doctype_registry.load_all(session)
         for app_name in installed_apps:
             app_dir = site_manager.bench_dir / "apps" / app_name
@@ -241,7 +245,7 @@ async def _apply_app_fixtures(
                     deferred_menus.append((fx_file, records))
                     continue
 
-                written = await _apply_doctype_fixture(
+                written = await apply_doctype_fixture(
                     fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
                 )
                 if written:
@@ -276,11 +280,11 @@ async def _seed_app_singletons(app_name: str) -> None:
     for dt in await doctype_registry.list_all():
         if dt.app != app_name or not dt.is_singleton or not dt.has_table:
             continue
-        if await grunt.db.count(dt.name) > 0:
+        if await _db.count(dt.name) > 0:
             continue
         try:
-            async with grunt.get_session().begin_nested():
-                await grunt.new_doc(dt.name, {"name": dt.name})
+            async with require_session().begin_nested():
+                await documents.new_doc(dt.name, {"name": dt.name})
             log.info("startup.app_singleton_seeded", app=app_name, doctype=dt.name)
         except Exception as e:
             log.warning(
@@ -344,7 +348,7 @@ async def sync_installed_apps(
 
     _ensure_on_syspath(site_manager.bench_dir / "apps")
 
-    async with grunt.system_context(session, eng):
+    async with system_context(session, eng):
         if not doctypes_registered:
             await doctype_registry.load_all(session)
 

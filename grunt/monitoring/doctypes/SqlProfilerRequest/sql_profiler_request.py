@@ -10,7 +10,7 @@ from grunt.db.profiler import get_recent_requests
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
-from grunt.store import VirtualStore
+from grunt.store.virtual import VirtualStore
 
 
 class SqlProfilerRequestStore(VirtualStore):

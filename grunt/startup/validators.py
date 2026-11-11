@@ -7,8 +7,8 @@ Scans:
 
 from pathlib import Path
 
-from grunt import log
 from grunt.document.validators import load_from_dir
+from grunt.log import log
 from grunt.site.manager import site_manager
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/ -> grunt/

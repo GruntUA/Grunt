@@ -108,6 +108,13 @@ open_orders = await grunt.get_list(
 )
 ```
 
+`order_by` is one field, optionally with its direction: `"created_at"`,
+`"created_at asc"`, `"created_at desc"` (a direction in the string wins over
+`order`). An unknown field, several fields (`"a, b"`) or another word than
+`asc`/`desc` is a 422 - the list is never quietly sorted by something else.
+The same holds for `grunt.get_all`, `grunt.db.get_all`, `.objects.order_by()`
+and the REST list (`sort_by` / `sort_order`).
+
 ### `SomeController.objects` — typed query builder
 
 Every `Document` subclass gets a fluent, chainable query builder — a typed
@@ -270,26 +277,23 @@ stop. The dispatcher only exposes `GET`/`POST` — a formerly-PATCH/DELETE
 action becomes a `POST` whitelisted method.
 
 Generic (any-doctype) document operations that aren't tied to one specific
-DocType's own controller live as `@staticmethod`s on the base `Document`
-controller (`grunt/document/mixins/*_rpc.py`, mixed into
-`grunt.document.base.Document`) rather than in the `grunt/api/` tree —
-`grunt.document.base.Document.get_tree`,
-`grunt.document.base.Document.link_search`,
-`grunt.document.base.Document.print`, etc. An operation specific to one
-DocType (e.g. running a saved `Report`) belongs in *that* DocType's own
-controller file instead — `grunt.reports.doctypes.Report.report.run`,
-following the same pattern as `grunt.activity.doctypes.ActivityLog
-.activity_log.list_activity`.
+DocType's own controller are whitelisted functions in `grunt.api.v1.document`
+(one module per area: `tree`, `links`, `export`, `history`, `collaboration`,
+`workflow`, `meta`) — `grunt.api.v1.document.tree.get_tree`,
+`grunt.api.v1.document.links.link_search`,
+`grunt.api.v1.document.export.print`, etc. The `Document` class carries no HTTP
+methods: the document layer stays free of the services these operations use. An
+operation specific to one DocType (e.g. running a saved `Report`) belongs in
+*that* DocType's own controller file instead —
+`grunt.reports.doctypes.Report.report.run`, following the same pattern as
+`grunt.activity.doctypes.ActivityLog.activity_log.list_activity`.
 
-Name the method for what it does, without repeating context the class/module
-already supplies: `Document.get_tree`/`Document.move_tree_node` (not
-`Document.get`/`Document.move` — too generic once flattened onto one class,
-and `get` would collide with `Document.get(fieldname)`), `Document
-.link_search` (not `Document.search` — same reason), `Document
-.apply_workflow_transition` (not `Document.apply_transition` — ambiguous
-outside the workflow context). Drop a qualifier only when nothing is lost by
-dropping it — `Document.get_versions`/`get_activity_log`/`get_timeline`,
-`Document.get_comments`/`add_comment`, `Document.get_backlinks`.
+Name the function for what it does, without repeating context its module
+already supplies, but not so bare it becomes ambiguous: `tree.get_tree` /
+`tree.move_tree_node`, `links.link_search`, `workflow.apply_workflow_transition`
+(not `apply_transition`). Drop a qualifier only when nothing is lost by dropping
+it — `history.get_versions` / `get_activity_log` / `get_timeline`,
+`collaboration.get_comments` / `add_comment`, `meta.get_backlinks`.
 
 ### List/query parameter conventions (REST list endpoints)
 
@@ -452,7 +456,8 @@ user to use — it's set up for you before your code ever runs. Writing a CLI
 command or a background task means setting that context up yourself first:
 
 ```python
-async with grunt.context(session, engine, user):
+# user - a User document or an email (as frappe.set_user)
+async with grunt.context(session, engine, "jane@example.com"):
     await grunt.get_doc("Invoice", invoice_id)
 
 # No specific user — run as the internal system identity (bypasses

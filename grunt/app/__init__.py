@@ -7,19 +7,19 @@ are set by the framework at the start of each request / lifecycle hook call.
 """
 
 from grunt.app.context_api import ContextAPI
-from grunt.app.document_api import DocumentAPI
 from grunt.app.permission_api import PermissionAPI
 from grunt.app.realtime_api import RealtimeAPI
 from grunt.app.utility_api import UtilityAPI
-from grunt.cache.document_cache import DocumentCache
-from grunt.cache.query_cache import QueryCache
-from grunt.db import GruntDB
+from grunt.app.workflow_api import WorkflowAPI
+from grunt.db.api import GruntDB
+from grunt.document.api import documents
 from grunt.metadata.registry import doctype_registry
+from grunt.utils.templates import use_app
 
 # Main API
 
 
-class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
+class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, WorkflowAPI, UtilityAPI):
     """Primary developer API for building Grunt apps.
 
     Its methods are re-exported by the ``grunt`` package - app code uses them
@@ -58,11 +58,13 @@ class GruntApp(ContextAPI, RealtimeAPI, PermissionAPI, DocumentAPI, UtilityAPI):
     """
 
     def __init__(self) -> None:
-        self.db = GruntDB()
-        self.query_cache = QueryCache()
-        self.doc_cache = DocumentCache()
-        self.query_cache.subscribe()
-        self.doc_cache.subscribe()
+        # The document API (``grunt.get_doc`` ...) is grunt.document.api.documents -
+        # one instance, one set of caches, for the facade and the layers below it.
+        self.documents = documents
+        self.db = documents.db
+        self.query_cache = documents.query_cache
+        self.doc_cache = documents.doc_cache
+        use_app(self)
 
 
 # Module-level singleton

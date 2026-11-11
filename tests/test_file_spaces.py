@@ -7,6 +7,7 @@ import pytest
 from fastapi import HTTPException, UploadFile
 from starlette.datastructures import Headers
 
+from grunt.api.v1.document import tree as tree_api
 from grunt.errors import ApplicationError
 from grunt.storage import backends
 from tests.support import make_user
@@ -108,14 +109,13 @@ async def test_a_folder_needs_a_parent(ctx, people, db_session, engine):
 @pytest.mark.asyncio
 async def test_another_users_space_is_invisible(ctx, people, storage, db_session, engine):
     import grunt
-    from grunt.document.base import Document
     from grunt.storage.doctypes.File.file import upload
 
     home, work, drafts = await _ann_space(db_session, engine)
     async with grunt.context(db_session, engine, _as(BOB)):
         assert await grunt.get_list("File") == []
         assert all(r["space_user"] == BOB for r in await grunt.get_list("FileFolder"))
-        roots = await Document.get_tree_children("FileFolder")
+        roots = await tree_api.get_tree_children("FileFolder")
         assert home not in {n["name"] for n in roots}
         with pytest.raises(HTTPException) as read:
             await grunt.get_doc("FileFolder", work)
@@ -125,13 +125,12 @@ async def test_another_users_space_is_invisible(ctx, people, storage, db_session
         with pytest.raises(ApplicationError):
             await upload(_file("spam.txt"), folder=drafts)
         with pytest.raises(HTTPException):
-            await Document.move_tree_node("FileFolder", drafts, new_parent_id=home)
+            await tree_api.move_tree_node("FileFolder", drafts, new_parent_id=home)
 
 
 @pytest.mark.asyncio
 async def test_read_share_opens_the_whole_subtree(ctx, people, storage, db_session, engine):
     import grunt
-    from grunt.document.base import Document
     from grunt.storage.doctypes.File.file import upload
 
     home, work, drafts = await _ann_space(db_session, engine)
@@ -140,7 +139,7 @@ async def test_read_share_opens_the_whole_subtree(ctx, people, storage, db_sessi
         assert [f["file_name"] for f in await grunt.get_list("File")] == ["plan.txt"]
         assert (await grunt.get_doc("FileFolder", drafts))["folder_name"] == "Drafts"
         # The shared folder surfaces as a root - its parent (Ann's home) stays hidden.
-        roots = {n["name"] for n in await Document.get_tree_children("FileFolder")}
+        roots = {n["name"] for n in await tree_api.get_tree_children("FileFolder")}
         assert work in roots and home not in roots
         with pytest.raises(ApplicationError):
             await upload(_file("note.txt"), folder=drafts)
@@ -178,7 +177,6 @@ async def test_moving_a_folder_to_another_space_carries_its_subtree(
     ctx, people, storage, db_session, engine
 ):
     import grunt
-    from grunt.document.base import Document
     from grunt.storage.doctypes.FileFolder.file_folder import get_home_folder
 
     _, work, drafts = await _ann_space(db_session, engine)
@@ -186,7 +184,7 @@ async def test_moving_a_folder_to_another_space_carries_its_subtree(
         bob_home = (await get_home_folder())["name"]
         await db_session.commit()
     async with grunt.context(db_session, engine, _as("boss@example.com", "System Manager")):
-        await Document.move_tree_node("FileFolder", work, new_parent_id=bob_home)
+        await tree_api.move_tree_node("FileFolder", work, new_parent_id=bob_home)
     for folder in (work, drafts):
         assert await ctx.db.get_value("FileFolder", folder, "space_user") == BOB
 
@@ -258,7 +256,6 @@ async def test_assign_spaces_moves_library_into_authors_homes(ctx, people, db_se
 @pytest.mark.asyncio
 async def test_own_home_comes_first_as_my_files(ctx, people, storage, db_session, engine):
     import grunt
-    from grunt.document.base import Document
     from grunt.storage.doctypes.FileFolder.file_folder import get_home_folder
 
     ann_home, _, _ = await _ann_space(db_session, engine)
@@ -266,7 +263,7 @@ async def test_own_home_comes_first_as_my_files(ctx, people, storage, db_session
     async with grunt.context(db_session, engine, boss):
         own = (await get_home_folder())["name"]
         await db_session.commit()
-        roots = await Document.get_tree_children("FileFolder")
+        roots = await tree_api.get_tree_children("FileFolder")
     assert [n["name"] for n in roots][:2] == [own, ann_home]
     assert roots[0]["display_title"] == "Мої файли"
     assert "display_title" not in roots[1]
@@ -277,7 +274,7 @@ async def test_colleagues_directory_is_open_to_everyone_without_roles(
     ctx, people, db_session, engine
 ):
     import grunt
-    from grunt.auth.doctypes.User.user import list_colleagues_api
+    from grunt.auth.user_api import list_colleagues_api
 
     async with grunt.context(db_session, engine, _as(ANN)):
         people_list = await list_colleagues_api()
@@ -302,7 +299,7 @@ async def test_linking_from_website_content_publishes_readable_files(
             "module": "core",
             "public_attachments": True,
             "fields": [{"fieldname": "content", "label": "Content", "fieldtype": "RichText"}],
-            "permissions": [{"role": "All", "read": True, "write": True, "create": True}],
+            "permissions": [{"role": "All", "actions": ["read", "write", "create"]}],
             "__is_new": True,
         }
     )

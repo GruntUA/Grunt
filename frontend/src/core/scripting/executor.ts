@@ -16,6 +16,7 @@ import { appUrl } from '@/core/workspaceUrl'
 import type { ComponentDialogOptions } from '@/core/composables/useDialog'
 import { appDialog } from '@/core/appDialogs'
 import type { ActionsApi } from '@/core/actions'
+import { NO_PERMS } from '@/core/permissions'
 import { i18n, N_ } from '@/plugins/i18n'
 import type { DocType } from '@/types'
 import { createFormDashboard, type FormDashboardApi } from '@/core/scripting/formDashboard'
@@ -117,7 +118,7 @@ export function createFormProxy(
 ): FormProxy {
   const state = (): FormProxyState =>
     callbacks.state?.() ?? {
-      perm: { write: true, delete: false, create: false },
+      perm: { ...NO_PERMS, write: true },
       transitions: [],
       isDirty: false,
       isSaving: false,
@@ -197,7 +198,7 @@ export function createFormProxy(
       if (options.autoprint) params.set('autoprint', '1')
       const token = accessToken.value
       if (token) params.set('token', token)
-      window.open(`/api/v1/method/grunt.document.base.Document.print?${params}`, '_blank', 'noopener')
+      window.open(`/api/v1/method/grunt.api.v1.document.export.print?${params}`, '_blank', 'noopener')
     },
 
     get_selected() {
@@ -700,12 +701,13 @@ export function createListViewProxy(
     setFilters?: ListViewProxy['set_filters']
     setQuickFilterValue?: ListViewProxy['set_quick_filter_value']
     setQuickFilters?: ListViewProxy['set_quick_filters']
+    startTour?: (name?: string) => void
   } = {},
   actions: ActionsApi<ListViewProxy> = noActions(),
 ): ListViewProxy {
   const state = (): ListViewState =>
     callbacks.state?.() ?? {
-      perm: { write: false, delete: false, create: false },
+      perm: NO_PERMS,
       selected: [],
       isFetching: false,
       exporters: [],
@@ -721,6 +723,7 @@ export function createListViewProxy(
     get exporters() { return state().exporters },
     get can_export() { return state().canExport },
     get filters() { return state().filters },
+    get has_tours() { return !!state().hasTours },
     refresh(options) { callbacks.refresh?.(options) },
     new_doc() { callbacks.newDoc?.() },
     bulk_edit() { callbacks.bulkEdit?.() },
@@ -732,6 +735,7 @@ export function createListViewProxy(
     set_filters(filters) { callbacks.setFilters?.(filters) },
     set_quick_filter_value(id, value) { callbacks.setQuickFilterValue?.(id, value) },
     set_quick_filters(values) { callbacks.setQuickFilters?.(values) },
+    start_tour(name) { callbacks.startTour?.(name) },
   }
 }
 

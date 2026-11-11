@@ -9,11 +9,11 @@ import pytest_asyncio
 from fastapi import HTTPException
 
 import grunt
+from grunt.api.v1.document import workflow as workflow_api
 from grunt.api.v1.meta import save_doctype
-from grunt.document.base import Document
 from grunt.hooks import on_doc
-from grunt.workflow.engine import current_transition
 from grunt.workflow.registry import clear_cache
+from grunt.workflow.transition import current_transition
 
 AUTHOR = "author@grunt.example.com"
 REVIEWER = "reviewer@grunt.example.com"
@@ -31,8 +31,8 @@ ARTICLE = {
         {"fieldname": "published", "label": "Published", "fieldtype": "Check"},
     ],
     "permissions": [
-        {"role": "Writer", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Editor", "read": True, "write": True, "create": True, "delete": True},
+        {"role": "Writer", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Editor", "actions": ["read", "write", "create", "delete"]},
     ],
 }
 W, E = "Writer", "Editor"
@@ -94,7 +94,7 @@ async def _state(name: str) -> tuple[str, int]:
 
 
 async def _buttons(name: str) -> set[str]:
-    return {t["action"] for t in await Document.get_workflow_transitions("Article", name)}
+    return {t["action"] for t in await workflow_api.get_workflow_transitions("Article", name)}
 
 
 @pytest.mark.asyncio

@@ -29,8 +29,10 @@ import click
 from sqlalchemy import bindparam, inspect, text
 
 from grunt.cli.utils import _site_session
-lazy import grunt
+from grunt.local import system_context
+from grunt.metadata.registry import doctype_registry
 lazy from grunt.db.write_intent import set_process_default
+lazy from grunt.document.api import documents
 lazy from grunt.storage.backends import get_storage_backend
 lazy from grunt.storage.cloud.files import blob_path
 
@@ -72,7 +74,7 @@ def data_export(output: Path, specs: tuple[str, ...], site: str | None):
 
     async def _collect():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             doctypes = []
             file_ids: set[str] = set()
             for spec in specs:
@@ -175,7 +177,7 @@ def data_import(bundle: Path, site: str | None, yes: bool):
 
     async def _run():
 
-        async with _site_session(site) as (session, eng), grunt.system_context(session, eng):
+        async with _site_session(site) as (session, eng), system_context(session, eng):
             # Files first, outside any write transaction (they are content-addressed:
             # an existing blob is the same file).
             await session.rollback()
@@ -203,8 +205,8 @@ def data_import(bundle: Path, site: str | None, yes: bool):
             await session.commit()
 
             for doctype in [*touched, "File"]:
-                await grunt.doc_cache.invalidate_doctype(doctype)
-                await grunt.query_cache.invalidate_doctype(doctype)
+                await documents.doc_cache.invalidate_doctype(doctype)
+                await documents.query_cache.invalidate_doctype(doctype)
         click.echo("Done. Restart the services so their in-process caches refresh: grunt restart")
 
     asyncio.run(_run())
@@ -230,7 +232,7 @@ def _describe(filters: dict[str, str]) -> str:
 
 async def _table(doctype: str) -> str:
 
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         raise click.ClickException(f"DocType not found: {doctype}")
     if meta.get_table_fields():

@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-lazy from grunt import log
+from grunt.log import log
 lazy from grunt.document.base import Document
 
 #: Parameters the dispatcher fills itself (``api/v1/method.py``).
@@ -311,7 +311,7 @@ def _candidate_modules(package_dir: Path, package: str) -> list[str]:
     """Modules that define a ``@whitelist`` method or import from one that does.
 
     Only those get imported. The second kind re-exports a method under its own
-    path (``…User.user.approve_user_api`` from ``grunt.auth.user_api``), which
+    path (a method imported into another module of the app), which
     the dispatcher resolves just as well.
     """
     decorated: set[str] = set()
@@ -364,7 +364,7 @@ def collect_methods(package_dir: Path, package: str) -> list[Method]:
     """Every whitelisted method of *package*, keyed by the path the dispatcher resolves.
 
     Methods of a class are exposed on the class and on its direct subclasses
-    (``DocumentTreeRPCMixin.get_tree`` is called as ``…base.Document.get_tree``).
+    (a mixin's method is called as ``<module>.<Controller>.<method>``).
     """
     methods: dict[str, Method] = {}
     for mod_name in _candidate_modules(package_dir, package):

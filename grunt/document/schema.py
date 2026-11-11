@@ -15,8 +15,6 @@ method builds its response::
 from collections.abc import Iterable
 from typing import Any, ClassVar
 
-lazy from grunt.document.base import Document
-
 
 class Schema:
     """Declares which fields of a ``Document`` are exposed in an API response."""
@@ -24,9 +22,9 @@ class Schema:
     fields: ClassVar[tuple[str, ...]] = ()
 
     @classmethod
-    def dump(cls, doc: Document) -> dict[str, Any]:
+    def dump(cls, doc: Any) -> dict[str, Any]:
         return {f: getattr(doc, f) for f in cls.fields}
 
     @classmethod
-    def dump_many(cls, docs: Iterable[Document]) -> list[dict[str, Any]]:
+    def dump_many(cls, docs: Iterable[Any]) -> list[dict[str, Any]]:
         return [cls.dump(d) for d in docs]

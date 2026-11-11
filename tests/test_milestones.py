@@ -6,6 +6,7 @@ import pytest
 from fastapi import HTTPException
 
 from grunt.activity import milestones
+from grunt.api.v1.document import meta as meta_api
 from grunt.errors import ApplicationError
 from tests.support import make_user
 
@@ -26,8 +27,8 @@ CASE = {
         {"fieldname": "stage", "label": "Stage", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Clerk", "read": True, "match": "owner == user"},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Clerk", "actions": ["read"], "match": "owner == user"},
     ],
 }
 
@@ -134,7 +135,6 @@ async def test_other_field_disable_and_validation(ctx, cases):
 @pytest.mark.asyncio
 async def test_delete_and_permissions(ctx, cases, db_session, engine):
     import grunt
-    from grunt.document.base import Document
 
     await ctx.new_doc("MilestoneTracker", {"ref_doctype": "MsCase"})
     clerk = "clerk@example.com"
@@ -146,7 +146,7 @@ async def test_delete_and_permissions(ctx, cases, db_session, engine):
     async with grunt.context(db_session, engine, make_user(clerk, roles=["Clerk"])):
         visible = await grunt.get_list("Milestone", filters={"ref_doctype": "MsCase"}, limit=50)
         assert {r["ref_name"] for r in visible} == {own["name"]}
-        sidebar = await Document.get_sidebar(doctype="MsCase", doc_id=own["name"])
+        sidebar = await meta_api.get_sidebar(doctype="MsCase", doc_id=own["name"])
         assert [m["value"] for m in sidebar["milestones"]] == ["New"]
 
     await ctx.delete_doc("MsCase", other["name"])

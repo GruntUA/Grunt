@@ -1,10 +1,10 @@
 from typing import Any
 
-import grunt
+from grunt.api.context import whitelist
 from grunt.i18n import translation_service
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def get_translations(locale: str) -> dict[str, Any]:
     """Return the translation bundle for a locale.
 

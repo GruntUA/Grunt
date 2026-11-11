@@ -75,8 +75,7 @@
   "permissions": [
     {
       "role": "All",
-      "read": true,
-      "delete": true,
+      "actions": ["read", "delete"],
       "match": "user == user",
       "hidden_fields": [
         "refresh_token_hash",

@@ -6,6 +6,7 @@
   "track_changes": false,
   "table_name": "grunt_log_activity",
   "track_activity": false,
+  "indexes": [["ref_doctype", "doc_id"]],
   "fields": [
     {
       "fieldname": "ref_doctype",
@@ -53,13 +54,11 @@
   "permissions": [
     {
       "role": "All",
-      "read": true
+      "actions": ["read"]
     },
     {
       "role": "System Manager",
-      "write": true,
-      "create": true,
-      "delete": true
+      "actions": ["write", "create", "delete", "import", "share"]
     }
   ]
 }

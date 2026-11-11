@@ -33,7 +33,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import Any, TypedDict
 
-from grunt import log
+from grunt.log import log
 
 
 class HookDefinition(TypedDict):

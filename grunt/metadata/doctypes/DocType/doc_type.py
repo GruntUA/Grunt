@@ -7,15 +7,15 @@ and written through the registry, which validates and syncs physical tables.
 from collections.abc import Mapping
 from typing import Any
 
-import grunt
 from grunt.document.base import Document
+from grunt.local import require_engine
 from grunt.metadata import store
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
-from grunt.store import AGGREGATE, DELETE, INSERT, SQL, UPDATE, SqlStore, Store
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.store.base import AGGREGATE, DELETE, INSERT, SQL, UPDATE, Store
+from grunt.store.sql import SqlStore
 
 
 def _row_to_doc(row: Mapping[str, Any]) -> dict[str, Any]:
@@ -58,12 +58,12 @@ class DocTypeStore(SqlStore):
         return None if row is None else _row_to_doc(row)
 
     async def insert(
-        self, doc: dict[str, Any], *, input: dict[str, Any], user: User
+        self, doc: dict[str, Any], *, input: dict[str, Any], user: str
     ) -> dict[str, Any]:
         """Register the new DocType, create its table and export its files."""
         dt = DocType(**doc)
         _drop_default_table_name(dt)
-        engine = grunt.get_engine()
+        engine = require_engine()
         if await doctype_registry.get_or_none(dt.name) is not None:
             raise ValueError(f"DocType '{dt.name}' already exists")
         await doctype_registry.register(dt, self.session, engine)
@@ -79,12 +79,12 @@ class DocTypeStore(SqlStore):
         *,
         before: dict[str, Any],
         input: dict[str, Any],
-        user: User,
+        user: str,
     ) -> dict[str, Any]:
         """Update the DocType, sync its table and export its files."""
         dt = DocType(**doc)
         _drop_default_table_name(dt)
-        engine = grunt.get_engine()
+        engine = require_engine()
         await doctype_registry.update(dt, self.session, engine)
         if dt.has_table and not dt.is_child:
             await sync_table(dt, engine, session=self.session)
@@ -102,6 +102,6 @@ class DocTypeController(Document):
     """The controller of DocType definitions - stored by :class:`DocTypeStore`."""
 
     # The class can't be named DocType (that's the metadata model imported
-    # above), so grunt.get_doc(DocTypeController, ...) takes the name from here.
+    # above), so documents.get_doc(DocTypeController, ...) takes the name from here.
     doctype = "DocType"
     store_class = DocTypeStore

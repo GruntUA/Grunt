@@ -87,7 +87,7 @@ async def test_inject_core_writes_only_when_changed(ctx, db_session, engine, mon
 async def test_fixture_conflict_keeps_earlier_session_work(ctx, db_session, engine, monkeypatch):
     import grunt
     from grunt.api.v1.meta import save_doctype
-    from grunt.startup.fixtures import _apply_doctype_fixture
+    from grunt.fixtures import apply_doctype_fixture
 
     await save_doctype(doctype_data={**_FX, "__is_new": True})
     await db_session.commit()
@@ -95,17 +95,41 @@ async def test_fixture_conflict_keeps_earlier_session_work(ctx, db_session, engi
     # Uncommitted work done earlier in the same session (as sync_installed_apps does).
     await ctx.new_doc("NrConfig", {"code": "before"})
 
-    real_new_doc = grunt.new_doc
+    from grunt.document.api import documents
+
+    real_new_doc = documents.new_doc
 
     async def _conflicting_new_doc(doctype, data):
         await real_new_doc(doctype, data)  # partial write, must be undone
         raise IntegrityError("INSERT", {}, Exception("duplicate"))
 
-    monkeypatch.setattr(grunt, "new_doc", _conflicting_new_doc)
-    await _apply_doctype_fixture(
+    monkeypatch.setattr(documents, "new_doc", _conflicting_new_doc)
+    await apply_doctype_fixture(
         "NrConfig", [{"name": "clash", "code": "clash"}], db_session, engine
     )
     await db_session.commit()
 
     assert await grunt.exists("NrConfig", {"name": "before"})
     assert not await grunt.exists("NrConfig", {"name": "clash"})
+
+
+@pytest.mark.asyncio
+async def test_inject_core_brings_index_changes_to_existing_sites(ctx, db_session, engine):
+    """An index added to a core DocType's JSON reaches a site that already
+    stores the DocType - it is schema the core relies on, not a customization."""
+    from grunt.metadata import store
+    from grunt.metadata.field import DocField
+    from grunt.metadata.registry import doctype_registry
+
+    fields = [DocField(fieldname="code", label="Code", fieldtype="Data")]
+    source = DocType(name="NrIdx", label="Nr Idx", module="test", fields=fields)
+    await doctype_registry.register(source, db_session, engine)
+    await db_session.commit()
+
+    updated = source.model_copy(deep=True, update={"indexes": [["code", "modified_at"]]})
+    updated.fields[0].index = True
+    await doctype_registry._inject_core(updated, db_session, sync_db=True)
+
+    stored = DocType.model_validate(await store.get_definition(db_session, "NrIdx"))
+    assert stored.indexes == [["code", "modified_at"]]
+    assert stored.fields[0].index is True

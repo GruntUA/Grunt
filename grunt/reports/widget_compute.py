@@ -19,11 +19,13 @@ from typing import Any
 
 from fastapi import HTTPException
 
-import grunt
-from grunt import log
 from grunt.activity import attach_titles, attach_user_names, feed_hidden_doctypes
+from grunt.auth.current import acting_user
 from grunt.document.meta import Meta
+from grunt.local import require_session
+from grunt.log import log
 from grunt.reports.engine import report_engine
+lazy from grunt.document.api import documents
 
 
 def _log_widget_failed(doctype_name: str, widget_type: str) -> None:
@@ -89,10 +91,10 @@ async def _widget_report_series(widget: Any) -> Any:
     """
     report_name = widget.get("report") or ""
     try:
-        user = grunt.get_user()
-        session = grunt.get_session()
+        user = acting_user()
+        session = require_session()
 
-        cfg_rows = await grunt.get_list(
+        cfg_rows = await documents.get_list(
             "Report", filters={"report_name": report_name}, fields=["chart_config"], limit=1
         )
         cfg = cfg_rows[0].get("chart_config") if cfg_rows else None
@@ -100,7 +102,7 @@ async def _widget_report_series(widget: Any) -> Any:
             cfg = json.loads(cfg or "{}")
         cfg = cfg or {}
 
-        result = await report_engine.run(report_name, {}, user, session)
+        result = await report_engine.run(report_name, {}, user.email, session)
         rows = result.get("data") or []
         col_names = [c["fieldname"] for c in result.get("columns") or []]
 
@@ -135,7 +137,7 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
 
     agg_expr = f"{agg}({field})" if agg != "count" else "count"
     try:
-        curr_data = await grunt.aggregate(
+        curr_data = await documents.aggregate(
             doctype_name, filters=filters if filters else None, aggregations={"val": agg_expr}
         )
         val = curr_data[0].get("val") or 0
@@ -143,7 +145,7 @@ async def _widget_metric(widget, dt, doctype_name, since, until, days, base_filt
             # `filters` = exactly what the value was counted over, so the card can
             # drill down into the same rows of the list view.
             return {"value": val, "trend": None, "filters": filters}
-        prev_data = await grunt.aggregate(
+        prev_data = await documents.aggregate(
             doctype_name, filters=prev_filters, aggregations={"val": agg_expr}
         )
         prev_val = prev_data[0].get("val") or 0
@@ -174,7 +176,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             f"{date_field}__lte": _bound(dt, date_field, until, upper=True),
         }
         if group_by:
-            rows = await grunt.aggregate(
+            rows = await documents.aggregate(
                 doctype_name,
                 filters=filters,
                 group_by=[date_expr, group_by],
@@ -195,7 +197,7 @@ async def _widget_chart(widget, dt, doctype_name, since, until, days, base_filte
             groups = {gv: [lookup.get((lbl, gv), 0) for lbl in all_labels] for gv in group_values}
             return {"labels": all_labels, "groups": groups, "filters": filters}
         else:
-            rows = await grunt.aggregate(
+            rows = await documents.aggregate(
                 doctype_name,
                 filters=filters,
                 group_by=date_expr,
@@ -219,7 +221,7 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
     if not group_by:
         return {"labels": [], "values": []}
     try:
-        rows = await grunt.aggregate(
+        rows = await documents.aggregate(
             doctype_name,
             filters=base_filters or None,
             group_by=group_by,
@@ -243,7 +245,7 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
 async def _widget_list(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
     """list - most recently modified documents."""
     try:
-        items = await grunt.get_list(
+        items = await documents.get_list(
             doctype_name,
             filters=base_filters or None,
             order_by="modified_at",
@@ -261,7 +263,7 @@ async def _widget_shortcut(widget, dt, doctype_name, since, until, days, base_fi
     try:
         if dt.is_singleton:
             return {"count": 1}
-        count = await grunt.count(
+        count = await documents.count(
             doctype_name, filters=base_filters or None, respect_permissions=True
         )
         return {"count": count}
@@ -282,7 +284,7 @@ async def _widget_calendar(widget, dt, doctype_name, since, until, days, base_fi
             f"{date_field}__gte": _bound(dt, date_field, since),
             f"{date_field}__lte": _bound(dt, date_field, until, upper=True),
         }
-        rows = await grunt.aggregate(
+        rows = await documents.aggregate(
             doctype_name, filters=filters, group_by=group_by_expr, aggregations={"cnt": "count"}
         )
         return {"days": {str(r.get(group_by_expr)): r.get("cnt") for r in rows}}
@@ -299,7 +301,7 @@ async def _widget_heatmap(widget, dt, doctype_name, since, until, days, base_fil
     try:
         group_by_expr = f"date({date_field})"
         filters = {**base_filters, f"{date_field}__gte": _bound(dt, date_field, since)}
-        rows = await grunt.aggregate(
+        rows = await documents.aggregate(
             doctype_name,
             filters=filters,
             group_by=group_by_expr,
@@ -332,7 +334,7 @@ async def _widget_funnel(widget, dt, doctype_name, since, until, days, base_filt
         date_field = widget.get("date_field")
         if date_field:
             filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
-        rows = await grunt.aggregate(
+        rows = await documents.aggregate(
             doctype_name,
             filters=filters if filters else None,
             group_by=group_by,
@@ -368,7 +370,7 @@ async def _widget_table(widget, dt, doctype_name, since, until, days, base_filte
         if date_field:
             filters[f"{date_field}__gte"] = _bound(dt, date_field, since)
             filters[f"{date_field}__lte"] = _bound(dt, date_field, until, upper=True)
-        rows = await grunt.aggregate(
+        rows = await documents.aggregate(
             doctype_name,
             filters=filters if filters else None,
             group_by=group_by,
@@ -418,7 +420,7 @@ async def _widget_activity(widget, dt, doctype_name, since, until, days, base_fi
         else:
             filters["ref_doctype__nin"] = sorted(await feed_hidden_doctypes())
         limit = min(max(int(widget.get("row_limit") or 8), 1), 50)
-        rows = await grunt.get_list(
+        rows = await documents.get_list(
             "ActivityLog", filters=filters, order_by="created_at", order="desc", limit=limit * 5
         )
         # A save and its workflow move land as separate entries back to back -

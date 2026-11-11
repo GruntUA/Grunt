@@ -149,8 +149,7 @@
   "permissions": [
     {
       "role": "System Manager",
-      "read": true,
-      "delete": true
+      "actions": ["read", "delete", "export", "print", "report"]
     }
   ]
 }

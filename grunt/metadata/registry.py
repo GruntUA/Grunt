@@ -14,25 +14,25 @@ This keeps startup fast regardless of how many DocTypes an application has.
 
 import asyncio
 import re
+from collections.abc import Awaitable, Callable
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import _, log
 from grunt.cache import bus
 from grunt.db.dialects import dialect_for
+from grunt.i18n import _
 from grunt.local import _session_ctx
+from grunt.log import log
 from grunt.metadata import store
-from grunt.metadata.compiler import invalidate_table_cache, sync_table
+from grunt.metadata.compiler import STANDARD_COLUMNS, invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
-from grunt.metadata.permission import DocPermission
-from grunt.permissions.rbac import invalidate_permission_cache
-from grunt.site.manager import current_site, site_manager
+from grunt.metadata.permission import DocPermission, has_old_permission_flags
+from grunt.site.manager import site_cache_key, site_manager
 lazy from grunt.document.meta import Meta
-lazy from grunt.search.service import is_indexable, search_index_service
 
 _FIELDNAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _MAX_FIELDNAME_LEN = 64
@@ -79,6 +79,8 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "label",
         "module",
         "app",
+        # Physical schema the core relies on for speed - not a customization.
+        "indexes",
     }
 )
 
@@ -110,8 +112,23 @@ _CORE_SYNCED_FIELD_ATTRS = frozenset(
         "collapsible",
         "icon",
         "placeholder",
+        "index",
+        "no_history",
     }
 )
+
+
+#: ``(session, doctype, previous)`` after a DocType update is stored and its table
+#: synced; *previous* - the definition before (``None`` if it wasn't loaded).
+DocTypeUpdated = Callable[[AsyncSession, DocType, DocType | None], Awaitable[None]]
+_on_updated: list[DocTypeUpdated] = []
+
+
+def on_doctype_updated(handler: DocTypeUpdated) -> DocTypeUpdated:
+    """Run *handler* after every DocType update (decorator) - how the layers
+    above react (the search index) without the registry knowing them."""
+    _on_updated.append(handler)
+    return handler
 
 
 class DocTypeRegistry:
@@ -193,7 +210,6 @@ class DocTypeRegistry:
             self._known_names.add(name)
             self._known_index_add(name)
         invalidate_table_cache(name)
-        invalidate_permission_cache(name)
 
     # Read
 
@@ -255,7 +271,7 @@ class DocTypeRegistry:
     async def _lazy_load(self, name: str) -> DocType | None:
         """Load a single DocType from the DB and cache it.
 
-        Prefers the ambient request/test session (whatever ``grunt.context()``
+        Prefers the ambient request/test session (whatever ``user_context()``
         currently has bound) over site_manager's own per-site session.
         site_manager resolves "the current site" via a process-global fallback
         (``sites/currentsite.txt`` when no ContextVar is set) - correct for a
@@ -568,6 +584,13 @@ class DocTypeRegistry:
 
         if existing:
             # Load the stored definition (preserves Studio customisations).
+            if has_old_permission_flags(existing):
+                # Not invalid - not migrated yet (migration 0021). Falling back
+                # to the JSON would drop the site's Studio customisations.
+                raise RuntimeError(
+                    f"DocType {doctype.name!r} is stored with old permission flags: "
+                    "run `grunt migrate` with Alembic (revision 0021) first"
+                )
             try:
                 active_dt = DocType.model_validate(existing)
             except Exception:
@@ -709,14 +732,12 @@ class DocTypeRegistry:
         await store.update_doctype(session, doctype)
         await session.flush()
 
-        # Invalidate caches BEFORE sync so compile_doctype_to_table() rebuilds
+        # Invalidate the table cache BEFORE sync so compile_doctype_to_table() rebuilds
         # the Table with the new column list when sync_table calls it internally.
         invalidate_table_cache(doctype.name)
-        invalidate_permission_cache(doctype.name)
         await sync_table(doctype, async_engine, session=session)
-        if not is_indexable(doctype) and (previous is None or is_indexable(previous)):
-            # Switched out of the global search (in_global_search off, is_log on...).
-            await search_index_service.remove_doctype(session, doctype.name)
+        for handler in _on_updated:
+            await handler(session, doctype, previous)
         self._doctypes[doctype.name] = doctype
         self._index_add(doctype.name)
         bus.publish(_CHANGED, name=doctype.name)
@@ -736,11 +757,22 @@ class DocTypeRegistry:
         self._known_names.discard(name)
         self._known_index_remove(name)
         invalidate_table_cache(name)
-        invalidate_permission_cache(name)
         bus.publish(_CHANGED, name=name, deleted=True)
         log.info("registry.deleted", name=name)
 
     # Validation helpers
+
+    @staticmethod
+    def _validate_permission_fields(doctype: DocType) -> None:
+        known = {f.fieldname for f in doctype.fields} | set(STANDARD_COLUMNS)
+        for perm in doctype.permissions:
+            unknown = [n for n in (*perm.hidden_fields, *perm.readonly_fields) if n not in known]
+            if unknown:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail=_("Permission for “%(role)s” names unknown fields: %(fields)s")
+                    % {"role": perm.role, "fields": ", ".join(unknown)},
+                )
 
     def _validate_new(self, doctype: DocType) -> None:
         """Ensure name is unique and fields are valid."""
@@ -753,7 +785,10 @@ class DocTypeRegistry:
 
     @staticmethod
     def _validate_fields(doctype: DocType) -> None:
-        """Check for duplicate, invalid, or oversized fieldnames."""
+        """Check for duplicate, invalid, or oversized fieldnames - and that the
+        fields permission rows hide or make read-only exist: a misspelt one
+        would leave the real field open without a word."""
+        DocTypeRegistry._validate_permission_fields(doctype)
         seen: set[str] = set()
         for f in doctype.fields:
             if f.fieldname in seen:
@@ -796,17 +831,6 @@ class DocTypeRegistry:
 # engines/session makers).
 
 _registries: dict[str, DocTypeRegistry] = {}
-_DEFAULT_KEY = "__no_site__"  # process has no ambient site concept at all
-
-
-def _resolve_site_key() -> str:
-    site = current_site.get()
-    if site:
-        return site
-    try:
-        return site_manager.get_active_site()
-    except Exception:
-        return _DEFAULT_KEY
 
 
 def _forget_changed(name: str, deleted: bool = False) -> None:
@@ -823,7 +847,7 @@ def get_registry(site: str | None = None) -> DocTypeRegistry:
 
     Created lazily and cached, mirroring ``SiteManager.get_engine()``.
     """
-    key = site or _resolve_site_key()
+    key = site or site_cache_key()
     reg = _registries.get(key)
     if reg is None:
         reg = DocTypeRegistry()

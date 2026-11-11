@@ -31,7 +31,7 @@ class Exporter(ABC):
     Example (external app)::
 
         # myapp/mymodule/hooks.py
-        from grunt.io import register_exporter
+        from grunt.io.exporters.registry import register_exporter
         from myapp.exporters import MyExporter
 
         io_exporters = [MyExporter()]

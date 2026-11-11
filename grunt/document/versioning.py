@@ -4,15 +4,16 @@ Each version records which fields changed, their old and new values,
 and supports restoring a document to any previous version.
 """
 
+from collections.abc import Collection
 from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _, log
 from grunt.document.meta import Meta
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.errors import not_found
 
@@ -31,6 +32,9 @@ class VersionService:
         old_doc: dict[str, Any],
         new_doc: dict[str, Any],
         user: str,
+        *,
+        skip: Collection[str] = (),
+        keep: int = 0,
     ) -> str | None:
         """Create a version record if there are actual changes.
 
@@ -41,15 +45,17 @@ class VersionService:
             old_doc: Document data before update.
             new_doc: Document data after update.
             user: Email of the user who made the change.
+            skip: Fields left out of the version (``no_history``).
+            keep: Versions kept per document - older ones are deleted; 0 keeps all.
 
         Returns:
             Version ID if created, None if no changes detected.
         """
-        changes = self._compute_diff(old_doc, new_doc)
+        changes = [c for c in self._compute_diff(old_doc, new_doc) if c["field"] not in skip]
         if not changes:
             return None
 
-        dt_version = await grunt.get_meta("DocVersion")
+        dt_version = await doctype_registry.get_meta("DocVersion")
         if dt_version is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
@@ -80,6 +86,26 @@ class VersionService:
                 user=user,
             )
         )
+        if keep > 0 and next_version > keep:
+            # By count, not number: the oldest kept is the keep-th newest
+            # existing version (numbers can have gaps).
+            oldest_kept = (
+                await session.execute(
+                    select(table.c.version)
+                    .where(table.c.ref_doctype == doctype)
+                    .where(table.c.doc_id == doc_id)
+                    .order_by(table.c.version.desc())
+                    .offset(keep - 1)
+                    .limit(1)
+                )
+            ).scalar()
+            if oldest_kept is not None:
+                await session.execute(
+                    table.delete()
+                    .where(table.c.ref_doctype == doctype)
+                    .where(table.c.doc_id == doc_id)
+                    .where(table.c.version < oldest_kept)
+                )
         await session.flush()
 
         log.info(
@@ -98,7 +124,7 @@ class VersionService:
         doc_id: str,
     ) -> list[dict[str, Any]]:
         """Get all versions for a document, newest first."""
-        dt_version = await grunt.get_meta("DocVersion")
+        dt_version = await doctype_registry.get_meta("DocVersion")
         if dt_version is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table
@@ -122,7 +148,7 @@ class VersionService:
             for row in rows
         ]
 
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is not None:
             await self.resolve_change_labels(session, dt, versions)
 
@@ -202,7 +228,7 @@ class VersionService:
         version_id: str,
     ) -> dict[str, Any] | None:
         """Get a specific version by ID."""
-        dt_version = await grunt.get_meta("DocVersion")
+        dt_version = await doctype_registry.get_meta("DocVersion")
         if dt_version is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "DocVersion"})
         table = dt_version.table

@@ -4,7 +4,7 @@
   "module": "tasks",
   "is_log": true,
   "retention_days": 14,
-  "description": "One row per scheduled job run - framework tasks, app scheduler_events and Scheduler Event server scripts. Old entries are deleted automatically.",
+  "description": "Scheduled job runs - framework tasks, app scheduler_events and Scheduler Event server scripts. Jobs that fire more often than hourly leave a row only when they fail; their last run is in Scheduled Job State. Old entries are deleted automatically.",
   "track_changes": false,
   "table_name": "grunt_scheduled_job_log",
   "track_activity": false,
@@ -57,7 +57,7 @@
   "permissions": [
     {
       "role": "System Manager",
-      "read": true
+      "actions": ["read", "export", "print", "report"]
     }
   ]
 }

@@ -3,16 +3,18 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import grunt
-from grunt import _, log, log_error
+from grunt.auth.language import language_of
 from grunt.backups import (
-    DEFAULT_COMPRESSION_LEVEL,
     BackupBusyError,
     create_backup,
     list_backups,
     rotate,
 )
-from grunt.i18n import language_of, use_language
+from grunt.db.dialects.archive import DEFAULT_COMPRESSION_LEVEL
+from grunt.i18n import _, use_language
+from grunt.local import system_context
+from grunt.log import log
+from grunt.monitoring.error_log import record_error as log_error
 from grunt.progress import TaskCancelledError, track_progress
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
@@ -83,7 +85,7 @@ async def scheduled_backup() -> str | None:
     """Hourly: make a backup if the configured interval has passed."""
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
         cfg = await _settings()
         await _end_transaction(session)
         if not cfg["enabled"] or not is_due(site, cfg["interval"]):
@@ -118,7 +120,7 @@ async def backup_now(
     """
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
         cfg = await _settings()
         lang = await language_of(user)
         await _end_transaction(session)

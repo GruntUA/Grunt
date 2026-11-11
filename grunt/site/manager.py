@@ -1,4 +1,5 @@
 import json
+from collections.abc import Callable
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
@@ -11,12 +12,11 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from grunt import log
 from grunt.config import settings
 from grunt.db.dialects import dialect_for
 from grunt.document.serde import to_json
-lazy from grunt.db.profiler import attach_query_profiler
-lazy from grunt.monitoring.perf import attach_sql_counter
+from grunt.log import log
+from grunt.site import bench
 
 # Context variable to hold the name of the currently active site
 current_site: ContextVar[str] = ContextVar("current_site", default="")
@@ -33,40 +33,42 @@ class SiteManager:
     """
 
     def __init__(self) -> None:
-        # Шукаємо bench_dir: спочатку вгору від cwd, потім від розташування пакету
-        bench_dir = self._find_bench_dir(Path.cwd()) or self._find_bench_dir(
-            Path(__file__).resolve()
-        )
-        if bench_dir is None:
-            # No ancestor of cwd or of this file has both apps/ and sites/ -
-            # guess two levels up from cwd (matches apps/<app>/ as cwd, the
-            # common case when running a bench command from an app dir).
-            bench_dir = Path.cwd().parent.parent.resolve()
-            log.warning(
-                "site_manager.bench_dir_guessed",
-                cwd=str(Path.cwd()),
-                guessed=str(bench_dir),
-            )
-
-        self.bench_dir = bench_dir.resolve()
-        self.sites_dir = self.bench_dir / "sites"
+        self._sites_dir: Path | None = None  # set explicitly; else the bench's sites/
 
         # Caches
         self.engines: dict[str, AsyncEngine] = {}
         self.session_makers: dict[str, async_sessionmaker[AsyncSession]] = {}
+        self._engine_setups: list[Callable[[AsyncEngine], None]] = []
         self._primary_web_app: Any = _UNSET
+        self._web_domains: dict[str, tuple[str, str]] | None = None
 
-    @staticmethod
-    def _find_bench_dir(start: Path) -> Path | None:
-        """Walk up from *start* looking for a directory that has both apps/ and sites/."""
-        check = start if start.is_dir() else start.parent
-        for _ in range(8):
-            if (check / "apps").is_dir() and (check / "sites").is_dir():
-                return check.resolve()
-            if check == check.parent:
-                break
-            check = check.parent
-        return None
+    def on_engine(self, setup: Callable[[AsyncEngine], None]) -> None:
+        """Run *setup* on every site engine - those already made and each new one.
+
+        How the layers above hook into engines (SQL counters, the query
+        profiler) without this module knowing them: they register themselves.
+        """
+        self._engine_setups.append(setup)
+        for engine in self.engines.values():
+            setup(engine)
+
+    @property
+    def bench_dir(self) -> Path:
+        """The bench directory (:mod:`grunt.site.bench`)."""
+        return bench.bench_dir()
+
+    @bench_dir.setter
+    def bench_dir(self, path: Path) -> None:
+        bench.set_bench_dir(path)
+
+    @property
+    def sites_dir(self) -> Path:
+        """``sites/`` of the bench - or the directory set explicitly."""
+        return self._sites_dir if self._sites_dir is not None else self.bench_dir / "sites"
+
+    @sites_dir.setter
+    def sites_dir(self, path: Path) -> None:
+        self._sites_dir = path
 
     def get_sites(self) -> list[str]:
         """List all valid site directories in the bench."""
@@ -120,6 +122,52 @@ class SiteManager:
                 )
         self._primary_web_app = primary
         return primary
+
+    def get_web_domains(self) -> dict[str, tuple[str, str]]:
+        """``host -> (site, app)`` from every site's ``web_domains`` in
+        ``grunt.site`` (``{"opendata.example.org": "opendata"}``): a request to
+        that host is served by *site* with *app*'s www pages at the root.
+
+        A domain whose app isn't installed on the site, that names a site
+        itself or that another site already claims is skipped (and logged).
+        Cached - like ``primary_web_app``, a change needs a restart.
+        """
+        if self._web_domains is not None:
+            return self._web_domains
+        sites = sorted(self.get_sites())
+        site_hosts = {s.lower() for s in sites}  # hosts are matched lower-cased
+        domains: dict[str, tuple[str, str]] = {}
+        for site in sites:
+            config = self.get_site_config(site)
+            raw = config.get("web_domains") or {}
+            if not isinstance(raw, dict):
+                log.warning("site_manager.web_domains.invalid", site=site)
+                continue
+            for host, app in raw.items():
+                host = str(host).strip().lower()
+                if not host:  # would catch every request without a Host header
+                    log.warning("site_manager.web_domains.empty_host", site=site, app=app)
+                elif app not in config.get("installed_apps", []):
+                    log.warning(
+                        "site_manager.web_domains.not_installed", site=site, host=host, app=app
+                    )
+                elif host in site_hosts:
+                    log.warning("site_manager.web_domains.is_a_site", site=site, host=host)
+                elif host in domains:
+                    log.warning(
+                        "site_manager.web_domains.conflict",
+                        site=site,
+                        host=host,
+                        holder=domains[host][0],
+                    )
+                else:
+                    domains[host] = (site, app)
+        self._web_domains = domains
+        return domains
+
+    def domain_apps(self, site: str) -> dict[str, str]:
+        """``app -> host`` - the apps of *site* that have a domain of their own."""
+        return {app: host for host, (s, app) in self.get_web_domains().items() if s == site}
 
     def get_all_installed_apps(self) -> set[str]:
         """Return the union of apps installed across every site in the bench.
@@ -175,11 +223,8 @@ class SiteManager:
             # to_json: документи тримають date/Decimal, а типовий json.dumps їх не вміє
             engine = create_async_engine(db_url, json_serializer=to_json, **engine_kwargs)
             dialect.setup_engine(engine)
-
-            attach_sql_counter(engine)
-
-            if settings.sql_profiler_enabled:
-                attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)
+            for setup in self._engine_setups:
+                setup(engine)
 
             self.engines[site_name] = engine
             self.session_makers[site_name] = async_sessionmaker(
@@ -211,3 +256,19 @@ class SiteManager:
 
 
 site_manager = SiteManager()
+
+
+#: Key of a process with no ambient site at all (see :func:`site_cache_key`).
+NO_SITE_KEY = "__no_site__"
+
+
+def site_cache_key() -> str:
+    """The site per-site caches (DocType registry, compiled tables) are keyed by:
+    the context's site, else the active one, else :data:`NO_SITE_KEY`."""
+    site = current_site.get()
+    if site:
+        return site
+    try:
+        return site_manager.get_active_site()
+    except Exception:
+        return NO_SITE_KEY

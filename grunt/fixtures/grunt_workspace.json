@@ -458,6 +458,14 @@
       "show_count": true
     },
     {
+      "section": "Обслуговування",
+      "type": "DocType",
+      "label": "Стан завдань планувальника",
+      "link_to": "ScheduledJobState",
+      "icon": "activity",
+      "show_count": false
+    },
+    {
       "section": "Журнали",
       "type": "DocType",
       "label": "Журнал помилок",

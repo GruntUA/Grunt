@@ -15,6 +15,7 @@
   `feat(store): VirtualStore для віртуальних DocType`, `fix(schema): …`, `docs: …`.
   Типи: `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `chore`; зламаний API —
   `feat(store)!: …`.
+  Заголовок PR у `develop` перевіряє CI (`.github/workflows/pr-title.yml`).
 - Фіча-PR зливається в `develop` **squash-ом**: заголовок PR стає заголовком коміту, а з цих комітів
   `grunt release` збирає `CHANGELOG.md` по розділах. Виняток — синхронізація `develop` з `master`
   після випуску (див. нижче).

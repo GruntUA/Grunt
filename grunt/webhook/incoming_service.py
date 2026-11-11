@@ -27,12 +27,16 @@ import json
 import time
 from typing import Any
 
-import grunt
-from grunt import log
-from grunt.auth.doctypes.User.user import SYSTEM_USER
+from grunt.auth.constants import SYSTEM_USER_EMAIL
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.scripting.server_script import ServerScriptRunner
+lazy from grunt.document.api import documents
 lazy from grunt.scripting.doctypes.ServerScript.server_script import ServerScript
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _MAX_PAYLOAD = 5 * 1024 * 1024  # 5 MB
 
@@ -190,9 +194,9 @@ class IncomingWebhookService:
         if not script_id:
             return "run_server_script", "server_script not configured"
 
-        session = grunt.get_session()
-        async with grunt.system_context(session):
-            script_doc = await grunt.find_doc(ServerScript, script_id)
+        session = require_session()
+        async with system_context(session):
+            script_doc = await documents.find_doc(ServerScript, script_id)
 
         if not script_doc:
             return "run_server_script", f"ServerScript '{script_id}' not found"
@@ -203,7 +207,7 @@ class IncomingWebhookService:
             doc={},
             session=session,
             extra_context={"payload": payload, "webhook": webhook},
-            user_email=SYSTEM_USER.email,
+            user_email=SYSTEM_USER_EMAIL,
         )
 
         if not result.success:
@@ -239,8 +243,8 @@ class IncomingWebhookService:
             else:
                 doc_data[field] = _resolve_path(payload_dict, str(path))
 
-        async with grunt.system_context(grunt.get_session()):
-            doc = await grunt.new_doc(target_doctype, doc_data)
+        async with system_context(require_session()):
+            doc = await documents.new_doc(target_doctype, doc_data)
 
         return f"create_document:{target_doctype}:{doc.get('id', '')}", ""
 
@@ -250,8 +254,8 @@ class IncomingWebhookService:
         if await doctype_registry.get_or_none("IncomingWebhook") is None:
             return None
 
-        async with grunt.system_context(grunt.get_session()):
-            rows = await grunt.db.get_all(
+        async with system_context(require_session()):
+            rows = await _db.get_all(
                 "IncomingWebhook",
                 filters={"slug": slug},
                 limit=1,
@@ -293,8 +297,8 @@ class IncomingWebhookService:
             log_data["webhook"] = webhook_id
 
         try:
-            async with grunt.system_context(grunt.get_session()):
-                await grunt.new_doc("IncomingWebhookLog", log_data)
+            async with system_context(require_session()):
+                await documents.new_doc("IncomingWebhookLog", log_data)
         except Exception:
             log.warning("incoming_webhook_log.write_failed", slug=slug)
 

@@ -2,27 +2,30 @@
 
 from typing import Any
 
-import grunt
-from grunt import _
-from grunt.scripting import server_script_runner
+from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session
 from grunt.scripting.client_script import get_client_scripts as _get
+from grunt.scripting.server_script import server_script_runner
 
 
-@grunt.whitelist()
+@whitelist()
 async def get_client_scripts(doctype: str) -> list[dict[str, Any]]:
     """Return all enabled client scripts for a DocType."""
-    return await _get(grunt.get_session(), doctype)
+    return await _get(require_session(), doctype)
 
 
-@grunt.whitelist()
+@whitelist()
 async def run_server_script(method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a Server Script of type 'API'."""
-    session = grunt.get_session()
+    session = require_session()
     script = await server_script_runner.load_api_script(session, method)
     if not script:
-        grunt.throw(_("API method “%(method)s” not found") % {"method": method}, "NOT_FOUND")
+        throw(_("API method “%(method)s” not found") % {"method": method}, "NOT_FOUND")
 
-    user = grunt.get_user()
+    user = acting_user()
     result = await server_script_runner.execute(
         script["script"],
         session=session,
@@ -33,6 +36,6 @@ async def run_server_script(method: str, params: dict[str, Any] | None = None) -
     )
 
     if not result.success:
-        grunt.throw(result.error or "Unknown error in server script", "SCRIPT_ERROR")
+        throw(result.error or "Unknown error in server script", "SCRIPT_ERROR")
 
     return {"response": result.response, "output": result.output}

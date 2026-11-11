@@ -48,6 +48,6 @@
     }
   ],
   "permissions": [
-    {"role": "System Manager", "read": true, "create": true, "write": true, "delete": true}
+    {"role": "System Manager", "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]}
   ]
 }

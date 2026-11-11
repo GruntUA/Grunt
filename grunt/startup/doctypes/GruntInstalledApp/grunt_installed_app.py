@@ -1,12 +1,15 @@
 import shutil
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
-import grunt
-from grunt import _, log
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.log import log
+from grunt.site.bench import bench_dir
+lazy from grunt.document.api import documents
 
 
 class GruntInstalledApp(Document):
@@ -31,18 +34,17 @@ class GruntInstalledApp(Document):
             )
             return
 
-        apps_dir = Path(grunt.__file__).resolve().parents[3]
-        app_path = apps_dir / name
+        app_path = bench_dir() / "apps" / name
 
         if app_path.exists() and app_path.is_dir():
             shutil.rmtree(app_path)
             log.info(f"Physically deleted app files for '{name}' at {app_path}")
 
         # Clean up associated Workspaces
-        workspaces = await grunt.get_list("AppMenu", filters={"app": name})
+        workspaces = await documents.get_list("AppMenu", filters={"app": name})
         for ws in workspaces:
             try:
-                await grunt.delete_doc("AppMenu", ws["name"])
+                await documents.delete_doc("AppMenu", ws["name"])
                 log.info(f"Deleted workspace {ws['name']} associated with app {name}")
             except Exception as e:
                 log.error(f"Failed to delete workspace {ws['name']}: {e}")
@@ -51,7 +53,7 @@ class GruntInstalledApp(Document):
 @whitelist()
 async def list_apps() -> list[dict[str, Any]]:
     """List all installed apps."""
-    apps = await grunt.get_list("GruntInstalledApp")
+    apps = await documents.get_list("GruntInstalledApp")
     return [
         {
             "name": a.get("name"),
@@ -72,18 +74,18 @@ async def register_app(
     modules: list[str] | None = None,
 ) -> dict[str, Any]:
     """Register a new installed app. System Manager only."""
-    user = grunt.get_user()
+    user = acting_user()
     if "System Manager" not in (user.roles or []):
-        grunt.throw(_("Not authorized"), "PERMISSION_DENIED")
+        throw(_("Not authorized"), "PERMISSION_DENIED")
 
     if not name:
-        grunt.throw(_("name is required"), "VALIDATION_ERROR")
+        throw(_("name is required"), "VALIDATION_ERROR")
 
-    existing = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    existing = await documents.get_list("GruntInstalledApp", filters={"name": name})
     if existing:
-        grunt.throw(_("App “%(app)s” is already installed") % {"app": name}, "CONFLICT")
+        throw(_("App “%(app)s” is already installed") % {"app": name}, "CONFLICT")
 
-    app = await grunt.new_doc(
+    app = await documents.new_doc(
         "GruntInstalledApp",
         {
             "name": name,
@@ -98,23 +100,23 @@ async def register_app(
 @whitelist()
 async def add_module(name: str, module: str) -> dict[str, Any]:
     """Add a module to an installed app."""
-    apps = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    apps = await documents.get_list("GruntInstalledApp", filters={"name": name})
     if not apps:
-        grunt.throw(_("App “%(app)s” not found") % {"app": name}, "NOT_FOUND")
+        throw(_("App “%(app)s” not found") % {"app": name}, "NOT_FOUND")
 
     app_id = apps[0]["name"]
-    app = await grunt.get_doc(GruntInstalledApp, app_id)
+    app = await documents.get_doc(GruntInstalledApp, app_id)
 
     module_name = (module or "").strip()
     if not module_name:
-        grunt.throw(_("module is required"), "VALIDATION_ERROR")
+        throw(_("module is required"), "VALIDATION_ERROR")
 
     current_modules = app.modules or []
     if module_name in current_modules:
-        grunt.throw(_("Module “%(module)s” already exists") % {"module": module_name}, "CONFLICT")
+        throw(_("Module “%(module)s” already exists") % {"module": module_name}, "CONFLICT")
 
     current_modules.append(module_name)
-    await grunt.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
+    await documents.save_doc("GruntInstalledApp", app_id, {"modules": current_modules})
 
     return {"name": app.name, "title": app.title, "modules": current_modules}
 
@@ -122,13 +124,13 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
 @whitelist()
 async def delete_app(name: str) -> bool:
     """Uninstall an app. System Manager only."""
-    user = grunt.get_user()
+    user = acting_user()
     if "System Manager" not in (user.roles or []):
-        grunt.throw(_("Not authorized"), "PERMISSION_DENIED")
+        throw(_("Not authorized"), "PERMISSION_DENIED")
 
-    apps = await grunt.get_list("GruntInstalledApp", filters={"name": name})
+    apps = await documents.get_list("GruntInstalledApp", filters={"name": name})
     if not apps:
-        grunt.throw(_("App “%(app)s” not found") % {"app": name}, "NOT_FOUND")
+        throw(_("App “%(app)s” not found") % {"app": name}, "NOT_FOUND")
 
-    await grunt.delete_doc("GruntInstalledApp", apps[0]["name"])
+    await documents.delete_doc("GruntInstalledApp", apps[0]["name"])
     return True

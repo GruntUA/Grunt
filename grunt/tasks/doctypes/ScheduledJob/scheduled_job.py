@@ -3,12 +3,15 @@ from typing import Any
 
 from apscheduler.triggers.cron import CronTrigger
 
-import grunt
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
-from grunt.store import DELETE, VirtualStore
-from grunt.store.virtual import equals
+from grunt.store.base import DELETE
+from grunt.store.virtual import VirtualStore, equals
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class ScheduledJobStore(VirtualStore):
@@ -28,7 +31,7 @@ class ScheduledJobStore(VirtualStore):
         filters: dict[str, Any] = {"script_type": "Scheduler Event"}
         if (name := equals(query, "name")) is not None:
             filters["name"] = name
-        scripts = await grunt.db.get_all(
+        scripts = await _db.get_all(
             "ServerScript",
             filters=filters,
             fields=["name", "is_enabled", "cron"],
@@ -41,48 +44,31 @@ class ScheduledJobStore(VirtualStore):
 
     async def delete(self, name: str, *, before: dict[str, Any]) -> None:
         """Delete scheduled job by deleting the underlying ServerScript."""
-        await grunt.delete_doc("ServerScript", name)
+        await documents.delete_doc("ServerScript", name)
 
     @staticmethod
     async def _load_job_stats(job_names: list[str]) -> dict[str, dict[str, Any]]:
-        """Load last execution stats and run counts from ScheduledJobLog."""
+        """Last run and run count of each job, from ScheduledJobState."""
         if not job_names:
             return {}
-
         try:
-            logs = await grunt.db.get_all(
-                "ScheduledJobLog",
-                filters={"job_name__in": job_names},
-                fields=["job_name", "status", "finished_at", "error_message"],
-                order_by="started_at",
-                order="desc",
-                limit=len(job_names) * 500,
-            )
-            count_rows = await grunt.db.aggregate(
-                "ScheduledJobLog",
-                filters={"job_name__in": job_names, "status__in": ["Success", "Failed"]},
-                group_by="job_name",
-                aggregations={"run_count": "count()"},
+            rows = await _db.get_all(
+                "ScheduledJobState",
+                filters={"name__in": job_names},
+                fields=["name", "last_status", "last_finished_at", "last_error", "run_count"],
+                limit=None,
             )
         except Exception:
             return {}
-
-        run_counts = {row["job_name"]: row["run_count"] for row in count_rows}
-
-        stats: dict[str, dict[str, Any]] = {}
-        for row in logs:
-            jn = row.get("job_name")
-            if jn not in job_names or jn in stats:
-                continue
-            status = row.get("status")
-            stats[jn] = {
-                "status": status,
-                "last_run_at": row.get("finished_at"),
-                "last_error": row.get("error_message") if status == "Failed" else None,
-                "run_count": run_counts.get(jn, 0),
+        return {
+            row["name"]: {
+                "status": row.get("last_status"),
+                "last_run_at": row.get("last_finished_at"),
+                "last_error": row.get("last_error") if row.get("last_status") == "Failed" else None,
+                "run_count": row.get("run_count") or 0,
             }
-
-        return stats
+            for row in rows
+        }
 
 
 class ScheduledJob(Document):

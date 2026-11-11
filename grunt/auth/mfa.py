@@ -15,10 +15,14 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy import segno
 
-import grunt
-from grunt import _, log
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import system_context
+from grunt.log import log
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.site.manager import site_manager
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _APP_NAME = "Grunt"
 _BACKUP_CODE_COUNT = 8
@@ -86,7 +90,7 @@ async def mfa_setup_required(user: User) -> bool:
     roles = list(getattr(user, "roles", None) or [])
     if not roles:
         return False
-    enforcing = await grunt.db.get_all(
+    enforcing = await _db.get_all(
         "Role", filters={"name__in": roles, "require_mfa": True}, pluck="name", limit=1
     )
     return bool(enforcing)
@@ -114,7 +118,7 @@ async def begin_mfa_setup(user: User) -> MfaSetup:
 
     assert user.id
     secret = generate_mfa_secret()
-    await grunt.db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
+    await _db.set_value("User", user.id, {"mfa_secret": secret, "mfa_enabled": False})
     log.info("mfa.setup_started", user=user.email)
     return {
         "secret": secret,
@@ -128,7 +132,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Returns a list of plain-text backup codes that the user should save.
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
-    rows = await grunt.db.get_all("User", filters={"name": user.id}, fields=["mfa_secret"], limit=1)
+    rows = await _db.get_all("User", filters={"name": user.id}, fields=["mfa_secret"], limit=1)
     if not rows or not rows[0].get("mfa_secret"):
         raise HTTPException(422, detail=_("MFA is not set up. Run the setup first."))
 
@@ -139,7 +143,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     assert user.id
     backup_codes = _generate_backup_codes()
     backup_hashes = [_hash_backup_code(c) for c in backup_codes]
-    await grunt.db.set_value(
+    await _db.set_value(
         "User",
         user.id,
         {
@@ -155,7 +159,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
 async def disable_mfa(user: User) -> None:
     """Disable MFA and clear stored secrets for the user."""
     assert user.id
-    await grunt.db.set_value(
+    await _db.set_value(
         "User",
         user.id,
         {
@@ -179,12 +183,12 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
     """
     if session is not None:
         eng = site_manager.get_engine(site_manager.get_active_site())
-        ctx = grunt.system_context(session, eng)
+        ctx = system_context(session, eng)
     else:
         ctx = contextlib.nullcontext()
 
     async with ctx:
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             "User",
             filters={"name": user.id},
             fields=["mfa_secret", "mfa_backup_codes"],
@@ -206,7 +210,7 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
         matched, remaining = verify_backup_code(backup_hashes, code)
         if matched:
             assert user.id
-            await grunt.db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
+            await _db.set_value("User", user.id, {"mfa_backup_codes": json.dumps(remaining)})
             log.info("mfa.backup_code_used", user=user.email, remaining=len(remaining))
             return
 

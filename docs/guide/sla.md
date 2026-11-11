@@ -39,6 +39,12 @@ save (condition true) ──► On track ──► At risk ──► Breached
 Each clock is a `ServiceLevelStatus` row (list and calendar views, filter by
 status). Anyone who can read the document can read its rows.
 
+The document's form shows its clocks at the top of the sidebar, next to the
+status: one row per service level - the policy title, the clock as a badge
+and the deadline relative to now ("in 3 hours", "2 hours ago"); once met -
+when. The row opens the `ServiceLevelStatus` record. (Sidebar section
+`service_levels` in core hooks; an app can replace it by that name.)
+
 Example for incoming letters: Document type `IncomingLetter`, 30 Days, Count
 from `reg_date`, Deadline field `due_date`, Done statuses `Виконано` and
 `Архів`, Notify `{field:executor.user_id}`, Escalate to `role:Канцелярія`.

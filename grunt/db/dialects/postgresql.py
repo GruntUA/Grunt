@@ -13,10 +13,10 @@ from sqlalchemy.engine import URL, make_url
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.sql.dml import Insert
 
+from grunt.db.dialects.archive import MAX_COMPRESSION_LEVEL, BackupError
 from grunt.db.dialects.base import ConstraintViolation, Dialect
 from grunt.db.dialects.fulltext import FullText, FullTextSpec, PostgresTsvector
 from grunt.i18n import _
-lazy from grunt.backups import MAX_COMPRESSION_LEVEL, BackupError
 
 _PG_KINDS = {"23502": "not_null", "23505": "unique", "23503": "foreign_key", "23514": "check"}
 _PG_NOT_NULL_COLUMN = re.compile(r'null value in column "([^"]+)"')

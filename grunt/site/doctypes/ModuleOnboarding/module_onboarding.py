@@ -5,8 +5,9 @@ so their ``name`` can't key the progress. ``step_id`` is set once from the
 title and kept (and exported with the record) when the title changes later.
 """
 
-from grunt import _
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.utils.slug import slugify
 
 
@@ -23,7 +24,7 @@ class ModuleOnboarding(Document):
 
             doctype = step.get("reference_doctype")
             if doctype and await self.grunt.get_meta(doctype) is None:
-                self.grunt.throw(
+                throw(
                     _("Step “%(step)s”: DocType “%(doctype)s” not found")
                     % {"step": step.get("title"), "doctype": doctype}
                 )

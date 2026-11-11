@@ -1,5 +1,6 @@
 """Dialect dump / restore: credentials, failures and a restore that can't finish."""
 
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -9,8 +10,9 @@ from pathlib import Path
 import pytest
 from sqlalchemy.engine import make_url
 
-from grunt.backups import BackupError
 from grunt.db.dialects import PostgresDialect, SqliteDialect
+from grunt.db.dialects.archive import BackupError
+from grunt.i18n import _
 from grunt.progress import Progress
 
 PG_URL = make_url("postgresql+asyncpg://grunt:s3cret@db.local:5432/site")
@@ -67,7 +69,8 @@ def test_postgres_restore_stops_when_the_aside_dump_fails(pg_tools, tmp_path):
 
 def test_postgres_missing_client_is_a_backup_error(monkeypatch, tmp_path):
     monkeypatch.setattr(shutil, "which", lambda tool: None)
-    with pytest.raises(BackupError, match="pg_dump not found"):
+    message = _("%(tool)s not found; install the PostgreSQL client") % {"tool": "pg_dump"}
+    with pytest.raises(BackupError, match=re.escape(message)):
         PostgresDialect().restore_dump(PG_URL, tmp_path / "x.pgdump", tmp_path)
 
 
@@ -106,7 +109,8 @@ def test_sqlite_failed_swap_puts_the_live_database_back(tmp_path, monkeypatch):
         return real_move(src, dst)
 
     monkeypatch.setattr(shutil, "move", move)
-    with pytest.raises(BackupError, match="left as it was"):
+    message = _("The restore failed, the database was left as it was: %(error)s")
+    with pytest.raises(BackupError, match=re.escape(message % {"error": "disk full"})):
         SqliteDialect().restore_dump(make_url(f"sqlite:///{db}"), dump, aside)
 
     assert db.exists() and not (aside / "grunt.db").exists()

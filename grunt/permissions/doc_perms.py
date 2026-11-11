@@ -7,24 +7,31 @@ server would refuse instead of letting the user edit and then answering 403.
 
 from typing import Any
 
-import grunt
-from grunt.local import require_user
+from grunt.local import require_session_user
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 
 PERMS_KEY = "__perms"
-_ACTIONS = ("write", "delete", "create")
+_ACTIONS = ("write", "delete", "create", "print", "share")
 
 
-async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
-    dt = await grunt.get_meta(doctype)
+async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, Any]:
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         return dict.fromkeys(_ACTIONS, False)
-    user = require_user()
+    user = require_session_user()
     perms = {}
     for action in _ACTIONS:
         # create is DocType-level: duplicating this document makes a new one.
         target = None if action == "create" else doc
-        perms[action] = await permission_checker.check(user, dt, action, target)
+        if action == "share":
+            perms[action] = await permission_checker.can_share(dt, doc, user=user)
+        else:
+            perms[action] = await permission_checker.check(dt, action, target, user=user)
+    # What the form shows but doesn't let the user change.
+    perms["readonly_fields"] = (
+        sorted(await permission_checker.readonly_fields(dt, user=user)) if perms["write"] else []
+    )
     return perms
 
 

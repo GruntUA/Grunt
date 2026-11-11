@@ -4,10 +4,12 @@ Wired from :mod:`grunt.core_hooks` - keeps the request-language negotiator's
 accepted-language set in sync with the ``geo.Language`` table.
 """
 
-import grunt
 from grunt.cache.bus import fanout
+from grunt.db.api import GruntDB
 from grunt.i18n import translation_service
 from grunt.log import log
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 @fanout
@@ -18,7 +20,7 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
     saving request, so a grunt context/session is already bound.
     """
     try:
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             "Language", filters={"is_active": True}, fields=["code", "native_name"], limit=None
         )
     except Exception as e:  # noqa: BLE001

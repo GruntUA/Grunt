@@ -15,12 +15,16 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-import grunt
-from grunt import log
 from grunt.config import settings
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.tasks.broker import retryable_task
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 DATE_EVENTS = ("days_before", "days_after")
 MAX_DOCS_PER_RULE = 100_000
@@ -78,7 +82,7 @@ def same_day_of_year(value: date, target: date) -> bool:
 async def due_documents(rule: dict[str, Any], today: date) -> list[dict[str, Any]]:
     """Documents of the rule's DocType whose date field matches today."""
     doctype, field = rule["ref_doctype"], rule["date_field"]
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     fdef = meta.get_field(field) if meta else None
     if fdef is None:
         log.warning("notification.date_rule_bad_field", rule=rule["name"], field=field)
@@ -86,7 +90,7 @@ async def due_documents(rule: dict[str, Any], today: date) -> list[dict[str, Any
     target = target_date(rule, today)
 
     if rule.get("every_year"):
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             doctype, filters={f"{field}__isnull": False}, limit=MAX_DOCS_PER_RULE
         )
         return [
@@ -98,17 +102,17 @@ async def due_documents(rule: dict[str, Any], today: date) -> list[dict[str, Any
     else:
         start, end = _day_bounds(target)
         filters = {f"{field}__gte": start, f"{field}__lt": end}
-    return await grunt.db.get_all(doctype, filters=filters, limit=MAX_DOCS_PER_RULE)
+    return await _db.get_all(doctype, filters=filters, limit=MAX_DOCS_PER_RULE)
 
 
 async def run_rule(rule: dict[str, Any], today: date) -> int:
     """Notify about every due document not yet handled today; returns notifications sent."""
 
-    session = grunt.get_session()
+    session = require_session()
     since, _ = _day_bounds(today)
     sent = 0
     for doc in await due_documents(rule, today):
-        already = await grunt.db.exists(
+        already = await _db.exists(
             "Notification",
             {
                 "notification_rule": rule["name"],
@@ -132,8 +136,8 @@ async def check_date_rules(today: str | None = None) -> int:
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     total = 0
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
-        rules = await grunt.db.get_all(
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
+        rules = await _db.get_all(
             "NotificationRule",
             filters={"event__in": list(DATE_EVENTS), "is_enabled": True},
             limit=1000,

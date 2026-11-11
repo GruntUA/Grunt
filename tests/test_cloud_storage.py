@@ -16,7 +16,8 @@ import pytest
 import grunt.backups as backups
 from grunt.storage import backends
 from grunt.storage.cloud import MASK, mask_secrets
-from grunt.storage.cloud.rclone import CRYPT, Rclone, build_config, obscure
+from grunt.storage.cloud.providers import obscure
+from grunt.storage.cloud.rclone import CRYPT, Rclone, build_config
 
 pytestmark = pytest.mark.skipif(shutil.which("rclone") is None, reason="rclone not installed")
 
@@ -209,7 +210,7 @@ def storage(tmp_path, monkeypatch):
 
 
 async def _old_file(ctx, content: bytes, days: int = 100, **values) -> dict:
-    from grunt.storage import store
+    from grunt.storage.files import store
 
     row = await store(content, "old.txt", "text/plain", **values)
     await ctx.db.set_value(
@@ -220,9 +221,9 @@ async def _old_file(ctx, content: bytes, days: int = 100, **values) -> dict:
 
 @pytest.mark.asyncio
 async def test_offload_read_through_cache_recall_and_gc(ctx, storage, tmp_path):
-    from grunt.storage import read
     from grunt.storage.cloud import load_remote
     from grunt.storage.cloud.files import blob_path, cache_path, offload, recall
+    from grunt.storage.files import read
     from grunt.storage.gc import collect_garbage
 
     await ctx.new_doc(

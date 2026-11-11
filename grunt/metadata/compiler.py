@@ -1,3 +1,4 @@
+import hashlib
 from collections.abc import Collection
 from typing import Any
 
@@ -14,16 +15,16 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from grunt import log
 from grunt.db.dialects import dialect_for
 from grunt.db.schema.apply import apply, check
 from grunt.db.schema.changes import Change
 from grunt.db.schema.diff import describe, diff, read_actual
 from grunt.db.types import UtcDateTime
+from grunt.log import log
 from grunt.metadata.field import NON_PHYSICAL_FIELDS, get_storage_class
+from grunt.site.manager import site_cache_key
 from grunt.utils.strings import to_snake_case
 lazy from grunt.metadata.doctype import DocType
-lazy from grunt.metadata.registry import _resolve_site_key
 
 # SA MetaData for fixed-shape infrastructure tables that never vary by
 # DocType or by site (MULTI_LINK_TABLE, OUTBOX_TABLE below). Kept as a
@@ -31,7 +32,7 @@ lazy from grunt.metadata.registry import _resolve_site_key
 SA_METADATA = MetaData()
 
 # Per-site MetaData for *compiled DocType* tables, keyed by site (the same
-# key grunt.metadata.registry._resolve_site_key() resolves). One process can
+# key grunt.site.manager.site_cache_key() resolves). One process can
 # serve multiple sites; a compiled Table's shape (columns) depends entirely
 # on that site's DocType definition, so it must never be shared across sites
 # - a stale/foreign Table object would build SQL against columns that don't
@@ -49,17 +50,17 @@ def get_compiled_metadata(site: str | None = None) -> MetaData:
     """Return the MetaData holding compiled per-DocType tables for *site*.
 
     Defaults to the ambient current site (see
-    ``grunt.metadata.registry._resolve_site_key``). Created lazily and cached.
+    ``grunt.site.manager.site_cache_key``). Created lazily and cached.
     """
 
-    key = site or _resolve_site_key()
+    key = site or site_cache_key()
     return _SA_METADATA.setdefault(key, MetaData())
 
 
 def invalidate_table_cache(doctype_name: str) -> None:
     """Remove a cached Table for the given DocType (call on update/delete)."""
 
-    _TABLE_CACHE.get(_resolve_site_key(), {}).pop(doctype_name, None)
+    _TABLE_CACHE.get(site_cache_key(), {}).pop(doctype_name, None)
 
 
 def clear_table_cache(site: str) -> None:
@@ -146,7 +147,7 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
     """
     metadata = get_compiled_metadata()
 
-    cache = _TABLE_CACHE.setdefault(_resolve_site_key(), {})
+    cache = _TABLE_CACHE.setdefault(site_cache_key(), {})
     cached = cache.get(doctype.name)
     # Guard against stale entries: if the site's MetaData no longer holds the
     # Table (e.g. dropped during tests or hot-reload), rebuild and re-cache.
@@ -233,16 +234,74 @@ def compile_doctype_to_table(doctype: DocType) -> Table:
         if field.fieldname in _system_cols:
             continue
         if field.index and not field.unique:
-            constraints.append(Index(f"ix_{table_name}_{field.fieldname}", field.fieldname))
+            constraints.append(Index(index_name(table_name, field.fieldname), field.fieldname))
 
     # Composite indexes (doctype.indexes)
     for idx_fields in doctype.indexes:
-        idx_name = f"ix_{table_name}_" + "_".join(idx_fields)
-        constraints.append(Index(idx_name, *idx_fields))
+        constraints.append(Index(index_name(table_name, *idx_fields), *idx_fields))
+
+    constraints.extend(_implicit_indexes(doctype, table_name, columns))
 
     table = Table(table_name, metadata, *columns, *constraints, extend_existing=True)
     cache[doctype.name] = table
     return table
+
+
+#: PostgreSQL cuts identifiers at 63 bytes - silently, so a longer name would
+#: never match what the database reports and the index would be "added" again
+#: on every sync.
+_MAX_IDENTIFIER = 63
+
+
+def index_name(table_name: str, *columns: str) -> str:
+    """``ix_<table>_<columns>``, shortened with a hash past 63 bytes."""
+    name = f"ix_{table_name}_" + "_".join(columns)
+    if len(name.encode()) <= _MAX_IDENTIFIER:  # the limit is in bytes
+        return name
+    digest = hashlib.sha1(name.encode(), usedforsecurity=False).hexdigest()[:8]
+    head = name
+    while len(head.encode()) > _MAX_IDENTIFIER - 9:
+        head = head[:-1]
+    return f"{head}_{digest}"
+
+
+def _implicit_indexes(doctype: DocType, table_name: str, columns: list[Column]) -> list[Index]:
+    """Indexes every DocType table gets without asking for them.
+
+    * each Link field - filters, permission matches, "connections" and the
+      document's own links all look rows up by it;
+    * ``modified_at`` - the default list order (``LIMIT 20`` over an index
+      instead of sorting the whole table);
+    * ``parent_name`` of a child table - every document load fetches its rows;
+    * ``(<doctype field>, <field>)`` for each DynamicLink.
+
+    Skipped when the primary key, a unique field or an explicit index already
+    starts with the column.
+    """
+    physical = {c.name for c in columns}
+    leading = {"name"}
+    leading |= {f.fieldname for f in doctype.fields if f.unique or f.index}
+    leading |= {cols[0] for cols in doctype.indexes if cols}
+
+    indexes: list[Index] = []
+    # A DynamicLink is looked up together with its DocType field - one
+    # (doctype, name) index serves both, a lone index on the DocType hardly helps.
+    explicit = {tuple(cols[:2]) for cols in doctype.indexes}
+    for f in doctype.fields:
+        if f.has_trait("dynamic_link") and f.fieldname in physical and f.options in physical:
+            pair = (f.options, f.fieldname)
+            if pair not in explicit:
+                indexes.append(Index(index_name(table_name, *pair), *pair))
+                explicit.add(pair)
+            leading.add(f.options)
+
+    wanted = ["parent_name" if doctype.is_child else "modified_at"]
+    wanted += [f.fieldname for f in doctype.fields if f.has_trait("link") and not f.is_virtual]
+    for col in dict.fromkeys(wanted):
+        if col in physical and col not in leading:
+            indexes.append(Index(index_name(table_name, col), col))
+            leading.add(col)
+    return indexes
 
 
 # Sync (create / alter)

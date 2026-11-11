@@ -157,6 +157,7 @@ watch(
       <!-- Link: pick the linked document (the filter compares its id, not typed text); has its own ✕ -->
       <div
         v-if="ff.input_type === 'link' && getField(ff)"
+        :data-quick-filter="ff.field"
         class="w-[calc(50%-0.25rem)] sm:w-[200px]"
       >
         <LinkFilterInput
@@ -172,6 +173,7 @@ watch(
 
       <InputGroup
         v-else
+        :data-quick-filter="ff.field"
         class="w-[calc(50%-0.25rem)] sm:w-auto has-[[data-slot=select-trigger]:focus-visible]:border-ring has-[[data-slot=select-trigger]:focus-visible]:ring-3 has-[[data-slot=select-trigger]:focus-visible]:ring-ring/50"
       >
         <!-- Select / Check / Year: the chevron gives way to ✕ once a value is chosen -->

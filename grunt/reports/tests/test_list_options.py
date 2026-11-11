@@ -16,7 +16,7 @@ SALE = {
         {"fieldname": "sold_on", "label": "Sold on", "fieldtype": "Date"},
         {"fieldname": "amount", "label": "Amount", "fieldtype": "Float"},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "create"]}],
 }
 
 ROWS = [
@@ -38,7 +38,7 @@ async def sales(ctx):
 
 async def _run(ctx, **report):
     return await report_engine._run_list_report(
-        "RptSale", report, {}, ctx.get_user(), ctx.db._session()
+        "RptSale", report, {}, ctx.get_user().email, ctx.db._session()
     )
 
 
@@ -122,7 +122,7 @@ RPT_NODE = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data", "required": True},
         {"fieldname": "parent_node", "label": "Parent", "fieldtype": "Link", "options": "RptNode"},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "create"]}],
 }
 
 RPT_ITEM = {
@@ -133,7 +133,7 @@ RPT_ITEM = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "node", "label": "Node", "fieldtype": "Link", "options": "RptNode"},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "create"]}],
 }
 
 
@@ -152,7 +152,7 @@ async def test_child_of_in_filters_and_conditions(ctx):
 
     async def run(report, filters):
         res = await report_engine._run_list_report(
-            "RptItem", report, filters, ctx.get_user(), ctx.db._session()
+            "RptItem", report, filters, ctx.get_user().email, ctx.db._session()
         )
         return res, sorted(r["title"] for r in res["data"])
 

@@ -20,10 +20,13 @@ from typing import Any
 
 from fastapi.responses import Response
 
-import grunt
-from grunt import _
+from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
 from grunt.document.base import Document
 from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.local import require_session, user_email
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.engine import report_engine
 from grunt.reports.joins import report_fields
@@ -52,26 +55,26 @@ class Report(Document):
     last_sent_at: datetime | None
 
 
-@grunt.whitelist()
+@whitelist()
 async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
     """Execute a report and return results."""
-    result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
+    result = await report_engine.run(name, filters or {}, user_email(), require_session())
     return result
 
 
-@grunt.whitelist()
+@whitelist()
 async def fields(doctype: str) -> list[dict[str, Any]]:
     """The fields the report builder may offer for *doctype* - those a report
     can read for the current user (:func:`grunt.reports.joins.report_fields`)."""
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
-    user = grunt.get_user()
-    await permission_checker.require(user, meta, "read")
-    return await report_fields(meta, user)
+    user = acting_user()
+    await permission_checker.require(meta, "read", user=user.email)
+    return await report_fields(meta, user.email)
 
 
-@grunt.whitelist()
+@whitelist()
 async def preview(
     doctype: str,
     columns: list[dict[str, Any]] | None = None,
@@ -92,20 +95,20 @@ async def preview(
             "row_limit": row_limit,
         },
         filters or {},
-        grunt.get_user(),
-        grunt.get_session(),
+        user_email(),
+        require_session(),
     )
     return result
 
 
-@grunt.whitelist()
+@whitelist()
 async def export_xlsx(
     name: str,
     filters: dict[str, Any] | None = None,
     token: str | None = None,  # unused: absorbs ?token= query param consumed by auth, not by us
 ) -> Response:
     """Run a report and return the result as an xlsx file download."""
-    result = await report_engine.run(name, filters or {}, grunt.get_user(), grunt.get_session())
+    result = await report_engine.run(name, filters or {}, user_email(), require_session())
     xlsx_bytes = await report_engine.export_excel(result, name)
     return Response(
         content=xlsx_bytes,

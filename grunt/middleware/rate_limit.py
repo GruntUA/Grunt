@@ -29,10 +29,11 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from grunt import _, log
 from grunt.auth.doctypes.UserSession.user_session import client_ip
 from grunt.config import settings
 from grunt.errors import error_body
+from grunt.i18n import _
+from grunt.log import log
 from grunt.utils.redis import shared
 
 # Memory fallback: sweep expired windows once this many keys pile up.
@@ -44,14 +45,14 @@ _EXEMPT_PREFIXES = ("/assets/", "/api/docs", "/api/redoc", "/openapi.json", "/he
 # Strict per-IP overrides for sensitive auth endpoints (limit/minute).
 # These apply before the standard per-user/per-tier logic.
 _AUTH_STRICT_PATHS: dict[str, int] = {
-    "/api/v1/method/grunt.auth.doctypes.User.user.login_api": 20,
-    "/api/v1/method/grunt.auth.doctypes.User.user.register_full_name_api": 10,
-    "/api/v1/method/grunt.auth.doctypes.User.user.forgot_password_api": 5,
-    "/api/v1/method/grunt.auth.doctypes.User.user.reset_password_api": 10,
+    "/api/v1/method/grunt.auth.user_api.login_api": 20,
+    "/api/v1/method/grunt.auth.user_api.register_full_name_api": 10,
+    "/api/v1/method/grunt.auth.user_api.forgot_password_api": 5,
+    "/api/v1/method/grunt.auth.user_api.reset_password_api": 10,
     # Second factor / one-time codes: short and guessable, keep them slow.
-    "/api/v1/method/grunt.auth.doctypes.User.user.mfa_login_api": 10,
-    "/api/v1/method/grunt.auth.doctypes.User.user.mfa_enroll_complete": 10,
-    "/api/v1/method/grunt.auth.doctypes.User.user.register": 10,
+    "/api/v1/method/grunt.auth.user_api.mfa_login_api": 10,
+    "/api/v1/method/grunt.auth.user_api.mfa_enroll_complete": 10,
+    "/api/v1/method/grunt.auth.user_api.register": 10,
 }
 
 # /api/v1/auth/{method}/begin|complete|enroll/* - per-IP limit/minute.

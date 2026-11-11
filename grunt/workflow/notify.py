@@ -16,20 +16,24 @@ an email too with ``notify_email``.
 
 from typing import Any
 
-import grunt
-from grunt import _, log
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+from grunt.workflow.transition import ActiveTransition, user_may_take
 lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.notification.service import notification_service
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.user_permissions import doc_passes
 lazy from grunt.site.manager import current_site
-lazy from grunt.workflow.engine import ActiveTransition, user_may_take
 lazy from grunt.workflow.registry import get_active_workflow
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 async def notify_transition(
-    active: ActiveTransition, doc: dict[str, Any], user: User, *, previous: str | None = None
+    active: ActiveTransition, doc: dict[str, Any], user: str, *, previous: str | None = None
 ) -> None:
     tokens = set(active.transition.notify)
     if not tokens:
@@ -41,16 +45,16 @@ async def notify_transition(
         recipients.append(previous)
     if "next" in tokens:
         recipients.extend(await next_actors(active.doctype, doc))
-    recipients = [r for r in dict.fromkeys(recipients) if r and r != user.email]
+    recipients = [r for r in dict.fromkeys(recipients) if r and r != user]
     if not recipients:
         return
 
-    meta = await grunt.get_meta(active.doctype)
+    meta = await doctype_registry.get_meta(active.doctype)
     title = _doc_title(meta, doc)
     subject = f"{active.action}: {title}"
     message = await _message(active, user, meta)
     desk_url = _desk_url(meta, active.doc_id)
-    session = grunt.get_session()
+    session = require_session()
     for recipient in recipients:
         try:
             await notification_service.notify(
@@ -79,13 +83,13 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     if not roles:
         return []
 
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         return []
-    session = grunt.get_session()
+    session = require_session()
     result: list[str] = []
-    async with grunt.system_context(session):
-        rows = await grunt.db.get_all(
+    async with system_context(session):
+        rows = await _db.get_all(
             "UserRole",
             filters={"role_name__in": sorted(roles), "parent_doctype": "User"},
             fields=["parent_name"],
@@ -98,11 +102,11 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     for candidate in users:
         if candidate is None or not candidate.get("is_active", True):
             continue
-        if not any(user_may_take(t, candidate) for t in transitions):
+        if not any(user_may_take(t, candidate.role_names) for t in transitions):
             continue
-        if not await permission_checker.check(candidate, meta, "read", doc):
+        if not await permission_checker.check(meta, "read", doc, user=candidate.email):
             continue
-        if not await doc_passes(candidate, meta, doc):
+        if not await doc_passes(candidate.email, meta, doc):
             continue
         result.append(candidate.email)
     return result
@@ -110,9 +114,9 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
 
 async def previous_actor(doctype: str, doc_id: str) -> str | None:
     """Who performed the latest workflow action on the document (before the current one)."""
-    session = grunt.get_session()
-    async with grunt.system_context(session):
-        rows = await grunt.db.get_all(
+    session = require_session()
+    async with system_context(session):
+        rows = await _db.get_all(
             "ActivityLog",
             filters={"ref_doctype": doctype, "doc_id": doc_id, "action": "Workflow"},
             fields=["user"],
@@ -130,8 +134,8 @@ def _doc_title(meta: Any, doc: dict[str, Any]) -> str:
     return str(doc.get(field) or doc.get("name") or "")
 
 
-async def _message(active: ActiveTransition, user: User, meta: Any) -> str:
-    who = user.get("full_name") or user.email
+async def _message(active: ActiveTransition, user: str, meta: Any) -> str:
+    who = await _db.get_value("User", {"email": user}, "full_name") or user
     lines = [
         _("%(user)s: “%(action)s” — %(from)s → %(to)s")
         % {

@@ -23,7 +23,7 @@ export interface Passkey {
     created_at: string | null
 }
 
-const METHOD = '/api/v1/method/grunt.auth.doctypes.User.user'
+const METHOD = '/api/v1/method/grunt.auth.user_api'
 const PASSKEY = '/api/v1/method/grunt.auth.doctypes.WebAuthnCredential.web_authn_credential'
 
 export const authApi = {

@@ -152,21 +152,21 @@ msgstr "Записів: %(shown)s з %(total)s"
 
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "%(tool)s failed: %(error)s"
-msgstr ""
+msgstr "%(tool)s завершився з помилкою: %(error)s"
 
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "%(tool)s not found; install the PostgreSQL client"
-msgstr ""
+msgstr "%(tool)s не знайдено; встановіть клієнт PostgreSQL"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py
 msgid "%(used)s used"
 msgstr "використано %(used)s"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "%(user)s mentioned you in a comment"
 msgstr "%(user)s згадав вас у коментарі"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "%(user)s replied to your comment"
 msgstr "%(user)s відповів(-ла) на ваш коментар"
 
@@ -362,7 +362,7 @@ msgstr "Відповідь має стосуватися того самого �
 
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
-msgstr ""
+msgstr "Обов'язкове поле порожнє."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
@@ -410,7 +410,7 @@ msgstr "Позначка «подобається» користувача на 
 
 #: grunt/grunt/db/errors.py
 msgid "A value does not meet the database's rules."
-msgstr ""
+msgstr "Значення не відповідає правилам бази даних."
 
 #: grunt/grunt/api/v1/meta.py
 msgid "A virtual DocType has no physical table"
@@ -418,11 +418,11 @@ msgstr "Віртуальний тип документа не має фізич�
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid ""
-"A walk through a DocType's form: each step points at a field or an element "
-"and explains it."
+"A walk through a DocType's form or list: each step points at a field or an "
+"element and explains it."
 msgstr ""
-"Екскурсія формою документа: кожен крок вказує на поле чи елемент і пояснює "
-"його."
+"Екскурсія формою або списком DocType: кожен крок вказує на поле чи елемент і"
+" пояснює його."
 
 #: grunt/grunt/monitoring/health.py
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
@@ -1265,8 +1265,8 @@ msgstr "Auth ключ"
 msgid "Authentication cancelled"
 msgstr "Автентифікацію скасовано"
 
-#: grunt/grunt/api/context.py grunt/grunt/api/v1/method.py
-#: grunt/grunt/auth/providers/webauthn.py
+#: grunt/grunt/local.py grunt/grunt/auth/current.py
+#: grunt/grunt/api/v1/method.py grunt/grunt/auth/providers/webauthn.py
 msgid "Authentication required"
 msgstr "Потрібна автентифікація"
 
@@ -1751,7 +1751,7 @@ msgstr "Скасовано"
 msgid "Cancelling…"
 msgstr "Скасування…"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Cannot add a unique constraint on “%(field)s”: duplicates found:"
 msgstr ""
 "Неможливо додати унікальне обмеження на «%(field)s»: знайдено дублікати:"
@@ -1824,6 +1824,14 @@ msgstr "Змінено: %(fields)s"
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Changes"
 msgstr "Зміни"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Changes leave no version or activity entry - for values the system keeps up "
+"to date (sync status, last run, logs)"
+msgstr ""
+"Зміни не створюють версії й запису в журналі дій — для значень, які оновлює "
+"система (стан синхронізації, останній запуск, логи)"
 
 #: grunt/frontend/src/core/api/client.ts
 msgid ""
@@ -2153,7 +2161,7 @@ msgstr "Хмарне сховище"
 msgid "Cloud storage"
 msgstr "Хмарні сховища"
 
-#: grunt/grunt/storage/cloud/__init__.py
+#: grunt/grunt/core_events.py
 msgid "Cloud storage “%(name)s” is failing"
 msgstr "Хмарне сховище «%(name)s» не працює"
 
@@ -2766,6 +2774,10 @@ msgstr "Фільтри лічильника (JSON)"
 msgid "Count from field"
 msgstr "Відлік від поля"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Count page views"
+msgstr "Рахувати перегляди сторінок"
+
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/geo/doctypes/Region/Region.json
 #: grunt/grunt/geo/doctypes/City/City.json
@@ -2778,7 +2790,6 @@ msgid "Country flag emoji (🇺🇦)"
 msgstr "Emoji-прапор країни (🇺🇦)"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
@@ -2885,6 +2896,7 @@ msgstr "Облікові дані"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Cron expression"
 msgstr "Cron вираз"
@@ -2951,11 +2963,11 @@ msgstr "ДД/ММ/РРРР"
 msgid "DEBUG=true in production exposes extra error details."
 msgstr "DEBUG=true у production відкриває зайві подробиці помилок."
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "DOCX generation error: %(error)s"
 msgstr "Помилка генерації DOCX: %(error)s"
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid ""
 "DOCX template not found. Create a PrintFormat with template_type='docx'."
 msgstr "Шаблон DOCX не знайдено. Створіть PrintFormat з template_type='docx'."
@@ -3226,7 +3238,6 @@ msgstr "Визначення"
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Delete"
 msgstr "Видалити"
 
@@ -3613,9 +3624,10 @@ msgstr "DocType «%(doctype)s» вже існує"
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr "DocType «%(doctype)s» більше не існує"
 
-#: grunt/grunt/app/document_api.py grunt/grunt/metadata/registry.py
-#: grunt/grunt/notification/rule_index.py grunt/grunt/activity/__init__.py
-#: grunt/grunt/actions/__init__.py grunt/grunt/document/connections.py
+#: grunt/grunt/app/workflow_api.py grunt/grunt/metadata/registry.py
+#: grunt/grunt/store/virtual.py grunt/grunt/notification/rule_index.py
+#: grunt/grunt/activity/__init__.py grunt/grunt/actions/__init__.py
+#: grunt/grunt/document/api.py grunt/grunt/document/connections.py
 #: grunt/grunt/document/collection.py grunt/grunt/document/links.py
 msgid "DocType “%(doctype)s” not found"
 msgstr "DocType «%(doctype)s» не знайдено"
@@ -3947,7 +3959,6 @@ msgstr ""
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr "Кожне повідомлення приходить кілька разів — сповіщення дублюються."
 
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
@@ -4502,6 +4513,7 @@ msgstr "Додаткові джерела"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 msgid "Failed"
 msgstr "Помилка"
@@ -4517,6 +4529,10 @@ msgstr "Невдалі запуски за добу"
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "Failed to load preview"
 msgstr "Не вдалося завантажити попередній перегляд"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Failures"
+msgstr "Збоїв"
 
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
 msgid "Fast delete"
@@ -4567,10 +4583,6 @@ msgstr "Список полів"
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgid "Field mapping (JSON)"
 msgstr "Маппінг полів (JSON)"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Field picker"
-msgstr "Вибір у полі"
 
 #: grunt/frontend/src/core/composables/useFormInitialization.ts
 msgid "Field set: {value}"
@@ -4939,7 +4951,7 @@ msgstr "Ім'я є обов'язковим"
 msgid "First page"
 msgstr "Перша сторінка"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "Fix the duplicates and try again."
 msgstr "Виправте дублікати та повторіть операцію."
 
@@ -6231,6 +6243,7 @@ msgid "Job ID"
 msgstr "ID завдання"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Job name"
 msgstr "Назва завдання"
 
@@ -6397,11 +6410,20 @@ msgstr "Остання копія"
 msgid "Last day of month"
 msgstr "Останній день місяця"
 
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last end"
+msgstr "Останнє завершення"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Last error"
 msgstr "Остання помилка"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last failure"
+msgstr "Останній збій"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Last login"
@@ -6435,6 +6457,14 @@ msgstr "Остання активність"
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Last sent"
 msgstr "Востаннє надіслано"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last start"
+msgstr "Останній запуск"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last status"
+msgstr "Останній статус"
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Last task taken"
@@ -6522,16 +6552,6 @@ msgid ""
 msgstr ""
 "Глядачі можуть перемикати період (тиждень/місяць/рік/весь час) прямо на "
 "віджеті"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid ""
-"Lets a user search Link-field values (name, title, search fields) without "
-"access to the list or the full document. Granted automatically together with"
-" Read."
-msgstr ""
-"Дозволяє шукати значення для Link-поля (назва, заголовок, поля пошуку) без "
-"доступу до списку та повного документа. Автоматично надається разом із "
-"«Читати»."
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Lets users subscribe to browser notifications."
@@ -6902,10 +6922,6 @@ msgstr "Позначити як прочитане"
 #: grunt/frontend/src/core/composables/useMapCoordinateJump.ts
 msgid "Marked point"
 msgstr "Позначена точка"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Match condition (eval:)"
-msgstr "Умова відповідності (eval:)"
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 msgid "Match only day and month - birthdays, work anniversaries"
@@ -7557,6 +7573,10 @@ msgstr "Не вказано назву файлу"
 msgid "No grouping"
 msgstr "Без групування"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "No history"
+msgstr "Без історії"
+
 #: grunt/frontend/src/components/fields/Icon/Icon.vue
 msgid "No icons found"
 msgstr "Іконок не знайдено"
@@ -7696,7 +7716,7 @@ msgstr ""
 "змінює документ у стані «З» (наприклад, змінена опублікована сторінка "
 "повертається на модерацію)"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "Not allowed"
 msgstr "Не дозволено"
 
@@ -7761,6 +7781,10 @@ msgstr "Недостатньо прав"
 msgid "Not permitted to change another user's password"
 msgstr "Недостатньо прав, щоб змінити пароль іншого користувача"
 
+#: grunt/grunt/document/api.py grunt/grunt/document/mixins/lifecycle.py
+msgid "Not permitted to change fields: %(fields)s"
+msgstr "Немає права змінювати поля: %(fields)s"
+
 #: grunt/grunt/auth/doctypes/User/user.py
 msgid "Not permitted to change roles"
 msgstr "Недостатньо прав для зміни ролей"
@@ -7782,7 +7806,7 @@ msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 "Недостатньо прав, щоб задати пароль — скористайтесь дією «Змінити пароль»"
 
-#: grunt/grunt/app/document_api.py
+#: grunt/grunt/document/api.py grunt/grunt/permissions/reads.py
 msgid "Not permitted to use fields: %(fields)s"
 msgstr "Немає доступу до полів: %(fields)s"
 
@@ -7793,6 +7817,10 @@ msgstr "Не опубліковано — відкрити попередній 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Not shown to this role, and not changed, filtered or searched by."
+msgstr "Ця роль їх не бачить, не змінює, не фільтрує й не шукає за ними."
 
 #: grunt/frontend/src/components/fields/Signature/Signature.vue
 msgid "Not signed"
@@ -8021,14 +8049,15 @@ msgstr ""
 " (.exe); розширення звіряється з іменем файлу. Файли інших типів не "
 "приймаються. Файли лише завантажуються, у браузері не відкриваються"
 
-#: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid ""
-"One row per scheduled job run - framework tasks, app scheduler_events and "
-"Scheduler Event server scripts. Old entries are deleted automatically."
+"One row per scheduled job: when it last ran and how it ended. Updated on "
+"every run, including the frequent jobs whose successful runs the Scheduled "
+"Job Log does not keep."
 msgstr ""
-"Один рядок на кожен запуск запланованого завдання — задачі фреймворку, "
-"scheduler_events додатків і серверні скрипти Scheduler Event. Старі записи "
-"видаляються автоматично."
+"Один рядок на кожне заплановане завдання: коли воно запускалося востаннє і "
+"чим це скінчилося. Оновлюється при кожному запуску, зокрема для частих "
+"завдань, успішні запуски яких «Лог завдань планувальника» не зберігає."
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "One status per line; reaching any of them stops the clock"
@@ -8071,8 +8100,10 @@ msgid "Only one document of this type (settings, profile)"
 msgstr "Лише один документ цього типу (налаштування, профіль)"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Only someone who can edit the document can share it"
-msgstr "Поділитися документом може лише той, хто має право його змінювати"
+msgid "Only someone allowed to share and edit the document can share it"
+msgstr ""
+"Поширювати документ може лише той, хто має право поширювати й редагувати "
+"його"
 
 #: grunt/grunt/document/doctypes/Comment/comment.py
 msgid "Only the author or an administrator can delete a comment"
@@ -8244,11 +8275,11 @@ msgstr "Опції"
 
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 msgid ""
-"Or a CSS selector of another element, e.g. [data-action=save]; neither - a "
-"step in the middle of the screen"
+"Or a CSS selector of another element, e.g. [data-action=save], [data-tour-"
+"target=search]; neither - a step in the middle of the screen"
 msgstr ""
-"Або CSS-селектор іншого елемента, напр. [data-action=save]; без обох — крок "
-"посередині екрана"
+"Або CSS-селектор іншого елемента, наприклад [data-action=save], [data-tour-"
+"target=search]; без обох - крок посеред екрана"
 
 #: grunt/grunt/email/templates/email_login.html
 msgid "Or click the button to sign in right away:"
@@ -8434,7 +8465,7 @@ msgstr "Параметри"
 
 #: grunt/grunt/api/v1/method.py
 msgid "Parameters %(items)s cannot be passed in a request"
-msgstr ""
+msgstr "Параметри %(items)s не можна передавати в запиті"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Parent field"
@@ -8595,6 +8626,10 @@ msgstr "Перемикач періоду"
 msgid "Permission"
 msgstr "Дозвіл"
 
+#: grunt/grunt/metadata/registry.py
+msgid "Permission for “%(role)s” names unknown fields: %(fields)s"
+msgstr "Права для «%(role)s» згадують невідомі поля: %(fields)s"
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Permissions"
 msgstr "Дозволи"
@@ -8745,7 +8780,7 @@ msgstr "Попередній період"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Previous token hash"
-msgstr ""
+msgstr "Хеш попереднього токена"
 
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "Previous value"
@@ -8866,6 +8901,16 @@ msgstr "І публічні файли"
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Public key"
 msgstr "Публічний ключ"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Public pages of DocTypes with a view_count field count their views (a beacon"
+" after the page loads: bots without JavaScript and repeats within 30 minutes"
+" don't count)."
+msgstr ""
+"Публічні сторінки DocType з полем view_count рахують перегляди (сигнал після"
+" завантаження сторінки: боти без JavaScript і повтори протягом 30 хвилин не "
+"рахуються)."
 
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
@@ -9012,7 +9057,6 @@ msgstr "Реакція"
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Read"
@@ -9037,6 +9081,10 @@ msgstr "Запитано підтвердження прочитання"
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Read-only"
 msgstr "Лише читання"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Read-only fields (comma-separated)"
+msgstr "Поля лише для читання (через кому)"
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "Reading file structure…"
@@ -9433,7 +9481,6 @@ msgstr "Звіт «%(name)s» не знайдено"
 msgid "Report “%(name)s”, %(date)s"
 msgstr "Звіт «%(name)s» — %(date)s"
 
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue
@@ -9668,6 +9715,10 @@ msgstr "Рядок %(idx)s: %(error)s"
 msgid "Row actions"
 msgstr "Дії з рядком"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Row condition"
+msgstr "Умова для рядків"
+
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "Row deleted"
 msgid_plural "{n} rows deleted"
@@ -9774,6 +9825,10 @@ msgstr "Виконує зараз"
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Running tasks"
 msgstr "Задач у роботі"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Runs"
+msgstr "Запусків"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid ""
@@ -9898,7 +9953,7 @@ msgid "Same text as the Section of the sidebar items it groups"
 msgstr ""
 "Такий самий текст, як «Секція» в пунктах бічної панелі, які вона об'єднує"
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Sample"
 msgstr "Зразок"
 
@@ -10019,6 +10074,10 @@ msgstr "Заплановане завдання"
 msgid "Scheduled Job Log"
 msgstr "Лог завдань планувальника"
 
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Scheduled Job State"
+msgstr "Стан завдань планувальника"
+
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgid "Scheduled Jobs"
 msgstr "Заплановані завдання"
@@ -10030,6 +10089,18 @@ msgstr "Резервні копії за розкладом"
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Scheduled delivery"
 msgstr "Розсилка за розкладом"
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+msgid ""
+"Scheduled job runs - framework tasks, app scheduler_events and Scheduler "
+"Event server scripts. Jobs that fire more often than hourly leave a row only"
+" when they fail; their last run is in Scheduled Job State. Old entries are "
+"deleted automatically."
+msgstr ""
+"Запуски запланованих завдань — задачі фреймворку, scheduler_events додатків "
+"і серверні скрипти Scheduler Event. Завдання, що запускаються частіше ніж "
+"раз на годину, лишають запис лише при збої; їхній останній запуск — у «Стані"
+" завдань планувальника». Старі записи видаляються автоматично."
 
 #: grunt/grunt/monitoring/health.py
 msgid "Scheduled jobs (mailings, cleanup, digests) are not running."
@@ -10666,6 +10737,10 @@ msgstr "Показано перші {n} з {total} файлів"
 msgid "Shown"
 msgstr "Показані"
 
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgid "Shown in"
+msgstr "Де показувати"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Shown in the browser tab title, the sidebar and system emails."
 msgstr ""
@@ -10682,6 +10757,15 @@ msgstr ""
 msgid "Shown only in debug mode · Click outside or press ESC to close"
 msgstr ""
 "Показується лише в режимі debug · Клацніть поза вікном або ESC, щоб закрити"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"Shown to this role but kept as they are once the document exists; a new "
+"document takes their value. A role that may change them wins."
+msgstr ""
+"Ця роль їх бачить, але в наявному документі не змінює; новий документ "
+"приймає їхнє значення. Якщо інша роль користувача дозволяє їх змінювати — "
+"вона має перевагу."
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Shows the sign-up form on the login page."
@@ -11001,10 +11085,11 @@ msgstr "Запуск…"
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid ""
-"Starts the first time a user opens the form; afterwards - from the form's "
-"menu"
+"Starts the first time a user opens the form (or the list); afterwards - from"
+" its menu"
 msgstr ""
-"Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
+"Запускається, коли користувач уперше відкриває форму (або список); далі - з "
+"її меню"
 
 #: grunt/grunt/document/sidebar.py
 #: grunt/grunt/monitoring/templates/system_health.html
@@ -11213,6 +11298,7 @@ msgstr "Підсумок"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Success"
 msgstr "Успішно"
 
@@ -11298,7 +11384,7 @@ msgstr "Налаштування системи"
 msgid "System setup"
 msgstr "Налаштування системи"
 
-#: grunt/grunt/monitoring/health.py grunt/frontend/src/core/browserHealth.ts
+#: grunt/grunt/utils/sizes.py grunt/frontend/src/core/browserHealth.ts
 msgid "TB"
 msgstr "ТБ"
 
@@ -11344,6 +11430,7 @@ msgid "Tags"
 msgstr "Теги"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js
 msgid "Take a tour"
 msgstr "Пройти тур"
 
@@ -11449,7 +11536,7 @@ msgstr "Шаблон"
 msgid "Template document"
 msgstr "Документ-шаблон"
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Template error:"
 msgstr "Помилка шаблону:"
 
@@ -11704,6 +11791,14 @@ msgstr ""
 msgid "The document was updated by another user"
 msgstr "Документ оновлено іншим користувачем"
 
+#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
+msgid ""
+"The field to point at: in a form - the field (its tab opens by itself), in a"
+" list - its column or quick filter"
+msgstr ""
+"Поле, на яке вказати: у формі - саме поле (його вкладка відкриється сама), у"
+" списку - його колонка або швидкий фільтр"
+
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
 msgstr "Файл не можна видалити: він прикріплений до %(doctype)s «%(doc)s»"
@@ -11733,10 +11828,6 @@ msgstr "У теці є підтеки: спершу перемістіть аб�
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "The folder is not empty: move or delete its files first"
 msgstr "Тека не порожня: спершу перемістіть або видаліть її файли"
-
-#: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
-msgid "The form field to point at; its tab opens by itself"
-msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
 
 #: grunt/frontend/src/pages/app/AppHome.vue
 msgid "The home page is not set up."
@@ -11808,6 +11899,10 @@ msgstr ""
 "Наявні дані цього поля не переносяться автоматично — вивантажте їх до "
 "міграції."
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "The oldest versions past this number are deleted. 0 - keep all"
+msgstr "Найстаріші версії понад цю кількість видаляються. 0 — зберігати всі"
+
 #: grunt/grunt/tasks/auto_repeat.py
 msgid "The owner of this rule is missing or inactive"
 msgstr "Власник цього правила відсутній або деактивований"
@@ -11854,6 +11949,8 @@ msgid ""
 "The record refers to a record that does not exist, or other records still "
 "refer to it."
 msgstr ""
+"Запис посилається на запис, якого не існує, або на нього ще посилаються інші"
+" записи."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "The redirect URI registered in your app must be exactly"
@@ -11883,11 +11980,11 @@ msgstr "Відповідь прийшла з офлайн-кешу."
 msgid ""
 "The restore failed and the database could not be put back: it is in "
 "%(aside)s"
-msgstr ""
+msgstr "Відновлення не вдалося, і базу не вдалося повернути: вона в %(aside)s"
 
 #: grunt/grunt/db/dialects/sqlite.py
 msgid "The restore failed, the database was left as it was: %(error)s"
-msgstr ""
+msgstr "Відновлення не вдалося, база лишилась як була: %(error)s"
 
 #: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 msgid ""
@@ -12044,7 +12141,7 @@ msgstr "Значення, що зберігається в полі стану �
 msgid "The value the status field must hold (e.g. \"Draft\")"
 msgstr "Значення, яке має містити поле статусу (наприклад «Чернетка»)"
 
-#: grunt/grunt/document/mixins/history_rpc.py
+#: grunt/grunt/api/v1/document/history.py
 msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
@@ -12330,7 +12427,7 @@ msgstr "Токен"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Token rotated at"
-msgstr ""
+msgstr "Токен оновлено"
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Tomorrow at 9:00"
@@ -12579,11 +12676,11 @@ msgstr "Невідома помилка"
 msgid "Unknown export format: %(format)s"
 msgstr "Невідомий формат експорту: %(format)s"
 
-#: grunt/grunt/app/document_api.py
+#: grunt/grunt/document/api.py
 msgid "Unknown fields: %(fields)s"
 msgstr "Невідомі поля: %(fields)s"
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Unknown format “%(format)s”. Available: %(available)s"
 msgstr "Невідомий формат «%(format)s». Доступні: %(available)s"
 
@@ -12591,7 +12688,7 @@ msgstr "Невідомий формат «%(format)s». Доступні: %(avai
 msgid "Unknown format: %(format)s"
 msgstr "Невідомий формат: %(format)s"
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Unknown format: %(format)s. Supported: html, pdf, xlsx, docx"
 msgstr "Невідомий формат: %(format)s. Підтримуються: html, pdf, xlsx, docx"
 
@@ -12614,6 +12711,10 @@ msgstr "Невідомий статус кроку"
 #: grunt/grunt/storage/cloud/providers.py
 msgid "Unknown storage type: %(name)s"
 msgstr "Невідомий тип сховища: %(name)s"
+
+#: grunt/grunt/site/onboarding.py
+msgid "Unknown view: %(view)s"
+msgstr "Невідомий вигляд: %(view)s"
 
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Unlike"
@@ -12964,13 +13065,17 @@ msgstr "Підстановка значень — {ім'я_поля} з конт
 msgid "Version"
 msgstr "Версія"
 
-#: grunt/grunt/document/mixins/history_rpc.py
+#: grunt/grunt/api/v1/document/history.py
 msgid "Version not found"
 msgstr "Версію не знайдено"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Version {n}"
 msgstr "Версія {n}"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Versions per document"
+msgstr "Версій на документ"
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Vertical text, bottom to top"
@@ -13156,6 +13261,10 @@ msgstr "URL вебхуку"
 msgid "Webhook not found"
 msgstr "Вебхук не знайдено"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Website"
+msgstr "Вебсайт"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
 "Website images are better kept on the server: they are read all the time."
@@ -13195,6 +13304,18 @@ msgstr "Що плануєте зробити сьогодні?"
 msgid "What needs to be done?"
 msgstr "Що потрібно зробити?"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"What this role may do. Field picker - search Link-field values without the "
+"list or the full document (implied by Read). Export, import, print, share "
+"and reports are granted separately from Read and Edit; Share also needs "
+"Edit."
+msgstr ""
+"Що може ця роль. «Вибір у полі» — шукати значення для полів-посилань без "
+"доступу до списку чи всього документа (входить у «Читання»). Експорт, "
+"імпорт, друк, поширення та звіти надаються окремо від читання й редагування;"
+" поширення потребує ще й редагування."
+
 #: grunt/grunt/monitoring/templates/system_health.html
 msgid "What to do"
 msgstr "Що робити"
@@ -13222,6 +13343,10 @@ msgid ""
 msgstr ""
 "Коли воркер востаннє взяв задачу з черги. Порожньо — ще жодної не брав."
 
+#: grunt/grunt/site/doctypes/FormTour/FormTour.json
+msgid "Where the tour runs: the document's form or the list of documents"
+msgstr "Де проходить тур: у формі документа чи в списку документів"
+
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
 msgstr "Де використовується / доступні поля"
@@ -13233,6 +13358,14 @@ msgstr "Яке поле відображається як назва докум�
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Which field to show as the node label (default: title field)"
 msgstr "Яке поле показувати як підпис вузла (default: поле заголовка)"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"Which rows this rule covers: field == user, field != 'value' or "
+"link_field.field == user. Empty - all rows."
+msgstr ""
+"Які рядки охоплює це правило: field == user, field != 'value' або "
+"link_field.field == user. Порожньо — усі рядки."
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid ""
@@ -13632,7 +13765,7 @@ msgstr "містити спеціальний символ"
 msgid "contain an uppercase letter"
 msgstr "містити велику літеру"
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "content is required"
 msgstr "content обов'язковий"
 
@@ -13643,6 +13776,10 @@ msgstr "Кількість"
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "count — number of rows"
 msgstr "count — кількість рядків"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "create"
+msgstr "Створення"
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "created"
@@ -13671,6 +13808,10 @@ msgstr "База даних (посилання)"
 #: grunt/grunt/monitoring/health.py
 msgid "default"
 msgstr "стандартний"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "delete"
+msgstr "Видалення"
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "denied"
@@ -13744,6 +13885,10 @@ msgstr "рівно одна копія"
 msgid "explorer"
 msgstr "Провідник"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "export"
+msgstr "Експорт"
+
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "few"
 msgstr "мало"
@@ -13783,6 +13928,10 @@ msgstr "Потрібен ids або delete_all"
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgid "ignored"
 msgstr "Проігноровано"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "import"
+msgstr "Імпорт"
 
 #: grunt/grunt/monitoring/health.py
 msgid "in 7 days"
@@ -14070,6 +14219,10 @@ msgstr ""
 msgid "previous value"
 msgstr "попереднє значення"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "print"
+msgstr "Друк"
+
 #: grunt/grunt/monitoring/updates.py
 msgid "process %(pid)s (%(command)s, %(age)s)"
 msgstr "процес %(pid)s (%(command)s, %(age)s)"
@@ -14102,6 +14255,10 @@ msgstr "rclone не встановлено на сервері (https://rclone.o
 msgid "rclone options"
 msgstr "Параметри rclone"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "read"
+msgstr "Читання"
+
 #: grunt/frontend/src/components/desk/AppCard.vue
 msgid "records"
 msgstr "записів"
@@ -14114,9 +14271,10 @@ msgstr "Відхилено"
 msgid "removed"
 msgstr "видалено"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "report"
-msgstr "Звіт"
+msgstr "Звіти"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "role"
@@ -14143,9 +14301,17 @@ msgstr "працює в цьому процесі, завдань: %(count)s"
 msgid "saved"
 msgstr "збережена"
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "select"
+msgstr "Вибір у полі"
+
 #: grunt/frontend/src/components/views/actions/BulkActionsMenu.vue
 msgid "selected"
 msgstr "вибрано"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "share"
+msgstr "Поширення"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -14189,7 +14355,7 @@ msgstr "Система"
 msgid "task"
 msgstr "задача"
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "template is required"
 msgstr "template обов'язковий"
 
@@ -14250,7 +14416,7 @@ msgstr "uv не встановлено"
 msgid "uv tool %(name)s"
 msgstr "uv tool %(name)s"
 
-#: grunt/grunt/metadata/compiler.py
+#: grunt/grunt/db/schema/apply.py
 msgid "value %(value)s, records: %(ids)s"
 msgstr "значення %(value)s — записи: %(ids)s"
 
@@ -14273,6 +14439,10 @@ msgstr "працює"
 #: grunt/grunt/monitoring/health.py
 msgid "works"
 msgstr "працює"
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "write"
+msgstr "Редагування"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "xxxx xxxx xxxx xxxx"
@@ -14510,7 +14680,7 @@ msgstr "«%(doctype)s» не підтримує заміну посилань"
 msgid "“%(doctype)s” does not support this operation"
 msgstr "«%(doctype)s» не підтримує цю операцію"
 
-#: grunt/grunt/app/document_api.py grunt/grunt/store/base.py
+#: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr "«%(doctype)s» не має таблиці для агрегації"
 
@@ -14645,21 +14815,6 @@ msgstr "Код поля (Fieldname)"
 msgctxt "meta:DocField.label"
 msgid "Label"
 msgstr "Назва (Label)"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.create"
-msgid "Create"
-msgstr "Створювати"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.delete"
-msgid "Delete"
-msgstr "Видаляти"
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgctxt "meta:DocPermission.read"
-msgid "Read"
-msgstr "Читати"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgctxt "meta:DocType.sec_service"
@@ -14823,6 +14978,21 @@ msgstr "видалення"
 
 #: grunt/grunt/permissions/rbac.py
 msgctxt "permission"
+msgid "export"
+msgstr "експорт"
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
+msgid "import"
+msgstr "імпорт"
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
+msgid "print"
+msgstr "друк"
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
 msgid "read"
 msgstr "читання"
 
@@ -14835,6 +15005,11 @@ msgstr "звіти"
 msgctxt "permission"
 msgid "select in a field"
 msgstr "вибір у полі"
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
+msgid "share"
+msgstr "поширення"
 
 #: grunt/grunt/permissions/rbac.py
 msgctxt "permission"
@@ -14986,6 +15161,13 @@ msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
 
+#~ msgid ""
+#~ "A walk through a DocType's form: each step points at a field or an element "
+#~ "and explains it."
+#~ msgstr ""
+#~ "Екскурсія формою документа: кожен крок вказує на поле чи елемент і пояснює "
+#~ "його."
+
 #~ msgid "Backup not found"
 #~ msgstr "Резервну копію не знайдено"
 
@@ -14995,11 +15177,33 @@ msgstr "Відкрито"
 #~ msgid "Copy ID"
 #~ msgstr "Скопіювати ідентифікатор"
 
+#~ msgid "Field picker"
+#~ msgstr "Вибір у полі"
+
 #~ msgid "Hook '%(doc_id)s' not found"
 #~ msgstr "Хук «%(doc_id)s» не знайдено"
 
+#~ msgid ""
+#~ "Lets a user search Link-field values (name, title, search fields) without "
+#~ "access to the list or the full document. Granted automatically together with"
+#~ " Read."
+#~ msgstr ""
+#~ "Дозволяє шукати значення для Link-поля (назва, заголовок, поля пошуку) без "
+#~ "доступу до списку та повного документа. Автоматично надається разом із "
+#~ "«Читати»."
+
 #~ msgid "No physical table — data comes from a controller"
 #~ msgstr "Без фізичної таблиці — дані з контролера"
+
+#~ msgid "Only someone who can edit the document can share it"
+#~ msgstr "Поділитися документом може лише той, хто має право його змінювати"
+
+#~ msgid ""
+#~ "Or a CSS selector of another element, e.g. [data-action=save]; neither - a "
+#~ "step in the middle of the screen"
+#~ msgstr ""
+#~ "Або CSS-селектор іншого елемента, напр. [data-action=save]; без обох — крок "
+#~ "посередині екрана"
 
 #~ msgid "Performance trend “%(name)s” not found"
 #~ msgstr "Запис динаміки продуктивності «%(name)s» не знайдено"
@@ -15009,6 +15213,15 @@ msgstr "Відкрито"
 
 #~ msgid "SqlProfilerRequest '%(doc_id)s' not found"
 #~ msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
+
+#~ msgid ""
+#~ "Starts the first time a user opens the form; afterwards - from the form's "
+#~ "menu"
+#~ msgstr ""
+#~ "Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
+
+#~ msgid "The form field to point at; its tab opens by itself"
+#~ msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
 
 #~ msgid "Virtual"
 #~ msgstr "Віртуальний"
@@ -15042,3 +15255,15 @@ msgstr "Відкрито"
 
 #~ msgid "“%(name)s” not found"
 #~ msgstr "«%(name)s» не знайдено"
+
+#~ msgctxt "meta:DocPermission.create"
+#~ msgid "Create"
+#~ msgstr "Створювати"
+
+#~ msgctxt "meta:DocPermission.delete"
+#~ msgid "Delete"
+#~ msgstr "Видаляти"
+
+#~ msgctxt "meta:DocPermission.read"
+#~ msgid "Read"
+#~ msgstr "Читати"

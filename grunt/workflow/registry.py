@@ -10,14 +10,14 @@ hit the DB on every read.
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt
-from grunt import _
 from grunt.cache.bus import fanout
 from grunt.document.relations import _load_child_tables
 from grunt.document.serde import serialize_datetimes
 from grunt.hooks import on_doc
+from grunt.i18n import _
 from grunt.local import _session_ctx
 from grunt.metadata.doctype import WorkflowState, WorkflowTransition
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site, site_manager
 lazy from grunt.errors import not_found
 
@@ -80,7 +80,7 @@ async def _get_session() -> AsyncSession | None:
     """Return the ambient request/test session, falling back to the active site's.
 
     Mirrors ``DocTypeRegistry._lazy_load``'s session resolution: prefer whatever
-    session ``grunt.context()`` already has bound (correct even when more than
+    session ``user_context()`` already has bound (correct even when more than
     one site's DB is reachable from the same process), and only fall back to
     ``site_manager`` when nothing is bound (background tasks/schedulers).
     """
@@ -111,7 +111,7 @@ async def get_active_workflow(document_type: str) -> ResolvedWorkflow | None:
         # can still resolve it.
         return None
 
-    meta = await grunt.get_meta("Workflow")
+    meta = await doctype_registry.get_meta("Workflow")
     if meta is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "Workflow"})
     dt = meta.doc  # _load_child_tables below is typed to take the raw DocType

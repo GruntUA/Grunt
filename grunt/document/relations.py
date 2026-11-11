@@ -9,12 +9,11 @@ from urllib.parse import unquote, urlsplit
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt import log
 from grunt.document.meta import Meta
 from grunt.document.serde import audit_fields, serialize_datetimes
+from grunt.log import log
 from grunt.metadata.field import get_storage_class
 from grunt.metadata.registry import doctype_registry
-lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.metadata.doctype import DocType
 
 # Target-doctype fields auto-injected alongside a Link field's __label (as
@@ -365,7 +364,7 @@ async def _save_child_tables(
     dt: DocType,
     parent_id: str,
     data: dict[str, Any],
-    user: User,
+    user: str,
     now: datetime,
 ) -> None:
     """Replace child table rows for all TABLE fields present in *data*."""
@@ -399,7 +398,7 @@ async def _save_child_tables(
                 "parent_doctype": dt.name,
                 "parent_field": field.fieldname,
                 "idx": child_idx,
-                **audit_fields(user.email, now),
+                **audit_fields(user, now),
             }
             # Always include every column to avoid NOT NULL constraint errors.
             apply_field_values(child_dt.fields, child_data, row, fill_empty=True)

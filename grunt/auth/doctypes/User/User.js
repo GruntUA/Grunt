@@ -51,7 +51,7 @@ function on_load(frm) {
 
       try {
         await grunt.call({
-          method: "grunt.auth.doctypes.User.user.set_user_password_api",
+          method: "grunt.auth.user_api.set_user_password_api",
           args: { user_id, new_password: values.new_password, current_password: values.current_password },
         });
         grunt.msgprint({ message: __('Password changed'), indicator: "green" });
@@ -97,7 +97,7 @@ function on_load(frm) {
     visible: pending,
     action: async () => {
       await grunt.call({
-        method: "grunt.auth.doctypes.User.user.approve_user_api",
+        method: "grunt.auth.user_api.approve_user_api",
         args: { user_id: frm.doc.name },
       });
       grunt.msgprint({ message: __('Registration approved — the user can sign in'), indicator: "green" });
@@ -112,7 +112,7 @@ function on_load(frm) {
     visible: pending,
     action: async () => {
       await grunt.call({
-        method: "grunt.auth.doctypes.User.user.reject_user_api",
+        method: "grunt.auth.user_api.reject_user_api",
         args: { user_id: frm.doc.name },
       });
       grunt.msgprint({ message: __('Registration rejected'), indicator: "orange" });
@@ -206,11 +206,11 @@ async function on_change(frm, fieldname) {
   if (fieldname === "mfa_setup_button") {
     if (frm.doc.mfa_enabled) {
       if (!confirm(__('Are you sure you want to disable two-factor authentication?'))) return;
-      await grunt.call({ method: "grunt.auth.doctypes.User.user.disable_mfa" });
+      await grunt.call({ method: "grunt.auth.user_api.disable_mfa" });
       await frm.reload();
       grunt.msgprint(__('MFA disabled'));
     } else {
-      const info = await grunt.call({ method: "grunt.auth.doctypes.User.user.setup_mfa" });
+      const info = await grunt.call({ method: "grunt.auth.user_api.setup_mfa" });
       if (info.qr_svg) {
         const values = await grunt.form({
           title: __('MFA setup'),
@@ -236,7 +236,7 @@ async function on_change(frm, fieldname) {
 
         try {
           const res = await grunt.call({
-            method: "grunt.auth.doctypes.User.user.confirm_mfa",
+            method: "grunt.auth.user_api.confirm_mfa",
             args: { code: values.code }
           });
           await frm.reload();

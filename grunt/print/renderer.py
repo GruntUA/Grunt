@@ -19,11 +19,11 @@ from markupsafe import Markup
 lazy from docxtpl import DocxTemplate
 lazy from jinja2.sandbox import SandboxedEnvironment
 
-import grunt
-from grunt import log
 from grunt.app import GruntDB
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import _session_ctx
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.print.filters import JINJA_FILTERS
 from grunt.site.manager import site_manager
 lazy from grunt.config import settings
@@ -225,7 +225,7 @@ async def render_print_html(
     ``letter_head.footer`` itself; any other gets them inserted around the body.
     """
 
-    meta = await grunt.get_meta(doctype)
+    meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         raise ValueError(f"DocType {doctype!r} not found")
     rows = await GruntDB().get_all(

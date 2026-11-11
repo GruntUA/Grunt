@@ -9,7 +9,8 @@ lazy import tarfile
 import click
 from sqlalchemy import func, select
 
-lazy import grunt
+from grunt.db.api import GruntDB
+from grunt.local import system_context
 lazy from grunt.api import typegen
 lazy from grunt.apps.deps import app_updates, install_app_packages, uninstall_app_package
 lazy from grunt.apps.manifest import is_app, read_manifest
@@ -20,18 +21,22 @@ lazy from grunt.apps.required import (
     clone_missing,
     dependents,
 )
-lazy from grunt.backups import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.db.dialects import dialect_for
+lazy from grunt.db.dialects.archive import DEFAULT_COMPRESSION_LEVEL, zstd_options
 lazy from grunt.db.schema import column_drops, read_actual
 lazy from grunt.db.schema.apply import apply as apply_schema
+lazy from grunt.document.api import documents
 lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
 lazy from grunt.metadata.extensions import extensions_for_site, revert_properties
 lazy from grunt.metadata.field import is_physical_fieldtype
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site, site_manager
-lazy from grunt.startup import load_core_doctypes, sync_installed_apps
+lazy from grunt.startup.app_install import sync_installed_apps
+lazy from grunt.startup.doctypes import load_core_doctypes
 lazy from grunt.utils.app_helpers import load_app_hook_module
 lazy from grunt.utils.boilerplate import make_boilerplate
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 @click.group("app")
@@ -101,7 +106,7 @@ async def _do_install(name: str, site: str | None = None) -> None:
                 session, sync_db=True, extensions=extensions_for_site(target_site)
             )
             await doctype_registry.load_all(session)
-            async with grunt.system_context(session, eng):
+            async with system_context(session, eng):
                 await sync_installed_apps(session, target_site)
             await session.commit()
     finally:
@@ -233,7 +238,7 @@ async def _run_before_uninstall_hook(session, target_site: str, name: str) -> No
 async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
     """Clear NamingSeries prefix counters derived from this app's autoname doctypes."""
 
-    ns_dt = await grunt.get_meta("NamingSeries")
+    ns_dt = await doctype_registry.get_meta("NamingSeries")
     if ns_dt is None:
         raise SystemExit("Error: DocType 'NamingSeries' not found.")
     ns_table = ns_dt.table
@@ -255,12 +260,12 @@ async def _delete_workspace_and_registration(
 
     # Sections and items the app contributed to other apps' menus (source_app).
     for child in _MENU_CHILDREN:
-        await grunt.db.delete(child, {"source_app": name})
+        await _db.delete(child, {"source_app": name})
     if has_workspace:
-        await grunt.db.delete("WorkspaceSidebarItem", {"parent_name": name})
-        await grunt.delete_doc("AppMenu", name)
+        await _db.delete("WorkspaceSidebarItem", {"parent_name": name})
+        await documents.delete_doc("AppMenu", name)
     if has_installed_row:
-        await grunt.delete_doc("GruntInstalledApp", name)
+        await documents.delete_doc("GruntInstalledApp", name)
 
 
 def _extension_fields(name: str, doctypes: list, skip: set[str]) -> list:
@@ -290,7 +295,7 @@ async def _shipped_records(name: str, app_dir: Path, skip: set[str]) -> list[tup
     }
     found: list[tuple[str, str]] = []
     for doctype in sorted(doctypes):
-        rows = await grunt.db.get_all(doctype, filters={"app": name}, fields=["name"], limit=None)
+        rows = await _db.get_all(doctype, filters={"app": name}, fields=["name"], limit=None)
         found += [(doctype, str(r["name"])) for r in rows]
     if app_dir.is_dir():
         for module in read_manifest(app_dir)["modules"]:
@@ -303,7 +308,7 @@ async def _shipped_records(name: str, app_dir: Path, skip: set[str]) -> list[tup
                     continue
                 for rec in fx.get("records", []):
                     key = (fx["doctype"], str(rec.get("name") or ""))
-                    if key[1] and key not in found and await grunt.exists(*key):
+                    if key[1] and key not in found and await documents.exists(*key):
                         found.append(key)
     return found
 
@@ -313,13 +318,11 @@ async def _delete_shipped_records(records: list[tuple[str, str]]) -> None:
     mode deleting a standard record also deletes its folder in the app's files
     (``standard_records.sync_files``) - the app's source must stay."""
     for doctype, record in records:
-        meta = await grunt.get_meta(doctype)
+        meta = await doctype_registry.get_meta(doctype)
         for field in meta.doc.fields if meta else []:
             if field.fieldtype == "Table" and field.options:
-                await grunt.db.delete(
-                    field.options, {"parent_name": record, "parent_doctype": doctype}
-                )
-        await grunt.db.delete(doctype, {"name": record})
+                await _db.delete(field.options, {"parent_name": record, "parent_doctype": doctype})
+        await _db.delete(doctype, {"name": record})
 
 
 async def _strip_extension_fields(session, eng, ext_fields: list, name: str = "") -> None:
@@ -434,11 +437,13 @@ async def _do_uninstall(
                 dt for dt in await doctype_registry.list_all() if dt.module in app_modules
             ]
 
-            async with grunt.system_context(session, eng):
-                has_installed_row = bool(await grunt.exists("GruntInstalledApp", {"name": name}))
-                has_workspace = bool(await grunt.exists("AppMenu", {"name": name}))
+            async with system_context(session, eng):
+                has_installed_row = bool(
+                    await documents.exists("GruntInstalledApp", {"name": name})
+                )
+                has_workspace = bool(await documents.exists("AppMenu", {"name": name}))
                 contributed_rows = sum(
-                    [await grunt.db.count(c, {"source_app": name}) for c in _MENU_CHILDREN]
+                    [await _db.count(c, {"source_app": name}) for c in _MENU_CHILDREN]
                 )
                 ext_fields = _extension_fields(
                     name,

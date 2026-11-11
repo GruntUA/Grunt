@@ -25,6 +25,7 @@
       "fieldname": "token",
       "label": "Token",
       "fieldtype": "Data",
+      "index": true,
       "hidden": true,
       "read_only": true
     },
@@ -58,10 +59,7 @@
   "permissions": [
     {
       "role": "All",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true,
+      "actions": ["read", "write", "create", "delete"],
       "match": "owner == user"
     }
   ]

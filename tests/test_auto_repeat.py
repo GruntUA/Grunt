@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from grunt.tasks.auto_repeat import first_date, next_date
+from grunt.tasks.repeat_schedule import first_date, next_date
 
 # ── Schedule arithmetic ──────────────────────────────────────────────────
 
@@ -49,8 +49,8 @@ ITEM = {
         {"fieldname": "auto_repeat", "label": "Auto repeat", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Reader", "read": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Reader", "actions": ["read"]},
     ],
 }
 

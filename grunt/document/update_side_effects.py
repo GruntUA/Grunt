@@ -13,18 +13,16 @@ from typing import Any
 from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import _, log
-from grunt.document.meta import Meta
+from grunt.document import pipeline
 from grunt.document.registry import document_registry
 from grunt.document.serde import audit_fields
 from grunt.document.versioning import _SKIP_FIELDS, version_service
 from grunt.errors import ApplicationError
+from grunt.i18n import _
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.search.service import search_index_service
-from grunt.webhook.service import webhook_service
-lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.document.base import new_document
+from grunt.store.sql import delete_child_rows
 
 ProgressCallback = Callable[[int], Awaitable[None]]
 
@@ -42,10 +40,17 @@ async def record_update_changes(
     dt: Any,
     existing: dict[str, Any],
     result: dict[str, Any],
-    user: User,
+    user: str,
 ) -> None:
-    """Create a version record and write an ActivityLog diff (best-effort)."""
-    diff_changes = version_service._compute_diff(existing, result)
+    """Create a version record and write an ActivityLog diff (best-effort).
+
+    Fields marked ``no_history`` (values the system keeps up to date) are left
+    out of both - a save that changed only them leaves no trace.
+    """
+    quiet = {f.fieldname for f in dt.fields if f.no_history}
+    diff_changes = [
+        c for c in version_service._compute_diff(existing, result) if c["field"] not in quiet
+    ]
 
     if dt.track_changes and diff_changes:
         try:
@@ -55,7 +60,9 @@ async def record_update_changes(
                 doc_id=real_id,
                 old_doc=existing,
                 new_doc=result,
-                user=user.email,
+                user=user,
+                skip=quiet,
+                keep=dt.max_versions,
             )
         except Exception:
             log.exception("version.create_error", doctype=doctype_name, doc_id=real_id)
@@ -64,34 +71,15 @@ async def record_update_changes(
         changed_fields = [
             item["field"] for item in diff_changes if item["field"] not in _SKIP_FIELDS
         ]
-        try:
-            import grunt
-            from grunt.activity import record_activity
-
-            async with grunt.context(session=session, engine=engine, user=user):
-                await record_activity(
-                    doctype_name,
-                    real_id,
-                    "Update",
-                    user_email=user.email,
-                    details={"changed_fields": changed_fields} if changed_fields else None,
-                )
-        except Exception:
-            log.warning("activity_log.update_failed", doctype=doctype_name, doc_id=real_id)
-
-        try:
-            from grunt.activity.follow import notify_followers_of_update
-
-            await notify_followers_of_update(
-                session=session,
-                doctype=doctype_name,
-                doc_id=real_id,
-                dt=dt,
-                changed_fields=changed_fields,
-                actor_email=user.email,
-            )
-        except Exception:
-            log.exception("follow.update_notify_failed", doctype=doctype_name, doc_id=real_id)
+        await pipeline.changes_recorded(
+            session=session,
+            engine=engine,
+            doctype=doctype_name,
+            doc_id=real_id,
+            dt=dt,
+            changed_fields=changed_fields,
+            user=user,
+        )
 
 
 async def fire_update_services(
@@ -103,7 +91,7 @@ async def fire_update_services(
 ) -> None:
     """Update search index and fire outgoing webhooks after successful update."""
     await search_index_service.index_document(session, doctype_name, dt, result)
-    await webhook_service.fire(session, "after_update", doctype_name, result)
+    await pipeline.after_write("after_update", session, doctype_name, result)
 
 
 async def fire_delete_services(
@@ -115,7 +103,7 @@ async def fire_delete_services(
 ) -> None:
     """Update external services after delete: search index and outgoing webhooks."""
     await search_index_service.remove_document(session, doctype_name, real_id)
-    await webhook_service.fire(session, "after_delete", doctype_name, existing)
+    await pipeline.after_write("after_delete", session, doctype_name, existing)
 
 
 async def fire_bulk_delete_webhooks(
@@ -126,14 +114,14 @@ async def fire_bulk_delete_webhooks(
 ) -> None:
     """Fire outgoing after_delete webhooks for each deleted document."""
     for doc in docs:
-        await webhook_service.fire(session, "after_delete", doctype_name, doc)
+        await pipeline.after_write("after_delete", session, doctype_name, doc)
 
 
 async def run_bulk_before_delete_hooks(
     *,
     doctype_name: str,
     docs: list[dict[str, Any]],
-    user: User,
+    user: str,
     session: AsyncSession,
     errors: list[str],
     report: ProgressCallback | None = None,
@@ -142,7 +130,7 @@ async def run_bulk_before_delete_hooks(
     controllers: list[tuple[dict[str, Any], Any]] = []
     for i, doc in enumerate(docs):
         controller_cls = document_registry.get(doctype_name)
-        ctrl = controller_cls(doctype_name, doc, user, session)
+        ctrl = controller_cls(doctype_name, doc, session)
         try:
             await ctrl.before_delete()
         except ApplicationError as e:
@@ -178,30 +166,6 @@ async def run_bulk_after_delete_hooks(
     )
 
 
-async def delete_child_rows(session: AsyncSession, dt: Any, parent_ids: list[str]) -> None:
-    """Delete the child table rows of the *parent_ids* documents of *dt*.
-
-    A child DocType may serve several parents, so rows are matched by parent
-    DocType as well. A DocType that no longer exists must not block the delete.
-    """
-    for field in Meta(dt).get_child_table_fields():
-        try:
-            child_table = Meta(await doctype_registry.get(field.options)).table
-        except Exception as e:  # noqa: BLE001
-            log.warning(
-                "child_table.delete_skipped", doctype=dt.name, field=field.fieldname, error=str(e)
-            )
-            continue
-        it = iter(parent_ids)
-        while chunk := list(islice(it, _IN_CHUNK)):
-            await session.execute(
-                child_table.delete().where(
-                    child_table.c.parent_name.in_(chunk),
-                    child_table.c.parent_doctype == dt.name,
-                )
-            )
-
-
 async def run_bulk_delete_writes(
     *,
     session: AsyncSession,
@@ -231,39 +195,23 @@ async def bulk_delete_one_by_one(
     engine: Any,
     doctype_name: str,
     ids: list[str],
-    user: User,
 ) -> tuple[int, list[str]]:
     """Delete documents one at a time through the delete pipeline - for a
-    controller without a table to batch the DELETE on. Aggregates errors."""
+    controller without a table to batch the DELETE on - as the context's user.
+    Aggregates errors."""
 
     deleted = 0
     errors: list[str] = []
     for doc_id in ids:
         try:
-            doc = await new_document(
-                doctype_name, {"name": doc_id}, user=user, session=session, engine=engine
+            doc = await document_registry.base.new(
+                doctype_name, {"name": doc_id}, session=session, engine=engine
             )
             await doc.delete()
             deleted += 1
         except Exception as e:
             errors.append(f"{doc_id}: {e}")
     return deleted, errors
-
-
-async def delete_row_and_links(
-    *,
-    session: AsyncSession,
-    ml: Any,
-    dt: Any,
-    table: Any,
-    doctype_name: str,
-    real_id: str,
-) -> None:
-    """Delete main row, child rows and MultiLink relations, then flush pending writes."""
-    await session.execute(table.delete().where(table.c.name == real_id))
-    await delete_child_rows(session, dt, [real_id])
-    await ml.delete_all_for_doc(doctype_name, real_id)
-    await session.flush()
 
 
 async def collect_bulk_delete_candidates(
@@ -317,7 +265,7 @@ async def write_bulk_delete_activity_log(
     _now = now or datetime.now(UTC)
 
     try:
-        dt_log = await grunt.get_meta("ActivityLog")
+        dt_log = await doctype_registry.get_meta("ActivityLog")
         if dt_log is None:
             raise ValueError(_("DocType “%(doctype)s” not found") % {"doctype": "ActivityLog"})
         t_log = dt_log.table

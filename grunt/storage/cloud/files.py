@@ -25,14 +25,18 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import grunt
-from grunt import _, log
+from grunt.db.api import GruntDB
+from grunt.i18n import _
+from grunt.local import require_session
+from grunt.log import log
 from grunt.site.manager import site_manager
 from grunt.storage.backends import CHUNK_SIZE, LocalStorageBackend, get_storage_backend
 from grunt.storage.cloud import RemoteError, files_remote, load_remote, record_status
 from grunt.storage.cloud.rclone import Rclone
-lazy from grunt.monitoring.health import human_size
 lazy from grunt.progress import Progress
+lazy from grunt.utils.sizes import human_size
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # One night moves at most this many blobs; the rest go the next night.
 MAX_BLOBS_PER_RUN = 5000
@@ -93,7 +97,7 @@ async def blob_path(key: str) -> Path:
         if cached.exists():
             return cached
         remote_name = (
-            await grunt.db.get_all(
+            await _db.get_all(
                 "File",
                 filters={"content_hash": key, "storage_remote__isnull": False},
                 pluck="storage_remote",
@@ -164,9 +168,7 @@ async def offload_candidates(remote: dict[str, Any], limit: int = MAX_BLOBS_PER_
         filters["is_public"] = 0
     if doctypes := _doctypes(remote):
         filters["attached_to_doctype__in"] = doctypes
-    keys = sorted(
-        set(await grunt.db.get_all("File", filters=filters, pluck="content_hash", limit=None))
-    )
+    keys = sorted(set(await _db.get_all("File", filters=filters, pluck="content_hash", limit=None)))
     storage = _storage()
     chosen: list[str] = []
     fields = [
@@ -178,7 +180,7 @@ async def offload_candidates(remote: dict[str, Any], limit: int = MAX_BLOBS_PER_
         "attached_to_doctype",
     ]
     for chunk in _chunks(keys):
-        rows = await grunt.db.get_all(
+        rows = await _db.get_all(
             "File", filters={"content_hash__in": chunk}, fields=fields, limit=None
         )
         by_key: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -201,7 +203,7 @@ async def offload(remote: dict[str, Any], progress: Progress | None = None) -> d
     Order matters for a crash at any point: upload, then point the rows at the
     remote (commit), then delete the local copy - a blob is always readable.
     """
-    session = grunt.get_session()
+    session = require_session()
     keys = await offload_candidates(remote)
     await session.commit()
     if not keys:
@@ -219,7 +221,7 @@ async def offload(remote: dict[str, Any], progress: Progress | None = None) -> d
             storage.root / "blobs", [relative(k) for k in keys], remote_dir(), progress=progress
         )
     for chunk in _chunks(keys):
-        await grunt.db.bulk_update(
+        await _db.bulk_update(
             "File",
             {"content_hash__in": chunk, "storage_remote__isnull": True},
             {"storage_remote": remote["name"]},
@@ -235,8 +237,8 @@ async def offload(remote: dict[str, Any], progress: Progress | None = None) -> d
 
 async def recall(remote: dict[str, Any], progress: Progress | None = None) -> dict[str, int]:
     """Bring every blob kept in *remote* back to the disk and delete it there."""
-    session = grunt.get_session()
-    rows = await grunt.db.get_all(
+    session = require_session()
+    rows = await _db.get_all(
         "File",
         filters={"storage_remote": remote["name"]},
         fields=["content_hash", "file_size"],
@@ -276,7 +278,7 @@ async def recall(remote: dict[str, Any], progress: Progress | None = None) -> di
                 os.replace(got, dest)
                 back.append(key)
             for chunk in _chunks(back):
-                await grunt.db.bulk_update(
+                await _db.bulk_update(
                     "File",
                     {"content_hash__in": chunk, "storage_remote": remote["name"]},
                     {"storage_remote": None},
@@ -298,17 +300,17 @@ async def recall(remote: dict[str, Any], progress: Progress | None = None) -> di
 
 async def _update_stats(remote: dict[str, Any]) -> None:
 
-    [agg] = await grunt.db.aggregate(
+    [agg] = await _db.aggregate(
         "File",
         filters={"storage_remote": remote["name"]},
         aggregations={"n": "count(name)", "size": "sum(file_size)"},
     )
-    await grunt.db.set_value(
+    await _db.set_value(
         "StorageRemote",
         remote["name"],
         {"offloaded_files": agg.get("n") or 0, "offloaded_size": human_size(agg.get("size") or 0)},
     )
-    await grunt.get_session().commit()
+    await require_session().commit()
 
 
 # Garbage collection
@@ -317,11 +319,11 @@ async def _update_stats(remote: dict[str, Any]) -> None:
 async def needed_keys(remote_name: str) -> set[str]:
     """Blobs *remote_name* must keep: its live rows + unrestored trashed ones."""
     keys = set(
-        await grunt.db.get_all(
+        await _db.get_all(
             "File", filters={"storage_remote": remote_name}, pluck="content_hash", limit=None
         )
     )
-    trashed = await grunt.db.get_all(
+    trashed = await _db.get_all(
         "DeletedDocument",
         filters={"deleted_doctype": "File", "restored": 0},
         pluck="data",
@@ -341,9 +343,9 @@ async def needed_keys(remote_name: str) -> set[str]:
 
 async def collect_remote_garbage(grace_seconds: int) -> dict[str, int]:
     """Delete remote blobs nothing refers to; trim the local cache."""
-    session = grunt.get_session()
+    session = require_session()
     names = set(
-        await grunt.db.get_all(
+        await _db.get_all(
             "File", filters={"storage_remote__isnull": False}, pluck="storage_remote", limit=None
         )
     )

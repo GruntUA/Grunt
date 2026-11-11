@@ -22,6 +22,7 @@ export interface DocType {
   storage?: 'sql' | 'virtual'
   is_tree?: boolean
   track_changes?: boolean
+  max_versions?: number
   track_seen?: boolean
   track_views?: boolean
   quick_entry?: boolean
@@ -73,15 +74,26 @@ export interface DocType {
   links?: DocTypeLink[]
 }
 
+/** What a permission row can grant (grunt/metadata/permission.py `ACTIONS`). */
+export type PermissionAction =
+  | 'read'
+  | 'select'
+  | 'write'
+  | 'create'
+  | 'delete'
+  | 'export'
+  | 'import'
+  | 'print'
+  | 'share'
+  | 'report'
+
 export interface DocPermission {
   role: string
-  read?: boolean
-  write?: boolean
-  create?: boolean
-  delete?: boolean
-  report?: boolean
+  actions?: PermissionAction[]
   match?: string | null
   hidden_fields?: string[]
+  /** Shown but kept on an existing document (a new one takes the value). */
+  readonly_fields?: string[]
 }
 
 export interface CalendarSource {

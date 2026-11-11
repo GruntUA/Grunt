@@ -32,9 +32,9 @@ from fastapi.responses import RedirectResponse
 
 from grunt.api.router import GruntRouter
 from grunt.api.v1.schemas.response import ok
-from grunt.auth import providers as auth_providers
 from grunt.auth.doctypes.UserSession.user_session import client_device_id, client_ip
 from grunt.auth.login import issue_login
+from grunt.auth.providers import registry as auth_providers
 from grunt.auth.providers.base import AuthFlowContext
 from grunt.config import settings
 from grunt.errors import ApplicationError

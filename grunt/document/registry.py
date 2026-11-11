@@ -3,11 +3,16 @@ import importlib.util
 import inspect
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Any
 
-from grunt import log
+from grunt.log import log
 from grunt.startup.doctypes import _find_doctype_dirs
+from grunt.store.lookup import use_controllers
 from grunt.utils.strings import to_snake_case
-lazy from grunt.document.base import Document
+
+# The base controller (``grunt.document.base.Document``) - it registers itself
+# (:meth:`DocumentRegistry.use_base`), so this module never imports it.
+_base: type[Any] | None = None
 
 
 class DocumentRegistry:
@@ -28,9 +33,9 @@ class DocumentRegistry:
     """
 
     def __init__(self) -> None:
-        self._controllers: dict[str, type[Document]] = {}
+        self._controllers: dict[str, type[Any]] = {}
         # The registered class before mixins - recomposed when mixins change.
-        self._bases: dict[str, type[Document]] = {}
+        self._bases: dict[str, type[Any]] = {}
         # Lazy index: doctype name -> dotted module path to import
         self._index: dict[str, str] = {}
         self._overrides: dict[str, str] = {}
@@ -40,7 +45,7 @@ class DocumentRegistry:
 
     # Eager registration (used for explicit overrides from hooks)
 
-    def register(self, doctype: str, controller: type[Document]) -> None:
+    def register(self, doctype: str, controller: type[Any]) -> None:
         """Register an already-imported controller class (its mixins are added)."""
         self._bases[doctype] = controller
         self._controllers[doctype] = self._with_mixins(doctype, controller)
@@ -87,7 +92,7 @@ class DocumentRegistry:
         self._controllers.pop(doctype, None)
         self._bases.pop(doctype, None)
 
-    def _with_mixins(self, doctype: str, controller: type[Document]) -> type[Document]:
+    def _with_mixins(self, doctype: str, controller: type[Any]) -> type[Any]:
         """*controller* with the DocType's mixins in front, or as is without any."""
         mixins: list[type] = []
         for app, path in reversed(self._mixins.get(doctype, [])):
@@ -116,17 +121,31 @@ class DocumentRegistry:
             log.error("document.mixins_incompatible", doctype=doctype, error=str(e))
             return controller
 
+    def use_base(self, base: type[Any]) -> None:
+        """Register the base controller every DocType falls back to (for every
+        registry - there is one base class)."""
+        global _base
+        _base = base
+
+    @property
+    def base(self) -> type[Any]:
+        """The base controller, ``grunt.document.base.Document`` - for DocTypes
+        without their own and for "did the controller override this hook" checks."""
+        if _base is None:
+            raise RuntimeError("grunt.document.base is not loaded yet")
+        return _base
+
     # Lazy get
 
-    def get(self, doctype: str) -> type[Document]:
+    def get(self, doctype: str) -> type[Any]:
         """Return the controller for a DocType, importing it on first access."""
 
         if doctype not in self._controllers:
             if doctype in self._index:
                 self._import_controller(doctype, self._index[doctype])
             if doctype not in self._controllers and doctype in self._mixins:
-                self.register(doctype, Document)
-        return self._controllers.get(doctype, Document)
+                self.register(doctype, self.base)
+        return self._controllers.get(doctype) or self.base
 
     def doctype_dir(self, doctype: str) -> Path | None:
         """Directory of *doctype*'s controller module (``…/doctypes/<Name>/``),
@@ -149,7 +168,8 @@ class DocumentRegistry:
         """
 
         def _is_controller(obj) -> bool:
-            return inspect.isclass(obj) and issubclass(obj, Document) and obj is not Document
+            base = self.base
+            return inspect.isclass(obj) and issubclass(obj, base) and obj is not base
 
         # Check if it's an explicit class path (override format: "module.ClassName")
         # Heuristic: last segment starts with uppercase -> explicit class reference
@@ -244,3 +264,4 @@ class DocumentRegistry:
 
 
 document_registry = DocumentRegistry()
+use_controllers(document_registry.get)

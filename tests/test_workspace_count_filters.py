@@ -53,7 +53,7 @@ async def test_count_of_virtual_doctype_uses_its_store(ctx) -> None:
     meta = await ctx.get_meta("Hook")
     expected = len(await HookStore(meta, session).rows(Query("Hook")))
     assert expected > 0
-    assert await count_documents(session, "Hook", SYSTEM_USER) == expected
+    assert await count_documents(session, "Hook", SYSTEM_USER.email) == expected
 
 
 @pytest.mark.asyncio
@@ -65,4 +65,6 @@ async def test_count_of_doctype_comes_from_its_table(ctx) -> None:
     from grunt.metadata import store
 
     session = ctx.get_session()
-    assert await count_documents(session, "DocType", SYSTEM_USER) == len(await store.names(session))
+    assert await count_documents(session, "DocType", SYSTEM_USER.email) == len(
+        await store.names(session)
+    )

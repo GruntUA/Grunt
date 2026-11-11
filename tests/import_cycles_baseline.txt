@@ -1,0 +1,2 @@
+# Modules still in an import cycle - tests/test_import_cycles.py, IMPORT_CYCLES_PLAN.md.
+# Only ever remove lines. Goal: an empty list.

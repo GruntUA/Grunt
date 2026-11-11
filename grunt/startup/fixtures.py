@@ -1,22 +1,13 @@
 """Startup - fixture loading utilities for DocTypes and Workspaces."""
 
 import json
-import re as _re
-from datetime import UTC
-from datetime import date as _date
-from datetime import datetime as _datetime
-from datetime import time as _time
 from pathlib import Path
-from typing import Any
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import log
-from grunt.fixtures import clean_record, to_json_compatible
-lazy from grunt.document.meta import Meta
-lazy from grunt.standard_records import apply_records
+from grunt.fixtures import apply_doctype_fixture
+from grunt.log import log
+from grunt.standard_records import apply_records
 
 _GRUNT_ROOT = Path(__file__).parent.parent  # grunt/startup/../ = grunt/
 
@@ -36,7 +27,7 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
                 records = fx.get("records", [])
                 if not fx_doctype or not records:
                     continue
-                written = await _apply_doctype_fixture(
+                written = await apply_doctype_fixture(
                     fx_doctype, records, session, eng, sync=bool(fx.get("sync"))
                 )
                 if written:
@@ -52,147 +43,3 @@ async def load_core_fixtures(session: AsyncSession, eng: AsyncEngine) -> None:
     count = await apply_records("grunt", session, eng)
     if count:
         log.info("startup.standard_records_applied", app="grunt", count=count)
-
-
-def _coerce_fixture_value(fieldtype: str, value: object) -> object:
-    """Coerce a JSON fixture value to the Python type expected by SQLAlchemy.
-
-    JSON has no native date/time/datetime types - everything arrives as str.
-    SQLite (and other backends) reject raw strings for Time/Date/Datetime columns.
-    """
-    if value is None:
-        return None
-    if fieldtype == "Time" and isinstance(value, str):
-        parts = value.split(":")
-        try:
-            h, m = int(parts[0]), int(parts[1])
-            s = int(parts[2]) if len(parts) > 2 else 0
-            return _time(h, m, s)
-        except ValueError, IndexError:
-            return None
-    if fieldtype == "Date" and isinstance(value, str) and _re.match(r"^\d{4}-\d{2}-\d{2}$", value):
-        try:
-            y, mo, d = value.split("-")
-            return _date(int(y), int(mo), int(d))
-        except ValueError:
-            return None
-    if fieldtype == "Datetime" and isinstance(value, str):
-        try:
-            dt = _datetime.fromisoformat(value.replace("Z", "+00:00"))
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=UTC)
-            return dt
-        except ValueError:
-            return None
-    return value
-
-
-async def _apply_doctype_fixture(
-    doctype_name: str,
-    records: list,
-    session: AsyncSession,
-    eng: AsyncEngine,
-    *,
-    sync: bool = False,
-) -> int:
-    """Apply fixture records for a regular DocType.
-
-    Missing records are inserted. Existing ones are skipped - unless *sync*
-    (a file written by ``grunt fixtures export``), then they are updated to
-    match the file whenever the stored values differ.
-
-    Returns how many records were inserted or updated.
-    """
-    dt = await grunt.get_meta(doctype_name)
-    if dt is None:
-        log.warning("startup.fixture_doctype_not_found", doctype=doctype_name)
-        return 0
-
-    written = 0
-
-    physical_fields = dt.get_physical_fields()
-
-    async with grunt.system_context(session, eng):
-        for rec in records:
-            name_val = rec.get("name") or rec.get(dt.title_field or "")
-            if not name_val:
-                continue
-
-            existing_id = await grunt.exists(doctype_name, {"name": name_val})
-            if existing_id:
-                if sync and await _sync_fixture_record(dt, doctype_name, existing_id, rec):
-                    written += 1
-                continue
-
-            payload: dict[str, object] = dict(rec)
-            payload["name"] = str(name_val)
-
-            for field in physical_fields:
-                if field.fieldname in payload:
-                    payload[field.fieldname] = _coerce_fixture_value(
-                        field.fieldtype,
-                        payload[field.fieldname],
-                    )
-                elif field.default is not None:
-                    payload[field.fieldname] = _coerce_fixture_value(field.fieldtype, field.default)
-
-            # A savepoint per record: an IntegrityError rolls back this insert
-            # only, not everything the caller did earlier in the session.
-            try:
-                async with session.begin_nested():
-                    await grunt.new_doc(doctype_name, payload)
-                written += 1
-            except IntegrityError:
-                log.warning("startup.fixture_record_conflict", doctype=doctype_name, name=name_val)
-
-    await session.flush()
-    return written
-
-
-def _without_doctype(value: Any) -> Any:
-    """*value* without the ``"doctype"`` keys a document's JSON names itself with -
-    a fixture written before child rows carried them still compares equal."""
-    if isinstance(value, dict):
-        return {k: _without_doctype(v) for k, v in value.items() if k != "doctype"}
-    if isinstance(value, list):
-        return [_without_doctype(v) for v in value]
-    return value
-
-
-def _matches(current: Any, desired: Any) -> bool:
-    """Whether the stored *current* value already is the fixture's *desired* one.
-
-    Child rows compare on the keys the fixture gives: a saved row also holds
-    the empty values its other fields were filled with.
-    """
-    if isinstance(desired, dict) and isinstance(current, dict):
-        return all(_matches(current.get(k), v) for k, v in desired.items())
-    if isinstance(desired, list) and isinstance(current, list):
-        return len(current) == len(desired) and all(map(_matches, current, desired, strict=True))
-    return current == desired
-
-
-async def _sync_fixture_record(dt: Meta, doctype_name: str, doc_id: str, rec: dict) -> bool:
-    """Update an existing record to the fixture's values - only if they differ.
-
-    Compared in exported form (:func:`grunt.fixtures.clean_record`), so an
-    unchanged record is never re-saved (no DocVersion/ActivityLog noise on
-    every migrate). Fields absent from the fixture - in child rows too - are
-    left untouched.
-    """
-    current = _without_doctype(await clean_record(dt, await grunt.get_doc(doctype_name, doc_id)))
-    desired = _without_doctype(to_json_compatible(rec))
-    changed = {k: v for k, v in desired.items() if k != "name" and not _matches(current.get(k), v)}
-    if not changed:
-        return False
-
-    fieldtypes = {f.fieldname: f.fieldtype for f in dt.get_physical_fields()}
-    payload = {
-        k: _coerce_fixture_value(fieldtypes[k], v) if k in fieldtypes else v
-        for k, v in changed.items()
-    }
-    await grunt.save_doc(doctype_name, doc_id, payload)
-    log.info(
-        "startup.fixture_synced", doctype=doctype_name, name=rec.get("name"), fields=sorted(changed)
-    )
-    return True

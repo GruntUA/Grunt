@@ -1,7 +1,1 @@
-"""Naming Series module - document auto-naming with pattern support."""
-
-from grunt.naming.service import NamingService
-
-naming_service = NamingService()
-
-__all__ = ["NamingService", "naming_service"]
+"""Naming Series - document auto-naming with patterns (:mod:`grunt.naming.service`)."""

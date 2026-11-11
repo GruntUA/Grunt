@@ -24,31 +24,37 @@ from jinja2 import Environment, FileSystemLoader
 from packaging.version import InvalidVersion, Version
 from sqlalchemy import inspect, text
 
-import grunt
-from grunt import log, whitelist
+from grunt.api.context import whitelist
 from grunt.api.v1.ws import manager
 from grunt.apps.deps import app_packages
 from grunt.apps.manifest import is_app
 from grunt.backups import list_backups
+from grunt.db.api import GruntDB
 from grunt.db.dialects import dialect_for
+from grunt.errors import throw
 from grunt.i18n import N_, _
 from grunt.i18n.jinja import install as install_i18n
+from grunt.local import require_session, user_email
+from grunt.log import log
 from grunt.metadata.compiler import get_table_name
 from grunt.metadata.registry import doctype_registry
+from grunt.monitoring.rows import ERROR, INFO, OK, WARNING, Row, row
 from grunt.site.manager import current_site, site_manager
 from grunt.site.settings import get_setting
 from grunt.tasks import scheduler as cron
 from grunt.tasks.redis_introspect import DEAD_CONSUMER_IDLE_MS, redis_conn, s, stream_broker
 from grunt.utils.redis import connect
-from grunt.version import app_version, compatibility_error
+from grunt.utils.sizes import human_size
+from grunt.version import app_version, compatibility_error, framework_version
 lazy from grunt.config import DEFAULT_SECRET_KEY, settings
 lazy from grunt.db.alembic_utils import migration_state
+lazy from grunt.document.api import documents
 lazy from grunt.monitoring import updates
 lazy from grunt.print.pdf import PdfEngineError, check_engine
 lazy from grunt.storage.cloud import rclone
 lazy from grunt.storage.cloud.files import cache_root
 
-OK, WARNING, ERROR, INFO = "OK", "Warning", "Error", "Info"
+_db = GruntDB()  # stateless: reads through the context's session
 
 ERRORS_WARN_PER_DAY = 1
 ERRORS_ERROR_PER_DAY = 100
@@ -62,26 +68,6 @@ _ROOT = Path(__file__).resolve().parents[2]  # apps/grunt
 FRONTEND_DIST = _ROOT / "dist"
 SERVICE_WORKER_SRC = _ROOT / "public" / "sw.js"
 
-Row = dict[str, Any]
-
-
-def row(category: str, check: str, status: str, value: Any = "", hint: str = "") -> Row:
-    return {
-        "category": category,
-        "check": check,
-        "status": status,
-        "value": "" if value is None else str(value),
-        "hint": hint,
-    }
-
-
-def human_size(n: float) -> str:
-    for unit in ("B", "KB", "MB", "GB"):
-        if n < 1024:
-            return f"{n:.0f} {_(unit)}" if unit == "B" else f"{n:.1f} {_(unit)}"
-        n /= 1024
-    return f"{n:.1f} {_('TB')}"
-
 
 def _since(delta: timedelta) -> datetime:
     return datetime.now(UTC) - delta
@@ -89,7 +75,7 @@ def _since(delta: timedelta) -> datetime:
 
 def _session():
 
-    return grunt.get_session()
+    return require_session()
 
 
 # Database
@@ -142,7 +128,7 @@ async def largest_tables() -> list[Row]:
     counts.sort(key=lambda c: c[1], reverse=True)
     items = []
     for name, n in counts[:TOP_N]:
-        dt = await grunt.get_meta(name)
+        dt = await doctype_registry.get_meta(name)
         retention = dt.retention_days if dt else None
         details = _("kept for %(days)s days") % {"days": retention} if retention else ""
         if dt and dt.is_log and not retention:
@@ -254,7 +240,7 @@ async def check_scheduler() -> list[Row]:
             else "",
         )
     )
-    failed = await grunt.db.count(
+    failed = await _db.count(
         "ScheduledJobLog", {"status": "Failed", "started_at__gte": _since(timedelta(days=1))}
     )
     rows.append(
@@ -273,7 +259,7 @@ async def check_scheduler() -> list[Row]:
 
 
 async def check_errors() -> list[Row]:
-    n = await grunt.db.count("ErrorLog", {"created_at__gte": _since(timedelta(days=1))})
+    n = await _db.count("ErrorLog", {"created_at__gte": _since(timedelta(days=1))})
     status = OK if n < ERRORS_WARN_PER_DAY else WARNING if n < ERRORS_ERROR_PER_DAY else ERROR
     return [
         row(
@@ -287,7 +273,7 @@ async def check_errors() -> list[Row]:
 
 
 async def top_errors() -> list[Row]:
-    rows = await grunt.db.aggregate(
+    rows = await _db.aggregate(
         "ErrorLog",
         filters={"created_at__gte": _since(timedelta(days=7))},
         group_by="title",
@@ -302,7 +288,7 @@ async def top_errors() -> list[Row]:
 
 async def check_email() -> list[Row]:
     cat = _("Email")
-    outgoing = await grunt.db.count("EmailAccount", {"enable_outgoing": True})
+    outgoing = await _db.count("EmailAccount", {"enable_outgoing": True})
     rows = [
         row(
             cat,
@@ -312,11 +298,11 @@ async def check_email() -> list[Row]:
             "" if outgoing else _("Emails (password reset, notifications) will not be sent."),
         )
     ]
-    failed = await grunt.db.count(
+    failed = await _db.count(
         "EmailQueue", {"status": "Error", "created_at__gte": _since(timedelta(days=7))}
     )
     rows.append(row(cat, _("Sending errors in 7 days"), OK if not failed else WARNING, failed))
-    stuck = await grunt.db.count(
+    stuck = await _db.count(
         "EmailQueue",
         {"status__in": ["Pending", "Sending"], "created_at__lt": _since(STUCK_EMAIL_AFTER)},
     )
@@ -337,17 +323,17 @@ async def check_email() -> list[Row]:
 
 async def check_users() -> list[Row]:
     cat = _("Users and security")
-    active = await grunt.db.count("User", {"is_active": True})
-    sessions = await grunt.db.count("UserSession", {"is_active": True})
-    managers = await grunt.db.get_all(
+    active = await _db.count("User", {"is_active": True})
+    sessions = await _db.count("UserSession", {"is_active": True})
+    managers = await _db.get_all(
         "UserRole", filters={"role_name": "System Manager"}, pluck="parent_name"
     )
-    without_mfa = await grunt.db.get_all(
+    without_mfa = await _db.get_all(
         "User",
         filters={"name__in": managers or [""], "is_active": True, "mfa_enabled": False},
         pluck="name",
     )
-    locked = await grunt.db.count("User", {"locked_until__gt": datetime.now(UTC)})
+    locked = await _db.count("User", {"locked_until__gt": datetime.now(UTC)})
     return [
         row(cat, _("Active users"), INFO, active),
         row(cat, _("Active sessions"), INFO, sessions),
@@ -390,8 +376,8 @@ async def check_config() -> list[Row]:
 
 async def check_storage() -> list[Row]:
     cat = _("Files")
-    count = await grunt.db.count("File")
-    [agg] = await grunt.db.aggregate("File", aggregations={"size": "sum(file_size)"})
+    count = await _db.count("File")
+    [agg] = await _db.aggregate("File", aggregations={"size": "sum(file_size)"})
     rows = [row(cat, _("Files"), INFO, f"{count} · {human_size(agg.get('size') or 0)}")]
     site_dir = site_manager.sites_dir / site_manager.get_active_site()
     usage = shutil.disk_usage(site_dir)
@@ -501,9 +487,7 @@ async def check_realtime() -> list[Row]:
 async def ws_echo(nonce: str) -> dict[str, Any]:
     """Push a test event to the caller's own user channel - the browser half
     of the report checks it arrives exactly once (grunt/api/v1/ws.py)."""
-    await manager.send_to_user(
-        grunt.get_user().email, {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}}
-    )
+    await manager.send_to_user(user_email(), {"event": WS_ECHO_EVENT, "data": {"nonce": nonce}})
     return {"sent": True}
 
 
@@ -575,7 +559,7 @@ async def check_backups() -> list[Row]:
 async def check_cloud() -> list[Row]:
 
     cat = _("Cloud storage")
-    remotes = await grunt.db.get_all(
+    remotes = await _db.get_all(
         "StorageRemote", filters={"enabled": True}, fields=["*"], limit=None
     )
     if not remotes:
@@ -762,7 +746,7 @@ async def check_versions() -> list[Row]:
 async def _version_rows(cat: str) -> list[Row]:
     migrated = {
         r["name"]: r.get("version") or ""
-        for r in await grunt.get_list("GruntInstalledApp", fields=["name", "version"])
+        for r in await documents.get_list("GruntInstalledApp", fields=["name", "version"])
     }
 
     def version_row(name: str, code: str, problem: str | None = None) -> Row:
@@ -791,7 +775,7 @@ async def _version_rows(cat: str) -> list[Row]:
             )
         return row(cat, name, INFO, code)
 
-    rows = [version_row("grunt", grunt.__version__)]
+    rows = [version_row("grunt", framework_version())]
     apps_dir = site_manager.bench_dir / "apps"
     for app_dir in sorted(apps_dir.iterdir() if apps_dir.is_dir() else []):
         if app_dir.name == "grunt" or not is_app(app_dir):
@@ -1023,7 +1007,7 @@ async def run_section(key: str) -> dict[str, Any]:
     if key in _ITEMS:
         rows = await _items(_ITEMS[key][1])
         return {"key": key, "rows": rows, "html": render("items", key=key, rows=rows)}
-    grunt.throw(_("Unknown section of the report: %(key)s") % {"key": key}, code="NOT_FOUND")
+    throw(_("Unknown section of the report: %(key)s") % {"key": key}, code="NOT_FOUND")
 
 
 @whitelist(roles=["System Manager"])

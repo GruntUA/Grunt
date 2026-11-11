@@ -15,7 +15,7 @@ types (``cms.blocks``) populate ``WebPageBlock.block_type``.
 Flow at runtime:
 
 * the frontend reads ``dt.actions`` (bindings, enriched with registry
-  defaults by ``grunt.api.v1.meta._dump_doctype``) and renders a toolbar
+  defaults by the meta API, grunt/api/v1/meta.py) and renders a toolbar
   button per visible binding;
 * clicking a button calls ``POST /api/v1/method/grunt.actions.run`` with the
   DocType, the action key and the document id - if the action declares
@@ -39,8 +39,6 @@ bare string (treated as ``{"message": ...}``), or nothing.
 
 import importlib
 
-import grunt
-from grunt import _, log
 from grunt.actions.registry import (
     _REGISTRY,
     DOC_ACTION_SOURCE,
@@ -50,8 +48,13 @@ from grunt.actions.registry import (
     get_doc_action,
     register_doc_action,
 )
-from grunt.errors import forbidden, not_found
-lazy from grunt.permissions.roles import user_has_roles
+from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
+from grunt.errors import forbidden, not_found, throw
+from grunt.i18n import _
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+lazy from grunt.document.api import documents
 
 __all__ = [
     "DOC_ACTION_SOURCE",
@@ -123,7 +126,7 @@ def enrich_doctype_actions(data: dict) -> None:
         row["_fields"] = spec.fields
 
 
-@grunt.whitelist()
+@whitelist()
 async def list_doc_actions(doctype: str | None = None) -> list[dict]:
     """Return registered actions, optionally filtered to those bound-able on *doctype*."""
     specs = actions_for_doctype(doctype) if doctype else list(_all_specs())
@@ -148,7 +151,7 @@ def _all_specs():
     return _REGISTRY.values()
 
 
-@grunt.whitelist()
+@whitelist()
 async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) -> dict:
     """Execute a document action.
 
@@ -157,12 +160,12 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     exists in the registry, so the set of runnable actions per DocType stays
     exactly what the metadata declares.
     """
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     bound = {(b.action or "") for b in getattr(dt, "actions", []) or []}
     if action not in bound:
-        grunt.throw(
+        throw(
             _("Action “%(action)s” is not bound to %(doctype)s")
             % {"action": action, "doctype": doctype},
             "NOT_FOUND",
@@ -170,14 +173,14 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
 
     spec = get_doc_action(action)
     if spec is None:
-        grunt.throw(_("Action “%(action)s” is not registered") % {"action": action}, "NOT_FOUND")
+        throw(_("Action “%(action)s” is not registered") % {"action": action}, "NOT_FOUND")
 
     if spec.roles:
-        user = grunt.get_user()
-        if not user_has_roles(user, [*spec.roles, "System Manager"]):
+        user = acting_user()
+        if not user.has_role(*spec.roles, "System Manager"):
             raise forbidden(_("Not permitted to run this action"))
 
-    doc = await grunt.get_doc(doctype, doc_id)  # enforces read permission
+    doc = await documents.get_doc(doctype, doc_id)  # enforces read permission
     # Guarantee the handler can always read the DocType/id off `doc`, even if
     # the serializer omitted them.
     doc.setdefault("doctype", doctype)

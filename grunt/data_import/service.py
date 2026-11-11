@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
+from grunt.auth.current import user_context
+lazy from grunt.document.api import documents
 
 
 class DataImportService:
@@ -8,8 +9,8 @@ class DataImportService:
         self._session = session
         self._engine = engine
 
-    async def run_import(self, data_import_id: str, user: object) -> None:
-        """Load the DataImport document and execute the import."""
-        async with grunt.context(self._session, self._engine, user):  # type: ignore[arg-type]
-            doc = await grunt.get_doc_instance("DataImport", data_import_id)
+    async def run_import(self, data_import_id: str, user: str) -> None:
+        """Load the DataImport document and execute the import as *user* (an email)."""
+        async with user_context(self._session, self._engine, user):
+            doc = await documents.get_doc_instance("DataImport", data_import_id)
             await doc.run()

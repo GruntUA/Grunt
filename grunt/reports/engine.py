@@ -9,23 +9,26 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy from openpyxl.cell import Cell
 
-import grunt
-from grunt import _, log
-from grunt.db.buckets import DATE_BUCKETS
+from grunt.auth.current import user_context
 from grunt.db.dialects import dialect_for
 from grunt.db.session import get_engine as _engine_factory
 from grunt.document.query import expand_child_of_filters
 from grunt.errors import not_found
+from grunt.i18n import _
 from grunt.io.exporters.sanitize import escape_formula
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.query import read_predicate
 from grunt.permissions.rbac import permission_checker
+from grunt.query.aggregates import DATE_BUCKETS
 from grunt.query.parse import split_key
 from grunt.query.sql import filter_expr, where
 from grunt.reports.joins import report_source
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
-from grunt.store import SQL, supports
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.store.base import SQL
+from grunt.store.lookup import supports
+lazy from grunt.document.api import documents
 
 
 class ReportEngine:
@@ -33,11 +36,11 @@ class ReportEngine:
         self,
         report_name: str,
         filters: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
-        async with grunt.context(session, None, user):
-            rows = await grunt.get_list(
+        async with user_context(session, None, user):
+            rows = await documents.get_list(
                 "Report",
                 filters={"report_name": report_name},
                 fields=[
@@ -54,11 +57,20 @@ class ReportEngine:
                 ],
                 limit=1,
             )
-        report = rows[0] if rows else None
-        if not report:
-            raise HTTPException(
-                status_code=404, detail=_("Report “%(name)s” not found") % {"name": report_name}
-            )
+            report = rows[0] if rows else None
+            if not report:
+                raise HTTPException(
+                    status_code=404,
+                    detail=_("Report “%(name)s” not found") % {"name": report_name},
+                )
+            # A report on a DocType takes its data out in bulk: `report` on it.
+            if report.get("ref_doctype"):
+                ref = await doctype_registry.get_meta(report["ref_doctype"])
+                if ref is None:
+                    raise not_found(
+                        _("DocType “%(doctype)s” not found") % {"doctype": report["ref_doctype"]}
+                    )
+                await permission_checker.require(ref, "report", user=user)
 
         report_type = report["report_type"]
         if report_type == "Query":
@@ -134,7 +146,7 @@ class ReportEngine:
         self,
         report: dict,
         filters: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Execute a Python script in the sandbox and return {columns, data}.
@@ -176,7 +188,7 @@ class ReportEngine:
         assert compiled.code is not None  # no errors -> compiled
 
         engine = await _engine_factory()
-        async with grunt.context(session, engine, user):
+        async with user_context(session, engine, user):
             extra_globals = build_safe_globals()
             extra_globals["filters"] = filters
             extra_globals["db_dialect"] = session.get_bind().dialect.name
@@ -237,7 +249,7 @@ class ReportEngine:
         doctype: str,
         report: dict,
         filters: dict,
-        user: User,
+        user: str,
         session: AsyncSession,
     ) -> dict[str, Any]:
         """Run a dynamic aggregate report against a DocType table.
@@ -256,7 +268,7 @@ class ReportEngine:
         Columns without an aggregation are treated as GROUP BY columns when
         any aggregation column is present; otherwise a plain SELECT is used.
         """
-        dt = await grunt.get_meta(doctype)
+        dt = await doctype_registry.get_meta(doctype)
         if dt is None:
             raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
         if not supports(dt, SQL):
@@ -267,7 +279,7 @@ class ReportEngine:
         table = dt.table
 
         # Permission check
-        await permission_checker.require(user, dt, "read")
+        await permission_checker.require(dt, "read", user=user)
 
         col_defs: list[dict] = report.get("columns") or []
 

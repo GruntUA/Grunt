@@ -4,16 +4,24 @@ Both ``grunt.api.context`` and ``grunt.app`` import these objects so that
 setting session / engine / user in one place is immediately visible everywhere.
 """
 
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.errors import ApplicationError
+from grunt.i18n import _
 lazy from grunt.site.manager import site_manager
 
 _session_ctx: ContextVar[AsyncSession | None] = ContextVar("grunt_session", default=None)
 _engine_ctx: ContextVar[AsyncEngine | None] = ContextVar("grunt_engine", default=None)
-_user_ctx: ContextVar[User | None] = ContextVar("grunt_user", default=None)
+# The ``User`` document the context runs as. Below the auth layer nothing reads
+# it as a document: the user is their email (:func:`session_user`) and roles
+# (:func:`session_roles`), as in Frappe. ``grunt.get_user()`` hands out the
+# document itself (``ContextAPI.get_user`` in ``grunt.app.context_api``).
+_user_ctx: ContextVar[Any] = ContextVar("grunt_user", default=None)
 _site_ctx: ContextVar[str | None] = ContextVar("grunt_site", default=None)
 _messages_ctx: ContextVar[list[dict] | None] = ContextVar("grunt_messages", default=None)
 _bootstrap_ctx: ContextVar[bool] = ContextVar("grunt_bootstrap", default=False)
@@ -50,9 +58,128 @@ def require_engine() -> AsyncEngine:
     return e
 
 
-def require_user() -> User:
-    """Return the active user or raise if none is bound to the context."""
-    u = _user_ctx.get()
-    if u is None:
+def session_user() -> str | None:
+    """Email of the user the context runs as; ``None`` without one."""
+    user = _user_ctx.get()
+    return None if user is None else user.email
+
+
+def require_session_user() -> str:
+    """:func:`session_user`, or raise if no user is bound to the context."""
+    email = session_user()
+    if email is None:
         raise RuntimeError("grunt: no active user.")
-    return u
+    return email
+
+
+def session_roles() -> list[str]:
+    """Role names of the user the context runs as (``[]`` without one)."""
+    user = _user_ctx.get()
+    if user is None:
+        return []
+    rows = getattr(user, "roles", None) or []
+    return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]
+
+
+def clear_context() -> None:
+    """Clear all context variables (on request end)."""
+    _session_ctx.set(None)
+    _user_ctx.set(None)
+    _engine_ctx.set(None)
+    _site_ctx.set(None)
+    _messages_ctx.set(None)
+
+
+@contextmanager
+def bound_session(session: AsyncSession, engine: AsyncEngine) -> Iterator[None]:
+    """Bind *session* / *engine* for the block - no user: for framework work that
+    reads and writes tables on no one's behalf (metrics, cache invalidation)."""
+    tokens = (_session_ctx.set(session), _engine_ctx.set(engine), _user_ctx.set(None))
+    try:
+        yield
+    finally:
+        _session_ctx.reset(tokens[0])
+        _engine_ctx.reset(tokens[1])
+        _user_ctx.reset(tokens[2])
+
+
+@contextmanager
+def rebound(session: AsyncSession, engine: AsyncEngine | None = None) -> Iterator[None]:
+    """Bind *session* (and *engine*, else the one in context) for the block,
+    keeping the user the context runs as."""
+    tokens = (
+        _session_ctx.set(session),
+        _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
+    )
+    try:
+        yield
+    finally:
+        _session_ctx.reset(tokens[0])
+        _engine_ctx.reset(tokens[1])
+
+
+# The internal system identity (the ``SYSTEM_USER`` document) - registered by
+# grunt.auth.doctypes.User.user, so this module never imports the auth layer.
+_system_user: Any = None
+
+
+def use_system_user(user: Any) -> None:
+    """Register the document :func:`as_system` runs as."""
+    global _system_user
+    _system_user = user
+
+
+@contextmanager
+def as_system(session: AsyncSession, engine: AsyncEngine | None = None) -> Iterator[None]:
+    """Run the block as the internal system identity - ``grunt.system_context``
+    for the layers below the facade. Refuses to run without it registered
+    rather than run as nobody."""
+    if _system_user is None:
+        raise RuntimeError("grunt: the system user is not registered (grunt.auth not loaded)")
+    tokens = (
+        _session_ctx.set(session),
+        _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
+        _user_ctx.set(_system_user),
+    )
+    try:
+        yield
+    finally:
+        _session_ctx.reset(tokens[0])
+        _engine_ctx.reset(tokens[1])
+        _user_ctx.reset(tokens[2])
+
+
+@asynccontextmanager
+async def system_context(
+    session: AsyncSession, engine: AsyncEngine | None = None
+) -> AsyncIterator[None]:
+    """``async with`` form of :func:`as_system` - ``grunt.system_context`` for the
+    layers below the facade."""
+    with as_system(session, engine):
+        yield
+
+
+def user_email() -> str:
+    """Email of the user the request or task runs as - a 401 without one
+    (``grunt.get_user().email`` for the layers below auth)."""
+    email = session_user()
+    if email is None:
+        raise ApplicationError(_("Authentication required"), code="UNAUTHORIZED")
+    return email
+
+
+def bind(session: AsyncSession, engine: AsyncEngine | None = None, user: Any = None) -> tuple:
+    """Bind *session* / *engine* (else the one in context) / *user* (a ``User``
+    document); the tokens restore the previous state (:func:`unbind`)."""
+    return (
+        _session_ctx.set(session),
+        _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
+        _user_ctx.set(user),
+    )
+
+
+def unbind(tokens: tuple) -> None:
+    """Restore the context :func:`bind` changed."""
+    _session_ctx.reset(tokens[0])
+    _engine_ctx.reset(tokens[1])
+    _user_ctx.reset(tokens[2])

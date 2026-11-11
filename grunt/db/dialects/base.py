@@ -14,9 +14,9 @@ from sqlalchemy import String, Table, func, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.sql.dml import Insert
 
+from grunt.db.dialects.archive import BackupError
 from grunt.db.dialects.fulltext import FullText, FullTextSpec
 from grunt.i18n import _
-lazy from grunt.backups import BackupError
 
 LIKE_ESCAPE = "\\"
 
@@ -286,6 +286,12 @@ class Dialect(ABC):
     async def database_size(self, session: Any) -> int | None:
         """Bytes the database takes, ``None`` when unknown."""
         return None
+
+    async def routine_maintenance(self, engine: AsyncEngine) -> list[str]:
+        """Nightly upkeep that keeps the database online and is cheap: planner
+        statistics, freed pages back to the OS. Returns what ran - nothing when
+        the backend does it by itself (PostgreSQL's autovacuum / autoanalyze)."""
+        return []
 
     @abstractmethod
     def compaction_command(self, quoted_table: str) -> str:

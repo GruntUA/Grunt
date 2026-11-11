@@ -7,7 +7,8 @@
 зібрані в одному місці, а DocType може зберігатися не лише в SQL-таблиці основної бази
 (віртуальний, HTTP-джерело, таблиця в іншій БД) — з тими самими правами, фільтрами й пошуком.
 
-Оновлено: 2026-11-08 (кроки 1–6 готові)
+Оновлено: 2026-11-08 — **план виконано.** Кроки 1–6 випущено у **v0.2.0**, з виправленнями #102–#104.
+Відкладено до першої реальної потреби: іменовані з'єднання, replica, `storage: "sql:<alias>"` (крок 5).
 
 ---
 
@@ -307,7 +308,7 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
 - вузол `Raw(clause)` — `list_filter_extra` (лише SQL; `evaluate` → помилка).
 
 **Порядок:**
-- 4a. ✅ (2026-11-07, не закомічено) `Query` + `run` + `SqlStore.fetch/count/aggregate`; на них — `table_list`/`table_count`,
+- 4a. ✅ (2026-11-07) `Query` + `run` + `SqlStore.fetch/count/aggregate`; на них — `table_list`/`table_count`,
   `grunt.db.get_all/get_value/get_values/exists/count/aggregate`, фасад `grunt.get_all/aggregate`
   (параметр `predicate` у `grunt.db` прибрано). Поведінка не змінюється.
   Зроблено: `grunt/query/{query,run}.py`, `grunt/store/{base,sql,__init__}.py`; `db.api.list_query` /
@@ -329,7 +330,7 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   `VirtualStore`: підклас дає `rows()` (+ за потреби `get/insert/update/delete`); фільтри, сортування,
   пошук і **права** — `evaluate`; `Linked` спершу розв'язується в `In(значення)` запитом через store
   цілі. `_readable_rows` зникає.
-  ✅ (2026-11-07, не закомічено). Зроблено:
+  ✅ (2026-11-07). Зроблено:
   - `grunt/store/base.py` — `Store` (база: нічого не зберігає, запис → 405 з `not_supported_message`
     сховища), `capabilities`: `INSERT UPDATE DELETE AGGREGATE REFERENCES HISTORY BULK`; `get / insert /
     update / delete / output / distinct / columns`. `SqlStore` — код колишніх `mixins/read.py` і
@@ -366,7 +367,7 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   зміні DocType більше не перезаписує поля.
   Перевірено: ruff, pyright 0; SQLite 2087/0, PG 2088/0; translate 31, vitest 328, lagoo 20,
   hromada_it 42, opendata 76, crystal_finance 40.
-- 4d. ✅ (2026-11-07, не закомічено) Перевірки `capabilities` у точках входу.
+- 4d. ✅ (2026-11-07) Перевірки `capabilities` у точках входу.
   Зроблено: capability `SQL` (рядки — SQL-таблиця: сирі умови, звіти з JOIN, дерева, бакети років,
   сирий запис `grunt.db`, кеш списків) у `SqlStore` і `DocTypeStore`; `supports(meta, cap)` — без
   сесії (атрибут класу). Звіти й дерево без `SQL` → 400 з назвою DocType; `field_years` → `[]`;
@@ -378,7 +379,7 @@ shares, власник) — вузли AST; `SqlStore` компілює в SQLAl
   Решта `is_virtual` (схема, CLI, retention, AutoRepeat, ServiceLevel, кошик, посилання на файли,
   health) означає «є своя таблиця в основній базі» — переходить у 4e (`storage`).
   Перевірено: ruff, pyright 0; SQLite 2089/0, PG 2090/0.
-- 4e. ✅ (2026-11-07, не закомічено) Поле `storage`, міграція.
+- 4e. ✅ (2026-11-07) Поле `storage`, міграція.
   Зроблено: `DocType.storage: "sql" | "virtual"` (типово `sql`) замість `is_virtual`; похідна
   властивість `has_table` (`storage == "sql"`) — нею перевіряють «є своя таблиця» (схема, CLI,
   retention, AutoRepeat, ServiceLevel, MilestoneTracker, кошик, посилання на файли, health, пошук,
@@ -416,12 +417,12 @@ push) — через outbox після commit.
 - вебхуки — асинхронно через outbox: доставка після commit, з повторами.
 
 **Порядок:**
-- 5a. ✅ (2026-11-07, не закомічено) `grunt.db.commit.on_commit(fn, session=, key=)` — один API
+- 5a. ✅ (2026-11-07) `grunt.db.commit.on_commit(fn, session=, key=)` — один API
   «після commit»: відкат (зовнішньої транзакції) — нічого, відкат savepoint — решта лишається, поза
   транзакцією — одразу; `key` — один виклик на транзакцію; помилка — у лог; `drain()` для тестів.
   На ньому `cache.bus.publish`, очищення `QueryCache`/`DocumentCache`, kick черги листів
   (`bus.after_commit` і `email._kick_queue_after_commit` прибрано). Тести: `tests/test_on_commit.py`.
-- 5b. ✅ (2026-11-07, не закомічено) `grunt.enqueue(task, *args, **kwargs)` (`grunt/tasks/enqueue.py`) —
+- 5b. ✅ (2026-11-07) `grunt.enqueue(task, *args, **kwargs)` (`grunt/tasks/enqueue.py`) —
   задача в чергу після commit. Переведено: правила сповіщень (`events`), `grunt.enqueue_doc`,
   запуск імпорту (і гілка без Redis — та сама). Лишились на прямому `.kiq()`: планувальник (чекає
   `kiq` з id журналу) і явні дії користувача без залежності від транзакції (бекап, стиснення
@@ -429,7 +430,7 @@ push) — через outbox після commit.
   Заодно: імпорти `create_user`/`get_user_by_email`/… — з `grunt.auth.users`, а не через повторний
   експорт у `User/user.py` (Pylance `reportPrivateImportUsage`; ядро, тести, lagoo, crystal_finance,
   inventory).
-- 5c. ✅ (2026-11-08, не закомічено) Outbox для вебхуків.
+- 5c. ✅ (2026-11-08) Outbox для вебхуків.
   Зроблено: таблиця `grunt_core_outbox` (`OUTBOX_TABLE` у `SA_METADATA` — створюється `grunt migrate`
   через `create_all`, як `grunt_core_multi_link`); `grunt/outbox.py`: `put(handler, payload)` — рядок у
   поточній транзакції + kick задачі `deliver` після commit (один на транзакцію); `deliver_due` —
@@ -441,7 +442,7 @@ push) — через outbox після commit.
   пропуск), закриває транзакцію перед HTTP, пише `WebhookLog` кожної спроби й комітить його до
   повтору. «Тестова доставка» лишилась синхронною. Тести: `tests/test_outbox.py` (11, SQLite і PG).
   Вебхуків на dev2/lagoo немає — до `grunt migrate` нічого не впаде.
-- 5d. ✅ (2026-11-08, не закомічено) Push і realtime — після commit.
+- 5d. ✅ (2026-11-08) Push і realtime — після commit.
   Зроблено: `grunt.publish` / `broadcast` / `publish_channel` — через `on_commit` (поза транзакцією —
   одразу); дзвіночок сповіщень (`_broadcast_ws`), стрічка активності (дані — у транзакції, у
   WebSocket — після commit), перехід workflow — `on_commit`. **Web push — через outbox**
@@ -483,7 +484,7 @@ DropColumn`); перевірки безпеки (дублікати перед u
 6c — trim/розширення через `DropColumn`, `--dry-run` з планом → 6d — SQLite: тип через перебудову,
 видалення застарілих індексів.
 
-**Зроблено (2026-11-08, не закомічено):**
+**Зроблено (2026-11-08):**
 - 6a. `grunt/db/schema/changes.py` (dataclass-и змін з `describe()`), `diff.py`: `read_actual` (стан
   таблиці з інспектора), `diff(table, actual, sa_dialect=, can_alter_type=, drop_columns=,
   drop_indexes=, keep=)`, `column_drops`, `describe`, `type_changed`/`is_varchar_reduction`
@@ -513,7 +514,7 @@ DropColumn`); перевірки безпеки (дублікати перед u
   поза задачею — у контекст усього процесу, тож кожен наступний тест на тому воркері бачив
   `AsyncMock`-сесію (`has_share` → `UnknownDatabaseError`). Відтворюється детерміновано парою тестів.
   Виправлено autouse-фікстурою `_restore_grunt_context` у `conftest.py`: після кожного тесту змінні
-  контексту grunt повертаються до попередніх значень, кеші прав очищуються (ключ `_PERM_CACHE`
+  контексту grunt повертаються до попередніх значень, кеші прав очищуються (згодом кеші прав прибрано зовсім — #104; ключ `_PERM_CACHE`
   містить `id()` списку прав — адреси перевикористовуються).
   Перевірено (крок 6): ruff, pyright 0; SQLite 2133/0 (двічі), PG 2134/0; lagoo 20, crystal_finance
   40, inventory 28, translate 31, hromada_it 42, opendata 76.

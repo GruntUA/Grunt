@@ -8,7 +8,7 @@ from httpx2 import AsyncClient
 from grunt.auth.service import create_mfa_token
 from grunt.auth.users import create_user, get_user_by_email
 
-M = "/api/v1/method/grunt.auth.doctypes.User.user"
+M = "/api/v1/method/grunt.auth.user_api"
 EMAIL = "root@grunt.example.com"
 PASSWORD = "Str0ngPass"
 

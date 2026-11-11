@@ -53,7 +53,7 @@ function jwt(expInSeconds: number): string {
   return `h.${btoa(JSON.stringify({ exp }))}.s`
 }
 
-const REFRESH = '/api/v1/method/grunt.auth.doctypes.User.user.refresh_api'
+const REFRESH = '/api/v1/method/grunt.auth.user_api.refresh_api'
 
 // Tests
 
@@ -142,7 +142,7 @@ describe('useAuthStore', () => {
       const auth = useAuthStore()
       await auth.login('user@test.com', 'pass123')
       expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/method/grunt.auth.doctypes.User.user.login_api',
+        '/api/v1/method/grunt.auth.user_api.login_api',
         { email: 'user@test.com', password: 'pass123' },
       )
     })

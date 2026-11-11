@@ -34,11 +34,19 @@ from datetime import UTC, datetime
 from functools import lru_cache
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.db.api import GruntDB, list_query
 from grunt.document.meta import Meta
+from grunt.errors import not_found
+from grunt.i18n import _
+from grunt.local import require_session_user
+from grunt.log import log
 from grunt.metadata.field import get_storage_class
+from grunt.metadata.registry import doctype_registry
+from grunt.permissions import reads
+from grunt.permissions.rbac import permission_checker
 lazy from grunt.metadata.doctype import DocType
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _SAFE_BUILTINS: dict[str, Any] = {
     "__builtins__": {},
@@ -134,11 +142,18 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
     # Build evaluation namespace
 
     async def _count(doctype: str, filters: dict[str, Any] | None = None) -> int:
-        return await grunt.count(doctype, filters=filters)
+        # As grunt.count: the raw table count.
+        return await _db.count(doctype, filters=filters)
 
     async def _sum(doctype: str, fieldname: str, filters: dict[str, Any] | None = None) -> float:
-        # Use grunt.get_list and sum manually or implement grunt.sum
-        rows = await grunt.get_list(doctype, filters=filters, fields=[fieldname])
+        # Over every row the user may read - as grunt.get_list checks it, but not
+        # one page of it.
+        target = await doctype_registry.get_meta(doctype)
+        if target is None:
+            raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+        await permission_checker.require(target, "read")
+        query = list_query(target, filters=filters, fields=[fieldname])
+        rows = await reads.fetch(query, user=require_session_user())
         return sum(float(r.get(fieldname) or 0) for r in rows)
 
     _now = datetime.now(UTC)

@@ -5,6 +5,7 @@ A :class:`Query` is what a store executes (:mod:`grunt.store`) and what
 :attr:`Query.where` there, so a read path can't skip them.
 """
 
+from collections.abc import Collection
 from dataclasses import dataclass, replace
 from typing import Any
 
@@ -22,6 +23,29 @@ class Sort:
     field: str
     descending: bool = True
 
+    @classmethod
+    def parse(cls, spec: str, order: str = "desc", *, known: Collection[str] | None = None) -> Sort:
+        """``"field"``, ``"field asc"`` or ``"field desc"`` - a direction in
+        *spec* wins over *order*. One field only (a keyset follows one sort key).
+
+        Raises :class:`ValueError` for anything else, and for a field outside
+        *known* when it is given - a sort never silently falls back to another
+        column.
+        """
+        parts = spec.split()
+        direction = order
+        if len(parts) == 2 and "," not in spec:
+            direction = parts[1]
+        elif len(parts) != 1 or "," in spec:
+            raise ValueError(f"Invalid order_by: {spec!r} - expected 'field [asc|desc]'")
+        direction = direction.lower()
+        if direction not in ("asc", "desc"):
+            raise ValueError(f"Invalid sort order: {direction!r} - expected 'asc' or 'desc'")
+        field = parts[0]
+        if known is not None and field not in known:
+            raise ValueError(f"Unknown order_by field: {field!r}")
+        return cls(field, descending=direction == "desc")
+
 
 @dataclass(frozen=True, slots=True)
 class Query:
@@ -31,8 +55,10 @@ class Query:
     field comes back as the list of linked names. ``after`` - the
     ``(sort value, name)`` of the last row of the previous page: rows after it
     in the ``sort`` order (``offset`` is then ignored). ``search`` - the list
-    search box text. ``group_by`` / ``aggregates`` (``(label, "sum(amount)")``) -
-    for :meth:`grunt.store.Store.aggregate` only.
+    search box text; ``search_exclude`` - fields the search box must not look in
+    (permission-hidden ones: a match on them would reveal their value).
+    ``group_by`` / ``aggregates`` (``(label, "sum(amount)")``) - for
+    :meth:`grunt.store.Store.aggregate` only.
     """
 
     doctype: str
@@ -43,6 +69,7 @@ class Query:
     offset: int = 0
     after: tuple[Any, str] | None = None
     search: str | None = None
+    search_exclude: frozenset[str] = frozenset()
     group_by: tuple[str, ...] = ()
     aggregates: tuple[tuple[str, str], ...] = ()
 

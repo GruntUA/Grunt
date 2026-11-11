@@ -1,13 +1,14 @@
 """Storage tasks - run by the task worker."""
 
-import grunt
-from grunt import _, log
-from grunt.i18n import language_of, use_language
+from grunt.auth.language import language_of
+from grunt.i18n import _, use_language
+from grunt.local import system_context
+from grunt.log import log
 from grunt.progress import track_progress
 from grunt.site.manager import site_manager
 from grunt.storage.gc import collect_garbage as collect
+from grunt.storage.images import compress_existing
 from grunt.tasks.broker import retryable_task, task
-lazy from grunt.storage.images import compress_existing
 
 
 @retryable_task()
@@ -16,7 +17,7 @@ async def collect_garbage() -> None:
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session, grunt.system_context(session, eng):
+    async with maker() as session, system_context(session, eng):
         await collect()
 
 
@@ -28,7 +29,7 @@ async def compress_images(user: str | None = None) -> dict | None:
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
     eng = site_manager.get_engine(site)
-    async with maker() as session, grunt.system_context(session, eng):
+    async with maker() as session, system_context(session, eng):
         with use_language(await language_of(user)):
             async with track_progress(
                 _("Compressing images"), user=user, doctype="File", cancellable=True

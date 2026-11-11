@@ -12,29 +12,24 @@ there for IDEs and type checkers.
 
 import contextlib
 import copy
+import sys
 from typing import Any, ClassVar
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import _, log
-from grunt.api.v1.ws import manager
+from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
-from grunt.document.mixins.collaboration_rpc import DocumentCollaborationRPCMixin
-from grunt.document.mixins.export_rpc import DocumentExportRPCMixin
-from grunt.document.mixins.history_rpc import DocumentHistoryRPCMixin
 from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
-from grunt.document.mixins.link_rpc import DocumentLinkRPCMixin
-from grunt.document.mixins.meta_rpc import DocumentMetaRPCMixin
-from grunt.document.mixins.tree_rpc import DocumentTreeRPCMixin
-from grunt.document.mixins.workflow_rpc import DocumentWorkflowRPCMixin
 from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
-from grunt.local import require_engine, require_user
-from grunt.store import Store, store_for
-lazy from grunt.auth.doctypes.User.user import User
+from grunt.i18n import _
+from grunt.local import _user_ctx, bind, require_engine, require_session, session_user, unbind
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
+from grunt.store.base import Store
+from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
@@ -60,40 +55,10 @@ SYS_FIELDS: frozenset[str] = frozenset(
 
 
 async def _meta(doctype: str) -> Any:
-    dt = await grunt.get_meta(doctype)
+    dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     return dt
-
-
-class DocumentList(list):
-    """A list of rows plus pagination meta.
-
-    Iterates and indexes like a list, but ``result["data"]`` and
-    ``result["meta"]`` also work, so it can be returned where the
-    ``{"data": ..., "meta": ...}`` response shape is expected.
-    """
-
-    def __init__(self, data: list, meta: dict[str, Any] | None = None) -> None:
-        super().__init__(data)
-        self.meta = meta or {}
-
-    def to_dict(self) -> dict[str, Any]:
-        return {"data": list(self), "meta": self.meta}
-
-    def __getitem__(self, key: Any) -> Any:
-        if key == "data":
-            return list(self)
-        if key == "meta":
-            return self.meta
-        return super().__getitem__(key)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        if key == "data":
-            return list(self)
-        if key == "meta":
-            return self.meta
-        return default
 
 
 class _ObjectsDescriptor:
@@ -104,13 +69,6 @@ class _ObjectsDescriptor:
 
 
 class Document(
-    DocumentTreeRPCMixin,
-    DocumentLinkRPCMixin,
-    DocumentExportRPCMixin,
-    DocumentHistoryRPCMixin,
-    DocumentCollaborationRPCMixin,
-    DocumentWorkflowRPCMixin,
-    DocumentMetaRPCMixin,
     DocumentLifecycleMixin,
 ):
     """A document: its values in ``self.data``, its lifecycle hooks, and the
@@ -124,7 +82,7 @@ class Document(
 
             async def validate(self) -> None:
                 if self.amount <= 0:
-                    grunt.throw("Сума повинна бути більше нуля")
+                    throw("Сума повинна бути більше нуля")
 
     A DocType whose documents aren't rows of its table names its store::
 
@@ -146,7 +104,6 @@ class Document(
     data: dict[str, Any]
     # The mixins assume these are bound, but outside a grunt context _bind()
     # can leave them None, so they are left untyped here.
-    user: Any
     session: Any
     engine: Any
     _ml: Any
@@ -155,19 +112,23 @@ class Document(
         self,
         doctype: str,
         data: dict[str, Any],
-        user: User | None = None,
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
     ) -> None:
         self.doctype = doctype
         self.data = data
-        self.user = user
         self.session = session
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
         self._dt = None
         self.input_data = {}
         self.doc_before_save = None
+
+    @property
+    def user(self) -> str | None:
+        """Email of the user the context runs as. A document acts as the session
+        user (as in Frappe) - it carries no user of its own."""
+        return session_user()
 
     # Attribute routing
 
@@ -234,9 +195,11 @@ class Document(
         return self.data.get("parenttype")
 
     @property
-    def grunt(self):
-        """The ``grunt`` package, so hooks can call ``self.grunt.db...``."""
-        return grunt
+    def grunt(self) -> Any:
+        """The ``grunt`` package, so hooks can call ``self.grunt.db...``. Taken from
+        ``sys.modules``: it is always loaded first (this is its subpackage), and the
+        document layer must not import the facade built on top of it."""
+        return sys.modules["grunt"]
 
     def as_dict(self) -> dict[str, Any]:
         """The document as a JSON object naming its DocType - child rows included."""
@@ -254,30 +217,28 @@ class Document(
     # Context binding
 
     def _bind(self) -> None:
-        """Fill in session/engine/user from the active grunt context if not given.
+        """Fill in session/engine from the active grunt context if not given.
 
         Lets the same controller work inside a request and from scripts/CLI
-        running under ``grunt.context(...)``. Whatever can't be resolved stays
+        running under ``user_context(...)``. Whatever can't be resolved stays
         None and only fails once it's actually used.
         """
         if self.session is None:
             with contextlib.suppress(RuntimeError):
-                self.session = grunt.get_session()
+                self.session = require_session()
         if self.engine is None:
             with contextlib.suppress(RuntimeError):
                 self.engine = require_engine()
-        if self.user is None:
-            with contextlib.suppress(RuntimeError):
-                self.user = require_user()
         if self._ml is None and self.session is not None:
             self._ml = MultiLinkService(self.session)
 
-    def _set_grunt_context(self, user: User) -> tuple:
-        return grunt.set_context(session=self.session, engine=self.engine, user=user)
+    def _set_grunt_context(self) -> tuple:
+        """Bind this document's session/engine for its hooks; the user stays the context's."""
+        return bind(session=self.session, engine=self.engine, user=_user_ctx.get())
 
     @staticmethod
     def _reset_grunt_context(tokens: tuple) -> None:
-        grunt.reset_context(tokens)
+        unbind(tokens)
 
     def _replace_data(self, values: dict[str, Any]) -> None:
         # Mutate in place: callers may still hold a reference to self.data.
@@ -332,12 +293,21 @@ class Document(
         expand: list[str] | None = None,
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
-        user: User | None = None,
     ) -> Document:
         """Load a document as an instance of its registered controller."""
-        return await load_document(
-            doctype, name, expand=expand, session=session, engine=engine, user=user
-        )
+        return await load_document(doctype, name, expand=expand, session=session, engine=engine)
+
+    @classmethod
+    async def new(
+        cls,
+        doctype: str,
+        data: dict[str, Any],
+        *,
+        session: AsyncSession | None = None,
+        engine: AsyncEngine | None = None,
+    ) -> Document:
+        """A new, unsaved instance of *doctype*'s registered controller holding *data*."""
+        return await new_document(doctype, data, session=session, engine=engine)
 
     # Lifecycle hooks
 
@@ -363,7 +333,7 @@ class Document(
         """After the row is deleted."""
 
     async def validate(self) -> None:
-        """Before every write. Call ``grunt.throw()`` to abort the save."""
+        """Before every write. Call ``throw()`` to abort the save."""
 
     async def publish_progress(
         self,
@@ -395,7 +365,7 @@ class Document(
         if message is not None:
             payload["message"] = message
         try:
-            await manager.broadcast_doc(self.doctype, str(doc_id), "import_progress", payload)
+            await pipeline.doc_progress(self.doctype, str(doc_id), payload)
         except Exception:
             log.exception("document.progress_broadcast_failed", doctype=self.doctype, doc=doc_id)
 
@@ -460,6 +430,9 @@ class Document(
         return children
 
 
+document_registry.use_base(Document)
+
+
 def controller_class(dt: Any) -> type[Document]:
     """The controller of the DocType *dt*."""
     return document_registry.get(dt.name)
@@ -469,14 +442,11 @@ async def new_document(
     doctype: str,
     data: dict[str, Any],
     *,
-    user: User | None = None,
     session: AsyncSession | None = None,
     engine: AsyncEngine | None = None,
 ) -> Document:
     """An instance of *doctype*'s controller holding *data*, bound to the context."""
-    doc = controller_class(await _meta(doctype))(
-        doctype, data, user=user, session=session, engine=engine
-    )
+    doc = controller_class(await _meta(doctype))(doctype, data, session=session, engine=engine)
     doc._bind()
     return doc
 
@@ -488,7 +458,6 @@ async def load_document(
     expand: list[str] | None = None,
     session: AsyncSession | None = None,
     engine: AsyncEngine | None = None,
-    user: User | None = None,
 ) -> Document:
     """The stored document *name* as an instance of its controller.
 
@@ -498,9 +467,7 @@ async def load_document(
     needs none of it).
     """
     dt = await _meta(doctype)
-    doc = controller_class(dt)(
-        doctype, {"name": name or doctype}, user=user, session=session, engine=engine
-    )
+    doc = controller_class(dt)(doctype, {"name": name or doctype}, session=session, engine=engine)
     doc._bind()
     doc._dt = dt
     data = await store_for(dt, doc.session).get(name or doctype, expand=expand)

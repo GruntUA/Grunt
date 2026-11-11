@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from grunt.api.v1.document import meta as meta_api
 from grunt.apps.consumers import HOOK_CONSUMERS, LoadContext
 from grunt.document import sidebar
 from tests.support import make_user
@@ -15,9 +16,10 @@ NOTE = {
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Reader", "read": True},
-        {"role": "Editor", "read": True, "write": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Reader", "actions": ["read"]},
+        {"role": "Writer", "actions": ["read", "write"]},
+        {"role": "Editor", "actions": ["read", "write", "share"]},
     ],
 }
 
@@ -68,10 +70,9 @@ def sections():
 
 async def _sidebar(db_session, engine, doc_id, roles):
     import grunt
-    from grunt.document.base import Document
 
     async with grunt.context(db_session, engine, make_user("ann@example.com", roles=roles)):
-        return await Document.get_sidebar(doctype="SideNote", doc_id=doc_id)
+        return await meta_api.get_sidebar(doctype="SideNote", doc_id=doc_id)
 
 
 @pytest.mark.asyncio
@@ -96,6 +97,9 @@ async def test_app_sections(note, sections, db_session, engine):
 async def test_perms(note, db_session, engine):
     reader = await _sidebar(db_session, engine, note["name"], ["Reader"])
     assert reader["perms"] == {"assign": True, "share": False, "tag": True}
+    # Write alone doesn't share; share alone (without write) doesn't either.
+    writer = await _sidebar(db_session, engine, note["name"], ["Writer"])
+    assert writer["perms"]["share"] is False
     editor = await _sidebar(db_session, engine, note["name"], ["Editor"])
     assert editor["perms"]["share"] is True
 
@@ -180,12 +184,11 @@ async def test_status_row(core_sections, ctx, db_session, engine):
 
     async def props(doc_id):
         import grunt
-        from grunt.document.base import Document
 
         async with grunt.context(
             db_session, engine, make_user("ann@example.com", roles=["Reader"])
         ):
-            return (await Document.get_sidebar(doctype="SideTask", doc_id=doc_id))["properties"]
+            return (await meta_api.get_sidebar(doctype="SideTask", doc_id=doc_id))["properties"]
 
     status = (await props(done["name"]))[0]
     assert (status["value"], status["indicator"]) == ("Finished", "success")

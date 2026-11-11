@@ -69,6 +69,60 @@ interface GruntMethods {
   "grunt.api.v1.docs.crud.bulk_update": { args: { doctype: string; ids: string[]; field: string; value?: any }; result: Record<string, any> }
   /** Rename a document (change its id). RPC: grunt.api.v1.docs.crud.rename */
   "grunt.api.v1.docs.crud.rename": { args: { doctype: string; doc_id: string; new_name: string }; result: Record<string, any> }
+  /** Bookmark a document. */
+  "grunt.api.v1.document.collaboration.add_bookmark": { args: { doctype: string; doc_id: string; title?: string }; result: Record<string, any> }
+  /** Add a comment to a document. Parses @email mentions. */
+  "grunt.api.v1.document.collaboration.add_comment": { args: { doctype: string; doc_id: string; content: string; comment_type?: string; parent_comment?: string | null }; result: Record<string, any> }
+  /** Remind the current user about this document at *remind_at*. */
+  "grunt.api.v1.document.collaboration.add_reminder": { args: { doctype: string; doc_id: string; remind_at: string; description?: string }; result: Record<string, any> }
+  /** Delete a comment. */
+  "grunt.api.v1.document.collaboration.delete_comment": { args: { doctype: string; doc_id: string; comment_id: string }; result: null }
+  /** Return the current user's bookmark. */
+  "grunt.api.v1.document.collaboration.get_bookmark": { args: { doctype: string; doc_id: string }; result: Record<string, any> | null }
+  /** Return all comments for a document. */
+  "grunt.api.v1.document.collaboration.get_comments": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
+  /** Remove a bookmark. */
+  "grunt.api.v1.document.collaboration.remove_bookmark": { args: { doctype: string; doc_id: string }; result: null }
+  /** Export documents as CSV. */
+  "grunt.api.v1.document.export.export_csv": { args: { doctype: string; sort_by?: string; sort_order?: string; filters?: Record<string, any> | null; search?: string | null; fields?: string | null }; result: unknown }
+  /** Bulk-export all documents (up to 10 000) for a DocType via the io registry. */
+  "grunt.api.v1.document.export.export_file": { args: { doctype: string; fmt?: string; filters?: Record<string, any> | null; fields?: string; search?: string; sort_by?: string; sort_order?: string; group_by?: string; filter_summary?: string; token?: string | null }; result: unknown }
+  /** Render an arbitrary Jinja2 HTML template against a document (or sample). */
+  "grunt.api.v1.document.export.preview": { args: { doctype: string; template: string; doc_id?: string | null; letter_head?: string | null; no_letter_head?: boolean }; result: unknown }
+  /** Generate document in requested format: html, pdf, xlsx, or docx. */
+  "grunt.api.v1.document.export.print": { args: { doctype: string; doc_id: string; fmt?: string; print_format?: string | null; autoprint?: boolean; token?: string | null }; result: unknown }
+  /** Return the activity log for a document. */
+  "grunt.api.v1.document.history.get_activity_log": { args: { doctype: string; doc_id: string; per_page?: number }; result: Record<string, any>[] }
+  /** Return a merged timeline of activity, field-value versions and comments. */
+  "grunt.api.v1.document.history.get_timeline": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
+  /** Return version history for a document. */
+  "grunt.api.v1.document.history.get_versions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
+  /** Restore a document to a previous version. */
+  "grunt.api.v1.document.history.restore_version": { args: { doctype: string; doc_id: string; version_id: string }; result: Record<string, any> }
+  /** Search documents for a Link field dropdown. */
+  "grunt.api.v1.document.links.link_search": { args: { doctype: string; search?: string; per_page?: number; filters?: Record<string, any> | null }; result: Record<string, any>[] }
+  /** Return all documents that link to this document (backlinks). */
+  "grunt.api.v1.document.meta.get_backlinks": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
+  /** Summarise what references the given document(s) - see LinkService. */
+  "grunt.api.v1.document.meta.get_delete_impact": { args: { doctype: string; doc_id?: string | null; doc_ids?: string[] | null }; result: Record<string, any> }
+  /** Years present in a Date/Datetime field, newest first (year quick filter). */
+  "grunt.api.v1.document.meta.get_field_years": { args: { doctype: string; fieldname: string }; result: number[] }
+  /** Link hover card: title, image and the ``in_preview`` fields of a document. */
+  "grunt.api.v1.document.meta.get_preview": { args: { doctype: string; doc_id: string }; result: Record<string, any> | null }
+  /** Return the whole document-sidebar payload in one round-trip. */
+  "grunt.api.v1.document.meta.get_sidebar": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
+  /** Return the full tree (or subtree from *root_id*) as nested dicts with ``children``. */
+  "grunt.api.v1.document.tree.get_tree": { args: { doctype: string; root_id?: string | null; max_depth?: number; fields?: string[] | null; as_of?: string | null; sort_by?: string | null; sort_order?: string; filters?: Record<string, any> | null; search?: string | null }; result: Record<string, any>[] }
+  /** Return the breadcrumb path from the root down to *node_id*'s parent. */
+  "grunt.api.v1.document.tree.get_tree_ancestors": { args: { doctype: string; node_id: string; fields?: string[] | null }; result: Record<string, any>[] }
+  /** Return direct children of *node_id* (omit for root nodes), one level at a time. */
+  "grunt.api.v1.document.tree.get_tree_children": { args: { doctype: string; node_id?: string | null; fields?: string[] | null; per_page?: number; sort_by?: string | null; sort_order?: string; filters?: Record<string, any> | null }; result: Record<string, any>[] }
+  /** Re-parent *node_id* to *new_parent_id* (or make it a root node if ``None``). */
+  "grunt.api.v1.document.tree.move_tree_node": { args: { doctype: string; node_id: string; new_parent_id?: string | null }; result: Record<string, any> }
+  /** Apply a workflow transition to a document. */
+  "grunt.api.v1.document.workflow.apply_workflow_transition": { args: { doctype: string; doc_id: string; action: string; values?: Record<string, any> | null }; result: Record<string, any> }
+  /** Return available workflow transitions for a document. */
+  "grunt.api.v1.document.workflow.get_workflow_transitions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
   /** Delete a document. */
   "grunt.api.v1.documents.delete_doc": { args: { doctype: string; name: string; replace_with?: string | null }; result: boolean }
   /** Get a single document. */
@@ -174,54 +228,6 @@ interface GruntMethods {
   "grunt.auth.doctypes.ApiKey.api_key.revoke_api_key": { args: { key_id: string }; result: boolean }
   /** Update label, active state, allowed IPs, or expiry of a key. */
   "grunt.auth.doctypes.ApiKey.api_key.update_api_key": { args: { key_id: string; label?: string | null; is_active?: boolean | null; expires_at?: string | null; allowed_ips?: string | null }; result: Record<string, any> }
-  /** Approve a pending registration - the user can now sign in. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.approve_user_api": { args: { user_id: string }; result: boolean }
-  /** Confirm MFA setup for the current user. */
-  "grunt.auth.doctypes.User.user.confirm_mfa": { args: { code: string }; result: GruntApi.grunt.MfaConfirmed }
-  /** Disable MFA for the current user. */
-  "grunt.auth.doctypes.User.user.disable_mfa": { args: {}; result: boolean }
-  /** Queue a password reset email if the user exists (always returns success). Allowed for guests. */
-  "grunt.auth.doctypes.User.user.forgot_password_api": { args: { email: string }; result: boolean }
-  /** The people directory for any signed-in user: active accounts with just what a picker shows (sharing, assigning) - no roles, no account state. */
-  "grunt.auth.doctypes.User.user.list_colleagues_api": { args: {}; result: Record<string, any>[] }
-  /** Self-registered users awaiting approval. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.list_pending_users_api": { args: {}; result: Record<string, any>[] }
-  /** List all users with fields needed by the admin REST endpoint. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.list_users_detailed_api": { args: {}; result: Record<string, any>[] }
-  /** Authenticate a user and issue auth tokens or MFA challenge token. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.login_api": { args: { email: string; password: string }; result: Record<string, any> }
-  /** End this browser's session (other devices stay signed in) and drop its cookie. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.logout_api": { args: {}; result: boolean }
-  /** Login-time MFA enrollment, step 1: a fresh TOTP secret + QR code. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.mfa_enroll_begin": { args: { mfa_token: string }; result: GruntApi.grunt.MfaSetup }
-  /** Login-time MFA enrollment, step 2: confirm the code, then sign in. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.mfa_enroll_complete": { args: { mfa_token: string; code: string }; result: Record<string, any> }
-  /** Verify MFA challenge token+code and issue full auth tokens. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.mfa_login_api": { args: { mfa_token: string; code: string }; result: Record<string, any> }
-  /** A new access token for the browser's session (the session cookie), which is rotated on the way. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.refresh_api": { args: {}; result: Record<string, any> }
-  /** Register a new user. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.register": { args: { email: string; password: string; first_name?: string | null; last_name?: string | null; middle_name?: string | null }; result: Record<string, any> }
-  /** Register a new user using a single full_name string. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.register_full_name_api": { args: { email: string; password: string; full_name: string }; result: Record<string, any> }
-  /** Reject a pending registration. System Manager only. Roles: System Manager. */
-  "grunt.auth.doctypes.User.user.reject_user_api": { args: { user_id: string }; result: boolean }
-  /** Reset password using a valid reset token. Allowed for guests. */
-  "grunt.auth.doctypes.User.user.reset_password_api": { args: { token: string; new_password: string }; result: boolean }
-  /** Set a new password for a user. */
-  "grunt.auth.doctypes.User.user.set_user_password_api": { args: { user_id: string; new_password: string; current_password?: string | null }; result: boolean }
-  /** Start MFA setup for the current user. */
-  "grunt.auth.doctypes.User.user.setup_mfa": { args: {}; result: GruntApi.grunt.MfaSetup }
-  /** Open a short-lived session as another user. System Manager only. */
-  "grunt.auth.doctypes.User.user.start_impersonation_api": { args: { user_id: string }; result: Record<string, any> }
-  /** Log the end of an impersonation session. */
-  "grunt.auth.doctypes.User.user.stop_impersonation_api": { args: {}; result: boolean }
-  /** Update current user preferences and return updated profile. */
-  "grunt.auth.doctypes.User.user.update_me_api": { args: { theme?: string | null; language?: string | null; timezone?: string | null }; result: Record<string, any> }
-  /** Verify a TOTP or backup code for the current user. */
-  "grunt.auth.doctypes.User.user.verify_mfa": { args: { code: string }; result: boolean }
-  /** Return the currently authenticated user. */
-  "grunt.auth.doctypes.User.user.whoami": { args: {}; result: Record<string, any> }
   /** Active sessions of the current user; ``current`` marks this device. */
   "grunt.auth.doctypes.UserSession.user_session.list_my_sessions": { args: {}; result: Record<string, any>[] }
   /** Sign out one of the current user's devices. */
@@ -276,7 +282,7 @@ interface GruntMethods {
   "grunt.auth.user_api.set_user_password_api": { args: { user_id: string; new_password: string; current_password?: string | null }; result: boolean }
   /** Start MFA setup for the current user. */
   "grunt.auth.user_api.setup_mfa": { args: {}; result: GruntApi.grunt.MfaSetup }
-  /** Open a short-lived session as another user. System Manager only. */
+  /** Open a short-lived session as another user. System Manager only. Roles: System Manager. */
   "grunt.auth.user_api.start_impersonation_api": { args: { user_id: string }; result: Record<string, any> }
   /** Log the end of an impersonation session. */
   "grunt.auth.user_api.stop_impersonation_api": { args: {}; result: boolean }
@@ -292,116 +298,8 @@ interface GruntMethods {
   "grunt.backups.api.backup_now": { args: { with_database?: boolean; with_files?: boolean; with_config?: boolean }; result: GruntApi.grunt.Queued }
   /** A backup file, for a valid unexpired signature (see :func:`download_url`). Allowed for guests. */
   "grunt.backups.api.download": { args: { file: string; exp: number; sig: string }; result: unknown }
-  /** Bookmark a document. */
-  "grunt.document.base.Document.add_bookmark": { args: { doctype: string; doc_id: string; title?: string }; result: Record<string, any> }
-  /** Add a comment to a document. Parses @email mentions. */
-  "grunt.document.base.Document.add_comment": { args: { doctype: string; doc_id: string; content: string; comment_type?: string; parent_comment?: string | null }; result: Record<string, any> }
-  /** Remind the current user about this document at *remind_at*. */
-  "grunt.document.base.Document.add_reminder": { args: { doctype: string; doc_id: string; remind_at: string; description?: string }; result: Record<string, any> }
-  /** Apply a workflow transition to a document. */
-  "grunt.document.base.Document.apply_workflow_transition": { args: { doctype: string; doc_id: string; action: string; values?: Record<string, any> | null }; result: Record<string, any> }
-  /** Delete a comment. */
-  "grunt.document.base.Document.delete_comment": { args: { doctype: string; doc_id: string; comment_id: string }; result: null }
-  /** Export documents as CSV. */
-  "grunt.document.base.Document.export_csv": { args: { doctype: string; sort_by?: string; sort_order?: string; filters?: Record<string, any> | null; search?: string | null; fields?: string | null }; result: unknown }
-  /** Bulk-export all documents (up to 10 000) for a DocType via the io registry. */
-  "grunt.document.base.Document.export_file": { args: { doctype: string; fmt?: string; filters?: Record<string, any> | null; fields?: string; search?: string; sort_by?: string; sort_order?: string; group_by?: string; filter_summary?: string; token?: string | null }; result: unknown }
-  /** Return the activity log for a document. */
-  "grunt.document.base.Document.get_activity_log": { args: { doctype: string; doc_id: string; per_page?: number }; result: Record<string, any>[] }
-  /** Return all documents that link to this document (backlinks). */
-  "grunt.document.base.Document.get_backlinks": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Return the current user's bookmark. */
-  "grunt.document.base.Document.get_bookmark": { args: { doctype: string; doc_id: string }; result: Record<string, any> | null }
-  /** Return all comments for a document. */
-  "grunt.document.base.Document.get_comments": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Summarise what references the given document(s) - see LinkService. */
-  "grunt.document.base.Document.get_delete_impact": { args: { doctype: string; doc_id?: string | null; doc_ids?: string[] | null }; result: Record<string, any> }
-  /** Years present in a Date/Datetime field, newest first (year quick filter). */
-  "grunt.document.base.Document.get_field_years": { args: { doctype: string; fieldname: string }; result: number[] }
-  /** Link hover card: title, image and the ``in_preview`` fields of a document. */
-  "grunt.document.base.Document.get_preview": { args: { doctype: string; doc_id: string }; result: Record<string, any> | null }
-  /** Return the whole document-sidebar payload in one round-trip. */
-  "grunt.document.base.Document.get_sidebar": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
-  /** Return a merged timeline of activity, field-value versions and comments. */
-  "grunt.document.base.Document.get_timeline": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Return the full tree (or subtree from *root_id*) as nested dicts with ``children``. */
-  "grunt.document.base.Document.get_tree": { args: { doctype: string; root_id?: string | null; max_depth?: number; fields?: string[] | null; as_of?: string | null; sort_by?: string | null; sort_order?: string; filters?: Record<string, any> | null; search?: string | null }; result: Record<string, any>[] }
-  /** Return the breadcrumb path from the root down to *node_id*'s parent. */
-  "grunt.document.base.Document.get_tree_ancestors": { args: { doctype: string; node_id: string; fields?: string[] | null }; result: Record<string, any>[] }
-  /** Return direct children of *node_id* (omit for root nodes), one level at a time. */
-  "grunt.document.base.Document.get_tree_children": { args: { doctype: string; node_id?: string | null; fields?: string[] | null; per_page?: number; sort_by?: string | null; sort_order?: string; filters?: Record<string, any> | null }; result: Record<string, any>[] }
-  /** Return version history for a document. */
-  "grunt.document.base.Document.get_versions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Return available workflow transitions for a document. */
-  "grunt.document.base.Document.get_workflow_transitions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Search documents for a Link field dropdown. */
-  "grunt.document.base.Document.link_search": { args: { doctype: string; search?: string; per_page?: number; filters?: Record<string, any> | null }; result: Record<string, any>[] }
-  /** Re-parent *node_id* to *new_parent_id* (or make it a root node if ``None``). */
-  "grunt.document.base.Document.move_tree_node": { args: { doctype: string; node_id: string; new_parent_id?: string | null }; result: Record<string, any> }
-  /** Render an arbitrary Jinja2 HTML template against a document (or sample). */
-  "grunt.document.base.Document.preview": { args: { doctype: string; template: string; doc_id?: string | null; letter_head?: string | null; no_letter_head?: boolean }; result: unknown }
-  /** Generate document in requested format: html, pdf, xlsx, or docx. */
-  "grunt.document.base.Document.print": { args: { doctype: string; doc_id: string; fmt?: string; print_format?: string | null; autoprint?: boolean; token?: string | null }; result: unknown }
-  /** Remove a bookmark. */
-  "grunt.document.base.Document.remove_bookmark": { args: { doctype: string; doc_id: string }; result: null }
-  /** Restore a document to a previous version. */
-  "grunt.document.base.Document.restore_version": { args: { doctype: string; doc_id: string; version_id: string }; result: Record<string, any> }
   /** Return grouped connection stats for one document. */
   "grunt.document.connections.get_connections": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
-  /** Bookmark a document. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.add_bookmark": { args: { doctype: string; doc_id: string; title?: string }; result: Record<string, any> }
-  /** Add a comment to a document. Parses @email mentions. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.add_comment": { args: { doctype: string; doc_id: string; content: string; comment_type?: string; parent_comment?: string | null }; result: Record<string, any> }
-  /** Remind the current user about this document at *remind_at*. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.add_reminder": { args: { doctype: string; doc_id: string; remind_at: string; description?: string }; result: Record<string, any> }
-  /** Delete a comment. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.delete_comment": { args: { doctype: string; doc_id: string; comment_id: string }; result: null }
-  /** Return the current user's bookmark. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.get_bookmark": { args: { doctype: string; doc_id: string }; result: Record<string, any> | null }
-  /** Return all comments for a document. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.get_comments": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Remove a bookmark. */
-  "grunt.document.mixins.collaboration_rpc.DocumentCollaborationRPCMixin.remove_bookmark": { args: { doctype: string; doc_id: string }; result: null }
-  /** Export documents as CSV. */
-  "grunt.document.mixins.export_rpc.DocumentExportRPCMixin.export_csv": { args: { doctype: string; sort_by?: string; sort_order?: string; filters?: Record<string, any> | null; search?: string | null; fields?: string | null }; result: unknown }
-  /** Bulk-export all documents (up to 10 000) for a DocType via the io registry. */
-  "grunt.document.mixins.export_rpc.DocumentExportRPCMixin.export_file": { args: { doctype: string; fmt?: string; filters?: Record<string, any> | null; fields?: string; search?: string; sort_by?: string; sort_order?: string; group_by?: string; filter_summary?: string; token?: string | null }; result: unknown }
-  /** Render an arbitrary Jinja2 HTML template against a document (or sample). */
-  "grunt.document.mixins.export_rpc.DocumentExportRPCMixin.preview": { args: { doctype: string; template: string; doc_id?: string | null; letter_head?: string | null; no_letter_head?: boolean }; result: unknown }
-  /** Generate document in requested format: html, pdf, xlsx, or docx. */
-  "grunt.document.mixins.export_rpc.DocumentExportRPCMixin.print": { args: { doctype: string; doc_id: string; fmt?: string; print_format?: string | null; autoprint?: boolean; token?: string | null }; result: unknown }
-  /** Return the activity log for a document. */
-  "grunt.document.mixins.history_rpc.DocumentHistoryRPCMixin.get_activity_log": { args: { doctype: string; doc_id: string; per_page?: number }; result: Record<string, any>[] }
-  /** Return a merged timeline of activity, field-value versions and comments. */
-  "grunt.document.mixins.history_rpc.DocumentHistoryRPCMixin.get_timeline": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Return version history for a document. */
-  "grunt.document.mixins.history_rpc.DocumentHistoryRPCMixin.get_versions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Restore a document to a previous version. */
-  "grunt.document.mixins.history_rpc.DocumentHistoryRPCMixin.restore_version": { args: { doctype: string; doc_id: string; version_id: string }; result: Record<string, any> }
-  /** Search documents for a Link field dropdown. */
-  "grunt.document.mixins.link_rpc.DocumentLinkRPCMixin.link_search": { args: { doctype: string; search?: string; per_page?: number; filters?: Record<string, any> | null }; result: Record<string, any>[] }
-  /** Return all documents that link to this document (backlinks). */
-  "grunt.document.mixins.meta_rpc.DocumentMetaRPCMixin.get_backlinks": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
-  /** Summarise what references the given document(s) - see LinkService. */
-  "grunt.document.mixins.meta_rpc.DocumentMetaRPCMixin.get_delete_impact": { args: { doctype: string; doc_id?: string | null; doc_ids?: string[] | null }; result: Record<string, any> }
-  /** Years present in a Date/Datetime field, newest first (year quick filter). */
-  "grunt.document.mixins.meta_rpc.DocumentMetaRPCMixin.get_field_years": { args: { doctype: string; fieldname: string }; result: number[] }
-  /** Link hover card: title, image and the ``in_preview`` fields of a document. */
-  "grunt.document.mixins.meta_rpc.DocumentMetaRPCMixin.get_preview": { args: { doctype: string; doc_id: string }; result: Record<string, any> | null }
-  /** Return the whole document-sidebar payload in one round-trip. */
-  "grunt.document.mixins.meta_rpc.DocumentMetaRPCMixin.get_sidebar": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
-  /** Return the full tree (or subtree from *root_id*) as nested dicts with ``children``. */
-  "grunt.document.mixins.tree_rpc.DocumentTreeRPCMixin.get_tree": { args: { doctype: string; root_id?: string | null; max_depth?: number; fields?: string[] | null; as_of?: string | null; sort_by?: string | null; sort_order?: string; filters?: Record<string, any> | null; search?: string | null }; result: Record<string, any>[] }
-  /** Return the breadcrumb path from the root down to *node_id*'s parent. */
-  "grunt.document.mixins.tree_rpc.DocumentTreeRPCMixin.get_tree_ancestors": { args: { doctype: string; node_id: string; fields?: string[] | null }; result: Record<string, any>[] }
-  /** Return direct children of *node_id* (omit for root nodes), one level at a time. */
-  "grunt.document.mixins.tree_rpc.DocumentTreeRPCMixin.get_tree_children": { args: { doctype: string; node_id?: string | null; fields?: string[] | null; per_page?: number; sort_by?: string | null; sort_order?: string; filters?: Record<string, any> | null }; result: Record<string, any>[] }
-  /** Re-parent *node_id* to *new_parent_id* (or make it a root node if ``None``). */
-  "grunt.document.mixins.tree_rpc.DocumentTreeRPCMixin.move_tree_node": { args: { doctype: string; node_id: string; new_parent_id?: string | null }; result: Record<string, any> }
-  /** Apply a workflow transition to a document. */
-  "grunt.document.mixins.workflow_rpc.DocumentWorkflowRPCMixin.apply_workflow_transition": { args: { doctype: string; doc_id: string; action: string; values?: Record<string, any> | null }; result: Record<string, any> }
-  /** Return available workflow transitions for a document. */
-  "grunt.document.mixins.workflow_rpc.DocumentWorkflowRPCMixin.get_workflow_transitions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
   /** Markup for the browser's own checks (frontend/src/core/browserHealth.ts) - the same table as the server sections. Roles: System Manager. */
   "grunt.monitoring.health.render_checks": { args: { rows: Record<string, any>[] }; result: string }
   /** One section of the report: its rows and their markup. Roles: System Manager. */
@@ -428,8 +326,8 @@ interface GruntMethods {
   "grunt.reports.doctypes.Report.report.run": { args: { name: string; filters?: Record<string, any> | null }; result: Record<string, any> }
   /** Note that the user has taken *tour* (finished or closed it). */
   "grunt.site.onboarding.complete_form_tour": { args: { tour: string }; result: null }
-  /** Tours of *doctype*'s form the user sees, and whether they have taken each. */
-  "grunt.site.onboarding.get_form_tours": { args: { doctype: string }; result: Record<string, any>[] }
+  /** Tours of *doctype*'s form (or list, ``view="List"``) the user sees, and whether they have taken each. */
+  "grunt.site.onboarding.get_form_tours": { args: { doctype: string; view?: string }; result: Record<string, any>[] }
   /** Checklists the user sees (all, or *app*'s), with each step's status. */
   "grunt.site.onboarding.get_onboardings": { args: { app?: string | null }; result: Record<string, any>[] }
   /** Hide the checklist for the current user. */
@@ -486,4 +384,6 @@ interface GruntMethods {
   "grunt.storage.doctypes.StorageRemote.storage_remote.upload_latest": { args: { name: string }; result: Record<string, boolean> }
   /** Queue :func:`compress_existing` for the whole site (System Settings → Files); whoever started it follows it in the task panel. Roles: System Manager. */
   "grunt.storage.images.start_compression": { args: {}; result: GruntApi.grunt.Queued }
+  /** A page view - the beacon a public page sends after it loads. Allowed for guests. */
+  "grunt.website.views.record_view": { args: { doctype: string; name: string }; result: null }
 }

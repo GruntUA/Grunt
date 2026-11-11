@@ -19,8 +19,7 @@ from pathlib import Path
 import pytest
 
 from grunt.metadata.doctype import DocType
-from grunt.permissions.rbac import permission_checker
-from tests.support import make_user
+from tests.support import check_as, make_user
 lazy from grunt.auth.doctypes.User.user import User
 
 _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
@@ -51,7 +50,7 @@ def _system_manager() -> User:
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
 def test_shipped_doctype_has_permissions_defined(doctype_name):
     dt = _load(doctype_name)
-    # A child table takes its access from the parent (grunt.permissions.child).
+    # A child table takes its access from the parent (grunt.permissions.query).
     assert dt.permissions or dt.is_child, (
         f"{doctype_name} must declare permissions, not be open by default"
     )
@@ -62,7 +61,7 @@ def test_shipped_doctype_has_permissions_defined(doctype_name):
 @pytest.mark.asyncio
 async def test_plain_user_has_no_access(doctype_name, action):
     dt = _load(doctype_name)
-    assert await permission_checker.check(_plain_user(), dt, action) is False
+    assert await check_as(_plain_user(), dt, action) is False
 
 
 @pytest.mark.parametrize("doctype_name", list(_DOCTYPE_JSON))
@@ -70,7 +69,7 @@ async def test_plain_user_has_no_access(doctype_name, action):
 async def test_system_manager_can_read_only(doctype_name):
     dt = _load(doctype_name)
     admin = _system_manager()
-    assert await permission_checker.check(admin, dt, "read") is True
-    assert await permission_checker.check(admin, dt, "write") is False
-    assert await permission_checker.check(admin, dt, "create") is False
-    assert await permission_checker.check(admin, dt, "delete") is False
+    assert await check_as(admin, dt, "read") is True
+    assert await check_as(admin, dt, "write") is False
+    assert await check_as(admin, dt, "create") is False
+    assert await check_as(admin, dt, "delete") is False

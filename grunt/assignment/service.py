@@ -3,12 +3,17 @@
 import json
 from typing import Any
 
-import grunt
-from grunt import log
+from grunt.auth.current import user_context
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
+from grunt.log import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
 lazy from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
 lazy from grunt.auth.users import get_user_by_id
+lazy from grunt.document.api import documents
 lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class AssignmentService:
@@ -67,54 +72,14 @@ class AssignmentService:
         if assign_to_role:
             await self._assign_to_role(doctype, doc, str(assign_to_role), rule_id)
 
-    async def preview_rule(self, rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
-        """Evaluate a rule against a sample document and return preview details."""
-
-        rule = await grunt.get_doc(AssignmentRule, rule_id)
-
-        matched = rule.match(test_doc)
-        filters = rule.parsed_filters()
-
-        will_assign_to: list[str] = []
-        if matched:
-            if rule.assign_to_user:
-                will_assign_to.append(rule.assign_to_user)
-            elif rule.assign_to_role:
-                ur_rows = await grunt.get_list(
-                    "UserRole",
-                    filters={"role_name": rule.assign_to_role, "parent_doctype": "User"},
-                    fields=["parent_name"],
-                    limit=500,
-                )
-                for ur in ur_rows:
-                    u = await get_user_by_id(ur["parent_name"])
-                    if u and u.is_active:
-                        will_assign_to.append(u.email)
-
-        matching_fields = [field for field in filters if field in test_doc]
-
-        return {
-            "rule_id": rule_id,
-            "doctype_target": rule.doctype_target,
-            "filters": filters,
-            "matched": matched,
-            "matching_fields": matching_fields,
-            "will_assign_to": will_assign_to,
-            "message": (
-                f"Rule matches! Will assign to {len(will_assign_to)} user(s)"
-                if matched
-                else "Rule does not match"
-            ),
-        }
-
     # Приватні допоміжні методи оркестратора
 
     async def _get_enabled_rules(self, doctype: str) -> list[dict]:
         """Завантажити всі enabled правила для DocType з БД."""
 
         try:
-            async with grunt.context(grunt.get_session()):
-                rows = await grunt.db.get_all(
+            async with user_context(require_session()):
+                rows = await _db.get_all(
                     "AssignmentRule",
                     filters={"doctype_target": doctype, "enabled": True},
                     fields=[
@@ -187,8 +152,8 @@ class AssignmentService:
     ) -> None:
 
         try:
-            async with grunt.system_context(grunt.get_session()):
-                ur_rows = await grunt.db.get_all(
+            async with system_context(require_session()):
+                ur_rows = await _db.get_all(
                     "UserRole",
                     filters={"role_name": role, "parent_doctype": "User"},
                     fields=["parent_name"],
@@ -234,8 +199,8 @@ class AssignmentService:
 
         ref_id = doc.get("name") or doc.get("id")
 
-        async with grunt.system_context(grunt.get_session()):
-            already = await grunt.db.exists(
+        async with system_context(require_session()):
+            already = await _db.exists(
                 "ToDo",
                 {
                     "reference_doctype": doctype,
@@ -247,7 +212,7 @@ class AssignmentService:
             if already:
                 return
 
-            await grunt.new_doc(
+            await documents.new_doc(
                 "ToDo",
                 {
                     "description": auto_assign_note(doctype, ref_id),

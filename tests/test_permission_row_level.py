@@ -30,13 +30,7 @@ TICKET_DOCTYPE = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
     ],
     "permissions": [
-        {
-            "role": "Employee",
-            "read": True,
-            "write": True,
-            "delete": True,
-            "match": "owner == user",
-        },
+        {"role": "Employee", "actions": ["read", "write", "delete"], "match": "owner == user"},
     ],
 }
 

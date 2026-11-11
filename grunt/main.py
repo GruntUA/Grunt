@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from grunt.api.v1.router import v1_router
-from grunt.apps import load_core
+from grunt.apps.loader import load_core
 from grunt.config import settings
 from grunt.i18n.middleware import LanguageMiddleware
 from grunt.middleware.idempotency import IdempotencyMiddleware

@@ -10,12 +10,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-import grunt
-from grunt import _, log
+from grunt.auth.current import user_context
 from grunt.auth.dependencies import _oauth2_scheme_optional, optional_user
 from grunt.auth.dependencies import current_user as get_current_user
 from grunt.db.session import get_engine as get_engine_dep
 from grunt.db.session import get_session
+from grunt.i18n import _
+from grunt.log import log
 lazy from grunt.auth.session_cookie import cookie_user
 lazy from grunt.document.base import Document
 lazy from grunt.errors import forbidden
@@ -182,7 +183,7 @@ async def _invoke_with_context(
         if not allow_guest:
             raise
     if user is None and by_cookie:
-        async with grunt.context(session, engine):
+        async with user_context(session, engine):
             user = await cookie_user(request)
         if user is None and not allow_guest:
             raise HTTPException(
@@ -190,9 +191,9 @@ async def _invoke_with_context(
             )
 
     # Activate context
-    async with grunt.context(session, engine, user):
+    async with user_context(session, engine, user):
         # Validate required parameters
-        # (@grunt.whitelist(roles=..., require=...) enforcement happens inside
+        # (@whitelist(roles=..., require=...) enforcement happens inside
         # `method` itself now - see grunt.api.context.whitelist - so it applies
         # uniformly whether `method` is called via this dispatcher or directly.)
 
@@ -240,7 +241,7 @@ async def _invoke_with_context(
         _walkable = (str, dict, list, tuple, bool, int, float)
         if result is not None and not isinstance(result, _walkable):
             result = jsonable_encoder(result)
-        return await sign_authorized_file_urls(result, user)
+        return await sign_authorized_file_urls(result, user.email if user is not None else None)
 
 
 @router.get("/{path:path}")

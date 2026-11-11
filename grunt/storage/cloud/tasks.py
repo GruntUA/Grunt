@@ -10,9 +10,9 @@ from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from typing import Any
 
-import grunt
-from grunt import _
-from grunt.i18n import language_of, use_language
+from grunt.auth.language import language_of
+from grunt.i18n import _, use_language
+from grunt.local import require_session, system_context
 from grunt.progress import track_progress
 from grunt.site.manager import site_manager
 from grunt.storage.cloud import RemoteError, files_remote, load_remote, record_status
@@ -27,7 +27,7 @@ lazy from grunt.storage.cloud.files import offload, recall
 async def _site() -> AsyncIterator[str]:
     site = site_manager.get_active_site()
     maker = site_manager.get_session_maker(site)
-    async with maker() as session, grunt.system_context(session, site_manager.get_engine(site)):
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
         yield site
 
 
@@ -47,7 +47,7 @@ async def upload_latest_backup(name: str, user: str | None = None) -> str | None
     async with _site() as site:
         remote = await load_remote(name)
         lang = await language_of(user)
-        await grunt.get_session().commit()
+        await require_session().commit()
         backups = list_backups(site)
         if not backups:
             return None
@@ -71,7 +71,7 @@ async def fetch_backup(name: str, backup_id: str, user: str | None = None) -> st
     async with _site() as site:
         remote = await load_remote(name)
         lang = await language_of(user)
-        await grunt.get_session().commit()
+        await require_session().commit()
         async with _tracked(_("Download from cloud storage"), user, lang) as progress:
             await fetch(site, remote, backup_id, progress)
         return backup_id
@@ -93,7 +93,7 @@ async def offload_files() -> dict[str, int] | None:
     """Nightly: move old files into the files remote, if one is set up."""
     async with _site():
         remote = await files_remote()
-        await grunt.get_session().commit()
+        await require_session().commit()
         if remote is None:
             return None
         return await _offload(remote)
@@ -104,7 +104,7 @@ async def offload_now(name: str, user: str | None = None) -> dict[str, int]:
     async with _site():
         remote = await load_remote(name)
         lang = await language_of(user)
-        await grunt.get_session().commit()
+        await require_session().commit()
         async with _tracked(_("Moving files to cloud storage"), user, lang) as progress:
             return await _offload(remote, progress)
 
@@ -115,7 +115,7 @@ async def recall_files(name: str, user: str | None = None) -> dict[str, int]:
     async with _site():
         remote = await load_remote(name)
         lang = await language_of(user)
-        await grunt.get_session().commit()
+        await require_session().commit()
         async with _tracked(_("Returning files from cloud storage"), user, lang) as progress:
             try:
                 return await recall(remote, progress)

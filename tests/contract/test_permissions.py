@@ -1,12 +1,13 @@
-"""Row-level permissions: which rows each user's list holds, the same on every backend.
+"""Row-level permissions: which rows each user's list holds, the same on every
+backend - and the same rows open one by one (``permission_checker.check`` with
+a document): both are the one predicate, ``grunt.permissions.query``.
 
 Every source of the read predicate (``grunt.permissions.query.read_predicate``):
-role ``match`` (a field, ``!=``, a Link hop, unparseable), several rules ORed,
-shares, User Permissions (narrowing shares too), inherited access
-(``inherit_permission_from``) and child rows. NULL follows SQL: ``!=`` never
-matches it; ``link.field != value`` reads "not among the linked rows where
-``field == value``" - a link to a row whose field is empty is in, an empty link
-is not (the per-document check, ``PermissionMatch.evaluate_doc``, agrees).
+role ``match`` (a field, ``!=``, a Link hop), several rules ORed, shares, User
+Permissions (narrowing shares too), inherited access (``inherit_permission_from``)
+and child rows. NULL follows SQL: ``!=`` never matches it; ``link.field != value``
+reads "not among the linked rows where ``field == value``" - a link to a row
+whose field is empty is in, an empty link is not.
 
 ``None`` expected - no access to the DocType at all (403), not an empty list.
 """
@@ -14,7 +15,7 @@ is not (the per-document check, ``PermissionMatch.evaluate_doc``, agrees).
 import pytest
 import pytest_asyncio
 
-from tests.support import make_user
+from tests.support import check_as, make_user
 
 TEAM = {
     "name": "CpTeam",
@@ -22,7 +23,7 @@ TEAM = {
     "module": "test",
     "autoname": "prompt",
     "fields": [{"fieldname": "lead", "label": "Lead", "fieldtype": "Data"}],
-    "permissions": [{"role": "All", "read": True}],
+    "permissions": [{"role": "All", "actions": ["read"]}],
 }
 
 STEP = {
@@ -39,7 +40,6 @@ _RULES = {
     "Open": "status != 'Closed'",
     "Lead": "team.lead == user",
     "NotLead": "team.lead != user",
-    "Broken": "assignee == user and status == 'Open'",
 }
 
 TASK = {
@@ -54,9 +54,9 @@ TASK = {
         {"fieldname": "steps", "label": "Steps", "fieldtype": "Table", "options": "CpStep"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
         *(
-            {"role": role, "read": True, **({"match": rule} if rule else {})}
+            {"role": role, "actions": ["read"], **({"match": rule} if rule else {})}
             for role, rule in _RULES.items()
         ),
     ],
@@ -69,7 +69,7 @@ NOTE = {
     "autoname": "prompt",
     "inherit_permission_from": ["task"],
     "fields": [{"fieldname": "task", "label": "Task", "fieldtype": "Link", "options": "CpTask"}],
-    "permissions": [{"role": role, "read": True} for role in _RULES],
+    "permissions": [{"role": role, "actions": ["read"]} for role in _RULES],
 }
 
 TEAMS = {"T1": "alice@x.com", "T2": "bob@x.com", "T3": None}
@@ -136,7 +136,6 @@ TASK_CASES: list[tuple[str, list[str], set[str] | None]] = [
     # teams not led by alice: T2 and T3 (no lead); K4 has no team at all
     ("alice@x.com", ["NotLead"], {"K2", "K3", "K5"}),
     ("alice@x.com", ["Own", "Open"], {"K1", "K2", "K3"}),  # rules OR together
-    ("alice@x.com", ["Broken"], set()),  # an unparseable rule fails closed
     ("carol@x.com", ["Own"], {"K5", "K3"}),  # + the task shared with her
     ("carol@x.com", [], {"K3"}),  # a share alone grants its document
     # User Permission T2: tasks of T2, and those with no team (not strict)
@@ -214,3 +213,71 @@ async def test_child_rows_follow_the_parent(ctx, permission_data, db_session, en
     alice = make_user("alice@x.com", roles=["Own"])
     labels = await _names(ctx, db_session, engine, alice, "CpStep", field="label")
     assert labels == {"K1-step", "K2-step"}
+
+
+async def _opens(db_session, engine, user, doctype: str, rows: dict[str, dict]) -> set[str]:
+    """The *rows* (name -> stored row) *user* may read one by one."""
+    import grunt
+
+    async with grunt.context(db_session, engine, user):
+        meta = await grunt.get_meta(doctype)
+        return {name for name, row in rows.items() if await check_as(user, meta, "read", row)}
+
+
+async def _stored(db_session, engine, doctype: str, key: str = "name") -> dict[str, dict]:
+    import grunt
+    from grunt.auth.doctypes.User.user import SYSTEM_USER
+
+    async with grunt.context(db_session, engine, SYSTEM_USER):
+        rows = await grunt.db.get_all(doctype, fields=["*"], limit=100)
+    return {r[key]: r for r in rows}
+
+
+@pytest.mark.asyncio
+async def test_a_document_opens_exactly_when_the_list_holds_it(
+    ctx, permission_data, db_session, engine
+):
+    """The single-document check and the list are one predicate: no rule can
+    open a document its list hides, or hide one its list shows."""
+    tasks = await _stored(db_session, engine, "CpTask")
+    notes = await _stored(db_session, engine, "CpNote")
+    steps = await _stored(db_session, engine, "CpStep", key="label")
+    for email, roles, expected in TASK_CASES:
+        user = make_user(email, roles=roles)
+        assert await _opens(db_session, engine, user, "CpTask", tasks) == (expected or set()), (
+            email,
+            roles,
+        )
+        listed_notes = await _names(ctx, db_session, engine, user, "CpNote") or set()
+        assert await _opens(db_session, engine, user, "CpNote", notes) == listed_notes, (
+            email,
+            roles,
+        )
+        listed_steps = await _names(ctx, db_session, engine, user, "CpStep", "label") or set()
+        assert await _opens(db_session, engine, user, "CpStep", steps) == listed_steps, (
+            email,
+            roles,
+        )
+
+
+@pytest.mark.parametrize(
+    "rule",
+    [
+        "assignee == user and status == 'Open'",
+        "doc.status",
+        "status == 5",
+        "a.b.c == user",
+        "owner == someone",
+        "status == 'Open' and owner == 'x'",
+        "status == 'a' or status == 'b'",
+    ],
+)
+def test_unsupported_match_is_refused(rule):
+    """A rule the predicate compiler can't translate is not saved - it would
+    otherwise deny silently (or, as before, open documents lists hide)."""
+    from pydantic import ValidationError
+
+    from grunt.metadata.permission import DocPermission
+
+    with pytest.raises(ValidationError):
+        DocPermission(role="Own", actions=["read"], match=rule)

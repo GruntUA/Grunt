@@ -213,6 +213,10 @@ export interface ListViewProxy {
   set_filters: (filters: Array<{ fieldname: string; op: string; value: string; label?: string; fieldtype?: string; displayValue?: string }>) => void
   /** Set a single quick-filter value by its id. */
   set_quick_filter_value: (id: string, value: string) => void
+  /** The list has tours (FormTour with view «List») the user may take. */
+  readonly has_tours: boolean
+  /** Start a tour of this list - the first one, or the one named. */
+  start_tour: (name?: string) => void
   /** Replace all quick-filter values at once. */
   set_quick_filters: (values: Record<string, string>) => void
 }
@@ -434,4 +438,5 @@ export interface ListViewState {
   exporters: ListExporterInfo[]
   canExport: boolean
   filters: Array<{ fieldname: string; op: string; value: string }>
+  hasTours?: boolean
 }

@@ -19,9 +19,7 @@ CONTRACT = {
         {"fieldname": "birthday", "label": "Birthday", "fieldtype": "Date"},
         {"fieldname": "manager", "label": "Manager", "fieldtype": "Data"},
     ],
-    "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True}
-    ],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create", "delete"]}],
 }
 
 MANAGER = "manager@grunt.example.com"

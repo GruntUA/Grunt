@@ -9,9 +9,10 @@ The per-request collector is attached by RequestLoggingMiddleware:
     with collect_for_request(request_id):
         response = await call_next(request)
 
-Results are exposed via /api/v1/dev/profiler. The hooks are installed when
-``settings.sql_profiler_enabled``, but nothing is recorded until someone presses
-"Start recording" (``set_enabled(True)``) - the flag is per worker process.
+Results are exposed via /api/v1/dev/profiler. The hooks are installed on every
+site engine (``site_manager.on_engine``) when ``settings.sql_profiler_enabled``,
+but nothing is recorded until someone presses "Start recording"
+(``set_enabled(True)``) - the flag is per worker process.
 """
 
 import functools
@@ -28,7 +29,9 @@ from typing import Any, TypedDict, TypeVar
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from grunt import log
+from grunt.config import settings
+from grunt.log import log
+from grunt.site.manager import site_manager
 lazy from grunt.monitoring import perf
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -349,6 +352,12 @@ def attach_query_profiler(engine: AsyncEngine, threshold_ms: float = 200.0) -> N
                 param_count=param_count,
                 request_id=req_id,
             )
+
+
+if settings.sql_profiler_enabled:
+    site_manager.on_engine(
+        lambda engine: attach_query_profiler(engine, threshold_ms=settings.slow_query_threshold_ms)
+    )
 
 
 # Method span profiling

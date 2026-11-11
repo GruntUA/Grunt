@@ -14,10 +14,11 @@ import time
 
 from sqlalchemy import select
 
-import grunt
-from grunt import _, log
 from grunt.cache.bus import fanout
+from grunt.i18n import _
 from grunt.local import _session_ctx
+from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site
 lazy from grunt.errors import not_found
 
@@ -47,7 +48,7 @@ async def _load() -> frozenset[tuple[str, str]] | None:
     if session is None:
         return None
 
-    dt = await grunt.get_meta("NotificationRule")
+    dt = await doctype_registry.get_meta("NotificationRule")
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NotificationRule"})
     table = dt.table

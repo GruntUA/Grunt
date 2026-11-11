@@ -10,7 +10,7 @@ On the local filesystem (``sites/<site>/uploads/``)::
 
 Usage::
 
-    from grunt.storage import get_storage_backend
+    from grunt.storage.backends import get_storage_backend
     storage = get_storage_backend()
     key, size = await storage.put(stream_or_bytes, max_bytes=...)
     content = await storage.get(key)
@@ -31,8 +31,8 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import BinaryIO
 
-from grunt import log
 from grunt.config import settings
+from grunt.log import log
 from grunt.site.manager import site_manager
 
 CHUNK_SIZE = 1024 * 1024

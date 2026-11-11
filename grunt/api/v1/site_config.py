@@ -7,13 +7,13 @@ Call via: /api/v1/method/grunt.api.v1.site_config.get_public_config
 
 from typing import Any
 
-import grunt
+from grunt.api.context import whitelist
 from grunt.i18n import translation_service
 from grunt.i18n.service import normalize_lang
 from grunt.site.settings import get_system_settings
 
 
-@grunt.whitelist(allow_guest=True)
+@whitelist(allow_guest=True)
 async def get_public_config() -> dict[str, Any]:
     """Return the non-sensitive SystemSettings values consumed by the frontend.
 

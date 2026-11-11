@@ -9,12 +9,15 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 
+from grunt.auth.doctypes.UserSession.user_session import end_all_sessions, session_ttl_minutes
+from grunt.auth.passwords import hash_password
 from grunt.config import settings
-lazy import grunt
+from grunt.db.api import GruntDB
+from grunt.local import require_session, system_context
 lazy from grunt.auth.doctypes.User.user import User
-lazy from grunt.auth.doctypes.UserSession.user_session import end_all_sessions
-lazy from grunt.auth.users import hash_password
-lazy from grunt.site.settings import get_setting
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 # JWT
 
@@ -41,16 +44,6 @@ def decode_access_token(token: str) -> dict | None:
     if payload.get("typ") != ACCESS_TOKEN_TYPE:
         return None
     return payload
-
-
-async def session_ttl_minutes() -> int:
-    """Idle timeout of a UserSession, from ``SystemSettings.session_timeout``."""
-
-    minutes = await get_setting("session_timeout", settings.access_token_expire_minutes)
-    try:
-        return max(1, int(minutes))
-    except TypeError, ValueError:
-        return settings.access_token_expire_minutes
 
 
 async def access_token_minutes() -> int:
@@ -171,8 +164,8 @@ async def _find_and_invalidate_token(
 
     now = datetime.now(UTC)
 
-    async with grunt.system_context(grunt.get_session()):
-        users = await grunt.get_list(
+    async with system_context(require_session()):
+        users = await documents.get_list(
             "User",
             filters={token_field: token},
             fields=["name", expires_field],
@@ -189,8 +182,8 @@ async def _find_and_invalidate_token(
         if not expires_at or expires_at.replace(tzinfo=UTC) < now:
             return None
 
-        await grunt.db.set_value("User", user_data["name"], token_field, None)
-        await grunt.db.set_value("User", user_data["name"], expires_field, None)
+        await _db.set_value("User", user_data["name"], token_field, None)
+        await _db.set_value("User", user_data["name"], expires_field, None)
 
     return user_data
 
@@ -201,9 +194,9 @@ async def create_password_reset_token(user_id: str) -> str:
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
 
-    async with grunt.system_context(grunt.get_session()):
-        await grunt.db.set_value("User", user_id, "reset_token", token)
-        await grunt.db.set_value("User", user_id, "reset_token_expires_at", expires_at)
+    async with system_context(require_session()):
+        await _db.set_value("User", user_id, "reset_token", token)
+        await _db.set_value("User", user_id, "reset_token_expires_at", expires_at)
 
     return token
 
@@ -214,8 +207,8 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
     if user_data is None:
         return False
 
-    async with grunt.system_context(grunt.get_session()):
-        await grunt.db.set_value(
+    async with system_context(require_session()):
+        await _db.set_value(
             "User",
             user_data["name"],
             "hashed_password",

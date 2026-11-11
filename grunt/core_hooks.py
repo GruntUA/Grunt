@@ -70,6 +70,15 @@ doc_events: dict[str, dict[str, list[str]]] = {
     },
 }
 
+# Built-in sign-in methods (grunt.auth.providers), imported on first use.
+# An app adds its own provider class the same way; a later one replaces a name.
+auth_providers: list[str] = [
+    "grunt.auth.providers.webauthn.WebAuthnProvider",
+    "grunt.auth.providers.oauth.GoogleProvider",
+    "grunt.auth.providers.oauth.MicrosoftProvider",
+    "grunt.auth.providers.email_link.EmailLoginProvider",
+]
+
 # The property list at the top of the document sidebar (grunt.document.sidebar).
 # An app adds rows to it with placement="properties", or replaces one by name.
 sidebar_sections: list[dict] = [
@@ -84,6 +93,13 @@ sidebar_sections: list[dict] = [
         "method": "grunt.document.sidebar.id_row",
         "placement": "properties",
         "order": 10,
+    },
+    {
+        # Service levels (SLA) of the document: the clock and the deadline.
+        "name": "service_levels",
+        "method": "grunt.notification.sla.sidebar_rows",
+        "placement": "properties",
+        "order": 5,
     },
     {
         "name": "web_page",

@@ -13,7 +13,7 @@ engine for that backend:
 * **PostgreSQL** - GIN ``tsvector`` index, prefix ``tsquery``, ``ts_rank``.
 * **MySQL** - native ``FULLTEXT`` in boolean mode.
 
-All engines get the same query semantics (see :mod:`grunt.search.terms`):
+All engines get the same query semantics (see :mod:`grunt.search.tokens`):
 every term must match, each as a word *prefix*. ``match()`` returns ``None``
 when the engine can't serve the query (nothing to tokenize, engine
 unavailable) - the caller then falls back to a ``LIKE`` search.
@@ -38,8 +38,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from grunt import log
-lazy from grunt.search.terms import fts5_query, mysql_boolean_query, tsquery
+from grunt.log import log
+from grunt.search.tokens import fts5_query, mysql_boolean_query, tsquery
 
 
 @dataclass(frozen=True)
@@ -317,7 +317,7 @@ class MysqlFulltext(FullText):
             return None
         # The query is a bound parameter, never interpolated into the SQL -
         # and it only carries word characters plus our own +, * and "
-        # operators (see grunt.search.terms.mysql_boolean_query).
+        # operators (see grunt.search.tokens.mysql_boolean_query).
         match_expr = func.match(*(self.t.c[c] for c in self._columns())).op("AGAINST")(
             text("(:search_q IN BOOLEAN MODE)").bindparams(search_q=my_query)
         )

@@ -2,15 +2,20 @@ from typing import Any
 
 from sqlalchemy import func, select
 
-import grunt
-from grunt import _
 from grunt.api.context import whitelist
+from grunt.auth.current import acting_user
+from grunt.db.api import GruntDB
 from grunt.document.base import Document
-from grunt.i18n import pgettext
-from grunt.permissions.roles import user_has_roles
+from grunt.errors import throw
+from grunt.i18n import _, pgettext
+from grunt.local import require_session, user_email
+from grunt.metadata.registry import doctype_registry
 from grunt.permissions.user_permissions import expand_tree_values
 from grunt.storage import files, quota
+lazy from grunt.document.api import documents
 lazy from grunt.permissions.rbac import permission_checker
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 
 class FileFolder(Document):
@@ -30,7 +35,7 @@ class FileFolder(Document):
 
     async def before_save(self) -> None:
         if self.id and self._prev is None:
-            self._prev = await grunt.db.get_value(
+            self._prev = await _db.get_value(
                 "FileFolder", self.id, ["parent_folder", "space_user", "is_home"], as_dict=True
             )
         prev = self._prev or {}
@@ -40,13 +45,13 @@ class FileFolder(Document):
             await self._check_home(prev)
             return
         if not self.parent_folder:
-            grunt.throw(_("A folder must be inside another folder"))
+            throw(_("A folder must be inside another folder"))
         if prev and prev.get("parent_folder") == self.parent_folder:
             self.space_user = prev.get("space_user")
             return
-        parent = await grunt.db.get_value("FileFolder", self.parent_folder, "*")
+        parent = await _db.get_value("FileFolder", self.parent_folder, "*")
         if parent is None:
-            grunt.throw(_("Folder “%(folder)s” not found") % {"folder": self.parent_folder})
+            throw(_("Folder “%(folder)s” not found") % {"folder": self.parent_folder})
         await require_folder_write(parent)
         if prev.get("space_user") and prev["space_user"] != parent["space_user"]:
             await quota.ensure_room(parent["space_user"], await _subtree_size(str(self.id)))
@@ -55,17 +60,17 @@ class FileFolder(Document):
     async def _check_home(self, prev: dict[str, Any]) -> None:
         if prev:
             if self.parent_folder:
-                grunt.throw(_("A home folder can't be moved"))
+                throw(_("A home folder can't be moved"))
             self.space_user = prev.get("space_user")
             return
         self.parent_folder = None
-        user = grunt.get_user()
+        user = acting_user()
         if not self.space_user:
             self.space_user = user.email
-        if self.space_user != user.email and not user_has_roles(user, ["System Manager"]):
-            grunt.throw(_("You can only create your own home folder"), "PERMISSION_DENIED")
-        if await grunt.db.exists("FileFolder", {"space_user": self.space_user, "is_home": True}):
-            grunt.throw(_("This user already has a home folder"))
+        if self.space_user != user.email and not user.has_role("System Manager"):
+            throw(_("You can only create your own home folder"), "PERMISSION_DENIED")
+        if await _db.exists("FileFolder", {"space_user": self.space_user, "is_home": True}):
+            throw(_("This user already has a home folder"))
 
     async def after_save(self) -> None:
         # A folder moved into another space carries its whole subtree along.
@@ -75,7 +80,7 @@ class FileFolder(Document):
             subtree.discard(str(self.id))
             if subtree:
                 table = await quota.table_of("FileFolder")
-                await grunt.get_session().execute(
+                await require_session().execute(
                     table.update()
                     .where(table.c.name.in_(subtree))
                     .values(space_user=self.space_user)
@@ -95,7 +100,7 @@ class FileFolder(Document):
         (System Manager, shared folders) after it."""
         if parent is not None:
             return children
-        me = grunt.get_user().email
+        me = user_email()
         for node in children:
             if node.get("is_home") and node.get("space_user") == me:
                 node["display_title"] = _("My files")
@@ -104,21 +109,21 @@ class FileFolder(Document):
     async def before_delete(self) -> None:
         """Only an empty folder can go - files and subfolders are moved out first."""
         if self.is_home:
-            grunt.throw(_("A home folder can't be deleted"))
-        if await grunt.db.count("File", {"folder": self.name}):
-            grunt.throw(_("The folder is not empty: move or delete its files first"))
-        if await grunt.db.count("FileFolder", {"parent_folder": self.name}):
-            grunt.throw(_("The folder has subfolders: move or delete them first"))
+            throw(_("A home folder can't be deleted"))
+        if await _db.count("File", {"folder": self.name}):
+            throw(_("The folder is not empty: move or delete its files first"))
+        if await _db.count("FileFolder", {"parent_folder": self.name}):
+            throw(_("The folder has subfolders: move or delete them first"))
 
 
 async def require_folder_write(folder: dict[str, Any]) -> None:
     """403 unless the current user may put things into *folder* (their own
     space, a folder shared with them for writing, or System Manager)."""
 
-    meta = await grunt.get_meta("FileFolder")
+    meta = await doctype_registry.get_meta("FileFolder")
     assert meta is not None
-    if not await permission_checker.check(grunt.get_user(), meta, "write", folder):
-        grunt.throw(
+    if not await permission_checker.check(meta, "write", folder):
+        throw(
             _("No access to the folder “%(folder)s”") % {"folder": folder.get("folder_name")},
             "PERMISSION_DENIED",
         )
@@ -128,7 +133,7 @@ async def _subtree_size(folder: str) -> int:
 
     subtree = await expand_tree_values("FileFolder", {folder})
     files = await quota.table_of("File")
-    total = await grunt.get_session().scalar(
+    total = await require_session().scalar(
         select(func.coalesce(func.sum(files.c.file_size), 0)).where(files.c.folder.in_(subtree))
     )
     return int(total or 0)
@@ -137,8 +142,8 @@ async def _subtree_size(folder: str) -> int:
 @whitelist()
 async def get_home_folder() -> dict[str, Any]:
     """Whitelisted method: the current user's home folder, created on first use."""
-    user = grunt.get_user()
-    row = await grunt.db.get_value(
+    user = acting_user()
+    row = await _db.get_value(
         "FileFolder",
         {"space_user": user.email, "is_home": True},
         ["name", "folder_name"],
@@ -146,8 +151,8 @@ async def get_home_folder() -> dict[str, Any]:
     )
     if row:
         return row
-    title = await grunt.db.get_value("User", user.email, "full_name") or user.email
-    doc = await grunt.new_doc(
+    title = await _db.get_value("User", user.email, "full_name") or user.email
+    doc = await documents.new_doc(
         "FileFolder", {"folder_name": title, "is_home": True, "space_user": user.email}
     )
     return {"name": doc["name"], "folder_name": doc["folder_name"]}
@@ -157,10 +162,10 @@ async def get_home_folder() -> dict[str, Any]:
 async def get_storage_usage(user: str | None = None) -> dict[str, Any]:
     """Whitelisted method: ``{used, quota}`` in bytes for a space (``quota``
     is ``None`` when unlimited). Another user's space - System Manager only."""
-    current = grunt.get_user()
+    current = acting_user()
     space = user or current.email
-    if space != current.email and not user_has_roles(current, ["System Manager"]):
-        grunt.throw(_("Not permitted"), "PERMISSION_DENIED")
+    if space != current.email and not current.has_role("System Manager"):
+        throw(_("Not permitted"), "PERMISSION_DENIED")
     return {"used": await quota.space_usage(space), "quota": await quota.space_quota(space)}
 
 
@@ -180,18 +185,18 @@ async def copy_items(
     but it counts against the target space's quota. Names already taken in
     *target* get « (копія)», « (копія 2)»…
     """
-    folder = await grunt.db.get_value("FileFolder", target, "*")
+    folder = await _db.get_value("FileFolder", target, "*")
     if folder is None:
-        grunt.throw(_("Folder “%(folder)s” not found") % {"folder": target})
+        throw(_("Folder “%(folder)s” not found") % {"folder": target})
     await require_folder_write(folder)
     copied = 0
     for name in files or []:
-        await _copy_file(await grunt.get_doc("File", name), target)
+        await _copy_file(await documents.get_doc("File", name), target)
         copied += 1
     for name in folders or []:
         if target in await expand_tree_values("FileFolder", {name}):
-            grunt.throw(_("A folder can't be copied into itself"))
-        copied += await _copy_folder(await grunt.get_doc("FileFolder", name), target)
+            throw(_("A folder can't be copied into itself"))
+        copied += await _copy_folder(await documents.get_doc("FileFolder", name), target)
     return {"copied": copied}
 
 
@@ -199,7 +204,7 @@ async def _copy_file(row: dict[str, Any], target: str) -> None:
 
     taken = {
         r["file_name"]
-        for r in await grunt.db.get_all(
+        for r in await _db.get_all(
             "File", filters={"folder": target}, fields=["file_name"], limit=_MANY
         )
     }
@@ -216,16 +221,16 @@ async def _copy_file(row: dict[str, Any], target: str) -> None:
 async def _copy_folder(row: dict[str, Any], target: str) -> int:
     taken = {
         r["folder_name"]
-        for r in await grunt.db.get_all(
+        for r in await _db.get_all(
             "FileFolder", filters={"parent_folder": target}, fields=["folder_name"], limit=_MANY
         )
     }
-    copy = await grunt.new_doc(
+    copy = await documents.new_doc(
         "FileFolder",
         {"folder_name": _free_name(row["folder_name"], taken), "parent_folder": target},
     )
     copied = 1
-    for file in await grunt.get_list(
+    for file in await documents.get_list(
         "File",
         filters={"folder": row["name"]},
         fields=[
@@ -241,7 +246,7 @@ async def _copy_folder(row: dict[str, Any], target: str) -> int:
     ):
         await _copy_file(file, copy["name"])
         copied += 1
-    for sub in await grunt.get_list(
+    for sub in await documents.get_list(
         "FileFolder",
         filters={"parent_folder": row["name"]},
         fields=["name", "folder_name"],
@@ -280,7 +285,7 @@ async def delete_items(
     """
     deleted = 0
     for name in files or []:
-        await grunt.delete_doc("File", name)
+        await documents.delete_doc("File", name)
         deleted += 1
     for name in folders or []:
         deleted += await _delete_folder(name)
@@ -288,16 +293,14 @@ async def delete_items(
 
 
 async def _delete_folder(name: str) -> int:
-    await grunt.get_doc(FileFolder, name)  # 403 / 404 before touching anything inside
+    await documents.get_doc(FileFolder, name)  # 403 / 404 before touching anything inside
     deleted = 0
-    for sub in await grunt.db.get_all(
+    for sub in await _db.get_all(
         "FileFolder", filters={"parent_folder": name}, fields=["name"], limit=_MANY
     ):
         deleted += await _delete_folder(sub["name"])
-    for file in await grunt.db.get_all(
-        "File", filters={"folder": name}, fields=["name"], limit=_MANY
-    ):
-        await grunt.delete_doc("File", file["name"])
+    for file in await _db.get_all("File", filters={"folder": name}, fields=["name"], limit=_MANY):
+        await documents.delete_doc("File", file["name"])
         deleted += 1
-    await grunt.delete_doc("FileFolder", name)
+    await documents.delete_doc("FileFolder", name)
     return deleted + 1

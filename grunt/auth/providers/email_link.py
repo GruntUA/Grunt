@@ -24,13 +24,9 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any, ClassVar
 
-import grunt
-from grunt import _, log
-from grunt.api.messages import throw
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.login import find_or_create_external_user
 from grunt.auth.providers.base import AuthFlowContext, AuthProvider
-from grunt.auth.providers.registry import register
 from grunt.auth.service import create_challenge_token, verify_challenge_token
 from grunt.auth.users import (
     _apply_signup_approval,
@@ -40,7 +36,16 @@ from grunt.auth.users import (
     register_failed_attempt,
 )
 from grunt.config import settings
+from grunt.db.api import GruntDB
 from grunt.email.service import email_service
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.local import require_session, system_context
+from grunt.log import log
+from grunt.utils.templates import render as render_template_text
+lazy from grunt.document.api import documents
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 _CODE_PURPOSE = "email-login-code"
 _LINK_PURPOSE = "email-login-link"
@@ -142,11 +147,11 @@ class EmailLoginProvider(AuthProvider):
 
     async def _new_token(self, email: str, code_hash: str, ip: str | None) -> str:
         now = datetime.now(UTC)
-        async with grunt.system_context(grunt.get_session()):
+        async with system_context(require_session()):
             # One live token per address, and opportunistically sweep expired rows.
-            await grunt.db.delete(_TOKEN_DT, {"email": email})
-            await grunt.db.delete(_TOKEN_DT, {"expires_at__lt": now})
-            doc = await grunt.new_doc(
+            await _db.delete(_TOKEN_DT, {"email": email})
+            await _db.delete(_TOKEN_DT, {"expires_at__lt": now})
+            doc = await documents.new_doc(
                 _TOKEN_DT,
                 {
                     "email": email,
@@ -162,8 +167,8 @@ class EmailLoginProvider(AuthProvider):
         if not tid:
             return None
 
-        async with grunt.system_context(grunt.get_session()):
-            rows = await grunt.get_list(
+        async with system_context(require_session()):
+            rows = await documents.get_list(
                 _TOKEN_DT,
                 filters={"name": tid},
                 fields=["name", "code_hash", "expires_at", "consumed_at"],
@@ -182,8 +187,8 @@ class EmailLoginProvider(AuthProvider):
         return row
 
     async def _mark_consumed(self, tid: str) -> None:
-        async with grunt.system_context(grunt.get_session()):
-            await grunt.db.set_value(_TOKEN_DT, tid, {"consumed_at": datetime.now(UTC)})
+        async with system_context(require_session()):
+            await _db.set_value(_TOKEN_DT, tid, {"consumed_at": datetime.now(UTC)})
 
     async def _consume(self, tid: str, error: str) -> None:
         """Load-and-burn in one step (magic-link path, no extra factor)."""
@@ -219,7 +224,7 @@ class EmailLoginProvider(AuthProvider):
             ]
         )
         try:
-            html_body: str | None = await grunt.render_template(
+            html_body: str | None = await render_template_text(
                 "email_login.html",
                 {"code": code, "login_url": login_url, "ttl_minutes": _TTL_MINUTES},
             )
@@ -227,7 +232,7 @@ class EmailLoginProvider(AuthProvider):
             log.warning("auth.email_login.template_failed")
             html_body = None
 
-        session = grunt.get_session()
+        session = require_session()
         if await email_service.resolve_outgoing_account_id(session) is None:
             throw(
                 _("Email sign-in is unavailable: no mail server is configured"),
@@ -245,7 +250,3 @@ class EmailLoginProvider(AuthProvider):
             log.warning("auth.email_login.queue_failed", email=email)
         else:
             log.info("auth.email_login.sent", email=email)
-
-
-def register_provider() -> None:
-    register(EmailLoginProvider())
