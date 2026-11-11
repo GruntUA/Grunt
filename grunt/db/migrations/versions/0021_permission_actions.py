@@ -83,5 +83,31 @@ def upgrade() -> None:
             conn.execute(sa.update(meta).where(meta.c.name == name).values(definition=data))
 
 
+def _restore(row: dict) -> bool:
+    if "actions" not in row:
+        return False
+    actions = row.pop("actions") or []
+    # Only the actions 0020 knew; export / import / print / share are lost.
+    for flag in _FLAGS:
+        if flag in actions:
+            row[flag] = True
+    return True
+
+
 def downgrade() -> None:
-    pass
+    """Back to one flag per action - code before 0021 ignores ``actions`` and
+    would deny every grant. DocPermission's flag fields come back from its JSON
+    on the next core sync."""
+    conn = op.get_bind()
+    if _META not in set(sa.inspect(conn).get_table_names()):
+        return
+    meta = sa.table(_META, sa.column("name"), sa.column("definition", sa.JSON))
+    for name, definition in conn.execute(sa.select(meta.c.name, meta.c.definition)).all():
+        data = json.loads(definition) if isinstance(definition, str) else dict(definition or {})
+        changed = False
+        for key in ("permissions", "permissions_base"):
+            for row in data.get(key) or []:
+                if isinstance(row, dict):
+                    changed = _restore(row) or changed
+        if changed:
+            conn.execute(sa.update(meta).where(meta.c.name == name).values(definition=data))
