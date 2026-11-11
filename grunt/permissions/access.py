@@ -73,7 +73,7 @@ class RoleAccess:
         if self.is_unrestricted:
             return True
         return any(
-            getattr(perm, "read", False) and not getattr(perm, "match", None)
+            perm.grants("read") and not getattr(perm, "match", None)
             for perm in self.matching_permissions()
         )
 
@@ -89,7 +89,7 @@ class RoleAccess:
         """
         if self.is_unrestricted:
             return True
-        return any(getattr(perm, "select", False) for perm in self.matching_permissions())
+        return any("select" in perm.actions for perm in self.matching_permissions())
 
     @property
     def hidden_fields(self) -> frozenset[str]:
@@ -101,7 +101,7 @@ class RoleAccess:
             return frozenset()
         hidden: set[str] | None = None
         for perm in self.matching_permissions():
-            if not getattr(perm, "read", False):
+            if not perm.grants("read"):
                 continue
             rule = set(getattr(perm, "hidden_fields", None) or [])
             hidden = rule if hidden is None else hidden & rule

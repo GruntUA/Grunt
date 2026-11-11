@@ -41,13 +41,11 @@
   "permissions": [
     {
       "role": "All",
-      "read": true,
-      "create": true
+      "actions": ["read", "create"]
     },
     {
       "role": "All",
-      "write": true,
-      "delete": true,
+      "actions": ["write", "delete"],
       "match": "owner == user"
     }
   ]

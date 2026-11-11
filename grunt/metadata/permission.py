@@ -11,8 +11,31 @@ the ``DocPermission`` child schema. There is no standalone permission store.
 """
 
 import re
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+
+# What a permission row can grant, in the order Studio lists them.
+#   select - a narrow read for Link-field pickers (name, title, search fields);
+#            implied by ``read``.
+#   export / import / print / share / report - separate from read/write: a role
+#            may see a document without taking it out of the system.
+ACTIONS: tuple[str, ...] = (
+    "read",
+    "select",
+    "write",
+    "create",
+    "delete",
+    "export",
+    "import",
+    "print",
+    "share",
+    "report",
+)
+
+# Rows written before ``actions`` (app JSON, stored definitions) carried one
+# boolean per action. Read as ``actions`` until every app's JSON is converted.
+_LEGACY_FLAGS = ("read", "select", "write", "create", "delete", "report")
 
 # The ``match`` grammar: "<field> == <value>" / "<field> != <value>".
 #   <field>  a document field, or "<link_field>.<target_field>" for a single
@@ -58,14 +81,8 @@ class DocPermission(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     role: str
-    read: bool = False
-    # Narrow read for Link-field pickers: resolve/search name + title + search
-    # fields only. Implied by ``read``. See ``PermissionAction``.
-    select: bool = False
-    write: bool = False
-    create: bool = False
-    delete: bool = False
-    report: bool = False
+    # Granted actions, from ``ACTIONS``.
+    actions: list[str] = []
     # Row-level filter - e.g. "owner == user", "team.lead == user"
     match: str | None = None
     # Fields hidden for this role (field names)
@@ -73,9 +90,34 @@ class DocPermission(BaseModel):
 
     def grants(self, action: str) -> bool:
         """Whether this row grants *action* - ``read`` implies ``select``."""
-        if getattr(self, action, False) is True:
+        if action in self.actions:
             return True
-        return action == "select" and self.read
+        return action == "select" and "read" in self.actions
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_flags(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or not any(k in data for k in _LEGACY_FLAGS):
+            return data
+        data = dict(data)
+        actions = list(data.get("actions") or [])
+        for flag in _LEGACY_FLAGS:
+            value = data.pop(flag, False)
+            # Some old JSON spells the flags 1/0.
+            if (value is True or value == 1) and flag not in actions:
+                actions.append(flag)
+        data["actions"] = actions
+        return data
+
+    @field_validator("actions")
+    @classmethod
+    def _known_actions(cls, value: list[str]) -> list[str]:
+        # A misspelt action would deny silently - refuse it on save/load.
+        unknown = [a for a in value if a not in ACTIONS]
+        if unknown:
+            raise ValueError(f"Unknown permission actions {unknown}: expected {list(ACTIONS)}")
+        # One order everywhere: stored == JSON compares rows, not spellings.
+        return [a for a in ACTIONS if a in value]
 
     @field_validator("match")
     @classmethod

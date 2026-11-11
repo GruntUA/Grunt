@@ -253,7 +253,7 @@ async def test_a_changed_permission_row_applies_at_once():
     assert await check_as(user, dt, "read")
     assert (await hidden_fields_as(user, dt)) == {"salary"}
 
-    dt.permissions[0].read = False
+    dt.permissions[0].actions = []
     dt.permissions[0].hidden_fields = []
     assert not await check_as(user, dt, "read")
     assert (await hidden_fields_as(user, dt)) == frozenset()

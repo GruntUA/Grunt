@@ -27,10 +27,7 @@
   "permissions": [
     {
       "role": "All",
-      "read": true,
-      "write": true,
-      "create": true,
-      "delete": true,
+      "actions": ["read", "write", "create", "delete"],
       "match": "owner == user"
     }
   ]

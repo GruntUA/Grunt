@@ -54,13 +54,11 @@
   "permissions": [
     {
       "role": "All",
-      "read": true
+      "actions": ["read"]
     },
     {
       "role": "System Manager",
-      "write": true,
-      "create": true,
-      "delete": true
+      "actions": ["write", "create", "delete", "import", "share"]
     }
   ]
 }

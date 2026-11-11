@@ -16,6 +16,7 @@ import { appUrl } from '@/core/workspaceUrl'
 import type { ComponentDialogOptions } from '@/core/composables/useDialog'
 import { appDialog } from '@/core/appDialogs'
 import type { ActionsApi } from '@/core/actions'
+import { NO_PERMS } from '@/core/permissions'
 import { i18n, N_ } from '@/plugins/i18n'
 import type { DocType } from '@/types'
 import { createFormDashboard, type FormDashboardApi } from '@/core/scripting/formDashboard'
@@ -117,7 +118,7 @@ export function createFormProxy(
 ): FormProxy {
   const state = (): FormProxyState =>
     callbacks.state?.() ?? {
-      perm: { write: true, delete: false, create: false },
+      perm: { ...NO_PERMS, write: true },
       transitions: [],
       isDirty: false,
       isSaving: false,
@@ -706,7 +707,7 @@ export function createListViewProxy(
 ): ListViewProxy {
   const state = (): ListViewState =>
     callbacks.state?.() ?? {
-      perm: { write: false, delete: false, create: false },
+      perm: NO_PERMS,
       selected: [],
       isFetching: false,
       exporters: [],

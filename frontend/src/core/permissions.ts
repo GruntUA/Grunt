@@ -7,22 +7,54 @@
  * Permissions, shares). Without a document (a new one, the list's «Add»)
  * only the role rows can be mirrored here.
  */
-import type { DocType } from '@/types'
+import type { DocType, PermissionAction } from '@/types'
 
-export type DocAction = 'write' | 'delete' | 'create'
-export type DocPerms = Record<DocAction, boolean>
+/** Per-document answers: the server's `__perms` (create is DocType-level there too). */
+export type DocAction = 'write' | 'delete' | 'create' | 'print' | 'share'
+/** DocType-level only - taken from the role rows. */
+export type DocTypeAction = 'export' | 'import' | 'report'
+export type DocPerms = Record<DocAction | DocTypeAction, boolean>
+
+const DOC_ACTIONS: DocAction[] = ['write', 'delete', 'create', 'print', 'share']
+const DOCTYPE_ACTIONS: DocTypeAction[] = ['export', 'import', 'report']
 
 export const PERMS_KEY = '__perms'
+
+/** Nothing allowed - the default before anything is known. */
+export const NO_PERMS: DocPerms = {
+  write: false,
+  delete: false,
+  create: false,
+  print: false,
+  share: false,
+  export: false,
+  import: false,
+  report: false,
+}
 
 /**
  * Role-level check, as the backend's RoleAccess does it: a DocType with no
  * permission rows is closed to everyone; `All` matches every user. Ignores
  * row-level `match` and shares - those need the document (see `__perms`).
  */
-export function roleAllows(dt: DocType | null | undefined, action: DocAction, roles: string[]): boolean {
+export function roleAllows(
+  dt: DocType | null | undefined,
+  action: DocAction | DocTypeAction,
+  roles: string[],
+): boolean {
   const perms = dt?.permissions
   if (!perms?.length) return false
-  return perms.some((p) => p[action] && (p.role === 'All' || roles.includes(p.role)))
+  const granted = (a: PermissionAction) =>
+    perms.some((p) => p.actions?.includes(a) && (p.role === 'All' || roles.includes(p.role)))
+  // Sharing never hands out more than the sharer may do: share needs write too.
+  return action === 'share' ? granted('share') && granted('write') : granted(action)
+}
+
+/** Every action by the role rows alone - a list, or a document not loaded yet. */
+export function rolePermissions(dt: DocType | null | undefined, roles: string[]): DocPerms {
+  return Object.fromEntries(
+    [...DOC_ACTIONS, ...DOCTYPE_ACTIONS].map((a) => [a, roleAllows(dt, a, roles)]),
+  ) as DocPerms
 }
 
 /** Permissions for the form: the server's `__perms`, or the role rows for a new document. */
@@ -32,10 +64,14 @@ export function formPermissions(
   isNew: boolean,
   roles: string[],
 ): DocPerms {
-  if (!dt) return { write: true, delete: false, create: false } // meta loading - no flash of read-only
-  const create = roleAllows(dt, 'create', roles)
-  if (isNew) return { write: create, delete: false, create }
-  const server = doc?.[PERMS_KEY] as Partial<DocPerms> | undefined
-  if (server) return { write: !!server.write, delete: !!server.delete, create: !!server.create }
-  return { write: roleAllows(dt, 'write', roles), delete: roleAllows(dt, 'delete', roles), create }
+  // meta loading - no flash of read-only
+  if (!dt) return { ...NO_PERMS, write: true }
+  const byRole = rolePermissions(dt, roles)
+  // A new document can't be printed or shared before it is saved.
+  if (isNew) return { ...byRole, write: byRole.create, delete: false, print: false, share: false }
+  const server = doc?.[PERMS_KEY] as Partial<Record<DocAction, boolean>> | undefined
+  if (!server) return byRole
+  const perms = { ...byRole }
+  for (const a of DOC_ACTIONS) perms[a] = !!server[a]
+  return perms
 }

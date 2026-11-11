@@ -75,16 +75,7 @@ class DocumentAPI:
         perms = getattr(dt, "permissions", []) or []
         if not perms:
             return False
-        for p in perms:
-            if any(
-                (
-                    bool(getattr(p, "write", False)),
-                    bool(getattr(p, "create", False)),
-                    bool(getattr(p, "delete", False)),
-                )
-            ):
-                return False
-        return True
+        return not any(p.grants(a) for p in perms for a in ("write", "create", "delete"))
 
     @staticmethod
     async def _access_key(dt: Any, user: Any) -> str | None:
