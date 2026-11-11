@@ -26,7 +26,7 @@ from grunt.i18n import _
 from grunt.local import _session_ctx
 from grunt.log import log
 from grunt.metadata import store
-from grunt.metadata.compiler import invalidate_table_cache, sync_table
+from grunt.metadata.compiler import STANDARD_COLUMNS, invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
@@ -762,6 +762,18 @@ class DocTypeRegistry:
 
     # Validation helpers
 
+    @staticmethod
+    def _validate_permission_fields(doctype: DocType) -> None:
+        known = {f.fieldname for f in doctype.fields} | set(STANDARD_COLUMNS)
+        for perm in doctype.permissions:
+            unknown = [n for n in (*perm.hidden_fields, *perm.readonly_fields) if n not in known]
+            if unknown:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail=_("Permission for “%(role)s” names unknown fields: %(fields)s")
+                    % {"role": perm.role, "fields": ", ".join(unknown)},
+                )
+
     def _validate_new(self, doctype: DocType) -> None:
         """Ensure name is unique and fields are valid."""
         if doctype.name in self._doctypes:
@@ -773,7 +785,10 @@ class DocTypeRegistry:
 
     @staticmethod
     def _validate_fields(doctype: DocType) -> None:
-        """Check for duplicate, invalid, or oversized fieldnames."""
+        """Check for duplicate, invalid, or oversized fieldnames - and that the
+        fields permission rows hide or make read-only exist: a misspelt one
+        would leave the real field open without a word."""
+        DocTypeRegistry._validate_permission_fields(doctype)
         seen: set[str] = set()
         for f in doctype.fields:
             if f.fieldname in seen:

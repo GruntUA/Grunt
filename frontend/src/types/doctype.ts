@@ -92,6 +92,8 @@ export interface DocPermission {
   actions?: PermissionAction[]
   match?: string | null
   hidden_fields?: string[]
+  /** Shown but kept on an existing document (a new one takes the value). */
+  readonly_fields?: string[]
 }
 
 export interface CalendarSource {

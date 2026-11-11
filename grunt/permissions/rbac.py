@@ -82,6 +82,16 @@ class PermissionChecker:
         await self.require(doctype, "share", doc, user=user)
         await self.require(doctype, "write", doc, user=user)
 
+    async def readonly_fields(
+        self,
+        doctype: DocType | Meta,
+        *,
+        user: str | None = None,
+    ) -> frozenset[str]:
+        """The field names *user* (``None`` - the context's) sees but may not
+        change on *doctype* (see :attr:`RoleAccess.readonly_fields`)."""
+        return (await role_access(doctype, user or session_user())).readonly_fields
+
     async def hidden_fields(
         self,
         doctype: DocType | Meta,

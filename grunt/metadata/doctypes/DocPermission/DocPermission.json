@@ -41,7 +41,14 @@
     {
       "fieldname": "hidden_fields",
       "label": "Hidden fields (comma-separated)",
-      "fieldtype": "LongText"
+      "fieldtype": "LongText",
+      "description": "Not shown to this role, and not changed, filtered or searched by."
+    },
+    {
+      "fieldname": "readonly_fields",
+      "label": "Read-only fields (comma-separated)",
+      "fieldtype": "LongText",
+      "description": "Shown to this role but kept as they are once the document exists; a new document takes their value. A role that may change them wins."
     }
   ]
 }

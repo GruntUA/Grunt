@@ -173,8 +173,9 @@ class DocumentLifecycleMixin:
         dt: Any, user: str | None, data: dict[str, Any], existing: dict[str, Any] | None = None
     ) -> None:
         """403 when *data* sets a field hidden from *user* - read-hidden means
-        write-hidden too, or a hidden value could be overwritten blind."""
-        changed = (await role_access(dt, user)).hidden_changes(data, existing)
+        write-hidden too, or a hidden value could be overwritten blind - or
+        changes one that is read-only for them on an existing document."""
+        changed = (await role_access(dt, user)).forbidden_changes(data, existing)
         if changed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
