@@ -14,9 +14,7 @@ NOTE = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "sync_status", "label": "Sync", "fieldtype": "Data", "no_history": True},
     ],
-    "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True}
-    ],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create", "delete"]}],
 }
 
 

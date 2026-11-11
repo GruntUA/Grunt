@@ -20,7 +20,7 @@ NOTE = {
         {"fieldname": "frozen", "label": "Frozen", "fieldtype": "Check"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
     ],
 }
 

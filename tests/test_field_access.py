@@ -24,9 +24,9 @@ TEAM = {
         {"fieldname": "code", "label": "Code", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "Clerk", "read": True, "hidden_fields": ["budget", "code"]},
-        {"role": "Own", "read": True, "hidden_fields": ["budget"]},
-        {"role": "Payroll", "read": True},
+        {"role": "Clerk", "actions": ["read"], "hidden_fields": ["budget", "code"]},
+        {"role": "Own", "actions": ["read"], "hidden_fields": ["budget"]},
+        {"role": "Payroll", "actions": ["read"]},
     ],
 }
 
@@ -44,16 +44,14 @@ PERSON = {
         {"fieldname": "team", "label": "Team", "fieldtype": "Link", "options": "FaTeam"},
     ],
     "permissions": [
-        {"role": "Clerk", "read": True, "hidden_fields": ["salary", "note", "hired_on"]},
+        {"role": "Clerk", "actions": ["read"], "hidden_fields": ["salary", "note", "hired_on"]},
         {
             "role": "Own",
-            "read": True,
-            "write": True,
-            "create": True,
+            "actions": ["read", "write", "create"],
             "match": "owner == user",
             "hidden_fields": ["salary"],
         },
-        {"role": "Payroll", "read": True, "write": True, "create": True},
+        {"role": "Payroll", "actions": ["read", "write", "create"]},
     ],
 }
 

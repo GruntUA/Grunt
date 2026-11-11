@@ -31,7 +31,7 @@ async def test_system_user_always_allowed():
     where several DocTypes deliberately don't grant write to System Manager)."""
     from grunt.auth.doctypes.User.user import SYSTEM_USER
 
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert await check_as(SYSTEM_USER, dt, "read")
 
 
@@ -40,7 +40,7 @@ async def test_system_manager_without_matching_row_denied():
     """Holding "System Manager" doesn't bypass a DocType whose permissions
     don't name it — only a matching permission row grants access."""
     user = make_user("user@example.com", is_superadmin=True)
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert not await check_as(user, dt, "read")
 
 
@@ -58,7 +58,7 @@ async def test_no_permissions_means_closed():
 async def test_role_read_allowed():
     """User with correct role can read."""
     user = make_user("user@example.com", roles=["Manager"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert await check_as(user, dt, "read")
 
 
@@ -66,7 +66,7 @@ async def test_role_read_allowed():
 async def test_wrong_role_denied():
     """User without required role is denied."""
     user = make_user("user@example.com", roles=["Viewer"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert not await check_as(user, dt, "read")
 
 
@@ -74,7 +74,7 @@ async def test_wrong_role_denied():
 async def test_all_role_always_matches():
     """'All' role matches any user."""
     user = make_user("user@example.com", roles=[])
-    dt = _make_doctype_with_perms([{"role": "All", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "All", "actions": ["read"]}])
     assert await check_as(user, dt, "read")
 
 
@@ -82,7 +82,9 @@ async def test_all_role_always_matches():
 async def test_match_owner_eq_user():
     """Row-level match 'owner == user' works."""
     user = make_user("user@example.com", roles=["Employee"])
-    dt = _make_doctype_with_perms([{"role": "Employee", "read": True, "match": "owner == user"}])
+    dt = _make_doctype_with_perms(
+        [{"role": "Employee", "actions": ["read"], "match": "owner == user"}]
+    )
     doc_own = {"owner": "user@example.com"}
     doc_other = {"owner": "other@example.com"}
     assert await check_as(user, dt, "read", doc_own)
@@ -97,7 +99,7 @@ async def test_match_on_unknown_field_denies():
     lacks grants no row."""
     user = make_user("user@example.com", roles=["Employee"])
     dt = _make_doctype_with_perms(
-        [{"role": "Employee", "read": True, "match": "this_field_does_not_exist == user"}]
+        [{"role": "Employee", "actions": ["read"], "match": "this_field_does_not_exist == user"}]
     )
     doc = {"owner": "user@example.com"}
     assert not await check_as(user, dt, "read", doc)
@@ -107,7 +109,7 @@ async def test_match_on_unknown_field_denies():
 async def test_select_granted_explicitly():
     """A role with only ``select`` can select but not read."""
     user = make_user("user@example.com", roles=["Picker"])
-    dt = _make_doctype_with_perms([{"role": "Picker", "select": True}])
+    dt = _make_doctype_with_perms([{"role": "Picker", "actions": ["select"]}])
     assert await check_as(user, dt, "select")
     assert not await check_as(user, dt, "read")
 
@@ -116,14 +118,14 @@ async def test_select_granted_explicitly():
 async def test_read_implies_select():
     """A role with ``read`` implicitly satisfies ``select`` too."""
     user = make_user("user@example.com", roles=["Manager"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert await check_as(user, dt, "select")
 
 
 @pytest.mark.asyncio
 async def test_select_denied_without_grant():
     user = make_user("user@example.com", roles=["Viewer"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert not await check_as(user, dt, "select")
 
 
@@ -133,7 +135,7 @@ async def test_require_raises_on_deny():
     from fastapi import HTTPException
 
     user = make_user("user@example.com", roles=[])
-    dt = _make_doctype_with_perms([{"role": "Admin", "read": True}])
+    dt = _make_doctype_with_perms([{"role": "Admin", "actions": ["read"]}])
     with pytest.raises(HTTPException) as exc_info:
         await require_as(user, dt, "read")
     assert exc_info.value.status_code == 403
@@ -249,7 +251,9 @@ async def test_a_changed_permission_row_applies_at_once():
     """No answer outlives the rows it came from - a row edited in place, or a
     new DocType object with another row set, is checked as it is now."""
     user = make_user("user@example.com", roles=["Manager"])
-    dt = _make_doctype_with_perms([{"role": "Manager", "read": True, "hidden_fields": ["salary"]}])
+    dt = _make_doctype_with_perms(
+        [{"role": "Manager", "actions": ["read"], "hidden_fields": ["salary"]}]
+    )
     assert await check_as(user, dt, "read")
     assert (await hidden_fields_as(user, dt)) == {"salary"}
 
@@ -258,14 +262,14 @@ async def test_a_changed_permission_row_applies_at_once():
     assert not await check_as(user, dt, "read")
     assert (await hidden_fields_as(user, dt)) == frozenset()
 
-    other = _make_doctype_with_perms([{"role": "Manager", "read": True}])
+    other = _make_doctype_with_perms([{"role": "Manager", "actions": ["read"]}])
     assert await check_as(user, other, "read")
 
 
 async def test_nobody_in_context_is_denied_even_by_an_all_row():
     """Without a user ``check`` fails closed - an "All" row with ``owner == user``
     must not open the rows whose owner is empty."""
-    dt = _make_doctype_with_perms([{"role": "All", "read": True, "match": "owner == user"}])
+    dt = _make_doctype_with_perms([{"role": "All", "actions": ["read"], "match": "owner == user"}])
     assert await permission_checker.check(dt, "read") is False
     assert await permission_checker.check(dt, "read", {"name": "x", "owner": ""}) is False
 

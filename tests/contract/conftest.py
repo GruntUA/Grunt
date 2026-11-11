@@ -11,7 +11,7 @@ from decimal import Decimal
 
 import pytest_asyncio
 
-PERMS = [{"role": "All", "read": True, "write": True, "create": True, "delete": True}]
+PERMS = [{"role": "All", "actions": ["read", "write", "create", "delete"]}]
 
 GROUP = {
     "name": "ContractGroup",

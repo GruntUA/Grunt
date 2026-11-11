@@ -52,7 +52,7 @@ ARTICLE = {
         {"fieldname": "content", "label": "Content", "fieldtype": "RichText"},
         {"fieldname": "cover", "label": "Cover", "fieldtype": "Image"},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create"]}],
 }
 
 

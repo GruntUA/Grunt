@@ -49,8 +49,8 @@ ITEM = {
         {"fieldname": "auto_repeat", "label": "Auto repeat", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Reader", "read": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Reader", "actions": ["read"]},
     ],
 }
 

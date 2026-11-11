@@ -31,8 +31,8 @@ ARTICLE = {
         {"fieldname": "published", "label": "Published", "fieldtype": "Check"},
     ],
     "permissions": [
-        {"role": "Writer", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Editor", "read": True, "write": True, "create": True, "delete": True},
+        {"role": "Writer", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Editor", "actions": ["read", "write", "create", "delete"]},
     ],
 }
 W, E = "Writer", "Editor"

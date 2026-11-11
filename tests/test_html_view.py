@@ -10,7 +10,7 @@ REPORT = {
         {"fieldname": "title", "label": "Title", "fieldtype": "Data"},
         {"fieldname": "summary", "label": "Summary", "fieldtype": "HTMLView", "read_only": True},
     ],
-    "permissions": [{"role": "System Manager", "read": True, "write": True, "create": True}],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create"]}],
 }
 DIRTY = '<table><tr><td onmouseover="steal()">1</td></tr></table><script>alert(1)</script>'
 CLEAN = "<table><tbody><tr><td>1</td></tr></tbody></table>"

@@ -33,9 +33,8 @@ ACTIONS: tuple[str, ...] = (
     "report",
 )
 
-# Rows written before ``actions`` (app JSON, stored definitions) carried one
-# boolean per action. Read as ``actions`` until every app's JSON is converted.
-_LEGACY_FLAGS = ("read", "select", "write", "create", "delete", "report")
+# One boolean per action - the format before ``actions`` (migration 0021).
+_OLD_FLAGS = ("read", "select", "write", "create", "delete", "report")
 
 # The ``match`` grammar: "<field> == <value>" / "<field> != <value>".
 #   <field>  a document field, or "<link_field>.<target_field>" for a single
@@ -96,17 +95,15 @@ class DocPermission(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _legacy_flags(cls, data: Any) -> Any:
-        if not isinstance(data, dict) or not any(k in data for k in _LEGACY_FLAGS):
-            return data
-        data = dict(data)
-        actions = list(data.get("actions") or [])
-        for flag in _LEGACY_FLAGS:
-            value = data.pop(flag, False)
-            # Some old JSON spells the flags 1/0.
-            if (value is True or value == 1) and flag not in actions:
-                actions.append(flag)
-        data["actions"] = actions
+    def _no_old_flags(cls, data: Any) -> Any:
+        # Ignored, an old flag would grant nothing without a word - refuse it.
+        if isinstance(data, dict):
+            old = [k for k in _OLD_FLAGS if k in data]
+            if old:
+                raise ValueError(
+                    f"Permission row for {data.get('role')!r} uses old flags {old}: "
+                    'list them as "actions": [...]'
+                )
         return data
 
     @field_validator("actions")

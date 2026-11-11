@@ -10,9 +10,7 @@ MEMO = {
     "label": "Memo",
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
-    "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True}
-    ],
+    "permissions": [{"role": "System Manager", "actions": ["read", "write", "create", "delete"]}],
 }
 
 BODY = "<html><body><p>Body {{ doc.title }}</p></body></html>"

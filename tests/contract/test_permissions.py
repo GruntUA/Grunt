@@ -23,7 +23,7 @@ TEAM = {
     "module": "test",
     "autoname": "prompt",
     "fields": [{"fieldname": "lead", "label": "Lead", "fieldtype": "Data"}],
-    "permissions": [{"role": "All", "read": True}],
+    "permissions": [{"role": "All", "actions": ["read"]}],
 }
 
 STEP = {
@@ -54,9 +54,9 @@ TASK = {
         {"fieldname": "steps", "label": "Steps", "fieldtype": "Table", "options": "CpStep"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
         *(
-            {"role": role, "read": True, **({"match": rule} if rule else {})}
+            {"role": role, "actions": ["read"], **({"match": rule} if rule else {})}
             for role, rule in _RULES.items()
         ),
     ],
@@ -69,7 +69,7 @@ NOTE = {
     "autoname": "prompt",
     "inherit_permission_from": ["task"],
     "fields": [{"fieldname": "task", "label": "Task", "fieldtype": "Link", "options": "CpTask"}],
-    "permissions": [{"role": role, "read": True} for role in _RULES],
+    "permissions": [{"role": role, "actions": ["read"]} for role in _RULES],
 }
 
 TEAMS = {"T1": "alice@x.com", "T2": "bob@x.com", "T3": None}
@@ -280,4 +280,4 @@ def test_unsupported_match_is_refused(rule):
     from grunt.metadata.permission import DocPermission
 
     with pytest.raises(ValidationError):
-        DocPermission(role="Own", read=True, match=rule)
+        DocPermission(role="Own", actions=["read"], match=rule)

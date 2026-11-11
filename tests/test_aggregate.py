@@ -25,9 +25,14 @@ DEAL = {
         {"fieldname": "deal_date", "label": "Deal date", "fieldtype": "Date"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Seller", "read": True, "match": "owner == user", "hidden_fields": ["cost"]},
-        {"role": "Seller", "create": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {
+            "role": "Seller",
+            "actions": ["read"],
+            "match": "owner == user",
+            "hidden_fields": ["cost"],
+        },
+        {"role": "Seller", "actions": ["create"]},
     ],
 }
 

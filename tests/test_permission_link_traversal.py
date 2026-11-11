@@ -21,7 +21,7 @@ HOLDER_DOCTYPE = {
         {"fieldname": "login", "label": "Login", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "Employee", "read": True},
+        {"role": "Employee", "actions": ["read"]},
     ],
 }
 
@@ -39,7 +39,7 @@ GEAR_DOCTYPE = {
         },
     ],
     "permissions": [
-        {"role": "Employee", "read": True, "match": "holder.login == user"},
+        {"role": "Employee", "actions": ["read"], "match": "holder.login == user"},
     ],
 }
 

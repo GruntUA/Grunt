@@ -222,15 +222,7 @@ async def test_get_list_query_cache_read_only_invalidation(ctx):
                 },
             ],
             "permissions": [
-                {
-                    "role": "System Manager",
-                    "read": True,
-                    "write": False,
-                    "create": False,
-                    "delete": False,
-                    "submit": False,
-                    "report": True,
-                }
+                {"role": "System Manager", "actions": ["read", "report"], "submit": False}
             ],
             "search_fields": ["title"],
             "__is_new": True,
@@ -284,9 +276,9 @@ async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
                 },
             ],
             "permissions": [
-                {"role": "Reader", "read": True},
-                {"role": "Clerk", "read": True, "hidden_fields": ["title"]},
-                {"role": "Own", "read": True, "match": "owner == user"},
+                {"role": "Reader", "actions": ["read"]},
+                {"role": "Clerk", "actions": ["read"], "hidden_fields": ["title"]},
+                {"role": "Own", "actions": ["read"], "match": "owner == user"},
             ],
             "__is_new": True,
         }

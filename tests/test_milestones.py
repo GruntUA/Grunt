@@ -27,8 +27,8 @@ CASE = {
         {"fieldname": "stage", "label": "Stage", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Clerk", "read": True, "match": "owner == user"},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Clerk", "actions": ["read"], "match": "owner == user"},
     ],
 }
 

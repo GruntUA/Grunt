@@ -137,8 +137,8 @@ GUARDED_WORKFLOW_DOCTYPE = {
         {"fieldname": "status", "label": "Статус", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "ContractReader", "read": True},
-        {"role": "ContractApprover", "read": True, "write": True},
+        {"role": "ContractReader", "actions": ["read"]},
+        {"role": "ContractApprover", "actions": ["read", "write"]},
     ],
 }
 

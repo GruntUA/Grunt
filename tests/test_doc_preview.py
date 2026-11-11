@@ -18,7 +18,7 @@ ASSET = {
         {"fieldname": "status", "label": "Status", "fieldtype": "Data", "in_preview": True},
         {"fieldname": "notes", "label": "Notes", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "Reader", "read": True}],
+    "permissions": [{"role": "Reader", "actions": ["read"]}],
 }
 
 PLAIN = {
@@ -30,7 +30,7 @@ PLAIN = {
         {"fieldname": "code", "label": "Code", "fieldtype": "Data", "required": True},
         {"fieldname": "notes", "label": "Notes", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "Reader", "read": True}],
+    "permissions": [{"role": "Reader", "actions": ["read"]}],
 }
 
 

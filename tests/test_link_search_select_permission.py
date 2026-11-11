@@ -22,7 +22,7 @@ CATALOG = {
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Data"},
     ],
     "permissions": [
-        {"role": "Picker", "select": True},
+        {"role": "Picker", "actions": ["select"]},
     ],
 }
 
@@ -85,8 +85,8 @@ MIXED = {
     ],
     # A row-scoped "read" for everyone PLUS an explicit "select" for one role.
     "permissions": [
-        {"role": "All", "read": True, "match": "owner == user"},
-        {"role": "Picker", "select": True},
+        {"role": "All", "actions": ["read"], "match": "owner == user"},
+        {"role": "Picker", "actions": ["select"]},
     ],
 }
 
@@ -138,7 +138,7 @@ LSTREE = {
         {"fieldname": "parent_unit", "label": "Parent", "fieldtype": "Link", "options": "LSUnit"},
         {"fieldname": "secret", "label": "Secret", "fieldtype": "Data"},
     ],
-    "permissions": [{"role": "Picker", "select": True}],
+    "permissions": [{"role": "Picker", "actions": ["select"]}],
 }
 
 
