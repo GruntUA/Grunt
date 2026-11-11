@@ -32,11 +32,11 @@ SECRET_DOCTYPE = {
     "permissions": [
         {
             "role": "Owner",
-            "read": True,
-            "write": True,
-            "create": True,
+            "actions": ["read", "write", "create", "share"],
             "match": "owner == user",
         },
+        {"role": "Keeper", "actions": ["read", "write", "create"], "match": "owner == user"},
+        {"role": "Lender", "actions": ["read", "share"], "match": "owner == user"},
     ],
 }
 
@@ -90,3 +90,25 @@ async def test_owner_can_share_their_own_document(ctx, setup_secret_doctype, db_
             },
         )
     assert share["token"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("role", ["Keeper", "Lender"])
+async def test_public_link_needs_share_and_write(
+    ctx, setup_secret_doctype, db_session, engine, role
+):
+    """Keeper may edit but not share; Lender may share but not edit - a public
+    link needs both (sharing never hands out beyond what the sharer may do)."""
+    import grunt
+
+    secret_id = (await ctx.new_doc("ShareTestSecret", {"title": "kept"}))["name"]
+    await ctx.set_value("ShareTestSecret", secret_id, "owner", "keeper@example.com")
+    await ctx.db._session().commit()
+
+    async with grunt.context(db_session, engine, make_user("keeper@example.com", roles=[role])):
+        with pytest.raises(HTTPException) as exc_info:
+            await grunt.new_doc(
+                "DocumentShare",
+                {"doctype_name": "ShareTestSecret", "doc_id": secret_id, "is_active": True},
+            )
+    assert exc_info.value.status_code == 403

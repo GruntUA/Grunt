@@ -59,6 +59,16 @@ async def read_guard(doctype: str) -> tuple[Any, str, frozenset[str]]:
     return dt, user, hidden_fields
 
 
+async def doctype_guard(doctype: str | None, action: PermissionAction) -> Any:
+    """The DocType's meta, when the current user may *action* on it (DocType
+    level - no document). ``404`` for an unknown DocType, ``403`` without it."""
+    dt = await doctype_registry.get_meta(doctype) if doctype else None
+    if dt is None:
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
+    await permission_checker.require(dt, action, user=require_session_user())
+    return dt
+
+
 async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read") -> None:
     """Verify the current user may act on *doc_id*, without loading the document.
 

@@ -8,7 +8,7 @@ from grunt.api.context import whitelist
 from grunt.data_import.tasks import run_data_import
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.permissions.guards import read_guard, write_guard
+from grunt.permissions.guards import doctype_guard, write_guard
 from grunt.tasks.enqueue import enqueue
 lazy from grunt.document.api import documents
 lazy from grunt.io.doctypes.DataImport.data_import import DataImport
@@ -54,6 +54,11 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
     """
 
     await write_guard("DataImport", "write")
+    di = await documents.find_doc(DataImport, data_import_id)
+    if not di:
+        throw(_("DataImport not found"), "NOT_FOUND")
+    # The task writes as SYSTEM_USER - whoever starts it needs `import` themselves.
+    await doctype_guard(di.doctype_name, "import")
 
     # After the commit, so the worker reads the import as saved. Without Redis
     # the in-memory broker runs it in this process - in the background either way.
@@ -66,7 +71,7 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
 async def download_template(doctype: str, fmt: str = "csv") -> dict[str, Any]:
     """Return template data (base64) and filename."""
 
-    await read_guard(doctype)
+    await doctype_guard(doctype, "import")
 
     try:
         file_bytes, filename = await DataImport.download_template(doctype, fmt=fmt)
@@ -91,6 +96,7 @@ async def export_quick(
 ) -> dict[str, Any]:
     """Quick one-shot export returning base64 content."""
 
+    await doctype_guard(doctype, "export")
     parsed_filters = json.loads(filters) if filters else None
     parsed_fields = [f.strip() for f in fields.split(",")] if fields else None
 

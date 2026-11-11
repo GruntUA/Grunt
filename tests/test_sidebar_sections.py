@@ -16,9 +16,10 @@ NOTE = {
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Reader", "read": True},
-        {"role": "Editor", "read": True, "write": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete"]},
+        {"role": "Reader", "actions": ["read"]},
+        {"role": "Writer", "actions": ["read", "write"]},
+        {"role": "Editor", "actions": ["read", "write", "share"]},
     ],
 }
 
@@ -96,6 +97,9 @@ async def test_app_sections(note, sections, db_session, engine):
 async def test_perms(note, db_session, engine):
     reader = await _sidebar(db_session, engine, note["name"], ["Reader"])
     assert reader["perms"] == {"assign": True, "share": False, "tag": True}
+    # Write alone doesn't share; share alone (without write) doesn't either.
+    writer = await _sidebar(db_session, engine, note["name"], ["Writer"])
+    assert writer["perms"]["share"] is False
     editor = await _sidebar(db_session, engine, note["name"], ["Editor"])
     assert editor["perms"]["share"] is True
 

@@ -19,6 +19,10 @@ _ACTION_VERBS: dict[str, str] = {
     "create": NP_("permission", "create"),
     "delete": NP_("permission", "delete"),
     "report": NP_("permission", "reports"),
+    "export": NP_("permission", "export"),
+    "import": NP_("permission", "import"),
+    "print": NP_("permission", "print"),
+    "share": NP_("permission", "share"),
 }
 
 
@@ -53,6 +57,30 @@ class PermissionChecker:
                 _("No access: %(action)s “%(doctype)s”")
                 % {"action": pgettext("permission", verb), "doctype": _(label)}
             )
+
+    async def can_share(
+        self,
+        doctype: DocType | Meta,
+        doc: dict | None = None,
+        *,
+        user: str | None = None,
+    ) -> bool:
+        """``share`` - and ``write``: sharing must not hand out (a link to, or a
+        Write share of) a document beyond what the sharer may do with it."""
+        return await self.check(doctype, "share", doc, user=user) and await self.check(
+            doctype, "write", doc, user=user
+        )
+
+    async def require_share(
+        self,
+        doctype: DocType | Meta,
+        doc: dict | None = None,
+        *,
+        user: str | None = None,
+    ) -> None:
+        """:meth:`can_share`, raising 403 when it says no."""
+        await self.require(doctype, "share", doc, user=user)
+        await self.require(doctype, "write", doc, user=user)
 
     async def hidden_fields(
         self,

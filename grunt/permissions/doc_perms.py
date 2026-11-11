@@ -12,7 +12,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.rbac import permission_checker
 
 PERMS_KEY = "__perms"
-_ACTIONS = ("write", "delete", "create")
+_ACTIONS = ("write", "delete", "create", "print", "share")
 
 
 async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
@@ -24,7 +24,10 @@ async def doc_permissions(doctype: str, doc: dict[str, Any]) -> dict[str, bool]:
     for action in _ACTIONS:
         # create is DocType-level: duplicating this document makes a new one.
         target = None if action == "create" else doc
-        perms[action] = await permission_checker.check(dt, action, target, user=user)
+        if action == "share":
+            perms[action] = await permission_checker.can_share(dt, doc, user=user)
+        else:
+            perms[action] = await permission_checker.check(dt, action, target, user=user)
     return perms
 
 

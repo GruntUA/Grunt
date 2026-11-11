@@ -250,7 +250,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     # The same checks the add endpoints enforce, so the UI hides what would be refused.
     perms = {
         "assign": await can("ToDo", "create"),
-        "share": await can(doctype, "write", doc),
+        "share": dt is not None and await permission_checker.can_share(dt, doc),
         "tag": await can("DocTag", "create"),
     }
     collected = await collect_sections(doctype, doc_id, doc)

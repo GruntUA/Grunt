@@ -57,11 +57,20 @@ class ReportEngine:
                 ],
                 limit=1,
             )
-        report = rows[0] if rows else None
-        if not report:
-            raise HTTPException(
-                status_code=404, detail=_("Report “%(name)s” not found") % {"name": report_name}
-            )
+            report = rows[0] if rows else None
+            if not report:
+                raise HTTPException(
+                    status_code=404,
+                    detail=_("Report “%(name)s” not found") % {"name": report_name},
+                )
+            # A report on a DocType takes its data out in bulk: `report` on it.
+            if report.get("ref_doctype"):
+                ref = await doctype_registry.get_meta(report["ref_doctype"])
+                if ref is None:
+                    raise not_found(
+                        _("DocType “%(doctype)s” not found") % {"doctype": report["ref_doctype"]}
+                    )
+                await permission_checker.require(ref, "report", user=user)
 
         report_type = report["report_type"]
         if report_type == "Query":

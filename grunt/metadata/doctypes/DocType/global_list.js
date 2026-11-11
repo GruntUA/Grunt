@@ -49,7 +49,7 @@ function setup_list(listview) {
             placement: 'menu',
             group: 'export',
             order: 100 + i,
-            visible: (lv) => lv.can_export,
+            visible: (lv) => lv.can_export && lv.perm.export,
             action: (lv) => lv.export(exporter.id),
         }),
     )
@@ -90,6 +90,7 @@ function setup_list(listview) {
         placement: 'menu',
         group: 'report',
         order: 300,
+        visible: (lv) => lv.perm.report,
         action: (lv) => lv.create_report(),
     })
 

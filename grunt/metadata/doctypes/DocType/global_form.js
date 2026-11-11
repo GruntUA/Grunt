@@ -57,7 +57,11 @@ function on_load(frm) {
         ['print_html', __('HTML'), 'globe', () => frm.print('html')],
     ]
     print.forEach(([id, label, icon, action], i) =>
-        actions.add({ id, label, icon, placement: 'menu', group: 'print', order: 100 + i, visible: _saved, action }),
+        actions.add({
+            id, label, icon, placement: 'menu', group: 'print', order: 100 + i,
+            visible: (f) => _saved(f) && f.perm.print,
+            action,
+        }),
     )
 
     // ── Menu: navigation / DocType ─────────────────────────────────────────
@@ -165,7 +169,7 @@ function on_load(frm) {
         placement: 'menu',
         group: 'document',
         order: 340,
-        visible: _saved,
+        visible: (f) => _saved(f) && f.perm.share,
         action: (f) => f.share(),
     })
     actions.add({

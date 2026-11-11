@@ -12,8 +12,9 @@ BOX = {
     "module": "core",
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [
-        {"role": "System Manager", "read": True, "write": True, "create": True, "delete": True},
-        {"role": "Editor", "read": True, "write": True},
+        {"role": "System Manager", "actions": ["read", "write", "create", "delete", "share"]},
+        {"role": "Editor", "actions": ["read", "write", "share"]},
+        {"role": "Writer", "actions": ["read", "write"]},
     ],
 }
 
@@ -111,7 +112,7 @@ async def test_unshare_revokes_access(ctx, boxes, db_session, engine):
 
 
 @pytest.mark.asyncio
-async def test_only_writers_can_share(ctx, boxes, db_session, engine):
+async def test_only_who_may_share_and_write_can_share(ctx, boxes, db_session, engine):
     import grunt
     from grunt.errors import ApplicationError
 
@@ -119,6 +120,15 @@ async def test_only_writers_can_share(ctx, boxes, db_session, engine):
     await _share(ctx, a, "Read")  # bob can read A, not write it
 
     async with grunt.context(db_session, engine, _bob()):
+        with pytest.raises((ApplicationError, HTTPException)):
+            await grunt.new_doc(
+                "SharedWith",
+                {"reference_doctype": "ShareBox", "reference_id": a, "user": "eve@example.com"},
+            )
+
+    # Write without the share permission isn't enough either.
+    writer = make_user("wr@example.com", roles=["Writer"])
+    async with grunt.context(db_session, engine, writer):
         with pytest.raises((ApplicationError, HTTPException)):
             await grunt.new_doc(
                 "SharedWith",

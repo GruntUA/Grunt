@@ -7,7 +7,7 @@
 для адміністратора. Безпека й архітектура — відповідальність розробника (Claude): рішення
 приймаються тут, без погодження кожної дрібниці.
 
-Оновлено: 2026-11-09 — крок 1 злито (#118); крок 2a — PR #119.
+Оновлено: 2026-11-11 — кроки 1 (#118) і 2a (#119) злито; крок 2b — гілка `feat/permissions-actions`.
 
 ---
 
@@ -132,10 +132,10 @@ allowed(action, doc) =
 | # | Крок | Статус |
 |---|------|--------|
 | 1 | **Одна реалізація перевірки.** `match` → лише `Expr` (`where`), документ = `matches()` з асинхронним `Linked`; прибрати `simpleeval`; непридатні `match` — помилка при завантаженні DocType | ✔️ |
-| 2a | **Діри прихованих полів** (інваріант 5): запис, фільтр/сортування/групування/агрегати/пошук, `get_value`/`set_value`/`exists`, глобальний індекс | ⏳ #119 |
-| 2b | **Дії** `export`/`import`/`print`/`share`/`report` — перевірка на сервері (FRAPPE_GAP п.2) | ☐ |
+| 2a | **Діри прихованих полів** (інваріант 5): запис, фільтр/сортування/групування/агрегати/пошук, `get_value`/`set_value`/`exists`, глобальний індекс | ✔️ #119 |
+| 2b | **Дії** `actions[]` замість булевих + `export`/`import`/`print`/`share`/`report` — перевірка на сервері (FRAPPE_GAP п.2) | ⏳ `feat/permissions-actions` |
 | 2c | **Поля «лише читання»** через групи полів (`field_groups` + `fields{}`, FRAPPE_GAP п.3) | ☐ |
-| 2d | **Формат:** `actions[]` замість булевих + матриця в Studio; нові значення при записі (інваріант 6, зокрема `set_value`) | ☐ |
+| 2d | **Матриця «роль × дія»** в Studio; нові значення при записі (інваріант 6, зокрема `set_value`) | ☐ |
 | 3 | **Ролі й дозволи.** id ролей + Link, `perm=` у `whitelist`, `grunt.can()`, прибрати рядкові «System Manager»; Workflow/Page/AppMenu/Report — через дії/дозволи | ☐ |
 | 4 | **Ролі з областю.** `RoleAssignment`; UserPermission → призначення; перевести mlt_portal, letter; прибрати UserPermission | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
@@ -158,6 +158,21 @@ allowed(action, doc) =
 - **2026-11-09** — кеш списків/лічильників (`query_cache`) містить у ключі ролі й предикат прав;
   список, чий предикат читає інші DocType (shares, успадкований, child), не кешується —
   їхні зміни цей кеш не інвалідують.
+
+- **2026-11-11** — формат `actions[]` переїхав з 2d у 2b: інакше нові дії довелося б додати булевими
+  колонками й мігрувати двічі (рішення 09.11). Studio редагує список полем MultiSelect; матриця
+  лишається в 2d як зручність, не як формат.
+- **2026-11-11** — додатки — окремі репозиторії, їхні JSON у PR ядра не мігрують. `DocPermission`
+  читає старі булеві ключі (`true` і `1`) як `actions` і записує вже новий формат. Прибрати
+  прокладку разом з оновленням додатків на нове ядро.
+- **2026-11-11** — нові дії типово не має ніхто (FRAPPE_GAP п.2). Виняток — рядки System Manager у
+  JSON ядра: `read` → +`export`/`print`/`report`, `write` → +`share`, `create` → +`import`.
+  Нерозмічені core DocType на сайті отримують це з JSON (`permissions_base`), розмічені — ні.
+- **2026-11-11** — `share` = `share` ∧ `write` на тому ж документі (з тим самим `match`), і для
+  SharedWith, і для публічного посилання DocumentShare. `export`/`import`/`report` — рівня
+  DocType; `print`/`share` — рівня документа (`__perms`).
+- **2026-11-11** — `report` перевіряє запуск звіту з `ref_doctype` (List, Query, Script). Групування
+  й агрегати в списку — це читання, не `report`.
 
 ## Журнал
 
@@ -236,4 +251,31 @@ allowed(action, doc) =
   `refresh_stale` (у `migrate` і `registry.update`) переіндексовує DocType, чий підпис змінився.
   Без збереженого підпису (записи до цієї зміни) — переіндексація лише DocType з прихованими
   полями, решті підпис просто записується.
+
+### 2026-11-11 — крок 2b: дії списком, експорт/імпорт/друк/поширення/звіти
+
+Гілка `feat/permissions-actions`.
+- **Формат:** `DocPermission.actions: list[str]` з `ACTIONS` (`grunt/metadata/permission.py`);
+  невідома дія — помилка валідації (одруківка не відмовляє мовчки); порядок нормалізований, тож
+  збережені права ≡ JSON порівнюються по суті. Старі ключі читаються прокладкою (див. рішення).
+  JSON ядра — 79 DocType, лише рядки прав (текстовою заміною, решта файлу без змін).
+  Міграція `0021`: `permissions` і `permissions_base` збережених визначень + прибирає старі поля
+  з форми DocPermission. Сухий прогін на копіях dev2 (293 DocType) і lagoo (104): 0 невалідних.
+- **Перевірки:** `guards.doctype_guard(doctype, action)` (meta + 404/403).
+  `export` — `export_file`, `export_csv`, `export_quick`, DataExport (`validate`);
+  `import` — DataImport (`validate`), `run_import_job` (задача пише як SYSTEM_USER — дія
+  перевіряється в того, хто запускає), `download_template` (було `read`);
+  `print` — `print` (документ), `preview` (DocType і документ);
+  `share` — `PermissionChecker.can_share/require_share`: SharedWith, DocumentShare, бічна панель;
+  `report` — `ReportEngine.run` для звітів з `ref_doctype`.
+- **`__perms`** — ще `print`, `share`. Фронтенд: `rolePermissions()`; стандартні дії форми
+  (друк, «Поділитися посиланням»), кнопка друку в бічній панелі, експорт і «Створити звіт» у
+  списку ховаються за правами.
+- **Тести:** `tests/test_permission_actions.py` (модель, міграція, export/print/report),
+  share — «write без share» і «share без write» обидва відмовляють; імпорт — потрібна дія
+  `import` на цільовому DocType.
+- **Поза ядром (при оновленні додатків):** ролям додатків видати `print`/`export`/`share`/
+  `report`, де треба — зараз їх не має ніхто, крім System Manager на DocType ядра; конвертувати
+  їхні JSON (`scratchpad/convert_perms.py` — текстова заміна лише рядків прав); оновити skill
+  grunt-dev (`references/permissions.md`, `doctypes.md`, `new-app.md`).
 

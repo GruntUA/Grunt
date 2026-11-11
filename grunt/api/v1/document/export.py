@@ -18,7 +18,8 @@ from grunt.api.context import whitelist
 from grunt.i18n import _
 from grunt.io.exporters.registry import ListExportContext, get_exporter, get_exporters
 from grunt.local import require_session, user_email
-from grunt.metadata.registry import doctype_registry
+from grunt.permissions.guards import doctype_guard
+from grunt.permissions.rbac import permission_checker
 lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort
 lazy from grunt.document.api import documents
 lazy from grunt.print.pdf import PdfEngineError, html_to_pdf
@@ -64,11 +65,7 @@ async def _export_via_registry(
             % {"format": fmt, "available": ", ".join(available)},
         )
 
-    dt = await doctype_registry.get_meta(doctype)
-    if dt is None:
-        raise HTTPException(
-            status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
-        )
+    dt = await doctype_guard(doctype, "export")
     fields = _non_layout_fields(dt.doc)
     if columns:
         by_name = {f.fieldname: f for f in fields}
@@ -117,6 +114,7 @@ async def export_csv(
 ) -> StreamingResponse:
     """Export documents as CSV."""
 
+    await doctype_guard(doctype, "export")
     parsed_fields = fields.split(",") if fields else ["*"]
 
     data = await documents.get_list(
@@ -158,11 +156,8 @@ async def print(
     """Generate document in requested format: html, pdf, xlsx, or docx."""
 
     doc = await documents.get_doc(doctype, doc_id)
-    dt = await doctype_registry.get_meta(doctype)
-    if dt is None:
-        raise HTTPException(
-            status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
-        )
+    dt = await doctype_guard(doctype, "print")
+    await permission_checker.require(dt, "print", doc)
     session = require_session()
 
     if fmt == "xlsx":
@@ -245,14 +240,11 @@ async def preview(
     if not template_str:
         raise HTTPException(422, detail=_("template is required"))
 
-    dt = await doctype_registry.get_meta(doctype)
-    if dt is None:
-        raise HTTPException(
-            status_code=404, detail=_("DocType “%(doctype)s” not found") % {"doctype": doctype}
-        )
+    dt = await doctype_guard(doctype, "print")
 
     if doc_id:
         doc = await documents.get_doc(doctype, doc_id)
+        await permission_checker.require(dt, "print", doc)
     else:
         # Use first available document as sample
         sample_list = await documents.get_list(doctype, limit=1)

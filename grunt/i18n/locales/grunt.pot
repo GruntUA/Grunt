@@ -148,11 +148,11 @@ msgstr ""
 msgid "%(used)s used"
 msgstr ""
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "%(user)s mentioned you in a comment"
 msgstr ""
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "%(user)s replied to your comment"
 msgstr ""
 
@@ -1209,8 +1209,8 @@ msgstr ""
 msgid "Authentication cancelled"
 msgstr ""
 
-#: grunt/grunt/api/context.py grunt/grunt/api/v1/method.py
-#: grunt/grunt/auth/providers/webauthn.py
+#: grunt/grunt/local.py grunt/grunt/auth/current.py
+#: grunt/grunt/api/v1/method.py grunt/grunt/auth/providers/webauthn.py
 msgid "Authentication required"
 msgstr ""
 
@@ -2086,7 +2086,7 @@ msgstr ""
 msgid "Cloud storage"
 msgstr ""
 
-#: grunt/grunt/storage/cloud/__init__.py
+#: grunt/grunt/core_events.py
 msgid "Cloud storage “%(name)s” is failing"
 msgstr ""
 
@@ -2704,7 +2704,6 @@ msgid "Country flag emoji (🇺🇦)"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
@@ -2805,6 +2804,7 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Cron expression"
 msgstr ""
@@ -2871,11 +2871,11 @@ msgstr ""
 msgid "DEBUG=true in production exposes extra error details."
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "DOCX generation error: %(error)s"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid ""
 "DOCX template not found. Create a PrintFormat with template_type='docx'."
 msgstr ""
@@ -3137,7 +3137,6 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Delete"
 msgstr ""
 
@@ -3513,9 +3512,10 @@ msgstr ""
 msgid "DocType “%(doctype)s” no longer exists"
 msgstr ""
 
-#: grunt/grunt/app/document_api.py grunt/grunt/metadata/registry.py
-#: grunt/grunt/notification/rule_index.py grunt/grunt/activity/__init__.py
-#: grunt/grunt/actions/__init__.py grunt/grunt/document/connections.py
+#: grunt/grunt/app/workflow_api.py grunt/grunt/metadata/registry.py
+#: grunt/grunt/store/virtual.py grunt/grunt/notification/rule_index.py
+#: grunt/grunt/activity/__init__.py grunt/grunt/actions/__init__.py
+#: grunt/grunt/document/api.py grunt/grunt/document/connections.py
 #: grunt/grunt/document/collection.py grunt/grunt/document/links.py
 msgid "DocType “%(doctype)s” not found"
 msgstr ""
@@ -3839,7 +3839,6 @@ msgstr ""
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
@@ -4375,6 +4374,7 @@ msgstr ""
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 msgid "Failed"
 msgstr ""
@@ -4389,6 +4389,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "Failed to load preview"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Failures"
 msgstr ""
 
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
@@ -4439,10 +4443,6 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgid "Field mapping (JSON)"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Field picker"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormInitialization.ts
@@ -6025,6 +6025,7 @@ msgid "Job ID"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Job name"
 msgstr ""
 
@@ -6186,10 +6187,19 @@ msgstr ""
 msgid "Last day of month"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last end"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Last error"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last failure"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -6223,6 +6233,14 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Last sent"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last start"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Last status"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
@@ -6308,13 +6326,6 @@ msgstr ""
 msgid ""
 "Let viewers switch the period (week/month/year/all time) on the widget "
 "itself"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid ""
-"Lets a user search Link-field values (name, title, search fields) without "
-"access to the list or the full document. Granted automatically together with"
-" Read."
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -6676,10 +6687,6 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useMapCoordinateJump.ts
 msgid "Marked point"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Match condition (eval:)"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
@@ -7454,7 +7461,7 @@ msgid ""
 " back to review)"
 msgstr ""
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "Not allowed"
 msgstr ""
 
@@ -7513,6 +7520,10 @@ msgstr ""
 msgid "Not permitted to change another user's password"
 msgstr ""
 
+#: grunt/grunt/document/api.py grunt/grunt/document/mixins/lifecycle.py
+msgid "Not permitted to change fields: %(fields)s"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/user.py
 msgid "Not permitted to change roles"
 msgstr ""
@@ -7533,7 +7544,7 @@ msgstr ""
 msgid "Not permitted to set the password; use the Change password action"
 msgstr ""
 
-#: grunt/grunt/app/document_api.py
+#: grunt/grunt/document/api.py grunt/grunt/permissions/reads.py
 msgid "Not permitted to use fields: %(fields)s"
 msgstr ""
 
@@ -7765,10 +7776,11 @@ msgid ""
 "browser"
 msgstr ""
 
-#: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid ""
-"One row per scheduled job run - framework tasks, app scheduler_events and "
-"Scheduler Event server scripts. Old entries are deleted automatically."
+"One row per scheduled job: when it last ran and how it ended. Updated on "
+"every run, including the frequent jobs whose successful runs the Scheduled "
+"Job Log does not keep."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
@@ -7812,7 +7824,7 @@ msgid "Only one document of this type (settings, profile)"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Only someone who can edit the document can share it"
+msgid "Only someone allowed to share and edit the document can share it"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/comment.py
@@ -8717,7 +8729,6 @@ msgstr ""
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Read"
@@ -9122,7 +9133,6 @@ msgstr ""
 msgid "Report “%(name)s”, %(date)s"
 msgstr ""
 
-#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue
@@ -9356,6 +9366,10 @@ msgstr ""
 msgid "Row actions"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "Row condition"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "Row deleted"
 msgid_plural "{n} rows deleted"
@@ -9457,6 +9471,10 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Running tasks"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Runs"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -9570,7 +9588,7 @@ msgstr ""
 msgid "Same text as the Section of the sidebar items it groups"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Sample"
 msgstr ""
 
@@ -9688,6 +9706,10 @@ msgstr ""
 msgid "Scheduled Job Log"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+msgid "Scheduled Job State"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgid "Scheduled Jobs"
 msgstr ""
@@ -9698,6 +9720,14 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Scheduled delivery"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+msgid ""
+"Scheduled job runs - framework tasks, app scheduler_events and Scheduler "
+"Event server scripts. Jobs that fire more often than hourly leave a row only"
+" when they fail; their last run is in Scheduled Job State. Old entries are "
+"deleted automatically."
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -10851,6 +10881,7 @@ msgstr ""
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid "Success"
 msgstr ""
 
@@ -10935,7 +10966,7 @@ msgstr ""
 msgid "System setup"
 msgstr ""
 
-#: grunt/grunt/monitoring/health.py grunt/frontend/src/core/browserHealth.ts
+#: grunt/grunt/utils/sizes.py grunt/frontend/src/core/browserHealth.ts
 msgid "TB"
 msgstr ""
 
@@ -11081,7 +11112,7 @@ msgstr ""
 msgid "Template document"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Template error:"
 msgstr ""
 
@@ -11644,7 +11675,7 @@ msgstr ""
 msgid "The value the status field must hold (e.g. \"Draft\")"
 msgstr ""
 
-#: grunt/grunt/document/mixins/history_rpc.py
+#: grunt/grunt/api/v1/document/history.py
 msgid "The version does not belong to this document"
 msgstr ""
 
@@ -12156,11 +12187,11 @@ msgstr ""
 msgid "Unknown export format: %(format)s"
 msgstr ""
 
-#: grunt/grunt/app/document_api.py
+#: grunt/grunt/document/api.py
 msgid "Unknown fields: %(fields)s"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Unknown format “%(format)s”. Available: %(available)s"
 msgstr ""
 
@@ -12168,7 +12199,7 @@ msgstr ""
 msgid "Unknown format: %(format)s"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "Unknown format: %(format)s. Supported: html, pdf, xlsx, docx"
 msgstr ""
 
@@ -12537,7 +12568,7 @@ msgstr ""
 msgid "Version"
 msgstr ""
 
-#: grunt/grunt/document/mixins/history_rpc.py
+#: grunt/grunt/api/v1/document/history.py
 msgid "Version not found"
 msgstr ""
 
@@ -12768,6 +12799,14 @@ msgstr ""
 msgid "What needs to be done?"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"What this role may do. Field picker - search Link-field values without the "
+"list or the full document (implied by Read). Export, import, print, share "
+"and reports are granted separately from Read and Edit; Share also needs "
+"Edit."
+msgstr ""
+
 #: grunt/grunt/monitoring/templates/system_health.html
 msgid "What to do"
 msgstr ""
@@ -12806,6 +12845,12 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Which field to show as the node label (default: title field)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid ""
+"Which rows this rule covers: field == user, field != 'value' or "
+"link_field.field == user. Empty - all rows."
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
@@ -13189,7 +13234,7 @@ msgstr ""
 msgid "contain an uppercase letter"
 msgstr ""
 
-#: grunt/grunt/document/mixins/collaboration_rpc.py
+#: grunt/grunt/api/v1/document/collaboration.py
 msgid "content is required"
 msgstr ""
 
@@ -13199,6 +13244,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "count — number of rows"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "create"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
@@ -13227,6 +13276,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "default"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "delete"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -13301,6 +13354,10 @@ msgstr ""
 msgid "explorer"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "export"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "few"
 msgstr ""
@@ -13339,6 +13396,10 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgid "ignored"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "import"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -13621,6 +13682,10 @@ msgstr ""
 msgid "previous value"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "print"
+msgstr ""
+
 #: grunt/grunt/monitoring/updates.py
 msgid "process %(pid)s (%(command)s, %(age)s)"
 msgstr ""
@@ -13653,6 +13718,10 @@ msgstr ""
 msgid "rclone options"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "read"
+msgstr ""
+
 #: grunt/frontend/src/components/desk/AppCard.vue
 msgid "records"
 msgstr ""
@@ -13665,6 +13734,7 @@ msgstr ""
 msgid "removed"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "report"
 msgstr ""
@@ -13694,8 +13764,16 @@ msgstr ""
 msgid "saved"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "select"
+msgstr ""
+
 #: grunt/frontend/src/components/views/actions/BulkActionsMenu.vue
 msgid "selected"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "share"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -13738,7 +13816,7 @@ msgstr ""
 msgid "task"
 msgstr ""
 
-#: grunt/grunt/document/mixins/export_rpc.py
+#: grunt/grunt/api/v1/document/export.py
 msgid "template is required"
 msgstr ""
 
@@ -13821,6 +13899,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "works"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+msgid "write"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -14051,7 +14133,7 @@ msgstr ""
 msgid "“%(doctype)s” does not support this operation"
 msgstr ""
 
-#: grunt/grunt/app/document_api.py grunt/grunt/store/base.py
+#: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr ""
 
@@ -14157,6 +14239,21 @@ msgstr ""
 
 #: grunt/grunt/permissions/rbac.py
 msgctxt "permission"
+msgid "export"
+msgstr ""
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
+msgid "import"
+msgstr ""
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
+msgid "print"
+msgstr ""
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
 msgid "read"
 msgstr ""
 
@@ -14168,6 +14265,11 @@ msgstr ""
 #: grunt/grunt/permissions/rbac.py
 msgctxt "permission"
 msgid "select in a field"
+msgstr ""
+
+#: grunt/grunt/permissions/rbac.py
+msgctxt "permission"
+msgid "share"
 msgstr ""
 
 #: grunt/grunt/permissions/rbac.py
