@@ -30,6 +30,7 @@ from grunt.db.commit import on_commit
 from grunt.i18n import N_, _
 from grunt.local import system_context
 from grunt.log import log
+from grunt.metadata.dynamic_options import register_option_provider
 from grunt.notification.delivery_log import Status
 lazy from grunt.email.service import email_service
 lazy from grunt.metadata.registry import doctype_registry
@@ -79,13 +80,20 @@ class Channel:
         raise NotImplementedError
 
 
-def desk_url(doctype: str | None, doc_id: str | None) -> str | None:
-    """The document's form in the desk, or None when it can't be told."""
+async def desk_url(doctype: str | None, doc_id: str | None) -> str | None:
+    """The document's form in the desk, or None when it can't be told.
+
+    Loads the definition when needed - the worker knows only DocType names
+    until something asks for one (a Studio DocType has no class to index)."""
     if not doctype or not doc_id:
         return None
-    dt = doctype_registry._doctypes.get(doctype)
-    if dt is None:
+    try:
+        meta = await doctype_registry.get_meta(doctype)
+    except Exception:  # noqa: BLE001 - a link is a nicety; no definition, no link
+        meta = None
+    if meta is None:
         return None
+    dt = meta.doc
     app = getattr(dt, "app", None) or getattr(dt, "module", None) or "grunt"
     return f"/app/{app}/{doctype}/{doc_id}"
 
@@ -150,7 +158,7 @@ class WebPushChannel(Channel):
     async def send(
         self, session: AsyncSession, recipient: str, message: Message, *, delivery: str
     ) -> Outcome:
-        url = message.url or desk_url(message.ref_doctype, message.doc_id) or "/"
+        url = message.url or await desk_url(message.ref_doctype, message.doc_id) or "/"
         await outbox.put(
             deliver_push,
             {
@@ -215,6 +223,11 @@ def list_channels() -> list[Channel]:
 def channel_options() -> list[dict[str, Any]]:
     """``[{"value", "label"}]`` - for a rule's channel picker."""
     return [{"value": c.name, "label": _(c.label)} for c in _channels.values()]
+
+
+#: ``options_source`` of ``NotificationChannel.channel`` - the registered channels.
+OPTIONS_SOURCE = "grunt.notification.channel"
+register_option_provider(OPTIONS_SOURCE, lambda: [(c.name, _(c.label)) for c in list_channels()])
 
 
 CORE_CHANNELS = (InAppChannel, WebPushChannel, EmailChannel)

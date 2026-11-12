@@ -1,9 +1,13 @@
 """Notification controller - checks date-based notifications against their DocType."""
 
+import ast
+
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.metadata.registry import doctype_registry
+from grunt.notification import rules
+from grunt.notification.channels import get_channel
 from grunt.notification.date_rules import DATE_EVENTS
 
 _SYSTEM_DATES = ("created_at", "modified_at")
@@ -14,8 +18,13 @@ class Notification(Document):
 
     ref_doctype: str
     event: str
+    condition: str | None
+    subject_template: str | None
+    message_template: str | None
+    notify_actor: bool | None
 
     async def validate(self) -> None:
+        await self._validate_rows()
         if self.event not in DATE_EVENTS:
             return
         field = (self.get("date_field") or "").strip()
@@ -34,3 +43,43 @@ class Notification(Document):
                 % {"field": field, "doctype": self.ref_doctype},
                 "VALIDATION_ERROR",
             )
+
+    async def _validate_rows(self) -> None:
+        """Recipients and channels present, channels known, templates and
+        conditions well-formed - a typo is caught here, not when a document
+        silently notifies nobody."""
+        if not self.get("recipients"):
+            throw(_("Add at least one recipient"), "VALIDATION_ERROR")
+        if not self.get("channels"):
+            throw(_("Add at least one channel"), "VALIDATION_ERROR")
+        for row in self.get("channels") or []:
+            if get_channel(row.get("channel") or "") is None:
+                throw(
+                    _("Unknown channel “%(channel)s”") % {"channel": row.get("channel")},
+                    "VALIDATION_ERROR",
+                )
+        templates = [
+            (_("Subject"), self.get("subject_template")),
+            (_("Message"), self.get("message_template")),
+        ]
+        for row in self.get("channels") or []:
+            templates += [(_("Subject"), row.get("subject")), (_("Message"), row.get("message"))]
+        for label, template in templates:
+            if template and (error := await rules.check_template(template)):
+                throw(
+                    _("%(field)s: template error - %(error)s") % {"field": label, "error": error},
+                    "VALIDATION_ERROR",
+                )
+        conditions = [self.get("condition")] + [
+            row.get("condition") for row in self.get("recipients") or []
+        ]
+        for condition in conditions:
+            if condition and condition.strip():
+                try:
+                    ast.parse(condition.strip(), mode="eval")
+                except SyntaxError as exc:
+                    throw(
+                        _("Condition “%(condition)s” is not a valid expression: %(error)s")
+                        % {"condition": condition, "error": exc.msg},
+                        "VALIDATION_ERROR",
+                    )
