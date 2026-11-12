@@ -140,3 +140,22 @@ def test_noop_when_already_renamed(tmp_path: Path):
             migration.upgrade()  # a second run finds nothing left to rename
         assert _definition(conn, "NotificationRule") is None
         assert _definition(conn, "NotificationLog") is not None
+
+
+def test_resumes_after_table_renamed_but_column_not(tmp_path: Path):
+    """MySQL commits each DDL statement: a run that stopped after renaming the
+    table is retried with the table already renamed and the column not."""
+    engine = sa.create_engine(f"sqlite:///{tmp_path / 'site.db'}")
+    with engine.begin() as conn:
+        _setup(conn)
+        conn.execute(sa.text("DROP INDEX ix_grunt_notification_user"))
+        conn.execute(sa.text("ALTER TABLE grunt_notification RENAME TO grunt_notification_log"))
+        with Operations.context(MigrationContext.configure(conn)):
+            migration.upgrade()
+
+        columns = {c["name"] for c in sa.inspect(conn).get_columns("grunt_notification_log")}
+        assert "notification" in columns
+        assert "notification_rule" not in columns
+        bell = conn.execute(sa.text("SELECT name, notification FROM grunt_notification_log")).all()
+        assert bell == [("n1", "r1")]
+        assert conn.execute(sa.text("SELECT name FROM grunt_notification")).all() == [("r1",)]

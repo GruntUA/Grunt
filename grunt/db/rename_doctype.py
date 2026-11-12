@@ -25,12 +25,19 @@ What changes:
 
 Swapping names (``A`` -> ``A2``, then ``B`` -> ``A``) works when run in that order.
 Runs inside the migration's transaction; synchronous (Alembic's connection).
+Safe to retry after an interrupted run (MySQL commits each DDL statement).
+
+Revisions call this helper instead of carrying a copy, so a change here may
+only extend it: what it does for the arguments an existing revision passes
+must stay the same, or replaying that revision changes.
 """
 
 import json
 from typing import Any
 
 import sqlalchemy as sa
+from alembic.operations import Operations
+from alembic.runtime.migration import MigrationContext
 from sqlalchemy.engine import Connection
 
 _META = "grunt_metadata_doc_type"
@@ -113,11 +120,17 @@ def rename_doctype(
                     f"rename_doctype: table {new_table!r} already exists and holds data"
                 )
             conn.execute(sa.text(f"DROP TABLE {_q(conn, new_table)}"))
+        # Alembic's DDL knows each dialect's syntax (MySQL: DROP INDEX … ON table).
+        ops = Operations(MigrationContext.configure(conn))
         for ix in inspector.get_indexes(old_table):
             name = ix.get("name") or ""
             if name.startswith(f"ix_{old_table}_"):
-                conn.execute(sa.text(f"DROP INDEX {_q(conn, name)}"))
+                ops.drop_index(name, table_name=old_table)
         conn.execute(sa.text(f"ALTER TABLE {_q(conn, old_table)} RENAME TO {_q(conn, new_table)}"))
+
+    # Columns - also when a previous, interrupted run already renamed the
+    # table (MySQL commits each DDL statement on its own).
+    if fields and new_table in set(sa.inspect(conn).get_table_names()):
         columns = {c["name"] for c in sa.inspect(conn).get_columns(new_table)}
         for old_col, new_col in fields.items():
             if old_col in columns and new_col not in columns:
