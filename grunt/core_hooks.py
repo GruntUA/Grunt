@@ -17,7 +17,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
     },
     # Keep the notification-rule index (grunt.events "notification_rules"
     # stage) fresh.
-    "NotificationRule": {
+    "Notification": {
         "after_save": ["grunt.notification.rule_index.invalidate_on_change"],
         "after_delete": ["grunt.notification.rule_index.invalidate_on_change"],
     },

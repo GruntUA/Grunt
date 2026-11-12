@@ -36,7 +36,7 @@ _GRUNT_ROOT = Path(__file__).resolve().parents[2] / "grunt"
 
 _DOCTYPE_JSON = {
     "PushSubscription": _GRUNT_ROOT / "webpush/doctypes/PushSubscription/PushSubscription.json",
-    "Notification": _GRUNT_ROOT / "notification/doctypes/Notification/Notification.json",
+    "NotificationLog": _GRUNT_ROOT / "notification/doctypes/NotificationLog/NotificationLog.json",
 }
 
 _USER_SESSION_JSON = _GRUNT_ROOT / "auth/doctypes/UserSession/UserSession.json"

@@ -84,7 +84,7 @@ async def notify(
     async with system_context(require_session()):
         for user_email in users:
             doc = await documents.new_doc(
-                "Notification",
+                "NotificationLog",
                 {
                     "user": user_email,
                     "subject": subject,

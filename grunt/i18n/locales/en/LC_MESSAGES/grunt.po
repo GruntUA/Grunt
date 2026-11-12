@@ -524,7 +524,7 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -906,7 +906,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -1776,7 +1776,7 @@ msgid "Changing it later makes everything already uploaded unreadable."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Channel"
 msgstr ""
 
@@ -2291,7 +2291,7 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Condition (Python)"
 msgstr ""
 
@@ -2949,7 +2949,7 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue
@@ -2972,7 +2972,7 @@ msgstr ""
 msgid "Date of birth"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "Date/Datetime field of the document the reminder is counted from, e.g. "
 "contract_end"
@@ -3006,7 +3006,7 @@ msgstr ""
 msgid "Daylight saving time"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Days"
@@ -3636,7 +3636,6 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/website/www/share/{token}.py
@@ -4236,7 +4235,7 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Event"
@@ -4271,7 +4270,7 @@ msgstr ""
 msgid "Every repetition is a copy of this document"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Every year"
 msgstr ""
 
@@ -5406,7 +5405,7 @@ msgid ""
 "\"In preview\" fields"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "How many days before/after the date; 0: on the day itself. Sent once a day "
 "at 08:00"
@@ -6687,7 +6686,7 @@ msgstr ""
 msgid "Which rows this rule covers: field == user, field != 'value' or link_field.field == user. Empty - all rows."
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Match only day and month - birthdays, work anniversaries"
 msgstr ""
 
@@ -6761,7 +6760,7 @@ msgstr ""
 msgid "Message"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Message template"
 msgstr ""
 
@@ -7595,8 +7594,12 @@ msgid "Nothing to back up"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgid "Notification Rule"
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification Log"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -8768,7 +8771,7 @@ msgid "Recipient address"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Recipients"
 msgstr ""
 
@@ -10214,7 +10217,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -10591,7 +10594,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -10811,7 +10814,7 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Subject template"
 msgstr ""
 
@@ -13086,7 +13089,7 @@ msgstr ""
 msgid "be at least %(count)s characters long"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "both"
 msgstr ""
 
@@ -13244,7 +13247,7 @@ msgstr ""
 msgid "e.g. link_field.source_field"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "email"
 msgstr ""
 
@@ -13699,7 +13702,7 @@ msgid "switch back"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "system"
 msgstr ""
 

@@ -1,4 +1,4 @@
-"""Which ``(doctype, event)`` pairs have at least one enabled ``NotificationRule``.
+"""Which ``(doctype, event)`` pairs have at least one enabled ``Notification``.
 
 The hook bus (:func:`grunt.hooks.fire`, stage 5) consults this before it offloads
 notification-rule evaluation to a background worker. Without the check *every*
@@ -6,7 +6,7 @@ document write in the system enqueues a worker task, even when no rule could
 ever match it.
 
 Modelled on :mod:`grunt.workflow.registry`: a process-local snapshot per site,
-kept fresh by ``NotificationRule`` change hooks (wired in ``grunt.core_hooks``)
+kept fresh by ``Notification`` change hooks (wired in ``grunt.core_hooks``)
 in every process via :mod:`grunt.cache.bus`, with a short TTL as the backstop.
 """
 
@@ -37,7 +37,7 @@ def invalidate() -> None:
 
 
 def invalidate_on_change(**_kwargs: object) -> None:
-    """Doc-event hook target for ``NotificationRule`` after_save / after_delete."""
+    """Doc-event hook target for ``Notification`` after_save / after_delete."""
     invalidate()
 
 
@@ -48,9 +48,9 @@ async def _load() -> frozenset[tuple[str, str]] | None:
     if session is None:
         return None
 
-    dt = await doctype_registry.get_meta("NotificationRule")
+    dt = await doctype_registry.get_meta("Notification")
     if dt is None:
-        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "NotificationRule"})
+        raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": "Notification"})
     table = dt.table
     result = await session.execute(
         select(table.c.ref_doctype, table.c.event).where(table.c.is_enabled.is_(True))
@@ -59,7 +59,7 @@ async def _load() -> frozenset[tuple[str, str]] | None:
 
 
 async def has_rules(doctype: str, event: str) -> bool:
-    """True if an enabled ``NotificationRule`` targets this *doctype* + *event*.
+    """True if an enabled ``Notification`` targets this *doctype* + *event*.
 
     Fails open: if the snapshot cannot be loaded (no session bound, DB error) it
     returns ``True`` so the background worker still gets a chance to evaluate.

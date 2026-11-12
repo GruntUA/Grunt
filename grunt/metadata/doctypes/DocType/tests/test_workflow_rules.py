@@ -84,7 +84,7 @@ def _as(email: str, *roles: str):
 
 
 async def _inbox(email: str) -> list[str]:
-    rows = await grunt.db.get_all("Notification", filters={"user": email}, fields=["subject"])
+    rows = await grunt.db.get_all("NotificationLog", filters={"user": email}, fields=["subject"])
     return sorted(r["subject"] for r in rows)
 
 

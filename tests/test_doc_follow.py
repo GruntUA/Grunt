@@ -47,7 +47,7 @@ async def _follow(db_session, engine, doc: str, user=None) -> dict:
 
 async def _notifications(ctx, user: str) -> list[dict]:
     return await ctx.db.get_all(
-        "Notification", filters={"user": user}, fields=["subject", "message"], limit=None
+        "NotificationLog", filters={"user": user}, fields=["subject", "message"], limit=None
     )
 
 

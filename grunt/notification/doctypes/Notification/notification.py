@@ -1,15 +1,36 @@
-"""Controller for the ``Notification`` DocType."""
+"""Notification controller - checks date-based notifications against their DocType."""
 
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
+from grunt.notification.date_rules import DATE_EVENTS
+
+_SYSTEM_DATES = ("created_at", "modified_at")
 
 
 class Notification(Document):
     """DocType controller for Notification."""
 
-    # "user" field: read it as self.data["user"] - self.user is the session user.
-    subject: str | None
-    message: str | None
-    ref_doctype: str | None
-    doc_id: str | None
-    is_read: bool | None
-    notification_rule: str | None
+    ref_doctype: str
+    event: str
+
+    async def validate(self) -> None:
+        if self.event not in DATE_EVENTS:
+            return
+        field = (self.get("date_field") or "").strip()
+        self.date_field = field
+        if int(self.get("days") or 0) < 0:
+            throw(_("Days cannot be negative"), "VALIDATION_ERROR")
+        if not field:
+            throw(_("Choose the date field to count from"), "VALIDATION_ERROR")
+        if field in _SYSTEM_DATES:
+            return
+        meta = await doctype_registry.get_meta(self.ref_doctype)
+        fdef = meta.get_field(field) if meta else None
+        if fdef is None or not fdef.is_date:
+            throw(
+                _("“%(field)s” is not a date field of %(doctype)s")
+                % {"field": field, "doctype": self.ref_doctype},
+                "VALIDATION_ERROR",
+            )

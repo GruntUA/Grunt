@@ -9,7 +9,7 @@ ASSIGNEE = "assignee@example.com"
 
 async def _notifs_for(ctx, user: str) -> list[dict]:
     return await ctx.db.get_all(
-        "Notification",
+        "NotificationLog",
         filters={"user": user},
         fields=["subject", "message", "ref_doctype", "doc_id"],
         limit=10,

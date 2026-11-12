@@ -93,10 +93,10 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     event = kwargs["event"]
     if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
         return
-    # ``Notification`` is the fan-out sink itself - evaluating rules on its own
+    # ``NotificationLog`` is the fan-out sink itself - evaluating rules on its own
     # writes would recursively enqueue more work. Append-only system logs
     # (``DocType.is_log``) never warrant notification rules either.
-    if doctype == "Notification":
+    if doctype == "NotificationLog":
         return
 
     try:

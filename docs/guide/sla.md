@@ -16,7 +16,7 @@ record in Desk.
 | Notify / Escalate to | Recipients for the warning and the breach (escalation only on breach) |
 | Channel | In-app, email or both |
 
-Recipients use the NotificationRule syntax: `owner`, `role:Manager`,
+Recipients use the Notification syntax: `owner`, `role:Manager`,
 `user@example.com`, `{field:assigned_to}`, plus `{field:executor.user_id}`, which
 follows a Link (for example from an Employee to their user account).
 

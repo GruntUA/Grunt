@@ -551,7 +551,7 @@ msgstr "Активувати"
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -946,7 +946,7 @@ msgstr "Квартира / Офіс"
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -1847,7 +1847,7 @@ msgid "Changing it later makes everything already uploaded unreadable."
 msgstr "Якщо змінити його пізніше, усе вже вивантажене стане нечитабельним."
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Channel"
 msgstr "Канал"
 
@@ -2370,7 +2370,7 @@ msgstr ""
 "Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Condition (Python)"
 msgstr "Умова (Python)"
 
@@ -3046,7 +3046,7 @@ msgstr "Дата / час"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue
@@ -3069,7 +3069,7 @@ msgstr "Дата зміни"
 msgid "Date of birth"
 msgstr "Дата народження"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "Date/Datetime field of the document the reminder is counted from, e.g. "
 "contract_end"
@@ -3105,7 +3105,7 @@ msgstr "День місяця має бути від 1 до 31"
 msgid "Daylight saving time"
 msgstr "Перехід на літній час"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Days"
@@ -3752,7 +3752,6 @@ msgstr "Документ перейменовано"
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/website/www/share/{token}.py
@@ -4365,7 +4364,7 @@ msgstr "Європа"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Event"
@@ -4405,7 +4404,7 @@ msgstr ""
 msgid "Every repetition is a copy of this document"
 msgstr "Кожне повторення — копія цього документа"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Every year"
 msgstr "Щороку"
 
@@ -5596,7 +5595,7 @@ msgstr ""
 "При наведенні на посилання на документ показується картка з його назвою, "
 "зображенням і полями «У перегляді»"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "How many days before/after the date; 0: on the day itself. Sent once a day "
 "at 08:00"
@@ -6923,7 +6922,7 @@ msgstr "Позначити як прочитане"
 msgid "Marked point"
 msgstr "Позначена точка"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Match only day and month - birthdays, work anniversaries"
 msgstr "Враховувати лише день і місяць — дні народження, річниці роботи"
 
@@ -6997,7 +6996,7 @@ msgstr "Об'єднати клітинки"
 msgid "Message"
 msgstr "Повідомлення"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Message template"
 msgstr "Шаблон повідомлення"
 
@@ -7871,9 +7870,13 @@ msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgid "Notification Rule"
-msgstr "Правило сповіщення"
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification"
+msgstr "Сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification Log"
+msgstr "Журнал сповіщень"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
@@ -9119,7 +9122,7 @@ msgid "Recipient address"
 msgstr "Адреса отримувача"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Recipients"
 msgstr "Отримувачі"
 
@@ -10636,7 +10639,7 @@ msgstr "Доступ поширюється на піддерево"
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -11042,7 +11045,7 @@ msgstr "Етап"
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -11268,7 +11271,7 @@ msgstr "Код підрозділу (UA-30 для Києва, US-CA для Ка�
 msgid "Subject"
 msgstr "Тема"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Subject template"
 msgstr "Шаблон теми"
 
@@ -13692,7 +13695,7 @@ msgstr "avg — середнє"
 msgid "be at least %(count)s characters long"
 msgstr "містити щонайменше %(count)s символів"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "both"
 msgstr "Обидва"
 
@@ -13859,7 +13862,7 @@ msgstr "напр. execution_note"
 msgid "e.g. link_field.source_field"
 msgstr "напр. link_field.source_field"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "email"
 msgstr "Email"
 
@@ -14347,7 +14350,7 @@ msgid "switch back"
 msgstr "повернутися до себе"
 
 #: grunt/grunt/auth/doctypes/User/User.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "system"
 msgstr "Система"
 
@@ -14882,12 +14885,12 @@ msgid "Title"
 msgstr "Назва"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgctxt "meta:Notification.is_read"
+msgctxt "meta:NotificationLog.is_read"
 msgid "Read"
 msgstr "Прочитано"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "meta:NotificationRule.is_enabled"
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgctxt "meta:Notification.is_enabled"
 msgid "Active"
 msgstr "Активне"
 

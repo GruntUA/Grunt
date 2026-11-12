@@ -56,7 +56,7 @@ def _in(minutes: int) -> str:
 
 async def _subjects(ctx, user):
     rows = await ctx.db.get_all(
-        "Notification", filters={"user": user}, fields=["subject", "message"]
+        "NotificationLog", filters={"user": user}, fields=["subject", "message"]
     )
     return [(r["subject"], r["message"]) for r in rows]
 

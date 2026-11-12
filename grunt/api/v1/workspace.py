@@ -317,7 +317,7 @@ async def get_my_work() -> dict[str, Any]:
     # Unread notifications.
     try:
         notifications = await documents.get_list(
-            "Notification",
+            "NotificationLog",
             filters={"user": email, "is_read": False},
             fields=["name", "subject", "ref_doctype", "doc_id", "created_at"],
             order_by="created_at",
