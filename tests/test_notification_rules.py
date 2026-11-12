@@ -318,3 +318,54 @@ def test_migration_moves_old_rules(tmp_path: Path):
     ]
     assert [c for (c,) in channels] == ["in_app", "web_push", "email"]
     assert [f["fieldname"] for f in definition["fields"]] == ["recipients", "event"]
+
+
+@pytest.mark.asyncio
+async def test_inactive_accounts_are_left_out(ctx, tickets):
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await ctx.new_doc(
+            "User",
+            {
+                "email": "gone@grunt.example.com",
+                "first_name": "Г",
+                "last_name": "Т",
+                "is_active": False,
+            },
+        )
+        await ctx.db.insert_one(
+            "DocFollow",
+            {
+                "name": "f-gone",
+                "owner": "gone@grunt.example.com",
+                "reference_doctype": "NotifTicket",
+                "reference_id": "T-1",
+                "user": "gone@grunt.example.com",
+            },
+        )
+        rule = await _rule(ctx, recipients=[{"kind": "Followers"}, {"kind": "Author"}])
+        await _run(ctx, rule, await _ticket(ctx))
+        rule = await _rule(ctx, recipients=[{"kind": "Email", "email": "gone@grunt.example.com"}])
+        await _run(ctx, rule, await _ticket(ctx))
+        recipients = [r for r, _c, _s in await _deliveries(ctx)]
+
+    # The follow is dropped; an Email row naming the address is kept on purpose.
+    assert sorted(recipients) == ["gone@grunt.example.com", OWNER]
+
+
+def test_downgrade_refuses():
+    with pytest.raises(NotImplementedError):
+        migration.downgrade()
+
+
+@pytest.mark.asyncio
+async def test_url_for_a_doctype_not_loaded_yet(ctx, tickets, monkeypatch):
+    """The worker knows only DocType names until asked - the link still works."""
+    from grunt.metadata.registry import doctype_registry
+    from grunt.notification.channels import desk_url
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        # As after prefetch_names: the name is known, the definition not loaded.
+        monkeypatch.delitem(doctype_registry._doctypes, "NotifTicket", raising=False)
+        doctype_registry._known_names.add("NotifTicket")
+        doctype_registry._known_index_add("NotifTicket")
+        assert (await desk_url("NotifTicket", "T-1") or "").endswith("/NotifTicket/T-1")

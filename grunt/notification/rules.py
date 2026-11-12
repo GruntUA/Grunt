@@ -177,6 +177,7 @@ async def resolve_recipients(
 ) -> list[str]:
     """The emails *rule* notifies about *doc* - without *actor* unless ``notify_actor``."""
     found: list[str] = []
+    literal: set[str] = set()  # Email rows - addresses, not accounts
     doc_id = str(doc.get("name") or "")
     for row in rule.get("recipients") or []:
         if not eval_condition(row.get("condition"), doc, actor):
@@ -192,6 +193,7 @@ async def resolve_recipients(
             value = await _field_value(doctype, doc, row["field"])
             found.append((await _user_email(value) or "") if value else "")
         elif kind == "Email" and row.get("email"):
+            literal.add(row["email"].strip())
             found.append(row["email"].strip())
         elif kind == "Assignees" and doc_id:
             found += await _assignees(doctype, doc_id)
@@ -200,12 +202,27 @@ async def resolve_recipients(
     emails = [e for e in dict.fromkeys(found) if e]
     if not rule.get("notify_actor"):
         emails = [e for e in emails if e != actor]
-    return emails
+    # A deactivated account is told nothing - wherever its address came from
+    # (an old ToDo, a follow, a document field), except an Email row naming it.
+    inactive = await _inactive(set(emails) - literal)
+    return [e for e in emails if e not in inactive]
 
 
-def form_url(doctype: str, doc_id: str) -> str:
+async def _inactive(emails: set[str]) -> set[str]:
+    if not emails:
+        return set()
+    rows = await _db.get_all(
+        "User",
+        filters={"email__in": sorted(emails), "is_active": False},
+        fields=["email"],
+        limit=None,
+    )
+    return {r["email"] for r in rows}
+
+
+async def form_url(doctype: str, doc_id: str) -> str:
     """The document's form - absolute when the site is named by its domain."""
-    path = desk_url(doctype, doc_id) or ""
+    path = await desk_url(doctype, doc_id) or ""
     site = current_site.get()
     return f"https://{site}{path}" if path and "." in site else path
 
@@ -228,7 +245,7 @@ async def context(
         "event": event,
         "actor": actor_name,
         "actor_email": actor,
-        "url": form_url(doctype, str(doc.get("name") or "")),
+        "url": await form_url(doctype, str(doc.get("name") or "")),
         **(extra or {}),
     }
 
@@ -260,7 +277,7 @@ async def run(
     base = {
         "ref_doctype": doctype,
         "doc_id": doc_id,
-        "url": desk_url(doctype, doc_id),
+        "url": await desk_url(doctype, doc_id),
         "notification": rule.get("name"),
     }
     # Channels sharing the rule's text go out together; one with its own text alone.

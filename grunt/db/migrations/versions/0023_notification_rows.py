@@ -163,4 +163,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    pass
+    # Not reversible - restore the backup taken before the upgrade (grunt db restore).
+    raise NotImplementedError("revision 0023 cannot be downgraded: restore a backup")
