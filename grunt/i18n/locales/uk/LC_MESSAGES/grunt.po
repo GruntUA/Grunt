@@ -15419,6 +15419,10 @@ msgstr ""
 msgid "Event recipients"
 msgstr "Отримувачі з події"
 
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“Event recipients” only work for a notification on a code event"
+msgstr "«Отримувачі з події» працюють лише в сповіщенні про подію з коду"
+
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "
 #~ "and explains it."

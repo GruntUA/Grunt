@@ -28,7 +28,8 @@ async def _title(row: dict[str, Any]) -> str:
 
 
 async def deliver(row: dict[str, Any]) -> bool:
-    """Claim and send one reminder; False when another run already took it."""
+    """Claim and send one reminder; False when another run already took it,
+    or when its notification reached nobody (it is retried)."""
 
     claimed = await _db.bulk_update(
         "Reminder", {"name": row["name"], "notified": False}, {"notified": True}
@@ -37,7 +38,7 @@ async def deliver(row: dict[str, Any]) -> bool:
         return False
 
     title = await _title(row)
-    await trigger(
+    result = await trigger(
         "grunt.reminder",
         doc=row,
         doctype="Reminder",
@@ -45,6 +46,12 @@ async def deliver(row: dict[str, Any]) -> bool:
         extra={"title": title, "note": (row.get("description") or "").strip()},
         session=require_session(),
     )
+    if result.rules and not result.notified:
+        # A rule ran but no channel reached anyone (e.g. an email-only rule
+        # with the queue failing) - leave it unsent, the next run retries.
+        # No enabled rule at all is a choice, not a failure.
+        await _db.bulk_update("Reminder", {"name": row["name"]}, {"notified": False})
+        return False
     return True
 
 

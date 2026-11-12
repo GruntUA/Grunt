@@ -83,6 +83,15 @@ OPTIONS_SOURCE = "grunt.notification.event"
 register_option_provider(OPTIONS_SOURCE, lambda: [(e.key, _(e.label)) for e in list_events()])
 
 
+@dataclass(frozen=True, slots=True)
+class Triggered:
+    """What :func:`trigger` did: ``rules`` - enabled rules that ran,
+    ``notified`` - recipients at least one channel reached (sent or queued)."""
+
+    rules: int = 0
+    notified: int = 0
+
+
 async def trigger(
     key: str,
     *,
@@ -93,40 +102,50 @@ async def trigger(
     actor: str = "",
     extra: dict[str, Any | Callable[[], Any]] | None = None,
     session: AsyncSession | None = None,
-) -> int:
-    """Run the enabled rules of code event *key*; returns how many recipients
-    were notified. Never raises - a notification must not break the action
-    that caused it."""
-    session = session or require_session()
+) -> Triggered:
+    """Run the enabled rules of code event *key*.
+
+    Never raises - a notification must not break the action that caused it:
+    each rule runs in a savepoint of its own, so a failing one is rolled
+    back, logged and the next one still runs.
+    """
     if key not in _events:
         log.warning("notification.unknown_event", event_key=key)
+    named = list(recipients)  # an iterator would be spent on the first rule
+    ran = notified = 0
     try:
-        async with system_context(session):
+        session = session or require_session()
+        async with session.begin_nested(), system_context(session):
             found = await _db.get_all(
                 "Notification",
                 filters={"event": "code", "event_key": key, "is_enabled": True},
-                limit=100,
+                limit=None,
             )
-        source = doctype or (_events[key].doctype if key in _events else None) or ""
-        count = 0
-        for rule in found:
-            if rule.get("ref_doctype") and rule["ref_doctype"] != source:
-                continue
-            count += await rules.run(
-                session,
-                rule,
-                source,
-                dict(doc or {}),
-                actor=actor,
-                event=key,
-                extra=extra,
-                event_recipients=list(recipients),
-                link=link,
-            )
-        return count
     except Exception:
         log.exception("notification.trigger_failed", event_key=key)
-        return 0
+        return Triggered()
+
+    source = doctype or (_events[key].doctype if key in _events else None) or ""
+    for rule in found:
+        if rule.get("ref_doctype") and rule["ref_doctype"] != source:
+            continue
+        try:
+            async with session.begin_nested():
+                notified += await rules.run(
+                    session,
+                    rule,
+                    source,
+                    dict(doc or {}),
+                    actor=actor,
+                    event=key,
+                    extra=extra,
+                    event_recipients=named,
+                    link=link,
+                )
+            ran += 1
+        except Exception:
+            log.exception("notification.rule_failed", event_key=key, rule=rule.get("name"))
+    return Triggered(ran, notified)
 
 
 # The core's events. Labels are marked for translation; descriptions name the

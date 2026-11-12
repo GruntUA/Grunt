@@ -64,6 +64,14 @@ class Notification(Document):
             throw(_("Add at least one recipient"), "VALIDATION_ERROR")
         if not self.get("channels"):
             throw(_("Add at least one channel"), "VALIDATION_ERROR")
+        if self.get("event") != "code" and any(
+            row.get("kind") == "Event recipients" for row in self.get("recipients") or []
+        ):
+            # Only code names them - on a document event the row would reach nobody.
+            throw(
+                _("“Event recipients” only work for a notification on a code event"),
+                "VALIDATION_ERROR",
+            )
         for row in self.get("channels") or []:
             if get_channel(row.get("channel") or "") is None:
                 throw(

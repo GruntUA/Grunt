@@ -21,7 +21,6 @@ from grunt.local import system_context
 from grunt.log import log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
-lazy from grunt.auth.language import language_of
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site
 
@@ -271,10 +270,21 @@ def _localized(ctx: dict[str, Any]) -> dict[str, Any]:
 
 
 async def _languages(recipients: list[str]) -> dict[str | None, list[str]]:
-    """Recipients grouped by their UI language (None - no preference)."""
+    """Recipients grouped by their UI language (None - no preference or no account)."""
+    try:
+        rows = await _db.get_all(
+            "User",
+            filters={"email__in": sorted(set(recipients))},
+            fields=["email", "language"],
+            limit=None,
+        )
+        language = {r["email"]: r.get("language") or None for r in rows}
+    except Exception:  # noqa: BLE001 - no language is no reason to stay silent
+        log.warning("notification.languages_failed", exc_info=True)
+        language = {}
     groups: dict[str | None, list[str]] = {}
     for email in recipients:
-        groups.setdefault(await language_of(email), []).append(email)
+        groups.setdefault(language.get(email), []).append(email)
     return groups
 
 
@@ -291,7 +301,8 @@ async def run(
     link: tuple[str, str] | None = None,
 ) -> int:
     """Run *rule* on *doc*: condition, recipients, text, channels. Returns how
-    many recipients it notified (0 - the condition said no, or nobody to tell).
+    many recipients a channel reached (0 - the condition said no, nobody to
+    tell, or every channel failed).
 
     *link* - the document the notification opens, when not *doc* itself (a
     task's notification opens the task's document). The text is rendered in
@@ -318,6 +329,7 @@ async def run(
         "notification": rule.get("name"),
         "event_key": event if rule.get("event") == "code" else None,
     }
+    reached: set[str] = set()
     for language, people in groups.items():
         with use_language(language):
             local = _localized(ctx)
@@ -337,9 +349,8 @@ async def run(
                     body=await render(row["message"], local) if row.get("message") else message,
                     **base,
                 )
-                await deliver(session, people, own, [channel])
+                reached |= (await deliver(session, people, own, [channel])).reached
             if shared:
-                await deliver(
-                    session, people, Message(subject=subject, body=message, **base), shared
-                )
-    return len(recipients)
+                message_ = Message(subject=subject, body=message, **base)
+                reached |= (await deliver(session, people, message_, shared)).reached
+    return len(reached)

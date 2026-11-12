@@ -242,10 +242,19 @@ async def apply_records(
     return count
 
 
-async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: AsyncEngine) -> int:
+async def _apply_folder(
+    app: str,
+    folder: Path,
+    session: AsyncSession,
+    eng: AsyncEngine,
+    *,
+    raise_errors: bool = False,
+) -> int:
 
     record = read_record(folder)
     if record is None:
+        if raise_errors:
+            raise ValueError(f"unreadable standard record: {folder}")
         log.warning("standard_records.unreadable", path=str(folder))
         return 0
     meta = await doctype_registry.get_meta(record["doctype"])
@@ -264,6 +273,8 @@ async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: Asyn
     try:
         return await apply_doctype_fixture(meta.doc.name, [record], session, eng, sync=True)
     except Exception as e:
+        if raise_errors:
+            raise
         log.warning("standard_records.apply_failed", path=str(folder), error=str(e))
         return 0
     finally:
@@ -285,12 +296,17 @@ def mark_customized(doc: Any) -> None:
 
 async def reset(doctype: str, name: str) -> bool:
     """Bring a customized standard record back to its app's files; False when
-    no file ships it."""
+    no file ships it. A failed apply leaves it customized and raises - the
+    next ``grunt migrate`` must not take the local edits for the app's."""
     folders = _folders_of(doctype, name)
     if not folders:
         return False
     session = require_session()
-    await _db.set_value(doctype, name, "is_customized", False)
     app = await _db.get_value(doctype, name, "app") or "grunt"
-    await _apply_folder(str(app), folders[0], session, require_engine())
+    await _db.set_value(doctype, name, "is_customized", False)
+    try:
+        await _apply_folder(str(app), folders[0], session, require_engine(), raise_errors=True)
+    except Exception:
+        await _db.set_value(doctype, name, "is_customized", True)
+        raise
     return True

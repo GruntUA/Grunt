@@ -14590,3 +14590,7 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Event recipients"
 msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“Event recipients” only work for a notification on a code event"
+msgstr ""

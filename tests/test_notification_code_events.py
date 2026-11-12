@@ -102,7 +102,7 @@ async def test_rendered_in_each_recipients_language(ctx):
 @pytest.mark.asyncio
 async def test_unknown_event_and_no_rule_send_nothing(ctx):
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
-        assert await events.trigger("nobody.listens", recipients=[ASSIGNEE]) == 0
+        assert await events.trigger("nobody.listens", recipients=[ASSIGNEE]) == events.Triggered()
         assert await _bell(ctx) == []
 
 
@@ -133,7 +133,7 @@ async def test_app_event_from_hooks(ctx, monkeypatch):
         )
         bell = await _bell(ctx)
 
-    assert sent == 1
+    assert (sent.rules, sent.notified) == (1, 1)
     assert bell[0]["subject"] == "Оплачено 120"
 
 
@@ -157,8 +157,110 @@ async def test_unknown_code_event_is_rejected(ctx):
 
 
 def test_extractor_reads_jinja_in_records():
-    from grunt.i18n.extract import extract_all
+    from pathlib import Path
 
-    sources = {r["source"] for r in extract_all(origins={"grunt"})}
-    assert "Assigned to you: %(target)s" in sources
-    assert "Reminder: %(count)d task with a due date" in sources
+    from grunt.i18n.extract import _scan_record_json
+
+    records = Path(__file__).parents[1] / "grunt/notification/records/notification"
+    found: set[str] = set()
+    for name in ("task_assigned", "tasks_due"):
+        path = records / name / f"{name}.json"
+
+        def add(source, context, kind, origin, where, plural_source=""):
+            found.add(source)
+
+        _scan_record_json(path.read_text(), str(path), "grunt", add, {})
+    assert "Assigned to you: %(target)s" in found
+    assert "Reminder: %(count)d task with a due date" in found
+
+
+@pytest.mark.asyncio
+async def test_event_recipients_need_a_code_event(ctx):
+    from fastapi import HTTPException
+
+    from grunt.errors import ApplicationError
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        with pytest.raises((ApplicationError, HTTPException)):
+            await ctx.new_doc(
+                "Notification",
+                {
+                    "ref_doctype": "ToDo",
+                    "event": "after_save",
+                    "recipients": [{"kind": "Event recipients"}],
+                    "channels": [{"channel": "in_app"}],
+                },
+            )
+
+
+@pytest.mark.asyncio
+async def test_a_failing_rule_does_not_stop_the_others(ctx, monkeypatch):
+    from grunt.notification import rules
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await ctx.new_doc(
+            "Notification",
+            {
+                "name": "Second",
+                "event": "code",
+                "event_key": "grunt.todo.assigned",
+                "recipients": [{"kind": "Event recipients"}],
+                "channels": [{"channel": "in_app"}],
+                "subject_template": "{{ target }}",
+            },
+        )
+        real_run = rules.run
+
+        async def run(session, rule, *args, **kwargs):
+            if rule["name"] == RULE:
+                raise RuntimeError("boom")
+            return await real_run(session, rule, *args, **kwargs)
+
+        monkeypatch.setattr(rules, "run", run)
+        result = await events.trigger(
+            "grunt.todo.assigned",
+            doc={"name": "T-1"},
+            recipients=iter([ASSIGNEE]),  # an iterator: every rule still sees it
+            extra={"target": "Задача", "note": "x"},
+        )
+        bell = await _bell(ctx)
+
+    assert (result.rules, result.notified) == (1, 1)
+    assert [b["subject"] for b in bell] == ["Задача"]
+
+
+@pytest.mark.asyncio
+async def test_reset_failure_keeps_the_edit_marked(ctx, monkeypatch):
+    from grunt import standard_records
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await ctx.db.set_value("Notification", RULE, "is_customized", True)
+
+        async def broken(*args, **kwargs):
+            raise RuntimeError("bad file")
+
+        monkeypatch.setattr(standard_records, "_apply_folder", broken)
+        with pytest.raises(RuntimeError):
+            await reset("Notification", RULE)
+        assert await ctx.db.get_value("Notification", RULE, "is_customized")
+
+
+@pytest.mark.asyncio
+async def test_reminder_is_retried_when_no_channel_reaches_anyone(ctx, monkeypatch):
+    from grunt.notification import channels
+    from grunt.notification.channels import Outcome
+    from grunt.tasks import reminders
+
+    async def fail(self, session, recipient, message, *, delivery):
+        return Outcome("Error", reason="down")
+
+    monkeypatch.setattr(channels.InAppChannel, "send", fail)
+    monkeypatch.setattr(channels.WebPushChannel, "send", fail)
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        row = {"name": "R-1", "owner": ASSIGNEE, "description": "Подзвонити"}
+        await ctx.db.insert_one(
+            "Reminder",
+            {**row, "created_at": None, "remind_at": None, "notified": False},
+        )
+        assert await reminders.deliver(row) is False
+        assert not await ctx.db.get_value("Reminder", "R-1", "notified")

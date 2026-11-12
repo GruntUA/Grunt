@@ -28,6 +28,14 @@ async def _followers(doctype: str, doc_id: str, actor_email: str | None) -> list
     return await _db.get_all("DocFollow", filters=filters, pluck="user", limit=None)
 
 
+async def _doc(doctype: str, doc_id: str) -> dict[str, Any]:
+    """The followed document's fields - the rule's recipients and conditions read them."""
+    try:
+        return dict(await _db.get_doc(doctype, str(doc_id)) or {"name": str(doc_id)})
+    except Exception:  # noqa: BLE001 - a virtual / odd DocType: the name is enough
+        return {"name": str(doc_id)}
+
+
 async def _title(doctype: str, doc_id: str) -> str:
     titles = await resolve_reference_titles([(doctype, str(doc_id))])
     return titles.get((doctype, str(doc_id))) or str(doc_id)
@@ -59,10 +67,11 @@ async def notify_followers_of_update(
             return
         title = await _title(doctype, doc_id)
         label = getattr(dt, "label", None) or doctype
+        doc = await _doc(doctype, doc_id)
     # The followers are the rule's ("Followers"); field labels in their language.
     await trigger(
         "grunt.follow.changed",
-        doc={"name": str(doc_id)},
+        doc=doc,
         doctype=doctype,
         actor=actor_email or "",
         extra={
@@ -90,9 +99,10 @@ async def notify_followers_of_comment(
         if not users:
             return
         title = await _title(doctype, doc_id)
+        target = await _doc(doctype, doc_id)
     await trigger(
         "grunt.follow.commented",
-        doc={"name": str(doc_id)},
+        doc=target,
         doctype=doctype,
         actor=str(actor or ""),
         extra={"title": title, "text": (doc.get("content") or "").strip()},

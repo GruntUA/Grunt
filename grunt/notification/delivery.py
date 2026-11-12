@@ -23,6 +23,7 @@ class Report:
 
     counts: dict[str, int] = field(default_factory=dict)
     notification_logs: list[str] = field(default_factory=list)
+    reached: set[str] = field(default_factory=set)  # recipients a channel sent or queued to
 
     @property
     def delivered(self) -> int:
@@ -54,6 +55,8 @@ async def deliver(
                     log.exception("notification.channel_failed", channel=name, recipient=recipient)
                     outcome = Outcome("Error", reason=str(exc))
             report.counts[outcome.status] = report.counts.get(outcome.status, 0) + 1
+            if outcome.status in ("Sent", "Queued"):
+                report.reached.add(recipient)
             if log_id := outcome.links.get("notification_log"):
                 report.notification_logs.append(log_id)
             try:
