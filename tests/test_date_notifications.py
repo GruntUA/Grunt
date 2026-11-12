@@ -50,7 +50,7 @@ async def contracts(ctx):
 
 async def _rule(ctx, **values):
     return await ctx.new_doc(
-        "NotificationRule",
+        "Notification",
         {
             "ref_doctype": "Contract",
             "recipients": "{field:manager}",
@@ -62,7 +62,7 @@ async def _rule(ctx, **values):
 
 
 async def _subjects(ctx):
-    rows = await ctx.db.get_all("Notification", filters={"user": MANAGER}, fields=["subject"])
+    rows = await ctx.db.get_all("NotificationLog", filters={"user": MANAGER}, fields=["subject"])
     return sorted(r["subject"] for r in rows)
 
 

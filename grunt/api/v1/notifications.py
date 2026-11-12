@@ -24,9 +24,9 @@ async def list_notifications(
     if str(unread_only).lower() == "true":
         filters["is_read"] = False
 
-    total = await documents.count("Notification", filters=filters)
+    total = await documents.count("NotificationLog", filters=filters)
     data = await documents.get_list(
-        "Notification",
+        "NotificationLog",
         filters=filters,
         page=int(page),
         limit=int(per_page),
@@ -41,7 +41,7 @@ async def mark_as_read(notification_id: str) -> bool:
     """Mark a notification as read - only if it belongs to the current user."""
     user = acting_user()
     count = await _db.bulk_update(
-        "Notification",
+        "NotificationLog",
         filters={"name": notification_id, "user": user.email},
         values={"is_read": True},
     )
@@ -53,7 +53,7 @@ async def mark_all_as_read() -> dict[str, Any]:
     """Mark all notifications as read for the current user."""
     user = acting_user()
     count = await _db.bulk_update(
-        "Notification",
+        "NotificationLog",
         filters={"user": user.email, "is_read": False},
         values={"is_read": True},
     )
@@ -64,7 +64,7 @@ async def mark_all_as_read() -> dict[str, Any]:
 async def get_unread_count() -> int:
     """Get the count of unread notifications for the current user."""
     user = acting_user()
-    return await documents.count("Notification", filters={"user": user.email, "is_read": False})
+    return await documents.count("NotificationLog", filters={"user": user.email, "is_read": False})
 
 
 @whitelist()

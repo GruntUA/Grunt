@@ -224,7 +224,7 @@ async def send_notification_digest(period: str = "daily") -> None:
             for user_email, user_language in users:
                 # Fetch unread notifications for this user since cutoff
                 rows = await _db.get_all(
-                    "Notification",
+                    "NotificationLog",
                     filters={
                         "user": user_email,
                         "is_read": False,

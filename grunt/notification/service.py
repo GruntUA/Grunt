@@ -47,7 +47,7 @@ class NotificationService:
         """
         async with system_context(session):
             rules = await _db.get_all(
-                "NotificationRule",
+                "Notification",
                 filters={"ref_doctype": doctype, "event": event, "is_enabled": True},
                 limit=100,
             )
@@ -131,7 +131,7 @@ class NotificationService:
 
         async with system_context(require_session()):
             rows = await _db.get_all(
-                "Notification",
+                "NotificationLog",
                 filters=filters,
                 fields=[
                     "name",
@@ -160,14 +160,14 @@ class NotificationService:
         """Mark a single notification as read."""
 
         async with system_context(require_session()):
-            await _db.set_value("Notification", notification_id, "is_read", True)
+            await _db.set_value("NotificationLog", notification_id, "is_read", True)
 
     async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
 
         async with system_context(require_session()):
             return await documents.bulk_update(
-                "Notification",
+                "NotificationLog",
                 {"user": user, "is_read": False},
                 {"is_read": True},
             )
@@ -184,7 +184,7 @@ class NotificationService:
         email: bool = False,
         url: str | None = None,
     ) -> str | None:
-        """Deliver one notification to *user* directly (bypasses NotificationRule).
+        """Deliver one notification to *user* directly (bypasses Notification).
 
         System notification + web-push always; ``email`` also queues a mail.
         For code paths that must ping a specific person - e.g. document
@@ -223,7 +223,7 @@ class NotificationService:
         now = datetime.now(UTC)
         async with system_context(session):
             await _db.insert_one(
-                "Notification",
+                "NotificationLog",
                 {
                     "name": notif_name,
                     "owner": user,
@@ -236,7 +236,7 @@ class NotificationService:
                     "subject": subject,
                     "message": message,
                     "is_read": False,
-                    "notification_rule": rule,
+                    "notification": rule,
                 },
             )
         if not url and doctype and doc_id:

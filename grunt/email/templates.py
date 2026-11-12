@@ -3,7 +3,7 @@ subject/body strings in app controllers.
 
 Placeholders use plain ``str.format()`` syntax against the caller's context
 dict - the same convention ``grunt.notification.service`` already uses for
-NotificationRule templates - rather than reaching for a templating engine for
+Notification templates - rather than reaching for a templating engine for
 what is normally a handful of substitutions.
 """
 

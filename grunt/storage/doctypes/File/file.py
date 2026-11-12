@@ -114,7 +114,7 @@ _NOT_USERS = frozenset(
         "AssignmentLog",
         "ErrorLog",
         "EmailQueue",
-        "Notification",
+        "NotificationLog",
         "ScheduledJobLog",
         "WebhookLog",
         "IncomingWebhookLog",

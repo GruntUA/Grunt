@@ -57,8 +57,8 @@ _DOCTYPE_JSON = {
     ),
     "DocVersion": _GRUNT_ROOT / "document/doctypes/DocVersion/DocVersion.json",
     "EmailQueue": _GRUNT_ROOT / "email/doctypes/EmailQueue/EmailQueue.json",
-    "NotificationRule": (
-        _GRUNT_ROOT / "notification/doctypes/NotificationRule/NotificationRule.json"
+    "Notification": (
+        _GRUNT_ROOT / "notification/doctypes/Notification/Notification.json"
     ),
     "WebhookLog": _GRUNT_ROOT / "webhook/doctypes/WebhookLog/WebhookLog.json",
     "NamingSeries": _GRUNT_ROOT / "naming/doctypes/NamingSeries/NamingSeries.json",
