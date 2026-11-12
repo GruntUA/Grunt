@@ -7,6 +7,7 @@ own text). :func:`run` resolves all that and hands the result to the
 dispatcher (:func:`grunt.notification.delivery.deliver`).
 """
 
+from collections.abc import Iterable
 from typing import Any
 
 from jinja2 import TemplateError
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 lazy from jinja2.sandbox import SandboxedEnvironment
 
 from grunt.db.api import GruntDB
+from grunt.i18n import use_language
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import system_context
 from grunt.log import log
@@ -173,9 +175,17 @@ async def _followers(doctype: str, doc_id: str) -> list[str]:
 
 
 async def resolve_recipients(
-    rule: dict[str, Any], doctype: str, doc: dict[str, Any], actor: str
+    rule: dict[str, Any],
+    doctype: str,
+    doc: dict[str, Any],
+    actor: str,
+    *,
+    event_recipients: Iterable[str] = (),
 ) -> list[str]:
-    """The emails *rule* notifies about *doc* - without *actor* unless ``notify_actor``."""
+    """The emails *rule* notifies about *doc* - without *actor* unless ``notify_actor``.
+
+    *event_recipients* - who the code that triggered the event names
+    (the ``Event recipients`` rows)."""
     found: list[str] = []
     literal: set[str] = set()  # Email rows - addresses, not accounts
     doc_id = str(doc.get("name") or "")
@@ -199,6 +209,8 @@ async def resolve_recipients(
             found += await _assignees(doctype, doc_id)
         elif kind == "Followers" and doc_id:
             found += await _followers(doctype, doc_id)
+        elif kind == "Event recipients":
+            found += [await _user_email(r) or "" for r in event_recipients]
     emails = [e for e in dict.fromkeys(found) if e]
     if not rule.get("notify_actor"):
         emails = [e for e in emails if e != actor]
@@ -233,9 +245,11 @@ async def context(
     *,
     event: str,
     actor: str,
+    link: tuple[str, str],
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """What a rule's templates see."""
+    """What a rule's templates see (callables in *extra* are not run yet - see
+    :func:`_localized`)."""
     actor_name = ""
     if actor:
         actor_name = str(await _db.get_value("User", {"email": actor}, "full_name") or actor)
@@ -245,9 +259,33 @@ async def context(
         "event": event,
         "actor": actor_name,
         "actor_email": actor,
-        "url": await form_url(doctype, str(doc.get("name") or "")),
+        "url": await form_url(*link),
         **(extra or {}),
     }
+
+
+def _localized(ctx: dict[str, Any]) -> dict[str, Any]:
+    """*ctx* with its callables run - inside the recipient's language."""
+    return {k: (v() if callable(v) else v) for k, v in ctx.items()}
+
+
+async def _languages(recipients: list[str]) -> dict[str | None, list[str]]:
+    """Recipients grouped by their UI language (None - no preference or no account)."""
+    try:
+        rows = await _db.get_all(
+            "User",
+            filters={"email__in": sorted(set(recipients))},
+            fields=["email", "language"],
+            limit=None,
+        )
+        language = {r["email"]: r.get("language") or None for r in rows}
+    except Exception:  # noqa: BLE001 - no language is no reason to stay silent
+        log.warning("notification.languages_failed", exc_info=True)
+        language = {}
+    groups: dict[str | None, list[str]] = {}
+    for email in recipients:
+        groups.setdefault(language.get(email), []).append(email)
+    return groups
 
 
 async def run(
@@ -259,42 +297,60 @@ async def run(
     actor: str,
     event: str,
     extra: dict[str, Any] | None = None,
+    event_recipients: Iterable[str] = (),
+    link: tuple[str, str] | None = None,
 ) -> int:
     """Run *rule* on *doc*: condition, recipients, text, channels. Returns how
-    many recipients it notified (0 - the condition said no, or nobody to tell)."""
+    many recipients a channel reached (0 - the condition said no, nobody to
+    tell, or every channel failed).
+
+    *link* - the document the notification opens, when not *doc* itself (a
+    task's notification opens the task's document). The text is rendered in
+    each recipient's language.
+    """
+    doc_id = str(doc.get("name") or "")
+    link = link if link and link[0] and link[1] else (doctype, doc_id)
     async with system_context(session):
         rule = await load_rows(rule)
         if not eval_condition(rule.get("condition"), doc, actor):
             return 0
-        recipients = await resolve_recipients(rule, doctype, doc, actor)
+        recipients = await resolve_recipients(
+            rule, doctype, doc, actor, event_recipients=event_recipients
+        )
         if not recipients:
             return 0
-        ctx = await context(doctype, doc, event=event, actor=actor, extra=extra)
+        ctx = await context(doctype, doc, event=event, actor=actor, link=link, extra=extra)
+        groups = await _languages(recipients)
 
-    subject = await render(rule.get("subject_template") or "", ctx)
-    message = await render(rule.get("message_template") or "", ctx)
-    doc_id = str(doc.get("name") or "")
     base = {
-        "ref_doctype": doctype,
-        "doc_id": doc_id,
-        "url": await desk_url(doctype, doc_id),
+        "ref_doctype": link[0],
+        "doc_id": link[1],
+        "url": await desk_url(*link),
         "notification": rule.get("name"),
+        "event_key": event if rule.get("event") == "code" else None,
     }
-    # Channels sharing the rule's text go out together; one with its own text alone.
-    shared: list[str] = []
-    for row in rule.get("channels") or []:
-        channel = row.get("channel")
-        if not channel:
-            continue
-        if not row.get("subject") and not row.get("message"):
-            shared.append(channel)
-            continue
-        own = Message(
-            subject=await render(row["subject"], ctx) if row.get("subject") else subject,
-            body=await render(row["message"], ctx) if row.get("message") else message,
-            **base,
-        )
-        await deliver(session, recipients, own, [channel])
-    if shared:
-        await deliver(session, recipients, Message(subject=subject, body=message, **base), shared)
-    return len(recipients)
+    reached: set[str] = set()
+    for language, people in groups.items():
+        with use_language(language):
+            local = _localized(ctx)
+            subject = await render(rule.get("subject_template") or "", local)
+            message = await render(rule.get("message_template") or "", local)
+            # Channels sharing the rule's text go out together; one with its own text alone.
+            shared: list[str] = []
+            for row in rule.get("channels") or []:
+                channel = row.get("channel")
+                if not channel:
+                    continue
+                if not row.get("subject") and not row.get("message"):
+                    shared.append(channel)
+                    continue
+                own = Message(
+                    subject=await render(row["subject"], local) if row.get("subject") else subject,
+                    body=await render(row["message"], local) if row.get("message") else message,
+                    **base,
+                )
+                reached |= (await deliver(session, people, own, [channel])).reached
+            if shared:
+                message_ = Message(subject=subject, body=message, **base)
+                reached |= (await deliver(session, people, message_, shared)).reached
+    return len(reached)

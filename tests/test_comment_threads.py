@@ -9,6 +9,9 @@ from grunt.api.v1.document import history as history_api
 from grunt.errors import ApplicationError
 from tests.support import make_user
 
+# Code events notify through the core's standard Notification rules.
+pytestmark = pytest.mark.usefixtures("standard_notifications")
+
 BOX = {
     "name": "ThreadBox",
     "label": "Thread Box",

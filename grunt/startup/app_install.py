@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
+lazy from grunt.apps.loader import register_notification_hooks
 lazy from grunt.apps.manifest import is_app, read_manifest
 lazy from grunt.apps.required import ensure_site_dependencies
 lazy from grunt.document.api import documents
@@ -369,6 +370,8 @@ async def sync_installed_apps(
             # never fire for fixture-seeded records.
             _ensure_on_syspath(app_dir)
             document_registry.index_external_app_controllers(app_dir)
+            # Its code events / channels - its standard Notifications name them.
+            register_notification_hooks(app_dir)
 
             is_first_install = await _register_app_if_new(app_name, app_meta)
             app_modules = set(app_meta.get("modules", []))

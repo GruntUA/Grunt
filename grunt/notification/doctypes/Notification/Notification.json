@@ -15,18 +15,30 @@
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
-      "required": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "mandatory_depends_on": "eval: doc.event != 'code'",
+      "description": "For an event from code: empty - whatever document the event is about"
     },
     {
       "fieldname": "event",
       "label": "Event",
       "fieldtype": "Select",
-      "options": "after_insert\nafter_save\non_transition\nvalue_change\ndays_before\ndays_after",
+      "options": "after_insert\nafter_save\non_transition\nvalue_change\ndays_before\ndays_after\ncode",
       "required": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "event_key",
+      "label": "Code event",
+      "fieldtype": "Select",
+      "options_source": "grunt.notification.event",
+      "in_list_view": true,
+      "in_filter": true,
+      "depends_on": "eval: doc.event == 'code'",
+      "mandatory_depends_on": "eval: doc.event == 'code'",
+      "description": "An event the framework or an app raises from code, e.g. a task assigned"
     },
     {
       "fieldname": "col_when",
@@ -145,6 +157,14 @@
       "options": "GruntInstalledApp",
       "depends_on": "is_standard",
       "mandatory_depends_on": "is_standard"
+    },
+    {
+      "fieldname": "is_customized",
+      "label": "Changed on this site",
+      "fieldtype": "Check",
+      "read_only": true,
+      "depends_on": "is_standard",
+      "description": "A standard notification edited here: updates of the app no longer overwrite it. Reset to standard to follow the app again"
     }
   ],
   "permissions": [
@@ -163,5 +183,11 @@
       ]
     }
   ],
-  "description": "When something happens to a document, who is told, what and through which channels"
+  "description": "When something happens to a document, who is told, what and through which channels",
+  "actions": [
+    {
+      "action": "core.reset_standard",
+      "condition": "doc.is_customized"
+    }
+  ]
 }

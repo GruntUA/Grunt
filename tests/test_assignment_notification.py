@@ -4,6 +4,9 @@ import pytest
 
 from grunt.api.v1.document import meta as meta_api
 
+# Code events notify through the core's standard Notification rules.
+pytestmark = pytest.mark.usefixtures("standard_notifications")
+
 ASSIGNEE = "assignee@example.com"
 
 

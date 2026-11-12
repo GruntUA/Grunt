@@ -94,10 +94,10 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 
 | # | Етап | Статус |
 |---|---|---|
-| 0 | Перейменування: `Notification` → `NotificationLog`, `NotificationRule` → `Notification`; міграція 0022 + загальний `grunt.db.rename_doctype` | ✅ гілка `feature/notification-rename` |
-| 1 | Реєстр каналів (`grunt.notification.channels`, `notification_channels` у hooks.py); `in_app` / `web_push` / `email` окремо; диспетчер `deliver()` + `NotificationDelivery` (черга пошти й пуш оновлюють статус); правила, `notify()` і `grunt.notify()` — через диспетчер | ✅ гілка `feature/notification-channels` |
-| 2 | Форма правила: таблиці `NotificationRecipient` (Автор · Роль · Користувач · Поле документа · Email · Призначені · Стежать, умова на рядок; `notify_actor`) і `NotificationChannel` (канал з реєстру + власні тема/текст); Jinja (sandbox) з `doc`, `actor`, `url`, змінними переходу; перевірка форми; міграція 0023 | ✅ гілка `feature/notification-rule-form` |
-| 3 | `notifications.trigger()` + `event=code`; стандартні правила для подій ядра; `is_customized` у standard_records | ❓ |
+| 0 | Перейменування: `Notification` → `NotificationLog`, `NotificationRule` → `Notification`; міграція 0022 + загальний `grunt.db.rename_doctype` | ✔️ #145 |
+| 1 | Реєстр каналів (`grunt.notification.channels`, `notification_channels` у hooks.py); `in_app` / `web_push` / `email` окремо; диспетчер `deliver()` + `NotificationDelivery` (черга пошти й пуш оновлюють статус); правила, `notify()` і `grunt.notify()` — через диспетчер | ✔️ #146 |
+| 2 | Форма правила: таблиці `NotificationRecipient` (Автор · Роль · Користувач · Поле документа · Email · Призначені · Стежать, умова на рядок; `notify_actor`) і `NotificationChannel` (канал з реєстру + власні тема/текст); Jinja (sandbox) з `doc`, `actor`, `url`, змінними переходу; перевірка форми; міграція 0023 | ✔️ #147 |
+| 3 | Події з коду: `grunt.notification.events` (реєстр + `notification_events` у hooks.py, `trigger()`), подія `code` + `event_key`, отримувачі «з події»; 11 стандартних правил ядра (ToDo, нагадування, стеження, згадки/відповіді, автоповтор, хмарне сховище); текст — мовою кожного отримувача; `is_customized` + «Скинути до стандарту» у `standard_records`; `docs/guide/notifications.md` | ✅ гілка `feature/notification-code-events` |
 | 4 | Workflow: правила замість `notify/notify_email`, міграція; mlt_portal, tsnap, cms на правила | ❓ |
 | 5 | Налаштування користувача (#18) | ⏸ |
 | 6 | SMS-канал (#45), PDF у вкладенні, зміна поля після сповіщення (#10) | ⏸ |
@@ -107,3 +107,10 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 1. Перейменувати: правило → `Notification`, «дзвоник» → `NotificationLog`. Журнал доставки — `NotificationDelivery`.
 2. Workflow: правила замість `WorkflowTransition.notify/notify_email` (міграція переносить налаштування переходів у правила).
 3. Шаблони — Jinja (sandbox).
+
+## Що свідомо лишилося поза правилами (етап 3)
+
+- **Службові листи** (код входу, запрошення, скидання пароля) — не правила: їх не можна вимикати, текст — `EmailTemplate`/шаблони `email/templates`; вони йдуть через `EmailQueue` → `EmailMessage`, тож у журналі пошти є. Варіант на потім — пропускати їх через `deliver()` (лише журнал `NotificationDelivery`, без правил).
+- **SLA** — отримувачі й канал задаються в самій політиці `ServiceLevel`.
+- **Дайджест сповіщень** і **розсилка звітів** — налаштовуються в `SystemSettings` / `Report`.
+- **Workflow** і листи додатків (mlt_portal, tsnap) — етап 4.

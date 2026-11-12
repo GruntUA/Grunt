@@ -9,7 +9,7 @@
       "fieldname": "kind",
       "label": "Who",
       "fieldtype": "Select",
-      "options": "Author\nRole\nUser\nDocument field\nEmail\nAssignees\nFollowers",
+      "options": "Author\nRole\nUser\nDocument field\nEmail\nAssignees\nFollowers\nEvent recipients",
       "translatable": true,
       "required": true,
       "default": "Author",

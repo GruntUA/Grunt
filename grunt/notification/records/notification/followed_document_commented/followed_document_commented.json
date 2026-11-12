@@ -1,0 +1,40 @@
+{
+  "doctype": "Notification",
+  "name": "Followed document commented",
+  "event": "code",
+  "event_key": "grunt.follow.commented",
+  "days": 0,
+  "every_year": false,
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Followers",
+      "role": "",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ _('New comment: “%(title)s”') % {'title': title} }}",
+  "message_template": "{% if actor_email %}{{ actor_email }}: {% endif %}{{ text[:300] }}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "web_push",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

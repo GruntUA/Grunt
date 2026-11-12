@@ -233,6 +233,17 @@ async def ctx(db_session: AsyncSession, engine: AsyncEngine):
 
 
 @pytest.fixture
+async def standard_notifications(ctx, db_session: AsyncSession, engine: AsyncEngine):
+    """The core's standard ``Notification`` rules (what code events send) -
+    the test database starts without records; request this where a test
+    expects a task, a mention, a reminder… to notify someone."""
+    from grunt.standard_records import apply_records
+
+    await apply_records("grunt", db_session, engine, doctype="Notification")
+    await db_session.commit()
+
+
+@pytest.fixture
 async def auth_headers(client: AsyncClient) -> dict[str, str]:
     """Register a System Manager user and return auth headers."""
     r_reg = await client.post(

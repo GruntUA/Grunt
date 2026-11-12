@@ -14,6 +14,7 @@ from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.reports.delivery import send_report_now
+from grunt.standard_records import reset as reset_standard_record
 lazy from grunt.document.api import documents
 lazy from grunt.webpush.doctypes.PushSubscription.push_subscription import PushSubscription
 lazy from grunt.webpush.service import PushUnavailableError, webpush_service
@@ -187,6 +188,22 @@ async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[
         "message": _("Report queued for %(count)s recipients") % {"count": sent},
         "refresh": True,
     }
+
+
+@doc_action(
+    "core.reset_standard",
+    label="Reset to standard",
+    doctypes=["*"],
+    icon="rotate-ccw",
+    variant="outline",
+    roles=["System Manager"],
+    confirm="Discard the changes made on this site and take the app's version?",
+)
+async def reset_standard(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
+    """A customized standard record back to its app's files (``standard_records.reset``)."""
+    if not await reset_standard_record(doc["doctype"], doc["name"]):
+        return {"message": _("The app ships no such record"), "refresh": False}
+    return {"message": _("Restored the app's version"), "refresh": True}
 
 
 # Dialog shared by the push actions below.

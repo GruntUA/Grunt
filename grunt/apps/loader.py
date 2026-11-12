@@ -202,6 +202,24 @@ def _iter_hooks_modules(app_dir: Path) -> Iterator[ModuleType]:
         yield mod
 
 
+# Declarations an app's standard records may rely on (a shipped Notification
+# naming the app's own code event or channel) - registered before the records
+# are applied, also where the full app loading doesn't run (grunt migrate).
+NOTIFICATION_HOOK_KEYS = ("notification_events", "notification_channels")
+
+
+def register_notification_hooks(app_dir: Path) -> None:
+    """Apply only the notification registries of *app_dir*'s ``hooks.py``."""
+    ctx = LoadContext(app_name=app_dir.name, app_dir=app_dir)
+    for mod in _iter_hooks_modules(app_dir):
+        for key in NOTIFICATION_HOOK_KEYS:
+            if hasattr(mod, key):
+                try:
+                    HOOK_CONSUMERS[key].apply(getattr(mod, key), ctx)
+                except Exception:
+                    log.exception("apps.consumer_error", app=ctx.app_name, hook_key=key)
+
+
 def _apply_hooks_module(mod: object, ctx: LoadContext) -> None:
     """Run every registered consumer whose key the module defines.
 

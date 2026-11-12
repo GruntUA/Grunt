@@ -7,14 +7,12 @@ notification goes out, so overlapping runs never remind twice.
 from datetime import UTC, datetime
 from typing import Any
 
-from grunt.auth.language import language_of
 from grunt.db.api import GruntDB
-from grunt.i18n import _, use_language
 from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.tasks.broker import retryable_task
 lazy from grunt.document.titles import resolve_reference_titles
-lazy from grunt.notification.service import notification_service
+lazy from grunt.notification.events import trigger
 lazy from grunt.site.manager import site_manager
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -30,7 +28,8 @@ async def _title(row: dict[str, Any]) -> str:
 
 
 async def deliver(row: dict[str, Any]) -> bool:
-    """Claim and send one reminder; False when another run already took it."""
+    """Claim and send one reminder; False when another run already took it,
+    or when its notification reached nobody (it is retried)."""
 
     claimed = await _db.bulk_update(
         "Reminder", {"name": row["name"], "notified": False}, {"notified": True}
@@ -38,20 +37,21 @@ async def deliver(row: dict[str, Any]) -> bool:
     if not claimed:
         return False
 
-    user = row["owner"]
-    note = (row.get("description") or "").strip()
-    with use_language(await language_of(user)):
-        title = await _title(row)
-        subject = _("Reminder: %(title)s") % {"title": title} if title else _("Reminder")
-        message = note or title or _("You asked to be reminded")
-    await notification_service.notify(
-        require_session(),
-        user=user,
-        doctype=row.get("reference_doctype") or "Reminder",
-        doc_id=str(row.get("reference_name") or row["name"]),
-        subject=subject,
-        message=message,
+    title = await _title(row)
+    result = await trigger(
+        "grunt.reminder",
+        doc=row,
+        doctype="Reminder",
+        link=(row.get("reference_doctype") or "", str(row.get("reference_name") or "")),
+        extra={"title": title, "note": (row.get("description") or "").strip()},
+        session=require_session(),
     )
+    if result.rules and not result.notified:
+        # A rule ran but no channel reached anyone (e.g. an email-only rule
+        # with the queue failing) - leave it unsent, the next run retries.
+        # No enabled rule at all is a choice, not a failure.
+        await _db.bulk_update("Reminder", {"name": row["name"]}, {"notified": False})
+        return False
     return True
 
 
