@@ -40,9 +40,8 @@ _ASSIGNMENT_EVENTS = frozenset({"after_save", "after_insert"})
 
 _FILE_CLAIM_EVENTS = frozenset({"after_save"})
 
-_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
-# What an ``on_transition`` hook adds - template variables of the rules it runs.
-_TRANSITION_KEYS = ("action", "from_state", "to_state", "comment")
+# on_transition: the workflow engine runs those rules itself, in the transition.
+_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update"})
 
 
 def _user_email(kwargs: dict) -> str:
@@ -119,7 +118,6 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
         doctype=doctype,
         doc=kwargs["doc"],
         user_email=_user_email(kwargs),
-        extra={k: kwargs[k] for k in _TRANSITION_KEYS if kwargs.get(k) is not None} or None,
     )
 
 

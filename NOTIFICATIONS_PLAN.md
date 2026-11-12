@@ -97,8 +97,8 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 | 0 | Перейменування: `Notification` → `NotificationLog`, `NotificationRule` → `Notification`; міграція 0022 + загальний `grunt.db.rename_doctype` | ✔️ #145 |
 | 1 | Реєстр каналів (`grunt.notification.channels`, `notification_channels` у hooks.py); `in_app` / `web_push` / `email` окремо; диспетчер `deliver()` + `NotificationDelivery` (черга пошти й пуш оновлюють статус); правила, `notify()` і `grunt.notify()` — через диспетчер | ✔️ #146 |
 | 2 | Форма правила: таблиці `NotificationRecipient` (Автор · Роль · Користувач · Поле документа · Email · Призначені · Стежать, умова на рядок; `notify_actor`) і `NotificationChannel` (канал з реєстру + власні тема/текст); Jinja (sandbox) з `doc`, `actor`, `url`, змінними переходу; перевірка форми; міграція 0023 | ✔️ #147 |
-| 3 | Події з коду: `grunt.notification.events` (реєстр + `notification_events` у hooks.py, `trigger()`), подія `code` + `event_key`, отримувачі «з події»; 11 стандартних правил ядра (ToDo, нагадування, стеження, згадки/відповіді, автоповтор, хмарне сховище); текст — мовою кожного отримувача; `is_customized` + «Скинути до стандарту» у `standard_records`; `docs/guide/notifications.md` | ✅ гілка `feature/notification-code-events` |
-| 4 | Workflow: правила замість `notify/notify_email`, міграція; mlt_portal, tsnap, cms на правила | ❓ |
+| 3 | Події з коду: `grunt.notification.events` (реєстр + `notification_events` у hooks.py, `trigger()`), подія `code` + `event_key`, отримувачі «з події»; 11 стандартних правил ядра (ToDo, нагадування, стеження, згадки/відповіді, автоповтор, хмарне сховище); текст — мовою кожного отримувача; `is_customized` + «Скинути до стандарту» у `standard_records`; `docs/guide/notifications.md` | ✔️ #148 |
+| 4 | Workflow: правила `on_transition` (поле «Дії workflow», отримувачі «Попередній виконавець» / «Наступні виконавці», змінні `from_label`/`to_label`/`title`) замість `WorkflowTransition.notify/notify_email`; рушій запускає їх у транзакції переходу; міграція 0024 (детерміновані назви `<DocType> · <дія> / <дія>`); mlt_portal — стандартні записи `records/notification/` | ✅ гілки `feature/notification-workflow` (ядро), `feature/notifications-as-rules` (mlt_portal) |
 | 5 | Налаштування користувача (#18) | ⏸ |
 | 6 | SMS-канал (#45), PDF у вкладенні, зміна поля після сповіщення (#10) | ⏸ |
 
@@ -113,4 +113,4 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 - **Службові листи** (код входу, запрошення, скидання пароля) — не правила: їх не можна вимикати, текст — `EmailTemplate`/шаблони `email/templates`; вони йдуть через `EmailQueue` → `EmailMessage`, тож у журналі пошти є. Варіант на потім — пропускати їх через `deliver()` (лише журнал `NotificationDelivery`, без правил).
 - **SLA** — отримувачі й канал задаються в самій політиці `ServiceLevel`.
 - **Дайджест сповіщень** і **розсилка звітів** — налаштовуються в `SystemSettings` / `Report`.
-- **Workflow** і листи додатків (mlt_portal, tsnap) — етап 4.
+- **Workflow** — етап 4 ✅. **Листи додатків про нові звернення** (mlt_portal `appeals_notify_emails`, tsnap) — отримувачі в налаштуваннях додатка; перевести на події з коду — окремим кроком.

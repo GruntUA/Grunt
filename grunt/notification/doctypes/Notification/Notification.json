@@ -41,6 +41,13 @@
       "description": "An event the framework or an app raises from code, e.g. a task assigned"
     },
     {
+      "fieldname": "workflow_actions",
+      "label": "Workflow actions",
+      "fieldtype": "LongText",
+      "depends_on": "eval: doc.event == 'on_transition'",
+      "description": "Only these transitions (their button labels), one per line; empty: every transition"
+    },
+    {
       "fieldname": "col_when",
       "fieldtype": "Column"
     },

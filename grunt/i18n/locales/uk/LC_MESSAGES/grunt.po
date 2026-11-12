@@ -15423,6 +15423,26 @@ msgstr "Отримувачі з події"
 msgid "“Event recipients” only work for a notification on a code event"
 msgstr "«Отримувачі з події» працюють лише в сповіщенні про подію з коду"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Workflow actions"
+msgstr "Дії робочого процесу"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Only these transitions (their button labels), one per line; empty: every "
+"transition"
+msgstr ""
+"Лише ці переходи (назви їхніх кнопок), по одному в рядку; порожньо — будь-"
+"який перехід"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Previous actor"
+msgstr "Попередній виконавець"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Next actors"
+msgstr "Наступні виконавці"
+
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "
 #~ "and explains it."

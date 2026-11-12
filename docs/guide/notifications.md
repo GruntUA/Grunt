@@ -14,7 +14,7 @@ Each delivery is logged in **Notification Delivery**: one row per recipient and 
 | Event | Fires |
 |---|---|
 | `after_insert`, `after_save` | when a document of the rule's type is created or saved |
-| `on_transition` | on a workflow transition; templates also get `action`, `from_state`, `to_state`, `comment` |
+| `on_transition` | on a workflow transition (only the **Workflow actions** listed, if any); templates also get `action`, `from_state`, `to_state`, `from_label`, `to_label`, `comment` |
 | `days_before`, `days_after` | once a day, N days before or after a date field |
 | `code` | when code triggers the rule's **Code event** (`event_key`) |
 
@@ -29,6 +29,8 @@ Each row in the **Recipients** table adds recipients of one kind:
 - **Email**: a literal email address.
 - **Assignees**: users with open ToDos on the document.
 - **Followers**: users who follow the document.
+- **Previous actor**: on a workflow transition, whoever performed the previous workflow action.
+- **Next actors**: on a workflow transition, users who can take the next step and can read the document.
 - **Event recipients**: the users the code passes when it triggers the event.
 
 A row may have a condition, e.g. `doc.priority == 'High'`. Deactivated accounts are skipped unless an **Email** row names them. The user who caused the event is skipped unless **Also notify who did it** is checked.
@@ -40,6 +42,7 @@ The subject and message are Jinja templates, rendered in a sandbox, in each reci
 - `doc`: the document;
 - `doctype`;
 - `event`;
+- `title`: the document's title;
 - `actor`: the name of the user who caused the event;
 - `actor_email`;
 - `url`: a link to the document;
