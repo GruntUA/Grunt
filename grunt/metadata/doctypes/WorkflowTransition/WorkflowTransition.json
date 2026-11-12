@@ -54,19 +54,6 @@
       "fieldtype": "Check",
       "default": false,
       "description": "Not a button: applied automatically when a user with the allowed roles changes the document in the “From” state (e.g. an edited published page goes back to review)"
-    },
-    {
-      "fieldname": "notify",
-      "label": "Notify (comma-separated)",
-      "fieldtype": "LongText",
-      "description": "owner — the document author; previous — who performed the previous workflow action; next — users who can take the next step (by role and access to the document)"
-    },
-    {
-      "fieldname": "notify_email",
-      "label": "Also by email",
-      "fieldtype": "Check",
-      "default": false,
-      "depends_on": "eval:doc.notify"
     }
   ]
 }

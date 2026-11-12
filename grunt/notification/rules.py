@@ -23,6 +23,7 @@ from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.site.manager import current_site
+lazy from grunt.workflow.actors import next_actors, state_label
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -181,6 +182,7 @@ async def resolve_recipients(
     actor: str,
     *,
     event_recipients: Iterable[str] = (),
+    extra: dict[str, Any] | None = None,
 ) -> list[str]:
     """The emails *rule* notifies about *doc* - without *actor* unless ``notify_actor``.
 
@@ -211,6 +213,10 @@ async def resolve_recipients(
             found += await _followers(doctype, doc_id)
         elif kind == "Event recipients":
             found += [await _user_email(r) or "" for r in event_recipients]
+        elif kind == "Previous actor":
+            found.append(str((extra or {}).get("previous") or ""))
+        elif kind == "Next actors":
+            found += await next_actors(doctype, doc)
     emails = [e for e in dict.fromkeys(found) if e]
     if not rule.get("notify_actor"):
         emails = [e for e in emails if e != actor]
@@ -253,15 +259,40 @@ async def context(
     actor_name = ""
     if actor:
         actor_name = str(await _db.get_value("User", {"email": actor}, "full_name") or actor)
+    extra = dict(extra or {})
+    for key, label in (("from_state", "from_label"), ("to_state", "to_label")):
+        if isinstance(extra.get(key), str):
+            extra.setdefault(label, await state_label(doctype, extra[key]))
     return {
         "doc": _Doc(doc),
         "doctype": doctype,
         "event": event,
+        "title": await _title(doctype, doc),
         "actor": actor_name,
         "actor_email": actor,
         "url": await form_url(*link),
-        **(extra or {}),
+        **extra,
     }
+
+
+async def _title(doctype: str, doc: dict[str, Any]) -> str:
+    """The document's title (its title field, else ``title``, else its name)."""
+    field = "name"
+    try:
+        meta = await doctype_registry.get_meta(doctype) if doctype else None
+        if meta is not None:
+            field = meta.get_title_field()
+            if field == "name" and meta.has_field("title"):
+                field = "title"
+    except Exception:  # noqa: BLE001 - a title is a nicety
+        pass
+    return str(doc.get(field) or doc.get("name") or "")
+
+
+def _action_matches(rule: dict[str, Any], extra: dict[str, Any] | None) -> bool:
+    """A transition rule's ``workflow_actions`` (one per line; empty - every one)."""
+    wanted = {a.strip() for a in (rule.get("workflow_actions") or "").splitlines() if a.strip()}
+    return not wanted or (extra or {}).get("action") in wanted
 
 
 def _localized(ctx: dict[str, Any]) -> dict[str, Any]:
@@ -314,8 +345,10 @@ async def run(
         rule = await load_rows(rule)
         if not eval_condition(rule.get("condition"), doc, actor):
             return 0
+        if not _action_matches(rule, extra):
+            return 0
         recipients = await resolve_recipients(
-            rule, doctype, doc, actor, event_recipients=event_recipients
+            rule, doctype, doc, actor, event_recipients=event_recipients, extra=extra
         )
         if not recipients:
             return 0

@@ -53,15 +53,13 @@ class WorkflowTransition(BaseModel):
     # Not a button: applied when a user allowed this transition edits the
     # document in `from_state` (e.g. an edited published page goes back to review).
     on_edit: bool = False
-    # Who is notified: "owner", "previous" (who performed the previous workflow
-    # action) and/or "next" (who can take the next step - see grunt.workflow.notify).
-    notify: list[str] = []
-    notify_email: bool = False
+    # Notifications: Notification rules on the event "on_transition"
+    # (grunt.notification.rules), not fields of the transition.
 
     @model_validator(mode="before")
     @classmethod
     def _split_csv_lists(cls, data: Any) -> Any:
-        return _split_csv(data, ("allowed_roles", "prompt_fields", "notify"))
+        return _split_csv(data, ("allowed_roles", "prompt_fields"))
 
 
 def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
@@ -81,7 +79,7 @@ def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
             elif value is None and key in data:
                 updates[key] = []
         data = {**data, **updates}
-        for key in ("require_comment", "on_edit", "notify_email", "is_initial", "is_final"):
+        for key in ("require_comment", "on_edit", "is_initial", "is_final"):
             if key in data and data[key] is None:
                 del data[key]
     return data

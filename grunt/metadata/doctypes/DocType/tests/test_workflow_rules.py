@@ -1,8 +1,10 @@
-"""Workflow rules - review/approval out of the box (grunt/workflow/guard.py, notify.py).
+"""Workflow rules - review/approval out of the box (grunt/workflow/guard.py, actors.py).
 
 An author drafts and sends for review; a reviewer publishes or sends back with
 a comment; an author's edit of a published article sends it back to review.
 """
+
+import importlib
 
 import pytest
 import pytest_asyncio
@@ -36,6 +38,8 @@ ARTICLE = {
     ],
 }
 W, E = "Writer", "Editor"
+_m24 = importlib.import_module("grunt.db.migrations.versions.0024_workflow_notifications")
+SUBJECT, MESSAGE = _m24.SUBJECT, _m24.MESSAGE
 WORKFLOW = {
     "document_type": "Article",
     "workflow_state_field": "status",
@@ -46,17 +50,14 @@ WORKFLOW = {
         {"state": "Published", "update_field": "published", "update_value": "1"},
     ],
     "transitions": [
-        {"from_state": "Draft", "to_state": "Review", "action": "Send", "allowed_roles": W,
-         "notify": "next", "notify_email": True},
+        {"from_state": "Draft", "to_state": "Review", "action": "Send", "allowed_roles": W},
         {"from_state": "Draft", "to_state": "Published", "action": "Publish", "allowed_roles": E},
-        {"from_state": "Review", "to_state": "Published", "action": "Publish", "allowed_roles": E,
-         "notify": "previous"},
+        {"from_state": "Review", "to_state": "Published", "action": "Publish", "allowed_roles": E},
         {"from_state": "Review", "to_state": "Rework", "action": "Return", "allowed_roles": E,
-         "require_comment": True, "notify": "previous"},
-        {"from_state": "Rework", "to_state": "Review", "action": "Send", "allowed_roles": W,
-         "notify": "next"},
+         "require_comment": True},
+        {"from_state": "Rework", "to_state": "Review", "action": "Send", "allowed_roles": W},
         {"from_state": "Published", "to_state": "Review", "action": "Edited", "allowed_roles": W,
-         "on_edit": True, "notify": "next"},
+         "on_edit": True},
     ],
 }  # fmt: skip
 
@@ -74,6 +75,23 @@ async def article(ctx, db_session):
         await ctx.new_doc("User", user)
     clear_cache()
     await ctx.new_doc("Workflow", WORKFLOW)
+    # Who hears about a transition: Notification rules on "on_transition".
+    for kind, actions, channels in (
+        ("Next actors", "Send\nEdited", ["in_app", "email"]),
+        ("Previous actor", "Publish\nReturn", ["in_app"]),
+    ):
+        await ctx.new_doc(
+            "Notification",
+            {
+                "ref_doctype": "Article",
+                "event": "on_transition",
+                "workflow_actions": actions,
+                "recipients": [{"kind": kind}],
+                "channels": [{"channel": c} for c in channels],
+                "subject_template": SUBJECT,
+                "message_template": MESSAGE,
+            },
+        )
     await db_session.commit()
 
 
@@ -119,6 +137,10 @@ async def test_review_cycle(article, db_session, engine):
         await grunt.submit("Article", name, "Return", {"__comment": "Add a table"})
     assert await _state(name) == ("Rework", 0)
     assert await _inbox(AUTHOR) == ["Return: Report"]
+    bell = await grunt.db.get_all("NotificationLog", filters={"user": AUTHOR}, fields=["message"])
+    message = bell[0]["message"]
+    assert "Return" in message and "Review → Rework" in message
+    assert "Add a table" in message and message.rstrip().endswith(f"/Article/{name}")
     comments = await grunt.db.get_all(
         "Comment", filters={"reference_id": name}, fields=["content", "owner"]
     )
