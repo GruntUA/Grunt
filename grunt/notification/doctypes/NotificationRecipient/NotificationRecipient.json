@@ -1,0 +1,60 @@
+{
+  "name": "NotificationRecipient",
+  "label": "Notification Recipient",
+  "module": "notification",
+  "is_child": true,
+  "table_name": "grunt_notification_recipient",
+  "fields": [
+    {
+      "fieldname": "kind",
+      "label": "Who",
+      "fieldtype": "Select",
+      "options": "Author\nRole\nUser\nDocument field\nEmail\nAssignees\nFollowers",
+      "translatable": true,
+      "required": true,
+      "default": "Author",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "role",
+      "label": "Role",
+      "fieldtype": "Link",
+      "options": "Role",
+      "in_list_view": true,
+      "depends_on": "eval: doc.kind == 'Role'",
+      "mandatory_depends_on": "eval: doc.kind == 'Role'"
+    },
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Link",
+      "options": "User",
+      "in_list_view": true,
+      "depends_on": "eval: doc.kind == 'User'",
+      "mandatory_depends_on": "eval: doc.kind == 'User'"
+    },
+    {
+      "fieldname": "field",
+      "label": "Field",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "depends_on": "eval: doc.kind == 'Document field'",
+      "mandatory_depends_on": "eval: doc.kind == 'Document field'",
+      "description": "A field of the document holding a user or an email address, e.g. assigned_to; through a link: customer.email"
+    },
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "depends_on": "eval: doc.kind == 'Email'",
+      "mandatory_depends_on": "eval: doc.kind == 'Email'"
+    },
+    {
+      "fieldname": "condition",
+      "label": "Condition",
+      "fieldtype": "Data",
+      "description": "Optional: send to this row only when true, e.g. doc.priority == 'High'"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "NotificationChannel",
+  "label": "Notification Channel",
+  "module": "notification",
+  "is_child": true,
+  "table_name": "grunt_notification_channel",
+  "fields": [
+    {
+      "fieldname": "channel",
+      "label": "Channel",
+      "fieldtype": "Select",
+      "options_source": "grunt.notification.channel",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "subject",
+      "label": "Subject",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Own subject for this channel (Jinja); empty: the notification's subject"
+    },
+    {
+      "fieldname": "message",
+      "label": "Message",
+      "fieldtype": "LongText",
+      "description": "Own message for this channel (Jinja), e.g. a short one for SMS; empty: the notification's message"
+    }
+  ]
+}

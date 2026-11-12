@@ -1,5 +1,6 @@
 """Tests for the Notification module."""
 
+from grunt.notification import rules
 from grunt.notification.service import NotificationService
 
 
@@ -57,70 +58,43 @@ class TestResolveRecipients:
         assert role_parts == []
 
 
-class TestFormatTemplate:
-    def setup_method(self):
-        self.svc = NotificationService()
-
-    def test_basic_template(self):
-        result = self.svc._format_template(
-            "{doctype}: {name} was {event}",
-            "Invoice",
-            {"name": "INV-001", "id": "abc"},
-            "after_save",
-        )
+class TestRender:
+    async def test_jinja_template(self):
+        ctx = {"doctype": "Invoice", "event": "after_save", "doc": rules._Doc({"name": "INV-001"})}
+        result = await rules.render("{{ doctype }}: {{ doc.name }} was {{ event }}", ctx)
         assert result == "Invoice: INV-001 was after_save"
 
-    def test_doc_field_in_template(self):
-        result = self.svc._format_template(
-            "Status changed to {status}",
-            "Order",
-            {"name": "ORD-1", "id": "x", "status": "Active"},
-            "after_save",
-        )
-        assert result == "Status changed to Active"
+    async def test_plain_text_is_kept(self):
+        assert await rules.render("Status changed", {}) == "Status changed"
 
-    def test_missing_key_returns_template(self):
-        result = self.svc._format_template(
-            "{unknown_key}",
-            "X",
-            {"name": "Y", "id": "z"},
-            "after_save",
-        )
-        # Should not crash, returns original template
-        assert isinstance(result, str)
+    async def test_missing_variable_renders_empty(self):
+        assert await rules.render("[{{ doc.nothing }}]", {"doc": rules._Doc({})}) == "[]"
+
+    async def test_broken_template_returns_it_as_is(self):
+        assert await rules.render("{{ oops", {}) == "{{ oops"
+
+    async def test_sandbox_blocks_dunder(self):
+        out = await rules.render("{{ doc.__class__.__mro__ }}", {"doc": rules._Doc({})})
+        assert "object" not in out
+
+    async def test_check_template(self):
+        assert await rules.check_template("{{ doc.name }}") is None
+        assert await rules.check_template("{% if %}")
 
 
 class TestEvalCondition:
-    def setup_method(self):
-        self.svc = NotificationService()
-
     def test_true_condition(self):
-        assert (
-            self.svc._eval_condition(
-                "doc.get('status') == 'Active'",
-                {"status": "Active"},
-                "user@example.com",
-            )
-            is True
-        )
+        assert rules.eval_condition("doc.status == 'Active'", {"status": "Active"}, "u@x")
+
+    def test_get_style_still_works(self):
+        assert rules.eval_condition("doc.get('status') == 'Active'", {"status": "Active"}, "u")
 
     def test_false_condition(self):
-        assert (
-            self.svc._eval_condition(
-                "doc.get('status') == 'Active'",
-                {"status": "Draft"},
-                "user@example.com",
-            )
-            is False
-        )
+        assert not rules.eval_condition("doc.status == 'Active'", {"status": "Draft"}, "u@x")
 
-    def test_invalid_condition_returns_true(self):
-        """Invalid conditions should not block notifications."""
-        assert (
-            self.svc._eval_condition(
-                "invalid python {{{{",
-                {},
-                "user@example.com",
-            )
-            is True
-        )
+    def test_empty_condition_is_true(self):
+        assert rules.eval_condition("", {}, "u@x")
+
+    def test_invalid_condition_is_false(self):
+        """A typo must not notify everybody - the form validates the syntax on save."""
+        assert not rules.eval_condition("invalid python {{{{", {}, "u@x")

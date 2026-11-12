@@ -79,9 +79,9 @@ async def test_email_only_rule_makes_no_bell_row(ctx):
         await _outgoing_account(ctx)
         rule = {
             "name": "rule-email",
-            "channel": "email",
-            "recipients": USER,
-            "subject_template": "Новий {name}",
+            "channels": [{"channel": "email"}],
+            "recipients": [{"kind": "Email", "email": USER}],
+            "subject_template": "Новий {{ doc.name }}",
             "message_template": "",
         }
         sent = await notification_service.apply_rule(

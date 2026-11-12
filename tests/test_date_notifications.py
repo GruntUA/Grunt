@@ -53,9 +53,10 @@ async def _rule(ctx, **values):
         "Notification",
         {
             "ref_doctype": "Contract",
-            "recipients": "{field:manager}",
-            "subject_template": "{title}",
-            "message_template": "{title}",
+            "recipients": [{"kind": "Document field", "field": "manager"}],
+            "channels": [{"channel": "in_app"}],
+            "subject_template": "{{ doc.title }}",
+            "message_template": "{{ doc.title }}",
             **values,
         },
     )

@@ -30,6 +30,7 @@ from grunt.db.commit import on_commit
 from grunt.i18n import N_, _
 from grunt.local import system_context
 from grunt.log import log
+from grunt.metadata.dynamic_options import register_option_provider
 from grunt.notification.delivery_log import Status
 lazy from grunt.email.service import email_service
 lazy from grunt.metadata.registry import doctype_registry
@@ -215,6 +216,11 @@ def list_channels() -> list[Channel]:
 def channel_options() -> list[dict[str, Any]]:
     """``[{"value", "label"}]`` - for a rule's channel picker."""
     return [{"value": c.name, "label": _(c.label)} for c in _channels.values()]
+
+
+#: ``options_source`` of ``NotificationChannel.channel`` - the registered channels.
+OPTIONS_SOURCE = "grunt.notification.channel"
+register_option_provider(OPTIONS_SOURCE, lambda: [(c.name, _(c.label)) for c in list_channels()])
 
 
 CORE_CHANNELS = (InAppChannel, WebPushChannel, EmailChannel)

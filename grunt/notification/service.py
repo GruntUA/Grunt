@@ -13,18 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
+from grunt.notification import rules
 from grunt.notification.channels import Message
 from grunt.notification.delivery import deliver
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
-
-# A rule's ``channel`` -> the channels it sends through.
-RULE_CHANNELS: dict[str, tuple[str, ...]] = {
-    "system": ("in_app", "web_push"),
-    "email": ("email",),
-    "both": ("in_app", "web_push", "email"),
-}
 
 
 class NotificationService:
@@ -37,6 +31,7 @@ class NotificationService:
         doctype: str,
         doc: dict[str, Any],
         user_email: str,
+        extra: dict[str, Any] | None = None,
     ) -> int:
         """Evaluate all matching notification rules for a document event.
 
@@ -46,6 +41,8 @@ class NotificationService:
             doctype: DocType name.
             doc: Document data.
             user_email: Email of the user who triggered the event.
+            extra: More template variables - for ``on_transition``: ``action``,
+                ``from_state``, ``to_state``, ``comment``.
 
         Returns:
             Number of notifications created.
@@ -59,7 +56,9 @@ class NotificationService:
 
         count = 0
         for rule in rules:
-            count += await self.apply_rule(session, rule, doctype, doc, user_email, event)
+            count += await self.apply_rule(
+                session, rule, doctype, doc, user_email, event, extra=extra
+            )
 
         if count > 0:
             await session.flush()
@@ -81,42 +80,16 @@ class NotificationService:
         doc: dict[str, Any],
         user_email: str,
         event: str,
+        *,
+        extra: dict[str, Any] | None = None,
     ) -> int:
         """Run one rule against one document: condition, recipients, delivery.
 
-        Returns the number of notifications created.
+        Returns the number of recipients notified.
         """
-        condition = rule.get("condition")
-        if condition and not self._eval_condition(condition, doc, user_email):
-            return 0
-        channels = RULE_CHANNELS.get(rule.get("channel") or "system", ())
-
-        # Resolve recipients (sync part + async role lookup)
-        recipients, role_parts = self._resolve_recipients(
-            rule.get("recipients") or "", doc, user_email
+        return await rules.run(
+            session, rule, doctype, doc, actor=user_email, event=event, extra=extra
         )
-        if role_parts:
-            role_emails = await self._resolve_role_recipients(role_parts, session)
-            recipients = list(set(recipients) | set(role_emails) - {user_email})
-        if not recipients:
-            return 0
-
-        subject = self._format_template(rule.get("subject_template") or "", doctype, doc, event)
-        message = self._format_template(rule.get("message_template") or "", doctype, doc, event)
-
-        await deliver(
-            session,
-            recipients,
-            Message(
-                subject=subject,
-                body=message,
-                ref_doctype=doctype,
-                doc_id=str(doc.get("name", "")),
-                notification=rule.get("name"),
-            ),
-            channels,
-        )
-        return len(recipients)
 
     async def get_notifications(
         self,
@@ -291,40 +264,6 @@ class NotificationService:
         except Exception:
             log.warning("notification.role_resolution_failed", roles=role_names)
             return []
-
-    def _format_template(
-        self,
-        template: str,
-        doctype: str,
-        doc: dict[str, Any],
-        event: str,
-    ) -> str:
-        """Simple template formatting with {key} placeholders."""
-        context = {
-            "doctype": doctype,
-            "event": event,
-            "name": doc.get("name", ""),
-            "id": doc.get("name", ""),
-            "owner": doc.get("owner", ""),
-        }
-        # Add all doc fields
-        for k, v in doc.items():
-            if k not in context:
-                context[k] = str(v) if v is not None else ""
-
-        try:
-            return template.format(**context)
-        except KeyError, IndexError:
-            return template
-
-    def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:
-        """Evaluate a Python condition expression safely."""
-        try:
-            from simpleeval import simple_eval
-
-            return bool(simple_eval(condition, names={"doc": doc, "user": user}))
-        except Exception:
-            return True  # Don't block on eval errors
 
 
 notification_service = NotificationService()

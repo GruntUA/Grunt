@@ -14374,7 +14374,10 @@ msgid "Notification Delivery"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "One row per notification, recipient and channel: what was sent, through which channel, and whether it arrived. Old entries are deleted automatically."
+msgid ""
+"One row per notification, recipient and channel: what was sent, through "
+"which channel, and whether it arrived. Old entries are deleted "
+"automatically."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
@@ -14400,4 +14403,102 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Why the notification was skipped or failed"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid "Notification Channel"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own subject for this channel (Jinja); empty: the notification's subject"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own message for this channel (Jinja), e.g. a short one for SMS; empty: the "
+"notification's message"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one recipient"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one channel"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "%(field)s: template error - %(error)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Condition “%(condition)s” is not a valid expression: %(error)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"When something happens to a document, who is told, what and through which "
+"channels"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Condition"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Also notify who did it"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"By default the user whose action triggered the notification is not notified"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Jinja: {{ doc.field }}, {{ doctype }}, {{ event }}, {{ actor }} (who did "
+"it), {{ url }}; on a workflow transition also {{ action }}, {{ from_state "
+"}}, {{ to_state }}, {{ comment }}"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Jinja, same variables as the subject"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Channels"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Notification Recipient"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Who"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Document field"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Followers"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid ""
+"A field of the document holding a user or an email address, e.g. "
+"assigned_to; through a link: customer.email"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Optional: send to this row only when true, e.g. doc.priority == 'High'"
 msgstr ""

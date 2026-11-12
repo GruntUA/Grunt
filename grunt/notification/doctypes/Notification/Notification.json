@@ -6,6 +6,11 @@
   "table_name": "grunt_notification",
   "fields": [
     {
+      "fieldname": "sec_when",
+      "label": "When",
+      "fieldtype": "Section"
+    },
+    {
       "fieldname": "ref_doctype",
       "label": "Document type",
       "fieldtype": "Link",
@@ -22,6 +27,10 @@
       "required": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "col_when",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "date_field",
@@ -49,36 +58,65 @@
       "description": "Match only day and month - birthdays, work anniversaries"
     },
     {
-      "fieldname": "channel",
-      "label": "Channel",
-      "fieldtype": "Select",
-      "options": "system\nemail\nboth",
-      "translatable": true,
-      "default": "system",
-      "in_list_view": true
+      "fieldname": "condition",
+      "label": "Condition",
+      "fieldtype": "LongText",
+      "description": "Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
+    },
+    {
+      "fieldname": "sec_who",
+      "label": "Recipients",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "recipients",
       "label": "Recipients",
-      "fieldtype": "Data",
+      "fieldtype": "Table",
+      "options": "NotificationRecipient",
       "required": true
     },
     {
-      "fieldname": "condition",
-      "label": "Condition (Python)",
-      "fieldtype": "LongText"
+      "fieldname": "notify_actor",
+      "label": "Also notify who did it",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "By default the user whose action triggered the notification is not notified"
+    },
+    {
+      "fieldname": "sec_what",
+      "label": "Message",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "subject_template",
-      "label": "Subject template",
+      "label": "Subject",
       "fieldtype": "Data",
-      "default": "{doctype}: {name}"
+      "default": "{{ doctype }}: {{ doc.name }}",
+      "description": "Jinja: {{ doc.field }}, {{ doctype }}, {{ event }}, {{ actor }} (who did it), {{ url }}; on a workflow transition also {{ action }}, {{ from_state }}, {{ to_state }}, {{ comment }}"
     },
     {
       "fieldname": "message_template",
-      "label": "Message template",
+      "label": "Message",
       "fieldtype": "LongText",
-      "default": "{doctype} {name} was {event}"
+      "default": "{{ doctype }} {{ doc.name }}: {{ event }}",
+      "description": "Jinja, same variables as the subject"
+    },
+    {
+      "fieldname": "sec_channels",
+      "label": "Channels",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "channels",
+      "label": "Channels",
+      "fieldtype": "Table",
+      "options": "NotificationChannel",
+      "required": true
+    },
+    {
+      "fieldname": "sec_meta",
+      "label": "Settings",
+      "fieldtype": "Section"
     },
     {
       "fieldname": "is_enabled",
@@ -87,6 +125,10 @@
       "default": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "col_meta",
+      "fieldtype": "Column"
     },
     {
       "fieldname": "is_standard",
@@ -108,7 +150,18 @@
   "permissions": [
     {
       "role": "System Manager",
-      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+      "actions": [
+        "read",
+        "write",
+        "create",
+        "delete",
+        "export",
+        "import",
+        "print",
+        "share",
+        "report"
+      ]
     }
-  ]
+  ],
+  "description": "When something happens to a document, who is told, what and through which channels"
 }
