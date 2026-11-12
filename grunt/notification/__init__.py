@@ -1,7 +1,6 @@
-"""Notification module - event-driven notifications for document changes."""
+"""Notifications - rules (``Notification``), channels, delivery and the bell (``NotificationLog``).
 
-from grunt.notification.service import NotificationService
-
-notification_service = NotificationService()
-
-__all__ = ["NotificationService", "notification_service"]
+Import the parts directly (``grunt.notification.service``, ``.delivery``, ``.channels``):
+the package itself imports nothing, so the email queue and the push sender can
+reach ``grunt.notification.delivery_log`` without pulling the channels in.
+"""

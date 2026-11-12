@@ -15270,3 +15270,52 @@ msgstr "Відкрито"
 #~ msgctxt "meta:DocPermission.read"
 #~ msgid "Read"
 #~ msgstr "Читати"
+
+#: grunt/grunt/notification/channels.py
+msgid "Browser push"
+msgstr "Пуш у браузері"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email message"
+msgstr "Лист"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email queue"
+msgstr "Черга листів"
+
+#: grunt/grunt/notification/channels.py
+msgid "In the system"
+msgstr "У системі"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Notification Delivery"
+msgstr "Доставка сповіщень"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "One row per notification, recipient and channel: what was sent, through which channel, and whether it arrived. Old entries are deleted automatically."
+msgstr "Рядок на кожне сповіщення, отримувача й канал: що надіслано, яким каналом і чи дійшло. Старі записи видаляються автоматично."
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Reason"
+msgstr "Причина"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Skipped"
+msgstr "Пропущено"
+
+#: grunt/grunt/notification/channels.py
+msgid "The email could not be queued"
+msgstr "Не вдалося поставити лист у чергу"
+
+#: grunt/grunt/webpush/service.py
+msgid "The user has no browser subscribed to push"
+msgstr "Користувач не підписав жоден браузер на пуш-сповіщення"
+
+#: grunt/grunt/notification/delivery.py
+#, python-format
+msgid "Unknown channel “%(channel)s”"
+msgstr "Невідомий канал «%(channel)s»"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Why the notification was skipped or failed"
+msgstr "Чому сповіщення пропущено або не доставлено"

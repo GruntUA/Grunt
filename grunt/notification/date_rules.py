@@ -112,8 +112,9 @@ async def run_rule(rule: dict[str, Any], today: date) -> int:
     since, _ = _day_bounds(today)
     sent = 0
     for doc in await due_documents(rule, today):
+        # The delivery log, not the bell: an email-only rule leaves no bell row.
         already = await _db.exists(
-            "NotificationLog",
+            "NotificationDelivery",
             {
                 "notification": rule["name"],
                 "doc_id": str(doc["name"]),

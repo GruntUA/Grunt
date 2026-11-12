@@ -1,5 +1,6 @@
 """Realtime API mixin for GruntApp facade."""
 
+from collections.abc import Sequence
 from typing import Any
 
 from grunt.publish import MessageType
@@ -19,16 +20,16 @@ class RealtimeAPI:
         message: str,
         doctype: str | None = None,
         doc_id: str | None = None,
-        push: bool = True,
+        channels: Sequence[str] = ("in_app",),
     ) -> list[str]:
-        """Create persistent bell notifications for one or more users."""
+        """Notify one or more users (the bell by default) - see :func:`grunt.publish.notify`."""
         return await _notify(
             users=users,
             subject=subject,
             message=message,
             doctype=doctype,
             doc_id=doc_id,
-            push=push,
+            channels=channels,
         )
 
     async def publish(
