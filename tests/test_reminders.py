@@ -11,6 +11,9 @@ from grunt.errors import ApplicationError
 from grunt.tasks import reminders
 from tests.support import make_user
 
+# Code events notify through the core's standard Notification rules.
+pytestmark = pytest.mark.usefixtures("standard_notifications")
+
 NOTE = {
     "name": "RemNote",
     "label": "Rem Note",

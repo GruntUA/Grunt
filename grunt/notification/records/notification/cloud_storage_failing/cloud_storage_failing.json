@@ -1,0 +1,40 @@
+{
+  "doctype": "Notification",
+  "name": "Cloud storage failing",
+  "event": "code",
+  "event_key": "grunt.storage.failing",
+  "days": 0,
+  "every_year": false,
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Role",
+      "role": "System Manager",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ _('Cloud storage “%(name)s” is failing') % {'name': doc.name} }}",
+  "message_template": "{{ error }}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "web_push",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

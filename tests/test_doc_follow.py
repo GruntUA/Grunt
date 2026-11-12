@@ -6,6 +6,9 @@ from fastapi import HTTPException
 
 from tests.support import make_user
 
+# Code events notify through the core's standard Notification rules.
+pytestmark = pytest.mark.usefixtures("standard_notifications")
+
 BOX = {
     "name": "FollowBox",
     "label": "Follow Box",

@@ -303,6 +303,9 @@ def _scan_record_json(
         for key, value in doc.items():
             if key in fields and isinstance(value, str):
                 add(value, f"record:{doctype}.{key}", "meta", origin, rel)
+            elif isinstance(value, str):
+                # A Jinja template stored in a record (a notification's text).
+                _scan_jinja(value, rel, origin, add)
             elif isinstance(value, list):
                 for row in value:
                     if isinstance(row, dict):

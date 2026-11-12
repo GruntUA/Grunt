@@ -1,0 +1,34 @@
+{
+  "doctype": "Notification",
+  "name": "Mentioned in a comment",
+  "event": "code",
+  "event_key": "grunt.comment.mentioned",
+  "days": 0,
+  "every_year": false,
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Event recipients",
+      "role": "",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ _('%(user)s mentioned you in a comment') % {'user': actor_email} }}",
+  "message_template": "{{ text }}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

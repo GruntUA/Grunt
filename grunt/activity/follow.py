@@ -5,18 +5,15 @@ updated (with the changed fields) or commented on. The author of the change is
 never notified about their own action. Follows are dropped with the document.
 """
 
-from collections.abc import Callable
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.auth.language import language_of
 from grunt.db.api import GruntDB
 from grunt.document.titles import resolve_reference_titles
-from grunt.i18n import _, use_language
+from grunt.i18n import _
 from grunt.local import system_context
-from grunt.log import log
-from grunt.notification.service import notification_service
+from grunt.notification.events import trigger
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -44,30 +41,6 @@ def _field_labels(dt: Any, fieldnames: list[str]) -> str:
     return ", ".join(shown) + (" " + _("and %(count)s more") % {"count": rest} if rest > 0 else "")
 
 
-async def _notify(
-    session: AsyncSession,
-    doctype: str,
-    doc_id: str,
-    users: list[str],
-    compose: Callable[[], tuple[str, str]],
-) -> None:
-    """Notify each follower; *compose* -> ``(subject, message)`` runs in their language."""
-    for user in users:
-        try:
-            with use_language(await language_of(user)):
-                subject, message = compose()
-            await notification_service.notify(
-                session,
-                user=user,
-                doctype=doctype,
-                doc_id=str(doc_id),
-                subject=subject,
-                message=message,
-            )
-        except Exception:
-            log.exception("follow.notify_failed", doctype=doctype, doc_id=doc_id, user=user)
-
-
 async def notify_followers_of_update(
     *,
     session: AsyncSession,
@@ -86,17 +59,19 @@ async def notify_followers_of_update(
             return
         title = await _title(doctype, doc_id)
         label = getattr(dt, "label", None) or doctype
-        await _notify(
-            session,
-            doctype,
-            doc_id,
-            users,
-            lambda: (
-                _("%(doctype)s “%(title)s” changed") % {"doctype": _(label), "title": title},
-                _("Changed: %(fields)s") % {"fields": _field_labels(dt, changed_fields)}
-                + (f" — {actor_email}" if actor_email else ""),
-            ),
-        )
+    # The followers are the rule's ("Followers"); field labels in their language.
+    await trigger(
+        "grunt.follow.changed",
+        doc={"name": str(doc_id)},
+        doctype=doctype,
+        actor=actor_email or "",
+        extra={
+            "title": title,
+            "label": label,
+            "fields": lambda: _field_labels(dt, changed_fields),
+        },
+        session=session,
+    )
 
 
 async def notify_followers_of_comment(
@@ -115,17 +90,14 @@ async def notify_followers_of_comment(
         if not users:
             return
         title = await _title(doctype, doc_id)
-        text = (doc.get("content") or "").strip()
-        await _notify(
-            session,
-            doctype,
-            doc_id,
-            users,
-            lambda: (
-                _("New comment: “%(title)s”") % {"title": title},
-                (f"{actor}: " if actor else "") + (text[:300] if text else ""),
-            ),
-        )
+    await trigger(
+        "grunt.follow.commented",
+        doc={"name": str(doc_id)},
+        doctype=doctype,
+        actor=str(actor or ""),
+        extra={"title": title, "text": (doc.get("content") or "").strip()},
+        session=session,
+    )
 
 
 async def drop_follows(

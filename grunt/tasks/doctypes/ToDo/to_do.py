@@ -14,11 +14,9 @@ note in ``description``.
 from datetime import UTC, datetime
 from typing import Any
 
-from grunt.auth.language import language_of
 from grunt.document.base import Document
-from grunt.i18n import _, use_language
-from grunt.log import log
-from grunt.notification.service import notification_service
+from grunt.i18n import _
+from grunt.notification.events import trigger
 
 _DONE_STATES = ("Closed", "Cancelled")
 
@@ -114,49 +112,33 @@ class ToDo(Document):
         note = (self.get("description") or "").strip()
         return "" if is_placeholder_note(note) else note
 
-    async def _deliver(self, user: str, subject: str, message: str) -> None:
+    async def _trigger(self, key: str, recipient: str, **extra: Any) -> None:
+        """Code event *key* (its standard ``Notification`` says what and how)."""
         ref_dt = (self.get("reference_doctype") or "").strip()
         ref_id = str(self.get("reference_id") or "").strip()
-
-        await notification_service.notify(
-            self.session,
-            user=user,
-            doctype=ref_dt or "ToDo",
-            doc_id=ref_id or (self.id or ""),
-            subject=subject,
-            message=message,
-            email=True,
+        await trigger(
+            key,
+            doc={**self.data, "name": self.id},
+            doctype="ToDo",
+            link=(ref_dt, ref_id) if ref_dt and ref_id else None,
+            recipients=[recipient],
+            actor=self._actor_email(),
+            # Callables run in each recipient's language.
+            extra={"target": self._target, **extra},
+            session=self.session,
         )
 
     async def _notify_assignee(self, assignee: str) -> None:
         """Tell *assignee* they have a new assignment (skips self-assignment)."""
         if not assignee or assignee == self._actor_email():
             return
-        note = self._task_note()
-        try:
-            # Stored text: compose it in the recipient's language.
-            with use_language(await language_of(assignee)):
-                target = self._target()
-                subject = _("Assigned to you: %(target)s") % {"target": target}
-                message = note or _("You have been assigned to %(target)s.") % {"target": target}
-            await self._deliver(assignee, subject, message)
-        except Exception:
-            log.exception("todo.notify_assignee_failed", assignee=assignee)
+        await self._trigger("grunt.todo.assigned", assignee, note=self._task_note())
 
     async def _notify_completion(self) -> None:
         """Tell whoever created the assignment that it is done."""
         recipient = (self.get("assigned_by") or self.get("owner") or "").strip()
-        actor = self._actor_email()
-        if not recipient or recipient == actor:
+        if not recipient or recipient == self._actor_email():
             return
-        try:
-            with use_language(await language_of(recipient)):
-                target = self._target()
-                subject = _("Task completed: %(target)s") % {"target": target}
-                message = _("%(actor)s marked the task as done: %(task)s") % {
-                    "actor": actor or _("The assignee"),
-                    "task": self._task_note() or target,
-                }
-            await self._deliver(recipient, subject, message)
-        except Exception:
-            log.exception("todo.notify_completion_failed", recipient=recipient)
+        await self._trigger(
+            "grunt.todo.completed", recipient, task=lambda: self._task_note() or self._target()
+        )

@@ -14354,6 +14354,94 @@ msgstr ""
 msgid "Optional: send to this row only when true, e.g. doc.priority == 'High'"
 msgstr ""
 
+#: grunt/grunt/notification/events.py
+msgid "Task assigned"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Tasks due (daily digest)"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document changed"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document commented"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Mentioned in a comment"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Reply to a comment"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat created a document"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat failed"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Cloud storage failing"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "Reset to standard"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "Discard the changes made on this site and take the app's version?"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "Restored the app's version"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "The app ships no such record"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Unknown code event “%(event)s”"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "For an event from code: empty - whatever document the event is about"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Code event"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"An event the framework or an app raises from code, e.g. a task assigned"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Changed on this site"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"A standard notification edited here: updates of the app no longer overwrite "
+"it. Reset to standard to follow the app again"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Event recipients"
+msgstr ""
+
 #~ msgid "Backup not found"
 #~ msgstr ""
 

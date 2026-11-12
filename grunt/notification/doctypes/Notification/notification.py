@@ -1,4 +1,4 @@
-"""Notification controller - checks date-based notifications against their DocType."""
+"""Notification controller - validates a rule: its rows, templates, event and dates."""
 
 import ast
 
@@ -9,6 +9,8 @@ from grunt.metadata.registry import doctype_registry
 from grunt.notification import rules
 from grunt.notification.channels import get_channel
 from grunt.notification.date_rules import DATE_EVENTS
+from grunt.notification.events import get_event
+from grunt.standard_records import mark_customized
 
 _SYSTEM_DATES = ("created_at", "modified_at")
 
@@ -24,7 +26,17 @@ class Notification(Document):
     notify_actor: bool | None
 
     async def validate(self) -> None:
+        mark_customized(self)
         await self._validate_rows()
+        if self.event == "code":
+            if get_event(self.get("event_key") or "") is None:
+                throw(
+                    _("Unknown code event “%(event)s”") % {"event": self.get("event_key")},
+                    "VALIDATION_ERROR",
+                )
+            return
+        if not self.get("ref_doctype"):
+            throw(_("Choose the document type"), "VALIDATION_ERROR")
         if self.event not in DATE_EVENTS:
             return
         field = (self.get("date_field") or "").strip()

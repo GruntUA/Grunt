@@ -1,0 +1,40 @@
+{
+  "doctype": "Notification",
+  "name": "Followed document changed",
+  "event": "code",
+  "event_key": "grunt.follow.changed",
+  "days": 0,
+  "every_year": false,
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Followers",
+      "role": "",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ _('%(doctype)s “%(title)s” changed') % {'doctype': _(label), 'title': title} }}",
+  "message_template": "{{ _('Changed: %(fields)s') % {'fields': fields} }}{% if actor_email %} — {{ actor_email }}{% endif %}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "web_push",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

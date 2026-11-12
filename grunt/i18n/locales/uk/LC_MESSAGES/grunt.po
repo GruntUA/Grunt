@@ -15327,6 +15327,98 @@ msgstr ""
 "Необов'язково: надсилати цьому рядку лише коли умова істинна, напр. "
 "doc.priority == 'High'"
 
+#: grunt/grunt/notification/events.py
+msgid "Task assigned"
+msgstr "Задачу призначено"
+
+#: grunt/grunt/notification/events.py
+msgid "Tasks due (daily digest)"
+msgstr "Задачі з терміном (щоденне нагадування)"
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document changed"
+msgstr "Змінено документ, за яким стежать"
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document commented"
+msgstr "Коментар до документа, за яким стежать"
+
+#: grunt/grunt/notification/events.py
+msgid "Mentioned in a comment"
+msgstr "Згадка в коментарі"
+
+#: grunt/grunt/notification/events.py
+msgid "Reply to a comment"
+msgstr "Відповідь на коментар"
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat created a document"
+msgstr "Автоповтор створив документ"
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat failed"
+msgstr "Збій автоповтору"
+
+#: grunt/grunt/notification/events.py
+msgid "Cloud storage failing"
+msgstr "Збій хмарного сховища"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Reset to standard"
+msgstr "Скинути до стандарту"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Discard the changes made on this site and take the app's version?"
+msgstr "Відкинути зміни, зроблені на цьому сайті, і взяти версію з додатка?"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Restored the app's version"
+msgstr "Відновлено версію з додатка"
+
+#: grunt/grunt/actions/builtin.py
+msgid "The app ships no such record"
+msgstr "Додаток не постачає такого запису"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the document type"
+msgstr "Оберіть тип документа"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Unknown code event “%(event)s”"
+msgstr "Невідома подія з коду «%(event)s»"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "For an event from code: empty - whatever document the event is about"
+msgstr ""
+"Для події з коду: порожньо — будь-який документ, якого стосується подія"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Code event"
+msgstr "Подія з коду"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"An event the framework or an app raises from code, e.g. a task assigned"
+msgstr ""
+"Подія, яку фреймворк або додаток викликає з коду, напр. призначення задачі"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Changed on this site"
+msgstr "Змінено на цьому сайті"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"A standard notification edited here: updates of the app no longer overwrite "
+"it. Reset to standard to follow the app again"
+msgstr ""
+"Стандартне сповіщення змінено тут: оновлення додатка його більше не "
+"перезаписують. «Скинути до стандарту» — щоб знову йти за додатком"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Event recipients"
+msgstr "Отримувачі з події"
+
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "
 #~ "and explains it."

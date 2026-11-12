@@ -40,6 +40,7 @@ from grunt.website.router import (
 )
 lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
 lazy from grunt.notification.channels import register_channel
+lazy from grunt.notification.events import register_event
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,6 +229,23 @@ def _notification_channels(value: list[str], ctx: LoadContext) -> None:
             log.debug("notification.channel.registered", channel=path, app=ctx.app_name)
         except Exception as e:
             log.warning("notification.channel.error", channel=path, app=ctx.app_name, error=str(e))
+
+
+@consumer("notification_events")
+def _notification_events(value: list[dict[str, Any]], ctx: LoadContext) -> None:
+    """``[{"key": "my_app.order.paid", "label": "Order paid", "doctype": "Order",
+    "variables": ["amount"]}]`` - code events an app triggers (``grunt.notification.events``)."""
+    for spec in value:
+        try:
+            register_event(
+                spec["key"],
+                spec.get("label") or spec["key"],
+                doctype=spec.get("doctype"),
+                description=spec.get("description") or "",
+                variables=spec.get("variables") or (),
+            )
+        except Exception as e:
+            log.warning("notification.event.error", spec=spec, app=ctx.app_name, error=str(e))
 
 
 @consumer("sidebar_sections")
