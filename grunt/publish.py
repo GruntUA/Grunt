@@ -36,14 +36,16 @@ row - or a row a rollback takes back. Outside a transaction it goes at once.
 Live progress goes through :mod:`grunt.progress`, which doesn't wait.
 """
 
+from collections.abc import Sequence
 from typing import Any, Literal
 
 from grunt.api.v1.ws import manager
 from grunt.db.commit import on_commit
 from grunt.i18n import _
-from grunt.local import require_session, system_context
+from grunt.local import require_session
 from grunt.log import log
-lazy from grunt.document.api import documents
+from grunt.notification.channels import Message
+from grunt.notification.delivery import deliver
 
 MessageType = Literal["success", "error", "info", "warning"]
 
@@ -55,62 +57,30 @@ async def notify(
     message: str,
     doctype: str | None = None,
     doc_id: str | None = None,
-    push: bool = True,
+    channels: Sequence[str] = ("in_app",),
 ) -> list[str]:
-    """Create a persistent notification for one or more users.
+    """Notify one or more users - through the notification dispatcher, so each
+    delivery lands in the ``NotificationDelivery`` log.
 
-    The notification is stored via ``grunt.new_doc`` (hooks included) and
-    optionally pushed to connected users via WebSocket in real time.
+    Default channel ``in_app``: a bell row (``NotificationLog``) plus a realtime
+    ping after the commit. Add ``"web_push"`` / ``"email"`` (or an app's
+    channel) to reach the user outside the desk too.
 
     Requires an active grunt context (session + user). This is automatically
     satisfied inside request handlers, lifecycle hooks, and background tasks
     that use :meth:`grunt.local`.
 
-    Args:
-        users: List of user emails to notify.
-        subject: Notification subject/title.
-        message: Notification body text.
-        doctype: Related DocType name (optional).
-        doc_id: Related document ID (optional).
-        push: Whether to also push via WebSocket (default True).
-
     Returns:
-        List of created notification IDs.
+        The names of the bell rows created.
     """
-    ids: list[str] = []
-    # A notification is the system telling someone - creating one must not
-    # depend on the acting user's rights (nobody but admins may create
-    # Notification rows directly).
-    async with system_context(require_session()):
-        for user_email in users:
-            doc = await documents.new_doc(
-                "NotificationLog",
-                {
-                    "user": user_email,
-                    "subject": subject,
-                    "message": message,
-                    "ref_doctype": doctype,
-                    "doc_id": doc_id,
-                    "is_read": False,
-                },
-            )
-            ids.append(doc["name"])
-
-    if push:
-        for user_email in users:
-            await publish(
-                user=user_email,
-                event="notification",
-                data={
-                    "subject": subject,
-                    "message": message,
-                    "ref_doctype": doctype,
-                    "doc_id": doc_id,
-                },
-            )
-
-    log.info("publish.notify", users=users, subject=subject, count=len(ids))
-    return ids
+    report = await deliver(
+        require_session(),
+        users,
+        Message(subject=subject, body=message, ref_doctype=doctype, doc_id=doc_id),
+        channels,
+    )
+    log.info("publish.notify", users=users, subject=subject, count=report.delivered)
+    return report.notification_logs
 
 
 async def publish(

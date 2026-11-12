@@ -407,9 +407,13 @@ the underlying document, build that dict by hand.
 
 ## Notifications & real-time
 
-### `grunt.notify(users, subject, message, doctype, doc_id, push)`
+### `grunt.notify(users, subject, message, doctype, doc_id, channels)`
 
-Create persistent bell notifications.
+Notify users. By default this uses the `in_app` channel: a bell row (`NotificationLog`) plus a realtime ping after the commit. Pass `channels=("in_app", "web_push", "email")` to also reach them by browser push and email, or use a channel an app registered.
+
+Each recipient × channel becomes a `NotificationDelivery` row. The row records whether the notification was sent, queued, skipped (with a reason) or failed. The email queue and the push sender update the row once the message actually goes out.
+
+Returns the names of the bell rows created.
 
 ```python
 await grunt.notify(
@@ -420,6 +424,14 @@ await grunt.notify(
     doc_id=order["id"],
 )
 ```
+
+An app adds its own channel (SMS, a messenger) in `hooks.py`:
+
+```python
+notification_channels = ["my_app.sms.SmsChannel"]
+```
+
+The class subclasses `grunt.notification.channels.Channel`. It sets a `name` and a `label` and implements `send(session, recipient, message, *, delivery)`, which returns an `Outcome` (`Sent`, `Queued`, `Skipped` or `Error`). A queued channel later settles its row with `grunt.notification.delivery_log.settle({"name": delivery}, "Sent")`.
 
 ### `grunt.publish(user, event, data, message, type)`
 

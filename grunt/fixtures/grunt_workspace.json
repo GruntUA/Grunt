@@ -236,6 +236,13 @@
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
+      "label": "Доставка сповіщень",
+      "link_to": "NotificationDelivery",
+      "icon": "mail-check"
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
       "label": "Push підписки",
       "link_to": "PushSubscription",
       "icon": "smartphone",

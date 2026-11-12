@@ -7,6 +7,7 @@ from grunt.email.service import EmailService, decode_attachments, email_service
 from grunt.i18n import _, ngettext, pgettext, use_language
 from grunt.local import system_context
 from grunt.log import log
+from grunt.notification import delivery_log
 from grunt.site.manager import site_manager
 from grunt.tasks.broker import retryable_task
 from grunt.utils.templates import render as render_template_text
@@ -69,8 +70,11 @@ async def process_email_queue():
 
                 try:
                     message = {**item, "attachments": decode_attachments(item.get("attachments"))}
-                    await EmailService.send_now(account, message)
+                    email_message = await EmailService.send_now(account, message)
                     await documents.save_doc("EmailQueue", item["name"], {"status": "Sent"})
+                    await delivery_log.settle(
+                        {"email_queue": item["name"]}, "Sent", email_message=email_message
+                    )
                     await session.commit()
                 except Exception as e:
                     await documents.save_doc(
@@ -78,6 +82,7 @@ async def process_email_queue():
                         item["name"],
                         {"status": "Error", "error_message": str(e)},
                     )
+                    await delivery_log.settle({"email_queue": item["name"]}, "Error", reason=str(e))
                     await session.commit()
 
         except Exception as e:

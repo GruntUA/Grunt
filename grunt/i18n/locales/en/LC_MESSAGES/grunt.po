@@ -14258,3 +14258,52 @@ msgstr ""
 
 #~ msgid "“%(name)s” not found"
 #~ msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "Browser push"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email message"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email queue"
+msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "In the system"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Notification Delivery"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "One row per notification, recipient and channel: what was sent, through which channel, and whether it arrived. Old entries are deleted automatically."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Reason"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Skipped"
+msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "The email could not be queued"
+msgstr ""
+
+#: grunt/grunt/webpush/service.py
+msgid "The user has no browser subscribed to push"
+msgstr ""
+
+#: grunt/grunt/notification/delivery.py
+#, python-format
+msgid "Unknown channel “%(channel)s”"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Why the notification was skipped or failed"
+msgstr ""

@@ -1,0 +1,124 @@
+{
+  "name": "NotificationDelivery",
+  "label": "Notification Delivery",
+  "module": "notification",
+  "description": "One row per notification, recipient and channel: what was sent, through which channel, and whether it arrived. Old entries are deleted automatically.",
+  "is_log": true,
+  "retention_days": 90,
+  "track_changes": false,
+  "track_activity": false,
+  "track_deletions": false,
+  "table_name": "grunt_notification_delivery",
+  "title_field": "subject",
+  "indexes": [["ref_doctype", "doc_id"]],
+  "status_field": "status",
+  "status_indicators": [
+    {"value": "Queued", "color": "primary", "label": "Queued"},
+    {"value": "Sent", "color": "success", "label": "Sent"},
+    {"value": "Skipped", "color": "secondary", "label": "Skipped"},
+    {"value": "Error", "color": "danger", "label": "Error"}
+  ],
+  "fields": [
+    {
+      "fieldname": "recipient",
+      "label": "Recipient",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "channel",
+      "label": "Channel",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Queued\nSent\nSkipped\nError",
+      "translatable": true,
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "subject",
+      "label": "Subject",
+      "fieldtype": "Data",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "reason",
+      "label": "Reason",
+      "fieldtype": "LongText",
+      "description": "Why the notification was skipped or failed"
+    },
+    {
+      "fieldname": "col_source",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "notification",
+      "label": "Notification",
+      "fieldtype": "Link",
+      "options": "Notification",
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "event_key",
+      "label": "Event",
+      "fieldtype": "Data",
+      "in_filter": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_filter": true
+    },
+    {
+      "fieldname": "doc_id",
+      "label": "Document ID",
+      "fieldtype": "DynamicLink",
+      "options": "ref_doctype"
+    },
+    {
+      "fieldname": "sec_links",
+      "label": "Created",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "notification_log",
+      "label": "Notification Log",
+      "fieldtype": "Link",
+      "options": "NotificationLog"
+    },
+    {
+      "fieldname": "email_queue",
+      "label": "Email queue",
+      "fieldtype": "Link",
+      "options": "EmailQueue",
+      "index": true
+    },
+    {
+      "fieldname": "email_message",
+      "label": "Email message",
+      "fieldtype": "Link",
+      "options": "EmailMessage"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "delete", "export", "print", "report"]
+    }
+  ]
+}

@@ -68,8 +68,11 @@ class EmailService:
     """
 
     @staticmethod
-    async def send_now(account: dict[str, Any], message: dict[str, Any]) -> None:
-        """Send an email immediately using the provided account settings."""
+    async def send_now(account: dict[str, Any], message: dict[str, Any]) -> str | None:
+        """Send an email immediately using the provided account settings.
+
+        Returns the ``EmailMessage`` the letter is logged as (None if logging failed).
+        """
         if not account.get("enable_outgoing"):
             raise ValueError(
                 f"Outgoing email is disabled for account {account.get('email_address')}"
@@ -131,13 +134,13 @@ class EmailService:
             log.info(
                 "email.sent", recipient=message.get("recipient"), subject=message.get("subject")
             )
-            await EmailService._log_outgoing(account, message, msg, status="Sent")
         except Exception as e:
             log.error("email.send_failed", error=str(e), recipient=message.get("recipient"))
             await EmailService._log_outgoing(
                 account, message, msg, status="Error", error=str(e), dedup=False
             )
             raise
+        return await EmailService._log_outgoing(account, message, msg, status="Sent")
 
     @staticmethod
     async def _log_outgoing(
@@ -148,11 +151,11 @@ class EmailService:
         status: str,
         error: str | None = None,
         dedup: bool = True,
-    ) -> None:
+    ) -> str | None:
         html = bool(message.get("is_html") or message.get("html"))
         content = message.get("content", "")
         plain = message.get("text_content") or message.get("text") or None
-        await EmailService.record_message(
+        return await EmailService.record_message(
             direction="Outgoing",
             status=status,
             subject=message.get("subject", ""),

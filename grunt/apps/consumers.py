@@ -39,6 +39,7 @@ from grunt.website.router import (
     website_registry,
 )
 lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
+lazy from grunt.notification.channels import register_channel
 
 
 @dataclass(frozen=True, slots=True)
@@ -216,6 +217,17 @@ def _mcp_tools(value: list[str], ctx: LoadContext) -> None:
             log.debug("mcp.tool.loaded", handler=path, app=ctx.app_name)
         except Exception as e:
             log.warning("mcp.tool.error", handler=path, app=ctx.app_name, error=str(e))
+
+
+@consumer("notification_channels")
+def _notification_channels(value: list[str], ctx: LoadContext) -> None:
+    """``["my_app.sms.SmsChannel"]`` - :class:`grunt.notification.channels.Channel` classes."""
+    for path in value:
+        try:
+            register_channel(path)
+            log.debug("notification.channel.registered", channel=path, app=ctx.app_name)
+        except Exception as e:
+            log.warning("notification.channel.error", channel=path, app=ctx.app_name, error=str(e))
 
 
 @consumer("sidebar_sections")

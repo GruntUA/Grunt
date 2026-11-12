@@ -95,7 +95,7 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 | # | Етап | Статус |
 |---|---|---|
 | 0 | Перейменування: `Notification` → `NotificationLog`, `NotificationRule` → `Notification`; міграція 0022 + загальний `grunt.db.rename_doctype` | ✅ гілка `feature/notification-rename` |
-| 1 | Реєстр каналів; `in_app` / `web_push` / `email` окремо; `NotificationLog`; поточні правила працюють через них | ❓ |
+| 1 | Реєстр каналів (`grunt.notification.channels`, `notification_channels` у hooks.py); `in_app` / `web_push` / `email` окремо; диспетчер `deliver()` + `NotificationDelivery` (черга пошти й пуш оновлюють статус); правила, `notify()` і `grunt.notify()` — через диспетчер | ✅ гілка `feature/notification-channels` |
 | 2 | Нова форма правила: таблиці отримувачів і каналів, Jinja, міграція старих `recipients`/`channel` | ❓ |
 | 3 | `notifications.trigger()` + `event=code`; стандартні правила для подій ядра; `is_customized` у standard_records | ❓ |
 | 4 | Workflow: правила замість `notify/notify_email`, міграція; mlt_portal, tsnap, cms на правила | ❓ |

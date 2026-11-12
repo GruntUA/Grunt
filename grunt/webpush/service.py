@@ -20,6 +20,7 @@ lazy from py_vapid import Vapid
 from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.log import log
+from grunt.notification import delivery_log
 from grunt.site.settings import get_setting
 lazy from grunt.document.api import documents
 
@@ -276,7 +277,31 @@ webpush_service = WebPushService()
 
 async def deliver_push(message: dict[str, str]) -> None:
     """Send a queued notification push (an outbox handler) - best-effort, as
-    :meth:`WebPushService.send_push`; a gone subscription is logged, not retried."""
-    await webpush_service.send_push(
-        message["user"], message["subject"], message["body"], url=message.get("url") or "/"
-    )
+    :meth:`WebPushService.send_push`; a gone subscription is logged, not retried.
+
+    Settles the ``NotificationDelivery`` row the push belongs to (``delivery``):
+    ``Sent`` if any of the user's browsers took it, otherwise ``Skipped``
+    (push disabled, no subscription) or ``Error``.
+    """
+    user = message["user"]
+    delivery = message.get("delivery")
+    try:
+        results = await webpush_service.send_to_user(
+            user, title=message["subject"], body=message["body"], url=message.get("url") or "/"
+        )
+    except PushUnavailableError as exc:
+        log.debug("webpush.unavailable", reason=str(exc))
+        if delivery:
+            await delivery_log.settle({"name": delivery}, "Skipped", reason=str(exc))
+        return
+    if not delivery:
+        return
+    if any(r.ok for r in results):
+        await delivery_log.settle({"name": delivery}, "Sent")
+    elif not results:
+        await delivery_log.settle(
+            {"name": delivery}, "Skipped", reason=_("The user has no browser subscribed to push")
+        )
+    else:
+        errors = "; ".join(sorted({r.error or str(r.status) for r in results}))
+        await delivery_log.settle({"name": delivery}, "Error", reason=errors)
