@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
+import { getRegisteredViews, getViewDef, isViewAvailable } from '@/core/viewRegistry'
 import { ChevronDown, Check, Ban } from '@lucide/vue'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
@@ -54,11 +54,7 @@ const hasSelection = computed(() => (props.selection?.count ?? 0) > 0)
 // View switcher ("List View ▾" dropdown)
 
 const availableViews = computed(() =>
-  getRegisteredViews().filter((def) => {
-    if (!def.resolveField) return true
-    if (!props.dt) return false
-    return def.resolveField(props.dt) !== null
-  })
+  getRegisteredViews().filter((def) => isViewAvailable(def, props.dt))
 )
 
 const currentView = computed(() => getViewDef(props.viewMode) ?? availableViews.value[0])
