@@ -15,16 +15,11 @@ against its ``match`` on save - a DocType changed in the meantime is refused
 from typing import Any
 
 from grunt.api.context import whitelist
-from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.metadata.permission import ACTIONS
+from grunt.permissions.roles import missing_roles
 lazy from grunt.document.api import documents
-
-_db = GruntDB()  # stateless: reads through the context's session
-
-# The role every user holds - not a Role document.
-ALL_ROLE = "All"
 
 # One page of the DocType list at most; a guard against unbounded requests.
 MAX_DOCTYPES = 500
@@ -41,7 +36,7 @@ def _rule(index: int, perm: dict[str, Any]) -> dict[str, Any]:
 
 
 async def _check_role(role: str) -> None:
-    if role != ALL_ROLE and not await _db.exists("Role", role):
+    if await missing_roles([role]):
         throw(_("Role “%(role)s” not found") % {"role": role}, "NOT_FOUND")
 
 
