@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.4.0 - 2026-11-13
+
+### Features
+
+- **permissions:** a rule names a role that exists
+- **permissions:** no role-name bypass in actions, workflow, menus and pages
+- **permissions:** permissions instead of role names
+- **permissions:** check new values on write, role permission matrix
+- **workflow:** transition notifications through Notification rules
+- **notification:** code events through standard Notification rules
+- **notification:** recipient and channel tables, Jinja templates
+- **notification:** channels and the NotificationDelivery log
+
+### Fixes
+
+- **permissions:** review of the matrix, reset to standard and report rights
+- **permissions:** permissions in the sign-in payload; Role test without export
+- **notification:** review of code events - savepoints, full docs, app hooks
+- **notification:** skip inactive accounts, load DocType for links, refuse downgrades
+- **db:** dialect-aware index drop and resumable column rename in rename_doctype
+
+### Other
+
+- **deps:** upgrade npm and Python packages
+- **deps-dev:** bump @hono/node-server
+- **notification:** rename NotificationRule → Notification, Notification → NotificationLog
+
+### Database migrations
+
+- `0022_notification_rename`
+- `0023_notification_rows`
+- `0024_workflow_notifications`
+- `0025_role_permissions`
+
 ## v0.3.0 - 2026-11-11
 
 ### Breaking changes
