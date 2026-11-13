@@ -137,6 +137,10 @@ msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page
 msgstr "Дозволи «%(doctype)s» тим часом змінили — оновіть сторінку"
 
 #: grunt/grunt/api/v1/permission_matrix.py
+msgid "Too many document types in one save (%(count)s, at most %(max)s)"
+msgstr "Забагато типів документів в одному збереженні (%(count)s, щонайбільше %(max)s)"
+
+#: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
 msgstr "Роль «%(role)s» не знайдено"
 

@@ -22,14 +22,21 @@ BOX = {
         {"role": "Reader", "actions": ["read"]},
         {"role": "Writer", "actions": ["read", "write"]},
         {"role": "Mailer", "actions": ["read"]},
+        {"role": "Locked", "actions": ["read", "write"], "readonly_fields": ["title"]},
     ],
-    "actions": [{"action": "fp.write"}, {"action": "fp.mail"}, {"action": "fp.roles"}],
+    "actions": [
+        {"action": "fp.write"},
+        {"action": "fp.mail"},
+        {"action": "fp.roles"},
+        {"action": "core.reset_standard"},
+    ],
 }
 
 READER = make_user("reader@x.com", roles=["Reader"])
 WRITER = make_user("writer@x.com", roles=["Writer"])
 MAILER = make_user("mailer@x.com", roles=["Mailer"])
 ADMIN = make_user("admin@x.com", roles=["System Manager"])
+LOCKED = make_user("locked@x.com", roles=["Locked"])
 
 
 @pytest.fixture
@@ -93,3 +100,11 @@ def test_transition_roles():
     assert user_may_take(t, ["Approver"])
     assert not user_may_take(t, ["System Manager"])  # a name grants nothing
     assert user_may_take(t, ["Clerk"], unrestricted=True)  # "*" does
+
+
+@pytest.mark.asyncio
+async def test_reset_to_standard_needs_no_field_locks(box, db_session, engine):
+    # The reset writes every field as the system - not for a writer with locked fields.
+    await _refused(LOCKED, "core.reset_standard", box, db_session, engine)
+    result = await _run(WRITER, "core.reset_standard", box, db_session, engine)
+    assert result["message"]  # past the check: the app ships no such record

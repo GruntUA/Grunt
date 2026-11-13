@@ -28,6 +28,8 @@ export interface MatrixRow {
 export interface MatrixEdit {
   index: number | null
   match?: string | null
+  /** The rule's actions as loaded - a save over changed ones is refused. */
+  original?: PermissionAction[]
   actions: PermissionAction[]
 }
 

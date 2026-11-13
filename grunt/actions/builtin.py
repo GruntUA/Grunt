@@ -11,8 +11,11 @@ from typing import Any
 
 from grunt.actions.registry import doc_action
 from grunt.activity.doctypes.DeletedDocument.deleted_document import restore
-from grunt.errors import throw
+from grunt.errors import forbidden, throw
 from grunt.i18n import _
+from grunt.local import session_user
+from grunt.metadata.registry import doctype_registry
+from grunt.permissions.roles import role_access
 from grunt.reports.delivery import send_report_now
 from grunt.standard_records import reset as reset_standard_record
 lazy from grunt.document.api import documents
@@ -200,10 +203,24 @@ async def report_send_now(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[
     confirm="Discard the changes made on this site and take the app's version?",
 )
 async def reset_standard(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
-    """A customized standard record back to its app's files (``standard_records.reset``)."""
+    """A customized standard record back to its app's files (``standard_records.reset``).
+
+    The reset writes every field the files hold, as the system - so only a
+    writer for whom no field of this DocType is hidden or read-only may run
+    it: anyone else would change fields through it they may not change."""
+    access = await role_access(await _meta(doc["doctype"]), session_user())
+    if access.hidden_fields or access.readonly_fields:
+        raise forbidden(_("Not permitted to run this action"))
     if not await reset_standard_record(doc["doctype"], doc["name"]):
         return {"message": _("The app ships no such record"), "refresh": False}
     return {"message": _("Restored the app's version"), "refresh": True}
+
+
+async def _meta(doctype: str) -> Any:
+    meta = await doctype_registry.get_meta(doctype)
+    if meta is None:
+        raise forbidden(_("Not permitted to run this action"))
+    return meta
 
 
 # Dialog shared by the push actions below.

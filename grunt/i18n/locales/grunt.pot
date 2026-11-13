@@ -126,6 +126,10 @@ msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page
 msgstr ""
 
 #: grunt/grunt/api/v1/permission_matrix.py
+msgid "Too many document types in one save (%(count)s, at most %(max)s)"
+msgstr ""
+
+#: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
 msgstr ""
 

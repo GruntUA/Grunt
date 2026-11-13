@@ -52,8 +52,20 @@ const role = ref('')
 const matrix = ref<Record<string, MatrixRow>>({})
 const loading = ref(false)
 const saving = ref(false)
-// Changed lines only: line key -> the actions it will grant.
-const draft = ref<Record<string, PermissionAction[]>>({})
+// A changed line: the rule it edits as it was loaded (index and condition -
+// `index: null` only for a line created as new - and its actions), and the
+// actions it will grant. The server refuses the save if that baseline changed.
+interface Draft {
+  doctype: string
+  index: number | null
+  match: string | null
+  original: PermissionAction[]
+  actions: PermissionAction[]
+}
+// Changed lines only, by line key.
+const draft = ref<Record<string, Draft>>({})
+// Bumped on every role switch and load: a response for an older one is dropped.
+let generation = 0
 
 interface Line {
   key: string
@@ -99,7 +111,12 @@ const groups = computed<Group[]>(() =>
 const dirtyCount = computed(() => Object.keys(draft.value).length)
 
 function granted(line: Line): PermissionAction[] {
-  return draft.value[line.key] ?? line.rule?.actions ?? []
+  return draft.value[line.key]?.actions ?? line.rule?.actions ?? []
+}
+
+/** A DocType's lines are editable once its rules have loaded for this role. */
+function editable(line: Line): boolean {
+  return !saving.value && !loading.value && line.doctype in matrix.value
 }
 
 function isOn(line: Line, action: PermissionAction): boolean {
@@ -116,10 +133,16 @@ function toggle(line: Line, action: PermissionAction, value: boolean | 'indeterm
   if (value === true) set.add(action)
   else set.delete(action)
   const next = ACTIONS.filter((a) => set.has(a))
-  const original = line.rule?.actions ?? []
+  const base = draft.value[line.key] ?? {
+    doctype: line.doctype,
+    index: line.rule ? line.rule.index : null,
+    match: line.rule?.match ?? null,
+    original: line.rule?.actions ?? [],
+    actions: [],
+  }
   const nextDraft = { ...draft.value }
-  if (next.join() === original.join()) delete nextDraft[line.key]
-  else nextDraft[line.key] = next
+  if (next.join() === base.original.join()) delete nextDraft[line.key]
+  else nextDraft[line.key] = { ...base, actions: next }
   draft.value = nextDraft
 }
 
@@ -142,17 +165,20 @@ async function loadRoles() {
 
 async function loadMatrix() {
   const names = doctypeNames.value
-  if (!role.value || !names.length) return
+  const forRole = role.value
+  if (!forRole || !names.length) return
+  const mine = ++generation
   loading.value = true
   try {
-    const rows = await permissionsApi.getRoleMatrix(role.value, names)
+    const rows = await permissionsApi.getRoleMatrix(forRole, names)
+    if (mine !== generation || forRole !== role.value) return // a newer load or role
     const next = { ...matrix.value }
     for (const row of rows) next[row.doctype] = row
     matrix.value = next
   } catch (err) {
-    toast.error(errorMessage(err))
+    if (mine === generation) toast.error(errorMessage(err))
   } finally {
-    loading.value = false
+    if (mine === generation) loading.value = false
   }
 }
 
@@ -164,20 +190,20 @@ watch(roleChoice, async (next) => {
     roleChoice.value = role.value
     return
   }
+  generation++
   draft.value = {}
   matrix.value = {}
+  loading.value = false
   role.value = next
 })
 
 async function save() {
   // Group the changed lines by DocType: one save per DocType on the server.
   const byDoctype = new Map<string, MatrixEdit[]>()
-  for (const [key, actions] of Object.entries(draft.value)) {
-    const [doctype, index] = key.split('\u0000')
-    const rule = matrix.value[doctype]?.rules.find((r) => String(r.index) === index) ?? null
-    const edits = byDoctype.get(doctype) ?? []
-    edits.push({ index: rule ? rule.index : null, match: rule?.match ?? null, actions })
-    byDoctype.set(doctype, edits)
+  for (const d of Object.values(draft.value)) {
+    const edits = byDoctype.get(d.doctype) ?? []
+    edits.push({ index: d.index, match: d.match, original: d.original, actions: d.actions })
+    byDoctype.set(d.doctype, edits)
   }
   saving.value = true
   try {
@@ -189,6 +215,7 @@ async function save() {
     for (const row of rows) next[row.doctype] = row
     matrix.value = next
     draft.value = {}
+    generation++ // a load started before the save would bring the old rules back
     toast.success(t('Saved'))
   } catch (err) {
     toast.error(errorMessage(err))
@@ -219,6 +246,7 @@ watch(
       <NativeSelect
         v-model="roleChoice"
         size="sm"
+        :disabled="saving"
         :aria-label="t('Role')"
       >
         <NativeSelectOption value="" disabled>{{ t('Choose a role') }}</NativeSelectOption>
@@ -303,7 +331,7 @@ watch(
                 <TableCell v-for="action in ACTIONS" :key="action" class="text-center">
                   <Checkbox
                     :model-value="isOn(line, action) || impliedSelect(line, action)"
-                    :disabled="saving || impliedSelect(line, action)"
+                    :disabled="!editable(line) || impliedSelect(line, action)"
                     :title="impliedSelect(line, action) ? t('Included in read') : undefined"
                     :aria-label="`${t(group.label)}: ${t(action)}`"
                     @update:model-value="(v) => toggle(line, action, v)"

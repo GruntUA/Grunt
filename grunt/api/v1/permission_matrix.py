@@ -12,7 +12,7 @@ against its ``match`` on save - a DocType changed in the meantime is refused
 (409) instead of having a different rule overwritten.
 """
 
-from typing import Any
+from typing import Any, NoReturn
 
 from grunt.api.context import whitelist
 from grunt.errors import throw
@@ -60,25 +60,39 @@ async def get_role_matrix(role: str, doctypes: list[str]) -> list[dict[str, Any]
 
 @whitelist()
 async def save_role_matrix(role: str, changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Apply *changes* - ``{doctype, rules: [{index, match, actions}]}`` - to
-    *role*'s rules, one ``save_doc`` per DocType; returns them as
+    """Apply *changes* - ``{doctype, rules: [{index, match, original, actions}]}``
+    - to *role*'s rules, one ``save_doc`` per DocType; returns them as
     :func:`get_role_matrix` does.
 
-    ``index`` ``None`` adds a rule (without ``match``) when it grants anything.
+    Each edit names the rule as the editor loaded it: ``index``, ``match`` and
+    the ``original`` actions - if any of them changed since (another editor),
+    the save is refused (``CONFLICT``) instead of overwriting their change.
+    ``index`` ``None`` adds a rule (without ``match``) when it grants anything -
+    refused too when the role has gained a rule on that DocType meanwhile.
     A rule left without actions is removed, unless it carries a ``match`` or
     field lists - those stay as they are, with no actions, for the form to
     finish."""
     await _check_role(role)
+    if len(changes) > MAX_DOCTYPES:
+        # Nothing is written: a truncated save would drop edits the editor sees as saved.
+        throw(
+            _("Too many document types in one save (%(count)s, at most %(max)s)")
+            % {"count": len(changes), "max": MAX_DOCTYPES},
+            "VALIDATION_ERROR",
+        )
     names: list[str] = []
-    for change in changes[:MAX_DOCTYPES]:
+    for change in changes:
         name = str(change.get("doctype") or "")
         doc = await documents.get_doc("DocType", name)
         perms = [dict(p) for p in doc.get("permissions") or []]
+        had_rules = any(p.get("role") == role for p in perms)
         drop: set[int] = set()
         for edit in change.get("rules") or []:
-            actions = [a for a in ACTIONS if a in (edit.get("actions") or [])]
+            actions = _actions(edit.get("actions"))
             index = edit.get("index")
             if index is None:
+                if had_rules:
+                    _conflict(name)
                 if actions:
                     perms.append({"role": role, "actions": actions})
                 continue
@@ -87,12 +101,12 @@ async def save_role_matrix(role: str, changes: list[dict[str, Any]]) -> list[dic
                 or not 0 <= index < len(perms)
                 or perms[index].get("role") != role
                 or (perms[index].get("match") or None) != (edit.get("match") or None)
-            ):
-                throw(
-                    _("Permissions of “%(doctype)s” were changed meanwhile - reload the page")
-                    % {"doctype": name},
-                    "CONFLICT",
+                or (
+                    "original" in edit
+                    and _actions(perms[index].get("actions")) != _actions(edit.get("original"))
                 )
+            ):
+                _conflict(name)
             perms[index]["actions"] = actions
             rule = perms[index]
             if not actions and not (
@@ -103,3 +117,16 @@ async def save_role_matrix(role: str, changes: list[dict[str, Any]]) -> list[dic
         await documents.save_doc("DocType", name, {"permissions": perms})
         names.append(name)
     return [await _role_rules(role, name) for name in names]
+
+
+def _actions(raw: Any) -> list[str]:
+    """*raw* actions, known ones only, in ``ACTIONS`` order (so lists compare)."""
+    return [a for a in ACTIONS if a in (raw or [])]
+
+
+def _conflict(doctype: str) -> NoReturn:
+    throw(
+        _("Permissions of “%(doctype)s” were changed meanwhile - reload the page")
+        % {"doctype": doctype},
+        "CONFLICT",
+    )
