@@ -16,6 +16,46 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "A table inside other documents: access follows the document that holds it"
+msgstr "Таблиця всередині інших документів: доступ — як до документа, що її містить"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "All (every user)"
+msgstr "Усі користувачі (All)"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Changed rules: {n}"
+msgstr "Змінено правил: {n}"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Choose a role"
+msgstr "Оберіть роль"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Discard unsaved permission changes?"
+msgstr "Відкинути незбережені зміни прав?"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Hidden fields: {n} · read-only: {m}"
+msgstr "Прихованих полів: {n} · лише для читання: {m}"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Included in read"
+msgstr "Входить у читання"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
+msgstr "Дозволи «%(doctype)s» тим часом змінили — оновіть сторінку"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Role “%(role)s” not found"
+msgstr "Роль «%(role)s» не знайдено"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "The matrix shows what the role may do with each document type of this page. Narrow the page with the list filters, e.g. by module."
+msgstr "Матриця показує, що роль може робити з кожним типом документа на цій сторінці. Звузьте сторінку фільтрами списку, наприклад за модулем."
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "\"As of\" date field"
 msgstr "Поле дати «станом на»"
@@ -7458,6 +7498,14 @@ msgstr "Немає доступу до цього ключа"
 #: grunt/grunt/permissions/rbac.py
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
+
+#: grunt/grunt/permissions/rbac.py
+msgid "No access: after this change the document would be outside your access"
+msgstr "Немає доступу: після цієї зміни документ вийшов би за межі ваших прав"
+
+#: grunt/grunt/permissions/rbac.py
+msgid "No access: you may not create a document with these values"
+msgstr "Немає доступу: документ з такими значеннями ви створити не можете"
 
 #: grunt/grunt/document/mixins/lifecycle.py
 msgid "No access: “%(field)s” is outside your user permissions"

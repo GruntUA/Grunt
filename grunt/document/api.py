@@ -803,8 +803,9 @@ class DocumentAPI:
     ) -> None:
         """Update one or more fields directly - lightweight, no lifecycle hooks.
 
-        Checks write permission on that very document (and that no field hidden
-        from the user, or read-only for them, is set), then issues a single SQL
+        Checks write permission on that very document - before and after the
+        change, so it can't leave the user's scope - and that no field hidden
+        from the user, or read-only for them, is set; then issues a single SQL
         UPDATE.
         Use :meth:`save_doc` when you need ``before_save``/``after_save`` hooks
         to run (e.g. validation, audit log)::
@@ -816,8 +817,9 @@ class DocumentAPI:
             await grunt.set_value("Invoice", invoice_id, {"status": "Paid", "paid_at": now})
         """
         dt, user, _session = await write_guard(doctype, "write")
-        await doc_guard(doctype, id_or_name, "write")
-        names = set(fieldname) if isinstance(fieldname, dict) else {fieldname}
+        row = await doc_guard(doctype, id_or_name, "write")
+        changes = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+        names = set(changes)
         locked = (await permission_checker.hidden_fields(dt, user=user)) | (
             await permission_checker.readonly_fields(dt, user=user)
         )
@@ -826,6 +828,8 @@ class DocumentAPI:
                 _("Not permitted to change fields: %(fields)s")
                 % {"fields": ", ".join(sorted(dt.get_label(f) for f in names & locked))}
             )
+        # The new values must keep the document in the user's scope (invariant 6).
+        await permission_checker.require_in_scope(dt, "write", {**row, **changes}, user=user)
         await self.db.set_value(doctype, id_or_name, fieldname, value)
         await self._invalidate_list_cache(doctype, id_or_name)
 

@@ -308,6 +308,7 @@ class DocumentLifecycleMixin:
             await apply_fetch_from(dt.doc, self.data)
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
             await self._require_user_permissions(dt, self.data, user)
+            await permission_checker.require_in_scope(dt, "create", self.data, user=user)
             await self._before_store(dt)
             self.data = await store.insert(self.data, input=data, user=user)
             log.info("document.created", doctype=self.doctype, id=self.data.get("name"))
@@ -432,6 +433,8 @@ class DocumentLifecycleMixin:
         await apply_fetch_from(dt.doc, self.data, existing)
         await self._run_lifecycle_hooks("validate", "before_save")
         await self._require_user_permissions(dt, self.data, user)
+        # The stored row was checked before the change; the new one must stay in scope.
+        await permission_checker.require_in_scope(dt, "write", self.data, user=user)
         await self._before_store(dt)
         result = await store.update(real_id, self.data, before=existing, input=data, user=user)
         log.info("document.updated", doctype=self.doctype, id=real_id)
