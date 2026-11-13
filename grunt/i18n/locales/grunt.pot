@@ -6,6 +6,82 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: grunt/grunt/permissions/perms.py
+msgid "Everything (*)"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Fast bulk delete"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage apps and modules"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage backups"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage document types"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage e-mail"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage file storage"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage integrations (webhooks)"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage users"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage workspaces and pages"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Moderate comments"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Restore deleted documents"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Sign in as another user"
+msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "System monitoring and background jobs"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Unknown permissions: %(perms)s"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "You can't grant permissions you don't hold: %(perms)s"
+msgstr ""
+
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py
+msgid "You may not restore deleted documents"
+msgstr ""
+
+#: grunt/grunt/auth/impersonation.py
+msgid "You may not sign in as another user."
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "\"As of\" date field"
 msgstr ""

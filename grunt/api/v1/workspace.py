@@ -196,7 +196,7 @@ async def get_workspace(name: str) -> dict[str, Any]:
     return await _workspace_to_dict(ws_data)
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_desk")
 async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a workspace. Admin only."""
     data = workspace_data.copy()
@@ -212,7 +212,7 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     return await _workspace_to_dict(ws_data)
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_desk")
 async def delete_workspace(name: str) -> bool:
     """Delete a workspace. Admin only."""
     await documents.delete_doc("AppMenu", name)

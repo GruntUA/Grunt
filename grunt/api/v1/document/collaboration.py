@@ -20,6 +20,7 @@ from grunt.i18n import _
 from grunt.local import require_session, system_context, user_email
 from grunt.notification.events import trigger
 from grunt.permissions.guards import doc_guard
+from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -115,7 +116,7 @@ async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
 
     comment = await documents.get_doc("Comment", comment_id)
     user = acting_user()
-    if comment.get("owner") != user.email and not user.has_role("System Manager"):
+    if comment.get("owner") != user.email and not await has_perm("grunt.moderate_comments"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
     await documents.delete_doc("Comment", comment_id)

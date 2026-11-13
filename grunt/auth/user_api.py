@@ -62,6 +62,7 @@ from grunt.errors import throw
 from grunt.i18n import _, translation_service
 from grunt.local import require_session
 from grunt.log import log
+from grunt.permissions.perms import has_perm, user_perms
 from grunt.utils.http import public_base_url
 from grunt.utils.templates import render as render_template_text
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
@@ -238,6 +239,8 @@ async def whoami() -> dict[str, Any]:
         "timezone": getattr(user, "timezone", None) or None,
         # Set only while a System Manager is viewing the system as this user.
         "impersonated_by": ctx_user.data.get("_impersonator"),
+        # What the UI may offer (grunt.permissions.perms); "*" - everything.
+        "permissions": sorted(await user_perms(ctx_user.email)),
     }
 
 
@@ -325,7 +328,7 @@ async def logout_api(response: Response, request: Request | None = None) -> bool
     return True
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.impersonate")
 async def start_impersonation_api(user_id: str) -> dict[str, Any]:
     """Open a short-lived session as another user. System Manager only.
 
@@ -368,7 +371,7 @@ async def list_colleagues_api() -> list[dict[str, Any]]:
     return [r for r in rows if r.get("email") != SYSTEM_USER.email]
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_users")
 async def list_users_detailed_api() -> list[dict[str, Any]]:
     """List all users with fields needed by the admin REST endpoint."""
     users = await list_users()
@@ -389,7 +392,7 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
     ]
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_users")
 async def list_pending_users_api() -> list[dict[str, Any]]:
     """Self-registered users awaiting approval. System Manager only."""
     rows = await documents.get_list(
@@ -415,13 +418,13 @@ async def _set_signup_state(user_id: str, state: str) -> bool:
     return True
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_users")
 async def approve_user_api(user_id: str) -> bool:
     """Approve a pending registration - the user can now sign in. System Manager only."""
     return await _set_signup_state(user_id, "approved")
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_users")
 async def reject_user_api(user_id: str) -> bool:
     """Reject a pending registration. System Manager only."""
     return await _set_signup_state(user_id, "rejected")
@@ -450,7 +453,7 @@ async def set_user_password_api(
             or (current.email and current.email == user.email)
         )
     )
-    is_admin = bool(current and current.has_role("System Manager"))
+    is_admin = bool(current) and await has_perm("grunt.manage_users")
 
     if not is_admin:
         if not is_self:

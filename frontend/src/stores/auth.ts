@@ -15,6 +15,8 @@ interface User {
   email: string
   full_name: string
   roles: string[]
+  /** Permissions through the roles (grunt.permissions.perms); `*` - all. From `whoami`. */
+  permissions?: string[]
   mfa_enabled?: boolean
   /** False for accounts provisioned via OIDC / email link that never set one. */
   has_password?: boolean
@@ -70,7 +72,13 @@ type AuthMessage = { type: 'login' } | { type: 'logout' }
 export const useAuthStore = defineStore('auth', () => {
   const token = accessToken
   const user = ref<User | null>(null)
-  const isSystemManager = computed(() => !!user.value?.roles?.includes('System Manager'))
+  /** Whether the user holds permission `name` (`*` holds them all). */
+  function hasPerm(name: string): boolean {
+    const held = user.value?.permissions ?? []
+    return held.includes('*') || held.includes(name)
+  }
+  /** Holds every permission (`*` - System Manager). Prefer `hasPerm(...)`. */
+  const isSystemManager = computed(() => !!user.value?.permissions?.includes('*'))
 
   // Set while a System Manager is viewing the system as another user.
   const impersonatedBy = ref<Impersonator | null>(null)
@@ -100,6 +108,8 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = data.access_token
     user.value = data.user
     applyUserPreferences(data.user)
+    // The sign-in payload carries no permissions - `whoami` does.
+    void fetchMe()
   }
 
   /** A sign-in that just completed in this tab (its response set the session cookie). */
@@ -358,7 +368,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, user, isLoggedIn, isSystemManager, restore, login, adoptLogin, loginWithPasskey,
+    token, user, isLoggedIn, isSystemManager, hasPerm, restore, login, adoptLogin, loginWithPasskey,
     beginEmailLogin, completeEmailLogin, logout, refresh, fetchMe, setTheme, setLanguage,
     impersonatedBy, isImpersonating, startImpersonation, stopImpersonation,
   }

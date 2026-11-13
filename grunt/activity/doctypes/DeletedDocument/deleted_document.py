@@ -10,7 +10,6 @@ from datetime import UTC, datetime
 from typing import Any
 
 from grunt.api.context import whitelist
-from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
@@ -18,6 +17,7 @@ from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -39,9 +39,9 @@ class DeletedDocument(Document):
 # RPC
 
 
-def _require_system_manager() -> None:
-    if not acting_user().has_role("System Manager"):
-        throw(_("Only a System Manager can restore documents"), code="FORBIDDEN")
+async def _require_restore_perm() -> None:
+    if not await has_perm("grunt.restore_deleted"):
+        throw(_("You may not restore deleted documents"), code="FORBIDDEN")
 
 
 def _snapshot_payload(snap: DeletedDocument) -> dict[str, Any]:
@@ -68,7 +68,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     Обмеження: зв'язки з/на інші документи, почищені каскадно при видаленні,
     назад не відновлюються; ``owner`` та час створення стають поточними.
     """
-    _require_system_manager()
+    await _require_restore_perm()
 
     snap = await documents.get_doc(DeletedDocument, name)
     if snap.restored:
@@ -117,7 +117,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
 @whitelist()
 async def bulk_restore(names: list[str], allow_rename: bool = False) -> dict[str, Any]:
     """Відновити кілька знімків. Повертає ``{restored: [...], failed: [{name, error}]}``."""
-    _require_system_manager()
+    await _require_restore_perm()
 
     restored: list[str] = []
     failed: list[dict[str, str]] = []

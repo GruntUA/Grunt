@@ -483,7 +483,7 @@ async def check_realtime() -> list[Row]:
     return rows
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def ws_echo(nonce: str) -> dict[str, Any]:
     """Push a test event to the caller's own user channel - the browser half
     of the report checks it arrives exactly once (grunt/api/v1/ws.py)."""
@@ -997,7 +997,7 @@ def skeleton() -> dict[str, Any]:
     }
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def run_section(key: str) -> dict[str, Any]:
     """One section of the report: its rows and their markup."""
     if key in _CHECKS:
@@ -1010,7 +1010,7 @@ async def run_section(key: str) -> dict[str, Any]:
     throw(_("Unknown section of the report: %(key)s") % {"key": key}, code="NOT_FOUND")
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def render_checks(rows: list[dict[str, Any]]) -> str:
     """Markup for the browser's own checks (frontend/src/core/browserHealth.ts) -
     the same table as the server sections."""

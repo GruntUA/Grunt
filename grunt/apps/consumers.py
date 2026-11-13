@@ -41,6 +41,7 @@ from grunt.website.router import (
 lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
 lazy from grunt.notification.channels import register_channel
 lazy from grunt.notification.events import register_event
+lazy from grunt.permissions.perms import register_perm
 
 
 @dataclass(frozen=True, slots=True)
@@ -246,6 +247,22 @@ def _notification_events(value: list[dict[str, Any]], ctx: LoadContext) -> None:
             )
         except Exception as e:
             log.warning("notification.event.error", spec=spec, app=ctx.app_name, error=str(e))
+
+
+@consumer("permissions")
+def _permissions(value: list[dict[str, Any]], ctx: LoadContext) -> None:
+    """``[{"name": "inventory.manage_assets", "label": "Manage assets"}]`` - what the
+    app's code checks with ``has_perm`` / ``@whitelist(perm=...)`` (grunt.permissions.perms)."""
+    for spec in value:
+        try:
+            register_perm(
+                spec["name"],
+                spec.get("label") or spec["name"],
+                description=spec.get("description") or "",
+                app=ctx.app_name,
+            )
+        except Exception as e:
+            log.warning("permissions.register_error", spec=spec, app=ctx.app_name, error=str(e))
 
 
 @consumer("sidebar_sections")

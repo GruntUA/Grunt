@@ -34,7 +34,7 @@ async def receive_incoming_webhook(slug: str, request: Request) -> dict[str, Any
     return {"success": True, **result}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_integrations")
 async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     """Send a test payload for an outgoing webhook."""
     user = acting_user()
@@ -42,7 +42,7 @@ async def test_outgoing_webhook(webhook_id: str) -> dict[str, Any]:
     return result
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_integrations")
 async def list_incoming_logs(webhook_id: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
     """List recent delivery logs for an incoming webhook."""
     logs = await documents.get_list(

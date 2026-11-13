@@ -20,8 +20,8 @@ class GruntRouter(APIRouter):
     endpoints (login, register, password reset, ...) - ``grunt_context`` itself
     depends on ``current_user``, which raises 401 for guests, so it cannot be
     used router-wide when any route must work without a token. Routes that do
-    require a real user still declare their own `Depends(current_user)` (or
-    `Depends(superadmin_user)`, etc.) - `optional_auth` only controls whether the
+    require a real user still declare their own `Depends(current_user)` -
+    `optional_auth` only controls whether the
     *ambient grunt context* is populated with a guest (``user=None``) or requires
     real authentication upfront.
     """

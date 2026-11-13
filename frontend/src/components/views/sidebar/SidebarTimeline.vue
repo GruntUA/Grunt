@@ -279,7 +279,7 @@ async function deleteComment(item: TimelineItem) {
 }
 
 const canDelete = (item: TimelineItem) =>
-  item.type === 'comment' && (item.user === auth.user?.email || auth.isSystemManager)
+  item.type === 'comment' && (item.user === auth.user?.email || auth.hasPerm('grunt.moderate_comments'))
 
 // Reply box - one open at a time, under the thread it answers.
 const replyTo = ref<string | null>(null)

@@ -16,6 +16,82 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
+#: grunt/grunt/permissions/perms.py
+msgid "Everything (*)"
+msgstr "Усе (*)"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Fast bulk delete"
+msgstr "Швидке масове видалення"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage apps and modules"
+msgstr "Керування застосунками й модулями"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage backups"
+msgstr "Керування резервними копіями"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage document types"
+msgstr "Керування типами документів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage e-mail"
+msgstr "Керування поштою"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage file storage"
+msgstr "Керування сховищем файлів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage integrations (webhooks)"
+msgstr "Керування інтеграціями (вебхуки)"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage users"
+msgstr "Керування користувачами"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage workspaces and pages"
+msgstr "Керування робочими просторами й сторінками"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Moderate comments"
+msgstr "Модерація коментарів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Restore deleted documents"
+msgstr "Відновлення видалених документів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Sign in as another user"
+msgstr "Вхід від імені іншого користувача"
+
+#: grunt/grunt/permissions/perms.py
+msgid "System monitoring and background jobs"
+msgstr "Моніторинг системи й фонові задачі"
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Unknown permissions: %(perms)s"
+msgstr "Невідомі дозволи: %(perms)s"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
+msgstr "Що користувачі з цією роллю можуть робити понад правила документів: керувати користувачами, поштою, резервними копіями… «Усе (*)» — усе це, як System Manager."
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "You can't grant permissions you don't hold: %(perms)s"
+msgstr "Не можна видати дозволи, яких у вас немає: %(perms)s"
+
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py
+msgid "You may not restore deleted documents"
+msgstr "Вам не дозволено відновлювати видалені документи"
+
+#: grunt/grunt/auth/impersonation.py
+msgid "You may not sign in as another user."
+msgstr "Вам не дозволено входити від імені іншого користувача."
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "\"As of\" date field"
 msgstr "Поле дати «станом на»"

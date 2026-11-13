@@ -103,7 +103,7 @@ async def compress_existing(
     return report
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def start_compression() -> Queued:
     """Queue :func:`compress_existing` for the whole site (System Settings →
     Files); whoever started it follows it in the task panel."""

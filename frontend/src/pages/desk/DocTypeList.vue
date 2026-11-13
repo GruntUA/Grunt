@@ -447,7 +447,6 @@ void (async () => {
         :active-filters="activeFilters"
         :quick-filter-defs="quickFilterDefs"
         :refresh-key="refreshKey"
-        :is-system-manager="!!auth.isSystemManager"
         @page="page = $event"
         @set-per-page="perPage = $event"
         @sort="applySort"

@@ -30,7 +30,7 @@ def _require_profiler() -> None:
         throw("Not found", "NOT_FOUND")
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def get_profiler_requests(limit: int = 50) -> list[dict[str, Any]]:
     """Recent requests with per-request query breakdown."""
     _require_profiler()
@@ -38,7 +38,7 @@ async def get_profiler_requests(limit: int = 50) -> list[dict[str, Any]]:
     return get_recent_requests(limit=int(limit))
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def get_slow_queries(limit: int = 100) -> list[dict[str, Any]]:
     """All slow queries from the global ring buffer."""
     _require_profiler()
@@ -47,7 +47,7 @@ async def get_slow_queries(limit: int = 100) -> list[dict[str, Any]]:
     return get_slow_queries(limit=int(limit))
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def get_profiler_stats() -> dict[str, Any]:
     """Aggregate stats: request count, slow query count, avg/p95 duration."""
     _require_profiler()
@@ -55,7 +55,7 @@ async def get_profiler_stats() -> dict[str, Any]:
     return get_stats()
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def clear_profiler() -> bool:
     """Clear both ring buffers."""
     _require_profiler()
@@ -64,7 +64,7 @@ async def clear_profiler() -> bool:
     return True
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def get_profiler_settings() -> ProfilerSettings:
     """Return current profiler runtime settings."""
     _require_profiler()
@@ -72,7 +72,7 @@ async def get_profiler_settings() -> ProfilerSettings:
     return get_settings()
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def update_profiler_settings(
     enabled: bool | None = None,
     threshold_ms: float | None = None,
@@ -97,7 +97,7 @@ async def update_profiler_settings(
     return get_settings()
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def get_query_cache_stats() -> dict[str, Any]:
     """Return query cache runtime stats and config."""
     _require_debug()
@@ -119,7 +119,7 @@ async def get_query_cache_stats() -> dict[str, Any]:
     }
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def clear_query_cache() -> bool:
     """Clear in-memory query cache (dev helper)."""
     _require_debug()

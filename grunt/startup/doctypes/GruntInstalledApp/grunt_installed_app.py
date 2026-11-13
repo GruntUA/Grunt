@@ -3,11 +3,11 @@ from datetime import UTC, datetime
 from typing import Any
 
 from grunt.api.context import whitelist
-from grunt.auth.current import acting_user
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.log import log
+from grunt.permissions.perms import has_perm
 from grunt.site.bench import bench_dir
 lazy from grunt.document.api import documents
 
@@ -73,9 +73,8 @@ async def register_app(
     version: str = "0.1.0",
     modules: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Register a new installed app. System Manager only."""
-    user = acting_user()
-    if "System Manager" not in (user.roles or []):
+    """Register a new installed app. Needs ``grunt.manage_apps``."""
+    if not await has_perm("grunt.manage_apps"):
         throw(_("Not authorized"), "PERMISSION_DENIED")
 
     if not name:
@@ -123,9 +122,8 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
 
 @whitelist()
 async def delete_app(name: str) -> bool:
-    """Uninstall an app. System Manager only."""
-    user = acting_user()
-    if "System Manager" not in (user.roles or []):
+    """Uninstall an app. Needs ``grunt.manage_apps``."""
+    if not await has_perm("grunt.manage_apps"):
         throw(_("Not authorized"), "PERMISSION_DENIED")
 
     apps = await documents.get_list("GruntInstalledApp", filters={"name": name})

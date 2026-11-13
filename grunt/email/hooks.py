@@ -6,7 +6,7 @@ Registered from ``grunt/main.py`` via ``register_doc_events``.
 from typing import Any
 
 from grunt.email.service import SMTP_PASSWORD_MASK
-from grunt.permissions.roles import has_roles
+from grunt.permissions.perms import has_perm
 
 
 def _mask(row: Any) -> None:
@@ -17,13 +17,13 @@ def _mask(row: Any) -> None:
 async def mask_smtp_password(**kwargs: Any) -> None:
     """Replace stored SMTP passwords with a placeholder on read.
 
-    Fires on ``after_read`` for ``EmailAccount``. System Manager (and the
+    Fires on ``after_read`` for ``EmailAccount``. Who manages e-mail (and the
     internal SYSTEM_USER used by the queue worker / connection test) keeps the
     real value so mail delivery is unaffected; everyone else only ever sees
     ``SMTP_PASSWORD_MASK``.
     """
     user = kwargs.get("user")
-    if user is not None and await has_roles(["System Manager"], user=user):
+    if user is not None and await has_perm("grunt.manage_email", user=user):
         return
 
     doc = kwargs.get("doc")

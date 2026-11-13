@@ -237,7 +237,7 @@ function docInitials(doc: RecentDoc): string {
           </div>
 
           <!-- Empty state -->
-          <div v-else-if="appStore.workspaces.length === 0 && !auth.isSystemManager"
+          <div v-else-if="appStore.workspaces.length === 0 && !auth.hasPerm('grunt.manage_desk')"
             class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-20 text-center">
             <PackageOpen class="size-8 text-muted-foreground/50" />
             <p class="text-muted-foreground">{{ t('No apps installed') }}</p>

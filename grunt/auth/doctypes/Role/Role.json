@@ -3,21 +3,25 @@
   "label": "Role",
   "module": "auth",
   "hide_from_activity_feed": true,
-  "autoname": "field:role_name",
-  "title_field": "role_name",
   "fields": [
     {
       "fieldname": "role_name",
       "label": "Name",
       "fieldtype": "Data",
       "required": true,
-      "in_list_view": true,
-      "in_filter": true
+      "in_list_view": true
     },
     {
       "fieldname": "description",
       "label": "Description",
       "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "permissions",
+      "label": "Permissions",
+      "fieldtype": "MultiSelect",
+      "options_source": "grunt.permissions",
+      "description": "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
     },
     {
       "fieldname": "require_mfa",
@@ -36,7 +40,145 @@
   "permissions": [
     {
       "role": "System Manager",
-      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+      "actions": [
+        "read",
+        "write",
+        "create",
+        "delete",
+        "export",
+        "import",
+        "print",
+        "share",
+        "report"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
+    },
+    {
+      "role": "RoleEditor",
+      "actions": [
+        "read",
+        "write"
+      ]
     }
-  ]
+  ],
+  "autoname": "field:role_name",
+  "title_field": "role_name"
 }
