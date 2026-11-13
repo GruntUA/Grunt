@@ -1,22 +1,21 @@
 """NotificationService - evaluates notification rules and creates notifications.
 
 Integrates with the hook system: after_save, after_insert, on_transition events
-trigger rule evaluation. Matching rules create system notifications and optionally
-queue emails.
+trigger rule evaluation. Matching rules hand their message to the dispatcher
+(:func:`grunt.notification.delivery.deliver`), which sends it through the
+rule's channels and logs each delivery.
 """
 
-import secrets
-from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-import grunt.outbox as outbox
-from grunt.api.v1.ws import manager
 from grunt.db.api import GruntDB
-from grunt.db.commit import on_commit
 from grunt.local import require_session, system_context
 from grunt.log import log
+from grunt.notification import rules
+from grunt.notification.channels import Message
+from grunt.notification.delivery import deliver
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -32,6 +31,7 @@ class NotificationService:
         doctype: str,
         doc: dict[str, Any],
         user_email: str,
+        extra: dict[str, Any] | None = None,
     ) -> int:
         """Evaluate all matching notification rules for a document event.
 
@@ -41,20 +41,24 @@ class NotificationService:
             doctype: DocType name.
             doc: Document data.
             user_email: Email of the user who triggered the event.
+            extra: More template variables - for ``on_transition``: ``action``,
+                ``from_state``, ``to_state``, ``comment``.
 
         Returns:
             Number of notifications created.
         """
         async with system_context(session):
             rules = await _db.get_all(
-                "NotificationRule",
+                "Notification",
                 filters={"ref_doctype": doctype, "event": event, "is_enabled": True},
                 limit=100,
             )
 
         count = 0
         for rule in rules:
-            count += await self.apply_rule(session, rule, doctype, doc, user_email, event)
+            count += await self.apply_rule(
+                session, rule, doctype, doc, user_email, event, extra=extra
+            )
 
         if count > 0:
             await session.flush()
@@ -76,45 +80,16 @@ class NotificationService:
         doc: dict[str, Any],
         user_email: str,
         event: str,
+        *,
+        extra: dict[str, Any] | None = None,
     ) -> int:
         """Run one rule against one document: condition, recipients, delivery.
 
-        Returns the number of notifications created.
+        Returns the number of recipients notified.
         """
-        condition = rule.get("condition")
-        if condition and not self._eval_condition(condition, doc, user_email):
-            return 0
-        channel = rule.get("channel") or "system"
-
-        # Resolve recipients (sync part + async role lookup)
-        recipients, role_parts = self._resolve_recipients(
-            rule.get("recipients") or "", doc, user_email
+        return await rules.run(
+            session, rule, doctype, doc, actor=user_email, event=event, extra=extra
         )
-        if role_parts:
-            role_emails = await self._resolve_role_recipients(role_parts, session)
-            recipients = list(set(recipients) | set(role_emails) - {user_email})
-        if not recipients:
-            return 0
-
-        subject = self._format_template(rule.get("subject_template") or "", doctype, doc, event)
-        message = self._format_template(rule.get("message_template") or "", doctype, doc, event)
-
-        for recipient in recipients:
-            await self._create_notification(
-                session=session,
-                user=recipient,
-                doctype=doctype,
-                doc_id=str(doc.get("name", "")),
-                subject=subject,
-                message=message,
-                rule=rule.get("name"),
-            )
-            if channel in ("email", "both"):
-                await self._queue_email(session, recipient, subject, message)
-
-        if channel in ("system", "both"):
-            await self._broadcast_ws(doctype, doc, subject, recipients)
-        return len(recipients)
 
     async def get_notifications(
         self,
@@ -131,7 +106,7 @@ class NotificationService:
 
         async with system_context(require_session()):
             rows = await _db.get_all(
-                "Notification",
+                "NotificationLog",
                 filters=filters,
                 fields=[
                     "name",
@@ -160,14 +135,14 @@ class NotificationService:
         """Mark a single notification as read."""
 
         async with system_context(require_session()):
-            await _db.set_value("Notification", notification_id, "is_read", True)
+            await _db.set_value("NotificationLog", notification_id, "is_read", True)
 
     async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
 
         async with system_context(require_session()):
             return await documents.bulk_update(
-                "Notification",
+                "NotificationLog",
                 {"user": user, "is_read": False},
                 {"is_read": True},
             )
@@ -184,81 +159,25 @@ class NotificationService:
         email: bool = False,
         url: str | None = None,
     ) -> str | None:
-        """Deliver one notification to *user* directly (bypasses NotificationRule).
+        """Deliver one notification to *user* directly (bypasses the rules).
 
-        System notification + web-push always; ``email`` also queues a mail.
+        In the system + browser push always; ``email`` also queues a mail.
         For code paths that must ping a specific person - e.g. document
-        assignment - without a configurable rule in the loop.
+        assignment - without a configurable rule in the loop. Returns the
+        ``NotificationLog`` (bell) row's name.
         """
         if not user:
             return None
-        name = await self._create_notification(
-            session=session,
-            user=user,
-            doctype=doctype,
-            doc_id=doc_id,
-            subject=subject,
-            message=message,
-            url=url,
+        channels = ["in_app", "web_push"] + (["email"] if email else [])
+        report = await deliver(
+            session,
+            [user],
+            Message(subject=subject, body=message, url=url, ref_doctype=doctype, doc_id=doc_id),
+            channels,
         )
-        if email:
-            await self._queue_email(session, user, subject, message)
-        await self._broadcast_ws(doctype, {"name": doc_id}, subject, [user])
-        return name
+        return report.notification_logs[0] if report.notification_logs else None
 
     # Internal helpers
-
-    async def _create_notification(
-        self,
-        session: AsyncSession,
-        user: str,
-        doctype: str,
-        doc_id: str,
-        subject: str,
-        message: str,
-        rule: str | None = None,
-        url: str | None = None,
-    ) -> str:
-        notif_name = f"notif-{user}-{secrets.token_urlsafe(6)}"
-        now = datetime.now(UTC)
-        async with system_context(session):
-            await _db.insert_one(
-                "Notification",
-                {
-                    "name": notif_name,
-                    "owner": user,
-                    "created_at": now,
-                    "modified_at": now,
-                    "modified_by": user,
-                    "user": user,
-                    "ref_doctype": doctype,
-                    "doc_id": doc_id,
-                    "subject": subject,
-                    "message": message,
-                    "is_read": False,
-                    "notification_rule": rule,
-                },
-            )
-        if not url and doctype and doc_id:
-            try:
-                from grunt.metadata.registry import doctype_registry
-
-                dt = doctype_registry._doctypes.get(doctype)
-                if dt:
-                    app = getattr(dt, "app", None) or getattr(dt, "module", None) or "grunt"
-                    url = f"/app/{app}/{doctype}/{doc_id}"
-            except Exception:
-                url = "/"
-        # Web Push through the outbox: sent after the commit (the notification it
-        # opens is then there to read; a rollback pushes nothing), by a worker in
-        # its own session - the push service may be slow to answer.
-        from grunt.webpush.service import deliver_push
-
-        await outbox.put(
-            deliver_push, {"user": user, "subject": subject, "body": message, "url": url or "/"}
-        )
-
-        return notif_name
 
     def _resolve_recipients(
         self,
@@ -345,87 +264,6 @@ class NotificationService:
         except Exception:
             log.warning("notification.role_resolution_failed", roles=role_names)
             return []
-
-    def _format_template(
-        self,
-        template: str,
-        doctype: str,
-        doc: dict[str, Any],
-        event: str,
-    ) -> str:
-        """Simple template formatting with {key} placeholders."""
-        context = {
-            "doctype": doctype,
-            "event": event,
-            "name": doc.get("name", ""),
-            "id": doc.get("name", ""),
-            "owner": doc.get("owner", ""),
-        }
-        # Add all doc fields
-        for k, v in doc.items():
-            if k not in context:
-                context[k] = str(v) if v is not None else ""
-
-        try:
-            return template.format(**context)
-        except KeyError, IndexError:
-            return template
-
-    def _eval_condition(self, condition: str, doc: dict[str, Any], user: str) -> bool:
-        """Evaluate a Python condition expression safely."""
-        try:
-            from simpleeval import simple_eval
-
-            return bool(simple_eval(condition, names={"doc": doc, "user": user}))
-        except Exception:
-            return True  # Don't block on eval errors
-
-    async def _queue_email(
-        self,
-        session: AsyncSession,
-        recipient: str,
-        subject: str,
-        message: str,
-    ) -> None:
-        """Queue an email notification via the existing email system."""
-        try:
-            from grunt.email.service import email_service
-
-            await email_service.queue_email(
-                session=session,
-                to=recipient,
-                subject=subject,
-                body=message,
-            )
-        except Exception:
-            log.warning("notification.email_queue_error", recipient=recipient)
-
-    async def _broadcast_ws(
-        self,
-        doctype: str,
-        doc: dict[str, Any],
-        subject: str,
-        recipients: list[str],
-    ) -> None:
-        """Tell the connected recipients - after the commit, so the bell's reload
-        finds the new notification."""
-        payload = {
-            "event": "notification",
-            "data": {
-                "subject": subject,
-                "ref_doctype": doctype,
-                "doc_id": str(doc.get("name", "")),
-            },
-        }
-
-        async def send() -> None:
-            for recipient in recipients:
-                try:
-                    await manager.send_to_user(recipient, payload)
-                except Exception:
-                    log.warning("notification.ws_send_error", recipient=recipient)
-
-        on_commit(send)
 
 
 notification_service = NotificationService()

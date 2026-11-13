@@ -289,6 +289,9 @@ def _jsdoc(fn: Any) -> str:
     roles = getattr(fn, "_required_roles", None)
     if roles:
         lines.append(f"Roles: {', '.join(roles)}.")
+    perm = getattr(fn, "_required_perm", None)
+    if perm:
+        lines.append(f"Permission: {perm}.")
     if getattr(fn, "_allow_guest", False):
         lines.append("Allowed for guests.")
     if not lines:

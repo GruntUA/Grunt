@@ -13,6 +13,7 @@ from typing import Any
 
 from grunt.log import log
 from grunt.metadata.dynamic_options import register_option
+from grunt.permissions.types import PermissionAction
 
 DOC_ACTION_SOURCE = "grunt.doc_action"
 
@@ -36,6 +37,12 @@ class DocAction:
     group: str = ""
     variant: str = "outline"
     confirm: str | None = None
+    # Who may run it: the DocType rule action the user needs on this very
+    # document (``read`` - may see it; ``write`` - may change it), a permission
+    # (``grunt.permissions.perms``) and - the older form apps still use - any of
+    # ``roles``. All that are set must hold.
+    requires: PermissionAction = "read"
+    perm: str | None = None
     roles: list[str] = field(default_factory=list)
     module: str = ""
     # Input fields to prompt for before running - each a ``DialogField``-shaped
@@ -83,6 +90,8 @@ def doc_action(
     group: str = "",
     variant: str = "outline",
     confirm: str | None = None,
+    requires: PermissionAction = "read",
+    perm: str | None = None,
     roles: list[str] | None = None,
     fields: list[dict] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
@@ -101,6 +110,10 @@ def doc_action(
             ...
             return {"message": "Готово", "refresh": True}
 
+    ``requires`` - the rule action needed on the document (default ``read``;
+    ``write`` for an action that changes it), ``perm`` - a permission
+    (``grunt.permissions.perms``); ``roles`` - the older form (any of them).
+
     Result keys: ``message`` (toast), ``refresh`` (``False`` - don't reload the
     form), ``copy`` (text for the clipboard), ``open_url`` (http(s) or
     site-relative URL opened in a new tab - a page or a file to download).
@@ -117,6 +130,8 @@ def doc_action(
                 group=group,
                 variant=variant,
                 confirm=confirm,
+                requires=requires,
+                perm=perm,
                 roles=list(roles or []),
                 fields=list(fields or []),
                 module=getattr(fn, "__module__", ""),

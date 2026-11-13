@@ -14,5 +14,3 @@ class WorkflowTransition(Document):
     prompt_fields: str | None
     require_comment: bool | None
     on_edit: bool | None
-    notify: str | None
-    notify_email: bool | None

@@ -9,6 +9,7 @@ from grunt.auth.current import acting_user
 from grunt.document.base import Document
 from grunt.errors import forbidden, throw
 from grunt.i18n import _
+from grunt.permissions.perms import has_perm
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.api import documents
 
@@ -74,7 +75,7 @@ async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
     user = user or acting_user()
 
     filters: dict[str, Any] = {}
-    if "System Manager" not in (user.roles or []):
+    if not await has_perm("grunt.manage_users", user=user.email):
         filters["user_id"] = user.id
 
     return await documents.get_list(
@@ -107,7 +108,7 @@ async def update_api_key(
     """Update label, active state, allowed IPs, or expiry of a key."""
     user = user or acting_user()
     key_doc = await documents.get_doc(ApiKey, key_id)
-    _require_key_owner(key_doc, user)
+    await _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
     if label is not None:
@@ -141,12 +142,12 @@ async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or acting_user()
     key_doc = await documents.get_doc(ApiKey, key_id)
-    _require_key_owner(key_doc, user)
+    await _require_key_owner(key_doc, user)
     await documents.delete_doc("ApiKey", key_id)
     return True
 
 
-def _require_key_owner(key_doc: ApiKey, user: User) -> None:
-    """Raise 403 if user doesn't own the key and isn't System Manager."""
-    if "System Manager" not in (user.roles or []) and key_doc.user_id != user.id:
+async def _require_key_owner(key_doc: ApiKey, user: User) -> None:
+    """Raise 403 if user doesn't own the key and doesn't manage users."""
+    if key_doc.user_id != user.id and not await has_perm("grunt.manage_users", user=user.email):
         raise forbidden(_("No access to this key"))

@@ -1,0 +1,46 @@
+{
+  "doctype": "Notification",
+  "name": "Tasks due",
+  "event": "code",
+  "event_key": "grunt.todo.due",
+  "days": 0,
+  "every_year": false,
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Event recipients",
+      "role": "",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ ngettext('Reminder: %(count)d task with a due date', 'Reminder: %(count)d tasks with a due date', count) % {'count': count} }}{% if overdue %} ({{ _('%(count)s overdue') % {'count': overdue} }}){% endif %}",
+  "message_template": "{{ tasks }}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "web_push",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "email",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

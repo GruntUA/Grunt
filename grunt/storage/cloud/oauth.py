@@ -171,7 +171,7 @@ class AuthorizeLink(TypedDict):
     redirect_uri: str
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def set_token(name: str, token: str) -> TokenSaved:
     """Store a token pasted from ``rclone authorize``."""
     remote = await load_remote(name)
@@ -183,7 +183,7 @@ async def set_token(name: str, token: str) -> TokenSaved:
     return {"account": account}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def authorize(name: str, request: Request | None = None) -> AuthorizeLink:
     """The provider's sign-in URL for *name* (needs its own client id/secret)."""
     remote = await load_remote(name)

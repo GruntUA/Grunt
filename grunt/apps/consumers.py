@@ -39,6 +39,9 @@ from grunt.website.router import (
     website_registry,
 )
 lazy from grunt.document.sidebar import SidebarSection, register_sidebar_section
+lazy from grunt.notification.channels import register_channel
+lazy from grunt.notification.events import register_event
+lazy from grunt.permissions.perms import register_perm
 
 
 @dataclass(frozen=True, slots=True)
@@ -216,6 +219,50 @@ def _mcp_tools(value: list[str], ctx: LoadContext) -> None:
             log.debug("mcp.tool.loaded", handler=path, app=ctx.app_name)
         except Exception as e:
             log.warning("mcp.tool.error", handler=path, app=ctx.app_name, error=str(e))
+
+
+@consumer("notification_channels")
+def _notification_channels(value: list[str], ctx: LoadContext) -> None:
+    """``["my_app.sms.SmsChannel"]`` - :class:`grunt.notification.channels.Channel` classes."""
+    for path in value:
+        try:
+            register_channel(path)
+            log.debug("notification.channel.registered", channel=path, app=ctx.app_name)
+        except Exception as e:
+            log.warning("notification.channel.error", channel=path, app=ctx.app_name, error=str(e))
+
+
+@consumer("notification_events")
+def _notification_events(value: list[dict[str, Any]], ctx: LoadContext) -> None:
+    """``[{"key": "my_app.order.paid", "label": "Order paid", "doctype": "Order",
+    "variables": ["amount"]}]`` - code events an app triggers (``grunt.notification.events``)."""
+    for spec in value:
+        try:
+            register_event(
+                spec["key"],
+                spec.get("label") or spec["key"],
+                doctype=spec.get("doctype"),
+                description=spec.get("description") or "",
+                variables=spec.get("variables") or (),
+            )
+        except Exception as e:
+            log.warning("notification.event.error", spec=spec, app=ctx.app_name, error=str(e))
+
+
+@consumer("permissions")
+def _permissions(value: list[dict[str, Any]], ctx: LoadContext) -> None:
+    """``[{"name": "inventory.manage_assets", "label": "Manage assets"}]`` - what the
+    app's code checks with ``has_perm`` / ``@whitelist(perm=...)`` (grunt.permissions.perms)."""
+    for spec in value:
+        try:
+            register_perm(
+                spec["name"],
+                spec.get("label") or spec["name"],
+                description=spec.get("description") or "",
+                app=ctx.app_name,
+            )
+        except Exception as e:
+            log.warning("permissions.register_error", spec=spec, app=ctx.app_name, error=str(e))
 
 
 @consumer("sidebar_sections")

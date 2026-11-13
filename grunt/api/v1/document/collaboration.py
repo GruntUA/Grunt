@@ -15,12 +15,12 @@ from fastapi import HTTPException, status
 
 from grunt.api.context import whitelist
 from grunt.auth.current import acting_user
-from grunt.auth.language import language_of
 from grunt.db.api import GruntDB
-from grunt.i18n import _, use_language
+from grunt.i18n import _
 from grunt.local import require_session, system_context, user_email
+from grunt.notification.events import trigger
 from grunt.permissions.guards import doc_guard
-from grunt.publish import notify as notify_users
+from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -84,16 +84,7 @@ async def add_comment(
     mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
     mentions.discard(user_email())  # do not notify self
     if mentions:
-        for mention in mentions:
-            with use_language(await language_of(mention)):
-                subject = _("%(user)s mentioned you in a comment") % {"user": user_email()}
-            await notify_users(
-                users=[mention],
-                subject=subject,
-                message=content,
-                doctype=doctype,
-                doc_id=doc_id,
-            )
+        await _comment_event("grunt.comment.mentioned", comment, sorted(mentions))
 
     # Reply: tell the author of the thread's root (unless already @mentioned).
     root = comment.get("parent_comment")
@@ -101,17 +92,22 @@ async def add_comment(
         async with system_context(require_session()):
             root_author = await _db.get_value("Comment", root, "owner")
         if root_author and root_author != user_email() and root_author not in mentions:
-            with use_language(await language_of(root_author)):
-                subject = _("%(user)s replied to your comment") % {"user": user_email()}
-            await notify_users(
-                users=[root_author],
-                subject=subject,
-                message=content,
-                doctype=doctype,
-                doc_id=doc_id,
-            )
+            await _comment_event("grunt.comment.replied", comment, [root_author])
 
     return comment
+
+
+async def _comment_event(key: str, comment: dict[str, Any], recipients: list[str]) -> None:
+    """Code event *key* about *comment* - opens the commented document."""
+    await trigger(
+        key,
+        doc=dict(comment),
+        doctype="Comment",
+        link=(comment["reference_doctype"], str(comment["reference_id"])),
+        recipients=recipients,
+        actor=user_email() or "",
+        extra={"text": comment.get("content") or ""},
+    )
 
 
 @whitelist()
@@ -120,7 +116,7 @@ async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
 
     comment = await documents.get_doc("Comment", comment_id)
     user = acting_user()
-    if comment.get("owner") != user.email and not user.has_role("System Manager"):
+    if comment.get("owner") != user.email and not await has_perm("grunt.moderate_comments"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
     await documents.delete_doc("Comment", comment_id)

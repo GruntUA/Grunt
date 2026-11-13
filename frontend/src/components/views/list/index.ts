@@ -28,7 +28,6 @@ const def: ViewDefinition = {
     collapsedGroups: ctx.collapsedGroups,
     groupByField: ctx.groupByField,
     selection: ctx.selection,
-    isSystemManager: ctx.isSystemManager,
   }),
 
   mountEvents: (ctx) => ({

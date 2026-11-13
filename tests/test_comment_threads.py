@@ -9,6 +9,9 @@ from grunt.api.v1.document import history as history_api
 from grunt.errors import ApplicationError
 from tests.support import make_user
 
+# Code events notify through the core's standard Notification rules.
+pytestmark = pytest.mark.usefixtures("standard_notifications")
+
 BOX = {
     "name": "ThreadBox",
     "label": "Thread Box",
@@ -54,7 +57,7 @@ def comment(db_session, engine):
 
 
 async def _subjects(ctx, user):
-    rows = await ctx.db.get_all("Notification", filters={"user": user}, fields=["subject"])
+    rows = await ctx.db.get_all("NotificationLog", filters={"user": user}, fields=["subject"])
     return [r["subject"] for r in rows]
 
 

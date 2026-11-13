@@ -69,8 +69,9 @@ async def doctype_guard(doctype: str | None, action: PermissionAction) -> Any:
     return dt
 
 
-async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read") -> None:
-    """Verify the current user may act on *doc_id*, without loading the document.
+async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read") -> dict[str, Any]:
+    """Verify the current user may act on *doc_id*, without loading the document
+    in full - the bare row it was decided on is returned.
 
     Callers that only need the permission check (the document itself is
     discarded) should use this instead of ``grunt.get_doc`` - it fetches the
@@ -87,6 +88,7 @@ async def doc_guard(doctype: str, doc_id: str, action: PermissionAction = "read"
     if doc is None:
         raise not_found(_("Document “%(name)s” not found") % {"name": doc_id})
     await permission_checker.require(dt, action, doc, user=user)
+    return doc
 
 
 async def write_guard(doctype: str, action: WriteAction) -> tuple[Any, str, AsyncSession]:

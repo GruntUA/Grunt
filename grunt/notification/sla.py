@@ -262,7 +262,7 @@ async def on_document_deleted(**kwargs: Any) -> None:
 
 
 async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> set[str]:
-    """Resolve a recipients spec (NotificationRule syntax + ``{field:link.field}``)."""
+    """Resolve a recipients spec (Notification syntax + ``{field:link.field}``)."""
 
     plain: list[str] = []
     emails: set[str] = set()

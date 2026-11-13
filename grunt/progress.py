@@ -294,7 +294,7 @@ async def job_progress(job_ids: list[str]) -> dict[str, dict[str, Any]]:
     return out
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.system_monitor")
 async def cancel_job(job_id: str) -> bool:
     """Ask the background task *job_id* (any user's, or a scheduled one) to stop."""
     redis = await _redis()

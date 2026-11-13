@@ -7,7 +7,7 @@ from grunt.local import session_user
 from grunt.metadata.doctype import DocType
 from grunt.permissions import query
 from grunt.permissions.roles import role_access
-from grunt.permissions.types import PermissionAction
+from grunt.permissions.types import PermissionAction, WriteAction
 
 # Human-readable action names for the "insufficient permissions" message, so a
 # toast says *which* DocType and *which* operation was denied instead of a bare
@@ -57,6 +57,27 @@ class PermissionChecker:
                 _("No access: %(action)s “%(doctype)s”")
                 % {"action": pgettext("permission", verb), "doctype": _(label)}
             )
+
+    async def require_in_scope(
+        self,
+        doctype: DocType | Meta,
+        action: WriteAction,
+        row: dict,
+        *,
+        user: str | None = None,
+    ) -> None:
+        """403 when *row* - the document as it is about to be stored - lies
+        outside what *action* (``create`` / ``write``) grants *user*: the rule's
+        ``match``, shares and User Permissions are evaluated against the new
+        values, not only the stored ones, so a change can't carry a document
+        out of the user's scope (or create it outside)."""
+        if await self.check(doctype, action, row, user=user):
+            return
+        if action == "create":
+            detail = _("No access: you may not create a document with these values")
+        else:
+            detail = _("No access: after this change the document would be outside your access")
+        raise forbidden(detail)
 
     async def can_share(
         self,

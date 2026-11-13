@@ -13,6 +13,7 @@ from typing import Any
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.log import log
+from grunt.permissions.perms import ALL, has_perm, user_perms
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.service import create_access_token
 lazy from grunt.auth.users import _auth_user_dump, get_user_by_id
@@ -28,15 +29,15 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
     ``impersonated_by`` block naming *actor*.
     """
 
-    if not actor.has_role("System Manager"):
-        throw(_("System Manager rights are required."), "PERMISSION_DENIED")
+    if not await has_perm("grunt.impersonate", user=actor.email):
+        throw(_("You may not sign in as another user."), "PERMISSION_DENIED")
 
     target = await get_user_by_id(target_user_id)
     if target is None:
         throw(_("User not found"), "NOT_FOUND")
     if target.id == actor.id:
         throw(_("You cannot impersonate your own account."), "VALIDATION_ERROR")
-    if target.has_role("System Manager"):
+    if ALL in await user_perms(target.email):
         throw(_("You cannot impersonate another administrator."), "PERMISSION_DENIED")
     if not target.is_active:
         throw(_("The account is disabled."), "VALIDATION_ERROR")
@@ -54,6 +55,6 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
         "access_token": token,
         "token_type": "bearer",
         "expires_in_minutes": IMPERSONATION_TTL_MINUTES,
-        "user": _auth_user_dump(target),
+        "user": await _auth_user_dump(target),
         "impersonated_by": {"id": actor.id, "email": actor.email, "full_name": actor.full_name},
     }

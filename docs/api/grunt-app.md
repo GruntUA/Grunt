@@ -349,31 +349,61 @@ async def approve_order(order_id: str) -> dict:
 ```
 
 - `allow_guest=True` — skip authentication; the method runs with `user=None`.
-- `roles=[...]` — require the caller to be superadmin or hold at least one of
-  the listed roles. Enforced on every call — through the HTTP dispatcher *and*
-  when called directly from other Python code (a hook, a script, a test) —
-  there's no call path that skips it:
+- `perm="app.capability"` — require a **permission**. Code asks for a
+  capability, never for a role name; an administrator decides which roles hold
+  it (`Role.permissions`; System Manager holds `*` — everything). Enforced on
+  every call — through the HTTP dispatcher *and* when called directly from
+  other Python code (a hook, a script, a test) — there's no call path that
+  skips it:
 
   ```python
-  @grunt.whitelist(roles=["superadmin"])
+  @grunt.whitelist(perm="grunt.manage_desk")
   async def delete_workspace(name: str) -> bool:
       await grunt.delete_doc("AppMenu", name)
       return True
   ```
 
-- `require=predicate` — for checks that aren't a static role list. Receives
+- `require=predicate` — for checks that aren't a fixed permission. Receives
   the current user, returns (or awaits to) a bool:
 
   ```python
-  @grunt.whitelist(require=lambda user: user.is_superadmin or user.id == target_id)
+  @grunt.whitelist(
+      require=lambda user: user.id == target_id or grunt.has_perm("grunt.manage_users")
+  )
   async def reset_own_or_admin(target_id: str) -> None: ...
   ```
 
-`roles=`/`require=` raise `403` before the method body runs. They're for a
-genuine *static* gate — permission that depends on the specific document
-being acted on (ownership, a flag on the target record) still belongs in the
-method body, via `grunt.can_read`/`can_write`/`can_delete`/... or the
-permission checks `get_doc`/`save_doc`/`delete_doc` already enforce.
+- `roles=[...]` — the older form (any of the role names); apps still use it
+  until they move to permissions.
+
+`perm=`/`roles=`/`require=` raise `403` before the method body runs. A
+permission opens the *method*; the documents it reads or writes still follow
+their DocType rules — permission that depends on the specific document (its
+`match`, ownership) belongs to `grunt.has_permission(doctype, action, doc_id)`
+or the checks `get_doc`/`save_doc`/`delete_doc` already enforce.
+
+### Permissions
+
+The core declares its own (`grunt.manage_users`, `grunt.manage_email`,
+`grunt.manage_backups`, … — `grunt/permissions/perms.py`); an app declares
+its permissions in `hooks.py`:
+
+```python
+permissions = [
+    {"name": "inventory.manage_assets", "label": "Manage assets"},
+]
+```
+
+and checks them with `@grunt.whitelist(perm=...)` or in code:
+
+```python
+if not await grunt.has_perm("inventory.manage_assets"):
+    grunt.throw(_("You may not manage assets"))
+```
+
+Checking a permission nobody declared raises `KeyError` — a typo must not
+silently lock everyone out. A user may add to a role only the permissions they
+hold themselves.
 
 ### Response schemas (`Schema`)
 
@@ -385,7 +415,7 @@ from grunt.document.schema import Schema
 
 
 class UserPublic(Schema):
-    fields = ("name", "email", "full_name", "roles", "is_superadmin")
+    fields = ("name", "email", "full_name", "roles")
 
 
 @grunt.whitelist()
@@ -394,7 +424,7 @@ async def whoami() -> dict:
     return UserPublic.dump(user)
 
 
-@grunt.whitelist(roles=["superadmin"])
+@grunt.whitelist(perm="grunt.manage_users")
 async def list_users_api() -> list[dict]:
     return UserPublic.dump_many(await User.objects.limit(1000).all())
 ```
@@ -407,9 +437,13 @@ the underlying document, build that dict by hand.
 
 ## Notifications & real-time
 
-### `grunt.notify(users, subject, message, doctype, doc_id, push)`
+### `grunt.notify(users, subject, message, doctype, doc_id, channels)`
 
-Create persistent bell notifications.
+Notify users. By default this uses the `in_app` channel: a bell row (`NotificationLog`) plus a realtime ping after the commit. Pass `channels=("in_app", "web_push", "email")` to also reach them by browser push and email, or use a channel an app registered.
+
+Each recipient × channel becomes a `NotificationDelivery` row. The row records whether the notification was sent, queued, skipped (with a reason) or failed. The email queue and the push sender update the row once the message actually goes out.
+
+Returns the names of the bell rows created.
 
 ```python
 await grunt.notify(
@@ -420,6 +454,14 @@ await grunt.notify(
     doc_id=order["id"],
 )
 ```
+
+An app adds its own channel (SMS, a messenger) in `hooks.py`:
+
+```python
+notification_channels = ["my_app.sms.SmsChannel"]
+```
+
+The class subclasses `grunt.notification.channels.Channel`. It sets a `name` and a `label` and implements `send(session, recipient, message, *, delivery)`, which returns an `Outcome` (`Sent`, `Queued`, `Skipped` or `Error`). A queued channel later settles its row with `grunt.notification.delivery_log.settle({"name": delivery}, "Sent")`.
 
 ### `grunt.publish(user, event, data, message, type)`
 

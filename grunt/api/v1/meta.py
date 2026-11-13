@@ -76,7 +76,7 @@ async def list_doctypes(module: str | None = None) -> list[dict[str, Any]]:
     ]
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_doctypes")
 async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     """Create or update a DocType. Admin only."""
 
@@ -100,7 +100,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     return await _dump_doctype(dt)
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_doctypes")
 async def delete_doctype(name: str) -> bool:
     """Delete a DocType definition. Admin only."""
 
@@ -108,7 +108,7 @@ async def delete_doctype(name: str) -> bool:
     return True
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_doctypes")
 async def sync_doctype(name: str) -> dict[str, Any]:
     """Force sync a DocType's physical table. Admin only."""
     meta = await doctype_registry.get_meta(name)
@@ -125,7 +125,7 @@ async def sync_doctype(name: str) -> dict[str, Any]:
     return {"name": dt.name, "table_name": get_table_name(dt.module, dt.name)}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_doctypes")
 async def compact_table(name: str) -> dict[str, Any]:
     """Compact a DocType's backing table and report how much space was freed.
 
@@ -194,7 +194,7 @@ async def compact_table(name: str) -> dict[str, Any]:
     return result
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_doctypes")
 async def table_info(name: str) -> dict[str, Any]:
     """Return physical storage info for a DocType's backing table. Admin only.
 

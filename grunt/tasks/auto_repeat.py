@@ -24,7 +24,7 @@ from grunt.tasks.doctypes.AutoRepeat.auto_repeat import AutoRepeat
 from grunt.tasks.repeat_schedule import anchor_day, as_date, next_date, status_for
 lazy from grunt.auth.users import get_auth_context_user
 lazy from grunt.document.api import documents
-lazy from grunt.notification.service import notification_service
+lazy from grunt.notification.events import trigger
 lazy from grunt.site.manager import site_manager
 lazy from grunt.workflow.registry import get_active_workflow
 
@@ -68,21 +68,9 @@ async def _owner(email: str | None) -> Any:
     return user if user is not None and user.is_active else None
 
 
-async def _notify(rule: dict[str, Any], subject: str, message: str) -> None:
-    if not rule.get("notify") or not rule.get("owner"):
-        return
-
-    try:
-        await notification_service.notify(
-            require_session(),
-            user=rule["owner"],
-            doctype="AutoRepeat",
-            doc_id=rule["name"],
-            subject=subject,
-            message=message,
-        )
-    except Exception:
-        log.warning("auto_repeat.notify_failed", rule=rule["name"])
+async def _notify(rule: dict[str, Any], key: str, **extra: Any) -> None:
+    """Code event *key* about *rule* (its standard ``Notification`` checks ``notify``)."""
+    await trigger(key, doc=rule, doctype="AutoRepeat", extra=extra, session=require_session())
 
 
 async def process_rule(name: str, today: date) -> int:
@@ -127,14 +115,14 @@ async def process_rule(name: str, today: date) -> int:
         log.info("auto_repeat.copy_created", rule=name, doc=copy["name"], on=str(next_on))
         await _notify(
             rule.data,
-            _("Created %(doctype)s %(name)s")
-            % {"doctype": _(rule.reference_doctype), "name": copy["name"]},
-            _("Auto repeat %(rule)s") % {"rule": name},
+            "grunt.auto_repeat.created",
+            label=rule.reference_doctype,
+            created=copy["name"],
         )
         next_on = next_date(next_on, frequency, day, last_day)
 
     if error:
-        await _notify(rule.data, _("Auto repeat %(rule)s failed") % {"rule": name}, error)
+        await _notify(rule.data, "grunt.auto_repeat.failed", error=error)
 
     updates.update(
         next_schedule_date=next_on,

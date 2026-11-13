@@ -47,21 +47,21 @@ interface GruntMethods {
   "grunt.api.v1.data_import.get_import_status": { args: { data_import_id: string }; result: Record<string, any> }
   /** Start an import job via the background task queue. */
   "grunt.api.v1.data_import.run_import_job": { args: { data_import_id: string }; result: Record<string, any> }
-  /** Clear both ring buffers. Roles: System Manager. */
+  /** Clear both ring buffers. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.clear_profiler": { args: {}; result: boolean }
-  /** Clear in-memory query cache (dev helper). Roles: System Manager. */
+  /** Clear in-memory query cache (dev helper). Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.clear_query_cache": { args: {}; result: boolean }
-  /** Recent requests with per-request query breakdown. Roles: System Manager. */
+  /** Recent requests with per-request query breakdown. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.get_profiler_requests": { args: { limit?: number }; result: Record<string, any>[] }
-  /** Return current profiler runtime settings. Roles: System Manager. */
+  /** Return current profiler runtime settings. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.get_profiler_settings": { args: {}; result: GruntApi.grunt.ProfilerSettings }
-  /** Aggregate stats: request count, slow query count, avg/p95 duration. Roles: System Manager. */
+  /** Aggregate stats: request count, slow query count, avg/p95 duration. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.get_profiler_stats": { args: {}; result: Record<string, any> }
-  /** Return query cache runtime stats and config. Roles: System Manager. */
+  /** Return query cache runtime stats and config. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.get_query_cache_stats": { args: {}; result: Record<string, any> }
-  /** All slow queries from the global ring buffer. Roles: System Manager. */
+  /** All slow queries from the global ring buffer. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.get_slow_queries": { args: { limit?: number }; result: Record<string, any>[] }
-  /** Update profiler thresholds at runtime. Roles: System Manager. */
+  /** Update profiler thresholds at runtime. Permission: grunt.system_monitor. */
   "grunt.api.v1.dev.update_profiler_settings": { args: { enabled?: boolean | null; threshold_ms?: number | null; slow_request_db_ms?: number | null; slow_request_ms?: number | null; n1_threshold?: number | null }; result: GruntApi.grunt.ProfilerSettings }
   /** Delete multiple documents by IDs, or all documents matching filters. */
   "grunt.api.v1.docs.crud.bulk_delete": { args: { doctype: string; ids?: string[] | null; delete_all?: boolean; filters?: Record<string, any> | null; search?: string | null; fast?: boolean; replace_with?: string | null }; result: Record<string, any> }
@@ -135,21 +135,21 @@ interface GruntMethods {
   "grunt.api.v1.documents.rename_doc": { args: { doctype: string; name: string; new_name: string }; result: Record<string, any> }
   /** Update an existing document. */
   "grunt.api.v1.documents.save_doc": { args: { doctype: string; name: string; data: Record<string, any> }; result: Record<string, any> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.get_account": { args: { account_id: string }; result: Record<string, any> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.list_accounts": { args: {}; result: Record<string, any>[] }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.list_queue": { args: { status?: string | null; page?: number; per_page?: number }; result: Record<string, any> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.retry_item": { args: { queue_id: string }; result: boolean }
-  /** Send a short test message through a saved EmailAccount. Roles: System Manager. */
+  /** Send a short test message through a saved EmailAccount. Permission: grunt.manage_email. */
   "grunt.api.v1.email.send_test_email": { args: { account_id: string; recipient: string }; result: GruntApi.grunt.Outcome }
-  /** Attempt SMTP connect+login without sending a message. Roles: System Manager. */
+  /** Attempt SMTP connect+login without sending a message. Permission: grunt.manage_email. */
   "grunt.api.v1.email.test_smtp_connection": { args: { smtp_server: string; smtp_port?: number; use_tls?: boolean; smtp_user?: string | null; smtp_password?: string | null; account_id?: string | null }; result: GruntApi.grunt.Outcome }
-  /** Compact a DocType's backing table and report how much space was freed. Roles: System Manager. */
+  /** Compact a DocType's backing table and report how much space was freed. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.compact_table": { args: { name: string }; result: Record<string, any> }
-  /** Delete a DocType definition. Admin only. Roles: System Manager. */
+  /** Delete a DocType definition. Admin only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.delete_doctype": { args: { name: string }; result: boolean }
   /** Get a single DocType definition, always re-reading from DB. */
   "grunt.api.v1.meta.get_doctype": { args: { name: string; raw?: boolean }; result: Record<string, any> }
@@ -157,11 +157,11 @@ interface GruntMethods {
   "grunt.api.v1.meta.list_doctypes": { args: { module?: string | null }; result: Record<string, any>[] }
   /** Return all registered field validators for the Studio UI. */
   "grunt.api.v1.meta.list_validators": { args: {}; result: Record<string, any>[] }
-  /** Create or update a DocType. Admin only. Roles: System Manager. */
+  /** Create or update a DocType. Admin only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.save_doctype": { args: { doctype_data: Record<string, any> }; result: Record<string, any> }
-  /** Force sync a DocType's physical table. Admin only. Roles: System Manager. */
+  /** Force sync a DocType's physical table. Admin only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.sync_doctype": { args: { name: string }; result: Record<string, any> }
-  /** Return physical storage info for a DocType's backing table. Admin only. Roles: System Manager. */
+  /** Return physical storage info for a DocType's backing table. Admin only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.table_info": { args: { name: string }; result: Record<string, any> }
   /** Get the count of unread notifications for the current user. */
   "grunt.api.v1.notifications.get_unread_count": { args: {}; result: number }
@@ -177,18 +177,22 @@ interface GruntMethods {
   "grunt.api.v1.notifications.subscribe_push": { args: { endpoint: string; p256dh: string; auth: string; user_agent?: string }; result: boolean }
   /** Remove a browser push subscription for the current user. */
   "grunt.api.v1.notifications.unsubscribe_push": { args: { endpoint: string }; result: boolean }
-  /** Remove a custom page registration. Admin only. Roles: System Manager. */
+  /** Remove a custom page registration. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.pages.delete_page": { args: { route: string }; result: boolean }
   /** List all registered custom pages. */
   "grunt.api.v1.pages.list_pages": { args: {}; result: Record<string, any>[] }
-  /** Register or update a custom page from an app. Admin only. Roles: System Manager. */
+  /** Register or update a custom page from an app. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.pages.register_page": { args: { page_data: Record<string, any> }; result: Record<string, any> }
+  /** *role*'s rules on each of *doctypes*: ``{doctype, is_child, rules}``, a rule being ``{index, actions, match, hidden_fields, readonly_fields}``. */
+  "grunt.api.v1.permission_matrix.get_role_matrix": { args: { role: string; doctypes: string[] }; result: Record<string, any>[] }
+  /** Apply *changes* - ``{doctype, rules: [{index, match, original, actions}]}`` - to *role*'s rules, one ``save_doc`` per DocType; returns them as :func:`get_role_matrix` does. */
+  "grunt.api.v1.permission_matrix.save_role_matrix": { args: { role: string; changes: Record<string, any>[] }; result: Record<string, any>[] }
   /** Return all enabled client scripts for a DocType. */
   "grunt.api.v1.scripting.get_client_scripts": { args: { doctype: string }; result: Record<string, any>[] }
   /** Execute a Server Script of type 'API'. */
   "grunt.api.v1.scripting.run_server_script": { args: { method: string; params?: Record<string, any> | null }; result: Record<string, any> }
   "grunt.api.v1.search.global_search": { args: { q: string; doctype?: string | null; limit?: number }; result: Record<string, any>[] }
-  /** Rebuild the entire search index from scratch. System Manager only. Roles: System Manager. */
+  /** Rebuild the entire search index from scratch. System Manager only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.search.rebuild_index": { args: {}; result: Record<string, any> }
   /** Create a new document share link. Authenticated users only. */
   "grunt.api.v1.share.create_share": { args: { doctype_name: string; doc_id: string; expires_at?: string | null; note?: string }; result: Record<string, any> }
@@ -198,11 +202,11 @@ interface GruntMethods {
   "grunt.api.v1.site_config.get_public_config": { args: {}; result: Record<string, any> }
   /** Return the translation bundle for a locale. Allowed for guests. */
   "grunt.api.v1.translations.get_translations": { args: { locale: string }; result: Record<string, any> }
-  /** List recent delivery logs for an incoming webhook. Roles: System Manager. */
+  /** List recent delivery logs for an incoming webhook. Permission: grunt.manage_integrations. */
   "grunt.api.v1.webhooks.list_incoming_logs": { args: { webhook_id: string; page?: number; per_page?: number }; result: Record<string, any> }
-  /** Send a test payload for an outgoing webhook. Roles: System Manager. */
+  /** Send a test payload for an outgoing webhook. Permission: grunt.manage_integrations. */
   "grunt.api.v1.webhooks.test_outgoing_webhook": { args: { webhook_id: string }; result: Record<string, any> }
-  /** Delete a workspace. Admin only. Roles: System Manager. */
+  /** Delete a workspace. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.workspace.delete_workspace": { args: { name: string }; result: boolean }
   /** Get document counts for workspace links. */
   "grunt.api.v1.workspace.get_counts": { args: { name: string }; result: Record<string, number> }
@@ -214,7 +218,7 @@ interface GruntMethods {
   "grunt.api.v1.workspace.get_workspace": { args: { name: string }; result: Record<string, any> }
   /** List workspaces visible to the current user. */
   "grunt.api.v1.workspace.list_workspaces": { args: {}; result: Record<string, any>[] }
-  /** Create or update a workspace. Admin only. Roles: System Manager. */
+  /** Create or update a workspace. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.workspace.save_workspace": { args: { workspace_data: Record<string, any> }; result: Record<string, any> }
   /** List assignment logs with filters. */
   "grunt.assignment.doctypes.AssignmentLog.assignment_log.list_logs": { args: { doctype?: string | null; document_id?: string | null; assigned_to?: string | null; status?: string | null; limit?: number }; result: Record<string, any> }
@@ -244,7 +248,7 @@ interface GruntMethods {
   "grunt.auth.doctypes.WebAuthnCredential.web_authn_credential.touch_passkey": { args: { name: string }; result: boolean }
   /** Expose :func:`get_password_policy` to the frontend (live strength hints). Allowed for guests. */
   "grunt.auth.password_policy.password_policy_api": { args: {}; result: Record<string, number | boolean> }
-  /** Approve a pending registration - the user can now sign in. System Manager only. Roles: System Manager. */
+  /** Approve a pending registration - the user can now sign in. System Manager only. Permission: grunt.manage_users. */
   "grunt.auth.user_api.approve_user_api": { args: { user_id: string }; result: boolean }
   /** Confirm MFA setup for the current user. */
   "grunt.auth.user_api.confirm_mfa": { args: { code: string }; result: GruntApi.grunt.MfaConfirmed }
@@ -254,9 +258,9 @@ interface GruntMethods {
   "grunt.auth.user_api.forgot_password_api": { args: { email: string }; result: boolean }
   /** The people directory for any signed-in user: active accounts with just what a picker shows (sharing, assigning) - no roles, no account state. */
   "grunt.auth.user_api.list_colleagues_api": { args: {}; result: Record<string, any>[] }
-  /** Self-registered users awaiting approval. System Manager only. Roles: System Manager. */
+  /** Self-registered users awaiting approval. System Manager only. Permission: grunt.manage_users. */
   "grunt.auth.user_api.list_pending_users_api": { args: {}; result: Record<string, any>[] }
-  /** List all users with fields needed by the admin REST endpoint. Roles: System Manager. */
+  /** List all users with fields needed by the admin REST endpoint. Permission: grunt.manage_users. */
   "grunt.auth.user_api.list_users_detailed_api": { args: {}; result: Record<string, any>[] }
   /** Authenticate a user and issue auth tokens or MFA challenge token. Allowed for guests. */
   "grunt.auth.user_api.login_api": { args: { email: string; password: string }; result: Record<string, any> }
@@ -274,7 +278,7 @@ interface GruntMethods {
   "grunt.auth.user_api.register": { args: { email: string; password: string; first_name?: string | null; last_name?: string | null; middle_name?: string | null }; result: Record<string, any> }
   /** Register a new user using a single full_name string. Allowed for guests. */
   "grunt.auth.user_api.register_full_name_api": { args: { email: string; password: string; full_name: string }; result: Record<string, any> }
-  /** Reject a pending registration. System Manager only. Roles: System Manager. */
+  /** Reject a pending registration. System Manager only. Permission: grunt.manage_users. */
   "grunt.auth.user_api.reject_user_api": { args: { user_id: string }; result: boolean }
   /** Reset password using a valid reset token. Allowed for guests. */
   "grunt.auth.user_api.reset_password_api": { args: { token: string; new_password: string }; result: boolean }
@@ -282,7 +286,7 @@ interface GruntMethods {
   "grunt.auth.user_api.set_user_password_api": { args: { user_id: string; new_password: string; current_password?: string | null }; result: boolean }
   /** Start MFA setup for the current user. */
   "grunt.auth.user_api.setup_mfa": { args: {}; result: GruntApi.grunt.MfaSetup }
-  /** Open a short-lived session as another user. System Manager only. Roles: System Manager. */
+  /** Open a short-lived session as another user. System Manager only. Permission: grunt.impersonate. */
   "grunt.auth.user_api.start_impersonation_api": { args: { user_id: string }; result: Record<string, any> }
   /** Log the end of an impersonation session. */
   "grunt.auth.user_api.stop_impersonation_api": { args: {}; result: boolean }
@@ -294,17 +298,17 @@ interface GruntMethods {
   "grunt.auth.user_api.whoami": { args: {}; result: Record<string, any> }
   /** Simple ping-pong whitelisted method. */
   "grunt.auth.user_utils.ping": { args: { message?: string }; result: any }
-  /** Queue a backup of the chosen parts (the worker makes it; it shows up in the list). Roles: System Manager. */
+  /** Queue a backup of the chosen parts (the worker makes it; it shows up in the list). Permission: grunt.manage_backups. */
   "grunt.backups.api.backup_now": { args: { with_database?: boolean; with_files?: boolean; with_config?: boolean }; result: GruntApi.grunt.Queued }
   /** A backup file, for a valid unexpired signature (see :func:`download_url`). Allowed for guests. */
   "grunt.backups.api.download": { args: { file: string; exp: number; sig: string }; result: unknown }
   /** Return grouped connection stats for one document. */
   "grunt.document.connections.get_connections": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
-  /** Markup for the browser's own checks (frontend/src/core/browserHealth.ts) - the same table as the server sections. Roles: System Manager. */
+  /** Markup for the browser's own checks (frontend/src/core/browserHealth.ts) - the same table as the server sections. Permission: grunt.system_monitor. */
   "grunt.monitoring.health.render_checks": { args: { rows: Record<string, any>[] }; result: string }
-  /** One section of the report: its rows and their markup. Roles: System Manager. */
+  /** One section of the report: its rows and their markup. Permission: grunt.system_monitor. */
   "grunt.monitoring.health.run_section": { args: { key: string }; result: Record<string, any> }
-  /** Push a test event to the caller's own user channel - the browser half of the report checks it arrives exactly once (grunt/api/v1/ws.py). Roles: System Manager. */
+  /** Push a test event to the caller's own user channel - the browser half of the report checks it arrives exactly once (grunt/api/v1/ws.py). Permission: grunt.system_monitor. */
   "grunt.monitoring.health.ws_echo": { args: { nonce: string }; result: Record<string, any> }
   /** Rows for the list-view "Restrictions" popup: which fields on *doctype* are constrained, and to which values, for the current user. */
   "grunt.permissions.user_permissions.get_active_restrictions": { args: { doctype: string }; result: Record<string, any>[] }
@@ -312,7 +316,7 @@ interface GruntMethods {
   "grunt.permissions.user_permissions.get_user_permission_defaults": { args: { doctype: string }; result: Record<string, string> }
   /** The current user's running tasks - the task panel restores itself from this. */
   "grunt.progress.active_tasks": { args: {}; result: Record<string, any>[] }
-  /** Ask the background task *job_id* (any user's, or a scheduled one) to stop. Roles: System Manager. */
+  /** Ask the background task *job_id* (any user's, or a scheduled one) to stop. Permission: grunt.system_monitor. */
   "grunt.progress.cancel_job": { args: { job_id: string }; result: boolean }
   /** Ask the current user's running *task_id* to stop; False if there is no such task. */
   "grunt.progress.cancel_task": { args: { task_id: string }; result: boolean }
@@ -336,17 +340,17 @@ interface GruntMethods {
   "grunt.site.onboarding.mark_step": { args: { onboarding: string; step_id: string; status?: string }; result: Record<string, any> }
   /** Add a module to an installed app. */
   "grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app.add_module": { args: { name: string; module: string }; result: Record<string, any> }
-  /** Uninstall an app. System Manager only. */
+  /** Uninstall an app. Needs ``grunt.manage_apps``. */
   "grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app.delete_app": { args: { name: string }; result: boolean }
   /** List all installed apps. */
   "grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app.list_apps": { args: {}; result: Record<string, any>[] }
-  /** Register a new installed app. System Manager only. */
+  /** Register a new installed app. Needs ``grunt.manage_apps``. */
   "grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app.register_app": { args: { name: string; title?: string | null; version?: string; modules?: string[] | null }; result: Record<string, any> }
-  /** The provider's sign-in URL for *name* (needs its own client id/secret). Roles: System Manager. */
+  /** The provider's sign-in URL for *name* (needs its own client id/secret). Permission: grunt.manage_storage. */
   "grunt.storage.cloud.oauth.authorize": { args: { name: string }; result: GruntApi.grunt.AuthorizeLink }
   /** The provider sends the browser back here with a code (or an error). Allowed for guests. */
   "grunt.storage.cloud.oauth.callback": { args: { state?: string; code?: string; error?: string; error_description?: string }; result: unknown }
-  /** Store a token pasted from ``rclone authorize``. Roles: System Manager. */
+  /** Store a token pasted from ``rclone authorize``. Permission: grunt.manage_storage. */
   "grunt.storage.cloud.oauth.set_token": { args: { name: string; token: string }; result: GruntApi.grunt.TokenSaved }
   /** Whitelisted method: Stream file content from storage (``thumb`` - its preview, ``w`` - a preview that wide, one of ``WEB_WIDTHS``, for ``srcset`` on pages, ``inline`` - open in the browser instead of downloading, for ``INLINE_TYPES``). Allowed for guests. */
   "grunt.storage.doctypes.File.file.get_content": { args: { file_id: string; exp?: number | null; sig?: string | null; thumb?: boolean; w?: number | null; inline?: boolean }; result: unknown }
@@ -364,25 +368,25 @@ interface GruntMethods {
   "grunt.storage.doctypes.FileFolder.file_folder.delete_items": { args: { files?: string[] | null; folders?: string[] | null }; result: Record<string, number> }
   /** Whitelisted method: the current user's home folder, created on first use. */
   "grunt.storage.doctypes.FileFolder.file_folder.get_home_folder": { args: {}; result: Record<string, any> }
-  /** Whitelisted method: ``{used, quota}`` in bytes for a space (``quota`` is ``None`` when unlimited). Another user's space - System Manager only. */
+  /** Whitelisted method: ``{used, quota}`` in bytes for a space (``quota`` is ``None`` when unlimited). Another user's space - ``grunt.manage_storage``. */
   "grunt.storage.doctypes.FileFolder.file_folder.get_storage_usage": { args: { user?: string | null }; result: Record<string, any> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_backups. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.fetch_backup": { args: { name: string; backup_id: string }; result: Record<string, boolean> }
-  /** Backup sets kept in the remote (newest first). Roles: System Manager. */
+  /** Backup sets kept in the remote (newest first). Permission: grunt.manage_backups. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.list_backups": { args: { name: string }; result: Record<string, any>[] }
-  /** The ``rclone authorize`` command for this remote's provider. Roles: System Manager. */
+  /** The ``rclone authorize`` command for this remote's provider. Permission: grunt.manage_storage. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.oauth_help": { args: { name: string }; result: Record<string, string> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_storage. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.offload_now": { args: { name: string }; result: Record<string, boolean> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_storage. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.recall_files": { args: { name: string }; result: Record<string, boolean> }
-  /** The remote as rclone.conf text (secrets obscured the rclone way). Roles: System Manager. */
+  /** The remote as rclone.conf text (secrets obscured the rclone way). Permission: grunt.manage_storage. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.show_config": { args: { name: string }; result: Record<string, string> }
-  /** Create the root folder, write + delete a probe file, read the quota. Roles: System Manager. */
+  /** Create the root folder, write + delete a probe file, read the quota. Permission: grunt.manage_storage. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.test_connection": { args: { name: string }; result: Record<string, any> }
-  /** Roles: System Manager. */
+  /** Permission: grunt.manage_backups. */
   "grunt.storage.doctypes.StorageRemote.storage_remote.upload_latest": { args: { name: string }; result: Record<string, boolean> }
-  /** Queue :func:`compress_existing` for the whole site (System Settings → Files); whoever started it follows it in the task panel. Roles: System Manager. */
+  /** Queue :func:`compress_existing` for the whole site (System Settings → Files); whoever started it follows it in the task panel. Permission: grunt.manage_storage. */
   "grunt.storage.images.start_compression": { args: {}; result: GruntApi.grunt.Queued }
   /** A page view - the beacon a public page sends after it loads. Allowed for guests. */
   "grunt.website.views.record_view": { args: { doctype: string; name: string }; result: null }

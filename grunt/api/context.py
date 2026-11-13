@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from grunt.errors import forbidden
 from grunt.local import _engine_ctx, _messages_ctx, _session_ctx, _site_ctx, _user_ctx
 from grunt.permissions.roles import has_roles
+lazy from grunt.permissions.perms import has_perm
 lazy from grunt.site.manager import site_manager
 
 
@@ -75,21 +76,26 @@ def whitelist(
     allow_guest: bool = False,
     *,
     roles: list[str] | None = None,
+    perm: str | None = None,
     require=None,
     session_cookie: bool = False,
 ):
     """Decorator to mark a function as whitelisted for API access.
 
-    ``roles``/``require`` are enforced on every call - via the HTTP dispatcher
+    ``perm`` - a permission the caller must hold (``grunt.permissions.perms``):
+    code asks for a capability, an administrator decides which roles have it::
+
+        @grunt.whitelist(perm="grunt.manage_email")
+        async def send_test_email(...): ...
+
+    ``roles`` (any of the role names) is the older form apps still use.
+    ``perm``/``roles``/``require`` are enforced on every call - via the HTTP dispatcher
     (``api/v1/method.py``) *and* when the function is called directly from
     other Python code (a hook, a test, another whitelisted method) - by reading
     the caller's identity from the active grunt context at call time:
 
-        @grunt.whitelist(roles=["System Manager"])
-        async def approve_user_api(user_id: str) -> bool: ...
-
         @grunt.whitelist(
-            require=lambda user: "System Manager" in (user.roles or []) or user.id == target_id
+            require=lambda user: user.id == target_id or has_perm("grunt.manage_users")
         )
         async def reset_own_or_admin(...): ...
 
@@ -107,10 +113,11 @@ def whitelist(
         fn._allow_guest = allow_guest
         fn._session_cookie = session_cookie
         fn._required_roles = roles
+        fn._required_perm = perm
         fn._require_check = require
 
     def decorator(fn):
-        if roles or require is not None:
+        if roles or perm or require is not None:
 
             @functools.wraps(fn)
             async def wrapper(*args, **kwargs):
@@ -118,6 +125,8 @@ def whitelist(
                 if user is None:
                     raise forbidden()
                 if roles and not await has_roles(roles):
+                    raise forbidden()
+                if perm and not await has_perm(perm):
                     raise forbidden()
                 if require is not None:
                     ok = require(user)

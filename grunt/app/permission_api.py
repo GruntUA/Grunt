@@ -5,6 +5,7 @@ from typing import Any
 from grunt.db.api import GruntDB
 from grunt.local import user_email
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import has_perm as _has_perm
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.types import PermissionAction
 
@@ -34,3 +35,14 @@ class PermissionAPI:
         if doc_id:
             doc = await GruntDB().get_value(doctype, doc_id, "*")
         return await permission_checker.check(dt.doc, action, doc)
+
+    async def has_perm(self, perm: str, *, user: str | None = None) -> bool:
+        """Whether the current user (or *user*, an email) holds permission *perm*
+        through their roles - a capability, not a document right::
+
+            if not await grunt.has_perm("grunt.moderate_comments"):
+                grunt.throw("You cannot edit other people's comments")
+
+        Declare an app's permissions in ``hooks.py`` (``permissions = [...]``).
+        """
+        return await _has_perm(perm, user=user)

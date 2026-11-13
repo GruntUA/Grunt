@@ -134,9 +134,12 @@ allowed(action, doc) =
 | 1 | **Одна реалізація перевірки.** `match` → лише `Expr` (`where`), документ = `matches()` з асинхронним `Linked`; прибрати `simpleeval`; непридатні `match` — помилка при завантаженні DocType | ✔️ |
 | 2a | **Діри прихованих полів** (інваріант 5): запис, фільтр/сортування/групування/агрегати/пошук, `get_value`/`set_value`/`exists`, глобальний індекс | ✔️ #119 |
 | 2b | **Дії** `actions[]` замість булевих + `export`/`import`/`print`/`share`/`report` — перевірка на сервері (FRAPPE_GAP п.2) | ✔️ #139, #140 |
-| 2c | **Поля «лише читання»** — `readonly_fields` поруч із `hidden_fields` (FRAPPE_GAP п.3); групи полів — у 2d | ⏳ `feat/permissions-readonly-fields` |
-| 2d | **Матриця «роль × дія»** в Studio; нові значення при записі (інваріант 6, зокрема `set_value`) | ☐ |
-| 3 | **Ролі й дозволи.** id ролей + Link, `perm=` у `whitelist`, `grunt.can()`, прибрати рядкові «System Manager»; Workflow/Page/AppMenu/Report — через дії/дозволи | ☐ |
+| 2c | **Поля «лише читання»** — `readonly_fields` поруч із `hidden_fields` (FRAPPE_GAP п.3); групи полів — у 2d | ✔️ #142 |
+| 2d-1 | **Нові значення при записі** (інваріант 6): insert / save / `set_value` — документ після зміни в межах `create`/`write` | ✔️ #151 |
+| 2d-2 | **Матриця «роль × дія»** — вигляд «Дозволи» у списку DocType | ✔️ #151 |
+| 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ⏳ #152 |
+| 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ⏳ `feat/permissions-roles-in-features` |
+| 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ⏳ `feat/permissions-role-link` |
 | 4 | **Ролі з областю.** `RoleAssignment`; UserPermission → призначення; перевести mlt_portal, letter; прибрати UserPermission | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
@@ -177,6 +180,25 @@ allowed(action, doc) =
 - **2026-11-11** — 2c йде за рішенням власника від 09.11 (FRAPPE_GAP п.3): `readonly_fields`
   поруч із `hidden_fields`, а не новий формат `fields{}`. Групи полів (`field_groups`) і матриця —
   у 2d, як зручність редагування поверх тих самих списків.
+
+- **2026-11-12** — матриця — це вигляд «Дозволи» у списку DocType (`available(dt)` у
+  `viewRegistry`), а не окрема сторінка чи вкладка ролі: рядки — сторінка списку з його фільтрами
+  (модуль, додаток, пошук), роль — вибір у самому вигляді. Групи полів (`field_groups`) відкладено:
+  довгих списків прихованих полів у застосунках поки немає. 2d-1 і 2d-2 — один PR.
+
+- **2026-11-13** — крок 3 (рішення власника): id ролі — її нинішня назва (`Комірник`,
+  `Адміністратор порталу`), без перейменування на `app.role` і міграції даних; лише перевірка, що
+  роль існує, і перекладна назва. Дозволи — реєстр у `hooks.py` застосунку + MultiSelect
+  `permissions` на Role (варіанти з реєстру, `options_source`); System Manager має `*`.
+  `roles=` у `whitelist` і `has_role()` у застосунках працюють і далі — переводимо разом з
+  оновленням застосунків, потім прибираємо. Крок 3 — три PR: 3a, 3b, 3c.
+
+- **2026-11-13** — 3b: списки ролей у налаштуваннях (Workflow `allowed_roles`/`edit_roles`,
+  AppMenu, Page, онбординг) лишаються — це дані, які редагує адмін, а не перевірки в коді.
+  Прибрано лише обхід за назвою «System Manager»: замість нього — `*` (Workflow) або
+  `grunt.manage_desk` (меню, сторінки, онбординг). Перехід Workflow як дія правила DocType
+  (`approve` в `actions` з `match` — «погоджує лише свій відділ») — окреме рішення: відкритий
+  список дій у `DocPermission` і міграція Workflow застосунків (mlt_portal); не в 3b.
 
 ## Журнал
 
@@ -320,3 +342,145 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
   застосунків і на dev2 немає.
 - Імпорт (`import`) пише як SYSTEM_USER і поля «лише читання» не перевіряє — це окреме право.
 
+### 2026-11-12 — крок 2d-1: нові значення теж перевіряються (інваріант 6)
+
+Гілка `feat/permissions-role-matrix`, спільна з 2d-2 (один PR).
+- `permission_checker.require_in_scope(dt, action, row)` — `allowed()` з документом у тому
+  вигляді, в якому його збираються записати: `match` правила, shares і User Permissions
+  рахуються по нових значеннях. 403 з окремим текстом для створення і для зміни.
+- **insert** — після хуків (`validate`, `before_insert`, `before_save`), поруч із перевіркою User
+  Permissions: `create`. Раніше `match` правила `create` не перевірявся взагалі (лише рівень DocType).
+- **save/update** — старий рядок, як і раніше, перевіряється на `write` до змін; тепер і злитий
+  (після хуків) — теж `write`. Документ, поширений із `Write`, лишається доступним: share
+  прив'язаний до `name`.
+- **`set_value`** — `doc_guard` повертає рядок, перевірка йде на `{**рядок, **зміни}`. Закриває
+  відкладене з 2a (перенесення запису за межі своєї області).
+- Наслідок для правил ядра: виконавець ToDo (`assigned_to == user`), який не є його автором,
+  не може сам перепризначити ToDo на іншого — після зміни запис уже не його. Перепризначення
+  через призначення (`assignment`) іде в системному контексті й не зачеплене. Правила застосунків
+  з `match` на `create`/`write` — лише «власник = user» і `menu == 'mlt_portal'`: поведінка та сама.
+- Тести: `tests/test_write_scope.py` (без змін — 3 з 4 падають); усі 2348 зелені.
+
+### 2026-11-12 — крок 2d-2: матриця «роль × DocType × дія»
+
+- **Вигляд `permissions`** списку DocType (`frontend/src/components/views/permissions/`): роль
+  обирається у вигляді (`All` — перша), рядок — правило ролі на DocType (кілька правил з різним
+  `match` — кілька рядків з бейджем умови; приховані/«лише читання» поля — лічильником), колонки —
+  дії. `select` при ввімкненому `read` показано ввімкненим і заблокованим. Child DocType — рядок
+  без чекбоксів («доступ — як до документа, що містить таблицю»). Назва — посилання на форму DocType.
+- Зміни накопичуються між сторінками списку; «Зберегти» — один запит, «Відкинути» — скасувати.
+  Зміна ролі з незбереженими змінами питає підтвердження.
+- **Сервер** — `grunt/api/v1/permission_matrix.py`: `get_role_matrix(role, doctypes)` і
+  `save_role_matrix(role, changes)` читають і пишуть через `get_doc`/`save_doc("DocType")` —
+  та сама перевірка (`write` на DocType), валідація й експорт JSON, що й у формі. Правило
+  адресується індексом у `permissions` + його `match`; розбіжність → `CONFLICT` (DocType змінили
+  тим часом). Нове правило — без `match`; правило без дій видаляється, якщо в нього немає `match`
+  і списків полів (інакше лишається для форми). Невідома роль → `NOT_FOUND`.
+- `viewRegistry`: `ViewDefinition.available(dt)` + `isViewAvailable()` — одна перевірка для
+  перемикача виглядів (`ListHeader`), рендеру (`ListViewRouter`) і `getAvailableViewTypes`.
+- Тести: `tests/test_permission_matrix.py` (6), `frontend/src/core/__tests__/viewRegistry.spec.ts` (2).
+  Переклади — вручну в `grunt.pot` і `uk` (повний `grunt i18n extract` тягне чужий дрейф).
+
+### 2026-11-13 — крок 3a: дозволи
+
+Гілка `feat/permissions-perms`.
+
+**Механізм**
+- `grunt/permissions/perms.py` — реєстр `Perm(name, label, description, app)`; ядро реєструє свої,
+  застосунок — `permissions = [{"name": "inventory.manage_assets", "label": "…"}]` у `hooks.py`.
+- Role: MultiSelect `permissions` (`options_source = "grunt.permissions"`). `*` — усе.
+  Міграція: роль System Manager отримує `*`; `ensure_system_manager` створює її з `*`.
+- `has_perm(perm, user=None)` — об'єднання дозволів ролей користувача (кеш роль → дозволи,
+  інвалідація через `@fanout` з контролера Role). SYSTEM_USER — усе. Невідомий дозвіл у коді —
+  помилка при імпорті/реєстрації, не тиха відмова.
+- `@whitelist(perm="grunt.manage_email")` поруч із `roles=` (лишається для застосунків).
+- Фасад: `grunt.has_perm(perm)`. `grunt.can()` з цільової моделі — це наявний `grunt.has_permission(doctype,
+  action, doc_id)`; другої назви не вводимо.
+- `/me` (auth store) повертає `permissions`; фронтенд — `auth.hasPerm()` замість `isSystemManager`.
+
+**Дозволи ядра** (з 48 `whitelist(roles=["System Manager"])` і ~25 перевірок у коді)
+- `grunt.manage_doctypes` — meta (save/delete/sync DocType, compact/table_info), rebuild_index
+- `grunt.manage_desk` — Workspace, Page (register/delete)
+- `grunt.manage_users` — список/схвалення/відхилення користувачів, ролі користувача, API-ключі інших
+- `grunt.impersonate` — «увійти як»
+- `grunt.manage_email` — облікові записи, черга, тест SMTP; email hooks
+- `grunt.manage_storage` — StorageRemote, хмарний OAuth, стиснення зображень, чужі файлові простори
+- `grunt.manage_backups` — backup_now, списки/завантаження копій зі сховища
+- `grunt.manage_integrations` — вебхуки
+- `grunt.manage_apps` — GruntInstalledApp (модулі)
+- `grunt.system_monitor` — health, профайлер, кеш запитів, скасування фонових задач
+- `grunt.moderate_comments` — чужі коментарі
+- `grunt.restore_deleted` — DeletedDocument
+- `grunt.bulk_delete` — швидке масове видалення
+- Не дозволи (лишаються як є): перший користувач отримує System Manager; лічильник адмінів у
+  health; підпис у CLI; rate limit (ролі з JWT). User Permissions не діють на `*` (крок 4 їх
+  замінить). Workflow, AppMenu, Workspace-видимість, дії документа — 3b.
+
+**Зроблено**
+- Механізм, як у плані вище; міграція `0025_role_permissions` (колонка + `*` для System Manager),
+  `_grant_system_manager` створює роль з `*`; тестова БД засіває System Manager з `*`.
+- `register_notification_hooks` → `register_record_hooks`: `permissions` з `hooks.py`
+  реєструються й на `migrate` (стандартні ролі застосунку можуть їх містити).
+- Ядро: 47 `whitelist(roles=["System Manager"])` → `perm=`; рядкові перевірки → `has_perm`
+  (DeletedDocument, реєстрація з погодженням, `update_user`, impersonation — ціль з `*` не можна,
+  User.roles, ApiKey, fast delete, коментарі, пароль пошти, GruntInstalledApp, FileFolder,
+  User Permissions — не діють на `*`). Мертвий `superadmin_user` прибрано.
+- Лишилось до 3b: `actions/builtin.py` (дії документа з `roles=`), Workflow, AppMenu,
+  видимість Workspace/Page, Report (і на фронтенді `isSystemManager` = має `*`: меню, звіти).
+- Фронтенд: `whoami.permissions`, `auth.hasPerm()`; після входу профіль дочитується `whoami`.
+  Мертвий проп `isSystemManager` у контексті виглядів прибрано.
+- **Дозвіл відкриває метод, а не дані:** `grunt.manage_email` пускає до методів пошти, але
+  EmailAccount читається за правилами DocType — щоб доручити пошту не-адміну, роль отримує ще
+  й правила на ці DocType (матриця 2d). Об'єднати це (дозвіл тягне правила) — питання 3b/6.
+- Тести: `tests/test_perms.py` (8). CodeQL локально — 0 циклів; pyright — нових помилок немає
+  (32 давні в тестах і `bootstrap_site.py`).
+
+### 2026-11-13 — крок 3b: ролі в налаштуваннях і діях
+
+Гілка `feat/permissions-roles-in-features` (від 3a).
+- **Дії документа** (`@doc_action`): `requires` — дія правила на цьому документі (типово `read`,
+  з `match`), `perm` — дозвіл, `roles` — старе (будь-яка з ролей; власник `*` проходить).
+  Ядро: відновлення з кошика — `grunt.restore_deleted`, «Надіслати звіт зараз» і «Скинути до
+  стандарту» — `write` на документі, пуш користувачу — `grunt.manage_users`.
+- **Workflow:** `user_may_take(..., unrestricted=)` і `edit_roles` — обхід лише для `*`.
+- **Меню, сторінки, онбординг, тури:** бачить усе той, хто має `grunt.manage_desk`. Онбординг
+  працює в `system_context` — прапорець обчислюється до входу в нього (інакше бачили б усі).
+  Мертвий `AppMenu.has_access` прибрано.
+- **Фронтенд:** `isSystemManager` прибрано зовсім; «Редагувати меню» — `grunt.manage_desk`;
+  конструктор і збереження звітів — правила DocType Report (`useDocTypeAllows`).
+- Рядки «System Manager», що лишились у ядрі, — дані й підписи: роль першого користувача,
+  лічильник адмінів у health, CLI, rate limit (ролі з JWT), докстрінги.
+- Тести: `tests/test_feature_perms.py` (4); mlt_portal — 108 зелених на цьому ядрі. CodeQL — 0.
+
+### 2026-11-13 — крок 3c: роль у правилі мусить існувати
+
+Гілка `feat/permissions-role-link` (від 3b).
+- `DocPermission.role` — Link на Role (пікер у Studio). Сервер Link-значень не перевіряє, тож
+  `DocTypeController.validate`: роль, нова для цього DocType, мусить бути документом Role або
+  вбудованим принципалом (`BUILT_IN_ROLES` = `All`, `Guest`), інакше 422. Старі «висячі» правила
+  (на dev2 — `Administrator` в official_documents) інші правки не блокують. Матриця (2d) і
+  збереження DocType у Studio йдуть цим шляхом; `save_doctype` з коду — ні (тести, встановлення).
+- Role — `standard_records`: `All` і `Guest` — стандартні записи ядра (`grunt/auth/records/role/`),
+  щоб пікер їх пропонував. System Manager — ні: `migrate` переписав би його 2FA / IP на сайті.
+- **Перекладна назва ролі — відкладено:** ядро не перекладає назви документів у Link-полях
+  узагалі; це окрема фіча (як `translated_doctype` у Frappe), не лише для ролей. Назви ролей
+  застосунків і так українські.
+- Знахідка: 3a-тест експортував Role.json з рядками `RoleEditor`, dev2 їх підхопив
+  (`permissions == permissions_base`) — 18 зайвих правил на Role; `grunt migrate` повертає чистий JSON.
+  Ролі `RoleEditor` немає, доступу вони нікому не давали.
+- Тести: `tests/test_role_link.py` (4).
+
+### 2026-11-13 — рев'ю CodeRabbit (#151 матриця, #155 3b+3c)
+
+- **Матриця:** рядок редагується лише після того, як його правила завантажено для цієї ролі;
+  відповіді для старішої ролі / завантаження відкидаються (лічильник поколінь), роль не
+  змінюється під час збереження. Чернетка пам'ятає правило, яке редагує (індекс, умову, дії як
+  завантажені) — сервер порівнює їх із поточними й відповідає `CONFLICT`, замість переписати
+  чужу зміну; нове правило — `CONFLICT`, якщо в ролі тим часом з'явилося правило на цьому
+  DocType; понад 500 DocType — відмова без запису (раніше обрізало й казало «Збережено»).
+- **«Скинути до стандарту»** пише всі поля як система — лише для того, у кого на цьому DocType
+  немає прихованих чи «лише читання» полів.
+- `useDocTypeAllows` — `computed`: стежить за ролями після перечитування профілю.
+- Не прийнято: перевірка ролей у `save_doctype` (шлях коду/встановлення; тести й застосунки
+  реєструють DocType з ролями, що з'являються пізніше) і «наступні виконавці» Workflow з `*`
+  (кожен адмін про кожен перехід — шум; так було й до 3b).

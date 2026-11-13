@@ -65,6 +65,7 @@ bulk_update = _app.documents.bulk_update
 bulk_delete_docs = _app.documents.bulk_delete_docs
 get_meta = _app.get_meta
 has_permission = _app.has_permission
+has_perm = _app.has_perm
 
 notify = _app.notify
 publish = _app.publish
@@ -102,6 +103,7 @@ __all__ = [
     "get_single",
     "get_user",
     "get_value",
+    "has_perm",
     "has_permission",
     "log",
     "log_error",

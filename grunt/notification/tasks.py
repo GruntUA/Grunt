@@ -13,6 +13,7 @@ async def evaluate_notification_rules_task(
     doctype: str,
     doc: dict[str, Any],
     user_email: str,
+    extra: dict[str, Any] | None = None,
 ) -> None:
     """Background task to evaluate notification rules.
 
@@ -26,6 +27,7 @@ async def evaluate_notification_rules_task(
                 doctype=doctype,
                 doc=doc,
                 user_email=user_email,
+                extra=extra,
             )
             await session.commit()
     except asyncio.CancelledError:

@@ -20,15 +20,17 @@ source of truth - and an unchanged one is not touched.
 import hashlib
 import json
 import shutil
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.config import settings
+from grunt.db.api import GruntDB
 from grunt.document.serde import to_json, with_doctype
 from grunt.fixtures import apply_doctype_fixture, clean_record
-from grunt.local import require_session, system_context
+from grunt.local import require_engine, require_session, system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import site_manager
@@ -39,6 +41,8 @@ lazy from grunt.document.api import documents
 lazy from grunt.document.meta import Meta
 
 _GRUNT_ROOT = Path(__file__).parent  # the grunt package dir
+
+_db = GruntDB()  # stateless: reads through the context's session
 
 RECORDS_DIR = "records"
 
@@ -168,7 +172,8 @@ async def sync_files(event: str, **kwargs: Any) -> None:
     """``after_save`` / ``after_delete`` / ``after_rename`` hook: mirror the
     standard records of a ``standard_records`` DocType into their apps."""
     doctype = kwargs.get("doctype")
-    if not settings.debug or not doctype:
+    # Applying the files themselves (migrate, a test) - nothing to write back.
+    if not settings.debug or not doctype or _applying.get():
         return
     meta = await doctype_registry.get_meta(doctype)
     if meta is None or not meta.doc.standard_records:
@@ -215,15 +220,19 @@ def read_record(folder: Path) -> dict[str, Any] | None:
     return record
 
 
-async def apply_records(app: str, session: AsyncSession, eng: AsyncEngine) -> int:
-    """Insert or update every standard record shipped in *app*'s files.
+async def apply_records(
+    app: str, session: AsyncSession, eng: AsyncEngine, *, doctype: str | None = None
+) -> int:
+    """Insert or update every standard record shipped in *app*'s files (only
+    *doctype*'s, when given).
 
     Returns how many records were inserted or updated.
     """
+    pattern = f"{to_snake_case(doctype)}/*/*.json" if doctype else "*/*/*.json"
     folders = [
         json_file.parent
         for records_dir in _records_dirs(app)
-        for json_file in sorted(records_dir.glob("*/*/*.json"))
+        for json_file in sorted(records_dir.glob(pattern))
         if json_file.stem == json_file.parent.name
     ]
     count = 0
@@ -233,10 +242,19 @@ async def apply_records(app: str, session: AsyncSession, eng: AsyncEngine) -> in
     return count
 
 
-async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: AsyncEngine) -> int:
+async def _apply_folder(
+    app: str,
+    folder: Path,
+    session: AsyncSession,
+    eng: AsyncEngine,
+    *,
+    raise_errors: bool = False,
+) -> int:
 
     record = read_record(folder)
     if record is None:
+        if raise_errors:
+            raise ValueError(f"unreadable standard record: {folder}")
         log.warning("standard_records.unreadable", path=str(folder))
         return 0
     meta = await doctype_registry.get_meta(record["doctype"])
@@ -245,8 +263,50 @@ async def _apply_folder(app: str, folder: Path, session: AsyncSession, eng: Asyn
         return 0
     record = {k: v for k, v in record.items() if k == "name" or meta.has_field(k)}
     record.update(is_standard=True, app=app)
+    if meta.has_field("is_customized"):
+        if await _db.get_value(meta.doc.name, str(record["name"]), "is_customized"):
+            # Edited on this site - keep it (``reset`` follows the app again).
+            log.info("standard_records.customized_kept", doctype=meta.doc.name, name=record["name"])
+            return 0
+        record["is_customized"] = False
+    token = _applying.set(True)
     try:
         return await apply_doctype_fixture(meta.doc.name, [record], session, eng, sync=True)
     except Exception as e:
+        if raise_errors:
+            raise
         log.warning("standard_records.apply_failed", path=str(folder), error=str(e))
         return 0
+    finally:
+        _applying.reset(token)
+
+
+# Set while the files are applied: a save then is the app's, not a local edit.
+_applying: ContextVar[bool] = ContextVar("standard_records_applying", default=False)
+
+
+def mark_customized(doc: Any) -> None:
+    """For a controller's ``validate``: a standard record saved on a site
+    (not in developer mode, not by :func:`apply_records`) is a local edit -
+    ``grunt migrate`` stops overwriting it. The DocType opts in with an
+    ``is_customized`` Check field."""
+    if doc.get("is_standard") and not settings.debug and not _applying.get():
+        doc.is_customized = True
+
+
+async def reset(doctype: str, name: str) -> bool:
+    """Bring a customized standard record back to its app's files; False when
+    no file ships it. A failed apply leaves it customized and raises - the
+    next ``grunt migrate`` must not take the local edits for the app's."""
+    folders = _folders_of(doctype, name)
+    if not folders:
+        return False
+    session = require_session()
+    app = await _db.get_value(doctype, name, "app") or "grunt"
+    await _db.set_value(doctype, name, "is_customized", False)
+    try:
+        await _apply_folder(str(app), folders[0], session, require_engine(), raise_errors=True)
+    except Exception:
+        await _db.set_value(doctype, name, "is_customized", True)
+        raise
+    return True

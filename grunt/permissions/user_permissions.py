@@ -34,11 +34,11 @@ from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.local import session_user
 from grunt.metadata.registry import doctype_registry
-from grunt.permissions.roles import has_roles
 from grunt.query.nodes import FALSE, TRUE, Expr, In, Null, and_, or_
 from grunt.site.settings import get_setting
 lazy from grunt.document.meta import Meta
 lazy from grunt.metadata.doctype import DocType
+lazy from grunt.permissions.perms import ALL, user_perms
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -57,10 +57,11 @@ def invalidate_user_permission_cache(user_id: str | None = None) -> None:
 
 
 async def user_permissions_apply_to(user: str | None) -> bool:
-    """User Permissions bind everyone (by email) except System Manager."""
+    """User Permissions bind everyone (by email) except who holds every
+    permission (``*`` - System Manager). Step 4 replaces them with scoped roles."""
     if not user:
         return False
-    return not await has_roles(["System Manager"], user=user)
+    return ALL not in await user_perms(user)
 
 
 async def _strict_mode() -> bool:

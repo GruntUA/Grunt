@@ -10,6 +10,7 @@ from grunt.errors import throw
 from grunt.i18n import _, pgettext
 from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import has_perm
 from grunt.permissions.user_permissions import expand_tree_values
 from grunt.storage import files, quota
 lazy from grunt.document.api import documents
@@ -67,7 +68,7 @@ class FileFolder(Document):
         user = acting_user()
         if not self.space_user:
             self.space_user = user.email
-        if self.space_user != user.email and not user.has_role("System Manager"):
+        if self.space_user != user.email and not await has_perm("grunt.manage_storage"):
             throw(_("You can only create your own home folder"), "PERMISSION_DENIED")
         if await _db.exists("FileFolder", {"space_user": self.space_user, "is_home": True}):
             throw(_("This user already has a home folder"))
@@ -161,10 +162,10 @@ async def get_home_folder() -> dict[str, Any]:
 @whitelist()
 async def get_storage_usage(user: str | None = None) -> dict[str, Any]:
     """Whitelisted method: ``{used, quota}`` in bytes for a space (``quota``
-    is ``None`` when unlimited). Another user's space - System Manager only."""
+    is ``None`` when unlimited). Another user's space - ``grunt.manage_storage``."""
     current = acting_user()
     space = user or current.email
-    if space != current.email and not current.has_role("System Manager"):
+    if space != current.email and not await has_perm("grunt.manage_storage"):
         throw(_("Not permitted"), "PERMISSION_DENIED")
     return {"used": await quota.space_usage(space), "quota": await quota.space_quota(space)}
 

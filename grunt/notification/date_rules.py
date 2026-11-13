@@ -1,6 +1,6 @@
 """Date-based notification rules - "N days before / after a date field".
 
-A ``NotificationRule`` with event ``days_before`` / ``days_after`` is not
+A ``Notification`` with event ``days_before`` / ``days_after`` is not
 triggered by a save: once a day (08:00) :func:`check_date_rules` finds the
 documents whose date field falls on the matching day and runs the rule on
 them - contract ends, probation periods, certificate expiry; with
@@ -112,10 +112,11 @@ async def run_rule(rule: dict[str, Any], today: date) -> int:
     since, _ = _day_bounds(today)
     sent = 0
     for doc in await due_documents(rule, today):
+        # The delivery log, not the bell: an email-only rule leaves no bell row.
         already = await _db.exists(
-            "Notification",
+            "NotificationDelivery",
             {
-                "notification_rule": rule["name"],
+                "notification": rule["name"],
                 "doc_id": str(doc["name"]),
                 "created_at__gte": since,
             },
@@ -138,7 +139,7 @@ async def check_date_rules(today: str | None = None) -> int:
     total = 0
     async with maker() as session, system_context(session, site_manager.get_engine(site)):
         rules = await _db.get_all(
-            "NotificationRule",
+            "Notification",
             filters={"event__in": list(DATE_EVENTS), "is_enabled": True},
             limit=1000,
         )

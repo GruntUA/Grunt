@@ -53,7 +53,7 @@ async def download(file: str, exp: int, sig: str) -> FileResponse:
     return FileResponse(path, filename=file, media_type="application/octet-stream")
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_backups")
 async def backup_now(
     with_database: bool = True, with_files: bool = True, with_config: bool = True
 ) -> Queued:

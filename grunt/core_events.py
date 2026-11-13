@@ -11,11 +11,10 @@ from typing import Any
 from grunt.assignment import assignment_service
 from grunt.document.links import link_service
 from grunt.events import EventSubscriber, register_subscriber
-from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.notification import rule_index
-from grunt.notification.service import notification_service
+from grunt.notification.events import trigger
 from grunt.notification.tasks import evaluate_notification_rules_task
 from grunt.scripting.server_script import server_script_runner
 from grunt.storage.cloud import REMOTE_FAILED
@@ -41,7 +40,8 @@ _ASSIGNMENT_EVENTS = frozenset({"after_save", "after_insert"})
 
 _FILE_CLAIM_EVENTS = frozenset({"after_save"})
 
-_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update", "on_transition"})
+# on_transition: the workflow engine runs those rules itself, in the transition.
+_NOTIFICATION_EVENTS = frozenset({"after_insert", "after_save", "after_update"})
 
 
 def _user_email(kwargs: dict) -> str:
@@ -93,10 +93,10 @@ async def _evaluate_notification_rules(**kwargs: Any) -> None:
     event = kwargs["event"]
     if not doctype or not kwargs.get("doc") or not kwargs.get("session"):
         return
-    # ``Notification`` is the fan-out sink itself - evaluating rules on its own
+    # ``NotificationLog`` is the fan-out sink itself - evaluating rules on its own
     # writes would recursively enqueue more work. Append-only system logs
     # (``DocType.is_log``) never warrant notification rules either.
-    if doctype == "Notification":
+    if doctype == "NotificationLog":
         return
 
     try:
@@ -134,16 +134,13 @@ async def _alert_remote_failure(**kwargs: Any) -> None:
     name = kwargs["doc_id"]
     session = kwargs["session"]
     try:
-        users = await notification_service._resolve_role_recipients(["System Manager"], session)
-        for user in users:
-            await notification_service.notify(
-                session,
-                user=user,
-                doctype="StorageRemote",
-                doc_id=name,
-                subject=_("Cloud storage “%(name)s” is failing") % {"name": name},
-                message=kwargs["message"],
-            )
+        await trigger(
+            "grunt.storage.failing",
+            doc={"name": name},
+            doctype="StorageRemote",
+            extra={"error": kwargs["message"]},
+            session=session,
+        )
     except Exception:
         log.warning("cloud.notify_failed", remote=name, exc_info=True)
 

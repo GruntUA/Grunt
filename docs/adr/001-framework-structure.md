@@ -120,8 +120,8 @@ apps/grunt/
     registry.py
   notification/
     doctypes/
+      NotificationLog/
       Notification/
-      NotificationRule/
   webhook/
     doctypes/
       IncomingWebhook/
@@ -284,8 +284,8 @@ grunt/
     sender.py
   notification/                  ← модуль "notification"
     doctypes/
+      NotificationLog/
       Notification/
-      NotificationRule/
     service.py
   workflow/                      ← модуль "workflow"
     doctypes/

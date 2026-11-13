@@ -15,7 +15,7 @@ from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.compiler import MULTI_LINK_TABLE
 from grunt.metadata.registry import doctype_registry
-from grunt.permissions.roles import has_roles
+from grunt.permissions.perms import has_perm
 from grunt.search.service import _search_index_table
 from grunt.store.sql import delete_child_rows
 lazy from grunt.document.api import documents
@@ -254,7 +254,7 @@ class BulkDeleteTask:
         Then one summary ActivityLog entry.
         """
 
-        if not await has_roles(["System Manager"], user=user):
+        if not await has_perm("grunt.bulk_delete", user=user):
             await self._manager.send_to_user(
                 user_email,
                 {

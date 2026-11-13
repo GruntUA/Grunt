@@ -1,0 +1,8 @@
+{
+  "doctype": "Role",
+  "name": "All",
+  "role_name": "All",
+  "description": "Every signed-in user holds it - a rule for All applies to everyone. Not assigned to users.",
+  "is_standard": true,
+  "app": "grunt"
+}

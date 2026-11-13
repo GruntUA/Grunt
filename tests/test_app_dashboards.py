@@ -14,7 +14,9 @@ def test_page_visible_needs_publishing_and_a_listed_role():
     assert not page_visible(page, _user("Clerk"))
     assert page_visible({"is_published": 1, "roles": ""}, _user("Clerk"))
     assert not page_visible({"is_published": 0}, _user("Clerk"))
-    assert page_visible({"is_published": 0, "roles": "Nobody"}, _user("System Manager"))
+    # Who manages the desk (grunt.manage_desk) sees every page, published or not.
+    assert page_visible({"is_published": 0, "roles": "Nobody"}, _user("Clerk"), manager=True)
+    assert not page_visible({"is_published": 0, "roles": "Nobody"}, _user("System Manager"))
 
 
 def test_dashboards_put_the_home_page_first():

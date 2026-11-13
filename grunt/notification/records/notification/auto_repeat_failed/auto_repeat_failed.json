@@ -1,0 +1,41 @@
+{
+  "doctype": "Notification",
+  "name": "Auto repeat failed",
+  "event": "code",
+  "event_key": "grunt.auto_repeat.failed",
+  "days": 0,
+  "every_year": false,
+  "condition": "doc.notify",
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Author",
+      "role": "",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ _('Auto repeat %(rule)s failed') % {'rule': doc.name} }}",
+  "message_template": "{{ error }}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "web_push",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

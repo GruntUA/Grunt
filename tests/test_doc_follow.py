@@ -6,6 +6,9 @@ from fastapi import HTTPException
 
 from tests.support import make_user
 
+# Code events notify through the core's standard Notification rules.
+pytestmark = pytest.mark.usefixtures("standard_notifications")
+
 BOX = {
     "name": "FollowBox",
     "label": "Follow Box",
@@ -47,7 +50,7 @@ async def _follow(db_session, engine, doc: str, user=None) -> dict:
 
 async def _notifications(ctx, user: str) -> list[dict]:
     return await ctx.db.get_all(
-        "Notification", filters={"user": user}, fields=["subject", "message"], limit=None
+        "NotificationLog", filters={"user": user}, fields=["subject", "message"], limit=None
     )
 
 

@@ -3,6 +3,7 @@
   "label": "Role",
   "module": "auth",
   "hide_from_activity_feed": true,
+  "standard_records": true,
   "autoname": "field:role_name",
   "title_field": "role_name",
   "fields": [
@@ -18,6 +19,13 @@
       "fieldname": "description",
       "label": "Description",
       "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "permissions",
+      "label": "Permissions",
+      "fieldtype": "MultiSelect",
+      "options_source": "grunt.permissions",
+      "description": "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
     },
     {
       "fieldname": "require_mfa",

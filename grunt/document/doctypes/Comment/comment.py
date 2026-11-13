@@ -6,7 +6,7 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.permissions.roles import has_roles
+from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -47,7 +47,7 @@ class Comment(Document):
             self.parent_comment = parent.parent_comment
 
     async def before_delete(self) -> None:
-        is_admin = bool(self.user) and await has_roles(["System Manager"])
+        is_admin = bool(self.user) and await has_perm("grunt.moderate_comments")
         if self.user and not is_admin and self.owner != self.user:
             throw(_("Only the author or an administrator can delete a comment"))
 

@@ -478,12 +478,21 @@ def make_app_fixtures(app_dir: Path, app_name: str) -> dict[str, Any]:
         async with system_context(db_session, engine):
             yield grunt
 
+    @pytest_asyncio.fixture
+    async def standard_notifications(ctx, db_session, engine):
+        """The core's standard ``Notification`` rules - see grunt's own conftest."""
+        from grunt.standard_records import apply_records
+
+        await apply_records("grunt", db_session, engine, doctype="Notification")
+        await db_session.commit()
+
     return {
         "setup_db": setup_db,
         "db_session": db_session,
         "engine": engine,
         "client": client,
         "ctx": ctx,
+        "standard_notifications": standard_notifications,
     }
 
 

@@ -114,7 +114,7 @@ def _due(value) -> datetime:
 
 
 async def _notified(ctx, user):
-    rows = await ctx.db.get_all("Notification", filters={"user": user}, fields=["subject"])
+    rows = await ctx.db.get_all("NotificationLog", filters={"user": user}, fields=["subject"])
     return [r["subject"] for r in rows]
 
 

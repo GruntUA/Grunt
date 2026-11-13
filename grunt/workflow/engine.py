@@ -32,12 +32,14 @@ from grunt.events import fire as fire_hook
 from grunt.i18n import _
 from grunt.local import as_system
 from grunt.log import log
+from grunt.permissions.perms import ALL, user_perms
 from grunt.permissions.roles import get_roles
-from grunt.workflow.notify import notify_transition, previous_actor
+from grunt.workflow.actors import previous_actor
 from grunt.workflow.registry import get_active_workflow
 from grunt.workflow.transition import ActiveTransition, _active, user_may_take
 lazy from grunt.api.v1.ws import manager
 lazy from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
+lazy from grunt.notification.service import notification_service
 
 # Values key carrying the dialog's comment for a `require_comment` transition.
 COMMENT_KEY = "__comment"
@@ -71,10 +73,11 @@ class WorkflowEngine:
 
         available: list[WorkflowTransition] = []
         roles = await get_roles(user)
+        unrestricted = ALL in await user_perms(user)
         for t in workflow.transitions:
             if t.from_state != current_state_name or t.on_edit != on_edit:
                 continue
-            if not user_may_take(t, roles):
+            if not user_may_take(t, roles, unrestricted=unrestricted):
                 continue
             # Check condition - transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since
@@ -169,11 +172,11 @@ class WorkflowEngine:
         session: AsyncSession,
     ) -> None:
         """After a transition is saved: log, comment, notify, hooks, broadcast."""
-        # Who performed the previous action - read before this one is logged.
+        # Who performed the previous action - read before this one is logged
+        # (a "Previous actor" recipient of the transition's notifications).
         previous = None
-        if "previous" in active.transition.notify:
-            with contextlib.suppress(Exception):
-                previous = await previous_actor(active.doctype, active.doc_id)
+        with contextlib.suppress(Exception):
+            previous = await previous_actor(active.doctype, active.doc_id)
 
         with contextlib.suppress(Exception):
             await self._log_activity(
@@ -196,8 +199,23 @@ class WorkflowEngine:
             except Exception:
                 log.exception("workflow.comment_error", doctype=active.doctype)
 
+        # The transition's Notification rules (event on_transition) - here, in
+        # the transaction, not in a worker: the previous actor is known now.
         try:
-            await notify_transition(active, doc, user, previous=previous)
+            await notification_service.evaluate_rules(
+                session,
+                "on_transition",
+                active.doctype,
+                doc,
+                user,
+                extra={
+                    "action": active.action,
+                    "from_state": active.from_state,
+                    "to_state": active.to_state,
+                    "comment": active.comment or "",
+                    "previous": previous or "",
+                },
+            )
         except Exception:
             log.exception("workflow.notify_error", doctype=active.doctype)
 

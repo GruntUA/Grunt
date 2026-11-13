@@ -1,0 +1,46 @@
+{
+  "doctype": "Notification",
+  "name": "Task assigned",
+  "event": "code",
+  "event_key": "grunt.todo.assigned",
+  "days": 0,
+  "every_year": false,
+  "recipients": [
+    {
+      "doctype": "NotificationRecipient",
+      "kind": "Event recipients",
+      "role": "",
+      "user": "",
+      "field": "",
+      "email": "",
+      "condition": ""
+    }
+  ],
+  "notify_actor": false,
+  "subject_template": "{{ _('Assigned to you: %(target)s') % {'target': target} }}",
+  "message_template": "{{ note or _('You have been assigned to %(target)s.') % {'target': target} }}",
+  "channels": [
+    {
+      "doctype": "NotificationChannel",
+      "channel": "in_app",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "web_push",
+      "subject": "",
+      "message": ""
+    },
+    {
+      "doctype": "NotificationChannel",
+      "channel": "email",
+      "subject": "",
+      "message": ""
+    }
+  ],
+  "is_enabled": true,
+  "is_standard": true,
+  "app": "grunt",
+  "is_customized": false
+}

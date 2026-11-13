@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue'
-import { getViewDef, type ViewContext, type SelectionState } from '@/core/viewRegistry'
+import { getViewDef, isViewAvailable, type ViewContext, type SelectionState } from '@/core/viewRegistry'
 import type { DocType, DocField, ActiveFilter, QuickFilter, ScriptMenuItem } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
 import type { GroupedRowBucket } from '@/core/composables/useGrouping'
@@ -38,7 +38,6 @@ const props = defineProps<{
   activeFilters: ActiveFilter[]
   quickFilterDefs: QuickFilter[]
   quickFilterValues: Record<string, string>
-  isSystemManager?: boolean
   refreshKey: number
 }>()
 
@@ -65,9 +64,7 @@ const resolvedField = computed((): DocField | null => {
 
 const isRenderable = computed(() => {
   const def = viewDef.value
-  if (!def) return false
-  if (!def.resolveField) return true
-  return resolvedField.value !== null
+  return def ? isViewAvailable(def, props.dt) : false
 })
 
 const ctx = computed((): ViewContext => ({
@@ -95,7 +92,6 @@ const ctx = computed((): ViewContext => ({
   quickFilterDefs: props.quickFilterDefs,
   quickFilterValues: props.quickFilterValues,
   resolvedField: resolvedField.value,
-  isSystemManager: props.isSystemManager,
   refreshKey: props.refreshKey,
   emit: {
     sort: (key) => emit('sort', key),

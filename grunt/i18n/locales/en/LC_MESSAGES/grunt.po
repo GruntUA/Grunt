@@ -524,7 +524,7 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -906,7 +906,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -1776,7 +1776,7 @@ msgid "Changing it later makes everything already uploaded unreadable."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Channel"
 msgstr ""
 
@@ -2291,7 +2291,7 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Condition (Python)"
 msgstr ""
 
@@ -2949,7 +2949,7 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue
@@ -2972,7 +2972,7 @@ msgstr ""
 msgid "Date of birth"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "Date/Datetime field of the document the reminder is counted from, e.g. "
 "contract_end"
@@ -3006,7 +3006,7 @@ msgstr ""
 msgid "Daylight saving time"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Days"
@@ -3636,7 +3636,6 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/website/www/share/{token}.py
@@ -4236,7 +4235,7 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Event"
@@ -4271,7 +4270,7 @@ msgstr ""
 msgid "Every repetition is a copy of this document"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Every year"
 msgstr ""
 
@@ -5406,7 +5405,7 @@ msgid ""
 "\"In preview\" fields"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "How many days before/after the date; 0: on the day itself. Sent once a day "
 "at 08:00"
@@ -6684,10 +6683,12 @@ msgid "Row condition"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
-msgid "Which rows this rule covers: field == user, field != 'value' or link_field.field == user. Empty - all rows."
+msgid ""
+"Which rows this rule covers: field == user, field != 'value' or "
+"link_field.field == user. Empty - all rows."
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Match only day and month - birthdays, work anniversaries"
 msgstr ""
 
@@ -6761,7 +6762,7 @@ msgstr ""
 msgid "Message"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Message template"
 msgstr ""
 
@@ -7595,8 +7596,12 @@ msgid "Nothing to back up"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgid "Notification Rule"
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification Log"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -8768,7 +8773,7 @@ msgid "Recipient address"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Recipients"
 msgstr ""
 
@@ -10214,7 +10219,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -10591,7 +10596,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -10811,7 +10816,7 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Subject template"
 msgstr ""
 
@@ -13086,7 +13091,7 @@ msgstr ""
 msgid "be at least %(count)s characters long"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "both"
 msgstr ""
 
@@ -13244,7 +13249,7 @@ msgstr ""
 msgid "e.g. link_field.source_field"
 msgstr ""
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "email"
 msgstr ""
 
@@ -13699,7 +13704,7 @@ msgid "switch back"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "system"
 msgstr ""
 
@@ -14197,6 +14202,266 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgctxt "status"
 msgid "Open"
+msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "Browser push"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email message"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email queue"
+msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "In the system"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Notification Delivery"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid ""
+"One row per notification, recipient and channel: what was sent, through "
+"which channel, and whether it arrived. Old entries are deleted "
+"automatically."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Reason"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Skipped"
+msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "The email could not be queued"
+msgstr ""
+
+#: grunt/grunt/webpush/service.py
+msgid "The user has no browser subscribed to push"
+msgstr ""
+
+#: grunt/grunt/notification/delivery.py
+#, python-format
+msgid "Unknown channel “%(channel)s”"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Why the notification was skipped or failed"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid "Notification Channel"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own subject for this channel (Jinja); empty: the notification's subject"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own message for this channel (Jinja), e.g. a short one for SMS; empty: the "
+"notification's message"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one recipient"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one channel"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "%(field)s: template error - %(error)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Condition “%(condition)s” is not a valid expression: %(error)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"When something happens to a document, who is told, what and through which "
+"channels"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Condition"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Also notify who did it"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"By default the user whose action triggered the notification is not notified"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Jinja: {{ doc.field }}, {{ doctype }}, {{ event }}, {{ actor }} (who did "
+"it), {{ url }}; on a workflow transition also {{ action }}, {{ from_state "
+"}}, {{ to_state }}, {{ comment }}"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Jinja, same variables as the subject"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Channels"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Notification Recipient"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Who"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Document field"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Followers"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid ""
+"A field of the document holding a user or an email address, e.g. "
+"assigned_to; through a link: customer.email"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Optional: send to this row only when true, e.g. doc.priority == 'High'"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Task assigned"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Tasks due (daily digest)"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document changed"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document commented"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Mentioned in a comment"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Reply to a comment"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat created a document"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat failed"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Cloud storage failing"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "Reset to standard"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "Discard the changes made on this site and take the app's version?"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "Restored the app's version"
+msgstr ""
+
+#: grunt/grunt/actions/builtin.py
+msgid "The app ships no such record"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the document type"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Unknown code event “%(event)s”"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "For an event from code: empty - whatever document the event is about"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Code event"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"An event the framework or an app raises from code, e.g. a task assigned"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Changed on this site"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"A standard notification edited here: updates of the app no longer overwrite "
+"it. Reset to standard to follow the app again"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Event recipients"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“Event recipients” only work for a notification on a code event"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Workflow actions"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Only these transitions (their button labels), one per line; empty: every "
+"transition"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Previous actor"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Next actors"
 msgstr ""
 
 #~ msgid "Backup not found"

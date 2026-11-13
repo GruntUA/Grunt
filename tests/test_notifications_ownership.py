@@ -18,7 +18,7 @@ async def test_mark_as_read_ignores_other_users_notification(ctx):
 
     async with ctx.system_context(ctx.db._session()):
         notif = await ctx.new_doc(
-            "Notification",
+            "NotificationLog",
             {
                 "user": owner.email,
                 "doctype": "Order",
@@ -35,7 +35,7 @@ async def test_mark_as_read_ignores_other_users_notification(ctx):
     assert updated is False
 
     async with ctx.system_context(ctx.db._session()):
-        still_unread = await ctx.get_doc("Notification", notif["name"])
+        still_unread = await ctx.get_doc("NotificationLog", notif["name"])
     assert still_unread["is_read"] is False
 
 
@@ -47,7 +47,7 @@ async def test_mark_as_read_updates_own_notification(ctx):
 
     async with ctx.system_context(ctx.db._session()):
         notif = await ctx.new_doc(
-            "Notification",
+            "NotificationLog",
             {
                 "user": owner.email,
                 "doctype": "Order",
@@ -64,7 +64,7 @@ async def test_mark_as_read_updates_own_notification(ctx):
     assert updated is True
 
     async with ctx.system_context(ctx.db._session()):
-        now_read = await ctx.get_doc("Notification", notif["name"])
+        now_read = await ctx.get_doc("NotificationLog", notif["name"])
     assert now_read["is_read"] is True
 
 

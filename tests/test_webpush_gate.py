@@ -110,13 +110,13 @@ async def test_test_action_reports_success_and_drops_expired(ctx, monkeypatch):
         assert not await ctx.db.exists("PushSubscription", sub["name"])
 
 
-def test_send_to_user_action_is_admin_only():
+def test_send_to_user_action_needs_manage_users():
     from grunt.actions.registry import get_doc_action
 
     spec = get_doc_action("webpush.send_to_user")
     assert spec is not None
     assert spec.doctypes == ["User"]
-    assert spec.roles == ["System Manager"]
+    assert (spec.perm, spec.roles) == ("grunt.manage_users", [])
 
 
 @pytest.mark.asyncio

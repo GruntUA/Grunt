@@ -83,7 +83,7 @@ async def _readable_ids(doctype: str, ids: list[str]) -> set[str]:
     return {str(row["name"]) for row in rows}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_doctypes")
 async def rebuild_index() -> dict[str, Any]:
     """Rebuild the entire search index from scratch. System Manager only."""
     session = require_session()

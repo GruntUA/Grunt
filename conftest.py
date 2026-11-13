@@ -135,6 +135,11 @@ async def setup_db():
 
         _UP_CACHE.clear()
 
+        # Role permissions are cached per site in the process (grunt.permissions.perms).
+        from grunt.permissions.perms import _ROLE_PERMS
+
+        _ROLE_PERMS.clear()
+
         # Compile and create core doctype tables from JSON files, and register in doctype_registry
         import json
 
@@ -191,6 +196,26 @@ async def setup_db():
             logging.getLogger(__name__).warning("SystemSettings test seed failed: %s", exc)
         clear_settings_cache()
 
+        # Every site has System Manager holding every permission (migration 0025,
+        # ensure_system_manager) - tests acting as an administrator rely on it.
+        _now = datetime.now(UTC)
+        try:
+            _role = compile_doctype_to_table(doctype_registry._doctypes["Role"])
+            async with test_engine.begin() as conn:
+                await conn.execute(
+                    _role.insert().values(
+                        name="System Manager",
+                        role_name="System Manager",
+                        permissions=["*"],
+                        owner="system@grunt.local",
+                        created_at=_now,
+                        modified_at=_now,
+                        modified_by="system@grunt.local",
+                    )
+                )
+        except Exception as exc:  # pragma: no cover - defensive
+            logging.getLogger(__name__).warning("Role test seed failed: %s", exc)
+
         yield
 
         await test_schema.finish()  # drops it only if this test changed it
@@ -230,6 +255,17 @@ async def ctx(db_session: AsyncSession, engine: AsyncEngine):
 
     async with grunt.context(db_session, engine, SYSTEM_USER):
         yield grunt
+
+
+@pytest.fixture
+async def standard_notifications(ctx, db_session: AsyncSession, engine: AsyncEngine):
+    """The core's standard ``Notification`` rules (what code events send) -
+    the test database starts without records; request this where a test
+    expects a task, a mention, a reminder… to notify someone."""
+    from grunt.standard_records import apply_records
+
+    await apply_records("grunt", db_session, engine, doctype="Notification")
+    await db_session.commit()
 
 
 @pytest.fixture

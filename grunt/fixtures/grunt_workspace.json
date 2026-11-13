@@ -220,18 +220,25 @@
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
-      "label": "Правила нотифікацій",
-      "link_to": "NotificationRule",
+      "label": "Сповіщення",
+      "link_to": "Notification",
       "icon": "bell",
       "show_count": true
     },
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
-      "label": "Нотифікації",
-      "link_to": "Notification",
+      "label": "Журнал сповіщень",
+      "link_to": "NotificationLog",
       "icon": "inbox",
       "show_count": true
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
+      "label": "Доставка сповіщень",
+      "link_to": "NotificationDelivery",
+      "icon": "mail-check"
     },
     {
       "section": "Пошта та сповіщення",

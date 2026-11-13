@@ -16,6 +16,138 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
+#: grunt/grunt/auth/records/role/all/all.json
+msgid "Every signed-in user holds it - a rule for All applies to everyone. Not assigned to users."
+msgstr "Її має кожен користувач, що увійшов: правило для All діє на всіх. Користувачам не призначається."
+
+#: grunt/grunt/permissions/perms.py
+msgid "Everything (*)"
+msgstr "Усе (*)"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Fast bulk delete"
+msgstr "Швидке масове видалення"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage apps and modules"
+msgstr "Керування застосунками й модулями"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage backups"
+msgstr "Керування резервними копіями"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage document types"
+msgstr "Керування типами документів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage e-mail"
+msgstr "Керування поштою"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage file storage"
+msgstr "Керування сховищем файлів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage integrations (webhooks)"
+msgstr "Керування інтеграціями (вебхуки)"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage users"
+msgstr "Керування користувачами"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage workspaces and pages"
+msgstr "Керування робочими просторами й сторінками"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Moderate comments"
+msgstr "Модерація коментарів"
+
+#: grunt/grunt/metadata/doctypes/DocType/doc_type.py
+msgid "No such role: %(roles)s"
+msgstr "Немає такої ролі: %(roles)s"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Restore deleted documents"
+msgstr "Відновлення видалених документів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Sign in as another user"
+msgstr "Вхід від імені іншого користувача"
+
+#: grunt/grunt/permissions/perms.py
+msgid "System monitoring and background jobs"
+msgstr "Моніторинг системи й фонові задачі"
+
+#: grunt/grunt/auth/records/role/guest/guest.json
+msgid "The anonymous visitor of public pages and web forms. Not assigned to users."
+msgstr "Анонімний відвідувач публічних сторінок і веб-форм. Користувачам не призначається."
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Unknown permissions: %(perms)s"
+msgstr "Невідомі дозволи: %(perms)s"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
+msgstr "Що користувачі з цією роллю можуть робити понад правила документів: керувати користувачами, поштою, резервними копіями… «Усе (*)» — усе це, як System Manager."
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "You can't grant permissions you don't hold: %(perms)s"
+msgstr "Не можна видати дозволи, яких у вас немає: %(perms)s"
+
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py
+msgid "You may not restore deleted documents"
+msgstr "Вам не дозволено відновлювати видалені документи"
+
+#: grunt/grunt/auth/impersonation.py
+msgid "You may not sign in as another user."
+msgstr "Вам не дозволено входити від імені іншого користувача."
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "A table inside other documents: access follows the document that holds it"
+msgstr "Таблиця всередині інших документів: доступ — як до документа, що її містить"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "All (every user)"
+msgstr "Усі користувачі (All)"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Changed rules: {n}"
+msgstr "Змінено правил: {n}"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Choose a role"
+msgstr "Оберіть роль"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Discard unsaved permission changes?"
+msgstr "Відкинути незбережені зміни прав?"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Hidden fields: {n} · read-only: {m}"
+msgstr "Прихованих полів: {n} · лише для читання: {m}"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Included in read"
+msgstr "Входить у читання"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
+msgstr "Дозволи «%(doctype)s» тим часом змінили — оновіть сторінку"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Too many document types in one save (%(count)s, at most %(max)s)"
+msgstr "Забагато типів документів в одному збереженні (%(count)s, щонайбільше %(max)s)"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Role “%(role)s” not found"
+msgstr "Роль «%(role)s» не знайдено"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "The matrix shows what the role may do with each document type of this page. Narrow the page with the list filters, e.g. by module."
+msgstr "Матриця показує, що роль може робити з кожним типом документа на цій сторінці. Звузьте сторінку фільтрами списку, наприклад за модулем."
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "\"As of\" date field"
 msgstr "Поле дати «станом на»"
@@ -551,7 +683,7 @@ msgstr "Активувати"
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -946,7 +1078,7 @@ msgstr "Квартира / Офіс"
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -1847,7 +1979,7 @@ msgid "Changing it later makes everything already uploaded unreadable."
 msgstr "Якщо змінити його пізніше, усе вже вивантажене стане нечитабельним."
 
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Channel"
 msgstr "Канал"
 
@@ -2370,7 +2502,7 @@ msgstr ""
 "Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Condition (Python)"
 msgstr "Умова (Python)"
 
@@ -3046,7 +3178,7 @@ msgstr "Дата / час"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 #: grunt/frontend/src/components/dashboard/sections/DateRangeSection.vue
@@ -3069,7 +3201,7 @@ msgstr "Дата зміни"
 msgid "Date of birth"
 msgstr "Дата народження"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "Date/Datetime field of the document the reminder is counted from, e.g. "
 "contract_end"
@@ -3105,7 +3237,7 @@ msgstr "День місяця має бути від 1 до 31"
 msgid "Daylight saving time"
 msgstr "Перехід на літній час"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Days"
@@ -3752,7 +3884,6 @@ msgstr "Документ перейменовано"
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/website/www/share/{token}.py
@@ -4365,7 +4496,7 @@ msgstr "Європа"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Event"
@@ -4405,7 +4536,7 @@ msgstr ""
 msgid "Every repetition is a copy of this document"
 msgstr "Кожне повторення — копія цього документа"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Every year"
 msgstr "Щороку"
 
@@ -5596,7 +5727,7 @@ msgstr ""
 "При наведенні на посилання на документ показується картка з його назвою, "
 "зображенням і полями «У перегляді»"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "How many days before/after the date; 0: on the day itself. Sent once a day "
 "at 08:00"
@@ -6923,7 +7054,7 @@ msgstr "Позначити як прочитане"
 msgid "Marked point"
 msgstr "Позначена точка"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Match only day and month - birthdays, work anniversaries"
 msgstr "Враховувати лише день і місяць — дні народження, річниці роботи"
 
@@ -6997,7 +7128,7 @@ msgstr "Об'єднати клітинки"
 msgid "Message"
 msgstr "Повідомлення"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Message template"
 msgstr "Шаблон повідомлення"
 
@@ -7460,6 +7591,14 @@ msgstr "Немає доступу до цього ключа"
 msgid "No access: %(action)s “%(doctype)s”"
 msgstr "Немає доступу: %(action)s «%(doctype)s»"
 
+#: grunt/grunt/permissions/rbac.py
+msgid "No access: after this change the document would be outside your access"
+msgstr "Немає доступу: після цієї зміни документ вийшов би за межі ваших прав"
+
+#: grunt/grunt/permissions/rbac.py
+msgid "No access: you may not create a document with these values"
+msgstr "Немає доступу: документ з такими значеннями ви створити не можете"
+
 #: grunt/grunt/document/mixins/lifecycle.py
 msgid "No access: “%(field)s” is outside your user permissions"
 msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
@@ -7871,9 +8010,13 @@ msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgid "Notification Rule"
-msgstr "Правило сповіщення"
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification"
+msgstr "Сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgid "Notification Log"
+msgstr "Журнал сповіщень"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
@@ -9119,7 +9262,7 @@ msgid "Recipient address"
 msgstr "Адреса отримувача"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Recipients"
 msgstr "Отримувачі"
 
@@ -10636,7 +10779,7 @@ msgstr "Доступ поширюється на піддерево"
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -11042,7 +11185,7 @@ msgstr "Етап"
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -11268,7 +11411,7 @@ msgstr "Код підрозділу (UA-30 для Києва, US-CA для Ка�
 msgid "Subject"
 msgstr "Тема"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Subject template"
 msgstr "Шаблон теми"
 
@@ -13692,7 +13835,7 @@ msgstr "avg — середнє"
 msgid "be at least %(count)s characters long"
 msgstr "містити щонайменше %(count)s символів"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "both"
 msgstr "Обидва"
 
@@ -13859,7 +14002,7 @@ msgstr "напр. execution_note"
 msgid "e.g. link_field.source_field"
 msgstr "напр. link_field.source_field"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "email"
 msgstr "Email"
 
@@ -14347,7 +14490,7 @@ msgid "switch back"
 msgstr "повернутися до себе"
 
 #: grunt/grunt/auth/doctypes/User/User.json
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "system"
 msgstr "Система"
 
@@ -14882,12 +15025,12 @@ msgid "Title"
 msgstr "Назва"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgctxt "meta:Notification.is_read"
+msgctxt "meta:NotificationLog.is_read"
 msgid "Read"
 msgstr "Прочитано"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/NotificationRule.json
-msgctxt "meta:NotificationRule.is_enabled"
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgctxt "meta:Notification.is_enabled"
 msgid "Active"
 msgstr "Активне"
 
@@ -15160,6 +15303,285 @@ msgstr "В роботі"
 msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
+
+#: grunt/grunt/notification/channels.py
+msgid "Browser push"
+msgstr "Пуш у браузері"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email message"
+msgstr "Лист"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email queue"
+msgstr "Черга листів"
+
+#: grunt/grunt/notification/channels.py
+msgid "In the system"
+msgstr "У системі"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Notification Delivery"
+msgstr "Доставка сповіщень"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid ""
+"One row per notification, recipient and channel: what was sent, through "
+"which channel, and whether it arrived. Old entries are deleted "
+"automatically."
+msgstr ""
+"Рядок на кожне сповіщення, отримувача й канал: що надіслано, яким каналом і "
+"чи дійшло. Старі записи видаляються автоматично."
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Reason"
+msgstr "Причина"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Skipped"
+msgstr "Пропущено"
+
+#: grunt/grunt/notification/channels.py
+msgid "The email could not be queued"
+msgstr "Не вдалося поставити лист у чергу"
+
+#: grunt/grunt/webpush/service.py
+msgid "The user has no browser subscribed to push"
+msgstr "Користувач не підписав жоден браузер на пуш-сповіщення"
+
+#: grunt/grunt/notification/delivery.py
+#, python-format
+msgid "Unknown channel “%(channel)s”"
+msgstr "Невідомий канал «%(channel)s»"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Why the notification was skipped or failed"
+msgstr "Чому сповіщення пропущено або не доставлено"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid "Notification Channel"
+msgstr "Канал сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own subject for this channel (Jinja); empty: the notification's subject"
+msgstr "Окрема тема для цього каналу (Jinja); порожньо — тема сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own message for this channel (Jinja), e.g. a short one for SMS; empty: the "
+"notification's message"
+msgstr ""
+"Окремий текст для цього каналу (Jinja), напр. короткий для SMS; порожньо — "
+"текст сповіщення"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one recipient"
+msgstr "Додайте хоча б одного отримувача"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one channel"
+msgstr "Додайте хоча б один канал"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "%(field)s: template error - %(error)s"
+msgstr "%(field)s: помилка в шаблоні — %(error)s"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Condition “%(condition)s” is not a valid expression: %(error)s"
+msgstr "Умова «%(condition)s» не є коректним виразом: %(error)s"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"When something happens to a document, who is told, what and through which "
+"channels"
+msgstr ""
+"Коли щось стається з документом — кого сповістити, про що і якими каналами"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Condition"
+msgstr "Умова"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
+msgstr ""
+"Вираз Python над doc і user, напр. doc.status == 'Open'. Порожньо — завжди"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Also notify who did it"
+msgstr "Сповіщати й того, хто це зробив"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"By default the user whose action triggered the notification is not notified"
+msgstr "Типово користувач, чия дія спричинила сповіщення, його не отримує"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Jinja: {{ doc.field }}, {{ doctype }}, {{ event }}, {{ actor }} (who did "
+"it), {{ url }}; on a workflow transition also {{ action }}, {{ from_state "
+"}}, {{ to_state }}, {{ comment }}"
+msgstr ""
+"Jinja: {{ doc.поле }}, {{ doctype }}, {{ event }}, {{ actor }} (хто це "
+"зробив), {{ url }}; при переході робочого процесу також {{ action }}, {{ "
+"from_state }}, {{ to_state }}, {{ comment }}"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Jinja, same variables as the subject"
+msgstr "Jinja, ті самі змінні, що й у темі"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Channels"
+msgstr "Канали"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Notification Recipient"
+msgstr "Отримувач сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Who"
+msgstr "Хто"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Document field"
+msgstr "Поле документа"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Followers"
+msgstr "Стежать"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid ""
+"A field of the document holding a user or an email address, e.g. "
+"assigned_to; through a link: customer.email"
+msgstr ""
+"Поле документа з користувачем або адресою пошти, напр. assigned_to; через "
+"посилання: customer.email"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Optional: send to this row only when true, e.g. doc.priority == 'High'"
+msgstr ""
+"Необов'язково: надсилати цьому рядку лише коли умова істинна, напр. "
+"doc.priority == 'High'"
+
+#: grunt/grunt/notification/events.py
+msgid "Task assigned"
+msgstr "Задачу призначено"
+
+#: grunt/grunt/notification/events.py
+msgid "Tasks due (daily digest)"
+msgstr "Задачі з терміном (щоденне нагадування)"
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document changed"
+msgstr "Змінено документ, за яким стежать"
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document commented"
+msgstr "Коментар до документа, за яким стежать"
+
+#: grunt/grunt/notification/events.py
+msgid "Mentioned in a comment"
+msgstr "Згадка в коментарі"
+
+#: grunt/grunt/notification/events.py
+msgid "Reply to a comment"
+msgstr "Відповідь на коментар"
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat created a document"
+msgstr "Автоповтор створив документ"
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat failed"
+msgstr "Збій автоповтору"
+
+#: grunt/grunt/notification/events.py
+msgid "Cloud storage failing"
+msgstr "Збій хмарного сховища"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Reset to standard"
+msgstr "Скинути до стандарту"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Discard the changes made on this site and take the app's version?"
+msgstr "Відкинути зміни, зроблені на цьому сайті, і взяти версію з додатка?"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Restored the app's version"
+msgstr "Відновлено версію з додатка"
+
+#: grunt/grunt/actions/builtin.py
+msgid "The app ships no such record"
+msgstr "Додаток не постачає такого запису"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the document type"
+msgstr "Оберіть тип документа"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+#, python-format
+msgid "Unknown code event “%(event)s”"
+msgstr "Невідома подія з коду «%(event)s»"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "For an event from code: empty - whatever document the event is about"
+msgstr ""
+"Для події з коду: порожньо — будь-який документ, якого стосується подія"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Code event"
+msgstr "Подія з коду"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"An event the framework or an app raises from code, e.g. a task assigned"
+msgstr ""
+"Подія, яку фреймворк або додаток викликає з коду, напр. призначення задачі"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Changed on this site"
+msgstr "Змінено на цьому сайті"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"A standard notification edited here: updates of the app no longer overwrite "
+"it. Reset to standard to follow the app again"
+msgstr ""
+"Стандартне сповіщення змінено тут: оновлення додатка його більше не "
+"перезаписують. «Скинути до стандарту» — щоб знову йти за додатком"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Event recipients"
+msgstr "Отримувачі з події"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“Event recipients” only work for a notification on a code event"
+msgstr "«Отримувачі з події» працюють лише в сповіщенні про подію з коду"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Workflow actions"
+msgstr "Дії робочого процесу"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Only these transitions (their button labels), one per line; empty: every "
+"transition"
+msgstr ""
+"Лише ці переходи (назви їхніх кнопок), по одному в рядку; порожньо — будь-"
+"який перехід"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Previous actor"
+msgstr "Попередній виконавець"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Next actors"
+msgstr "Наступні виконавці"
 
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "

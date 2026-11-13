@@ -265,18 +265,26 @@ from grunt.actions import doc_action
     doctypes=["Customer"],  # or ["*"] for any DocType
     icon="mail",  # lucide icon name
     confirm="Надіслати листа клієнту?",  # optional confirm dialog
-    roles=["Sales"],  # optional — gate by role (also enforced server-side)
+    requires="write",  # the rule action needed on this document (default "read")
+    perm="my_crm.send_mail",  # optional — a permission declared in hooks.py
 )
 async def send_welcome_email(doc: dict, *, args: dict) -> dict:
     # ... send mail ...
     return {"message": "Лист надіслано", "refresh": False}
 ```
 
-Point `hooks.py` at the module so the decorators run on startup:
+Point `hooks.py` at the module so the decorators run on startup (and declare
+the permission it checks):
 
 ```python title="my_crm/hooks.py"
 doc_actions = ["my_crm.actions"]
+permissions = [{"name": "my_crm.send_mail", "label": "Send mail to customers"}]
 ```
+
+Who may run it is checked on the server: `requires` against the DocType's
+rules on that very document (its row condition included), `perm` against the
+user's roles' permissions. The older `roles=[...]` (any of them) still works;
+a user holding every permission (`*`, System Manager) passes it.
 
 The handler receives the document as a plain `dict` (`doc["doctype"]` and
 `doc["name"]` are always set). Return a `dict` (`message` is toasted,

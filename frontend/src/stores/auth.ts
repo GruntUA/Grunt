@@ -15,6 +15,8 @@ interface User {
   email: string
   full_name: string
   roles: string[]
+  /** Permissions through the roles (grunt.permissions.perms); `*` - all. */
+  permissions?: string[]
   mfa_enabled?: boolean
   /** False for accounts provisioned via OIDC / email link that never set one. */
   has_password?: boolean
@@ -70,7 +72,11 @@ type AuthMessage = { type: 'login' } | { type: 'logout' }
 export const useAuthStore = defineStore('auth', () => {
   const token = accessToken
   const user = ref<User | null>(null)
-  const isSystemManager = computed(() => !!user.value?.roles?.includes('System Manager'))
+  /** Whether the user holds permission `name` (`*` holds them all). */
+  function hasPerm(name: string): boolean {
+    const held = user.value?.permissions ?? []
+    return held.includes('*') || held.includes(name)
+  }
 
   // Set while a System Manager is viewing the system as another user.
   const impersonatedBy = ref<Impersonator | null>(null)
@@ -358,7 +364,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, user, isLoggedIn, isSystemManager, restore, login, adoptLogin, loginWithPasskey,
+    token, user, isLoggedIn, hasPerm, restore, login, adoptLogin, loginWithPasskey,
     beginEmailLogin, completeEmailLogin, logout, refresh, fetchMe, setTheme, setLanguage,
     impersonatedBy, isImpersonating, startImpersonation, stopImpersonation,
   }

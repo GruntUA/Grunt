@@ -118,8 +118,6 @@ export interface ViewContext {
   resolvedField: DocField | null
   /** Typed wrappers around ListViewRouter's emit function. */
   emit: ViewEmit
-  /** Whether the current user is a System Manager (for privileged actions like fast delete). */
-  isSystemManager?: boolean
   /**
    * Bumped by the header's Refresh button. Views that fetch their own data
    * (tree, calendar, kanban - anything outside the shared `['documents', doctype]`
@@ -142,6 +140,12 @@ export interface ViewDefinition {
   order: number
   /** Builder-only entries can opt out of toolbar and route availability. */
   showInToolbar?: boolean
+  /**
+   * The view exists only for some DocTypes - e.g. a tool over one DocType's
+   * own records (the permission matrix of the DocType list). Checked before
+   * resolveField; without it the view is offered for every DocType.
+   */
+  available?: (dt: DocType) => boolean
   /**
    * The view fills the viewport and scrolls its own regions internally
    * (e.g. kanban's horizontal column strip). DocTypeList then height-bounds
@@ -263,12 +267,20 @@ export function getRegisteredViews(): ViewDefinition[] {
  */
 export function getAvailableViewTypes(dt: DocType | null): string[] {
   return getRegisteredViews()
-    .filter((def) => {
-      if (!def.resolveField) return true
-      if (!dt) return false
-      return def.resolveField(dt) !== null
-    })
+    .filter((def) => isViewAvailable(def, dt))
     .map((def) => def.type)
+}
+
+/**
+ * Whether *def* can render for *dt*: its `available` check passes and, when it
+ * needs a field (`resolveField`), the DocType has one. While *dt* is loading
+ * only views that need neither are available.
+ */
+export function isViewAvailable(def: ViewDefinition, dt: DocType | null): boolean {
+  if (def.available && (!dt || !def.available(dt))) return false
+  if (!def.resolveField) return true
+  if (!dt) return false
+  return def.resolveField(dt) !== null
 }
 
 /**
