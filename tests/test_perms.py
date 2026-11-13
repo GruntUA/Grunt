@@ -19,20 +19,18 @@ ADMIN = make_user("admin@x.com", roles=["System Manager"])
 
 
 @pytest.fixture
-async def roles(ctx):
-    from grunt.api.v1.meta import save_doctype
+async def roles(ctx, monkeypatch):
+    from grunt.metadata.permission import DocPermission
     from grunt.metadata.registry import doctype_registry
 
     await ctx.new_doc("Role", {"role_name": "Mailer", "permissions": ["grunt.manage_email"]})
     await ctx.new_doc("Role", {"role_name": "Plain"})
     await ctx.new_doc("Role", {"role_name": "RoleEditor", "permissions": ["grunt.manage_email"]})
+    # RoleEditor may edit roles - in memory only: saving the core DocType would
+    # export it over grunt/auth/doctypes/Role/Role.json.
     role = await doctype_registry.get("Role")
-    data = role.model_dump(exclude_defaults=True)
-    data["permissions"] = [
-        *data["permissions"],
-        {"role": "RoleEditor", "actions": ["read", "write"]},
-    ]
-    await save_doctype(doctype_data=data)
+    rule = DocPermission(role="RoleEditor", actions=["read", "write"])
+    monkeypatch.setattr(role, "permissions", [*role.permissions, rule])
     for email in ("mailer@x.com", "plain@x.com", "editor@x.com", "admin@x.com"):
         await ctx.new_doc("User", {"email": email, "first_name": "U", "last_name": "Ser"})
     await ctx.db._session().commit()

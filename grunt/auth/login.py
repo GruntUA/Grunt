@@ -73,7 +73,7 @@ async def issue_login(
             "access_token": None,
             "mfa_token": None,
             "token_type": "bearer",
-            "user": _auth_user_dump(user),
+            "user": await _auth_user_dump(user),
             "mfa_required": False,
             "approval_pending": True,
         }
@@ -91,7 +91,7 @@ async def issue_login(
             "access_token": None,
             "mfa_token": create_mfa_setup_token(user),
             "token_type": "bearer",
-            "user": _auth_user_dump(user),
+            "user": await _auth_user_dump(user),
             "mfa_required": True,
             "mfa_setup_required": True,
         }
@@ -101,7 +101,7 @@ async def issue_login(
             "access_token": None,
             "mfa_token": create_mfa_token(user),
             "token_type": "bearer",
-            "user": _auth_user_dump(user),
+            "user": await _auth_user_dump(user),
             "mfa_required": True,
         }
 
@@ -124,7 +124,7 @@ async def issue_login(
         "access_token": access_token,
         "mfa_token": None,
         "token_type": "bearer",
-        "user": _auth_user_dump(user),
+        "user": await _auth_user_dump(user),
         "mfa_required": False,
     }
 

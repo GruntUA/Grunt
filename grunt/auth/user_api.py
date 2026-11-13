@@ -109,7 +109,7 @@ async def register_full_name_api(email: str, password: str, full_name: str) -> d
     user = await create_user(email, password, first_name, last_name, None)
     await _assign_default_role(user.id)
     pending = await _apply_signup_approval(user)
-    return {**_auth_user_dump(user), "approval_pending": pending}
+    return {**(await _auth_user_dump(user)), "approval_pending": pending}
 
 
 @whitelist(allow_guest=True)
@@ -273,7 +273,7 @@ async def update_me_api(
     updated = await get_user_by_id(user.id)
     if updated is None:
         throw(_("User not found"), "NOT_FOUND")
-    return _auth_user_dump(updated)
+    return await _auth_user_dump(updated)
 
 
 @whitelist(allow_guest=True)
@@ -311,7 +311,7 @@ async def refresh_api(response: Response, request: Request | None = None) -> dic
         "access_token": create_access_token(user, await access_token_minutes(), sid=sid),
         "mfa_token": None,
         "token_type": "bearer",
-        "user": _auth_user_dump(user),
+        "user": await _auth_user_dump(user),
         "mfa_required": False,
     }
 

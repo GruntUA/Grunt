@@ -15,7 +15,7 @@ interface User {
   email: string
   full_name: string
   roles: string[]
-  /** Permissions through the roles (grunt.permissions.perms); `*` - all. From `whoami`. */
+  /** Permissions through the roles (grunt.permissions.perms); `*` - all. */
   permissions?: string[]
   mfa_enabled?: boolean
   /** False for accounts provisioned via OIDC / email link that never set one. */
@@ -108,8 +108,6 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = data.access_token
     user.value = data.user
     applyUserPreferences(data.user)
-    // The sign-in payload carries no permissions - `whoami` does.
-    void fetchMe()
   }
 
   /** A sign-in that just completed in this tab (its response set the session cookie). */

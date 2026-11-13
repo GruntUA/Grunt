@@ -55,6 +55,6 @@ async def start_impersonation(actor: User, target_user_id: str) -> dict[str, Any
         "access_token": token,
         "token_type": "bearer",
         "expires_in_minutes": IMPERSONATION_TTL_MINUTES,
-        "user": _auth_user_dump(target),
+        "user": await _auth_user_dump(target),
         "impersonated_by": {"id": actor.id, "email": actor.email, "full_name": actor.full_name},
     }
