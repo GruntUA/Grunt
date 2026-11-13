@@ -183,6 +183,10 @@ interface GruntMethods {
   "grunt.api.v1.pages.list_pages": { args: {}; result: Record<string, any>[] }
   /** Register or update a custom page from an app. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.pages.register_page": { args: { page_data: Record<string, any> }; result: Record<string, any> }
+  /** *role*'s rules on each of *doctypes*: ``{doctype, is_child, rules}``, a rule being ``{index, actions, match, hidden_fields, readonly_fields}``. */
+  "grunt.api.v1.permission_matrix.get_role_matrix": { args: { role: string; doctypes: string[] }; result: Record<string, any>[] }
+  /** Apply *changes* - ``{doctype, rules: [{index, match, actions}]}`` - to *role*'s rules, one ``save_doc`` per DocType; returns them as :func:`get_role_matrix` does. */
+  "grunt.api.v1.permission_matrix.save_role_matrix": { args: { role: string; changes: Record<string, any>[] }; result: Record<string, any>[] }
   /** Return all enabled client scripts for a DocType. */
   "grunt.api.v1.scripting.get_client_scripts": { args: { doctype: string }; result: Record<string, any>[] }
   /** Execute a Server Script of type 'API'. */

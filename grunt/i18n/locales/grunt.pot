@@ -80,6 +80,45 @@ msgstr ""
 
 #: grunt/grunt/auth/impersonation.py
 msgid "You may not sign in as another user."
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "A table inside other documents: access follows the document that holds it"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "All (every user)"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Changed rules: {n}"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Choose a role"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Discard unsaved permission changes?"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Hidden fields: {n} · read-only: {m}"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Included in read"
+msgstr ""
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
+msgstr ""
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Role “%(role)s” not found"
+msgstr ""
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "The matrix shows what the role may do with each document type of this page. Narrow the page with the list filters, e.g. by module."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -7285,6 +7324,14 @@ msgstr ""
 
 #: grunt/grunt/permissions/rbac.py
 msgid "No access: %(action)s “%(doctype)s”"
+msgstr ""
+
+#: grunt/grunt/permissions/rbac.py
+msgid "No access: after this change the document would be outside your access"
+msgstr ""
+
+#: grunt/grunt/permissions/rbac.py
+msgid "No access: you may not create a document with these values"
 msgstr ""
 
 #: grunt/grunt/document/mixins/lifecycle.py

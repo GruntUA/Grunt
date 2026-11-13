@@ -141,6 +141,12 @@ export interface ViewDefinition {
   /** Builder-only entries can opt out of toolbar and route availability. */
   showInToolbar?: boolean
   /**
+   * The view exists only for some DocTypes - e.g. a tool over one DocType's
+   * own records (the permission matrix of the DocType list). Checked before
+   * resolveField; without it the view is offered for every DocType.
+   */
+  available?: (dt: DocType) => boolean
+  /**
    * The view fills the viewport and scrolls its own regions internally
    * (e.g. kanban's horizontal column strip). DocTypeList then height-bounds
    * the view to the viewport instead of letting the page grow, and hides the
@@ -261,12 +267,20 @@ export function getRegisteredViews(): ViewDefinition[] {
  */
 export function getAvailableViewTypes(dt: DocType | null): string[] {
   return getRegisteredViews()
-    .filter((def) => {
-      if (!def.resolveField) return true
-      if (!dt) return false
-      return def.resolveField(dt) !== null
-    })
+    .filter((def) => isViewAvailable(def, dt))
     .map((def) => def.type)
+}
+
+/**
+ * Whether *def* can render for *dt*: its `available` check passes and, when it
+ * needs a field (`resolveField`), the DocType has one. While *dt* is loading
+ * only views that need neither are available.
+ */
+export function isViewAvailable(def: ViewDefinition, dt: DocType | null): boolean {
+  if (def.available && (!dt || !def.available(dt))) return false
+  if (!def.resolveField) return true
+  if (!dt) return false
+  return def.resolveField(dt) !== null
 }
 
 /**
