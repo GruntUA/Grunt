@@ -139,7 +139,7 @@ allowed(action, doc) =
 | 2d-2 | **Матриця «роль × дія»** — вигляд «Дозволи» у списку DocType | ✔️ #151 |
 | 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ⏳ #152 |
 | 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ⏳ `feat/permissions-roles-in-features` |
-| 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ☐ |
+| 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ⏳ `feat/permissions-role-link` |
 | 4 | **Ролі з областю.** `RoleAssignment`; UserPermission → призначення; перевести mlt_portal, letter; прибрати UserPermission | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
@@ -451,3 +451,21 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
 - Рядки «System Manager», що лишились у ядрі, — дані й підписи: роль першого користувача,
   лічильник адмінів у health, CLI, rate limit (ролі з JWT), докстрінги.
 - Тести: `tests/test_feature_perms.py` (4); mlt_portal — 108 зелених на цьому ядрі. CodeQL — 0.
+
+### 2026-11-13 — крок 3c: роль у правилі мусить існувати
+
+Гілка `feat/permissions-role-link` (від 3b).
+- `DocPermission.role` — Link на Role (пікер у Studio). Сервер Link-значень не перевіряє, тож
+  `DocTypeController.validate`: роль, нова для цього DocType, мусить бути документом Role або
+  вбудованим принципалом (`BUILT_IN_ROLES` = `All`, `Guest`), інакше 422. Старі «висячі» правила
+  (на dev2 — `Administrator` в official_documents) інші правки не блокують. Матриця (2d) і
+  збереження DocType у Studio йдуть цим шляхом; `save_doctype` з коду — ні (тести, встановлення).
+- Role — `standard_records`: `All` і `Guest` — стандартні записи ядра (`grunt/auth/records/role/`),
+  щоб пікер їх пропонував. System Manager — ні: `migrate` переписав би його 2FA / IP на сайті.
+- **Перекладна назва ролі — відкладено:** ядро не перекладає назви документів у Link-полях
+  узагалі; це окрема фіча (як `translated_doctype` у Frappe), не лише для ролей. Назви ролей
+  застосунків і так українські.
+- Знахідка: 3a-тест експортував Role.json з рядками `RoleEditor`, dev2 їх підхопив
+  (`permissions == permissions_base`) — 18 зайвих правил на Role; `grunt migrate` повертає чистий JSON.
+  Ролі `RoleEditor` немає, доступу вони нікому не давали.
+- Тести: `tests/test_role_link.py` (4).

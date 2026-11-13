@@ -8,12 +8,15 @@ from collections.abc import Mapping
 from typing import Any
 
 from grunt.document.base import Document
+from grunt.errors import throw
+from grunt.i18n import _
 from grunt.local import require_engine
 from grunt.metadata import store
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
+from grunt.permissions.roles import missing_roles
 from grunt.store.base import AGGREGATE, DELETE, INSERT, SQL, UPDATE, Store
 from grunt.store.sql import SqlStore
 
@@ -105,3 +108,20 @@ class DocTypeController(Document):
     # above), so documents.get_doc(DocTypeController, ...) takes the name from here.
     doctype = "DocType"
     store_class = DocTypeStore
+
+    async def validate(self) -> None:
+        """A rule must name a role that exists - a typo would grant nothing and
+        say nothing. Only roles new to this DocType are checked: an old rule
+        naming a role that's gone doesn't block other edits."""
+        before = {_role(p) for p in (self.doc_before_save or {}).get("permissions") or []}
+        added = {_role(p) for p in self.data.get("permissions") or []} - before
+        missing = await missing_roles(added)
+        if missing:
+            throw(
+                _("No such role: %(roles)s") % {"roles": ", ".join(missing)},
+                "VALIDATION_ERROR",
+            )
+
+
+def _role(perm: Any) -> str:
+    return str((perm.get("role") if isinstance(perm, Mapping) else getattr(perm, "role", "")) or "")
