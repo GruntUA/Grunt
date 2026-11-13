@@ -138,7 +138,7 @@ allowed(action, doc) =
 | 2d-1 | **Нові значення при записі** (інваріант 6): insert / save / `set_value` — документ після зміни в межах `create`/`write` | ✔️ #151 |
 | 2d-2 | **Матриця «роль × дія»** — вигляд «Дозволи» у списку DocType | ✔️ #151 |
 | 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ⏳ #152 |
-| 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ☐ |
+| 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ⏳ `feat/permissions-roles-in-features` |
 | 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ☐ |
 | 4 | **Ролі з областю.** `RoleAssignment`; UserPermission → призначення; перевести mlt_portal, letter; прибрати UserPermission | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
@@ -192,6 +192,13 @@ allowed(action, doc) =
   `permissions` на Role (варіанти з реєстру, `options_source`); System Manager має `*`.
   `roles=` у `whitelist` і `has_role()` у застосунках працюють і далі — переводимо разом з
   оновленням застосунків, потім прибираємо. Крок 3 — три PR: 3a, 3b, 3c.
+
+- **2026-11-13** — 3b: списки ролей у налаштуваннях (Workflow `allowed_roles`/`edit_roles`,
+  AppMenu, Page, онбординг) лишаються — це дані, які редагує адмін, а не перевірки в коді.
+  Прибрано лише обхід за назвою «System Manager»: замість нього — `*` (Workflow) або
+  `grunt.manage_desk` (меню, сторінки, онбординг). Перехід Workflow як дія правила DocType
+  (`approve` в `actions` з `match` — «погоджує лише свій відділ») — окреме рішення: відкритий
+  список дій у `DocPermission` і міграція Workflow застосунків (mlt_portal); не в 3b.
 
 ## Журнал
 
@@ -427,3 +434,20 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
   й правила на ці DocType (матриця 2d). Об'єднати це (дозвіл тягне правила) — питання 3b/6.
 - Тести: `tests/test_perms.py` (8). CodeQL локально — 0 циклів; pyright — нових помилок немає
   (32 давні в тестах і `bootstrap_site.py`).
+
+### 2026-11-13 — крок 3b: ролі в налаштуваннях і діях
+
+Гілка `feat/permissions-roles-in-features` (від 3a).
+- **Дії документа** (`@doc_action`): `requires` — дія правила на цьому документі (типово `read`,
+  з `match`), `perm` — дозвіл, `roles` — старе (будь-яка з ролей; власник `*` проходить).
+  Ядро: відновлення з кошика — `grunt.restore_deleted`, «Надіслати звіт зараз» і «Скинути до
+  стандарту» — `write` на документі, пуш користувачу — `grunt.manage_users`.
+- **Workflow:** `user_may_take(..., unrestricted=)` і `edit_roles` — обхід лише для `*`.
+- **Меню, сторінки, онбординг, тури:** бачить усе той, хто має `grunt.manage_desk`. Онбординг
+  працює в `system_context` — прапорець обчислюється до входу в нього (інакше бачили б усі).
+  Мертвий `AppMenu.has_access` прибрано.
+- **Фронтенд:** `isSystemManager` прибрано зовсім; «Редагувати меню» — `grunt.manage_desk`;
+  конструктор і збереження звітів — правила DocType Report (`useDocTypeAllows`).
+- Рядки «System Manager», що лишились у ядрі, — дані й підписи: роль першого користувача,
+  лічильник адмінів у health, CLI, rate limit (ролі з JWT), докстрінги.
+- Тести: `tests/test_feature_perms.py` (4); mlt_portal — 108 зелених на цьому ядрі. CodeQL — 0.

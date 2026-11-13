@@ -16,6 +16,7 @@ from grunt.local import require_session, user_email
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.widget import WIDGET_PERIOD_DAYS, get_widget_type_class
+from grunt.permissions.perms import has_perm
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.widget_compute import _widget_report_series
 lazy from grunt.document.api import documents
@@ -206,11 +207,12 @@ async def _compute_widget_data(
     return data
 
 
-def page_visible(page: dict[str, Any], user_roles: Iterable[str]) -> bool:
+def page_visible(page: dict[str, Any], user_roles: Iterable[str], *, manager: bool = False) -> bool:
     """A Page is shown to a user holding *user_roles* when it is published and,
-    if it lists roles, the user has one of them. System Manager sees every page."""
+    if it lists roles, the user has one of them. A *manager* (``grunt.manage_desk``)
+    sees every page."""
     roles = set(user_roles)
-    if "System Manager" in roles:
+    if manager:
         return True
     if not page.get("is_published"):
         return False
@@ -229,7 +231,9 @@ async def _load_widgets(
         throw(_("Page not found"), "NOT_FOUND")
     page = dict(doc.data)
 
-    if not page_visible(page, acting_user().role_names):
+    if not page_visible(
+        page, acting_user().role_names, manager=await has_perm("grunt.manage_desk")
+    ):
         throw(_("The page is not published"), "PERMISSION_DENIED")
 
     widgets: list[dict[str, Any]] = page.get("widgets") or []

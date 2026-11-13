@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDocTypeAllows } from '@/core/composables/useDocTypeAllows'
 import { formatNumber } from '@/core/currency'
 import { useI18n } from 'vue-i18n'
 import { computed, watch, ref, onMounted, onBeforeUnmount } from 'vue'
@@ -24,7 +25,6 @@ import { getAsyncFieldComponent, getNonPhysicalTypeSet } from '@/core/fieldRegis
 import { docsApi } from '@/core/api/docs'
 import { statusConfigOf } from '@/core/status'
 import { reportsApi } from '@/core/api/reports'
-import { useAuthStore } from '@/stores/auth'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
@@ -106,11 +106,11 @@ const normalizedSortKey = computed(() => props.sortKey || '')
 
 // Saved `Report` (type=List) round-trip
 const router = useRouter()
-const auth = useAuthStore()
 const dialog = useDialog()
 const toast = useToast()
 
-const canSave = computed(() => !!auth.isSystemManager)
+// Saving a list report creates a Report document - its rules decide.
+const canSave = useDocTypeAllows('Report', 'create')
 const savedReports = ref<ReportSummary[]>([])
 
 async function loadSavedReports() {

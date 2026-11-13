@@ -259,7 +259,7 @@ watch(() => appStore.active?.name, () => { drill.value = null })
         </template>
       </template>
 
-      <SidebarGroup v-if="auth.isSystemManager" class="mt-auto">
+      <SidebarGroup v-if="auth.hasPerm('grunt.manage_desk')" class="mt-auto">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton :tooltip="t('Edit menu')" @click="router.push(`/app/grunt/AppMenu/${appStore.active?.name}`)">

@@ -10,6 +10,7 @@ from grunt.apps.manifest import extenders
 from grunt.auth.current import acting_user
 from grunt.document.titles import resolve_reference_titles
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import has_perm
 from grunt.site.doctypes.AppMenu.app_menu import (
     AppMenu,
     count_key,
@@ -30,7 +31,8 @@ async def _visible_pages() -> list[dict[str, Any]]:
         limit=1000,
         include_total=False,
     )
-    visible = [p for p in pages if page_visible(p, user.role_names)]
+    manager = await has_perm("grunt.manage_desk")
+    visible = [p for p in pages if page_visible(p, user.role_names, manager=manager)]
     return sorted(visible, key=lambda p: str(p.get("label") or p["name"]).casefold())
 
 
@@ -94,10 +96,11 @@ async def _workspace_to_dict(
         pages = await _visible_pages()
 
     items = []
+    manager = await has_perm("grunt.manage_desk")
     sidebar_items = ws_data.get("sidebar_items") or []
     for position, item in enumerate(order_menu(sidebar_items, ws_data.get("sections") or [])):
         item_roles = item.get("roles", "")
-        if "System Manager" not in (user.roles or []) and item_roles:
+        if not manager and item_roles:
             allowed = {r.strip() for r in item_roles.split(",") if r.strip()}
             if not (allowed & set(user.roles)):
                 continue
@@ -176,11 +179,12 @@ async def list_workspaces() -> list[dict[str, Any]]:
     if not user:
         return []
     pages = await _visible_pages()
+    manager = await has_perm("grunt.manage_desk")
 
     for ws_brief in all_ws:
         try:
             ws_data = await documents.get_doc(AppMenu, ws_brief["name"])
-            if ws_data.is_hidden and "System Manager" not in (user.roles or []):
+            if ws_data.is_hidden and not manager:
                 continue
             # Basic role check could be added here
             data.append(await _workspace_to_dict(ws_data, pages))
