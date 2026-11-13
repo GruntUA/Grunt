@@ -17,6 +17,7 @@ from grunt.db.api import GruntDB
 from grunt.i18n import N_
 from grunt.local import require_session, system_context
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import ALL, user_perms
 from grunt.workflow.transition import user_may_take
 lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.permissions.rbac import permission_checker
@@ -62,7 +63,10 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     for candidate in users:
         if candidate is None or not candidate.get("is_active", True):
             continue
-        if not any(user_may_take(t, candidate.role_names) for t in transitions):
+        unrestricted = ALL in await user_perms(candidate.email)
+        if not any(
+            user_may_take(t, candidate.role_names, unrestricted=unrestricted) for t in transitions
+        ):
             continue
         if not await permission_checker.check(meta, "read", doc, user=candidate.email):
             continue

@@ -1,0 +1,8 @@
+{
+  "doctype": "Role",
+  "name": "Guest",
+  "role_name": "Guest",
+  "description": "The anonymous visitor of public pages and web forms. Not assigned to users.",
+  "is_standard": true,
+  "app": "grunt"
+}

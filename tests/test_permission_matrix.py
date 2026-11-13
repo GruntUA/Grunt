@@ -114,3 +114,37 @@ async def test_needs_access_to_doctypes(books, db_session, engine):
         with pytest.raises(HTTPException) as exc_info:
             await get_role_matrix("Clerk", ["MxBook"])
         assert exc_info.value.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_a_rule_changed_by_someone_else_is_refused(books):
+    # The editor loaded ["read"]; meanwhile the rule became ["read", "write"].
+    await save_role_matrix(
+        "Clerk", [{"doctype": "MxBook", "rules": [{"index": 1, "actions": ["read", "write"]}]}]
+    )
+    stale = {"index": 1, "match": None, "original": ["read"], "actions": ["read", "export"]}
+    with pytest.raises(ApplicationError) as exc_info:
+        await save_role_matrix("Clerk", [{"doctype": "MxBook", "rules": [stale]}])
+    assert exc_info.value.code == "CONFLICT"
+
+
+@pytest.mark.asyncio
+async def test_a_new_rule_where_the_role_has_one_is_refused(books):
+    with pytest.raises(ApplicationError) as exc_info:
+        await save_role_matrix(
+            "Clerk", [{"doctype": "MxBook", "rules": [{"index": None, "actions": ["read"]}]}]
+        )
+    assert exc_info.value.code == "CONFLICT"
+
+
+@pytest.mark.asyncio
+async def test_too_many_doctypes_writes_nothing(books):
+    from grunt.api.v1.permission_matrix import MAX_DOCTYPES
+
+    changes = [{"doctype": "MxNote", "rules": [{"index": None, "actions": ["read"]}]}] * (
+        MAX_DOCTYPES + 1
+    )
+    with pytest.raises(ApplicationError) as exc_info:
+        await save_role_matrix("Clerk", changes)
+    assert exc_info.value.code == "VALIDATION_ERROR"
+    assert (await get_role_matrix("Clerk", ["MxNote"]))[0]["rules"] == []

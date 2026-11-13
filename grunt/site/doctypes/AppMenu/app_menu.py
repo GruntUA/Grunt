@@ -173,12 +173,3 @@ class AppMenu(Document):
 
     def _generate_count_key(self, doctype: str, filters: dict[str, Any]) -> str:
         return count_key(doctype, filters)
-
-    def has_access(self, user: Any) -> bool:
-        """Check if user has access to this workspace based on roles."""
-        if "System Manager" in (getattr(user, "roles", None) or []):
-            return True
-        if not self.roles:
-            return True
-        allowed = {r.strip() for r in self.roles.split(",") if r.strip()}
-        return bool(allowed & set(user.roles))

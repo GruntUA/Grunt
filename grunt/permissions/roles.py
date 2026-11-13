@@ -20,6 +20,10 @@ from grunt.permissions.access import RoleAccess, Target
 
 _db = GruntDB()  # stateless: reads through the context's session
 
+#: Principals rules may name besides Role documents: every user, the anonymous one.
+#: They ship as standard Role records too, so the role picker offers them.
+BUILT_IN_ROLES = frozenset({"All", "Guest"})
+
 _BUILT_IN: dict[str, list[str]] = {
     SYSTEM_USER_EMAIL: ["System Manager"],
     GUEST_USER_EMAIL: ["Guest"],
@@ -56,3 +60,12 @@ async def has_roles(roles: Iterable[str], *, user: str | None = None) -> bool:
 async def role_access(doctype: Target, user: str | None) -> RoleAccess:
     """:class:`RoleAccess` of *user* (an email; ``None`` - nobody) with their roles."""
     return RoleAccess(doctype, user, await get_roles(user) if user is not None else [])
+
+
+async def missing_roles(roles: Iterable[str]) -> list[str]:
+    """Those of *roles* that are neither a Role document nor a built-in principal."""
+    wanted = sorted({r for r in roles if r and r not in BUILT_IN_ROLES})
+    if not wanted:
+        return []
+    found = set(await _db.get_all("Role", filters={"name__in": wanted}, pluck="name", limit=None))
+    return [r for r in wanted if r not in found]

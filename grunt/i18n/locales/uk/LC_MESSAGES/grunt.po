@@ -16,6 +16,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
+#: grunt/grunt/auth/records/role/all/all.json
+msgid "Every signed-in user holds it - a rule for All applies to everyone. Not assigned to users."
+msgstr "Її має кожен користувач, що увійшов: правило для All діє на всіх. Користувачам не призначається."
+
 #: grunt/grunt/permissions/perms.py
 msgid "Everything (*)"
 msgstr "Усе (*)"
@@ -60,6 +64,10 @@ msgstr "Керування робочими просторами й сторін
 msgid "Moderate comments"
 msgstr "Модерація коментарів"
 
+#: grunt/grunt/metadata/doctypes/DocType/doc_type.py
+msgid "No such role: %(roles)s"
+msgstr "Немає такої ролі: %(roles)s"
+
 #: grunt/grunt/permissions/perms.py
 msgid "Restore deleted documents"
 msgstr "Відновлення видалених документів"
@@ -71,6 +79,10 @@ msgstr "Вхід від імені іншого користувача"
 #: grunt/grunt/permissions/perms.py
 msgid "System monitoring and background jobs"
 msgstr "Моніторинг системи й фонові задачі"
+
+#: grunt/grunt/auth/records/role/guest/guest.json
+msgid "The anonymous visitor of public pages and web forms. Not assigned to users."
+msgstr "Анонімний відвідувач публічних сторінок і веб-форм. Користувачам не призначається."
 
 #: grunt/grunt/auth/doctypes/Role/role.py
 msgid "Unknown permissions: %(perms)s"
@@ -123,6 +135,10 @@ msgstr "Входить у читання"
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
 msgstr "Дозволи «%(doctype)s» тим часом змінили — оновіть сторінку"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Too many document types in one save (%(count)s, at most %(max)s)"
+msgstr "Забагато типів документів в одному збереженні (%(count)s, щонайбільше %(max)s)"
 
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"

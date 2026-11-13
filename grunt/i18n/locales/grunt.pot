@@ -6,6 +6,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: grunt/grunt/auth/records/role/all/all.json
+msgid "Every signed-in user holds it - a rule for All applies to everyone. Not assigned to users."
+msgstr ""
+
 #: grunt/grunt/permissions/perms.py
 msgid "Everything (*)"
 msgstr ""
@@ -50,6 +54,10 @@ msgstr ""
 msgid "Moderate comments"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/doc_type.py
+msgid "No such role: %(roles)s"
+msgstr ""
+
 #: grunt/grunt/permissions/perms.py
 msgid "Restore deleted documents"
 msgstr ""
@@ -60,6 +68,10 @@ msgstr ""
 
 #: grunt/grunt/permissions/perms.py
 msgid "System monitoring and background jobs"
+msgstr ""
+
+#: grunt/grunt/auth/records/role/guest/guest.json
+msgid "The anonymous visitor of public pages and web forms. Not assigned to users."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/role.py
@@ -111,6 +123,10 @@ msgstr ""
 
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
+msgstr ""
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Too many document types in one save (%(count)s, at most %(max)s)"
 msgstr ""
 
 #: grunt/grunt/api/v1/permission_matrix.py
