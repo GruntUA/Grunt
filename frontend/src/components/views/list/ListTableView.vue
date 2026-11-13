@@ -41,7 +41,6 @@ const props = defineProps<{
   collapsedGroups: Set<string>
   groupByField: DocField | null
   selection: SelectionState
-  isSystemManager?: boolean
 }>()
 
 const emit = defineEmits<{

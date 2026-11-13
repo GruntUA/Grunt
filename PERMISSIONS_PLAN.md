@@ -135,9 +135,11 @@ allowed(action, doc) =
 | 2a | **Діри прихованих полів** (інваріант 5): запис, фільтр/сортування/групування/агрегати/пошук, `get_value`/`set_value`/`exists`, глобальний індекс | ✔️ #119 |
 | 2b | **Дії** `actions[]` замість булевих + `export`/`import`/`print`/`share`/`report` — перевірка на сервері (FRAPPE_GAP п.2) | ✔️ #139, #140 |
 | 2c | **Поля «лише читання»** — `readonly_fields` поруч із `hidden_fields` (FRAPPE_GAP п.3); групи полів — у 2d | ✔️ #142 |
-| 2d-1 | **Нові значення при записі** (інваріант 6): insert / save / `set_value` — документ після зміни в межах `create`/`write` | ⏳ `feat/permissions-role-matrix` (разом з 2d-2) |
-| 2d-2 | **Матриця «роль × дія»** — вигляд «Дозволи» у списку DocType | ⏳ `feat/permissions-role-matrix` |
-| 3 | **Ролі й дозволи.** id ролей + Link, `perm=` у `whitelist`, `grunt.can()`, прибрати рядкові «System Manager»; Workflow/Page/AppMenu/Report — через дії/дозволи | ☐ |
+| 2d-1 | **Нові значення при записі** (інваріант 6): insert / save / `set_value` — документ після зміни в межах `create`/`write` | ✔️ #151 |
+| 2d-2 | **Матриця «роль × дія»** — вигляд «Дозволи» у списку DocType | ✔️ #151 |
+| 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ⏳ #152 |
+| 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ☐ |
+| 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ☐ |
 | 4 | **Ролі з областю.** `RoleAssignment`; UserPermission → призначення; перевести mlt_portal, letter; прибрати UserPermission | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
@@ -183,6 +185,13 @@ allowed(action, doc) =
   `viewRegistry`), а не окрема сторінка чи вкладка ролі: рядки — сторінка списку з його фільтрами
   (модуль, додаток, пошук), роль — вибір у самому вигляді. Групи полів (`field_groups`) відкладено:
   довгих списків прихованих полів у застосунках поки немає. 2d-1 і 2d-2 — один PR.
+
+- **2026-11-13** — крок 3 (рішення власника): id ролі — її нинішня назва (`Комірник`,
+  `Адміністратор порталу`), без перейменування на `app.role` і міграції даних; лише перевірка, що
+  роль існує, і перекладна назва. Дозволи — реєстр у `hooks.py` застосунку + MultiSelect
+  `permissions` на Role (варіанти з реєстру, `options_source`); System Manager має `*`.
+  `roles=` у `whitelist` і `has_role()` у застосунках працюють і далі — переводимо разом з
+  оновленням застосунків, потім прибираємо. Крок 3 — три PR: 3a, 3b, 3c.
 
 ## Журнал
 
@@ -364,3 +373,57 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
   перемикача виглядів (`ListHeader`), рендеру (`ListViewRouter`) і `getAvailableViewTypes`.
 - Тести: `tests/test_permission_matrix.py` (6), `frontend/src/core/__tests__/viewRegistry.spec.ts` (2).
   Переклади — вручну в `grunt.pot` і `uk` (повний `grunt i18n extract` тягне чужий дрейф).
+
+### 2026-11-13 — крок 3a: дозволи
+
+Гілка `feat/permissions-perms`.
+
+**Механізм**
+- `grunt/permissions/perms.py` — реєстр `Perm(name, label, description, app)`; ядро реєструє свої,
+  застосунок — `permissions = [{"name": "inventory.manage_assets", "label": "…"}]` у `hooks.py`.
+- Role: MultiSelect `permissions` (`options_source = "grunt.permissions"`). `*` — усе.
+  Міграція: роль System Manager отримує `*`; `ensure_system_manager` створює її з `*`.
+- `has_perm(perm, user=None)` — об'єднання дозволів ролей користувача (кеш роль → дозволи,
+  інвалідація через `@fanout` з контролера Role). SYSTEM_USER — усе. Невідомий дозвіл у коді —
+  помилка при імпорті/реєстрації, не тиха відмова.
+- `@whitelist(perm="grunt.manage_email")` поруч із `roles=` (лишається для застосунків).
+- Фасад: `grunt.has_perm(perm)`. `grunt.can()` з цільової моделі — це наявний `grunt.has_permission(doctype,
+  action, doc_id)`; другої назви не вводимо.
+- `/me` (auth store) повертає `permissions`; фронтенд — `auth.hasPerm()` замість `isSystemManager`.
+
+**Дозволи ядра** (з 48 `whitelist(roles=["System Manager"])` і ~25 перевірок у коді)
+- `grunt.manage_doctypes` — meta (save/delete/sync DocType, compact/table_info), rebuild_index
+- `grunt.manage_desk` — Workspace, Page (register/delete)
+- `grunt.manage_users` — список/схвалення/відхилення користувачів, ролі користувача, API-ключі інших
+- `grunt.impersonate` — «увійти як»
+- `grunt.manage_email` — облікові записи, черга, тест SMTP; email hooks
+- `grunt.manage_storage` — StorageRemote, хмарний OAuth, стиснення зображень, чужі файлові простори
+- `grunt.manage_backups` — backup_now, списки/завантаження копій зі сховища
+- `grunt.manage_integrations` — вебхуки
+- `grunt.manage_apps` — GruntInstalledApp (модулі)
+- `grunt.system_monitor` — health, профайлер, кеш запитів, скасування фонових задач
+- `grunt.moderate_comments` — чужі коментарі
+- `grunt.restore_deleted` — DeletedDocument
+- `grunt.bulk_delete` — швидке масове видалення
+- Не дозволи (лишаються як є): перший користувач отримує System Manager; лічильник адмінів у
+  health; підпис у CLI; rate limit (ролі з JWT). User Permissions не діють на `*` (крок 4 їх
+  замінить). Workflow, AppMenu, Workspace-видимість, дії документа — 3b.
+
+**Зроблено**
+- Механізм, як у плані вище; міграція `0025_role_permissions` (колонка + `*` для System Manager),
+  `_grant_system_manager` створює роль з `*`; тестова БД засіває System Manager з `*`.
+- `register_notification_hooks` → `register_record_hooks`: `permissions` з `hooks.py`
+  реєструються й на `migrate` (стандартні ролі застосунку можуть їх містити).
+- Ядро: 47 `whitelist(roles=["System Manager"])` → `perm=`; рядкові перевірки → `has_perm`
+  (DeletedDocument, реєстрація з погодженням, `update_user`, impersonation — ціль з `*` не можна,
+  User.roles, ApiKey, fast delete, коментарі, пароль пошти, GruntInstalledApp, FileFolder,
+  User Permissions — не діють на `*`). Мертвий `superadmin_user` прибрано.
+- Лишилось до 3b: `actions/builtin.py` (дії документа з `roles=`), Workflow, AppMenu,
+  видимість Workspace/Page, Report (і на фронтенді `isSystemManager` = має `*`: меню, звіти).
+- Фронтенд: `whoami.permissions`, `auth.hasPerm()`; після входу профіль дочитується `whoami`.
+  Мертвий проп `isSystemManager` у контексті виглядів прибрано.
+- **Дозвіл відкриває метод, а не дані:** `grunt.manage_email` пускає до методів пошти, але
+  EmailAccount читається за правилами DocType — щоб доручити пошту не-адміну, роль отримує ще
+  й правила на ці DocType (матриця 2d). Об'єднати це (дозвіл тягне правила) — питання 3b/6.
+- Тести: `tests/test_perms.py` (8). CodeQL локально — 0 циклів; pyright — нових помилок немає
+  (32 давні в тестах і `bootstrap_site.py`).

@@ -21,6 +21,7 @@ from grunt.errors import throw
 from grunt.i18n import N_, _
 from grunt.local import _user_ctx, use_system_user
 from grunt.log import log
+from grunt.permissions.perms import has_perm
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -133,7 +134,7 @@ class User(Document):
         current = _user_ctx.get()
         if current is None or not getattr(current, "id", None):
             return
-        if current.has_role("System Manager"):
+        if await has_perm("grunt.manage_users", user=current.email):
             return
         if await _is_internal_context():
             return

@@ -152,7 +152,7 @@ async def _remote(name: str) -> dict[str, Any]:
         raise HTTPException(404, str(exc)) from exc
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def test_connection(name: str) -> dict[str, Any]:
     """Create the root folder, write + delete a probe file, read the quota."""
 
@@ -185,7 +185,7 @@ async def test_connection(name: str) -> dict[str, Any]:
     return {"ok": True, "quota": quota}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def show_config(name: str) -> dict[str, str]:
     """The remote as rclone.conf text (secrets obscured the rclone way)."""
     try:
@@ -194,7 +194,7 @@ async def show_config(name: str) -> dict[str, str]:
         raise HTTPException(422, str(exc)) from exc
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def oauth_help(name: str) -> dict[str, str]:
     """The ``rclone authorize`` command for this remote's provider."""
 
@@ -202,7 +202,7 @@ async def oauth_help(name: str) -> dict[str, str]:
     return {"command": get_provider(remote.get("provider")).authorize_command}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_backups")
 async def list_backups(name: str) -> list[dict[str, Any]]:
     """Backup sets kept in the remote (newest first)."""
 
@@ -225,7 +225,7 @@ async def list_backups(name: str) -> list[dict[str, Any]]:
     ]
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_backups")
 async def fetch_backup(name: str, backup_id: str) -> dict[str, bool]:
     from grunt.storage.cloud.tasks import fetch_backup as job
 
@@ -234,7 +234,7 @@ async def fetch_backup(name: str, backup_id: str) -> dict[str, bool]:
     return {"queued": True}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_backups")
 async def upload_latest(name: str) -> dict[str, bool]:
 
     await _remote(name)
@@ -242,7 +242,7 @@ async def upload_latest(name: str) -> dict[str, bool]:
     return {"queued": True}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def offload_now(name: str) -> dict[str, bool]:
     from grunt.storage.cloud.tasks import offload_now as job
 
@@ -251,7 +251,7 @@ async def offload_now(name: str) -> dict[str, bool]:
     return {"queued": True}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_storage")
 async def recall_files(name: str) -> dict[str, bool]:
     from grunt.storage.cloud.tasks import recall_files as job
 

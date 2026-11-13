@@ -126,18 +126,6 @@ async def optional_user(
     return user
 
 
-async def superadmin_user(
-    user: User = Depends(current_user),
-) -> User:
-    """Ensure the current user holds the "System Manager" role."""
-    if not user.has_role("System Manager"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=_("System Manager privileges required"),
-        )
-    return user
-
-
 async def grunt_context(
     session: AsyncSession = Depends(get_session),
     engine: AsyncEngine = Depends(get_engine),

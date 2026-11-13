@@ -20,6 +20,13 @@
       "fieldtype": "LongText"
     },
     {
+      "fieldname": "permissions",
+      "label": "Permissions",
+      "fieldtype": "MultiSelect",
+      "options_source": "grunt.permissions",
+      "description": "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
+    },
+    {
       "fieldname": "require_mfa",
       "label": "Require two-factor authentication",
       "fieldtype": "Check",

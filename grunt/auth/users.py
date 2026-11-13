@@ -16,6 +16,7 @@ from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
+from grunt.permissions.perms import has_perm, user_perms
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
@@ -178,7 +179,7 @@ async def _grant_system_manager(user_id: str) -> None:
     """Ensure the "System Manager" role exists and assign it to *user_id* -
     used to make the first user on a site an administrator."""
     if not await _db.exists("Role", {"role_name": "System Manager"}):
-        await Role.objects.create(role_name="System Manager")
+        await Role.objects.create(role_name="System Manager", permissions=["*"])
     await documents.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
 
 
@@ -262,9 +263,11 @@ async def authenticate(email: str, password: str) -> User | None:
     return user
 
 
-def _auth_user_dump(user: User) -> dict[str, Any]:
-    """Full user payload expected by auth UI responses."""
+async def _auth_user_dump(user: User) -> dict[str, Any]:
+    """Full user payload expected by auth UI responses - with the permissions
+    the UI may offer (grunt.permissions.perms; ``*`` - everything)."""
     return {
+        "permissions": sorted(await user_perms(user.email)),
         "id": user.id,
         "email": user.email,
         "full_name": user.full_name,
@@ -323,11 +326,14 @@ async def _assign_default_role(user_id: str | None) -> None:
 async def _apply_signup_approval(user: User) -> bool:
     """Put a freshly self-registered user in the ``pending`` state when
     ``require_signup_approval`` is on, so they can't sign in until an admin
-    approves them. System Manager (the bootstrap first user) is never held.
+    approves them. A user who manages users (the bootstrap first user, a
+    System Manager) is never held.
 
     Returns True when the user was left pending.
     """
-    if user.has_role("System Manager") or not await get_setting("require_signup_approval", False):
+    if await has_perm("grunt.manage_users", user=user.email) or not await get_setting(
+        "require_signup_approval", False
+    ):
         return False
 
     assert user.id is not None

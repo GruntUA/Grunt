@@ -131,7 +131,7 @@ async function reindex() {
         <p class="text-muted-foreground mt-0.5">{{ t('Search across all documents') }}</p>
       </div>
       <Button
-        v-if="auth.isSystemManager"
+        v-if="auth.hasPerm('grunt.manage_doctypes')"
         variant="outline"
         size="sm"
         :disabled="isReindexing"
@@ -171,7 +171,7 @@ async function reindex() {
       <p class="text-muted-foreground">
         {{ t('Nothing found for') }} <b>"{{ q }}"</b>
       </p>
-      <Button variant="ghost" v-if="auth.isSystemManager" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />{{ t('Try rebuilding the index') }}</Button>
+      <Button variant="ghost" v-if="auth.hasPerm('grunt.manage_doctypes')" size="sm" @click="reindex"><RefreshCw class="size-4 mr-2" />{{ t('Try rebuilding the index') }}</Button>
     </div>
 
     <!-- Results -->

@@ -203,16 +203,17 @@ def _iter_hooks_modules(app_dir: Path) -> Iterator[ModuleType]:
 
 
 # Declarations an app's standard records may rely on (a shipped Notification
-# naming the app's own code event or channel) - registered before the records
-# are applied, also where the full app loading doesn't run (grunt migrate).
-NOTIFICATION_HOOK_KEYS = ("notification_events", "notification_channels")
+# naming the app's own code event or channel, a Role holding its permissions) -
+# registered before the records are applied, also where the full app loading
+# doesn't run (grunt migrate).
+RECORD_HOOK_KEYS = ("notification_events", "notification_channels", "permissions")
 
 
-def register_notification_hooks(app_dir: Path) -> None:
-    """Apply only the notification registries of *app_dir*'s ``hooks.py``."""
+def register_record_hooks(app_dir: Path) -> None:
+    """Apply only the registries of *app_dir*'s ``hooks.py`` its records rely on."""
     ctx = LoadContext(app_name=app_dir.name, app_dir=app_dir)
     for mod in _iter_hooks_modules(app_dir):
-        for key in NOTIFICATION_HOOK_KEYS:
+        for key in RECORD_HOOK_KEYS:
             if hasattr(mod, key):
                 try:
                     HOOK_CONSUMERS[key].apply(getattr(mod, key), ctx)

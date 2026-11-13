@@ -21,7 +21,7 @@ def _mask_password(account: dict[str, Any]) -> dict[str, Any]:
     return account
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_email")
 async def test_smtp_connection(
     smtp_server: str,
     smtp_port: int = 587,
@@ -50,7 +50,7 @@ async def test_smtp_connection(
         return {"success": False, "error": str(e)}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_email")
 async def send_test_email(account_id: str, recipient: str) -> Outcome:
     """Send a short test message through a saved EmailAccount.
 
@@ -92,19 +92,19 @@ async def send_test_email(account_id: str, recipient: str) -> Outcome:
         return {"success": False, "error": str(e)}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_email")
 async def list_accounts() -> list[dict[str, Any]]:
     result = await documents.get_list("EmailAccount", limit=1000, order_by="created_at")
     return [_mask_password(dict(acc)) for acc in result]
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_email")
 async def get_account(account_id: str) -> dict[str, Any]:
     data = await documents.get_doc("EmailAccount", account_id)
     return _mask_password(dict(data))
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_email")
 async def list_queue(
     status: str | None = None,
     page: int = 1,
@@ -125,7 +125,7 @@ async def list_queue(
     return {"items": records, "total": total, "page": page, "per_page": per_page}
 
 
-@whitelist(roles=["System Manager"])
+@whitelist(perm="grunt.manage_email")
 async def retry_item(queue_id: str) -> bool:
     await _db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
     return True
