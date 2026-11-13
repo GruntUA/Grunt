@@ -39,9 +39,11 @@ def current_transition() -> ActiveTransition | None:
     return _active.get()
 
 
-def user_may_take(transition: WorkflowTransition, roles: Collection[str]) -> bool:
-    """Role check of a transition for a user holding *roles* (System Manager may take any)."""
-    if not transition.allowed_roles:
+def user_may_take(
+    transition: WorkflowTransition, roles: Collection[str], *, unrestricted: bool = False
+) -> bool:
+    """Role check of a transition for a user holding *roles*; *unrestricted* - the
+    user holds every permission (``*``, System Manager) and may take any."""
+    if unrestricted or not transition.allowed_roles:
         return True
-    held = set(roles)
-    return bool(held.intersection(transition.allowed_roles)) or "System Manager" in held
+    return bool(set(roles).intersection(transition.allowed_roles))

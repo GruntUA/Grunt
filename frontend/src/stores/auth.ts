@@ -77,8 +77,6 @@ export const useAuthStore = defineStore('auth', () => {
     const held = user.value?.permissions ?? []
     return held.includes('*') || held.includes(name)
   }
-  /** Holds every permission (`*` - System Manager). Prefer `hasPerm(...)`. */
-  const isSystemManager = computed(() => !!user.value?.permissions?.includes('*'))
 
   // Set while a System Manager is viewing the system as another user.
   const impersonatedBy = ref<Impersonator | null>(null)
@@ -366,7 +364,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, user, isLoggedIn, isSystemManager, hasPerm, restore, login, adoptLogin, loginWithPasskey,
+    token, user, isLoggedIn, hasPerm, restore, login, adoptLogin, loginWithPasskey,
     beginEmailLogin, completeEmailLogin, logout, refresh, fetchMe, setTheme, setLanguage,
     impersonatedBy, isImpersonating, startImpersonation, stopImpersonation,
   }

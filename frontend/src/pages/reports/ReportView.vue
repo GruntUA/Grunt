@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import { addUrlFilters, periodRange } from './drilldown'
 import { metaApi } from '@/core/api/meta'
-import { useAuthStore } from '@/stores/auth'
+import { useDocTypeAllows } from '@/core/composables/useDocTypeAllows'
 import type { ActiveFilter, DocField, ReportChartConfig } from '@/types'
 import { Download, RefreshCw, Settings2, FileBarChart2, FileX, ImageDown } from '@lucide/vue'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
@@ -28,7 +28,8 @@ const props = defineProps<{
     reportName: string
 }>()
 
-const auth = useAuthStore()
+// The builder saves a Report - its rules decide.
+const canBuild = useDocTypeAllows('Report', 'write')
 const router = useRouter()
 
 const report = ref<any>(null)
@@ -202,7 +203,7 @@ function openBuilder() {
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>
-                <Button size="sm" @click="openBuilder" v-if="auth.isSystemManager">
+                <Button size="sm" @click="openBuilder" v-if="canBuild">
                     <Settings2 class="size-4 mr-2" />
                     {{ t('Builder') }}
                 </Button>

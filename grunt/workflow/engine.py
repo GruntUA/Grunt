@@ -32,6 +32,7 @@ from grunt.events import fire as fire_hook
 from grunt.i18n import _
 from grunt.local import as_system
 from grunt.log import log
+from grunt.permissions.perms import ALL, user_perms
 from grunt.permissions.roles import get_roles
 from grunt.workflow.actors import previous_actor
 from grunt.workflow.registry import get_active_workflow
@@ -72,10 +73,11 @@ class WorkflowEngine:
 
         available: list[WorkflowTransition] = []
         roles = await get_roles(user)
+        unrestricted = ALL in await user_perms(user)
         for t in workflow.transitions:
             if t.from_state != current_state_name or t.on_edit != on_edit:
                 continue
-            if not user_may_take(t, roles):
+            if not user_may_take(t, roles, unrestricted=unrestricted):
                 continue
             # Check condition - transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since

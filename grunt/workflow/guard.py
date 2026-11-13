@@ -22,6 +22,7 @@ from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import ALL, user_perms
 from grunt.permissions.roles import get_roles
 lazy from grunt.workflow.engine import state_updates, workflow_engine
 lazy from grunt.workflow.registry import get_active_workflow
@@ -147,7 +148,7 @@ async def _check_edit_roles(workflow: Any, state: str | None, user: str | None) 
     if not found or not found.edit_roles:
         return
     roles = set(await get_roles(user))
-    if roles.intersection(found.edit_roles) or "System Manager" in roles:
+    if roles.intersection(found.edit_roles) or ALL in await user_perms(user):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

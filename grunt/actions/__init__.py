@@ -22,8 +22,8 @@ Flow at runtime:
   ``fields`` the toolbar first opens a form dialog and sends the collected
   values as ``args``;
 * :func:`run` re-checks that the key is actually bound on that DocType,
-  enforces the action's ``roles``, loads the document (which enforces read
-  permission) and awaits the handler.
+  enforces the action's ``perm`` / ``roles``, loads the document (which
+  enforces read permission), checks ``requires`` on it and awaits the handler.
 
 Handler contract::
 
@@ -54,6 +54,8 @@ from grunt.errors import forbidden, not_found, throw
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.perms import ALL, has_perm, user_perms
+from grunt.permissions.rbac import permission_checker
 lazy from grunt.document.api import documents
 
 __all__ = [
@@ -140,6 +142,8 @@ async def list_doc_actions(doctype: str | None = None) -> list[dict]:
             "confirm": _(a.confirm) if a.confirm else a.confirm,
             "fields": a.fields,
             "doctypes": a.doctypes,
+            "requires": a.requires,
+            "perm": a.perm,
             "roles": a.roles,
             "module": a.module,
         }
@@ -175,12 +179,14 @@ async def run(doctype: str, action: str, doc_id: str, args: dict | None = None) 
     if spec is None:
         throw(_("Action “%(action)s” is not registered") % {"action": action}, "NOT_FOUND")
 
-    if spec.roles:
-        user = acting_user()
-        if not user.has_role(*spec.roles, "System Manager"):
-            raise forbidden(_("Not permitted to run this action"))
+    if spec.perm and not await has_perm(spec.perm):
+        raise forbidden(_("Not permitted to run this action"))
+    if spec.roles and not (acting_user().has_role(*spec.roles) or ALL in await user_perms()):
+        raise forbidden(_("Not permitted to run this action"))
 
     doc = await documents.get_doc(doctype, doc_id)  # enforces read permission
+    if spec.requires != "read":
+        await permission_checker.require(dt, spec.requires, doc)
     # Guarantee the handler can always read the DocType/id off `doc`, even if
     # the serializer omitted them.
     doc.setdefault("doctype", doctype)
