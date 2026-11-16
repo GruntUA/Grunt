@@ -8,13 +8,13 @@ HTTP endpoints in ``grunt.auth.user_api``, password hashing in
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from grunt.auth.doctypes.UserRole.user_role import get_user_roles
+from grunt.auth.doctypes.UserRole.user_role import get_user_role_rows
 from grunt.auth.passwords import verify_password
 from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
+from grunt.local import active_role_rows, require_session, system_context
 from grunt.log import log
 from grunt.permissions.perms import has_perm, user_perms
 from grunt.site.manager import site_manager
@@ -77,8 +77,17 @@ async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) ->
         user = await query.first()
         if user is None:
             return None
-        user.data["roles"] = await get_user_roles(user.name)
+        await _attach_roles(user)
         return user
+
+
+async def _attach_roles(user: User) -> None:
+    """``roles`` - names held today; ``role_rows`` - every assignment with its
+    scope and period, so the roles in force are decided on each request even
+    from a cached user (:func:`grunt.local.session_role_rows`)."""
+    rows = await get_user_role_rows(user.name) if user.name else []
+    user.data["role_rows"] = rows
+    user.data["roles"] = list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
 
 
 async def get_user_by_email(email: str, *, fields: list[str] | None = None) -> User | None:
@@ -142,7 +151,7 @@ async def list_users() -> list[User]:
     async with system_context(session, engine):
         users = await User.objects.limit(10_000).all()
         for user in users:
-            user.data["roles"] = await get_user_roles(user.name)
+            await _attach_roles(user)
         return users
 
 
@@ -271,7 +280,7 @@ async def _auth_user_dump(user: User) -> dict[str, Any]:
         "id": user.id,
         "email": user.email,
         "full_name": user.full_name,
-        "roles": user.roles,
+        "roles": user.role_names,
         "theme": user.theme,
         "avatar": user.avatar,
         "mfa_enabled": bool(user.mfa_enabled),

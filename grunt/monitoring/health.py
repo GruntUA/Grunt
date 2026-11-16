@@ -50,6 +50,7 @@ lazy from grunt.config import DEFAULT_SECRET_KEY, settings
 lazy from grunt.db.alembic_utils import migration_state
 lazy from grunt.document.api import documents
 lazy from grunt.monitoring import updates
+lazy from grunt.permissions.roles import role_holders
 lazy from grunt.print.pdf import PdfEngineError, check_engine
 lazy from grunt.storage.cloud import rclone
 lazy from grunt.storage.cloud.files import cache_root
@@ -325,9 +326,7 @@ async def check_users() -> list[Row]:
     cat = _("Users and security")
     active = await _db.count("User", {"is_active": True})
     sessions = await _db.count("UserSession", {"is_active": True})
-    managers = await _db.get_all(
-        "UserRole", filters={"role_name": "System Manager"}, pluck="parent_name"
-    )
+    managers = [h["user"] for h in await role_holders(["System Manager"])]
     without_mfa = await _db.get_all(
         "User",
         filters={"name__in": managers or [""], "is_active": True, "mfa_enabled": False},

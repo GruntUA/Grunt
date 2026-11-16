@@ -15,12 +15,13 @@ lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.permissions.rbac import permission_checker
 
 
-def make_user(email: str, roles: list[str] | None = None, is_superadmin: bool = False) -> User:
+def make_user(email: str, roles: list[Any] | None = None, is_superadmin: bool = False) -> User:
     """Build a real, unsaved `User` Document for tests to act as.
 
     ``is_superadmin=True`` grants full admin rights the same way it does in
     production: by adding the "System Manager" role, not via a stored flag
-    (there is no such field on `User` anymore).
+    (there is no such field on `User` anymore). A role is its name or a
+    ``UserRole`` row (a dict with its scope / period).
 
     Cheap despite being "real": `Document.__init__` only stores the data
     dict on the instance — no DocType/DB lookup happens at construction, so

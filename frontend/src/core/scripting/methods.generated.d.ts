@@ -222,7 +222,7 @@ interface GruntMethods {
   "grunt.api.v1.workspace.save_workspace": { args: { workspace_data: Record<string, any> }; result: Record<string, any> }
   /** List assignment logs with filters. */
   "grunt.assignment.doctypes.AssignmentLog.assignment_log.list_logs": { args: { doctype?: string | null; document_id?: string | null; assigned_to?: string | null; status?: string | null; limit?: number }; result: Record<string, any> }
-  /** Test an assignment rule against a sample document. */
+  /** Test an assignment rule against a sample document - for who may edit the rule: the answer names the users it would assign. */
   "grunt.assignment.doctypes.AssignmentRule.assignment_rule.test_rule": { args: { rule_id: string; test_doc: Record<string, any> }; result: Record<string, any> }
   /** Create a new API key for the current user. */
   "grunt.auth.doctypes.ApiKey.api_key.create_api_key": { args: { label: string; expires_at?: string | null; allowed_ips?: string | null }; result: Record<string, any> }

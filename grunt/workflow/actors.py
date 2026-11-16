@@ -19,8 +19,10 @@ from grunt.local import require_session, system_context
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import ALL, user_perms
 from grunt.workflow.transition import user_may_take
-lazy from grunt.auth.users import get_user_by_id
+lazy from grunt.permissions.access import RoleAccess
 lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.roles import role_holders
+lazy from grunt.permissions.scopes import doc_in_scopes
 lazy from grunt.permissions.user_permissions import doc_passes
 lazy from grunt.workflow.registry import get_active_workflow
 
@@ -47,32 +49,28 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         return []
-    session = require_session()
     result: list[str] = []
-    async with system_context(session):
-        rows = await _db.get_all(
-            "UserRole",
-            filters={"role_name__in": sorted(roles), "parent_doctype": "User"},
-            fields=["parent_name"],
-            limit=None,
-        )
-        # UserRole points at the account id; it may differ from the current
-        # email (an account renamed later) - notifications go to the email.
-        candidates = sorted({r["parent_name"] for r in rows})
-        users = [await get_user_by_id(user_id) for user_id in candidates]
-    for candidate in users:
-        if candidate is None or not candidate.get("is_active", True):
+    async with system_context(require_session()):
+        holders = await role_holders(roles)
+    for holder in holders:
+        email = holder.get("email")
+        if not email:
             continue
-        unrestricted = ALL in await user_perms(candidate.email)
-        if not any(
-            user_may_take(t, candidate.role_names, unrestricted=unrestricted) for t in transitions
-        ):
+        # Roles that hold for this document - a scoped role only within its scope.
+        access = RoleAccess(meta, email, [])
+        held = [
+            role
+            for role, scopes in holder["roles"].items()
+            if not scopes or await doc_in_scopes(access, scopes, doc)
+        ]
+        unrestricted = ALL in await user_perms(email)
+        if not any(user_may_take(t, held, unrestricted=unrestricted) for t in transitions):
             continue
-        if not await permission_checker.check(meta, "read", doc, user=candidate.email):
+        if not await permission_checker.check(meta, "read", doc, user=email):
             continue
-        if not await doc_passes(candidate.email, meta, doc):
+        if not await doc_passes(email, meta, doc):
             continue
-        result.append(candidate.email)
+        result.append(email)
     return result
 
 

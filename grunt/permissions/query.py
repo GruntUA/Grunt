@@ -44,6 +44,7 @@ from grunt.permissions import shares
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
 from grunt.permissions.roles import role_access
+from grunt.permissions.scopes import scope_predicate
 from grunt.permissions.shares import shared_predicate
 from grunt.permissions.types import PermissionAction
 from grunt.permissions.user_permissions import user_permission_predicate
@@ -110,9 +111,10 @@ async def action_predicate(
     row-level rule in one expression, for any store (SQL compiles it, memory
     evaluates it).
 
-    Role ``match`` rules, inherited access, child rows and shares (see
-    :func:`_grants_predicate`), then User Permissions ANDed on top - they narrow
-    shared documents too.
+    Role ``match`` rules (each ANDed with its role's scope,
+    :mod:`grunt.permissions.scopes`), inherited access, child rows and shares
+    (see :func:`_grants_predicate`), then User Permissions ANDed on top - they
+    narrow shared documents too.
 
     *row* is only a hint for deciding that one row: rules that would otherwise
     enumerate every DocType a reference column holds look at the row's own.
@@ -209,15 +211,20 @@ async def _own_predicates(
 ) -> list[Expr] | None:
     """The role rules granting *action*: ``None`` = unrestricted, ``[]`` = no rows."""
     granting = [perm for perm in access.matching_permissions() if perm.grants(action)]
-    if any(not getattr(perm, "match", None) for perm in granting):
-        return None
     conditions: list[Expr] = []
     for perm in granting:
+        # The role's scope narrows this rule - and only this rule.
+        scope = await scope_predicate(access, perm, columns)
+        if not getattr(perm, "match", None):
+            if scope is None:
+                return None  # an unrestricted grant: every row
+            conditions.append(scope)
+            continue
         condition = await PermissionMatch(perm.match or "").to_expr(columns, user, doctype)
-        if condition is not None:
-            conditions.append(condition)
-        else:
+        if condition is None:
             log.warning("permissions.match_unparseable", doctype=doctype.name, match=perm.match)
+            continue
+        conditions.append(condition if scope is None else and_(condition, scope))
     return conditions
 
 

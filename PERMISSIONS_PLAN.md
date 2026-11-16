@@ -137,10 +137,12 @@ allowed(action, doc) =
 | 2c | **Поля «лише читання»** — `readonly_fields` поруч із `hidden_fields` (FRAPPE_GAP п.3); групи полів — у 2d | ✔️ #142 |
 | 2d-1 | **Нові значення при записі** (інваріант 6): insert / save / `set_value` — документ після зміни в межах `create`/`write` | ✔️ #151 |
 | 2d-2 | **Матриця «роль × дія»** — вигляд «Дозволи» у списку DocType | ✔️ #151 |
-| 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ⏳ #152 |
-| 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ⏳ `feat/permissions-roles-in-features` |
-| 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ⏳ `feat/permissions-role-link` |
-| 4 | **Ролі з областю.** `RoleAssignment`; UserPermission → призначення; перевести mlt_portal, letter; прибрати UserPermission | ☐ |
+| 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ✔️ #152 |
+| 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ✔️ #155 |
+| 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ✔️ #155 |
+| 4a | **Ролі з областю, ядро.** Рядок `UserRole` = призначення: `scope_doctype`/`scope_value`, `valid_from`/`valid_to`; область звужує правила своєї ролі; `role_holders()` замість п'яти копій запиту; UserPermission поки працює поруч | ⏳ `feat/permissions-scoped-roles` |
+| 4b | **Застосунки й дані.** mlt_portal (`sync_access`), letter (скрипт) пишуть області; міграція UserPermission → області ролей | ☐ |
+| 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
 | 7 | **API-ключі й sudo.** обмеження ключа (перетин з правами користувача), `grunt.sudo(reason)`, ревізія `system_context` у ядрі | ☐ |
@@ -199,6 +201,22 @@ allowed(action, doc) =
   `grunt.manage_desk` (меню, сторінки, онбординг). Перехід Workflow як дія правила DocType
   (`approve` в `actions` з `match` — «погоджує лише свій відділ») — окреме рішення: відкритий
   список дій у `DocPermission` і міграція Workflow застосунків (mlt_portal); не в 3b.
+
+- **2026-11-16** — крок 4: окремого DocType `RoleAssignment` немає — призначення ролі це вже
+  рядок `UserRole`, його й розширено (`scope_doctype`, `scope_value` — Dynamic Link, `valid_from`,
+  `valid_to`); без дубліката сутності. Семантика області:
+  - рядок без області — роль діє скрізь; якщо в ролі є хоч один такий рядок, області інших рядків
+    цієї ролі нічого не звужують;
+  - області звужують **лише правила своєї ролі** (AND до `match`); shares і правила інших ролей —
+    без змін (UserPermission різав усе);
+  - рядки з однаковим `scope_doctype` — OR (дерево — з піддеревом); різні `scope_doctype` — AND;
+  - DocType без Link на `scope_doctype` (і не сам він) ця область не звужує — як UserPermission;
+  - кілька Link-полів на `scope_doctype`: заповнені мусять бути в області, і хоч одне заповнене;
+    порожні всі — **поза** областю (fail closed; у UserPermission порожнє проходило);
+  - рядок поза `valid_from..valid_to` роль не дає зовсім — рахується на кожен запит, не в кеші;
+  - власник `*` областей не має (як і UserPermission);
+  - «хто має роль» (сповіщення, призначення, workflow, health) — одна функція `role_holders()`,
+    з урахуванням строку; для документа — лише ті, чия область його покриває.
 
 ## Журнал
 
@@ -484,3 +502,22 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
 - Не прийнято: перевірка ролей у `save_doctype` (шлях коду/встановлення; тести й застосунки
   реєструють DocType з ролями, що з'являються пізніше) і «наступні виконавці» Workflow з `*`
   (кожен адмін про кожен перехід — шум; так було й до 3b).
+
+### 2026-11-16 — крок 4a: ролі з областю (ядро)
+
+- `UserRole` + `scope_doctype` / `scope_value` (DynamicLink) / `valid_from` / `valid_to`; `User.validate`
+  перевіряє пару області й порядок дат; самостійне редагування профілю порівнює рядок цілком (область і
+  строк — теж привілей).
+- Користувач у контексті несе `role_rows` (усі призначення, у кеші `doc_cache`), а ролі в силі рахує
+  `grunt.local.active_role_rows` на кожен запит — строк спливає опівночі, а не з наступним записом User.
+- `RoleAccess.scopes` / `bound_scopes()` / `scope_fields()`; `grunt/permissions/scopes.py` —
+  `scope_predicate()` (AND до `match` правила своєї ролі, у `_own_predicates`) — той самий `Expr` для
+  списку й документа, тож інваріант 6 (нові значення при записі) виконується без окремого коду.
+  `has_unrestricted_read` враховує область (пікери Link / дерева).
+- `roles.role_holders()` + `scopes.holders_for(roles, doctype, doc)` замінили п'ять копій запиту «хто має
+  роль»: правила сповіщень, SLA, призначення (+ попередній перегляд правила — тепер лише для тих, хто
+  може правило змінити), «Наступні виконавці» workflow, health («адміністратори без 2FA»).
+- UserPermission працює далі паралельно (4c прибирає).
+- Схема: нових міграцій немає — колонки додає синхронізація DocType (`grunt migrate`). dev2 і lagoo
+  синхронізовано `grunt doctype sync UserRole` (знімки 20261116-102244 / 20261116-102308); lagoo лишився
+  на 0024.

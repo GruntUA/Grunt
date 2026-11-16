@@ -13,6 +13,33 @@
       "required": true,
       "in_list_view": true,
       "in_filter": true
+    },
+    {
+      "fieldname": "scope_doctype",
+      "label": "Scope",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "description": "Limit the role to documents linked to this record (a department, a section). Empty - the role applies everywhere."
+    },
+    {
+      "fieldname": "scope_value",
+      "label": "Scope value",
+      "fieldtype": "DynamicLink",
+      "options": "scope_doctype",
+      "in_list_view": true,
+      "depends_on": "eval:doc.scope_doctype",
+      "mandatory_depends_on": "eval:doc.scope_doctype"
+    },
+    {
+      "fieldname": "valid_from",
+      "label": "Valid from",
+      "fieldtype": "Date"
+    },
+    {
+      "fieldname": "valid_to",
+      "label": "Valid to",
+      "fieldtype": "Date"
     }
   ]
 }

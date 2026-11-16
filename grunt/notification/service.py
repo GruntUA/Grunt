@@ -17,6 +17,8 @@ from grunt.notification import rules
 from grunt.notification.channels import Message
 from grunt.notification.delivery import deliver
 lazy from grunt.document.api import documents
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.scopes import holders_for
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -229,38 +231,17 @@ class NotificationService:
         self,
         role_names: list[str],
         session: AsyncSession,
+        doctype: str | None = None,
+        doc: dict[str, Any] | None = None,
     ) -> list[str]:
-        """Return email addresses of all active users with any of the given roles."""
+        """Emails of active users holding any of *role_names* today - with *doc*,
+        only those whose role scope covers it."""
         if not role_names:
             return []
         try:
             async with system_context(session):
-                # Collect user_ids for all requested roles
-                user_ids: set[str] = set()
-                for role in role_names:
-                    rows = await _db.get_all(
-                        "UserRole",
-                        filters={"role_name": role, "parent_doctype": "User"},
-                        fields=["parent_name"],
-                        limit=1000,
-                    )
-                    user_ids.update(r["parent_name"] for r in rows)
-
-                if not user_ids:
-                    return []
-
-                # Resolve to emails - only active users
-                emails: list[str] = []
-                for user_id in user_ids:
-                    user_rows = await _db.get_all(
-                        "User",
-                        filters={"name": user_id, "is_active": True},
-                        fields=["email"],
-                        limit=1,
-                    )
-                    if user_rows and user_rows[0].get("email"):
-                        emails.append(user_rows[0]["email"])
-                return emails
+                meta = await doctype_registry.get_meta(doctype) if doctype else None
+                return await holders_for(role_names, meta, doc if meta is not None else None)
         except Exception:
             log.warning("notification.role_resolution_failed", roles=role_names)
             return []
