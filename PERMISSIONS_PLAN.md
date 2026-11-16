@@ -140,8 +140,8 @@ allowed(action, doc) =
 | 3a | **Дозволи.** Реєстр (`permissions` у hooks.py), `Role.permissions` (System Manager — `*`), `has_perm()`, `@whitelist(perm=)`; ядро без рядкових «System Manager» | ✔️ #152 |
 | 3b | **Workflow / AppMenu / Workspace / Page / Report / дії документа** — через дії правил і дозволи замість списків ролей | ✔️ #155 |
 | 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ✔️ #155 |
-| 4a | **Ролі з областю, ядро.** Рядок `UserRole` = призначення: `scope_doctype`/`scope_value`, `valid_from`/`valid_to`; область звужує правила своєї ролі; `role_holders()` замість п'яти копій запиту; UserPermission поки працює поруч | ⏳ `feat/permissions-scoped-roles` |
-| 4b | **Застосунки й дані.** mlt_portal (`sync_access`), letter (скрипт) пишуть області; міграція UserPermission → області ролей | ☐ |
+| 4a | **Ролі з областю, ядро.** Рядок `UserRole` = призначення: `scope_doctype`/`scope_value`, `valid_from`/`valid_to`; область звужує правила своєї ролі; `role_holders()` замість п'яти копій запиту; UserPermission поки працює поруч | ✔️ #159 |
+| 4b | **Застосунки й дані.** mlt_portal (`sync_access`), letter (скрипт) пишуть області; міграція UserPermission → області ролей | ⏳ mlt_portal#9 ✔️, letter#1 ✔️, міграція `feat/permissions-migrate-user-permissions` |
 | 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ☐ |
 | 5 | **Shares як правила + access_from.** share на user/role/всіх, строк, ділитися далі (п.40); child і `inherit_permission_from` → `access_from` | ☐ |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
@@ -521,3 +521,27 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
 - Схема: нових міграцій немає — колонки додає синхронізація DocType (`grunt migrate`). dev2 і lagoo
   синхронізовано `grunt doctype sync UserRole` (знімки 20261116-102244 / 20261116-102308); lagoo лишився
   на 0024.
+
+### 2026-11-16 — крок 4b: застосунки й дані
+
+- **mlt_portal#9** (злито): `sync_access` пише роль модератора/автора рядками UserRole з областю
+  `WebsiteMenuItem` (по рядку на розділ) і прибирає свої старі UserPermission;
+  `MltPortalSettings.news_section` — `ignore_user_permissions` (посилання з налаштувань, не область);
+  запис доступу без розділів ролі не дає.
+- **letter#1** (злито): скрипт ставить область `Department` на роль «Діловод»; без ролі — не чіпає
+  (виконавець/підписант бачить свої листи за правилами `All`).
+- **Міграція 0026** — UserPermission → області, лише те, що область каже **точно**, і нічого не
+  розширюючи (рев'ю CodeRabbit на #160):
+  - користувач із роллю `*` — не чіпаємо (UserPermission його не обмежував);
+  - роль переводиться, коли для кожного `allow` усі її DocType, що є ним чи мають на нього Link (не
+    MultiLink, не `ignore_user_permissions`), були обмежені **тими самими** значеннями — інакше область
+    звузила б чи розширила котрийсь із них, і роль лишається як є;
+  - UserPermission видаляється, лише коли всі шляхи доступу на обмежених DocType тепер під областю:
+    жодної непереведеної ролі користувача з правилом там, жодного правила `All`, нічого не поширено
+    з ним там. Інакше лишається (і далі звужує все) і пишеться в лог — рішення про них у 4c;
+  - alembic іде перед синхронізацією DocType: міграція бачить старі визначення. На проді
+    `MltPortalSettings.news_section` ще без позначки — модератори лишаться на UserPermission, доки
+    їхній запис MltPortalAccess не збережуть знову.
+  - dev2 мігровано першою версією 0026 (до рев'ю): «Діловод» отримав область, а 2 UserPermission
+    видалено — нова версія лишила б їх заради правил `All` на листах.
+- Після `migrate` — перезапустити процеси сервера: користувач у `doc_cache` тримає старі ролі.
