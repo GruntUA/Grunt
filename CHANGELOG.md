@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.5.0 - 2026-11-16
+
+### Features
+
+- **richtext:** file preview block - PDF, Word, Excel, PowerPoint in the text
+- **permissions:** migrate User Permissions to scoped roles
+- **permissions:** scoped roles - a role held within a record
+
+### Fixes
+
+- **permissions:** 0026 moves only exact scopes and never widens access
+
+### Database migrations
+
+- `0026_user_permissions_to_scopes`
+
 ## v0.4.0 - 2026-11-13
 
 ### Features
