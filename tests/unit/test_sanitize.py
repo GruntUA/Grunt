@@ -72,3 +72,30 @@ def test_htmlview_coerce_sanitizes_and_keeps_tables():
     html = '<table><tr><td onclick="x()">a</td></tr></table><script>alert(1)</script>'
     assert coerce(html) == "<table><tbody><tr><td>a</td></tr></tbody></table>"
     assert coerce(None) is None
+
+
+def test_keeps_file_embeds_of_this_site_and_office_viewer():
+    office = "https://view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Fsite%2Fapi%2Fv1%2Ffiles%2Fa1.docx"
+    html = (
+        '<figure class="file-embed"><iframe src="/api/v1/files/a1.pdf" width="100%" height="720">'
+        '</iframe><figcaption><a href="/f">a.pdf</a></figcaption></figure>'
+        f'<iframe src="{office}"></iframe>'
+    )
+    clean = sanitize_html(html)
+    assert 'src="/api/v1/files/a1.pdf"' in clean
+    assert f'src="{office.replace("&", "&amp;")}"' in clean
+    assert "<figcaption>" in clean
+
+
+@pytest.mark.parametrize(
+    "src",
+    [
+        "/api/v1/files/../method/x",
+        "/api/v1/files/a1.pdf?x=1",
+        "//evil.example/api/v1/files/a1.pdf",
+        "https://evil.example/api/v1/files/a1.pdf",
+        "https://view.officeapps.live.com.evil.example/op/embed.aspx?src=x",
+    ],
+)
+def test_drops_other_file_frames(src):
+    assert "src=" not in sanitize_html(f'<iframe src="{src}"></iframe>')

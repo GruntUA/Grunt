@@ -9,8 +9,9 @@ from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
 lazy from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentRule
-lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.document.api import documents
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.scopes import holders_for
 lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -152,30 +153,23 @@ class AssignmentService:
     ) -> None:
 
         try:
+            # Holders whose role scope covers the document - a department's
+            # clerk gets that department's documents only.
             async with system_context(require_session()):
-                ur_rows = await _db.get_all(
-                    "UserRole",
-                    filters={"role_name": role, "parent_doctype": "User"},
-                    fields=["parent_name"],
-                    limit=500,
-                )
+                meta = await doctype_registry.get_meta(doctype)
+                emails = await holders_for([role], meta, doc if meta is not None else None)
 
-            user_ids = [r["parent_name"] for r in ur_rows]
-            if not user_ids:
+            if not emails:
                 log.info("assignment.no_users_in_role", doctype=doctype, role=role)
                 return
 
-            for user_id in user_ids:
-                user = await get_user_by_id(user_id)
-                if not user or not user.is_active:
-                    continue
-
-                await self._create_todo(doctype, doc, user.email)
+            for email in emails:
+                await self._create_todo(doctype, doc, email)
                 await AssignmentLog.create(
                     rule_id=rule_id,
                     doctype_affected=doctype,
                     document_id=doc.get("name") or "",
-                    assigned_to=user.email,
+                    assigned_to=email,
                     assignment_method="role",
                     status="Success",
                 )
@@ -185,7 +179,7 @@ class AssignmentService:
                 doctype=doctype,
                 doc_id=doc.get("name"),
                 role=role,
-                user_count=len(user_ids),
+                user_count=len(emails),
             )
         except Exception as exc:
             log.exception("assignment.assign_role_error", doctype=doctype, role=role, exc_info=exc)

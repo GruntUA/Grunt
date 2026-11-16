@@ -77,7 +77,7 @@ def create_access_token(
         "full_name": user.full_name,
         "is_active": user.is_active,
         "theme": user.theme,
-        "roles": user.roles,
+        "roles": user.role_names,
         "exp": expire,
     }
     if sid is not None:

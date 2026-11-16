@@ -130,3 +130,28 @@ async def test_authorized_signing_handles_tuples_and_keeps_container_types(ctx):
     assert "&sig=" in signed["items"][0]  # list element signed
     assert isinstance(signed["row"], tuple) and isinstance(signed["items"], list)
     assert signed is data  # mutated in place, same dict object
+
+
+@pytest.mark.asyncio
+async def test_public_file_by_extension_opens_for_guests_in_a_site_frame(client, auth_headers):
+    """``/api/v1/files/<id>.<ext>`` - what Office for the web fetches and a PDF
+    embed frames: anonymous, public files only, framable by the site itself."""
+
+    async def upload(name: str, public: bool) -> str:
+        r = await client.post(
+            f"{M}.upload",
+            files={"file": (name, b"%PDF-1.4", "application/pdf")},
+            data={"is_public": "true"} if public else {},
+            headers=auth_headers,
+        )
+        assert r.status_code == 200, r.text
+        return r.json()["data"]["id"]
+
+    public, private = await upload("plan.pdf", True), await upload("draft.pdf", False)
+    ok = await client.get(f"/api/v1/files/{public}.pdf")
+    assert ok.status_code == 200
+    assert ok.content == b"%PDF-1.4"
+    assert ok.headers["x-frame-options"] == "SAMEORIGIN"
+    assert "frame-ancestors 'self'" in ok.headers["content-security-policy"]
+    assert (await client.get(f"/api/v1/files/{private}.pdf")).status_code == 404
+    assert (await client.get(f"/api/v1/files/{public}.docx")).status_code == 404

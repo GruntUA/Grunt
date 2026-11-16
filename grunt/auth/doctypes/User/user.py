@@ -12,6 +12,7 @@ from datetime import date, datetime
 from typing import Any
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
+from grunt.auth.doctypes.UserRole.user_role import ROLE_ROW_FIELDS, plain_role_row
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.passwords import hash_password, verify_password
 from grunt.db.api import GruntDB
@@ -19,7 +20,7 @@ from grunt.document.base import Document
 from grunt.document.schema import Schema
 from grunt.errors import throw
 from grunt.i18n import N_, _
-from grunt.local import _user_ctx, use_system_user
+from grunt.local import _user_ctx, active_role_rows, use_system_user
 from grunt.log import log
 from grunt.permissions.perms import has_perm
 
@@ -105,8 +106,10 @@ class User(Document):
     def role_names(self) -> list[str]:
         """Role names, whether ``roles`` holds the loaded names (an authenticated
         user) or the UserRole child rows (a document being saved)."""
-        rows = self.data.get("roles") or []
-        return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]
+        rows = self.data.get("role_rows")
+        if rows is None:
+            rows = self.data.get("roles") or []
+        return list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
 
     def has_role(self, *roles: str) -> bool:
         """True if the user holds any of *roles*."""
@@ -119,6 +122,8 @@ class User(Document):
             raise ValueError(_("First name is required"))
         if not self.last_name:
             raise ValueError(_("Last name is required"))
+        if "roles" in self.data:
+            _validate_role_rows(self.data.get("roles") or [])
         await self._enforce_self_edit_scope()
 
     async def _enforce_self_edit_scope(self) -> None:
@@ -144,16 +149,18 @@ class User(Document):
         # Roles are only in the merged payload when the client actually submitted
         # the child table (see the update pipeline) - so key presence == an attempt.
         if "roles" in self.data:
+            # The whole assignment counts - a scope or a period is as much a
+            # privilege as the role itself.
             stored = await _db.get_all(
                 "UserRole",
                 filters={"parent_name": self.name, "parent_doctype": "User"},
-                fields=["role_name"],
-                limit=100,
+                fields=ROLE_ROW_FIELDS,
+                limit=500,
             )
-            submitted = {
-                r.get("role_name") for r in (self.data.get("roles") or []) if isinstance(r, dict)
-            }
-            if submitted != {r["role_name"] for r in stored}:
+            submitted = [
+                plain_role_row(r) for r in (self.data.get("roles") or []) if isinstance(r, dict)
+            ]
+            if _assignments(submitted) != _assignments([plain_role_row(r) for r in stored]):
                 throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back - quietly restore
@@ -268,6 +275,31 @@ def guest_user() -> User:
         doctype="User",
         data={"email": GUEST_USER, "full_name": "Guest", "roles": ["Guest"], "is_active": True},
     )
+
+
+def _assignments(rows: list[dict[str, Any]]) -> list[tuple[str, ...]]:
+    """Role assignment rows compared as a set (order and row ids don't matter)."""
+    return sorted(tuple(str(r.get(f) or "") for f in ROLE_ROW_FIELDS) for r in rows)
+
+
+def _validate_role_rows(rows: list[Any]) -> None:
+    """A scope names both the DocType and the record; a period ends after it starts."""
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        role = row.get("role_name") or ""
+        if bool(row.get("scope_doctype")) != bool(row.get("scope_value")):
+            throw(
+                _("Role “%(role)s”: a scope needs both the document type and the document")
+                % {"role": _(role)},
+                "VALIDATION_ERROR",
+            )
+        start, end = row.get("valid_from"), row.get("valid_to")
+        if start and end and str(end)[:10] < str(start)[:10]:
+            throw(
+                _("Role “%(role)s”: “Valid to” is before “Valid from”") % {"role": _(role)},
+                "VALIDATION_ERROR",
+            )
 
 
 def _norm_scalar(value: Any) -> str:

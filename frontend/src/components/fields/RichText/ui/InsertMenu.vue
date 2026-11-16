@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  ChevronDown, FileUp, Image as ImageIcon, Images, Loader2, Paperclip, Plus, Table as TableIcon, Trash2, Upload, Video,
+  ChevronDown, FileText, FileUp, Image as ImageIcon, Images, Loader2, Paperclip, Plus, Table as TableIcon, Trash2, Upload, Video,
 } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,7 +21,7 @@ import TableGridPicker from './TableGridPicker.vue'
 // ask for a URL in a popover anchored to this menu's button.
 const { t } = useI18n()
 const toast = useToast()
-const { editor, uploading, uploadImage, insertFileBlock, importDocx } = useRichEditorContext()
+const { editor, uploading, uploadImage, insertFileBlock, insertFileEmbed, importDocx } = useRichEditorContext()
 
 const trigger = ref<{ $el: HTMLElement } | null>(null)
 const menuOpen = ref(false)
@@ -88,6 +88,7 @@ function insertTable(rows: number, cols: number) {
         <DropdownMenuItem @select="openForm('video')"><Video /> {{ t('YouTube video') }}…</DropdownMenuItem>
         <DropdownMenuItem @select="insertFileBlock('fileList')"><Paperclip /> {{ t('Files') }}…</DropdownMenuItem>
         <DropdownMenuItem @select="insertFileBlock('gallery')"><Images /> {{ t('Gallery') }}…</DropdownMenuItem>
+        <DropdownMenuItem @select="insertFileEmbed()"><FileText /> {{ t('File preview') }}…</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger :disabled="editor?.isActive('table')"><TableIcon /> {{ t('Table') }}</DropdownMenuSubTrigger>

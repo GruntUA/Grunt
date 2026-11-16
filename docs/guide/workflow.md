@@ -55,7 +55,7 @@ A transition does not notify anyone by itself. Notifications come from **Notific
 - **Recipients**:
   - **Author**: the document's author.
   - **Previous actor**: whoever performed the previous workflow action.
-  - **Next actors**: users who can take a button transition out of the new state *and* can read this document. Roles, `match` rules and User Permissions all count.
+  - **Next actors**: users who can take a button transition out of the new state *and* can read this document. Roles, their scopes (a role held for one department counts only for that department's documents), `match` rules and User Permissions all count.
   - Any other recipient kind, e.g. a role or a document field.
 - **Template variables**: `action`, `from_state`, `to_state`, `from_label`, `to_label`, `comment` and `title`.
 

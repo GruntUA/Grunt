@@ -59,6 +59,7 @@ _AUTH_STRICT_PATHS: dict[str, int] = {
 _AUTH_METHODS_PREFIX = "/api/v1/auth/"
 _AUTH_METHODS_LIMIT = 20
 
+_PUBLIC_FILE_PREFIX = "/api/v1/files/"
 _FILE_CONTENT_PATH = "/api/v1/method/grunt.storage.doctypes.File.file.get_content"
 
 # Per-IP limits (requests/minute) that apps set for their own paths through
@@ -94,8 +95,11 @@ def _is_file_content_request(request: Request) -> bool:
     Public website images carry no signature, and an unsigned request for a
     private file is refused by get_content anyway - so the bucket keys on the
     path; guessing random file ids at this rate is not a practical attack.
+    ``/api/v1/files/<id>.<ext>`` - a public file by its extension (PDF and
+    Office previews on website pages) - counts the same.
     """
-    return request.url.path == _FILE_CONTENT_PATH
+    path = request.url.path
+    return path == _FILE_CONTENT_PATH or path.startswith(_PUBLIC_FILE_PREFIX)
 
 
 def _is_page_view(path: str, method: str) -> bool:

@@ -4,9 +4,10 @@ Both ``grunt.api.context`` and ``grunt.app`` import these objects so that
 setting session / engine / user in one place is immediately visible everywhere.
 """
 
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Iterable, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -72,13 +73,51 @@ def require_session_user() -> str:
     return email
 
 
-def session_roles() -> list[str]:
-    """Role names of the user the context runs as (``[]`` without one)."""
+def active_role_rows(rows: Iterable[Any], on: date | None = None) -> list[dict[str, Any]]:
+    """The role assignments of *rows* (``UserRole`` rows or bare role names) in
+    force *on* a day (today by default): outside ``valid_from..valid_to`` a row
+    gives no role at all. Decided on every call, never cached - an assignment
+    lapses at midnight, not on the next write to the user."""
+    day = on or date.today()
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if isinstance(row, str):
+            out.append({"role_name": row})
+            continue
+        if not row.get("role_name"):
+            continue
+        start, end = _as_date(row.get("valid_from")), _as_date(row.get("valid_to"))
+        if (start is None or start <= day) and (end is None or day <= end):
+            out.append(row)
+    return out
+
+
+def _as_date(value: Any) -> date | None:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value)[:10])
+
+
+def session_role_rows() -> list[dict[str, Any]]:
+    """Role assignments in force of the user the context runs as - with their
+    scope (``scope_doctype`` / ``scope_value``) when loaded with it."""
     user = _user_ctx.get()
     if user is None:
         return []
-    rows = getattr(user, "roles", None) or []
-    return [r if isinstance(r, str) else r.get("role_name", "") for r in rows]
+    data = getattr(user, "data", None)
+    rows = data.get("role_rows") if isinstance(data, dict) else None
+    if rows is None:
+        rows = getattr(user, "roles", None) or []
+    return active_role_rows(rows)
+
+
+def session_roles() -> list[str]:
+    """Role names of the user the context runs as (``[]`` without one)."""
+    return list(dict.fromkeys(r["role_name"] for r in session_role_rows()))
 
 
 def clear_context() -> None:

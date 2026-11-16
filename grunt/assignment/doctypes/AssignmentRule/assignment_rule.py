@@ -7,8 +7,10 @@ from grunt.api.context import whitelist
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-lazy from grunt.auth.users import get_user_by_id
 lazy from grunt.document.api import documents
+lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.rbac import permission_checker
+lazy from grunt.permissions.scopes import holders_for
 
 
 class AssignmentRule(Document):
@@ -93,16 +95,12 @@ class AssignmentRule(Document):
             if self.assign_to_user:
                 will_assign_to.append(self.assign_to_user)
             elif self.assign_to_role:
-                ur_rows = await documents.get_list(
-                    "UserRole",
-                    filters={"role_name": self.assign_to_role, "parent_doctype": "User"},
-                    fields=["parent_name"],
-                    limit=500,
+                meta = await doctype_registry.get_meta(self.doctype_target or "")
+                will_assign_to.extend(
+                    await holders_for(
+                        [self.assign_to_role], meta, test_doc if meta is not None else None
+                    )
                 )
-                for ur in ur_rows:
-                    u = await get_user_by_id(ur["parent_name"])
-                    if u and u.is_active:
-                        will_assign_to.append(u.email)
 
         matching_fields = [field for field in filters if field in test_doc]
 
@@ -126,9 +124,13 @@ class AssignmentRule(Document):
 
 @whitelist()
 async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
-    """Test an assignment rule against a sample document."""
+    """Test an assignment rule against a sample document - for who may edit the
+    rule: the answer names the users it would assign."""
+    rule = await documents.get_doc(AssignmentRule, rule_id)
+    meta = await doctype_registry.get_meta("AssignmentRule")
+    if meta is not None:
+        await permission_checker.require(meta, "write", rule.data)
     try:
-        rule = await documents.get_doc(AssignmentRule, rule_id)
         return await rule.preview(test_doc)
     except Exception as exc:
         throw(str(exc))
