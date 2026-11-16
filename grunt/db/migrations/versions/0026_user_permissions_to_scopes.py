@@ -1,23 +1,27 @@
 """User Permissions become scoped roles (PERMISSIONS_PLAN step 4b).
 
 A ``UserPermission`` (user, ``allow`` DocType, value, for one DocType or all)
-narrowed every role of the user; a scoped role assignment (a ``UserRole`` row
-with ``scope_doctype`` / ``scope_value``) narrows only its own role. For each
-user with User Permissions:
+narrowed every grant path of the user - all roles, ``All`` rules, shares; a
+scoped role assignment (a ``UserRole`` row with ``scope_doctype`` /
+``scope_value``) narrows only its own role, on every DocType that is, or links
+to, the scope DocType. The migration moves only what a scope says **exactly**,
+and never widens access:
 
-* a role of the user is *touched* by a User Permission when the role has a rule
-  on a DocType it restricted - ``applicable_for``, or (for "all DocTypes") any
-  DocType that is, or links to, ``allow``;
-* the user's assignment of a touched role (one without a scope) is replaced by
-  scoped ones - one per restricted value (rows of one ``allow`` widen each
-  other, of different ones narrow: the same as before for that role);
-* the User Permissions that touched a role are deleted; one that touched none
-  (it narrowed only rules for ``All``, say) stays and is logged - removing
-  ``UserPermission`` (step 4c) would drop it.
+* A user holding a role with every permission (``*``) is left alone: User
+  Permissions didn't bind them.
+* A role of the user is converted when, for each ``allow`` it meets (a DocType
+  it has a rule on is, or links to, ``allow`` - through a Link field, not one
+  flagged ``ignore_user_permissions``), every such DocType was restricted to
+  the same values: the scope is then exactly that restriction. A DocType the
+  role reaches that wasn't restricted, or was with other values, leaves the
+  role as it is (a scope would narrow or widen it).
+* A User Permission is deleted only when every grant path on the DocTypes it
+  restricted is now scoped instead - each role of the user with a rule there
+  converted, no ``All`` rule there, nothing shared with the user there.
+  Otherwise it stays, still narrowing everything, and is logged: step 4c
+  (removing ``UserPermission``) decides those.
 
-A role holding every permission (``*``) is never scoped: User Permissions
-didn't bind it either. The scope columns are added when the DocType sync
-hasn't run yet.
+The scope columns are added when the DocType sync hasn't run yet.
 
 Revision ID: 0026
 Revises: 0025
@@ -45,6 +49,7 @@ _UP = "grunt_permissions_user_permission"
 _ROLES = "grunt_auth_user_role"
 _ROLE = "grunt_auth_role"
 _META = "grunt_metadata_doc_type"
+_SHARED = "grunt_permissions_shared_with"
 _SCOPE_COLUMNS = {
     "scope_doctype": sa.Text(),
     "scope_value": sa.Text(),
@@ -66,16 +71,54 @@ def _definitions(conn: sa.Connection) -> dict[str, dict]:
 
 
 def _links_to(definition: dict, name: str, allow: str) -> bool:
-    """Whether DocType *name* is, or links to, *allow* (not through a field
-    that ignores User Permissions)."""
+    """Whether DocType *name* is, or links to, *allow* the way a scope applies:
+    through a Link field (as the runtime's ``link`` trait), not one flagged
+    ``ignore_user_permissions``."""
     if name == allow:
         return True
     return any(
-        f.get("fieldtype") in _LINKS
+        f.get("fieldtype") == "Link"
         and f.get("options") == allow
         and not f.get("ignore_user_permissions")
         for f in definition.get("fields") or []
     )
+
+
+def _restricted(user_ups: list[dict], doctype: str, allow: str) -> frozenset[str]:
+    """Values *doctype* was restricted to by the user's User Permissions on *allow*."""
+    return frozenset(
+        up["for_value"]
+        for up in user_ups
+        if up["allow"] == allow and (up["apply_to_all_doctypes"] or up["applicable_for"] == doctype)
+    )
+
+
+def _role_scopes(
+    role: str,
+    user_ups: list[dict],
+    ruled: dict[str, set[str]],
+    definitions: dict[str, dict],
+) -> dict[str, frozenset[str]] | None:
+    """``{allow: values}`` that say exactly what User Permissions did to *role*,
+    or ``None`` when no scope can (or there is nothing to say)."""
+    scopes: dict[str, frozenset[str]] = {}
+    for allow in sorted({up["allow"] for up in user_ups}):
+        reached = [dt for dt in ruled[role] if _links_to(definitions.get(dt) or {}, dt, allow)]
+        if not reached:
+            continue
+        values = {_restricted(user_ups, dt, allow) for dt in reached}
+        if len(values) != 1 or not next(iter(values)):
+            return None  # restricted differently, or not at all, across the role's DocTypes
+        scopes[allow] = next(iter(values))
+    return scopes or None
+
+
+def _shared_doctypes(conn: sa.Connection, tables: set[str], user: str) -> set[str]:
+    if _SHARED not in tables:
+        return set()
+    shared = sa.table(_SHARED, sa.column("reference_doctype"), sa.column("user"))
+    query = sa.select(shared.c.reference_doctype).where(shared.c.user == user).distinct()
+    return {r[0] for r in conn.execute(query)}
 
 
 def upgrade() -> None:
@@ -149,26 +192,24 @@ def upgrade() -> None:
             .mappings()
             .all()
         )
-        used: set[str] = set()  # UserPermission names that touched a role
-        next_idx = max((r["idx"] or 0 for r in assigned), default=0)
+        held = {a["role_name"] for a in assigned}
+        if held & everything:
+            log.warning("0026: %s holds every permission (*) - User Permissions kept", user)
+            continue
+
+        converted: set[str] = set()
+        next_idx = max((a["idx"] or 0 for a in assigned), default=0)
         for assignment in assigned:
             role = assignment["role_name"]
-            if assignment["scope_doctype"] or role in everything:
+            if assignment["scope_doctype"] or role in converted:
                 continue
-            scopes: dict[str, set[str]] = defaultdict(set)
-            for up in user_ups:
-                if up["apply_to_all_doctypes"]:
-                    touched = any(
-                        _links_to(definitions.get(dt) or {}, dt, up["allow"]) for dt in ruled[role]
-                    )
-                else:
-                    touched = up["applicable_for"] in ruled[role]
-                if touched:
-                    scopes[up["allow"]].add(up["for_value"])
-                    used.add(up["name"])
-            if not scopes:
+            if any(a["role_name"] == role and a["scope_doctype"] for a in assigned):
+                continue  # already scoped elsewhere - not ours to merge
+            scopes = _role_scopes(role, user_ups, ruled, definitions)
+            if scopes is None:
                 continue
-            conn.execute(roles_t.delete().where(roles_t.c.name == assignment["name"]))
+            for other in [a for a in assigned if a["role_name"] == role]:
+                conn.execute(roles_t.delete().where(roles_t.c.name == other["name"]))
             for allow, values in sorted(scopes.items()):
                 for value in sorted(values):
                     next_idx += 1
@@ -190,18 +231,44 @@ def upgrade() -> None:
                             valid_to=assignment.get("valid_to"),
                         )
                     )
-            log.info("0026: %s - role %r scoped to %s", user, role, dict(scopes))
-        if used:
-            conn.execute(ups.delete().where(ups.c.name.in_(sorted(used))))
+            converted.add(role)
+            log.info(
+                "0026: %s - role %r scoped to %s",
+                user,
+                role,
+                {k: sorted(v) for k, v in scopes.items()},
+            )
+
+        shared = _shared_doctypes(conn, tables, user)
+        drop: list[str] = []
         for up in user_ups:
-            if up["name"] not in used:
+            restricted = (
+                [dt for dt, d in definitions.items() if _links_to(d, dt, up["allow"])]
+                if up["apply_to_all_doctypes"]
+                else [up["applicable_for"]]
+            )
+            open_paths = sorted(
+                f"{dt}: {path}"
+                for dt in restricted
+                for path in (
+                    *(r for r in held - converted if dt in ruled[r]),
+                    *(["All"] if dt in ruled["All"] else []),
+                    *(["shared"] if dt in shared else []),
+                )
+            )
+            if open_paths:
                 log.warning(
-                    "0026: %s - UserPermission %s=%s (%s) narrows no role of the user; kept",
+                    "0026: %s - UserPermission %s=%s (%s) kept, still narrows %s",
                     user,
                     up["allow"],
                     up["for_value"],
                     up["applicable_for"] or "all DocTypes",
+                    ", ".join(open_paths),
                 )
+            else:
+                drop.append(up["name"])
+        if drop:
+            conn.execute(ups.delete().where(ups.c.name.in_(drop)))
 
 
 def downgrade() -> None:
