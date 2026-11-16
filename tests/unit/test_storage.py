@@ -14,7 +14,7 @@ from starlette.responses import FileResponse
 import grunt
 from grunt.storage import backends, files
 from grunt.storage.backends import FileTooLargeError, LocalStorageBackend
-from grunt.storage.doctypes.File.file import get_content, remove, upload
+from grunt.storage.doctypes.File.file import get_content, public_file, remove, upload
 from grunt.storage.files import read, store
 from grunt.storage.gc import collect_garbage, verify
 
@@ -28,9 +28,9 @@ def storage(tmp_path, monkeypatch) -> LocalStorageBackend:
     return backend
 
 
-def _upload_file(name: str, content: bytes) -> UploadFile:
+def _upload_file(name: str, content: bytes, ctype: str = "text/plain") -> UploadFile:
     return UploadFile(
-        file=io.BytesIO(content), filename=name, headers=Headers({"content-type": "text/plain"})
+        file=io.BytesIO(content), filename=name, headers=Headers({"content-type": ctype})
     )
 
 
@@ -193,6 +193,37 @@ async def test_get_content_inline_only_for_safe_types(ctx, storage):
     assert "inline" in (await get_content(text["id"], inline=True)).headers["content-disposition"]
     response = await get_content(table["name"], inline=True)
     assert "attachment" in response.headers["content-disposition"]
+
+
+PDF = "application/pdf"
+DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+
+@pytest.mark.asyncio
+async def test_get_content_inline_may_be_framed_by_the_site(ctx, storage):
+    pdf = await upload(_upload_file("plan.pdf", b"%PDF-1.4", PDF))
+
+    assert (await get_content(pdf["id"], inline=True)).headers["x-frame-options"] == "SAMEORIGIN"
+    assert "x-frame-options" not in (await get_content(pdf["id"])).headers
+
+
+@pytest.mark.asyncio
+async def test_public_file_by_its_extension(ctx, storage):
+    pdf = await upload(_upload_file("План.PDF", b"%PDF-1.4", PDF), is_public=True)
+    doc = await upload(_upload_file("report.docx", b"PK", DOCX), is_public=True)
+    private = await upload(_upload_file("secret.pdf", b"%PDF-1.4", PDF))
+
+    response = await public_file(f"{pdf['id']}.pdf")
+    assert isinstance(response, FileResponse)
+    assert "inline" in response.headers["content-disposition"]
+    assert response.headers["x-frame-options"] == "SAMEORIGIN"
+    # Office for the web downloads it; the browser never shows it inline.
+    assert "attachment" in (await public_file(f"{doc['id']}.docx")).headers["content-disposition"]
+
+    for name in (f"{private['id']}.pdf", f"{doc['id']}.pdf", doc["id"], "nope.pdf"):
+        with pytest.raises(HTTPException) as e:
+            await public_file(name)
+        assert e.value.status_code == 404
 
 
 # ── garbage collection ───────────────────────────────────────────────────

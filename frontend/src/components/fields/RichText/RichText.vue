@@ -77,10 +77,10 @@ const words = () => editor.value?.storage.characterCount.words() ?? 0
         <AttachPicker
           :open="!!picker"
           :image-only="picker?.kind === 'gallery'"
-          :multiple="picker?.kind !== 'link'"
+          :multiple="picker?.kind === 'fileList' || picker?.kind === 'gallery'"
           :current-url="picker?.currentUrl"
-          :title="picker?.kind === 'link' ? t('Link to a file') : undefined"
-          :action-label="picker?.kind === 'link' ? t('Insert link') : undefined"
+          :title="picker?.kind === 'link' ? t('Link to a file') : picker?.kind === 'fileEmbed' ? t('File preview') : undefined"
+          :action-label="picker?.kind === 'link' ? t('Insert link') : picker?.kind === 'fileEmbed' ? t('Insert') : undefined"
           @update:open="(open: boolean) => { if (!open) onPicked([]) }"
           @select="(r: AttachmentResult) => onPicked([r])"
           @select-many="onPicked"

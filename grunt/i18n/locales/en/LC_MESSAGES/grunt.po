@@ -14520,3 +14520,21 @@ msgstr ""
 
 #~ msgid "“%(name)s” not found"
 #~ msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+msgid "File preview"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/extensions/fileEmbed.ts
+msgid "Delete file preview"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/extensions/fileEmbed.ts
+msgid "Word, Excel and PowerPoint files are shown on the published page"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
+msgid "Only PDF, Word, Excel and PowerPoint files can be shown in the text - the file is added as a link"
+msgstr ""

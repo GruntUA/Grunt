@@ -367,13 +367,64 @@ async def get_content(
         raise HTTPException(404, _("File not found on storage"))
     if thumb:
         return FileResponse(path, media_type=THUMB_MIMETYPE, headers=headers)
+    shown = inline and doc.get("content_type") in INLINE_TYPES
+    if shown:
+        # A PDF previewed in an <iframe> of the site's own pages (RichText file embed).
+        headers["X-Frame-Options"] = "SAMEORIGIN"
     # Streamed from disk, with Range support (video, large PDFs).
     return FileResponse(
         path,
         media_type=doc.get("content_type"),
         filename=doc.get("file_name") or "file",
+        content_disposition_type="inline" if shown else "attachment",
+        headers=headers,
+    )
+
+
+async def public_file(filename: str, request: Request | None = None) -> Response:
+    """A public file by a path that ends in its extension: ``<file id>.<ext>``.
+
+    For viewers that pick the format from the URL - Office for the web
+    (``view.officeapps.live.com``) fetches the file anonymously and needs the
+    ``.docx`` / ``.xlsx`` at the end - and for PDFs shown in an <iframe> on the
+    site (RichText file embed). Only ``is_public`` files (published website
+    content); anything else is a 404, signed or not. The extension must be
+    the file's own, so one id has one address.
+    """
+    fid, _dot, ext = filename.partition(".")
+    doc = await _db.get_values(
+        "File", fid, ["content_hash", "content_type", "file_name", "is_public"]
+    )
+    name = (doc or {}).get("file_name") or ""
+    if (
+        not doc
+        or not doc.get("is_public")
+        or not ext
+        or "." not in name
+        or name.rsplit(".", 1)[1].lower() != ext.lower()
+    ):
+        raise HTTPException(404, _("File not found"))
+    key = doc.get("content_hash") or ""
+    etag = f'"{key}"'
+    headers = {
+        "ETag": etag,
+        "Cache-Control": "public, max-age=86400",
+        "X-Frame-Options": "SAMEORIGIN",
+    }
+    if isinstance(request, Request) and request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
+    try:
+        path = await blob_path(key)
+    except FileNotFoundError:
+        path = None
+    if path is None or not path.exists():
+        raise HTTPException(404, _("File not found on storage"))
+    return FileResponse(
+        path,
+        media_type=doc.get("content_type"),
+        filename=name,
         content_disposition_type=(
-            "inline" if inline and doc.get("content_type") in INLINE_TYPES else "attachment"
+            "inline" if doc.get("content_type") in INLINE_TYPES else "attachment"
         ),
         headers=headers,
     )

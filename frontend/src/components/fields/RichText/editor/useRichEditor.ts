@@ -1,7 +1,7 @@
 import { inject, onBeforeUnmount, provide, reactive, ref, watch, type InjectionKey, type ShallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useEditor, type Editor } from '@tiptap/vue-3'
-import { FileSymlink, Image as ImageIcon, Images, Paperclip, Table as TableIcon } from '@lucide/vue'
+import { FileSymlink, FileText, Image as ImageIcon, Images, Paperclip, Table as TableIcon } from '@lucide/vue'
 import type { DocField } from '@/types'
 import { filesApi, type FileItem } from '@/core/api/files'
 import type { AttachmentResult } from '@/components/fields/Attach/attachment'
@@ -9,6 +9,7 @@ import type { DocContext } from '@/components/fields/Attach/useAttachmentField'
 import { useToast } from '@/core/composables/useToast'
 import { buildExtensions } from '../extensions'
 import { toFileEntry, toGalleryEntry, type FileBlockKind } from '../extensions/fileBlocks'
+import { canEmbed } from '../extensions/fileEmbed'
 import { docxToHtml } from '../extensions/docx'
 import type { SlashItem, SlashMenuState } from '../extensions/slash'
 import { command, type CommandId } from './commands'
@@ -84,6 +85,8 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
       run: (e, range) => { e.chain().focus().deleteRange(range).run(); linkToFile() } },
     { id: 'gallery', keywords: 'images photos', label: t('Gallery'), icon: Images,
       run: (e, range) => { e.chain().focus().deleteRange(range).run(); insertFileBlock('gallery') } },
+    { id: 'fileEmbed', keywords: 'pdf word excel powerpoint embed preview document', label: t('File preview'), icon: FileText,
+      run: (e, range) => { e.chain().focus().deleteRange(range).run(); insertFileEmbed() } },
   ]
 
   let lastEmitted = ''
@@ -168,6 +171,20 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
     editor.value?.chain().focus().insertContent(content).run()
   }
 
+  /** A PDF / Word / Excel / PowerPoint file shown in the text; any other file goes in as a file list. */
+  async function insertFileEmbed() {
+    const [file] = await pickFiles('fileEmbed')
+    if (!file) return
+    const entry = toFileEntry(file)
+    const chain = editor.value?.chain().focus()
+    if (canEmbed(file.filename)) {
+      chain?.insertContent({ type: 'fileEmbed', attrs: entry }).run()
+      return
+    }
+    chain?.insertContent({ type: 'fileList', attrs: { files: [entry] } }).run()
+    toast.warning(t('Only PDF, Word, Excel and PowerPoint files can be shown in the text - the file is added as a link'))
+  }
+
   /** Turn the selection into a link to a chosen file - or insert the file's name as one. */
   async function linkToFile() {
     const e = editor.value
@@ -219,13 +236,14 @@ export function useRichEditor(props: RichEditorProps, emit: (e: 'update:modelVal
     uploading,
     uploadImage,
     insertFileBlock,
+    insertFileEmbed,
     linkToFile,
     importDocx,
   }
 }
 
 /** What the AttachPicker is open for. */
-export type PickerKind = FileBlockKind | 'link'
+export type PickerKind = FileBlockKind | 'fileEmbed' | 'link'
 
 const fileEntry = (f: FileItem) => toFileEntry({ url: f.url, filename: f.filename, contentType: f.content_type, fileItem: f })
 
