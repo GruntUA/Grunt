@@ -25,11 +25,14 @@ described by what it reads of it (:class:`Target`), so every layer can ask it
 without an import cycle.
 """
 
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from typing import Any, Protocol
 
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.metadata.permission import DocPermission
+
+#: A role's scope: documents linked to ``value`` of DocType ``doctype``.
+Scope = tuple[str, str]
 
 
 class Target(Protocol):
@@ -55,10 +58,45 @@ class RoleAccess:
     """Role-based access facts for *user* (an email) holding *roles* on *doctype*,
     computed once. :func:`grunt.permissions.roles.role_access` looks the roles up."""
 
-    def __init__(self, doctype: Target, user: str | None, roles: Collection[str]) -> None:
+    def __init__(
+        self,
+        doctype: Target,
+        user: str | None,
+        roles: Collection[str],
+        scopes: Mapping[str, Collection[Scope]] | None = None,
+    ) -> None:
         self.doctype = doctype
         self.user = user
         self.user_roles: frozenset[str] = frozenset(roles)
+        #: Roles the user holds only within scopes (every assignment of the
+        #: role has one) -> those scopes. A role held anywhere isn't here.
+        self.scopes: dict[str, frozenset[Scope]] = {
+            role: frozenset(found) for role, found in (scopes or {}).items() if found
+        }
+
+    def scope_fields(self, scope_doctype: str) -> list[str]:
+        """Fields of the DocType that place a document in a *scope_doctype* scope:
+        ``name`` when it is that DocType, and its Link fields to it (a field
+        flagged ``ignore_user_permissions`` is a free reference, not a scope)."""
+        names = ["name"] if self.doctype.name == scope_doctype else []
+        names.extend(
+            f.fieldname
+            for f in self.doctype.fields
+            if getattr(f, "options", None) == scope_doctype
+            and _is_link(f)
+            and not getattr(f, "ignore_user_permissions", False)
+        )
+        return names
+
+    def bound_scopes(self, perm: DocPermission) -> dict[str, frozenset[str]]:
+        """The scopes narrowing *perm* on this DocType: ``{scope DocType: values}``
+        for each scope DocType the DocType links to. Empty - the rule isn't
+        narrowed (its role is held everywhere, or no scope applies here)."""
+        bound: dict[str, set[str]] = {}
+        for scope_doctype, value in self.scopes.get(self._role_of(perm), ()):
+            if self.scope_fields(scope_doctype):
+                bound.setdefault(scope_doctype, set()).add(value)
+        return {dt: frozenset(values) for dt, values in bound.items()}
 
     @property
     def has_unrestricted_read(self) -> bool:
@@ -73,7 +111,7 @@ class RoleAccess:
         if self.is_unrestricted:
             return True
         return any(
-            perm.grants("read") and not getattr(perm, "match", None)
+            perm.grants("read") and not getattr(perm, "match", None) and not self.bound_scopes(perm)
             for perm in self.matching_permissions()
         )
 
@@ -185,3 +223,10 @@ class RoleAccess:
     @staticmethod
     def _role_of(perm: DocPermission) -> str:
         return perm.role if hasattr(perm, "role") else ""
+
+
+def _is_link(field: Any) -> bool:
+    has_trait = getattr(field, "has_trait", None)
+    if callable(has_trait):
+        return bool(has_trait("link"))
+    return getattr(field, "fieldtype", None) == "Link"

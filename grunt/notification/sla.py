@@ -281,7 +281,11 @@ async def _recipients(spec: str | None, doctype: str, doc: dict[str, Any]) -> se
     found, roles = notification_service._resolve_recipients(",".join(plain), doc, "")
     emails.update(found)
     if roles:
-        emails.update(await notification_service._resolve_role_recipients(roles, require_session()))
+        emails.update(
+            await notification_service._resolve_role_recipients(
+                roles, require_session(), doctype, doc
+            )
+        )
     return emails
 
 

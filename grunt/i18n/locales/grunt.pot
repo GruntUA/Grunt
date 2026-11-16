@@ -14751,3 +14751,33 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Next actors"
 msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid ""
+"Limit the role to documents linked to this record (a department, a section). "
+"Empty - the role applies everywhere."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Scope"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Scope value"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Valid from"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Valid to"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/user.py
+msgid "Role “%(role)s”: a scope needs both the document type and the document"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/user.py
+msgid "Role “%(role)s”: “Valid to” is before “Valid from”"
+msgstr ""

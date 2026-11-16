@@ -22,6 +22,7 @@ from grunt.log import log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.scopes import holders_for
 lazy from grunt.site.manager import current_site
 lazy from grunt.workflow.actors import next_actors, state_label
 
@@ -117,23 +118,10 @@ async def _user_email(user: str) -> str | None:
     return str(email) if email else (user if "@" in user else None)
 
 
-async def _role_users(role: str) -> list[str]:
-    rows = await _db.get_all(
-        "UserRole",
-        filters={"role_name": role, "parent_doctype": "User"},
-        fields=["parent_name"],
-        limit=None,
-    )
-    ids = sorted({r["parent_name"] for r in rows})
-    if not ids:
-        return []
-    users = await _db.get_all(
-        "User",
-        filters={"name__in": ids, "is_active": True},
-        fields=["email"],
-        limit=None,
-    )
-    return [u["email"] for u in users if u.get("email")]
+async def _role_users(role: str, doctype: str, doc: dict[str, Any]) -> list[str]:
+    """Holders of *role* whose scope covers *doc*."""
+    meta = await doctype_registry.get_meta(doctype)
+    return await holders_for([role], meta, doc if meta is not None else None)
 
 
 async def _field_value(doctype: str, doc: dict[str, Any], path: str) -> str | None:
@@ -198,7 +186,7 @@ async def resolve_recipients(
         if kind == "Author":
             found.append(str(doc.get("owner") or ""))
         elif kind == "Role" and row.get("role"):
-            found += await _role_users(row["role"])
+            found += await _role_users(row["role"], doctype, doc)
         elif kind == "User" and row.get("user"):
             found.append(await _user_email(row["user"]) or "")
         elif kind == "Document field" and row.get("field"):

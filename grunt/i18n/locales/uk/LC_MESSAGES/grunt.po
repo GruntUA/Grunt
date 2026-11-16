@@ -15583,6 +15583,38 @@ msgstr "Попередній виконавець"
 msgid "Next actors"
 msgstr "Наступні виконавці"
 
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid ""
+"Limit the role to documents linked to this record (a department, a section). "
+"Empty - the role applies everywhere."
+msgstr ""
+"Обмежити роль документами, пов’язаними з цим записом (підрозділ, розділ). "
+"Порожньо — роль діє скрізь."
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Scope"
+msgstr "Область"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Scope value"
+msgstr "Значення області"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Valid from"
+msgstr "Діє з"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Valid to"
+msgstr "Діє до"
+
+#: grunt/grunt/auth/doctypes/User/user.py
+msgid "Role “%(role)s”: a scope needs both the document type and the document"
+msgstr "Роль «%(role)s»: для області потрібні і тип документа, і сам документ"
+
+#: grunt/grunt/auth/doctypes/User/user.py
+msgid "Role “%(role)s”: “Valid to” is before “Valid from”"
+msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
+
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "
 #~ "and explains it."
