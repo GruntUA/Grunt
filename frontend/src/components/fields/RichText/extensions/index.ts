@@ -16,6 +16,7 @@ import { SlashCommands, type SlashOptions } from './slash'
 import { YoutubeEmbed } from './youtube'
 import { RichTableCell, RichTableHeader } from './tableCells'
 import { FileList, Gallery, type FileBlockOptions } from './fileBlocks'
+import { FileEmbed } from './fileEmbed'
 
 export interface ExtensionOptions {
   placeholder: string
@@ -52,6 +53,7 @@ export function buildExtensions(o: ExtensionOptions): Extensions {
     ...DetailsKit,
     FileList.configure({ pick: o.pickFiles, t: o.t }),
     Gallery.configure({ pick: o.pickFiles, t: o.t }),
+    FileEmbed.configure({ t: o.t }),
     FileHandler.configure({
       onDrop: (_, files, pos) => o.insertFiles(files, pos),
       // Copying from Word or a web page also puts a picture of the selection on

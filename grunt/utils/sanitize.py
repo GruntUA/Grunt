@@ -5,11 +5,13 @@ renders the value, so neither a crafted API call nor a row written before
 sanitization existed can put script into a page.
 """
 
+import re
+
 import nh3
 
 # ammonia's safe default tag/attribute set covers everything the tiptap editor
 # emits (StarterKit, links, images, tables); on top of it:
-_EXTRA_TAGS = {"iframe"}  # video embeds - src limited to _EMBED_PREFIXES
+_EXTRA_TAGS = {"iframe"}  # video and file embeds - src limited to _EMBED_PREFIXES
 _EXTRA_ATTRIBUTES: dict[str, set[str]] = {
     # style: font-family / font-size marks, paragraph indent, column widths,
     # cell shading / alignment, image size and wrapping;
@@ -35,11 +37,26 @@ _ALLOWED_STYLES = {
     "display",  # centered image
     "margin-right",
 }
-_EMBED_PREFIXES = ("https://www.youtube.com/embed/", "https://www.youtube-nocookie.com/embed/")
+_EMBED_PREFIXES = (
+    "https://www.youtube.com/embed/",
+    "https://www.youtube-nocookie.com/embed/",
+    # File embed (RichText fileEmbed): a Word / Excel / PowerPoint file
+    # through Office for the web, which shows what it can fetch anonymously -
+    # a public file. A PDF from the site itself is _OWN_FILE below.
+    "https://view.officeapps.live.com/op/embed.aspx?src=",
+)
+# Exactly a public file of this site (grunt.api.v1.files) - no ``..`` walking
+# to other same-origin paths.
+_OWN_FILE = re.compile(r"/api/v1/files/[A-Za-z0-9_-]+\.[A-Za-z0-9]+")
 
 
 def _filter_attribute(tag: str, attr: str, value: str) -> str | None:
-    if tag == "iframe" and attr == "src" and not value.startswith(_EMBED_PREFIXES):
+    if (
+        tag == "iframe"
+        and attr == "src"
+        and not value.startswith(_EMBED_PREFIXES)
+        and not _OWN_FILE.fullmatch(value)
+    ):
         return None
     return value
 
