@@ -140,6 +140,7 @@ for _name, _label in (
     ("grunt.manage_doctypes", N_("Manage document types")),
     ("grunt.manage_desk", N_("Manage workspaces and pages")),
     ("grunt.manage_users", N_("Manage users")),
+    ("grunt.manage_permissions", N_("Inspect and manage access rights")),
     ("grunt.impersonate", N_("Sign in as another user")),
     ("grunt.manage_email", N_("Manage e-mail")),
     ("grunt.manage_storage", N_("Manage file storage")),

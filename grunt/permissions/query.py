@@ -141,10 +141,10 @@ async def row_allowed(user: str | None, meta: Meta, action: str, row: Mapping[st
     ask, it fails closed.
     """
     predicate = await action_predicate(user, meta, action, row=row)
-    return await matches_linked(predicate, dict(row), _linked_exists)
+    return await matches_linked(predicate, dict(row), linked_exists)
 
 
-async def _linked_exists(node: Linked, value: Any) -> bool:
+async def linked_exists(node: Linked, value: Any) -> bool:
     """Whether *node.doctype* has a row with ``node.select == value`` matching
     ``node.where`` - the per-row form of ``field IN (SELECT select ... WHERE where)``."""
     if _session_ctx.get() is None:
@@ -355,7 +355,7 @@ def access_sources(doctype: Any) -> list[Source]:
     return sources
 
 
-def _link_target(doctype: Any, fieldname: str) -> str | None:
+def link_target(doctype: Any, fieldname: str) -> str | None:
     meta = getattr(doctype, "doc", doctype)
     field = next((f for f in meta.fields if f.fieldname == fieldname), None)
     return field.options if field is not None and field.has_trait("link") else None
@@ -371,7 +371,7 @@ async def reference_readable(user: str | None, doctype: Any, doc: dict[str, Any]
     bound = False
     for dt_field, id_field in access_sources(doctype):
         ref_id = doc.get(id_field)
-        ref_doctype = doc.get(dt_field) if dt_field else _link_target(doctype, id_field)
+        ref_doctype = doc.get(dt_field) if dt_field else link_target(doctype, id_field)
         if not ref_id or not ref_doctype:
             continue
         parent_meta = await doctype_registry.get_meta(ref_doctype)
@@ -406,7 +406,7 @@ async def _followed(
     """
     dt_field, id_field = source
     if dt_field is None:
-        target = _link_target(doctype, id_field)
+        target = link_target(doctype, id_field)
         parent_meta = await doctype_registry.get_meta(target) if target else None
         if parent_meta is None:
             return TRUE, FALSE  # the target DocType is gone: the role's own rules decide

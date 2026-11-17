@@ -15835,3 +15835,198 @@ msgstr "до {date}"
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "can share"
 msgstr "може поширювати"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Inspect and manage access rights"
+msgstr "Перевіряти й налаштовувати права доступу"
+
+#: grunt/grunt/api/v1/permission_inspector.py
+msgid "Unknown action “%(action)s”"
+msgstr "Невідома дія «%(action)s»"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "Check access"
+msgstr "Перевірити доступ"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Why a user may or may not act on {doctype} {name}."
+msgstr "Чому користувач може чи не може діяти з {doctype} {name}."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Why a user may or may not act on {doctype} documents."
+msgstr "Чому користувач може чи не може діяти з документами {doctype}."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Could not check access"
+msgstr "Не вдалося перевірити доступ"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "{user} may {action}"
+msgstr "{user} може: {action}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "{user} may not {action}"
+msgstr "{user} не може: {action}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Access is given by the role: {roles}"
+msgstr "Доступ дає роль: {roles}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "within {value}"
+msgstr "в межах {value}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No roles"
+msgstr "Ролей немає"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Follows the parent document"
+msgstr "Іде за батьківським документом"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Follows the document it belongs to"
+msgstr "Іде за документом, до якого належить"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "can read"
+msgstr "може читати"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "cannot read"
+msgstr "не може читати"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No role of the user grants this action on the document type at all."
+msgstr "Жодна роль користувача взагалі не дає цієї дії на цей тип документа."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Rules that grant this action"
+msgstr "Правила, що дають цю дію"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "This document"
+msgstr "Цей документ"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "the user lacks this role"
+msgstr "у користувача немає цієї ролі"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "every document"
+msgstr "усі документи"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "within {doctype}: {values}"
+msgstr "в межах {doctype}: {values}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "condition cannot be applied - grants nothing"
+msgstr "умову не можна застосувати — нічого не дає"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "passes"
+msgstr "проходить"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "does not pass"
+msgstr "не проходить"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No rule of this document type grants this action."
+msgstr "Жодне правило цього типу документа не дає цієї дії."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with everyone"
+msgstr "з усіма"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the role {role}"
+msgstr "з роллю {role}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the user"
+msgstr "з користувачем"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Fields"
+msgstr "Поля"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Hidden: {fields}"
+msgstr "Приховані: {fields}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Read only: {fields}"
+msgstr "Лише читання: {fields}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Import"
+msgstr "Імпорт"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Export"
+msgstr "Експорт"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Permission Log"
+msgstr "Журнал прав"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Summary"
+msgstr "Підсумок"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Changed"
+msgstr "Змінено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "[{field, old, new}] for values; [{field, added, removed}] for rows of a table (roles, rules)"
+msgstr "[{field, old, new}] — для значень; [{field, added, removed}] — для рядків таблиці (ролі, правила)"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Who changed access and when: user roles and their scopes, role permissions, DocType rules, shares and public links. Written by the system, read only."
+msgstr "Хто й коли змінив доступ: ролі користувачів і їхні області, дозволи ролей, правила DocType, поширення й публічні посилання. Пише система, лише для читання."
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Created"
+msgstr "Створено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Changed"
+msgstr "Змінено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Deleted"
+msgstr "Видалено"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Access Log"
+msgstr "Журнал доступу до даних"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Who took data out of the system and when: exports, printouts, imports and report downloads. Written by the system, read only; kept a year."
+msgstr "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження звітів. Пише система, лише для читання; зберігається рік."
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Export"
+msgstr "Експорт"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Print"
+msgstr "Друк"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Import"
+msgstr "Імпорт"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Report"
+msgstr "Звіт"

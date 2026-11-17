@@ -9,6 +9,7 @@ side effects - search index, webhooks, versions - follow the same pipeline for
 every store.
 """
 
+import copy
 import functools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -39,6 +40,7 @@ from grunt.log import log
 from grunt.monitoring import perf
 from grunt.naming.patterns import has_counter, parse_pattern
 from grunt.naming.service import naming_service
+from grunt.permissions import audit
 from grunt.permissions.query import reference_readable
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
@@ -295,6 +297,9 @@ class DocumentLifecycleMixin:
             await self._before_store(dt)
             self.data = await store.insert(self.data, input=data, user=user)
             log.info("document.created", doctype=self.doctype, id=self.data.get("name"))
+            await audit.record(
+                self.session, self.doctype, str(self.data.get("name")), None, self.data, user
+            )
             await self._run_lifecycle_hooks("after_insert", "after_save")
             await search_index_service.index_document(self.session, self.doctype, dt.doc, self.data)
             await pipeline.after_write("after_insert", self.session, self.doctype, self.data)
@@ -420,6 +425,8 @@ class DocumentLifecycleMixin:
         await self._before_store(dt)
         result = await store.update(real_id, self.data, before=existing, input=data, user=user)
         log.info("document.updated", doctype=self.doctype, id=real_id)
+        # Access changes are logged whatever the store keeps of history.
+        await audit.record(self.session, self.doctype, real_id, existing, result, user)
 
         if store.can(HISTORY):
             await record_update_changes(
@@ -483,10 +490,13 @@ class DocumentLifecycleMixin:
 
         self.doc_before_save = existing
         self.data = existing
+        # What was stored - a before_delete hook may change ``self.data`` (the same dict).
+        stored = copy.deepcopy(existing) if audit.is_audited(self.doctype) else existing
         tokens = self._set_grunt_context()
         try:
             await self._run_lifecycle_hooks("before_delete")
             await store.delete(real_id, before=existing)
+            await audit.record(self.session, self.doctype, real_id, stored, None, user)
             await fire_delete_services(
                 session=self.session, doctype_name=self.doctype, real_id=real_id, existing=existing
             )

@@ -99,6 +99,19 @@ async def test_run_import_job_allows_system_manager_with_import(
         result = await run_import_job(name)
     assert result["name"] == name
 
+    # Started imports are in the Access Log (step 6c); the refused one above isn't.
+    logged = await ctx.db.get_all(
+        "AccessLog", fields=["action", "ref_doctype", "file_format", "owner"], limit=10
+    )
+    assert logged == [
+        {
+            "action": "Import",
+            "ref_doctype": "ImportTargetSecret",
+            "file_format": "csv",
+            "owner": "di@grunt.example.com",
+        }
+    ]
+
 
 @pytest.mark.asyncio
 async def test_data_import_needs_import_on_the_target_when_saved(

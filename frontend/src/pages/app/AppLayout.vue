@@ -5,6 +5,7 @@ import { useAppStore } from '@/stores/app'
 import AppSidebar from '@/components/app/AppSidebar.vue'
 import MobileBottomNav from '@/components/mobile/MobileBottomNav.vue'
 import NotFound from '@/pages/errors/NotFound.vue'
+import AccessInspectorDialog from '@/components/permissions/AccessInspectorDialog.vue'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarInset } from '@/components/ui/sidebar'
 
@@ -66,6 +67,7 @@ watch(() => props.workspaceName, async (name) => {
     </SidebarInset>
 
     <MobileBottomNav :workspace-name="workspaceName" />
+    <AccessInspectorDialog />
   </SidebarProvider>
 </template>
 

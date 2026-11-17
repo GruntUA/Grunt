@@ -18,6 +18,7 @@ from grunt.api.context import whitelist
 from grunt.i18n import _
 from grunt.io.exporters.registry import ListExportContext, get_exporter, get_exporters
 from grunt.local import require_session, user_email
+from grunt.permissions.access_log import record_access
 from grunt.permissions.guards import doctype_guard
 from grunt.permissions.rbac import permission_checker
 lazy from grunt.api.v1.docs.utils import _generate_xlsx_single, _non_layout_fields, default_sort
@@ -95,6 +96,9 @@ async def _export_via_registry(
     )
     content = await exporter.export_list(doctype, rows, fields, ctx)
     filename = exporter.filename(doctype)
+    await record_access(
+        "Export", doctype, file_format=fmt, rows=len(rows), filters=_asked(filters, search)
+    )
 
     return Response(
         content=content,
@@ -134,6 +138,9 @@ async def export_csv(
         writer.writerows(data)
 
     output.seek(0)
+    await record_access(
+        "Export", doctype, file_format="csv", rows=len(data), filters=_asked(filters, search)
+    )
 
     filename = f"{doctype}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
 
@@ -162,6 +169,7 @@ async def print(
 
     if fmt == "xlsx":
         content = _generate_xlsx_single(dt.doc, doc)
+        await record_access("Print", doctype, doc_id=doc_id, file_format=fmt)
         return Response(
             content=content,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -173,6 +181,7 @@ async def print(
         if pf and pf[1] == "docx":
             try:
                 docx_bytes = render_docx(pf[0], doc)
+                await record_access("Print", doctype, doc_id=doc_id, file_format=fmt)
                 return Response(
                     content=docx_bytes,
                     media_type=(
@@ -199,6 +208,7 @@ async def print(
 
         html = await sign_authorized_file_urls(html, user_email())
         if fmt == "html":
+            await record_access("Print", doctype, doc_id=doc_id, file_format=fmt)
             if autoprint:
                 html = html.replace("</body>", f"{_AUTOPRINT_SCRIPT}</body>", 1)
             return Response(content=html, media_type="text/html")
@@ -209,6 +219,7 @@ async def print(
             pdf_bytes = await html_to_pdf(html)
         except PdfEngineError as err:
             raise HTTPException(status_code=501, detail=str(err)) from err
+        await record_access("Print", doctype, doc_id=doc_id, file_format=fmt)
 
         return Response(
             content=pdf_bytes,
@@ -306,3 +317,9 @@ async def export_file(
         group_by=group_by or None,
         filter_summary=filter_summary or None,
     )
+
+
+def _asked(filters: Any, search: str | None) -> dict[str, Any] | None:
+    """What an export asked for - the filters and the search text, if any."""
+    asked = {k: v for k, v in (("filters", filters), ("search", search)) if v}
+    return asked or None
