@@ -25,7 +25,7 @@
   "track_activity": false,
   "calendar_date_field": "due_at",
   "calendar_title_field": "ref_name",
-  "inherit_permission_from": [
+  "access_from": [
     [
       "ref_doctype",
       "ref_name"

@@ -11,35 +11,36 @@ truth for "which rows may this user read / write / delete".
 * :func:`allowed` answers ``permission_checker.check`` (:mod:`grunt.permissions.rbac`).
 
 Access is recursive - a child row follows its parent, a comment the document it
-is about - so the rules that inherit it live here, next to the predicate they
-call back into:
+is about - and both are one rule (:func:`_followed`), kept here next to the
+predicate it calls back into:
 
-**Child rows** have no access rules of their own. A row is readable when its
-parent document is readable; without a row to look at, a child DocType is
-readable when one of the DocTypes that embed it (via a Table field) is. Rows
-are never changed directly - only by saving the parent, where its controller
-validates them (e.g. User guards its ``roles``).
+**Child rows** have no access rules of their own: their source is always
+their parent (:data:`CHILD_SOURCE`). A row is readable when its parent
+document is readable; without a row to look at, a child DocType is readable
+when one of the DocTypes that embed it (via a Table field) is. Rows are never
+changed directly - only by saving the parent, where its controller validates
+them (e.g. User guards its ``roles``).
 
-**Inherited read access** - rows *about* another document (comments, tags,
-attachments, files in a folder) are readable by whoever can read that document.
-A DocType opts in with ``inherit_permission_from``: a list of sources, each
-either a ``[<doctype field>, <id field>]`` pair (comments, attachments) or the
-name of a Link field (a file's ``folder``). A row that points at something via
-any source is readable when *one* of the documents it points at is - the role's
+**``access_from``** - rows *about* another document (comments, tags,
+attachments, files in a folder, share rows) are readable by whoever can read
+that document. A DocType lists its sources, each either a
+``[<doctype field>, <id field>]`` pair (comments, attachments) or the name of
+a Link field (a file's ``folder``). A row that points at something via any
+source is readable when *one* of the documents it points at is - the role's
 ``match`` doesn't apply to it, though the role still needs a read rule at all.
 Rows that point at nothing keep plain role-based access, and so do rows whose
 DocType no longer exists; rows whose document was deleted are hidden (as they
 are from lists).
 """
 
-from collections.abc import Collection, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from typing import Any
 
 from grunt.document.meta import Meta
 from grunt.local import _session_ctx, session_user
 from grunt.log import log
 from grunt.metadata.doctype import DocType
-from grunt.metadata.registry import doctype_registry
+from grunt.metadata.registry import doctype_registry, get_registry
 from grunt.permissions import shares
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
@@ -49,7 +50,7 @@ from grunt.permissions.shares import shared_predicate
 from grunt.permissions.types import PermissionAction
 from grunt.permissions.user_permissions import user_permission_predicate
 from grunt.query.evaluate import matches_linked
-from grunt.query.nodes import FALSE, TRUE, Cmp, Empty, Expr, Linked, and_, or_
+from grunt.query.nodes import FALSE, TRUE, And, Cmp, Empty, Expr, In, Linked, and_, or_
 from grunt.query.query import Query
 lazy from grunt.store.lookup import store_for
 
@@ -99,13 +100,23 @@ async def allowed(
     return await shares.has_share(user, doctype.name, action)
 
 
-async def read_predicate(user: str | None, meta: Meta) -> Expr:
-    """The rows of *meta*'s DocType that *user* may read."""
-    return await action_predicate(user, meta, "read")
+async def read_predicate(user: str | None, meta: Meta, *, within: Expr | None = None) -> Expr:
+    """The rows of *meta*'s DocType that *user* may read.
+
+    *within* - the query's own condition the predicate will be ANDed with (a
+    list's filters): rows it excludes needn't be decided, so a reference column
+    it pins (``reference_doctype = 'Task'`` - a document's comments, files,
+    tags) narrows the DocTypes whose access is worked out to those it names."""
+    return await action_predicate(user, meta, "read", within=within)
 
 
 async def action_predicate(
-    user: str | None, meta: Meta, action: str, *, row: Mapping[str, Any] | None = None
+    user: str | None,
+    meta: Meta,
+    action: str,
+    *,
+    row: Mapping[str, Any] | None = None,
+    within: Expr | None = None,
 ) -> Expr:
     """The rows of *meta*'s DocType on which *user* may perform *action* - every
     row-level rule in one expression, for any store (SQL compiles it, memory
@@ -118,10 +129,10 @@ async def action_predicate(
 
     *row* is only a hint for deciding that one row: rules that would otherwise
     enumerate every DocType a reference column holds look at the row's own.
-    The predicate stays exact for that row.
+    The predicate stays exact for that row. *within* - see :func:`read_predicate`.
     """
     columns = meta.columns
-    granted = await _grants_predicate(columns, user, meta, action, row)
+    granted = await _grants_predicate(columns, user, meta, action, row, within)
     return and_(granted, await user_permission_predicate(columns, user, meta))
 
 
@@ -156,10 +167,11 @@ async def _grants_predicate(
     doctype: DocType | Meta,
     action: str,
     row: Mapping[str, Any] | None,
+    within: Expr | None = None,
 ) -> Expr:
     """Rows the user's role permissions allow for *action* via ``match``, plus
     documents shared with the user (``SharedWith``) and, for reading, rows that
-    follow another document's access (child rows, ``inherit_permission_from``).
+    follow another document's access (child rows, ``access_from``).
 
     Safe-by-default: a permission rule whose ``match`` expression can't be
     translated contributes *no* rows (fails closed) rather than being treated
@@ -172,11 +184,11 @@ async def _grants_predicate(
     if is_child(doctype):
         if action not in READ_ACTIONS:
             return FALSE  # child rows change only by saving their parent
-        return await child_predicate(columns, user, doctype, row=row)
+        return await child_predicate(columns, user, doctype, row=row, within=within)
 
     own = await _own_predicates(columns, user, doctype, access, action)
     ref = (
-        await reference_predicates(columns, user, doctype, row=row)
+        await reference_predicates(columns, user, doctype, row=row, within=within)
         if action in READ_ACTIONS
         else None
     )
@@ -228,24 +240,76 @@ async def _own_predicates(
     return conditions
 
 
-# Child rows
+# Access followed from another document
+#
+# Child rows follow their parent; comments, tags, attachments, files in a
+# folder follow the document they point at (``access_from``). Both are one
+# rule: a row pointing at a document via a *source* is readable exactly when
+# that document is - :func:`_followed` builds it for either.
 
 
 def is_child(doctype: Any) -> bool:
     return getattr(getattr(doctype, "doc", doctype), "is_child", False) is True
 
 
+#: The implicit source of every child DocType: its parent document.
+CHILD_SOURCE = ("parent_doctype", "parent_name")
+
+
+# Per registry: (stamp, child DocType -> the DocTypes embedding it). Every
+# child check needs it; working it out walks every field of every DocType.
+_parents_index: dict[int, tuple[tuple[tuple[int, int], ...], dict[str, list[str]]]] = {}
+
+
+async def _child_parents() -> dict[str, list[str]]:
+    """Child DocType -> the (non-child) DocTypes whose Table fields hold it,
+    rebuilt when the registry's DocTypes change - replaced, added, removed or
+    given fields (the stamp: each definition's identity and field count)."""
+    all_dts = await doctype_registry.list_all()
+    stamp = tuple((id(dt), len(dt.fields)) for dt in all_dts)
+    key = id(get_registry())
+    cached = _parents_index.get(key)
+    if cached is not None and cached[0] == stamp:
+        return cached[1]
+    index: dict[str, set[str]] = {}
+    for dt in all_dts:
+        if dt.is_child:
+            continue
+        for f in dt.fields:
+            if f.has_trait("table") and f.options:
+                index.setdefault(f.options, set()).add(dt.name)
+    built = {child: sorted(names) for child, names in index.items()}
+    _parents_index[key] = (stamp, built)
+    return built
+
+
 async def parent_doctypes(child_name: str) -> list[Any]:
     """Metas of the DocTypes whose Table fields hold *child_name* rows."""
-
-    names = {
-        dt.name
-        for dt in await doctype_registry.list_all()
-        if not dt.is_child
-        and any(f.has_trait("table") and f.options == child_name for f in dt.fields)
-    }
-    metas = [await doctype_registry.get_meta(name) for name in sorted(names)]
+    names = (await _child_parents()).get(child_name, [])
+    metas = [await doctype_registry.get_meta(name) for name in names]
     return [m for m in metas if m is not None]
+
+
+def pinned_values(where: Expr | None, field: str) -> frozenset[Any] | None:
+    """The values *where* pins *field* to - ``field = x`` / ``field IN (...)``
+    among its top-level AND terms (intersected) - or ``None`` when it doesn't
+    (a term under OR, a negation, no term at all)."""
+    if where is None:
+        return None
+    terms = where.items if isinstance(where, And) else (where,)
+    found: frozenset[Any] | None = None
+    for term in terms:
+        if isinstance(term, And):
+            values = pinned_values(term, field)
+        elif isinstance(term, Cmp) and term.field == field and term.op == "eq":
+            values = frozenset([term.value])
+        elif isinstance(term, In) and term.field == field and not term.negate:
+            values = frozenset(term.values)
+        else:
+            continue
+        if values is not None:
+            found = values if found is None else found & values
+    return found
 
 
 async def child_allowed(user: str | None, doctype: Any, action: PermissionAction) -> bool:
@@ -265,32 +329,27 @@ async def child_predicate(
     doctype: Any,
     *,
     row: Mapping[str, Any] | None = None,
+    within: Expr | None = None,
 ) -> Expr:
-    """Rows whose parent document *user* may read. With *row* only its own
-    parent DocType is considered (exact for that row)."""
-    if "parent_doctype" not in columns or "parent_name" not in columns:
+    """Rows whose parent document *user* may read - :data:`CHILD_SOURCE`, over
+    the DocTypes that embed *doctype* (with *row*: its own parent DocType only,
+    exact for that row; with *within*: those it pins). A row without a parent
+    is nobody's."""
+    if not all(f in columns for f in CHILD_SOURCE):
         return FALSE
-    parents = await parent_doctypes(doctype.name)
+    parents = [p.name for p in await parent_doctypes(doctype.name)]
     if row is not None:
-        parents = [p for p in parents if p.name == row.get("parent_doctype")]
-    readable: list[Expr] = []
-    for parent_meta in parents:
-        where = await readable_predicate(user, parent_meta)
-        if where is not None:
-            readable.append(
-                and_(
-                    Cmp("parent_doctype", "eq", parent_meta.name),
-                    Linked("parent_name", parent_meta.name, where),
-                )
-            )
-    return or_(*readable)
+        parents = [p for p in parents if p == row.get("parent_doctype")]
+    elif (pinned := pinned_values(within, "parent_doctype")) is not None:
+        parents = [p for p in parents if p in pinned]
+    _, readable = await _followed(user, doctype, CHILD_SOURCE, parents)
+    return readable
 
 
-# Inherited read access
-
-
-def reference_sources(doctype: Any) -> list[Source]:
-    raw = getattr(getattr(doctype, "doc", doctype), "inherit_permission_from", None) or []
+def access_sources(doctype: Any) -> list[Source]:
+    """The DocType's ``access_from``: ``[<doctype field>, <id field>]`` pairs
+    and Link fieldnames, as :data:`Source` tuples."""
+    raw = getattr(getattr(doctype, "doc", doctype), "access_from", None) or []
     sources: list[Source] = []
     for item in raw:
         if isinstance(item, str):
@@ -314,7 +373,7 @@ async def reference_readable(user: str | None, doctype: Any, doc: dict[str, Any]
     """
 
     bound = False
-    for dt_field, id_field in reference_sources(doctype):
+    for dt_field, id_field in access_sources(doctype):
         ref_id = doc.get(id_field)
         ref_doctype = doc.get(dt_field) if dt_field else _link_target(doctype, id_field)
         if not ref_id or not ref_doctype:
@@ -338,57 +397,78 @@ async def readable_predicate(user: str | None, parent_meta: Any) -> Expr | None:
     return await read_predicate(user, parent_meta)
 
 
+async def _followed(
+    user: str | None, doctype: Any, source: Source, targets: Iterable[Any]
+) -> tuple[Expr, Expr]:
+    """``(points at nothing, points at a document user may read)`` for one
+    *source* of *doctype* rows.
+
+    A Link source points into its field's DocType; a dynamic one into each of
+    *targets* (the DocTypes its doctype column holds) - one that no longer
+    exists counts as pointing at nothing (orphans of a removed DocType keep
+    the role's own access, as rows pointing at nothing do).
+    """
+    dt_field, id_field = source
+    if dt_field is None:
+        target = _link_target(doctype, id_field)
+        parent_meta = await doctype_registry.get_meta(target) if target else None
+        if parent_meta is None:
+            return TRUE, FALSE  # the target DocType is gone: the role's own rules decide
+        where = await readable_predicate(user, parent_meta)
+        readable = FALSE if where is None else Linked(id_field, parent_meta.name, where)
+        return Empty(id_field), readable
+    empty: list[Expr] = [Empty(dt_field), Empty(id_field)]
+    readable_any: list[Expr] = []
+    for ref_doctype in targets:
+        if not ref_doctype:
+            continue
+        parent_meta = await doctype_registry.get_meta(ref_doctype)
+        if parent_meta is None:
+            empty.append(Cmp(dt_field, "eq", ref_doctype))
+            continue
+        where = await readable_predicate(user, parent_meta)
+        if where is not None:
+            points_at = Cmp(dt_field, "eq", parent_meta.name)
+            readable_any.append(and_(points_at, Linked(id_field, parent_meta.name, where)))
+    return or_(*empty), or_(*readable_any)
+
+
 async def reference_predicates(
     columns: Collection[str],
     user: str | None,
     doctype: Any,
     *,
     row: Mapping[str, Any] | None = None,
+    within: Expr | None = None,
 ) -> tuple[Expr, Expr] | None:
-    """``(points at nothing, points at a readable document)``, or ``None`` when
-    *doctype* doesn't inherit access.
+    """``(points at nothing, points at a readable document)`` over all of
+    *doctype*'s ``access_from`` sources, or ``None`` when it has none.
 
-    For a list every DocType the reference column holds is covered; with *row*
+    For a list every DocType a reference column holds is covered; with *row*
     (deciding that one row) only the row's own - exact for it, without reading
-    the distinct values of the whole table."""
+    the distinct values of the whole table; with *within* (a list's filters)
+    only the DocTypes it pins the column to, when it does."""
     sources = [
         (dt_field, id_field)
-        for dt_field, id_field in reference_sources(doctype)
+        for dt_field, id_field in access_sources(doctype)
         if id_field in columns and (dt_field is None or dt_field in columns)
     ]
     if not sources:
         return None
     unbound: list[Expr] = []
     readable: list[Expr] = []
-    for dt_field, id_field in sources:
-        if dt_field is None:
-            unbound.append(Empty(id_field))
-            target = _link_target(doctype, id_field)
-            parent_meta = await doctype_registry.get_meta(target) if target else None
-            if parent_meta is not None:
-                where = await readable_predicate(user, parent_meta)
-                if where is not None:
-                    readable.append(Linked(id_field, parent_meta.name, where))
-            continue
-        empty: list[Expr] = [Empty(dt_field), Empty(id_field)]
-        if row is not None:
-            referenced = [row.get(dt_field)]
-        else:
-            meta = await doctype_registry.get_meta(doctype.name)
-            referenced = await store_for(meta).distinct(dt_field) if meta is not None else []
-        for ref_doctype in referenced:
-            if not ref_doctype:
-                continue
-            parent_meta = await doctype_registry.get_meta(ref_doctype)
-            if parent_meta is None:
-                empty.append(Cmp(dt_field, "eq", ref_doctype))  # orphans of a removed DocType
-                continue
-            where = await readable_predicate(user, parent_meta)
-            if where is not None:
-                readable.append(
-                    and_(
-                        Cmp(dt_field, "eq", ref_doctype), Linked(id_field, parent_meta.name, where)
-                    )
-                )
-        unbound.append(or_(*empty))
+    for source in sources:
+        dt_field = source[0]
+        targets: list[Any] = []
+        if dt_field is not None:
+            if row is not None:
+                targets = [row.get(dt_field)]
+            elif (pinned := pinned_values(within, dt_field)) is not None:
+                targets = sorted(pinned, key=str)
+            else:
+                meta = await doctype_registry.get_meta(doctype.name)
+                targets = await store_for(meta).distinct(dt_field) if meta is not None else []
+        empty, followed = await _followed(user, doctype, source, targets)
+        unbound.append(empty)
+        readable.append(followed)
     return and_(*unbound), or_(*readable)

@@ -292,9 +292,9 @@ class DocType(BaseModel):
     standard_records: bool = False
     # Sources of read access: [<doctype field>, <id field>] pairs and/or Link
     # fieldnames - a row pointing at a document is readable exactly when that
-    # document is (comments, tags, attachments, files in a folder).
-    # See grunt.permissions.query.
-    inherit_permission_from: list[str | list[str]] | None = None
+    # document is (comments, tags, attachments, files in a folder, shares).
+    # Child rows always follow their parent. See grunt.permissions.query.
+    access_from: list[str | list[str]] | None = None
     quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
     # Hovering a link to a document of this DocType pops up a card with its
     # title, image and the in_preview fields (required fields when none set).
@@ -443,6 +443,20 @@ class DocType(BaseModel):
             sort_by=self.tree_sort_by,
             sort_order=self.tree_sort_order,
         )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _renamed_access_from(cls, data: Any) -> Any:
+        """``inherit_permission_from`` became ``access_from`` - read the old key
+        as the new one (same meaning: nothing is widened or narrowed), so a
+        definition stored before migration 0027 or an app not updated yet keeps
+        loading. ``access_from`` wins when both are present."""
+        if isinstance(data, dict) and "inherit_permission_from" in data:
+            data = dict(data)
+            old = data.pop("inherit_permission_from")
+            if old and not data.get("access_from"):
+                data["access_from"] = old
+        return data
 
     @model_validator(mode="after")
     def _prune_incomplete_child_rows(self) -> DocType:

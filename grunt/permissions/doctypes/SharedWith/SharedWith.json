@@ -2,6 +2,12 @@
   "name": "SharedWith",
   "label": "Access",
   "module": "permissions",
+  "access_from": [
+    [
+      "reference_doctype",
+      "reference_id"
+    ]
+  ],
   "indexes": [
     [
       "reference_doctype",
@@ -26,7 +32,21 @@
       "fieldname": "user",
       "label": "User",
       "fieldtype": "Data",
-      "required": true
+      "description": "One user (their email)"
+    },
+    {
+      "fieldname": "role",
+      "label": "Role",
+      "fieldtype": "Link",
+      "options": "Role",
+      "description": "Everyone holding the role today"
+    },
+    {
+      "fieldname": "everyone",
+      "label": "Everyone",
+      "fieldtype": "Check",
+      "default": 0,
+      "description": "Every signed-in user"
     },
     {
       "fieldname": "permission",
@@ -35,27 +55,44 @@
       "options": "Read\nWrite",
       "translatable": true,
       "default": "Read"
+    },
+    {
+      "fieldname": "can_reshare",
+      "label": "Can share further",
+      "fieldtype": "Check",
+      "default": 0
+    },
+    {
+      "fieldname": "valid_to",
+      "label": "Valid until",
+      "fieldtype": "Date",
+      "description": "Inclusive; empty - no end"
     }
   ],
   "permissions": [
     {
       "role": "All",
-      "actions": ["write", "create", "delete"]
-    },
-    {
-      "role": "All",
-      "actions": ["read"],
-      "match": "user == user"
-    },
-    {
-      "role": "All",
-      "actions": ["read"],
-      "match": "owner == user"
+      "actions": [
+        "read",
+        "write",
+        "create",
+        "delete"
+      ]
     },
     {
       "role": "System Manager",
-      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+      "actions": [
+        "read",
+        "write",
+        "create",
+        "delete",
+        "export",
+        "import",
+        "print",
+        "share",
+        "report"
+      ]
     }
   ],
-  "description": "Per-user share of one document (Read / Write). Only someone who can write the document may share it."
+  "description": "A share of one document with a user, a role or everyone (Read / Write, until a date, may share further). Readable by whoever can read the document; only someone allowed to share it at that level can share it."
 }

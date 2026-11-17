@@ -57,7 +57,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "public_attachments",
         "is_signable",
         "standard_records",
-        "inherit_permission_from",
+        "access_from",
         "quick_entry",
         "show_preview_popup",
         "has_web_view",

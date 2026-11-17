@@ -89,7 +89,27 @@ export interface SidebarAssignee {
   due_date: string | null
   is_overdue: boolean
 }
-export interface SidebarShare { name: string; user: string; permission: 'Read' | 'Write' }
+/** A SharedWith row: to one of a user, a role or everyone. */
+export interface SidebarShare {
+  name: string
+  user: string | null
+  role: string | null
+  everyone: boolean
+  permission: 'Read' | 'Write'
+  can_reshare: boolean
+  /** Inclusive end date (YYYY-MM-DD), null - no end. */
+  valid_to: string | null
+}
+
+/** Whom and how to share with (POST /docs/SharedWith). */
+export interface ShareTarget {
+  user?: string
+  role?: string
+  everyone?: boolean
+  permission: 'Read' | 'Write'
+  can_reshare?: boolean
+  valid_to?: string | null
+}
 export interface SidebarTag { name: string; tag: string }
 
 export interface SidebarPerson { name: string; avatar: string | null }
@@ -137,7 +157,7 @@ export interface SidebarBundle {
   /** Time-in-status history, oldest first (empty unless a field is tracked). */
   milestones?: SidebarMilestone[]
   /** What the current user may add here - the checks the add endpoints enforce. */
-  perms?: { assign: boolean; share: boolean; tag: boolean }
+  perms?: { assign: boolean; share: boolean; share_write?: boolean; tag: boolean }
   /** `sidebar_sections` rows with placement "properties" - the list at the top (core: status, ID, web page). */
   properties?: SidebarRow[]
   /** `sidebar_sections` with placement "section" that apply to this document and have rows. */
@@ -416,12 +436,11 @@ export const docsApi = {
       description: description?.trim() || assignmentPlaceholder(user),
     }).then(r => r.data.data),
 
-  share: (doctype: string, id: string, user: string, permission: 'Read' | 'Write' = 'Read'): Promise<GruntDocument> =>
+  share: (doctype: string, id: string, target: ShareTarget): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/SharedWith`, {
       reference_doctype: doctype,
       reference_id: id,
-      user,
-      permission,
+      ...target,
     }).then(r => r.data.data),
 
   unshare: (shareId: string): Promise<void> =>

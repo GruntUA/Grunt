@@ -24,7 +24,7 @@
       "value"
     ]
   ],
-  "inherit_permission_from": [
+  "access_from": [
     [
       "ref_doctype",
       "ref_name"

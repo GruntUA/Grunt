@@ -6,7 +6,7 @@
  * endpoints and patch the local bundle optimistically.
  */
 import { ref, toValue, watch, type MaybeRefOrGetter } from 'vue'
-import { docsApi, type SidebarBundle } from '@/core/api/docs'
+import { docsApi, type ShareTarget, type SidebarBundle } from '@/core/api/docs'
 import { authApi } from '@/core/api/auth-admin'
 import type { Colleague } from '@/types'
 
@@ -69,10 +69,10 @@ export function useDocSidebar(
   }
 
   // Shares
-  async function share(user: string, permission: 'Read' | 'Write'): Promise<void> {
+  async function share(target: ShareTarget): Promise<void> {
     const d = dt(); const i = id()
-    if (!d || !i || !user.trim()) return
-    await docsApi.share(d, i, user.trim(), permission)
+    if (!d || !i) return
+    await docsApi.share(d, i, target)
     await reload()
   }
   async function unshare(name: string): Promise<void> {

@@ -5,7 +5,7 @@
   "title_field": "file_name",
   "image_field": "thumbnail_url",
   "default_view": "explorer",
-  "inherit_permission_from": [
+  "access_from": [
     [
       "attached_to_doctype",
       "attached_to_id"

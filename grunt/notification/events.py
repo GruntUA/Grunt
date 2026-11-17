@@ -159,6 +159,7 @@ for _key, _label, _doctype, _vars in (
     ("grunt.follow.commented", N_("Followed document commented"), None, ("title", "text")),
     ("grunt.comment.mentioned", N_("Mentioned in a comment"), "Comment", ("text",)),
     ("grunt.comment.replied", N_("Reply to a comment"), "Comment", ("text",)),
+    ("grunt.share.created", N_("Document shared"), "SharedWith", ("target", "level")),
     (
         "grunt.auto_repeat.created",
         N_("Auto repeat created a document"),

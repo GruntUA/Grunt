@@ -1,5 +1,8 @@
-"""SharedWith grants: sharing one document gives one user access to it — and
-nothing more (not other documents, not create/delete)."""
+"""SharedWith grants: sharing one document gives a user, a role or everyone
+access to it — and nothing more (not other documents, not create/delete), at
+no higher a level than the sharer's, until its end date."""
+
+from datetime import date, timedelta
 
 import pytest
 from fastapi import HTTPException
@@ -34,7 +37,9 @@ async def boxes(ctx):
     return a, b
 
 
-async def _share(ctx, doc: str, permission: str = "Read", user: str = BOB) -> str:
+async def _share(
+    ctx, doc: str, permission: str = "Read", user: str | None = BOB, **extra: object
+) -> str:
     row = await ctx.new_doc(
         "SharedWith",
         {
@@ -42,6 +47,7 @@ async def _share(ctx, doc: str, permission: str = "Read", user: str = BOB) -> st
             "reference_id": doc,
             "user": user,
             "permission": permission,
+            **extra,
         },
     )
     await ctx.db._session().commit()
@@ -154,7 +160,7 @@ async def test_share_to_unknown_user_rejected(ctx, boxes):
 
 
 @pytest.mark.asyncio
-async def test_share_rows_visible_to_grantee_and_sharer_only(ctx, boxes, db_session, engine):
+async def test_share_rows_visible_to_whoever_reads_the_document(ctx, boxes, db_session, engine):
     import grunt
 
     a, _ = boxes
@@ -172,3 +178,217 @@ async def test_share_rows_visible_to_grantee_and_sharer_only(ctx, boxes, db_sess
             except HTTPException:
                 rows = []
         assert len(rows) == expected, who.email
+
+
+async def _titles(db_session, engine, who) -> list[str]:
+    import grunt
+
+    async with grunt.context(db_session, engine, who):
+        try:
+            return sorted(r["title"] for r in await grunt.get_list("ShareBox", fields=["title"]))
+        except HTTPException:
+            return []
+
+
+@pytest.mark.asyncio
+async def test_role_share_reaches_role_holders_only(ctx, boxes, db_session, engine):
+    a, _ = boxes
+    await ctx.new_doc("Role", {"role_name": "Clerk"})
+    await _share(ctx, a, user=None, role="Clerk")
+
+    assert await _titles(db_session, engine, make_user("cl@example.com", roles=["Clerk"])) == ["A"]
+    assert await _titles(db_session, engine, _bob()) == []
+
+
+@pytest.mark.asyncio
+async def test_role_share_ignores_the_role_scope(ctx, boxes, db_session, engine):
+    """A scope narrows the role's rules; a share is a choice of the document itself."""
+    a, _ = boxes
+    await ctx.new_doc("Role", {"role_name": "Clerk"})
+    await _share(ctx, a, user=None, role="Clerk")
+    scoped = make_user(
+        "cl@example.com",
+        roles=[{"role_name": "Clerk", "scope_doctype": "User", "scope_value": BOB}],
+    )
+    assert await _titles(db_session, engine, scoped) == ["A"]
+
+
+@pytest.mark.asyncio
+async def test_everyone_share_reaches_every_user(ctx, boxes, db_session, engine):
+    a, _ = boxes
+    await _share(ctx, a, user=None, everyone=True)
+    assert await _titles(db_session, engine, _bob()) == ["A"]
+    assert await _titles(db_session, engine, make_user("eve@example.com")) == ["A"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"user": None},
+        {"user": BOB, "everyone": True},
+        {"user": None, "role": "Clerk", "everyone": True},
+    ],
+)
+async def test_share_needs_exactly_one_recipient(ctx, boxes, fields):
+    from grunt.errors import ApplicationError
+
+    a, _ = boxes
+    await ctx.new_doc("Role", {"role_name": "Clerk"})
+    with pytest.raises((ApplicationError, HTTPException)):
+        await _share(ctx, a, **fields)
+
+
+@pytest.mark.asyncio
+async def test_share_ends_after_valid_to(ctx, boxes, db_session, engine):
+    from sqlalchemy import update
+
+    from grunt.metadata.registry import doctype_registry
+
+    a, _ = boxes
+    today = date.today()
+    share = await _share(ctx, a, valid_to=today.isoformat())
+    assert await _titles(db_session, engine, _bob()) == ["A"]  # inclusive
+
+    # A past end date can't be set - move the stored one back as time would.
+    table = (await doctype_registry.get_meta("SharedWith")).table
+    await db_session.execute(
+        update(table).where(table.c.name == share).values(valid_to=today - timedelta(days=1))
+    )
+    await db_session.commit()
+    assert await _titles(db_session, engine, _bob()) == []
+
+
+@pytest.mark.asyncio
+async def test_past_end_date_rejected(ctx, boxes):
+    from grunt.errors import ApplicationError
+
+    a, _ = boxes
+    with pytest.raises((ApplicationError, HTTPException)):
+        await _share(ctx, a, valid_to=(date.today() - timedelta(days=1)).isoformat())
+
+
+@pytest.mark.asyncio
+async def test_reshare_passes_on_at_most_own_level(ctx, boxes, db_session, engine):
+    import grunt
+    from grunt.errors import ApplicationError
+
+    a, b = boxes
+    await _share(ctx, a, "Read", can_reshare=True)
+
+    async with grunt.context(db_session, engine, _bob()):
+        # Read + can share: may pass Read on - not Write, not another document.
+        row = await grunt.new_doc(
+            "SharedWith",
+            {"reference_doctype": "ShareBox", "reference_id": a, "user": "eve@example.com"},
+        )
+        assert row["permission"] == "Read"
+        with pytest.raises((ApplicationError, HTTPException)):
+            await grunt.new_doc(
+                "SharedWith",
+                {
+                    "reference_doctype": "ShareBox",
+                    "reference_id": a,
+                    "role": "System Manager",
+                    "permission": "Write",
+                },
+            )
+        with pytest.raises((ApplicationError, HTTPException)):
+            await grunt.new_doc(
+                "SharedWith",
+                {"reference_doctype": "ShareBox", "reference_id": b, "user": "eve@example.com"},
+            )
+    await db_session.commit()
+    assert await _titles(db_session, engine, make_user("eve@example.com")) == ["A"]
+
+
+@pytest.mark.asyncio
+async def test_share_without_reshare_cannot_be_passed_on(ctx, boxes, db_session, engine):
+    import grunt
+    from grunt.errors import ApplicationError
+
+    a, _ = boxes
+    await _share(ctx, a, "Write")
+    async with grunt.context(db_session, engine, _bob()):
+        with pytest.raises((ApplicationError, HTTPException)):
+            await grunt.new_doc(
+                "SharedWith",
+                {"reference_doctype": "ShareBox", "reference_id": a, "user": "eve@example.com"},
+            )
+
+
+@pytest.mark.asyncio
+async def test_recipient_may_drop_own_share(ctx, boxes, db_session, engine):
+    import grunt
+    from grunt.errors import ApplicationError
+
+    a, _ = boxes
+    mine = await _share(ctx, a)
+    theirs = await _share(ctx, a, user="eve@example.com")
+    async with grunt.context(db_session, engine, _bob()):
+        with pytest.raises((ApplicationError, HTTPException)):
+            await grunt.delete_doc("SharedWith", theirs)
+        await grunt.delete_doc("SharedWith", mine)
+    await db_session.commit()
+    assert await _titles(db_session, engine, _bob()) == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("standard_notifications")
+async def test_share_notifies_the_user_and_role_holders(ctx, boxes):
+    a, b = boxes
+    await ctx.new_doc("Role", {"role_name": "Clerk"})
+    await ctx.new_doc(
+        "User",
+        {
+            "email": "cl@example.com",
+            "first_name": "C",
+            "last_name": "L",
+            "roles": [{"role_name": "Clerk"}],
+        },
+    )
+    await ctx.db._session().commit()
+    await _share(ctx, a)
+    await _share(ctx, b, user=None, role="Clerk")
+    await _share(ctx, b, user=None, everyone=True)
+
+    async def bell(user: str) -> list[str]:
+        rows = await ctx.db.get_all(
+            "NotificationLog", filters={"user": user}, fields=["doc_id"], limit=10
+        )
+        return sorted(r["doc_id"] for r in rows)
+
+    assert await bell(BOB) == [a]
+    assert await bell("cl@example.com") == [b]
+    assert await bell("eve@example.com") == []  # "everyone" tells nobody
+
+
+@pytest.mark.asyncio
+async def test_everyone_share_is_not_for_guests(ctx, boxes, db_session, engine):
+    from grunt.auth.constants import GUEST_USER_EMAIL
+    from grunt.metadata.registry import doctype_registry
+    from grunt.permissions.rbac import permission_checker
+
+    a, _ = boxes
+    await _share(ctx, a, user=None, everyone=True)
+    meta = await doctype_registry.get_meta("ShareBox")
+    for guest in (GUEST_USER_EMAIL, "visitor@example.com"):
+        who = make_user(guest, roles=["Guest"])
+        import grunt
+
+        async with grunt.context(db_session, engine, who):
+            assert not await permission_checker.check(meta, "read", user=guest)
+            assert not await permission_checker.check(meta, "read", {"name": a}, user=guest)
+
+
+@pytest.mark.asyncio
+async def test_role_all_means_everyone_and_guest_is_refused(ctx, boxes, db_session, engine):
+    from grunt.errors import ApplicationError
+
+    a, b = boxes
+    share = await _share(ctx, a, user=None, role="All")
+    row = await ctx.db.get_value("SharedWith", share, ["role", "everyone"], as_dict=True)
+    assert (row["role"], bool(row["everyone"])) == (None, True)
+    assert await _titles(db_session, engine, _bob()) == ["A"]
+    with pytest.raises((ApplicationError, HTTPException)):
+        await _share(ctx, b, user=None, role="Guest")
