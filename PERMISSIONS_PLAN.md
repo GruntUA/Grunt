@@ -144,7 +144,7 @@ allowed(action, doc) =
 | 4b | **Застосунки й дані.** mlt_portal (`sync_access`), letter (скрипт) пишуть області; міграція UserPermission → області ролей | ✔️ mlt_portal#9, letter#1, #160 (v0.5.0) |
 | 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ☐ |
 | 5a | **Shares: кому, строк, ділитися далі.** SharedWith на користувача / роль / всіх, `valid_to`, `can_reshare`; рівень share ≤ власного; сповіщення подією (FRAPPE_GAP п.40) | ✔️ #164 |
-| 5b | **access_from.** `inherit_permission_from` → `access_from`; child-рядки — той самий механізм (батько як джерело) | ⏳ `feat/permissions-access-from` |
+| 5b | **access_from.** `inherit_permission_from` → `access_from`; child-рядки — той самий механізм (батько як джерело) | ✔️ #165, #166; пришвидшення #167 |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
 | 7 | **API-ключі й sudo.** обмеження ключа (перетин з правами користувача), `grunt.sudo(reason)`, ревізія `system_context` у ядрі | ☐ |
 
