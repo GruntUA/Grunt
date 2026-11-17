@@ -7,7 +7,7 @@
  *   frm.actions.remove('duplicate')
  *
  * Ids: save · refresh · print, print_xlsx, print_pdf, print_html · open_new_tab, web_view ·
- * edit_doctype, configure_print · duplicate, discard, activity, links, share, tour ·
+ * edit_doctype, configure_print, check_access · duplicate, discard, activity, links, share, tour ·
  * rename, delete. Labels are translation keys (English source strings).
  *
  * Orders: primary 100; toolbar — yours by default (500), refresh 900;
@@ -118,6 +118,17 @@ function on_load(frm) {
         order: 260,
         visible: _isSystemManager,
         action: (f) => grunt.open_route('List', 'PrintFormat', { doctype: f.doctype }),
+    })
+
+    actions.add({
+        id: 'check_access',
+        label: __('Check access'),
+        icon: 'shield-question',
+        placement: 'menu',
+        group: 'doctype',
+        order: 270,
+        visible: (f) => _saved(f) && grunt.has_perm('grunt.manage_permissions'),
+        action: (f) => grunt.check_access(f.doctype, f.doc.name),
     })
 
     // ── Menu: the document ─────────────────────────────────────────────────

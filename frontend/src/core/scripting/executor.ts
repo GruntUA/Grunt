@@ -11,6 +11,7 @@
 
 import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { useAccessInspector } from '@/core/composables/useAccessInspector'
 import { grunt as appGrunt } from '@/core/grunt'
 import { appUrl } from '@/core/workspaceUrl'
 import type { ComponentDialogOptions } from '@/core/composables/useDialog'
@@ -364,6 +365,14 @@ export function createGruntProxy(
         has_password: u?.has_password ?? true,
         impersonated_by: auth.impersonatedBy,
       }
+    },
+
+    has_perm(name: string) {
+      return useAuthStore().hasPerm(name)
+    },
+
+    check_access(doctype: string, name?: string | null) {
+      useAccessInspector().open(doctype, name)
     },
 
     async impersonate(userId: string) {

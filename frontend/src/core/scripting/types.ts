@@ -249,6 +249,10 @@ export interface GruntProxy {
    * banner at the top of the screen. Rejects for non-System-Managers.
    */
   impersonate: (userId: string) => Promise<void>
+  /** Whether the current user holds permission `name` (e.g. `grunt.manage_permissions`). */
+  has_perm: (name: string) => boolean
+  /** Open the access inspector for `doctype` (or its document `name`) - needs `grunt.manage_permissions`. */
+  check_access: (doctype: string, name?: string | null) => void
   /**
    * Call a whitelisted server method.
    *

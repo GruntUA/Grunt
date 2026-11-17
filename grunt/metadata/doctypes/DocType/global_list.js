@@ -7,7 +7,7 @@
  *   listview.actions.remove('add')
  *   listview.actions.update('add', { label: 'Новий запис' })
  *
- * Ids: add · refresh · export:<exporter> · edit_doctype, customize_quick_filters ·
+ * Ids: add · refresh · export:<exporter> · edit_doctype, customize_quick_filters, check_access ·
  * create_report, tour, fast_delete · bulk_edit, bulk_delete. Labels are translation
  * keys (English source strings).
  *
@@ -72,6 +72,16 @@ function setup_list(listview) {
         order: 210,
         visible: _isSystemManager,
         action: (lv) => lv.customize_quick_filters(),
+    })
+    actions.add({
+        id: 'check_access',
+        label: __('Check access'),
+        icon: 'shield-question',
+        placement: 'menu',
+        group: 'doctype',
+        order: 220,
+        visible: () => grunt.has_perm('grunt.manage_permissions'),
+        action: (lv) => grunt.check_access(lv.doctype),
     })
     actions.add({
         id: 'tour',
