@@ -15156,3 +15156,43 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/DocType.js
 msgid "The app rules are back"
 msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "All rows"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Field of the linked document"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "the document itself"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Operator"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "equals"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "does not equal"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Current user"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "As text"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Modified by"
+msgstr ""
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "ID"
+msgstr ""
