@@ -109,16 +109,18 @@ async def _covers(
 
 def scoped_values(access: RoleAccess, action: str) -> dict[str, set[str]] | None:
     """``{scope DocType: values}`` the user's rules granting *action* are held
-    within - ``None`` when one of those rules holds everywhere (nothing to
-    narrow) or none grants it. Rules of several scopes add up."""
+    within - only scope DocTypes that narrow *every* such rule (a rule bound to
+    a unit and one bound to a project limit neither field), their values added
+    up. ``None`` when one of the rules holds everywhere (nothing to narrow),
+    none grants *action*, or no scope DocType narrows them all."""
     granting = [p for p in access.matching_permissions() if p.grants(action)]
     if access.is_unrestricted or not granting:
         return None
-    out: dict[str, set[str]] = {}
-    for perm in granting:
-        bound = access.bound_scopes(perm)
-        if not bound:
-            return None
-        for scope_doctype, values in bound.items():
-            out.setdefault(scope_doctype, set()).update(values)
-    return out
+    bounds = [access.bound_scopes(perm) for perm in granting]
+    common = set.intersection(*(set(bound) for bound in bounds))
+    if not common:
+        return None
+    return {
+        scope_doctype: {value for bound in bounds for value in bound[scope_doctype]}
+        for scope_doctype in common
+    }

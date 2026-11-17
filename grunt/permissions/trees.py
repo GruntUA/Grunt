@@ -29,7 +29,7 @@ async def expand_tree_values(doctype: str, values: set[str]) -> set[str]:
             doctype,
             filters={f"{parent_field}__in": frontier},
             fields=["name"],
-            limit=10000,
+            limit=None,
         )
         children = [r["name"] for r in rows if r["name"] not in out]
         out.update(children)

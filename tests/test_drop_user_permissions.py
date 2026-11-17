@@ -23,6 +23,7 @@ UNIT = {
     "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
     "permissions": [{"role": "Clerk", "actions": ["read"]}],
 }
+PROJECT = {**UNIT, "name": "DupProject", "label": "Dup Project"}
 LETTER = {
     "name": "DupLetter",
     "label": "Dup Letter",
@@ -36,8 +37,12 @@ LETTER = {
             "options": "DupUnit",
             "ignore_user_permissions": True,  # the old name still reads
         },
+        {"fieldname": "project", "label": "Project", "fieldtype": "Link", "options": "DupProject"},
     ],
-    "permissions": [{"role": "Clerk", "actions": ["read", "write", "create"]}],
+    "permissions": [
+        {"role": "Clerk", "actions": ["read", "write", "create"]},
+        {"role": "Planner", "actions": ["read", "create"]},
+    ],
 }
 
 
@@ -50,10 +55,11 @@ def _clerk(*units: str):
 async def letters(ctx):
     from grunt.api.v1.meta import save_doctype
 
-    for dt in (UNIT, LETTER):
+    for dt in (UNIT, PROJECT, LETTER):
         await save_doctype(doctype_data={**dt, "__is_new": True})
     for title in ("Finance", "Legal"):
         await ctx.new_doc("DupUnit", {"title": title})
+    await ctx.new_doc("DupProject", {"title": "P1"})
     await ctx.db._session().commit()
 
 
@@ -81,6 +87,19 @@ async def test_restrictions_and_defaults_follow_role_scopes(ctx, letters, db_ses
     # Two units: still restricted, but no single default.
     async with grunt.context(db_session, engine, _clerk("Finance", "Legal")):
         assert len(await get_active_scopes("DupLetter")) == 2
+        assert await get_scope_defaults("DupLetter") == {}
+
+    # A unit-scoped and a project-scoped role: each lets the other field be
+    # anything - neither restricts, neither is pre-filled.
+    mixed = make_user(
+        "mixed@example.com",
+        roles=[
+            {"role_name": "Clerk", "scope_doctype": "DupUnit", "scope_value": "Finance"},
+            {"role_name": "Planner", "scope_doctype": "DupProject", "scope_value": "P1"},
+        ],
+    )
+    async with grunt.context(db_session, engine, mixed):
+        assert await get_active_scopes("DupLetter") == []
         assert await get_scope_defaults("DupLetter") == {}
 
     # Held everywhere: nothing to show, nothing to pre-fill.
