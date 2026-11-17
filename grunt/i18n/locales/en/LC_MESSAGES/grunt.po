@@ -14833,3 +14833,33 @@ msgstr ""
 msgctxt "select:AccessLog.action"
 msgid "Report"
 msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "No rule grants anything here: only system tasks can reach these documents."
+msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The rule for “%(role)s” grants no action."
+msgstr ""
+
+
+#: grunt/grunt/permissions/warnings.py
+msgid "Nobody holds this role."
+msgstr ""
+
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The field “%(field)s” is hidden from everyone who may read these documents."
+msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The field “%(field)s” is read-only for everyone who may change these documents."
+msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "Nobody holds these roles - their rules give access to no one: %(roles)s"
+msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "No document type has a rule for this role and it holds no permission - it works only where code checks the role by name."
+msgstr ""
