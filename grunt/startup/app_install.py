@@ -20,6 +20,7 @@ lazy from grunt.apps.required import ensure_site_dependencies
 lazy from grunt.document.api import documents
 lazy from grunt.document.registry import document_registry
 lazy from grunt.fixtures import apply_doctype_fixture
+lazy from grunt.metadata import permission_layers
 lazy from grunt.metadata.compiler import get_table_name
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import DoctypeExtension, apply_extensions, site_extensions
@@ -163,6 +164,10 @@ async def _register_app_doctypes(
                             owned_by=existing_dt.app,
                         )
                         continue
+                    # The site's own rules survive the app's JSON (the site layer).
+                    permission_layers.apply(
+                        dt_obj, permission_layers.take_json_rules(existing_dt, dt_obj.permissions)
+                    )
                     if existing_dt.model_dump(mode="json") != dt_obj.model_dump(mode="json"):
                         async with session.begin_nested():
                             await doctype_registry.update(dt_obj, session, eng)

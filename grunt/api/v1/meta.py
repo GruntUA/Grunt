@@ -18,7 +18,7 @@ from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.dump import dump_doctype
 from grunt.metadata.registry import doctype_registry
-from grunt.metadata.scaffold import export_doctype_files
+from grunt.metadata.scaffold import export_to_app
 from grunt.permissions import audit
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -101,7 +101,7 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     await audit.record(session, "DocType", dt.name, before, _rules(dt), session_user() or "")
 
     app_name = await _get_app_name_for_module(dt.module or "")
-    export_doctype_files(dt, app_name=app_name)
+    await export_to_app(dt, session, app_name=app_name)
 
     return await _dump_doctype(dt)
 

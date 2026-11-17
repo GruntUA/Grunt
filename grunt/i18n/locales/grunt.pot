@@ -15120,3 +15120,39 @@ msgstr ""
 #: grunt/grunt/permissions/warnings.py
 msgid "No document type has a rule for this role and it holds no permission - it works only where code checks the role by name."
 msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The app changed its rules for this document type after they were changed on this site - review the difference."
+msgstr ""
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The rules were changed on this site and differ from the app's."
+msgstr ""
+
+#: grunt/grunt/api/v1/permission_layers.py
+msgid "The app's rules for this document type are not known"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Difference from the app rules"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "+ - rules of this site, − - rules of the app this site does not have."
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "No difference"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Restore the app rules"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Replace the rules of this site with the app rules? The change is recorded in the Permission Log."
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "The app rules are back"
+msgstr ""

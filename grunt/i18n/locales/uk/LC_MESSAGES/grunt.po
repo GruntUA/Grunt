@@ -16060,3 +16060,39 @@ msgstr "Цих ролей ніхто не має — їхні правила н�
 #: grunt/grunt/permissions/warnings.py
 msgid "No document type has a rule for this role and it holds no permission - it works only where code checks the role by name."
 msgstr "Жоден тип документа не має правила для цієї ролі, і в неї немає дозволів — вона діє лише там, де код перевіряє роль за назвою."
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The app changed its rules for this document type after they were changed on this site - review the difference."
+msgstr "Застосунок змінив свої правила для цього типу документа після того, як їх змінили на цьому сайті — перегляньте різницю."
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The rules were changed on this site and differ from the app's."
+msgstr "Правила змінено на цьому сайті — вони відрізняються від правил застосунку."
+
+#: grunt/grunt/api/v1/permission_layers.py
+msgid "The app's rules for this document type are not known"
+msgstr "Правила застосунку для цього типу документа невідомі"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Difference from the app rules"
+msgstr "Різниця з правилами застосунку"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "+ - rules of this site, − - rules of the app this site does not have."
+msgstr "+ — правила цього сайту, − — правила застосунку, яких на сайті немає."
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "No difference"
+msgstr "Різниці немає"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Restore the app rules"
+msgstr "Повернути правила застосунку"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Replace the rules of this site with the app rules? The change is recorded in the Permission Log."
+msgstr "Замінити правила цього сайту правилами застосунку? Зміну буде записано в журнал прав."
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "The app rules are back"
+msgstr "Правила застосунку повернуто"
