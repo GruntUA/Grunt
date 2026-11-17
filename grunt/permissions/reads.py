@@ -43,7 +43,7 @@ async def _secured(query: Query, user: str) -> tuple[Query, frozenset[str]]:
         excluded = hidden | await _hidden_behind_links(dt, user)
         if excluded:
             query = replace(query, search_exclude=query.search_exclude | excluded)
-    return query.narrowed(await read_predicate(user, dt)), hidden
+    return query.narrowed(await read_predicate(user, dt, within=query.where)), hidden
 
 
 async def _hidden_used(query: Query, dt: Any, user: str, hidden: frozenset[str]) -> set[str]:
