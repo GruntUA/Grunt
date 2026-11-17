@@ -31,6 +31,12 @@ class SharedWith(Document):
         target = (self.data.get("user") or "").strip() or None
         role = (self.data.get("role") or "").strip() or None
         everyone = bool(self.data.get("everyone"))
+        # "All" is every user, held implicitly - that's what "everyone" is;
+        # a guest never gets a share (only a public link).
+        if role == "All":
+            role, everyone = None, True
+        if role == "Guest":
+            throw(_("Guests see a document only through a public link"))
         if sum((target is not None, role is not None, everyone)) != 1:
             throw(_("Share with one of: a user, a role or everyone"))
         self.data.update(user=target, role=role, everyone=everyone)

@@ -14612,7 +14612,7 @@ msgid "With whom"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "Everyone holding the role gets access, wherever their role applies."
+msgid "Everyone holding the role gets access, whatever the scope of their role."
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue

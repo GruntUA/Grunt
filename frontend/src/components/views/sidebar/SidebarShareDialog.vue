@@ -37,9 +37,14 @@ const permission = ref<'Read' | 'Write'>('Read')
 const canReshare = ref(false)
 const validTo = ref<string | null>(null)
 const saving = ref(false)
+// Each opening is a session: a request still running from an earlier one
+// must not close (and drop the input of) the dialog opened again since.
+let session = 0
 
 watch(open, (v) => {
   if (!v) return
+  session += 1
+  saving.value = false
   kind.value = 'user'
   user.value = ''
   role.value = ''
@@ -65,15 +70,17 @@ async function submit() {
   if (kind.value === 'user') target.user = user.value
   else if (kind.value === 'role') target.role = role.value
   else target.everyone = true
+  const mine = session
   saving.value = true
   try {
     await props.sb.share(target)
+    if (mine !== session) return
     open.value = false
     emit('shared')
   } catch {
     /* the request layer shows the error */
   } finally {
-    saving.value = false
+    if (mine === session) saving.value = false
   }
 }
 </script>
@@ -128,7 +135,7 @@ async function submit() {
         <Field v-else-if="kind === 'role'">
           <FieldLabel>{{ t('Role') }}</FieldLabel>
           <LinkField :field="roleField" :model-value="role" @update:model-value="role = ($event as string) ?? ''" />
-          <FieldDescription>{{ t('Everyone holding the role gets access, wherever their role applies.') }}</FieldDescription>
+          <FieldDescription>{{ t('Everyone holding the role gets access, whatever the scope of their role.') }}</FieldDescription>
         </Field>
 
         <FieldDescription v-else>{{ t('Every signed-in user gets access. Nobody is notified.') }}</FieldDescription>

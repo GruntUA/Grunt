@@ -361,3 +361,34 @@ async def test_share_notifies_the_user_and_role_holders(ctx, boxes):
     assert await bell(BOB) == [a]
     assert await bell("cl@example.com") == [b]
     assert await bell("eve@example.com") == []  # "everyone" tells nobody
+
+
+@pytest.mark.asyncio
+async def test_everyone_share_is_not_for_guests(ctx, boxes, db_session, engine):
+    from grunt.auth.constants import GUEST_USER_EMAIL
+    from grunt.metadata.registry import doctype_registry
+    from grunt.permissions.rbac import permission_checker
+
+    a, _ = boxes
+    await _share(ctx, a, user=None, everyone=True)
+    meta = await doctype_registry.get_meta("ShareBox")
+    for guest in (GUEST_USER_EMAIL, "visitor@example.com"):
+        who = make_user(guest, roles=["Guest"])
+        import grunt
+
+        async with grunt.context(db_session, engine, who):
+            assert not await permission_checker.check(meta, "read", user=guest)
+            assert not await permission_checker.check(meta, "read", {"name": a}, user=guest)
+
+
+@pytest.mark.asyncio
+async def test_role_all_means_everyone_and_guest_is_refused(ctx, boxes, db_session, engine):
+    from grunt.errors import ApplicationError
+
+    a, b = boxes
+    share = await _share(ctx, a, user=None, role="All")
+    row = await ctx.db.get_value("SharedWith", share, ["role", "everyone"], as_dict=True)
+    assert (row["role"], bool(row["everyone"])) == (None, True)
+    assert await _titles(db_session, engine, _bob()) == ["A"]
+    with pytest.raises((ApplicationError, HTTPException)):
+        await _share(ctx, b, user=None, role="Guest")

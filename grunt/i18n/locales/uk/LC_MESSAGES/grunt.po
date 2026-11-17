@@ -15809,7 +15809,7 @@ msgid "With whom"
 msgstr "Кому"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "Everyone holding the role gets access, wherever their role applies."
+msgid "Everyone holding the role gets access, whatever the scope of their role."
 msgstr "Доступ отримають усі, хто має роль, незалежно від області ролі."
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue

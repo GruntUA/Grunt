@@ -162,6 +162,8 @@ function isExpired(s: SidebarShare): boolean {
   const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   return s.valid_to.substring(0, 10) < iso
 }
+// Users with a share in force - an expired one can be given again.
+const sharedUsers = computed(() => shares.value.flatMap((s) => (s.user && !isExpired(s) ? [s.user] : [])))
 // Whoever can share removes any share; a recipient may give up their own.
 function canRemove(s: SidebarShare): boolean {
   return canShare.value || (!!s.user && s.user === auth.user?.email)
@@ -289,7 +291,7 @@ function canRemove(s: SidebarShare): boolean {
               <ToggleGroupItem value="Write" class="flex-1" :disabled="!canShareWrite">{{ t('Edit') }}</ToggleGroupItem>
             </ToggleGroup>
           </div>
-          <SidebarUserCommand v-if="shareOpen" :sb="sb" :exclude="shares.flatMap((s) => s.user ? [s.user] : [])" @select="quickShare">
+          <SidebarUserCommand v-if="shareOpen" :sb="sb" :exclude="sharedUsers" @select="quickShare">
             <template #footer>
               <CommandItem value="__share-options" @select="openShareDialog">
                 <SlidersHorizontal class="size-4" />
@@ -363,7 +365,7 @@ function canRemove(s: SidebarShare): boolean {
     v-model:open="shareDialog"
     :sb="sb"
     :can-write="canShareWrite"
-    :exclude="shares.flatMap((s) => s.user ? [s.user] : [])"
+    :exclude="sharedUsers"
     @shared="accessOpen = true"
   />
 

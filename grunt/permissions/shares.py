@@ -20,6 +20,7 @@ from collections.abc import Collection
 from datetime import date
 from typing import Any
 
+from grunt.auth.constants import GUEST_USER_EMAIL
 from grunt.local import _session_ctx
 from grunt.metadata.registry import doctype_registry
 from grunt.query.nodes import FALSE, Cmp, Empty, Expr, In, Linked, and_, or_
@@ -46,10 +47,12 @@ async def grants(user: str, doctype: str, action: str, *, on: date | None = None
     level = _GRANTS.get(action)
     if level is None:
         return FALSE
-    roles = [r for r in await get_roles(user) if r != "Guest"]
+    held = await get_roles(user)
+    if user == GUEST_USER_EMAIL or "Guest" in held:
+        return FALSE  # a guest sees a document only through a public link
     whom = or_(
         Cmp("user", "eq", user),
-        In("role", tuple(roles)) if roles else FALSE,
+        In("role", tuple(held)) if held else FALSE,
         Cmp("everyone", "eq", True),
     )
     in_force = or_(Empty("valid_to"), Cmp("valid_to", "gte", on or date.today()))
