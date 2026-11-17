@@ -30,12 +30,17 @@ export function parseCondition(text: string | null | undefined): RowCondition | 
   return { ...base, kind: 'value', value: quoted[1] }
 }
 
-/** The condition as text; '' when no field is chosen yet. */
-export function formatCondition(c: RowCondition): string {
+/**
+ * The condition as text; '' when no field is chosen yet; null when the value
+ * holds both quote kinds - the grammar can't say that, and dropping a
+ * character would make the rule match other rows.
+ */
+export function formatCondition(c: RowCondition): string | null {
   if (!c.field) return ''
   const left = c.sub ? `${c.field}.${c.sub}` : c.field
   if (c.kind === 'user') return `${left} ${c.op} user`
+  if (c.value.includes("'") && c.value.includes('"')) return null
   // A value with a single quote is written in double quotes.
-  const quoted = c.value.includes("'") ? `"${c.value.replace(/"/g, '')}"` : `'${c.value}'`
+  const quoted = c.value.includes("'") ? `"${c.value}"` : `'${c.value}'`
   return `${left} ${c.op} ${quoted}`
 }

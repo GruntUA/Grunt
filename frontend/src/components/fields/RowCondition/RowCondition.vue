@@ -54,8 +54,21 @@ const cond = computed<RowCondition>(
   () => parsed.value ?? { field: '', sub: '', op: '==', kind: 'user', value: '' },
 )
 
+// A value the grammar can't hold (both quote kinds) - shown, never emitted altered.
+const valueError = ref('')
+const draftValue = ref<string | null>(null)
+
 function update(patch: Partial<RowCondition>) {
-  emit('update:modelValue', formatCondition({ ...cond.value, ...patch }) || null)
+  const next = { ...cond.value, ...patch }
+  const formatted = formatCondition(next)
+  if (formatted === null) {
+    draftValue.value = next.value
+    valueError.value = t('A value cannot contain both kinds of quotes')
+    return
+  }
+  draftValue.value = null
+  valueError.value = ''
+  emit('update:modelValue', formatted || null)
 }
 
 // One Link hop: the target's fields, loaded once per DocType.
@@ -67,17 +80,22 @@ const linkTarget = computed(() => {
 })
 watch(
   linkTarget,
-  async (target) => {
+  async (target, _old, onCleanup) => {
+    // A newer selection makes this one's answer stale.
+    let stale = false
+    onCleanup(() => { stale = true })
     targetFields.value = []
     if (!target) return
     if (!targetCache.has(target)) {
+      let loaded: Choice[]
       try {
-        targetCache.set(target, choices((await metaApi.get(target)).fields))
+        loaded = choices((await metaApi.get(target)).fields)
       } catch {
-        targetCache.set(target, [])
+        loaded = []
       }
+      targetCache.set(target, loaded)
     }
-    targetFields.value = targetCache.get(target) ?? []
+    if (!stale) targetFields.value = targetCache.get(target) ?? []
   },
   { immediate: true },
 )
@@ -164,7 +182,8 @@ function label(f: Choice): string {
 
           <Input
             v-if="cond.kind === 'value'"
-            :model-value="cond.value"
+            :model-value="draftValue ?? cond.value"
+            :aria-invalid="valueError ? true : undefined"
             :disabled="readonly"
             class="w-48"
             :aria-label="t('Value')"
@@ -187,6 +206,7 @@ function label(f: Choice): string {
           {{ t('As text') }}
         </Button>
       </div>
+      <p v-if="valueError" class="text-xs text-destructive">{{ valueError }}</p>
       <p v-if="text" class="font-mono text-xs text-muted-foreground">{{ text }}</p>
     </template>
   </div>

@@ -16136,3 +16136,7 @@ msgstr "Змінив"
 #: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 msgid "ID"
 msgstr "ID"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "A value cannot contain both kinds of quotes"
+msgstr "Значення не може містити обидва види лапок"

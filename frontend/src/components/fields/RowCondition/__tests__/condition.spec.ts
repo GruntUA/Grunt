@@ -21,4 +21,9 @@ describe('row condition', () => {
     }
     expect(formatCondition({ field: '', sub: '', op: '==', kind: 'user', value: '' })).toBe('')
   })
+
+  it('never alters a value it cannot hold', () => {
+    const both = { field: 'title', sub: '', op: '==' as const, kind: 'value' as const, value: `Bob's "Draft"` }
+    expect(formatCondition(both)).toBeNull()
+  })
 })

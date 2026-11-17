@@ -61,6 +61,14 @@ describe('RowCondition field', () => {
     expect(emitted(w)).toBe('team.lead == user')
   })
 
+  it('a value with both quote kinds is refused, not altered', async () => {
+    const w = mountIt("title == 'x'")
+    const before = w.emitted('update:modelValue')?.length ?? 0
+    await w.find('input').setValue(`Bob's "Draft"`)
+    expect(w.emitted('update:modelValue')?.length ?? 0).toBe(before)
+    expect(w.text()).toContain('quotes')
+  })
+
   it('text outside the builder opens as text', () => {
     const w = mountIt("a == 'x' and b == 'y'")
     expect(w.find('select').exists()).toBe(false)
