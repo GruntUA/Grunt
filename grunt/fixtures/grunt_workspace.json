@@ -76,6 +76,14 @@
     {
       "section": "Користувачі та доступ",
       "type": "DocType",
+      "label": "Журнал прав",
+      "link_to": "PermissionLog",
+      "icon": "shield-check",
+      "show_count": false
+    },
+    {
+      "section": "Користувачі та доступ",
+      "type": "DocType",
       "label": "API ключі",
       "link_to": "ApiKey",
       "icon": "key",

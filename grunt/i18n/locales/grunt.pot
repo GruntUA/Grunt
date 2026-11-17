@@ -15027,3 +15027,38 @@ msgstr ""
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Export"
 msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Permission Log"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Summary"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Changed"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "[{field, old, new}] for values; [{field, added, removed}] for rows of a table (roles, rules)"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Who changed access and when: user roles and their scopes, role permissions, DocType rules, shares and public links. Written by the system, read only."
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Created"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Changed"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Deleted"
+msgstr ""
