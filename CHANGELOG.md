@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.0 - 2026-11-17
+
+### Breaking changes
+
+- **permissions:** drop User Permissions - scoped roles replace them (#171)
+
+### Database migrations
+
+- `0028_drop_user_permissions`
+
 ## v0.6.0 - 2026-11-17
 
 ### Features
