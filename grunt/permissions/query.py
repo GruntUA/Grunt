@@ -40,7 +40,7 @@ from grunt.document.meta import Meta
 from grunt.local import _session_ctx, session_user
 from grunt.log import log
 from grunt.metadata.doctype import DocType
-from grunt.metadata.registry import doctype_registry
+from grunt.metadata.registry import doctype_registry, get_registry
 from grunt.permissions import shares
 from grunt.permissions.access import RoleAccess
 from grunt.permissions.match import PermissionMatch
@@ -50,7 +50,7 @@ from grunt.permissions.shares import shared_predicate
 from grunt.permissions.types import PermissionAction
 from grunt.permissions.user_permissions import user_permission_predicate
 from grunt.query.evaluate import matches_linked
-from grunt.query.nodes import FALSE, TRUE, Cmp, Empty, Expr, Linked, and_, or_
+from grunt.query.nodes import FALSE, TRUE, And, Cmp, Empty, Expr, In, Linked, and_, or_
 from grunt.query.query import Query
 lazy from grunt.store.lookup import store_for
 
@@ -100,13 +100,23 @@ async def allowed(
     return await shares.has_share(user, doctype.name, action)
 
 
-async def read_predicate(user: str | None, meta: Meta) -> Expr:
-    """The rows of *meta*'s DocType that *user* may read."""
-    return await action_predicate(user, meta, "read")
+async def read_predicate(user: str | None, meta: Meta, *, within: Expr | None = None) -> Expr:
+    """The rows of *meta*'s DocType that *user* may read.
+
+    *within* - the query's own condition the predicate will be ANDed with (a
+    list's filters): rows it excludes needn't be decided, so a reference column
+    it pins (``reference_doctype = 'Task'`` - a document's comments, files,
+    tags) narrows the DocTypes whose access is worked out to those it names."""
+    return await action_predicate(user, meta, "read", within=within)
 
 
 async def action_predicate(
-    user: str | None, meta: Meta, action: str, *, row: Mapping[str, Any] | None = None
+    user: str | None,
+    meta: Meta,
+    action: str,
+    *,
+    row: Mapping[str, Any] | None = None,
+    within: Expr | None = None,
 ) -> Expr:
     """The rows of *meta*'s DocType on which *user* may perform *action* - every
     row-level rule in one expression, for any store (SQL compiles it, memory
@@ -119,10 +129,10 @@ async def action_predicate(
 
     *row* is only a hint for deciding that one row: rules that would otherwise
     enumerate every DocType a reference column holds look at the row's own.
-    The predicate stays exact for that row.
+    The predicate stays exact for that row. *within* - see :func:`read_predicate`.
     """
     columns = meta.columns
-    granted = await _grants_predicate(columns, user, meta, action, row)
+    granted = await _grants_predicate(columns, user, meta, action, row, within)
     return and_(granted, await user_permission_predicate(columns, user, meta))
 
 
@@ -157,6 +167,7 @@ async def _grants_predicate(
     doctype: DocType | Meta,
     action: str,
     row: Mapping[str, Any] | None,
+    within: Expr | None = None,
 ) -> Expr:
     """Rows the user's role permissions allow for *action* via ``match``, plus
     documents shared with the user (``SharedWith``) and, for reading, rows that
@@ -173,11 +184,11 @@ async def _grants_predicate(
     if is_child(doctype):
         if action not in READ_ACTIONS:
             return FALSE  # child rows change only by saving their parent
-        return await child_predicate(columns, user, doctype, row=row)
+        return await child_predicate(columns, user, doctype, row=row, within=within)
 
     own = await _own_predicates(columns, user, doctype, access, action)
     ref = (
-        await reference_predicates(columns, user, doctype, row=row)
+        await reference_predicates(columns, user, doctype, row=row, within=within)
         if action in READ_ACTIONS
         else None
     )
@@ -245,17 +256,60 @@ def is_child(doctype: Any) -> bool:
 CHILD_SOURCE = ("parent_doctype", "parent_name")
 
 
+# Per registry: (stamp, child DocType -> the DocTypes embedding it). Every
+# child check needs it; working it out walks every field of every DocType.
+_parents_index: dict[int, tuple[tuple[tuple[int, int], ...], dict[str, list[str]]]] = {}
+
+
+async def _child_parents() -> dict[str, list[str]]:
+    """Child DocType -> the (non-child) DocTypes whose Table fields hold it,
+    rebuilt when the registry's DocTypes change - replaced, added, removed or
+    given fields (the stamp: each definition's identity and field count)."""
+    all_dts = await doctype_registry.list_all()
+    stamp = tuple((id(dt), len(dt.fields)) for dt in all_dts)
+    key = id(get_registry())
+    cached = _parents_index.get(key)
+    if cached is not None and cached[0] == stamp:
+        return cached[1]
+    index: dict[str, set[str]] = {}
+    for dt in all_dts:
+        if dt.is_child:
+            continue
+        for f in dt.fields:
+            if f.has_trait("table") and f.options:
+                index.setdefault(f.options, set()).add(dt.name)
+    built = {child: sorted(names) for child, names in index.items()}
+    _parents_index[key] = (stamp, built)
+    return built
+
+
 async def parent_doctypes(child_name: str) -> list[Any]:
     """Metas of the DocTypes whose Table fields hold *child_name* rows."""
-
-    names = {
-        dt.name
-        for dt in await doctype_registry.list_all()
-        if not dt.is_child
-        and any(f.has_trait("table") and f.options == child_name for f in dt.fields)
-    }
-    metas = [await doctype_registry.get_meta(name) for name in sorted(names)]
+    names = (await _child_parents()).get(child_name, [])
+    metas = [await doctype_registry.get_meta(name) for name in names]
     return [m for m in metas if m is not None]
+
+
+def pinned_values(where: Expr | None, field: str) -> frozenset[Any] | None:
+    """The values *where* pins *field* to - ``field = x`` / ``field IN (...)``
+    among its top-level AND terms (intersected) - or ``None`` when it doesn't
+    (a term under OR, a negation, no term at all)."""
+    if where is None:
+        return None
+    terms = where.items if isinstance(where, And) else (where,)
+    found: frozenset[Any] | None = None
+    for term in terms:
+        if isinstance(term, And):
+            values = pinned_values(term, field)
+        elif isinstance(term, Cmp) and term.field == field and term.op == "eq":
+            values = frozenset([term.value])
+        elif isinstance(term, In) and term.field == field and not term.negate:
+            values = frozenset(term.values)
+        else:
+            continue
+        if values is not None:
+            found = values if found is None else found & values
+    return found
 
 
 async def child_allowed(user: str | None, doctype: Any, action: PermissionAction) -> bool:
@@ -275,15 +329,19 @@ async def child_predicate(
     doctype: Any,
     *,
     row: Mapping[str, Any] | None = None,
+    within: Expr | None = None,
 ) -> Expr:
     """Rows whose parent document *user* may read - :data:`CHILD_SOURCE`, over
     the DocTypes that embed *doctype* (with *row*: its own parent DocType only,
-    exact for that row). A row without a parent is nobody's."""
+    exact for that row; with *within*: those it pins). A row without a parent
+    is nobody's."""
     if not all(f in columns for f in CHILD_SOURCE):
         return FALSE
     parents = [p.name for p in await parent_doctypes(doctype.name)]
     if row is not None:
         parents = [p for p in parents if p == row.get("parent_doctype")]
+    elif (pinned := pinned_values(within, "parent_doctype")) is not None:
+        parents = [p for p in parents if p in pinned]
     _, readable = await _followed(user, doctype, CHILD_SOURCE, parents)
     return readable
 
@@ -381,13 +439,15 @@ async def reference_predicates(
     doctype: Any,
     *,
     row: Mapping[str, Any] | None = None,
+    within: Expr | None = None,
 ) -> tuple[Expr, Expr] | None:
     """``(points at nothing, points at a readable document)`` over all of
     *doctype*'s ``access_from`` sources, or ``None`` when it has none.
 
     For a list every DocType a reference column holds is covered; with *row*
     (deciding that one row) only the row's own - exact for it, without reading
-    the distinct values of the whole table."""
+    the distinct values of the whole table; with *within* (a list's filters)
+    only the DocTypes it pins the column to, when it does."""
     sources = [
         (dt_field, id_field)
         for dt_field, id_field in access_sources(doctype)
@@ -403,6 +463,8 @@ async def reference_predicates(
         if dt_field is not None:
             if row is not None:
                 targets = [row.get(dt_field)]
+            elif (pinned := pinned_values(within, dt_field)) is not None:
+                targets = sorted(pinned, key=str)
             else:
                 meta = await doctype_registry.get_meta(doctype.name)
                 targets = await store_for(meta).distinct(dt_field) if meta is not None else []
