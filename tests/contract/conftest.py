@@ -202,3 +202,11 @@ async def dataset(ctx):
         await ctx.new_doc("ContractItem", {"name": name, **dict(zip(fields, values, strict=True))})
     await ctx.db._session().commit()
     return ROWS
+
+
+@pytest_asyncio.fixture
+async def permission_data(ctx):
+    """The permissions dataset (tests.contract.permission_data)."""
+    from tests.contract.permission_data import seed
+
+    await seed(ctx)

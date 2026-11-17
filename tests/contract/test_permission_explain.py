@@ -5,12 +5,8 @@ none when access is denied."""
 
 import pytest
 
-from tests.contract.test_permissions import (  # noqa: F401 - fixture
-    NOTES,
-    TASK_CASES,
-    TASKS,
-    permission_data,
-)
+from tests.contract.permission_data import NOTES, TASKS
+from tests.contract.test_permissions import TASK_CASES
 from tests.support import make_user
 
 pytestmark = pytest.mark.usefixtures("permission_data")
