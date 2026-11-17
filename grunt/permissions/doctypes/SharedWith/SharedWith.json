@@ -2,7 +2,7 @@
   "name": "SharedWith",
   "label": "Access",
   "module": "permissions",
-  "inherit_permission_from": [
+  "access_from": [
     [
       "reference_doctype",
       "reference_id"

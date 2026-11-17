@@ -143,8 +143,8 @@ allowed(action, doc) =
 | 4a | **Ролі з областю, ядро.** Рядок `UserRole` = призначення: `scope_doctype`/`scope_value`, `valid_from`/`valid_to`; область звужує правила своєї ролі; `role_holders()` замість п'яти копій запиту; UserPermission поки працює поруч | ✔️ #159 |
 | 4b | **Застосунки й дані.** mlt_portal (`sync_access`), letter (скрипт) пишуть області; міграція UserPermission → області ролей | ✔️ mlt_portal#9, letter#1, #160 (v0.5.0) |
 | 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ☐ |
-| 5a | **Shares: кому, строк, ділитися далі.** SharedWith на користувача / роль / всіх, `valid_to`, `can_reshare`; рівень share ≤ власного; сповіщення подією (FRAPPE_GAP п.40) | ⏳ `feat/permissions-shares` |
-| 5b | **access_from.** `inherit_permission_from` → `access_from`; child-рядки — той самий механізм (батько як джерело) | ☐ |
+| 5a | **Shares: кому, строк, ділитися далі.** SharedWith на користувача / роль / всіх, `valid_to`, `can_reshare`; рівень share ≤ власного; сповіщення подією (FRAPPE_GAP п.40) | ✔️ #164 |
+| 5b | **access_from.** `inherit_permission_from` → `access_from`; child-рядки — той самий механізм (батько як джерело) | ⏳ `feat/permissions-access-from` |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
 | 7 | **API-ключі й sudo.** обмеження ключа (перетин з правами користувача), `grunt.sudo(reason)`, ревізія `system_context` у ядрі | ☐ |
 
@@ -590,3 +590,17 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
   відмовляється, сповіщення), `test_sidebar_sections.py::test_perms`. SQLite — увесь набір;
   PG — файли прав/shares/сповіщень.
 - Після злиття на сайтах: `grunt migrate` (нові колонки SharedWith + стандартне правило сповіщення).
+
+### 2026-11-17 — крок 5b: `access_from`
+
+- Ключ DocType `inherit_permission_from` → `access_from` (core JSON, тести, esign — окремий PR у його
+  репозиторії). Міграція 0027 перейменовує його в збережених визначеннях (і назад у `downgrade`).
+- Модель DocType: старий ключ порожній (`null` / `[]` — так він лежить у збережених визначеннях
+  майже всіх DocType) мовчки відкидається; зі списком джерел — помилка валідації. Мовчки ігнорувати
+  не можна: коментарі / файли / підписи лишилися б на самих правилах ролі, тобто доступ би розширився.
+- Child-рядки — той самий механізм: `CHILD_SOURCE = ("parent_doctype", "parent_name")`, джерела
+  `access_from` і батько дочірнього рядка будує одна функція `_followed()` («вказує ні на що» /
+  «вказує на документ, який можна читати»). Відмінності лишилися явними: у child-рядка без батька
+  доступу немає (не правила ролі), а цілі — DocType з Table-полем на нього, не `distinct` колонки.
+- Після злиття на сайтах: `grunt migrate` (0027); esign оновити разом з ядром — інакше ESignature з
+  диска не завантажиться (помилка, а не ширший доступ).

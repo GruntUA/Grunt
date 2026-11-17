@@ -57,7 +57,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "public_attachments",
         "is_signable",
         "standard_records",
-        "inherit_permission_from",
+        "access_from",
         "quick_entry",
         "show_preview_popup",
         "has_web_view",
@@ -591,6 +591,11 @@ class DocTypeRegistry:
                     f"DocType {doctype.name!r} is stored with old permission flags: "
                     "run `grunt migrate` with Alembic (revision 0021) first"
                 )
+            if "inherit_permission_from" in existing:
+                # Renamed to access_from (migration 0027) - a core-synced
+                # attribute, the JSON's value replaces it below anyway; refusing
+                # it here would fall back to the JSON and drop customisations.
+                existing = {k: v for k, v in existing.items() if k != "inherit_permission_from"}
             try:
                 active_dt = DocType.model_validate(existing)
             except Exception:
