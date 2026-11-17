@@ -15967,3 +15967,38 @@ msgstr "Імпорт"
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Export"
 msgstr "Експорт"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Permission Log"
+msgstr "Журнал прав"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Summary"
+msgstr "Підсумок"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Changed"
+msgstr "Змінено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "[{field, old, new}] for values; [{field, added, removed}] for rows of a table (roles, rules)"
+msgstr "[{field, old, new}] — для значень; [{field, added, removed}] — для рядків таблиці (ролі, правила)"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Who changed access and when: user roles and their scopes, role permissions, DocType rules, shares and public links. Written by the system, read only."
+msgstr "Хто й коли змінив доступ: ролі користувачів і їхні області, дозволи ролей, правила DocType, поширення й публічні посилання. Пише система, лише для читання."
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Created"
+msgstr "Створено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Changed"
+msgstr "Змінено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Deleted"
+msgstr "Видалено"

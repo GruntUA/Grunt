@@ -1,0 +1,58 @@
+{
+  "name": "PermissionLog",
+  "label": "Permission Log",
+  "module": "permissions",
+  "icon": "shield-check",
+  "is_log": true,
+  "retention_days": 1825,
+  "track_changes": false,
+  "track_activity": false,
+  "in_global_search": false,
+  "indexes": [["ref_doctype", "doc_id"]],
+  "fields": [
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "doc_id",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "ref_doctype",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "action",
+      "label": "Action",
+      "fieldtype": "Select",
+      "options": "Created\nChanged\nDeleted",
+      "translatable": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "summary",
+      "label": "Summary",
+      "fieldtype": "LongText",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "changes",
+      "label": "Changes",
+      "fieldtype": "JSON",
+      "description": "[{field, old, new}] for values; [{field, added, removed}] for rows of a table (roles, rules)"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "export", "report"]
+    }
+  ],
+  "description": "Who changed access and when: user roles and their scopes, role permissions, DocType rules, shares and public links. Written by the system, read only."
+}

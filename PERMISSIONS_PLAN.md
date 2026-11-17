@@ -145,8 +145,8 @@ allowed(action, doc) =
 | 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ✔️ #171 (v0.7.0) |
 | 5a | **Shares: кому, строк, ділитися далі.** SharedWith на користувача / роль / всіх, `valid_to`, `can_reshare`; рівень share ≤ власного; сповіщення подією (FRAPPE_GAP п.40) | ✔️ #164 |
 | 5b | **access_from.** `inherit_permission_from` → `access_from`; child-рядки — той самий механізм (батько як джерело) | ✔️ #165, #166; пришвидшення #167 |
-| 6a | **`explain()` + «Перевірити доступ»** (FRAPPE_GAP п.7): користувач + DocType/документ + дія → рішення й чому | ⏳ `feat/permissions-inspector` |
-| 6b | **Permission Log** (п.8): хто й коли змінив ролі, призначення, правила, shares | ☐ |
+| 6a | **`explain()` + «Перевірити доступ»** (FRAPPE_GAP п.7): користувач + DocType/документ + дія → рішення й чому | ✔️ #174 |
+| 6b | **Permission Log** (п.8): хто й коли змінив ролі, призначення, правила, shares | ⏳ `feat/permissions-log` |
 | 6c | **Access Log** (п.8): експорт, друк, імпорт, завантаження файлів | ☐ |
 | 6d | **Попередження** в Studio: правило не дає нічого, роль без користувачів/правил, поле приховане від усіх, DocType без правил | ☐ |
 | 6e | **Шар сайту** поверх JSON застосунку: правки адміна не затираються, «як у застосунку / як на сайті», повернути типові | ☐ |
@@ -645,3 +645,18 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
 - Інтерфейс: діалог `AccessInspectorDialog` (один на застосунок, `useAccessInspector`), дія
   «Перевірити доступ» у меню форми й списку (`global_form.js` / `global_list.js`, група doctype);
   для скриптів — `grunt.check_access(doctype, name?)` і `grunt.has_perm(name)`.
+
+### 2026-11-17 — крок 6b: Permission Log
+
+- DocType `PermissionLog` (`is_log`, `retention_days: 1825` — п'ять років замість типових 30 днів
+  журналів; читає System Manager): `ref_doctype` / `doc_id`, дія (Created / Changed / Deleted),
+  `summary` (рядок на зміну), `changes` (JSON), автор — `owner`, час — `created_at`.
+- `grunt/permissions/audit.py` — `record()` викликає конвеєр документа після `store.insert` /
+  `store.update` / `store.delete` (оновлення — незалежно від того, чи веде сховище історію: DocType
+  її не веде). Під аудитом: `User` (ролі з областю й строком, `is_active`), `Role` (дозволи),
+  `DocType` (правила), `SharedWith`, `DocumentShare`. Таблиця (ролі, правила) — рядки додано /
+  прибрано за полями, що вирішують доступ (id рядка й `idx` не рахуються); значення — було → стало.
+  Запис — у тій самій транзакції, від системи; збій запису пишеться в лог і зміну не скасовує.
+- Поза журналом: сирі записи в БД повз конвеєр (`grunt.db.set_value`, міграції) — як і для
+  DocVersion.
+- Робочий простір: «Журнал прав» у розділі «Користувачі та доступ».
