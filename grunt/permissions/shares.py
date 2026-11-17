@@ -26,7 +26,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.query.nodes import FALSE, Cmp, Empty, Expr, In, Linked, and_, or_
 from grunt.query.query import Query
 lazy from grunt.permissions.roles import get_roles
-lazy from grunt.permissions.user_permissions import expand_tree_values
+lazy from grunt.permissions.trees import expand_tree_values
 lazy from grunt.store.lookup import store_for
 
 # action -> what a share row must hold to grant it

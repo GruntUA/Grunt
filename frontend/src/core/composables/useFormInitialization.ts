@@ -57,11 +57,11 @@ export function useFormInitialization(params: FormInitializationParams) {
         }
       }
 
-      // Prefill Link fields from the user's is_default User Permissions.
+      // Prefill Link fields with the one scope record the user creates within.
       try {
         const { permissionsApi } = await import('@/core/api/permissions')
-        const upDefaults = await permissionsApi.getUserPermissionDefaults(params.doctype)
-        for (const [fieldname, value] of Object.entries(upDefaults)) {
+        const scopeDefaults = await permissionsApi.getScopeDefaults(params.doctype)
+        for (const [fieldname, value] of Object.entries(scopeDefaults)) {
           if (params.form.value[fieldname] == null) params.form.value[fieldname] = value
         }
       } catch {

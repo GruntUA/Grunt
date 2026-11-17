@@ -70,7 +70,7 @@ class ExternalCustomerStore(VirtualStore):
 
     async def rows(self, query: Query) -> list[dict]:
         # Усі рядки джерела; фільтри, пошук, сортування, сторінки й ПРАВА (match, shares,
-        # User Permissions) застосовує VirtualStore — так само, як SQL. query — лише підказка
+        # області ролей) застосовує VirtualStore — так само, як SQL. query — лише підказка
         # (grunt.store.virtual.equals(query, "period") — значення фільтра field=value).
         if not api.ready():
             raise Unavailable(_("API недоступне"))  # порожній список з поясненням
@@ -251,6 +251,11 @@ class ExternalCustomer(Document):
 { "fieldtype": "Link", "options": "Employee" }
 { "fieldtype": "Link", "options": "Employee", "link_filters": "{\"status\": \"Працює\"}" }
 ```
+
+`"ignore_scope": true` на Link — вільне посилання, а не область: роль з областю на цей DocType
+(рядок `UserRole` зі `scope_doctype`) це поле не дивиться. Потрібно, коли кілька Link на той самий
+DocType, а місце документа в області задає лише одне (у листа «відділ реєстрації» — так,
+«відділ-відправник» — ні). Колишня назва `ignore_user_permissions` читається так само.
 
 ### Файли та медіа
 

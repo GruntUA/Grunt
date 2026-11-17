@@ -77,14 +77,14 @@ class RoleAccess:
     def scope_fields(self, scope_doctype: str) -> list[str]:
         """Fields of the DocType that place a document in a *scope_doctype* scope:
         ``name`` when it is that DocType, and its Link fields to it (a field
-        flagged ``ignore_user_permissions`` is a free reference, not a scope)."""
+        flagged ``ignore_scope`` is a free reference, not a scope)."""
         names = ["name"] if self.doctype.name == scope_doctype else []
         names.extend(
             f.fieldname
             for f in self.doctype.fields
             if getattr(f, "options", None) == scope_doctype
             and _is_link(f)
-            and not getattr(f, "ignore_user_permissions", False)
+            and not getattr(f, "ignore_scope", False)
         )
         return names
 

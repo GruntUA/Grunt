@@ -142,7 +142,7 @@ allowed(action, doc) =
 | 3c | **Ролі.** `DocPermission.role` — Link (роль мусить існувати), перекладна назва ролі | ✔️ #155 |
 | 4a | **Ролі з областю, ядро.** Рядок `UserRole` = призначення: `scope_doctype`/`scope_value`, `valid_from`/`valid_to`; область звужує правила своєї ролі; `role_holders()` замість п'яти копій запиту; UserPermission поки працює поруч | ✔️ #159 |
 | 4b | **Застосунки й дані.** mlt_portal (`sync_access`), letter (скрипт) пишуть області; міграція UserPermission → області ролей | ✔️ mlt_portal#9, letter#1, #160 (v0.5.0) |
-| 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ☐ |
+| 4c | **Прибрати UserPermission** — DocType, `user_permissions.py`, суворий режим, `ignore_user_permissions` → `ignore_scope` | ⏳ `feat/permissions-drop-user-permissions` |
 | 5a | **Shares: кому, строк, ділитися далі.** SharedWith на користувача / роль / всіх, `valid_to`, `can_reshare`; рівень share ≤ власного; сповіщення подією (FRAPPE_GAP п.40) | ✔️ #164 |
 | 5b | **access_from.** `inherit_permission_from` → `access_from`; child-рядки — той самий механізм (батько як джерело) | ✔️ #165, #166; пришвидшення #167 |
 | 6 | **Інструменти адміна.** `explain()` + Inspector (п.7), Permission/Access Log (п.8), матриця, конструктор умов, попередження, шар сайту поверх JSON додатка | ☐ |
@@ -604,3 +604,21 @@ PR #139 (формат) + #140 (перевірки). CodeRabbit на #139: Schedu
   доступу немає (не правила ролі), а цілі — DocType з Table-полем на нього, не `distinct` колонки.
 - Після злиття на сайтах: `grunt migrate` (0027); esign оновити разом з ядром — інакше ESignature з
   диска не завантажиться (помилка, а не ширший доступ).
+
+### 2026-11-17 — крок 4c: UserPermission прибрано
+
+- Прод (mlt.gov.ua): після v0.6.0 лишалось 4 UserPermission — модератор і автор порталу, яких 0026
+  не переводить, поки визначення MltPortalSettings старе; `resync-access` їх звів — на проді 0.
+  dev2: 2 рядки «Діловод» (той самий відділ, що й область ролі; звужували ще правила `All` листів).
+- Міграція 0028: рядки UserPermission пишуться в лог і видаляються, таблиця й визначення DocType —
+  теж; у збережених визначеннях поле `ignore_user_permissions` → `ignore_scope`; SystemSettings
+  втрачає «суворий режим». Рядки, що лишилися після 0026, — ті, де область сказала б інакше; після
+  0028 діє лише модель ролей з областю (рішення: не блокувати міграцію — прод чистий).
+- Код: `user_permissions.py`, предикат UserPermission у `action_predicate`, перевірка нових значень у
+  `lifecycle` (її робить `require_in_scope`), `doc_passes` у «наступних виконавцях» workflow (області
+  вже враховує `doc_in_scopes`). `expand_tree_values` → `grunt/permissions/trees.py`.
+- `DocField.ignore_user_permissions` → `ignore_scope`; старий ключ читається як новий (той самий
+  зміст), застосунки (cms, letter, mlt_portal) оновлюються окремо з `required_grunt >= 0.7`.
+- Інтерфейс: банер «Обмеження» у списку — `api/v1/role_scopes.get_active_scopes` (області ролей, що дають
+  `read`; з назвою запису, а не id); автозаповнення нової форми — `role_scopes.get_scope_defaults`
+  (рівно один запис області для ролей, що дають `create`).

@@ -291,7 +291,7 @@ async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
     await ctx.db._session().commit()
     ctx.query_cache.clear()
 
-    async def seen(roles: list[str]) -> tuple[list[dict], int]:
+    async def seen(roles: list) -> tuple[list[dict], int]:
         user = make_user("cache-reader@example.com", roles=roles)
         async with ctx.context(db_session, engine, user):
             rows = await ctx.get_list("CacheScopedItem", fields=["name", "title"], limit=10)
@@ -308,18 +308,14 @@ async def test_query_cache_follows_the_users_access(ctx, db_session, engine):
     rows, total = await seen(["Clerk"])
     assert total == 1 and "title" not in rows[0]
 
-    # Same user, same role, a User Permission added: the predicate changes and
+    # Same user, the same role held within a scope: the predicate changes and
     # stays cacheable - the reader's cached list must not be served.
-    await ctx.new_doc(
-        "UserPermission",
-        {
-            "for_user": "cache-reader@example.com",
-            "allow": "User",
-            "for_value": "cache-reader@example.com",
-        },
-    )
-    await ctx.db._session().commit()
-    assert await seen(["Reader"]) == ([], 0)
+    scoped = {
+        "role_name": "Reader",
+        "scope_doctype": "User",
+        "scope_value": "cache-reader@example.com",
+    }
+    assert await seen([scoped]) == ([], 0)
 
     # A row rule: the same user with narrower access gets nothing of the above.
     assert await seen(["Own"]) == ([], 0)

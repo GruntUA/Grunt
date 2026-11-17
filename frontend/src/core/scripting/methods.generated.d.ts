@@ -187,6 +187,10 @@ interface GruntMethods {
   "grunt.api.v1.permission_matrix.get_role_matrix": { args: { role: string; doctypes: string[] }; result: Record<string, any>[] }
   /** Apply *changes* - ``{doctype, rules: [{index, match, original, actions}]}`` - to *role*'s rules, one ``save_doc`` per DocType; returns them as :func:`get_role_matrix` does. */
   "grunt.api.v1.permission_matrix.save_role_matrix": { args: { role: string; changes: Record<string, any>[] }; result: Record<string, any>[] }
+  /** What the current user's role scopes limit a *doctype* list to - for the list's "Restrictions" popup: ``[{field, fieldname, allow, value, title}]``. */
+  "grunt.api.v1.role_scopes.get_active_scopes": { args: { doctype: string }; result: Record<string, any>[] }
+  /** ``{fieldname: value}`` to pre-fill on a new *doctype* form: a user who may create it only within one record of a scope DocType gets that record in its Link fields. */
+  "grunt.api.v1.role_scopes.get_scope_defaults": { args: { doctype: string }; result: Record<string, string> }
   /** Return all enabled client scripts for a DocType. */
   "grunt.api.v1.scripting.get_client_scripts": { args: { doctype: string }; result: Record<string, any>[] }
   /** Execute a Server Script of type 'API'. */
@@ -310,10 +314,6 @@ interface GruntMethods {
   "grunt.monitoring.health.run_section": { args: { key: string }; result: Record<string, any> }
   /** Push a test event to the caller's own user channel - the browser half of the report checks it arrives exactly once (grunt/api/v1/ws.py). Permission: grunt.system_monitor. */
   "grunt.monitoring.health.ws_echo": { args: { nonce: string }; result: Record<string, any> }
-  /** Rows for the list-view "Restrictions" popup: which fields on *doctype* are constrained, and to which values, for the current user. */
-  "grunt.permissions.user_permissions.get_active_restrictions": { args: { doctype: string }; result: Record<string, any>[] }
-  /** ``{fieldname: value}`` to pre-fill on a new *doctype* form from the current user's ``is_default`` UserPermission rows. */
-  "grunt.permissions.user_permissions.get_user_permission_defaults": { args: { doctype: string }; result: Record<string, string> }
   /** The current user's running tasks - the task panel restores itself from this. */
   "grunt.progress.active_tasks": { args: {}; result: Record<string, any>[] }
   /** Ask the background task *job_id* (any user's, or a scheduled one) to stop. Permission: grunt.system_monitor. */

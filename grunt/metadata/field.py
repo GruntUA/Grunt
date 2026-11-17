@@ -7,7 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, ClassVar, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from sqlalchemy import JSON as SAJSON
 from sqlalchemy import Column, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
@@ -389,12 +389,25 @@ class DocField(BaseModel):
     placeholder: str | None = None
 
     link_filters: str | None = None
-    # Link fields only - exclude this field from User Permission row-filtering
-    # (see grunt.permissions.user_permissions). Use when a DocType has several
-    # Link fields to the same target but only some of them should scope a
-    # user's visible rows (e.g. a letter's "registering unit" restricts access
-    # while its "sender unit" must stay a free reference).
-    ignore_user_permissions: bool = False
+    # Link fields only - a free reference, not a scope: a role scoped to the
+    # Link's DocType doesn't look at this field (grunt.permissions.scopes). Use
+    # when a DocType has several Link fields to the same target but only some
+    # place the document in a scope (a letter's "registering unit" does, its
+    # "sender unit" must stay a free reference).
+    ignore_scope: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def _renamed_ignore_scope(cls, data: Any) -> Any:
+        """``ignore_user_permissions`` became ``ignore_scope`` (same meaning) -
+        read the old key as the new one so stored definitions and apps not
+        updated yet keep their free references."""
+        if isinstance(data, dict) and "ignore_user_permissions" in data:
+            data = dict(data)
+            old = data.pop("ignore_user_permissions")
+            if old and not data.get("ignore_scope"):
+                data["ignore_scope"] = old
+        return data
 
     # Layout
     collapsible: bool = False
