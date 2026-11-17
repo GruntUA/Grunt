@@ -16096,3 +16096,47 @@ msgstr "Замінити правила цього сайту правилами
 #: grunt/grunt/metadata/doctypes/DocType/DocType.js
 msgid "The app rules are back"
 msgstr "Правила застосунку повернуто"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "All rows"
+msgstr "Усі рядки"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Field of the linked document"
+msgstr "Поле пов'язаного документа"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "the document itself"
+msgstr "сам документ"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Operator"
+msgstr "Оператор"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "equals"
+msgstr "дорівнює"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "does not equal"
+msgstr "не дорівнює"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Current user"
+msgstr "Поточний користувач"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "As text"
+msgstr "Як текст"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Modified by"
+msgstr "Змінив"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "ID"
+msgstr "ID"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "A value cannot contain both kinds of quotes"
+msgstr "Значення не може містити обидва види лапок"

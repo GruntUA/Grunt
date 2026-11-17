@@ -1,0 +1,8 @@
+{
+    "type": "RowCondition",
+    "label": "Row condition",
+    "icon": "filter",
+    "category": "Спеціальні",
+    "propertySections": ["core", "display"],
+    "storage_class": "text"
+}

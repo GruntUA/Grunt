@@ -30,6 +30,7 @@ import SelectListCell from '@/components/fields/Select/ListCell.vue'
 import { STATUS_CONFIG, statusConfigOf } from '@/core/status'
 import TableRowActions from './TableRowActions.vue'
 import TableRowSheet from './TableRowSheet.vue'
+import { PARENT_DOC } from './parentDoc'
 import { useCardLayout } from '@/components/views/list/useCardLayout'
 import { INLINE_TYPES, cellError, isLayoutRow, useTableCell } from './useTableCell'
 import { useTableRows, type Row } from './useTableRows'
@@ -133,6 +134,8 @@ const canAddRow = computed(() => {
 // The child DocType's status field shows as a coloured badge, like in lists.
 const statusConfig = computed(() => statusConfigOf(childDocType.value))
 provide(STATUS_CONFIG, statusConfig)
+// Row editors that need the document holding the table (PARENT_DOC).
+provide(PARENT_DOC, computed(() => props.doc))
 
 // Grouping (field.group_by)
 const groupBy = computed(() => props.field.group_by || null)
