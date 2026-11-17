@@ -447,16 +447,15 @@ class DocType(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _renamed_access_from(cls, data: Any) -> Any:
-        """``inherit_permission_from`` became ``access_from``: an empty old key
-        (stored definitions) is dropped; one with sources is an error - ignored,
-        it would leave comments / files to plain role rules, i.e. widen access."""
+        """``inherit_permission_from`` became ``access_from`` - read the old key
+        as the new one (same meaning: nothing is widened or narrowed), so a
+        definition stored before migration 0027 or an app not updated yet keeps
+        loading. ``access_from`` wins when both are present."""
         if isinstance(data, dict) and "inherit_permission_from" in data:
             data = dict(data)
             old = data.pop("inherit_permission_from")
-            if old:
-                raise ValueError(
-                    f"DocType '{data.get('name')}': 'inherit_permission_from' is now 'access_from'"
-                )
+            if old and not data.get("access_from"):
+                data["access_from"] = old
         return data
 
     @model_validator(mode="after")

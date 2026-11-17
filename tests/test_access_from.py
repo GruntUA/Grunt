@@ -1,6 +1,6 @@
 """``inherit_permission_from`` -> ``access_from``: the stored definitions are
-renamed by migration 0027, and the DocType model never silently drops sources
-(that would leave the rows to plain role rules - wider access)."""
+renamed by migration 0027, and the DocType model reads the old key as the new
+one - never dropping sources (that would leave the rows to plain role rules)."""
 
 import importlib
 import json
@@ -17,9 +17,13 @@ migration = importlib.import_module("grunt.db.migrations.versions.0027_access_fr
 BASE = {"name": "Note", "label": "Note", "module": "core", "fields": []}
 
 
-def test_old_key_with_sources_is_refused():
-    with pytest.raises(ValueError, match="access_from"):
-        DocType.model_validate({**BASE, "inherit_permission_from": [["ref_doctype", "ref_name"]]})
+def test_old_key_reads_as_access_from():
+    """Same meaning under the old name: a definition stored before 0027 (or an
+    app not updated yet) keeps loading - nothing widened, nothing lost."""
+    source = [["ref_doctype", "ref_name"]]
+    assert DocType.model_validate({**BASE, "inherit_permission_from": source}).access_from == source
+    both = {**BASE, "inherit_permission_from": source, "access_from": ["folder"]}
+    assert DocType.model_validate(both).access_from == ["folder"]
 
 
 @pytest.mark.parametrize("empty", [None, []])
