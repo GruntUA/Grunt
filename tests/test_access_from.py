@@ -63,3 +63,59 @@ def test_migration_renames_stored_key_both_ways():
     down = _run(engine, migration.downgrade)
     assert down["ESignature"] == {"inherit_permission_from": [["ref_doctype", "ref_name"]]}
     assert down["Untouched"] == {"label": "U"}
+
+
+@pytest.mark.asyncio
+async def test_core_doctype_stored_with_old_key_keeps_customisations(ctx, db_session):
+    """Before 0027 a stored core definition still names the old key: loading it
+    must not fall back to the JSON (that drops Studio changes) - the key is a
+    core-synced attribute, the JSON's access_from replaces it."""
+    from sqlalchemy import update
+
+    from grunt.metadata import store
+    from grunt.metadata.doctype import DocField
+    from grunt.metadata.registry import doctype_registry
+
+    source = [["ref_doctype", "ref_name"]]
+    core = DocType(
+        name="AfCoreNote",
+        label="AfCoreNote",
+        module="grunt",
+        app="grunt",
+        access_from=source,
+        fields=[
+            DocField(fieldname="ref_doctype", fieldtype="Link", options="DocType"),
+            DocField(fieldname="ref_name", fieldtype="Data"),
+        ],
+    )
+    await doctype_registry._inject_core(core, db_session, sync_db=True)
+    stored = doctype_registry._doctypes["AfCoreNote"]
+    stored.fields.append(DocField(fieldname="local_note", fieldtype="Data"))  # added in Studio
+    await store.update_doctype(db_session, stored)
+
+    old = dict(await store.get_definition(db_session, "AfCoreNote") or {})
+    old["inherit_permission_from"] = old.pop("access_from")
+    table = store.meta_table()
+    await db_session.execute(
+        update(table).where(table.c.name == "AfCoreNote").values(definition=old)
+    )
+
+    await doctype_registry._inject_core(core, db_session, sync_db=True)
+    loaded = doctype_registry._doctypes["AfCoreNote"]
+    assert "local_note" in [f.fieldname for f in loaded.fields]
+    assert loaded.access_from == source
+
+
+@pytest.mark.asyncio
+async def test_link_source_to_removed_doctype_falls_back_to_role_rules():
+    from grunt.metadata.doctype import DocField
+    from grunt.permissions.query import _followed
+    from grunt.query.nodes import FALSE, TRUE
+
+    dt = DocType(
+        name="AfFile",
+        label="AfFile",
+        module="core",
+        fields=[DocField(fieldname="folder", fieldtype="Link", options="AfGoneFolder")],
+    )
+    assert await _followed("u@example.com", dt, (None, "folder"), []) == (TRUE, FALSE)

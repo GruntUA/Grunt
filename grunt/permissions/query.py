@@ -355,7 +355,7 @@ async def _followed(
         target = _link_target(doctype, id_field)
         parent_meta = await doctype_registry.get_meta(target) if target else None
         if parent_meta is None:
-            return Empty(id_field), FALSE
+            return TRUE, FALSE  # the target DocType is gone: the role's own rules decide
         where = await readable_predicate(user, parent_meta)
         readable = FALSE if where is None else Linked(id_field, parent_meta.name, where)
         return Empty(id_field), readable
