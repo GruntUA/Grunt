@@ -105,3 +105,26 @@ async def test_log_is_read_only_for_people(ctx, db_session, engine):
     async with grunt.context(db_session, engine, make_user("adm@example.com", is_superadmin=True)):
         with pytest.raises(APIError):
             await grunt.new_doc("PermissionLog", {"ref_doctype": "User", "doc_id": "x"})
+
+
+@pytest.mark.asyncio
+async def test_rules_saved_past_the_document_pipeline_are_logged(ctx):
+    """``save_doctype`` / ``delete_doctype`` store the definition through the
+    registry, not the document pipeline - their rule changes are logged too."""
+    from grunt.api.v1.meta import delete_doctype, save_doctype
+
+    box = {**BOX, "name": "PlDirect", "label": "Pl Direct"}
+    await save_doctype(doctype_data={**box, "__is_new": True})
+    await save_doctype(
+        doctype_data={
+            **box,
+            "permissions": [*box["permissions"], {"role": "All", "actions": ["read"]}],
+        }
+    )
+    await save_doctype(doctype_data={**box, "label": "Renamed"})  # rules as before the last one
+    await delete_doctype(name="PlDirect")
+
+    entries = await _log(ctx, "DocType", "PlDirect")
+    assert [e["action"] for e in entries] == ["Created", "Changed", "Changed", "Deleted"]
+    assert entries[1]["summary"].startswith("permissions: + All")
+    assert entries[2]["summary"].startswith("permissions: − All")

@@ -9,6 +9,7 @@ side effects - search index, webhooks, versions - follow the same pipeline for
 every store.
 """
 
+import copy
 import functools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -489,11 +490,13 @@ class DocumentLifecycleMixin:
 
         self.doc_before_save = existing
         self.data = existing
+        # What was stored - a before_delete hook may change ``self.data`` (the same dict).
+        stored = copy.deepcopy(existing) if audit.is_audited(self.doctype) else existing
         tokens = self._set_grunt_context()
         try:
             await self._run_lifecycle_hooks("before_delete")
             await store.delete(real_id, before=existing)
-            await audit.record(self.session, self.doctype, real_id, existing, None, user)
+            await audit.record(self.session, self.doctype, real_id, stored, None, user)
             await fire_delete_services(
                 session=self.session, doctype_name=self.doctype, real_id=real_id, existing=existing
             )

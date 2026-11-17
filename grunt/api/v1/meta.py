@@ -12,13 +12,14 @@ from grunt.db.schema.apply import DuplicateDataError
 from grunt.document.validators import list_validators as _list
 from grunt.errors import not_found, throw
 from grunt.i18n import _
-from grunt.local import require_engine, require_session
+from grunt.local import require_engine, require_session, session_user
 from grunt.log import log
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.dump import dump_doctype
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_doctype_files
+from grunt.permissions import audit
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -84,15 +85,20 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
     session = require_session()
     engine = require_engine()
 
+    previous = await doctype_registry.get_or_none(dt.name)
     try:
-        if await doctype_registry.get_or_none(dt.name) is not None:
+        if previous is not None:
             if doctype_data.get("__is_new"):
                 throw(_("DocType “%(doctype)s” already exists") % {"doctype": dt.name}, "CONFLICT")
+            before = _rules(previous)  # before update() replaces the definition
             await doctype_registry.update(dt, session, engine)
         else:
+            before = None
             await doctype_registry.register(dt, session, engine)
     except DuplicateDataError as exc:
         throw(str(exc), "DUPLICATE_DATA")
+    # This path stores the definition past the document pipeline - log its rules here.
+    await audit.record(session, "DocType", dt.name, before, _rules(dt), session_user() or "")
 
     app_name = await _get_app_name_for_module(dt.module or "")
     export_doctype_files(dt, app_name=app_name)
@@ -104,8 +110,17 @@ async def save_doctype(doctype_data: dict[str, Any]) -> dict[str, Any]:
 async def delete_doctype(name: str) -> bool:
     """Delete a DocType definition. Admin only."""
 
-    await doctype_registry.delete(name, require_session())
+    session = require_session()
+    previous = await doctype_registry.get_or_none(name)
+    await doctype_registry.delete(name, session)
+    if previous is not None:
+        await audit.record(session, "DocType", name, _rules(previous), None, session_user() or "")
     return True
+
+
+def _rules(dt: DocType) -> dict[str, Any]:
+    """The part of a definition the Permission Log watches."""
+    return {"permissions": [p.model_dump(mode="json") for p in dt.permissions]}
 
 
 @whitelist(perm="grunt.manage_doctypes")
