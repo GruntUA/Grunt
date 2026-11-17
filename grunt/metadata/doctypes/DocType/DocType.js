@@ -121,8 +121,26 @@ function _set_module_options(frm, app) {
     frm.set_df_property('module', 'description', '')
 }
 
+// Access settings that probably don't do what was meant (grunt.permissions.warnings).
+async function _show_permission_warnings(frm) {
+    if (frm.is_new || !grunt.has_perm('grunt.manage_permissions')) return
+    try {
+        const warnings = await grunt.call('grunt.api.v1.permission_warnings.for_doctype', {
+            doctype: frm.doc.name,
+        })
+        for (const w of warnings || []) frm.dashboard.add_comment(_escape(w.message), 'orange')
+    } catch (e) {
+        // A hint, not a requirement - the form works without it.
+    }
+}
+
+function _escape(text) {
+    return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+}
+
 async function on_load(frm) {
     _refresh_field_selects(frm)
+    _show_permission_warnings(frm)
 
     let apps
     try {

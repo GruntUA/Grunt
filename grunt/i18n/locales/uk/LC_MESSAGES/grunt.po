@@ -16030,3 +16030,33 @@ msgstr "Імпорт"
 msgctxt "select:AccessLog.action"
 msgid "Report"
 msgstr "Звіт"
+
+#: grunt/grunt/permissions/warnings.py
+msgid "No rule grants anything here: only system tasks can reach these documents."
+msgstr "Жодне правило тут нічого не дає: до цих документів дістаються лише системні задачі."
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The rule for “%(role)s” grants no action."
+msgstr "Правило для «%(role)s» не дає жодної дії."
+
+
+#: grunt/grunt/permissions/warnings.py
+msgid "Nobody holds this role."
+msgstr "Цю роль ніхто не має."
+
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The field “%(field)s” is hidden from everyone who may read these documents."
+msgstr "Поле «%(field)s» приховане від усіх, хто може читати ці документи."
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The field “%(field)s” is read-only for everyone who may change these documents."
+msgstr "Поле «%(field)s» лише для читання для всіх, хто може змінювати ці документи."
+
+#: grunt/grunt/permissions/warnings.py
+msgid "Nobody holds these roles - their rules give access to no one: %(roles)s"
+msgstr "Цих ролей ніхто не має — їхні правила нікому не дають доступу: %(roles)s"
+
+#: grunt/grunt/permissions/warnings.py
+msgid "No document type has a rule for this role and it holds no permission - it works only where code checks the role by name."
+msgstr "Жоден тип документа не має правила для цієї ролі, і в неї немає дозволів — вона діє лише там, де код перевіряє роль за назвою."
