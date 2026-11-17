@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.6.0 - 2026-11-17
+
+### Features
+
+- **permissions:** share with a user, a role or everyone, until a date, with resharing
+
+### Fixes
+
+- **metadata:** read inherit_permission_from as access_from (#166)
+- **permissions:** no shares for guests, role "All" means everyone
+
+### Performance
+
+- **permissions:** cache child parents, narrow followed access to filtered DocTypes (#167)
+
+### Other
+
+- backup ideas for grunt update (IDEAS 6.21, 6.22); permissions plan 5b done (#168)
+- **permissions:** access_from - one rule for child rows and rows about a document (#165)
+
+### Database migrations
+
+- `0027_access_from`
+
 ## v0.5.0 - 2026-11-16
 
 ### Features
