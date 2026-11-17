@@ -7,7 +7,7 @@ import pytest
 from grunt.permissions.query import pinned_values
 from grunt.query.nodes import And, Cmp, In, Or
 from tests.support import make_user
-from tests.test_reference_permissions import SECRET, cases  # noqa: F401 - fixture
+from tests.test_reference_permissions import cases  # noqa: F401 - fixture
 
 
 def test_pinned_values():
