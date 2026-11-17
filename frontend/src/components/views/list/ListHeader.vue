@@ -59,7 +59,7 @@ const availableViews = computed(() =>
 
 const currentView = computed(() => getViewDef(props.viewMode) ?? availableViews.value[0])
 
-// Row-level "Restrictions" (User Permissions)
+// Row-level "Restrictions" (scopes of the user's roles)
 const restrictions = ref<ActiveRestriction[]>([])
 const showRestrictions = ref(false)
 
@@ -98,7 +98,7 @@ watch(() => props.doctype, loadRestrictions)
 
         <ActionButtons :toolbar="toolbarActions" compact />
 
-        <!-- Restrictions (row-level User Permissions applied to this list) -->
+        <!-- Restrictions (scopes of the user's roles applied to this list) -->
         <Button
           v-if="restrictions.length"
           variant="outline"
@@ -148,7 +148,7 @@ watch(() => props.doctype, loadRestrictions)
           <TableBody>
             <TableRow v-for="(r, i) in restrictions" :key="i">
               <TableCell>{{ r.field }}</TableCell>
-              <TableCell class="font-medium">{{ r.value }}</TableCell>
+              <TableCell class="font-medium">{{ r.title }}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

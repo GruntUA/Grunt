@@ -13,7 +13,7 @@ from sqlalchemy import or_, select
 
 from grunt.db.api import GruntDB
 from grunt.local import require_session
-from grunt.permissions.user_permissions import expand_tree_values
+from grunt.permissions.trees import expand_tree_values
 from grunt.storage.quota import table_of
 lazy from grunt.document.api import documents
 

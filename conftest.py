@@ -128,13 +128,6 @@ async def setup_db():
 
         _clear_workflow_cache()
 
-        # User Permissions are cached per email in the process: rows loaded for
-        # alice@example.com in one test must not restrict - or, without a
-        # session, break - another test's alice on the same xdist worker.
-        from grunt.permissions.user_permissions import _UP_CACHE
-
-        _UP_CACHE.clear()
-
         # Role permissions are cached per site in the process (grunt.permissions.perms).
         from grunt.permissions.perms import _ROLE_PERMS
 

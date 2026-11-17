@@ -348,18 +348,6 @@
       "mandatory_depends_on": "eval: doc.captcha_provider"
     },
     {
-      "fieldname": "sec_user_permissions",
-      "label": "Access restrictions (User Permissions)",
-      "fieldtype": "Section"
-    },
-    {
-      "fieldname": "apply_strict_user_permissions",
-      "label": "Strict user permissions",
-      "fieldtype": "Check",
-      "default": false,
-      "description": "When enabled, a document with no Link field to the restricted type (or with an empty value) is hidden rather than shown."
-    },
-    {
       "fieldname": "tab_email",
       "label": "Email",
       "fieldtype": "Tab",

@@ -14,7 +14,7 @@ While a DocType has an active workflow:
   internal system user — fixtures, imports, migrations — is exempt.
 - **A transition is a regular save.** It runs through the full update
   pipeline: `validate`/`before_save`/`after_save`, hooks, versions, write
-  permission and User Permissions. Inside it, `current_transition()` tells the
+  permission and role scopes. Inside it, `current_transition()` tells the
   controller which transition is being applied:
 
   ```python
@@ -55,7 +55,7 @@ A transition does not notify anyone by itself. Notifications come from **Notific
 - **Recipients**:
   - **Author**: the document's author.
   - **Previous actor**: whoever performed the previous workflow action.
-  - **Next actors**: users who can take a button transition out of the new state *and* can read this document. Roles, their scopes (a role held for one department counts only for that department's documents), `match` rules and User Permissions all count.
+  - **Next actors**: users who can take a button transition out of the new state *and* can read this document. Roles, their scopes (a role held for one department counts only for that department's documents) and `match` rules all count.
   - Any other recipient kind, e.g. a role or a document field.
 - **Template variables**: `action`, `from_state`, `to_state`, `from_label`, `to_label`, `comment` and `title`.
 
@@ -103,4 +103,4 @@ There are two rules for this example:
 - *Send for review* and *Edited by author* go to **Next actors**.
 - *Publish* and *Send back* go to **Previous actor**.
 
-A real-world case is `apps/mlt_portal`: its workflow is in `fixtures/02_workflow.json` and its rules are in `records/notification/`. Authors there are scoped to sections by User Permissions, so **Next actors** reaches only the reviewers of that section.
+A real-world case is `apps/mlt_portal`: its workflow is in `fixtures/02_workflow.json` and its rules are in `records/notification/`. Authors there hold their role within their sections (scoped roles), so **Next actors** reaches only the reviewers of that section.

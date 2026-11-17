@@ -48,7 +48,6 @@ from grunt.permissions.roles import role_access
 from grunt.permissions.scopes import scope_predicate
 from grunt.permissions.shares import shared_predicate
 from grunt.permissions.types import PermissionAction
-from grunt.permissions.user_permissions import user_permission_predicate
 from grunt.query.evaluate import matches_linked
 from grunt.query.nodes import FALSE, TRUE, And, Cmp, Empty, Expr, In, Linked, and_, or_
 from grunt.query.query import Query
@@ -124,16 +123,13 @@ async def action_predicate(
 
     Role ``match`` rules (each ANDed with its role's scope,
     :mod:`grunt.permissions.scopes`), inherited access, child rows and shares
-    (see :func:`_grants_predicate`), then User Permissions ANDed on top - they
-    narrow shared documents too.
+    (see :func:`_grants_predicate`).
 
     *row* is only a hint for deciding that one row: rules that would otherwise
     enumerate every DocType a reference column holds look at the row's own.
     The predicate stays exact for that row. *within* - see :func:`read_predicate`.
     """
-    columns = meta.columns
-    granted = await _grants_predicate(columns, user, meta, action, row, within)
-    return and_(granted, await user_permission_predicate(columns, user, meta))
+    return await _grants_predicate(meta.columns, user, meta, action, row, within)
 
 
 async def row_allowed(user: str | None, meta: Meta, action: str, row: Mapping[str, Any]) -> bool:

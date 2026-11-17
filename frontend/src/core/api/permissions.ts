@@ -1,11 +1,14 @@
 import client from './client'
 import type { PermissionAction } from '@/types'
 
+/** A scope of the user's role that limits a list (grunt.permissions.scopes). */
 export interface ActiveRestriction {
   field: string
   fieldname: string
   allow: string
   value: string
+  /** The scope record's title (its id when it has none). */
+  title: string
 }
 
 /** One rule of a role on a DocType (grunt.api.v1.permission_matrix). */
@@ -51,21 +54,19 @@ export const permissionsApi = {
     return r.data.data ?? []
   },
 
-  /** Row-level User Permission restrictions that apply to the current user on `doctype`. */
+  /** Scopes of the current user's roles that limit a `doctype` list. */
   getRestrictions: async (doctype: string): Promise<ActiveRestriction[]> => {
-    const r = await client.get(
-      '/api/v1/method/grunt.permissions.user_permissions.get_active_restrictions',
-      { params: { doctype } },
-    )
+    const r = await client.get('/api/v1/method/grunt.api.v1.role_scopes.get_active_scopes', {
+      params: { doctype },
+    })
     return r.data.data ?? []
   },
 
-  /** `{fieldname: value}` to pre-fill on a new `doctype` form from is_default User Permissions. */
-  getUserPermissionDefaults: async (doctype: string): Promise<Record<string, string>> => {
-    const r = await client.get(
-      '/api/v1/method/grunt.permissions.user_permissions.get_user_permission_defaults',
-      { params: { doctype } },
-    )
+  /** `{fieldname: value}` to pre-fill on a new `doctype` form: the one scope record the user creates within. */
+  getScopeDefaults: async (doctype: string): Promise<Record<string, string>> => {
+    const r = await client.get('/api/v1/method/grunt.api.v1.role_scopes.get_scope_defaults', {
+      params: { doctype },
+    })
     return r.data.data ?? {}
   },
 }

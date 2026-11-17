@@ -11,7 +11,7 @@ from grunt.i18n import _, pgettext
 from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
-from grunt.permissions.user_permissions import expand_tree_values
+from grunt.permissions.trees import expand_tree_values
 from grunt.storage import files, quota
 lazy from grunt.document.api import documents
 lazy from grunt.permissions.rbac import permission_checker

@@ -27,7 +27,7 @@ from typing import Any
 from grunt.metadata.permission import DocPermission
 from grunt.permissions.access import RoleAccess, Scope
 from grunt.permissions.roles import role_holders
-from grunt.permissions.user_permissions import expand_tree_values
+from grunt.permissions.trees import expand_tree_values
 from grunt.query.evaluate import matches
 from grunt.query.nodes import FALSE, Empty, Expr, In, and_, or_
 
@@ -105,3 +105,20 @@ async def _covers(
         if not scopes or await doc_in_scopes(access, scopes, doc):
             return True
     return False
+
+
+def scoped_values(access: RoleAccess, action: str) -> dict[str, set[str]] | None:
+    """``{scope DocType: values}`` the user's rules granting *action* are held
+    within - ``None`` when one of those rules holds everywhere (nothing to
+    narrow) or none grants it. Rules of several scopes add up."""
+    granting = [p for p in access.matching_permissions() if p.grants(action)]
+    if access.is_unrestricted or not granting:
+        return None
+    out: dict[str, set[str]] = {}
+    for perm in granting:
+        bound = access.bound_scopes(perm)
+        if not bound:
+            return None
+        for scope_doctype, values in bound.items():
+            out.setdefault(scope_doctype, set()).update(values)
+    return out
