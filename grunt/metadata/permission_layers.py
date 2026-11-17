@@ -18,6 +18,7 @@ The same rule for core and app DocTypes (:func:`take_json_rules`).
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from grunt.metadata.compiler import STANDARD_COLUMNS
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 
@@ -52,7 +53,8 @@ def take_json_rules(stored: DocType | None, json_rules: Sequence[DocPermission])
     changed unless its rules equal the JSON (its origin is unknown).
     """
     json_rules = list(json_rules)
-    if stored is None:
+    if stored is None or dump(stored.permissions) == dump(json_rules):
+        # New, or the site's rules already are the JSON's - nothing to review.
         return Rules(json_rules, json_rules, False)
     if stored.permissions_base is None:
         site_changed = dump(stored.permissions) != dump(json_rules)
@@ -73,3 +75,29 @@ def apply(dt: DocType, rules: Rules) -> None:
     dt.permissions = list(rules.permissions)
     dt.permissions_base = list(rules.permissions_base)
     dt.permissions_outdated = rules.permissions_outdated
+
+
+def drop_missing_fields(dt: DocType) -> list[str]:
+    """Take field names *dt* no longer has out of its rules' ``hidden_fields`` /
+    ``readonly_fields`` - a site rule kept across a release that removed a field
+    would otherwise fail validation and block the whole DocType's update on
+    every migrate. Nothing opens up: the field is gone. Flags the DocType for
+    review when something was dropped; returns the dropped names."""
+    known = {f.fieldname for f in dt.fields} | set(STANDARD_COLUMNS)
+    dropped: list[str] = []
+    rules: list[DocPermission] = []
+    for rule in dt.permissions:
+        missing = [n for n in (*rule.hidden_fields, *rule.readonly_fields) if n not in known]
+        if missing:
+            dropped += missing
+            rule = rule.model_copy(
+                update={
+                    "hidden_fields": [n for n in rule.hidden_fields if n in known],
+                    "readonly_fields": [n for n in rule.readonly_fields if n in known],
+                }
+            )
+        rules.append(rule)
+    if dropped:
+        dt.permissions = rules
+        dt.permissions_outdated = True
+    return sorted(set(dropped))

@@ -70,7 +70,7 @@ def bench(tmp_path, monkeypatch, engine):
     dt_dir.mkdir(parents=True)
     (sites_dir / "testsite" / "grunt.site").write_text(json.dumps({"installed_apps": ["layerapp"]}))
 
-    def release(*permissions: dict):
+    def release(*permissions: dict, fields: tuple[str, ...] = ("title", "salary")):
         """The app's JSON as of a new release - returns its path."""
         path = dt_dir / "LayerBox.json"
         path.write_text(
@@ -79,7 +79,9 @@ def bench(tmp_path, monkeypatch, engine):
                     "name": "LayerBox",
                     "label": "Layer Box",
                     "module": "layerapp",
-                    "fields": [{"fieldname": "title", "label": "Title", "fieldtype": "Data"}],
+                    "fields": [
+                        {"fieldname": f, "label": f.title(), "fieldtype": "Data"} for f in fields
+                    ],
                     "permissions": list(permissions),
                 }
             )
@@ -181,3 +183,61 @@ async def test_developer_mode_save_writes_the_app_rules(ctx, db_session, engine,
     await db_session.commit()
     assert json.loads(path.read_text())["permissions"] == [SITE]
     assert not customized(await _stored_rules(db_session))
+
+
+@pytest.mark.asyncio
+async def test_review_flag_clears_when_rules_meet_the_app(
+    ctx, db_session, engine, bench, monkeypatch
+):
+    """Review: a release adopting the site's rules leaves nothing to review."""
+    from grunt.config import settings
+
+    monkeypatch.setattr(settings, "debug", False)
+    bench(READ)
+    await _migrate(db_session)
+    await ctx.save_doc("DocType", "LayerBox", {"permissions": [SITE]})
+    await db_session.commit()
+    bench(SITE)  # the app now ships what the site chose
+    await _migrate(db_session)
+    dt = await _stored_rules(db_session)
+    assert not customized(dt) and not dt.permissions_outdated
+
+
+@pytest.mark.asyncio
+async def test_a_client_cannot_move_the_baseline(ctx, db_session, engine, bench, monkeypatch):
+    """Review: a stale baseline sent back with edited rules would make them look
+    unchanged - and the next migrate would replace them."""
+    from grunt.config import settings
+
+    monkeypatch.setattr(settings, "debug", False)
+    bench(READ)
+    await _migrate(db_session)
+    await ctx.save_doc("DocType", "LayerBox", {"permissions": [SITE], "permissions_base": [SITE]})
+    await db_session.commit()
+    assert customized(await _stored_rules(db_session))
+    await _migrate(db_session)
+    assert _dump((await _stored_rules(db_session)).permissions) == _dump(_rules(SITE))
+
+
+@pytest.mark.asyncio
+async def test_site_rule_naming_a_removed_field_does_not_block_migrate(
+    ctx, db_session, engine, bench, monkeypatch
+):
+    """Review: a kept site rule hiding a field the new release removed failed
+    validation and blocked the whole DocType's update on every migrate."""
+    from grunt.config import settings
+
+    monkeypatch.setattr(settings, "debug", False)
+    bench(READ)
+    await _migrate(db_session)
+    hides = {"role": "All", "actions": ["read"], "hidden_fields": ["salary", "title"]}
+    await ctx.save_doc("DocType", "LayerBox", {"permissions": [hides]})
+    await db_session.commit()
+
+    bench(READ, fields=("title", "note"))  # salary removed, note added
+    await _migrate(db_session)
+    dt = await _stored_rules(db_session)
+    assert [f.fieldname for f in dt.fields] == ["title", "note"]  # the update went through
+    # salary went out of the site's rule (the field is gone), title stays hidden;
+    # still the site's own rule - flagged for review.
+    assert dt.permissions[0].hidden_fields == ["title"] and dt.permissions_outdated

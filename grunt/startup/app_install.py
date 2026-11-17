@@ -168,9 +168,17 @@ async def _register_app_doctypes(
                     permission_layers.apply(
                         dt_obj, permission_layers.take_json_rules(existing_dt, dt_obj.permissions)
                     )
+                    dropped = permission_layers.drop_missing_fields(dt_obj)
+                    if dropped:
+                        log.warning(
+                            "startup.app_doctype_rule_fields_dropped",
+                            app=app_name,
+                            doctype=dt_name,
+                            fields=dropped,
+                        )
                     if existing_dt.model_dump(mode="json") != dt_obj.model_dump(mode="json"):
                         async with session.begin_nested():
-                            await doctype_registry.update(dt_obj, session, eng)
+                            await doctype_registry.update(dt_obj, session, eng, sync=True)
                         synced.add(dt_name)
                         log.info("startup.app_doctype_updated", app=app_name, doctype=dt_name)
             except Exception as e:

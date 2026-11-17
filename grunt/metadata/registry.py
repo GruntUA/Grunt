@@ -538,6 +538,11 @@ class DocTypeRegistry:
         before = permission_layers.dump(active_dt.permissions)
         rules = permission_layers.take_json_rules(active_dt, doctype.permissions)
         permission_layers.apply(active_dt, rules)
+        dropped = permission_layers.drop_missing_fields(active_dt)
+        if dropped:
+            log.warning(
+                "registry.core_permissions_fields_dropped", name=doctype.name, fields=dropped
+            )
         if rules.kept_site_rules and rules.permissions_outdated:
             log.warning(
                 "registry.core_permissions_drifted",
@@ -699,8 +704,15 @@ class DocTypeRegistry:
         doctype: DocType,
         session: AsyncSession,
         async_engine: AsyncEngine,
+        *,
+        sync: bool = False,
     ) -> None:
-        """Update an existing DocType, re-sync its table, refresh cache."""
+        """Update an existing DocType, re-sync its table, refresh cache.
+
+        *sync* - the definition comes from the app's / core's JSON
+        (``grunt migrate``): its ``permissions_base`` / ``permissions_outdated``
+        are taken as given. Otherwise (a desk or API save) they stay the stored
+        ones (:mod:`grunt.metadata.permission_layers`)."""
         if doctype.name not in self._doctypes:
             # DocType may be known but not yet lazy-loaded - check DB before failing.
             if not await store.exists(session, doctype.name):
@@ -712,20 +724,20 @@ class DocTypeRegistry:
         self._validate_fields(doctype)
         previous = self._doctypes.get(doctype.name)
         self._keep_source_app(doctype, previous)
-        # Editors (Studio) don't send it back - the JSON baseline stays.
-        if doctype.permissions_base is None and previous is not None:
+        if previous is not None and not sync:
+            # The baseline is the server's: only a sync sets it, never a client
+            # (a stale one sent back would make the site's rules look unchanged).
             doctype.permissions_base = previous.permissions_base
-        if previous is not None:
             if permission_layers.dump(doctype.permissions) != permission_layers.dump(
                 previous.permissions
             ):
-                # Rules saved again by hand were reviewed - no longer outdated.
-                doctype.permissions_outdated = False
+                doctype.permissions_outdated = False  # rules saved by hand: reviewed
             else:
-                # Editors don't send the flag back; a save of other things keeps it.
-                doctype.permissions_outdated = (
-                    doctype.permissions_outdated or previous.permissions_outdated
-                )
+                doctype.permissions_outdated = previous.permissions_outdated
+        if doctype.permissions_base is not None and permission_layers.dump(
+            doctype.permissions
+        ) == permission_layers.dump(doctype.permissions_base):
+            doctype.permissions_outdated = False  # the app's rules: nothing to review
 
         await store.update_doctype(session, doctype)
         await session.flush()
