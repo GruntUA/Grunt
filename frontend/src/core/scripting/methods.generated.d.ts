@@ -187,6 +187,10 @@ interface GruntMethods {
   "grunt.api.v1.permission_matrix.get_role_matrix": { args: { role: string; doctypes: string[] }; result: Record<string, any>[] }
   /** Apply *changes* - ``{doctype, rules: [{index, match, original, actions}]}`` - to *role*'s rules, one ``save_doc`` per DocType; returns them as :func:`get_role_matrix` does. */
   "grunt.api.v1.permission_matrix.save_role_matrix": { args: { role: string; changes: Record<string, any>[] }; result: Record<string, any>[] }
+  /** ``[{code, message}]`` for *doctype*'s rules and fields. */
+  "grunt.api.v1.permission_warnings.for_doctype": { args: { doctype: string }; result: Record<string, any>[] }
+  /** ``[{code, message}]`` for *role*: nobody holds it, it grants nothing. */
+  "grunt.api.v1.permission_warnings.for_role": { args: { role: string }; result: Record<string, any>[] }
   /** What the current user's role scopes limit a *doctype* list to - for the list's "Restrictions" popup: ``[{field, fieldname, allow, value, title}]``. */
   "grunt.api.v1.role_scopes.get_active_scopes": { args: { doctype: string }; result: Record<string, any>[] }
   /** ``{fieldname: value}`` to pre-fill on a new *doctype* form: a user who may create it only within one record of a scope DocType gets that record in its Link fields. */

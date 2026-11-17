@@ -11,13 +11,16 @@ the colocated file structure to disk::
 
 import json
 from pathlib import Path
+from typing import Any
 
+from grunt.config import settings
 from grunt.document.base import SYS_FIELDS, is_shadowed_field
 from grunt.log import log
 from grunt.metadata.field import DocField, get_python_type, has_trait, is_physical_fieldtype
 from grunt.site.manager import site_manager
 from grunt.utils.codegen import render_template, sync_controller_types
 from grunt.utils.strings import to_snake_case
+lazy from grunt.metadata import store
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import export_extensions, without_extensions
 
@@ -161,7 +164,9 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     json_file = dt_dir / f"{dt.name}.json"
     json_file.write_text(
         json.dumps(
-            dt.model_dump(exclude_defaults=True, exclude={"permissions_base"}),
+            dt.model_dump(
+                exclude_defaults=True, exclude={"permissions_base", "permissions_outdated"}
+            ),
             ensure_ascii=False,
             indent=2,
         )
@@ -187,3 +192,25 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
 
     log.info("scaffold.exported", doctype=dt.name, path=str(dt_dir))
     return str(json_file.resolve())
+
+
+async def export_to_app(dt: DocType, session: Any, app_name: str | None = None) -> str | None:
+    """Write *dt* into its app's files - in developer mode only (``settings.debug``).
+
+    On a production site a definition saved through the desk stays in the
+    site's database: writing the app's JSON there would leave the app's
+    checkout dirty (``grunt update`` refuses to move it) and mix a site's
+    access rules into the app. Written to the app, the rules *are* the app's
+    now - ``permissions_base`` follows them (not a site customisation).
+    """
+    if not settings.debug:
+        return None
+    path = export_doctype_files(dt, app_name=app_name or dt.app or None)
+    if path is not None and (
+        dt.permissions_base is None
+        or [p.model_dump() for p in dt.permissions_base] != [p.model_dump() for p in dt.permissions]
+    ):
+        dt.permissions_base = list(dt.permissions)
+        dt.permissions_outdated = False
+        await store.update_doctype(session, dt)
+    return path

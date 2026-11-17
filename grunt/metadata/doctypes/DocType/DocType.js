@@ -121,8 +121,72 @@ function _set_module_options(frm, app) {
     frm.set_df_property('module', 'description', '')
 }
 
+// Access settings that probably don't do what was meant (grunt.permissions.warnings).
+async function _show_permission_warnings(frm) {
+    if (frm.is_new || !grunt.has_perm('grunt.manage_permissions')) return
+    try {
+        const warnings = await grunt.call('grunt.api.v1.permission_warnings.for_doctype', {
+            doctype: frm.doc.name,
+        })
+        for (const w of warnings || []) frm.dashboard.add_comment(_escape(w.message), 'orange')
+        const layered = (warnings || []).some((w) =>
+            ['permissions_customized', 'permissions_outdated'].includes(w.code),
+        )
+        if (layered) _add_app_rules_actions(frm)
+    } catch (e) {
+        // A hint, not a requirement - the form works without it.
+    }
+}
+
+// The site's rules against the app's (grunt.metadata.permission_layers).
+function _add_app_rules_actions(frm) {
+    frm.actions.add({
+        id: 'app_rules_diff',
+        label: __('Difference from the app rules'),
+        icon: 'git-compare',
+        placement: 'menu',
+        group: 'doctype',
+        order: 280,
+        action: async (f) => {
+            const d = await grunt.call('grunt.api.v1.permission_layers.app_rules_diff', {
+                doctype: f.doc.name,
+            })
+            const lines = (d.summary || '').split('\n').filter(Boolean)
+            await grunt.msgprint({
+                title: __('Difference from the app rules'),
+                message:
+                    `<p>${_escape(__('+ - rules of this site, − - rules of the app this site does not have.'))}</p>` +
+                    `<pre class="whitespace-pre-wrap text-xs">${_escape(lines.join('\n') || __('No difference'))}</pre>`,
+            })
+        },
+    })
+    frm.actions.add({
+        id: 'restore_app_rules',
+        label: __('Restore the app rules'),
+        icon: 'undo-2',
+        placement: 'menu',
+        group: 'doctype',
+        order: 281,
+        action: async (f) => {
+            const ok = await grunt.confirm(
+                __('Replace the rules of this site with the app rules? The change is recorded in the Permission Log.'),
+                __('Restore the app rules'),
+            )
+            if (!ok) return
+            await grunt.call('grunt.api.v1.permission_layers.restore_app_rules', { doctype: f.doc.name })
+            grunt.show_alert(__('The app rules are back'), 'success')
+            await f.reload()
+        },
+    })
+}
+
+function _escape(text) {
+    return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+}
+
 async function on_load(frm) {
     _refresh_field_selects(frm)
+    _show_permission_warnings(frm)
 
     let apps
     try {

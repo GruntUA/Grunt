@@ -373,6 +373,9 @@ class DocType(BaseModel):
     # a JSON change may replace them; see DocTypeRegistry._inject_core().
     # Database-only - never exported to the JSON file.
     permissions_base: list[DocPermission] | None = None
+    # The JSON's rules changed while the site kept its own - for the admin to
+    # review (grunt.metadata.permission_layers). Database-only too.
+    permissions_outdated: bool = False
 
     # Naming / display
     autoname: str | None = None  # "CONTR-.YYYY.-.####" or "field:title"

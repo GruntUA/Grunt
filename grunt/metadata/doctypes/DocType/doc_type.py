@@ -15,7 +15,7 @@ from grunt.metadata import store
 from grunt.metadata.compiler import get_table_name, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
-from grunt.metadata.scaffold import export_doctype_files
+from grunt.metadata.scaffold import export_to_app
 from grunt.permissions.roles import missing_roles
 from grunt.store.base import AGGREGATE, DELETE, INSERT, SQL, UPDATE, Store
 from grunt.store.sql import SqlStore
@@ -72,7 +72,7 @@ class DocTypeStore(SqlStore):
         await doctype_registry.register(dt, self.session, engine)
         if dt.has_table and not dt.is_child:
             await sync_table(dt, engine, session=self.session)
-        export_doctype_files(dt, app_name=dt.app or None)
+        await export_to_app(dt, self.session)
         return dt.model_dump()
 
     async def update(
@@ -91,7 +91,7 @@ class DocTypeStore(SqlStore):
         await doctype_registry.update(dt, self.session, engine)
         if dt.has_table and not dt.is_child:
             await sync_table(dt, engine, session=self.session)
-        export_doctype_files(dt, app_name=dt.app or None)
+        await export_to_app(dt, self.session)
         return await self.output(dt.model_dump())
 
     async def delete(self, name: str, *, before: dict[str, Any]) -> None:
