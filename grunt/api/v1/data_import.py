@@ -8,6 +8,7 @@ from grunt.api.context import whitelist
 from grunt.data_import.tasks import run_data_import
 from grunt.errors import throw
 from grunt.i18n import _
+from grunt.permissions.access_log import record_access
 from grunt.permissions.guards import doctype_guard, write_guard
 from grunt.tasks.enqueue import enqueue
 lazy from grunt.document.api import documents
@@ -59,6 +60,17 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
         throw(_("DataImport not found"), "NOT_FOUND")
     # The task writes as SYSTEM_USER - whoever starts it needs `import` themselves.
     await doctype_guard(di.doctype_name, "import")
+    file = str(di.get("file") or "")
+    await record_access(
+        "Import",
+        di.doctype_name,
+        file_format=file.rsplit(".", 1)[-1] if "." in file else None,
+        filters={
+            "data_import": data_import_id,
+            "import_type": di.get("import_type"),
+            "dry_run": bool(di.get("dry_run")),
+        },
+    )
 
     # After the commit, so the worker reads the import as saved. Without Redis
     # the in-memory broker runs it in this process - in the background either way.
@@ -108,6 +120,7 @@ async def export_quick(
             fmt=fmt,
             limit=int(limit),
         )
+        await record_access("Export", doctype, file_format=fmt, filters=parsed_filters)
         return {
             "filename": filename,
             "content": base64.b64encode(file_bytes).decode("utf-8"),

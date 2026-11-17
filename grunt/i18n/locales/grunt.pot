@@ -15062,3 +15062,31 @@ msgstr ""
 msgctxt "select:PermissionLog.action"
 msgid "Deleted"
 msgstr ""
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Access Log"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Who took data out of the system and when: exports, printouts, imports and report downloads. Written by the system, read only; kept a year."
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Export"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Print"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Import"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Report"
+msgstr ""

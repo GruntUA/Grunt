@@ -84,6 +84,14 @@
     {
       "section": "Користувачі та доступ",
       "type": "DocType",
+      "label": "Журнал доступу до даних",
+      "link_to": "AccessLog",
+      "icon": "file-down",
+      "show_count": false
+    },
+    {
+      "section": "Користувачі та доступ",
+      "type": "DocType",
       "label": "API ключі",
       "link_to": "ApiKey",
       "icon": "key",

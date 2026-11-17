@@ -13,6 +13,7 @@ lazy import openpyxl
 from grunt.document.base import Document
 from grunt.io.doctypes.DataImport.data_import import DataImport
 from grunt.log import log
+from grunt.permissions.access_log import record_access
 from grunt.permissions.guards import doctype_guard
 from grunt.storage.files import store
 
@@ -65,6 +66,16 @@ class DataExport(Document):
 
             self.status = "Success"
             self.exported_rows = max(0, exported_rows)
+            # Run in the background: the actor is who asked for the export.
+            await record_access(
+                "Export",
+                self.doctype_name,
+                file_format=fmt,
+                rows=self.exported_rows,
+                filters=filters,
+                user=self.get("owner"),
+                session=self.session,
+            )
             self.file = file_doc["file_url"]
             self.error = ""
 
