@@ -25,12 +25,12 @@ from grunt.db.dialects import dialect_for
 from grunt.i18n import _
 from grunt.local import _session_ctx
 from grunt.log import log
-from grunt.metadata import store
+from grunt.metadata import permission_layers, store
 from grunt.metadata.compiler import STANDARD_COLUMNS, invalidate_table_cache, sync_table
 from grunt.metadata.doctype import DocType
 from grunt.metadata.extensions import revert_properties
 from grunt.metadata.field import DocField
-from grunt.metadata.permission import DocPermission, has_old_permission_flags
+from grunt.metadata.permission import has_old_permission_flags
 from grunt.site.manager import site_cache_key, site_manager
 lazy from grunt.document.meta import Meta
 
@@ -532,34 +532,26 @@ class DocTypeRegistry:
 
     @staticmethod
     def _sync_core_permissions(active_dt: DocType, doctype: DocType) -> None:
-        """Take a core DocType's JSON `permissions` unless Studio changed them.
-
-        `permissions` is not in _CORE_SYNCED_DOCTYPE_ATTRS: Studio edits must
-        survive upgrades. `permissions_base` records what the JSON said when
-        the stored value was last taken from it - stored permissions still
-        equal to it were never customised and follow the JSON. Customised ones
-        (or ones of unknown origin, stored before `permissions_base` existed)
-        stay as they are, with a loud warning instead of a silent drift.
-        """
-
-        def dump(perms: list[DocPermission] | None) -> list[dict] | None:
-            return None if perms is None else [p.model_dump() for p in perms]
-
-        source = dump(doctype.permissions)
-        stored = dump(active_dt.permissions)
-        if stored == source:
-            active_dt.permissions_base = list(doctype.permissions)
-        elif stored == dump(active_dt.permissions_base):
-            active_dt.permissions = list(doctype.permissions)
-            active_dt.permissions_base = list(doctype.permissions)
-            log.info("registry.core_permissions_updated", name=doctype.name)
-        else:
+        """Take a core DocType's JSON `permissions` unless the site changed
+        them - the site layer (:mod:`grunt.metadata.permission_layers`), the
+        same rule app DocTypes follow on `grunt migrate`."""
+        before = permission_layers.dump(active_dt.permissions)
+        rules = permission_layers.take_json_rules(active_dt, doctype.permissions)
+        permission_layers.apply(active_dt, rules)
+        dropped = permission_layers.drop_missing_fields(active_dt)
+        if dropped:
+            log.warning(
+                "registry.core_permissions_fields_dropped", name=doctype.name, fields=dropped
+            )
+        if rules.kept_site_rules and rules.permissions_outdated:
             log.warning(
                 "registry.core_permissions_drifted",
                 name=doctype.name,
-                hint=f"permissions differ from the JSON (customised?) - "
-                f"run `grunt doctype sync {doctype.name}` to reset them to it",
+                hint="the site changed these rules and the JSON changed too - "
+                "review them on the DocType form",
             )
+        elif permission_layers.dump(active_dt.permissions) != before:
+            log.info("registry.core_permissions_updated", name=doctype.name)
 
     @staticmethod
     def _reorder_core_fields(active_dt: DocType, doctype: DocType) -> None:
@@ -712,8 +704,15 @@ class DocTypeRegistry:
         doctype: DocType,
         session: AsyncSession,
         async_engine: AsyncEngine,
+        *,
+        sync: bool = False,
     ) -> None:
-        """Update an existing DocType, re-sync its table, refresh cache."""
+        """Update an existing DocType, re-sync its table, refresh cache.
+
+        *sync* - the definition comes from the app's / core's JSON
+        (``grunt migrate``): its ``permissions_base`` / ``permissions_outdated``
+        are taken as given. Otherwise (a desk or API save) they stay the stored
+        ones (:mod:`grunt.metadata.permission_layers`)."""
         if doctype.name not in self._doctypes:
             # DocType may be known but not yet lazy-loaded - check DB before failing.
             if not await store.exists(session, doctype.name):
@@ -725,9 +724,20 @@ class DocTypeRegistry:
         self._validate_fields(doctype)
         previous = self._doctypes.get(doctype.name)
         self._keep_source_app(doctype, previous)
-        # Editors (Studio) don't send it back - the JSON baseline stays.
-        if doctype.permissions_base is None and previous is not None:
+        if previous is not None and not sync:
+            # The baseline is the server's: only a sync sets it, never a client
+            # (a stale one sent back would make the site's rules look unchanged).
             doctype.permissions_base = previous.permissions_base
+            if permission_layers.dump(doctype.permissions) != permission_layers.dump(
+                previous.permissions
+            ):
+                doctype.permissions_outdated = False  # rules saved by hand: reviewed
+            else:
+                doctype.permissions_outdated = previous.permissions_outdated
+        if doctype.permissions_base is not None and permission_layers.dump(
+            doctype.permissions
+        ) == permission_layers.dump(doctype.permissions_base):
+            doctype.permissions_outdated = False  # the app's rules: nothing to review
 
         await store.update_doctype(session, doctype)
         await session.flush()

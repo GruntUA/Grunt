@@ -7,6 +7,8 @@ Shown on the DocType and Role forms - nothing here blocks a save:
 * rules for roles nobody holds (one warning listing them);
 * a field hidden from everyone who may read the DocType, or read-only for
   everyone who may change it;
+* rules changed on this site (they differ from the app's), and the app's
+  rules changed since - for review (:mod:`grunt.metadata.permission_layers`);
 * a role nobody holds; a role with no rule and no permission (it works only
   where code checks it by name - ``@whitelist(roles=...)``).
 
@@ -17,6 +19,8 @@ from typing import Any
 
 from grunt.db.api import GruntDB
 from grunt.i18n import _
+from grunt.metadata import permission_layers
+from grunt.metadata.doctype import DocType
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.roles import BUILT_IN_ROLES, role_holders
 
@@ -29,14 +33,15 @@ async def doctype_warnings(doctype: Any) -> list[dict[str, str]]:
     if getattr(meta, "is_child", False):
         return []  # child rows follow their parent - no rules of their own
     rules = list(getattr(meta, "permissions", None) or [])
+    out: list[dict[str, str]] = _layer_warnings(meta)
     if not rules:
         return [
+            *out,
             _warn(
                 "no_rules",
                 _("No rule grants anything here: only system tasks can reach these documents."),
-            )
+            ),
         ]
-    out: list[dict[str, str]] = []
     for rule in rules:
         if not rule.actions:
             out.append(
@@ -85,6 +90,28 @@ async def role_warnings(role: str) -> list[dict[str, str]]:
             )
         )
     return out
+
+
+def _layer_warnings(meta: Any) -> list[dict[str, str]]:
+    """The site's rules against the app's (the site layer)."""
+    if not isinstance(meta, DocType) or not permission_layers.customized(meta):
+        return []
+    if meta.permissions_outdated:
+        return [
+            _warn(
+                "permissions_outdated",
+                _(
+                    "The app changed its rules for this document type after they were "
+                    "changed on this site - review the difference."
+                ),
+            )
+        ]
+    return [
+        _warn(
+            "permissions_customized",
+            _("The rules were changed on this site and differ from the app's."),
+        )
+    ]
 
 
 def _fields_nobody_gets(
