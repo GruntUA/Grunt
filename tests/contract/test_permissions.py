@@ -4,7 +4,7 @@ a document): both are the one predicate, ``grunt.permissions.query``.
 
 Every source of the read predicate (``grunt.permissions.query.read_predicate``):
 role ``match`` (a field, ``!=``, a Link hop), several rules ORed, shares, User
-Permissions (narrowing shares too), inherited access (``inherit_permission_from``)
+Permissions (narrowing shares too), inherited access (``access_from``)
 and child rows. NULL follows SQL: ``!=`` never matches it; ``link.field != value``
 reads "not among the linked rows where ``field == value``" - a link to a row
 whose field is empty is in, an empty link is not.
@@ -67,7 +67,7 @@ NOTE = {
     "label": "Cp Note",
     "module": "test",
     "autoname": "prompt",
-    "inherit_permission_from": ["task"],
+    "access_from": ["task"],
     "fields": [{"fieldname": "task", "label": "Task", "fieldtype": "Link", "options": "CpTask"}],
     "permissions": [{"role": role, "actions": ["read"]} for role in _RULES],
 }

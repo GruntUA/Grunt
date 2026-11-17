@@ -292,9 +292,9 @@ class DocType(BaseModel):
     standard_records: bool = False
     # Sources of read access: [<doctype field>, <id field>] pairs and/or Link
     # fieldnames - a row pointing at a document is readable exactly when that
-    # document is (comments, tags, attachments, files in a folder).
-    # See grunt.permissions.query.
-    inherit_permission_from: list[str | list[str]] | None = None
+    # document is (comments, tags, attachments, files in a folder, shares).
+    # Child rows always follow their parent. See grunt.permissions.query.
+    access_from: list[str | list[str]] | None = None
     quick_entry: bool = False  # True -> "Create" opens a dialog instead of full form
     # Hovering a link to a document of this DocType pops up a card with its
     # title, image and the in_preview fields (required fields when none set).
@@ -443,6 +443,21 @@ class DocType(BaseModel):
             sort_by=self.tree_sort_by,
             sort_order=self.tree_sort_order,
         )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _renamed_access_from(cls, data: Any) -> Any:
+        """``inherit_permission_from`` became ``access_from``: an empty old key
+        (stored definitions) is dropped; one with sources is an error - ignored,
+        it would leave comments / files to plain role rules, i.e. widen access."""
+        if isinstance(data, dict) and "inherit_permission_from" in data:
+            data = dict(data)
+            old = data.pop("inherit_permission_from")
+            if old:
+                raise ValueError(
+                    f"DocType '{data.get('name')}': 'inherit_permission_from' is now 'access_from'"
+                )
+        return data
 
     @model_validator(mode="after")
     def _prune_incomplete_child_rows(self) -> DocType:

@@ -1,4 +1,4 @@
-"""inherit_permission_from: comments / tags / attachments follow the read access
+"""access_from: comments / tags / attachments follow the read access
 of the document they belong to."""
 
 import pytest
