@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.0 - 2026-11-17
+
+### Features
+
+- **permissions:** site layer over the app's rules; app files only in developer mode (#180)
+- **permissions:** warnings on the DocType and Role forms (#179)
+
 ## v0.8.0 - 2026-11-17
 
 ### Features
