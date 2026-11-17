@@ -250,7 +250,9 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     # The same checks the add endpoints enforce, so the UI hides what would be refused.
     perms = {
         "assign": await can("ToDo", "create"),
-        "share": dt is not None and await permission_checker.can_share(dt, doc),
+        # Share with people: at Read at least; Write only with write access too.
+        "share": dt is not None and await permission_checker.can_share(dt, doc, level="Read"),
+        "share_write": dt is not None and await permission_checker.can_share(dt, doc),
         "tag": await can("DocTag", "create"),
     }
     collected = await collect_sections(doctype, doc_id, doc)
@@ -299,7 +301,11 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
             {
                 "name": str(r["name"]),
                 "user": r.get("user"),
+                "role": r.get("role"),
+                "everyone": bool(r.get("everyone")),
                 "permission": r.get("permission"),
+                "can_reshare": bool(r.get("can_reshare")),
+                "valid_to": _iso(r.get("valid_to")),
             }
             for r in shares
         ],

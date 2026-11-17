@@ -6,22 +6,27 @@ import { RouterLink, useRouter } from 'vue-router'
 import {
   CalendarClock,
   ChevronRight,
+  Globe,
   Ellipsis,
   ExternalLink,
   NotebookPen,
   Plus,
   Share2,
+  SlidersHorizontal,
   UserMinus,
   UserPlus,
+  Users,
   X,
 } from '@lucide/vue'
 import type { DocSidebarState } from './useDocSidebar'
-import { isAssignmentPlaceholder, type SidebarAssignee } from '@/core/api/docs'
+import { isAssignmentPlaceholder, type SidebarAssignee, type SidebarShare } from '@/core/api/docs'
 import { useDialog } from '@/core/composables/useDialog'
 import { formatDate, formatRelative } from '@/core/datetime'
 import { docUrl } from '@/core/workspaceUrl'
 import SidebarUserCommand from './SidebarUserCommand.vue'
 import SidebarPersonCard from './SidebarPersonCard.vue'
+import SidebarShareDialog from './SidebarShareDialog.vue'
+import { useAuthStore } from '@/stores/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -55,6 +60,7 @@ const props = defineProps<{ sb: DocSidebarState; workspace?: string }>()
 const { t } = useI18n()
 const router = useRouter()
 const dialog = useDialog()
+const auth = useAuthStore()
 
 const assignees = computed(() => props.sb.bundle.value.assignees)
 const shares = computed(() => props.sb.bundle.value.shares)
@@ -126,17 +132,39 @@ async function submitTask() {
 const shareOpen = ref(false)
 const sharePermission = ref<'Read' | 'Write'>('Read')
 const accessOpen = ref(false)
+const shareDialog = ref(false)
+const canShareWrite = computed(() => props.sb.bundle.value.perms?.share_write !== false)
+const canShare = computed(() => props.sb.bundle.value.perms?.share !== false)
 async function quickShare(email: string) {
   shareOpen.value = false
   try {
-    await props.sb.share(email, sharePermission.value)
+    await props.sb.share({ user: email, permission: canShareWrite.value ? sharePermission.value : 'Read' })
     accessOpen.value = true
   } catch {
     /* silent */
   }
 }
+function openShareDialog() {
+  shareOpen.value = false
+  shareDialog.value = true
+}
 function permissionLabel(p: string): string {
   return p === 'Write' ? t('Edit') : p === 'Read' ? t('Read') : p
+}
+function shareTitle(s: SidebarShare): string {
+  if (s.everyone) return t('Everyone')
+  if (s.role) return s.role
+  return props.sb.personName(s.user ?? '')
+}
+function isExpired(s: SidebarShare): boolean {
+  if (!s.valid_to) return false
+  const today = new Date()
+  const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  return s.valid_to.substring(0, 10) < iso
+}
+// Whoever can share removes any share; a recipient may give up their own.
+function canRemove(s: SidebarShare): boolean {
+  return canShare.value || (!!s.user && s.user === auth.user?.email)
 }
 </script>
 
@@ -241,7 +269,7 @@ function permissionLabel(p: string): string {
         <Badge variant="secondary" class="px-1.5 font-normal tabular-nums">{{ shares.length }}</Badge>
       </CollapsibleTrigger>
       <h3 v-else class="text-sm font-medium">{{ t('Access') }}</h3>
-      <Popover v-if="sb.bundle.value.perms?.share !== false" v-model:open="shareOpen">
+      <Popover v-if="canShare" v-model:open="shareOpen">
         <PopoverTrigger as-child>
           <Button variant="ghost" size="icon-sm" class="size-7 -mr-1.5" :aria-label="t('Share document')">
             <Share2 />
@@ -258,17 +286,30 @@ function permissionLabel(p: string): string {
               @update:model-value="(v) => { if (v) sharePermission = v as 'Read' | 'Write' }"
             >
               <ToggleGroupItem value="Read" class="flex-1">{{ t('Read') }}</ToggleGroupItem>
-              <ToggleGroupItem value="Write" class="flex-1">{{ t('Edit') }}</ToggleGroupItem>
+              <ToggleGroupItem value="Write" class="flex-1" :disabled="!canShareWrite">{{ t('Edit') }}</ToggleGroupItem>
             </ToggleGroup>
           </div>
-          <SidebarUserCommand v-if="shareOpen" :sb="sb" :exclude="shares.map((s) => s.user)" @select="quickShare" />
+          <SidebarUserCommand v-if="shareOpen" :sb="sb" :exclude="shares.flatMap((s) => s.user ? [s.user] : [])" @select="quickShare">
+            <template #footer>
+              <CommandItem value="__share-options" @select="openShareDialog">
+                <SlidersHorizontal class="size-4" />
+                {{ t('Role, everyone, end date…') }}
+              </CommandItem>
+            </template>
+          </SidebarUserCommand>
         </PopoverContent>
       </Popover>
     </div>
     <CollapsibleContent v-if="shares.length">
       <ItemGroup class="-mx-2">
-        <Item v-for="s in shares" :key="s.name" size="sm" class="flex-nowrap gap-2 px-2 py-1">
-          <SidebarPersonCard :sb="sb" :email="s.user">
+        <Item
+          v-for="s in shares"
+          :key="s.name"
+          size="sm"
+          class="flex-nowrap items-start gap-2 px-2 py-1"
+          :class="isExpired(s) ? 'opacity-60' : undefined"
+        >
+          <SidebarPersonCard v-if="s.user" :sb="sb" :email="s.user">
             <ItemMedia>
               <Avatar class="size-6">
                 <AvatarImage v-if="sb.personAvatar(s.user)" :src="sb.personAvatar(s.user)!" />
@@ -276,18 +317,37 @@ function permissionLabel(p: string): string {
               </Avatar>
             </ItemMedia>
           </SidebarPersonCard>
-          <ItemContent class="min-w-0">
+          <ItemMedia v-else>
+            <Avatar class="size-6">
+              <AvatarFallback>
+                <Globe v-if="s.everyone" class="size-3.5" />
+                <Users v-else class="size-3.5" />
+              </AvatarFallback>
+            </Avatar>
+          </ItemMedia>
+          <ItemContent class="min-w-0 gap-1">
             <ItemTitle class="w-full font-normal">
-              <span class="truncate">{{ sb.personName(s.user) }}</span>
+              <span class="truncate">{{ shareTitle(s) }}</span>
             </ItemTitle>
+            <div v-if="s.valid_to || s.can_reshare" class="flex flex-wrap gap-1">
+              <Badge v-if="s.valid_to" :variant="isExpired(s) ? 'destructive' : 'outline'" class="font-normal">
+                <CalendarClock />
+                {{ isExpired(s) ? t('expired {date}', { date: formatDate(s.valid_to) }) : t('until {date}', { date: formatDate(s.valid_to) }) }}
+              </Badge>
+              <Badge v-if="s.can_reshare" variant="outline" class="font-normal">
+                <Share2 />
+                {{ t('can share') }}
+              </Badge>
+            </div>
           </ItemContent>
           <ItemActions class="gap-1">
             <Badge variant="outline" class="font-normal">{{ permissionLabel(s.permission) }}</Badge>
             <Button
+              v-if="canRemove(s)"
               variant="ghost"
               size="icon-xs"
               class="text-muted-foreground hover:text-destructive"
-              :aria-label="t('Remove {name}', { name: sb.personName(s.user) })"
+              :aria-label="t('Remove {name}', { name: shareTitle(s) })"
               @click="sb.unshare(s.name)"
             >
               <X />
@@ -298,6 +358,14 @@ function permissionLabel(p: string): string {
     </CollapsibleContent>
     <p v-else class="text-sm text-muted-foreground">{{ t('Not shared with anyone') }}</p>
   </Collapsible>
+
+  <SidebarShareDialog
+    v-model:open="shareDialog"
+    :sb="sb"
+    :can-write="canShareWrite"
+    :exclude="shares.flatMap((s) => s.user ? [s.user] : [])"
+    @shared="accessOpen = true"
+  />
 
   <!-- Assign with a task -->
   <Dialog v-model:open="taskDialog">

@@ -85,11 +85,15 @@ class PermissionChecker:
         doc: dict | None = None,
         *,
         user: str | None = None,
+        level: str = "Write",
     ) -> bool:
-        """``share`` - and ``write``: sharing must not hand out (a link to, or a
-        Write share of) a document beyond what the sharer may do with it."""
+        """``share`` - and the *level* handed out (``read`` for ``"Read"``,
+        ``write`` for ``"Write"``): sharing never passes on more than the sharer
+        may do with the document. A public link (``DocumentShare``) is checked at
+        ``"Write"``."""
+        needed: PermissionAction = "write" if level == "Write" else "read"
         return await self.check(doctype, "share", doc, user=user) and await self.check(
-            doctype, "write", doc, user=user
+            doctype, needed, doc, user=user
         )
 
     async def require_share(

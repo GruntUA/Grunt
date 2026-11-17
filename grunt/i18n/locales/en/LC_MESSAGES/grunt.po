@@ -14538,3 +14538,103 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
 msgid "Only PDF, Word, Excel and PowerPoint files can be shown in the text - the file is added as a link"
 msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "Share with one of: a user, a role or everyone"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "Role “%(role)s” not found"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "The end date has already passed"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "You may share this document only at a level you have yourself"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "edit"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "view"
+msgstr ""
+
+#: grunt/grunt/notification/events.py
+msgid "Document shared"
+msgstr ""
+
+#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
+msgid "Shared with you: %(target)s"
+msgstr ""
+
+#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
+msgid "You can now %(level)s %(target)s."
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Everyone"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Can share further"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "One user (their email)"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Everyone holding the role today"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every signed-in user"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Inclusive; empty - no end"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "A share of one document with a user, a role or everyone (Read / Write, until a date, may share further). Readable by whoever can read the document; only someone allowed to share it at that level can share it."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Give access to this document to a user, everyone holding a role, or every user."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "With whom"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Everyone holding the role gets access, wherever their role applies."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every signed-in user gets access. Nobody is notified."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Inclusive. Leave empty for no end date."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Role, everyone, end date…"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "expired {date}"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "until {date}"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "can share"
+msgstr ""

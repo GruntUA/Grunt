@@ -200,8 +200,13 @@ Create a JSON file in `my_crm/doctypes/Customer/`:
 
 `actions` lists what the role may do: `read`, `select` (search a Link field's
 values only), `write`, `create`, `delete`, and - granted separately from read -
-`export`, `import`, `print`, `share` (also needs `write`) and `report` (reports
-on this DocType).
+`export`, `import`, `print`, `share` and `report` (reports on this DocType).
+
+`share` lets a user give others access to one document - a user, everyone
+holding a role, or every signed-in user; read or edit; optionally until a date
+and with the right to share further. A share never hands out more than the
+sharer has: sharing for reading needs `read`, for editing - `write`. A public
+link (for guests) needs `share` and `write`.
 
 Then sync the DocType to create the database table:
 

@@ -20,6 +20,7 @@ NOTE = {
         {"role": "Reader", "actions": ["read"]},
         {"role": "Writer", "actions": ["read", "write"]},
         {"role": "Editor", "actions": ["read", "write", "share"]},
+        {"role": "Sharer", "actions": ["read", "share"]},
     ],
 }
 
@@ -96,12 +97,15 @@ async def test_app_sections(note, sections, db_session, engine):
 @pytest.mark.asyncio
 async def test_perms(note, db_session, engine):
     reader = await _sidebar(db_session, engine, note["name"], ["Reader"])
-    assert reader["perms"] == {"assign": True, "share": False, "tag": True}
-    # Write alone doesn't share; share alone (without write) doesn't either.
+    assert reader["perms"] == {"assign": True, "share": False, "share_write": False, "tag": True}
+    # Write alone doesn't share.
     writer = await _sidebar(db_session, engine, note["name"], ["Writer"])
     assert writer["perms"]["share"] is False
+    # Share hands out no more than the sharer has: Read only without write.
+    sharer = await _sidebar(db_session, engine, note["name"], ["Sharer"])
+    assert (sharer["perms"]["share"], sharer["perms"]["share_write"]) == (True, False)
     editor = await _sidebar(db_session, engine, note["name"], ["Editor"])
-    assert editor["perms"]["share"] is True
+    assert (editor["perms"]["share"], editor["perms"]["share_write"]) == (True, True)
 
 
 def extra_props(doctype, doc_id, doc):

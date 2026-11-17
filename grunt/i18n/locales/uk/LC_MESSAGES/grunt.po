@@ -15739,3 +15739,99 @@ msgstr "Файли Word, Excel і PowerPoint показуються на опу�
 #: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
 msgid "Only PDF, Word, Excel and PowerPoint files can be shown in the text - the file is added as a link"
 msgstr "У тексті можна показати лише PDF, Word, Excel і PowerPoint — файл додано посиланням"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "Share with one of: a user, a role or everyone"
+msgstr "Поширте на когось одного: користувача, роль або всіх"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "The end date has already passed"
+msgstr "Дата завершення вже минула"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "You may share this document only at a level you have yourself"
+msgstr "Поширювати документ можна лише з тим рівнем доступу, який маєте самі"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "edit"
+msgstr "редагувати"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "view"
+msgstr "переглядати"
+
+#: grunt/grunt/notification/events.py
+msgid "Document shared"
+msgstr "Документ поширено"
+
+#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
+msgid "Shared with you: %(target)s"
+msgstr "Вам надано доступ: %(target)s"
+
+#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
+msgid "You can now %(level)s %(target)s."
+msgstr "Тепер ви можете %(level)s %(target)s."
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Everyone"
+msgstr "Усі"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Can share further"
+msgstr "Може поширювати далі"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "One user (their email)"
+msgstr "Один користувач (його email)"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Everyone holding the role today"
+msgstr "Усі, хто має роль сьогодні"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every signed-in user"
+msgstr "Кожен користувач, що увійшов"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Inclusive; empty - no end"
+msgstr "Включно; порожньо — безстроково"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "A share of one document with a user, a role or everyone (Read / Write, until a date, may share further). Readable by whoever can read the document; only someone allowed to share it at that level can share it."
+msgstr "Доступ до одного документа для користувача, ролі або всіх (читання / редагування, до дати, з правом поширювати далі). Бачить кожен, хто може читати документ; поширити може лише той, кому це дозволено на такому рівні."
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Give access to this document to a user, everyone holding a role, or every user."
+msgstr "Надайте доступ до документа користувачеві, усім з певною роллю або всім користувачам."
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "With whom"
+msgstr "Кому"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Everyone holding the role gets access, wherever their role applies."
+msgstr "Доступ отримають усі, хто має роль, незалежно від області ролі."
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every signed-in user gets access. Nobody is notified."
+msgstr "Доступ отримає кожен користувач, що увійшов. Сповіщень не буде."
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Inclusive. Leave empty for no end date."
+msgstr "Включно. Порожньо — безстроково."
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Role, everyone, end date…"
+msgstr "Роль, усі, строк…"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "expired {date}"
+msgstr "скінчився {date}"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "until {date}"
+msgstr "до {date}"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "can share"
+msgstr "може поширювати"
