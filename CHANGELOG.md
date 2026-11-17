@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.0 - 2026-11-17
+
+### Features
+
+- **permissions:** Access Log - who took data out and when (#176)
+- **permissions:** Permission Log - who changed access and when (#175)
+- **permissions:** "Check access" - why a user may or may not act on a document (#174)
+
 ## v0.7.0 - 2026-11-17
 
 ### Breaking changes
