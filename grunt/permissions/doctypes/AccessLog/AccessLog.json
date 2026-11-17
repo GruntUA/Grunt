@@ -1,0 +1,61 @@
+{
+  "name": "AccessLog",
+  "label": "Access Log",
+  "module": "permissions",
+  "icon": "file-down",
+  "is_log": true,
+  "retention_days": 365,
+  "track_changes": false,
+  "track_activity": false,
+  "in_global_search": false,
+  "indexes": [["ref_doctype", "doc_id"]],
+  "fields": [
+    {
+      "fieldname": "action",
+      "label": "Action",
+      "fieldtype": "Select",
+      "options": "Export\nPrint\nImport\nReport",
+      "translatable": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "doc_id",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "ref_doctype",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "file_format",
+      "label": "Format",
+      "fieldtype": "Data",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "rows",
+      "label": "Rows",
+      "fieldtype": "Int"
+    },
+    {
+      "fieldname": "filters",
+      "label": "Filters",
+      "fieldtype": "JSON"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "export", "report"]
+    }
+  ],
+  "description": "Who took data out of the system and when: exports, printouts, imports and report downloads. Written by the system, read only; kept a year."
+}

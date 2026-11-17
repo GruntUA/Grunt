@@ -16002,3 +16002,31 @@ msgstr "Змінено"
 msgctxt "select:PermissionLog.action"
 msgid "Deleted"
 msgstr "Видалено"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Access Log"
+msgstr "Журнал доступу до даних"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Who took data out of the system and when: exports, printouts, imports and report downloads. Written by the system, read only; kept a year."
+msgstr "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження звітів. Пише система, лише для читання; зберігається рік."
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Export"
+msgstr "Експорт"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Print"
+msgstr "Друк"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Import"
+msgstr "Імпорт"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Report"
+msgstr "Звіт"

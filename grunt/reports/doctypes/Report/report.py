@@ -27,6 +27,7 @@ from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.access_log import record_access
 from grunt.permissions.rbac import permission_checker
 from grunt.reports.engine import report_engine
 from grunt.reports.joins import report_fields
@@ -110,6 +111,14 @@ async def export_xlsx(
     """Run a report and return the result as an xlsx file download."""
     result = await report_engine.run(name, filters or {}, user_email(), require_session())
     xlsx_bytes = await report_engine.export_excel(result, name)
+    await record_access(
+        "Report",
+        "Report",
+        doc_id=name,
+        file_format="xlsx",
+        rows=len(result.get("data") or []),
+        filters=filters or None,
+    )
     return Response(
         content=xlsx_bytes,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
