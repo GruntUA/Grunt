@@ -14638,3 +14638,135 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "can share"
 msgstr ""
+
+#: grunt/grunt/permissions/perms.py
+msgid "Inspect and manage access rights"
+msgstr ""
+
+#: grunt/grunt/api/v1/permission_inspector.py
+msgid "Unknown action “%(action)s”"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "Check access"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Why a user may or may not act on {doctype} {name}."
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Why a user may or may not act on {doctype} documents."
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Could not check access"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "{user} may {action}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "{user} may not {action}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Access is given by the role: {roles}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "within {value}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No roles"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Follows the parent document"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Follows the document it belongs to"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "can read"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "cannot read"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No role of the user grants this action on the document type at all."
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Rules that grant this action"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "This document"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "the user lacks this role"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "every document"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "within {doctype}: {values}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "condition cannot be applied - grants nothing"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "passes"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "does not pass"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No rule of this document type grants this action."
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with everyone"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the role {role}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the user"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Fields"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Hidden: {fields}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Read only: {fields}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Import"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Export"
+msgstr ""
