@@ -525,9 +525,7 @@ class TestPermissions:
         with (
             _registry_returning(dt),
             patch.object(GruntDB, "get_value", new_callable=AsyncMock, return_value=doc),
-            # No UserPermission rows for either user — check() still consults
-            # doc_passes()/get_user_permissions_for() once the role-level match
-            # succeeds, so this needs mocking too, not just get_value().
+            # Shares and other lookups find nothing for either user.
             patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]),
         ):
             _user_ctx.set(owner)

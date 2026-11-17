@@ -42,7 +42,6 @@ from grunt.naming.service import naming_service
 from grunt.permissions.query import reference_readable
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
-from grunt.permissions.user_permissions import doc_violation
 from grunt.query.query import Query
 from grunt.search.service import search_index_service
 from grunt.storage.references import release_dropped_files
@@ -183,21 +182,6 @@ class DocumentLifecycleMixin:
                 % {"fields": ", ".join(sorted(dt.get_label(f) for f in changed))},
             )
 
-    @staticmethod
-    async def _require_user_permissions(dt: Any, row: dict[str, Any], user: str | None) -> None:
-        """403 when the values being written fall outside *user*'s User
-        Permissions - the role check alone only looks at the stored row, so
-        without this a restricted user could create a record in (or move one
-        to) a scope they may not touch."""
-        fieldname = await doc_violation(user, dt, row)
-        if fieldname is None:
-            return
-        label = _(dt.get_label(fieldname)) if fieldname else _(dt.doc.label or dt.doc.name)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=_("No access: “%(field)s” is outside your user permissions") % {"field": label},
-        )
-
     async def _fire_write_hooks(self, primary_event: str, doc: dict[str, Any]) -> None:
         """Fire the two hook events that follow a successful insert/update."""
         for event in (primary_event, "after_save"):
@@ -307,7 +291,6 @@ class DocumentLifecycleMixin:
         try:
             await apply_fetch_from(dt.doc, self.data)
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
-            await self._require_user_permissions(dt, self.data, user)
             await permission_checker.require_in_scope(dt, "create", self.data, user=user)
             await self._before_store(dt)
             self.data = await store.insert(self.data, input=data, user=user)
@@ -432,7 +415,6 @@ class DocumentLifecycleMixin:
         """The update from the hooks on: store it, record it, tell the services."""
         await apply_fetch_from(dt.doc, self.data, existing)
         await self._run_lifecycle_hooks("validate", "before_save")
-        await self._require_user_permissions(dt, self.data, user)
         # The stored row was checked before the change; the new one must stay in scope.
         await permission_checker.require_in_scope(dt, "write", self.data, user=user)
         await self._before_store(dt)

@@ -23,7 +23,6 @@ lazy from grunt.permissions.access import RoleAccess
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.roles import role_holders
 lazy from grunt.permissions.scopes import doc_in_scopes
-lazy from grunt.permissions.user_permissions import doc_passes
 lazy from grunt.workflow.registry import get_active_workflow
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -67,8 +66,6 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
         if not any(user_may_take(t, held, unrestricted=unrestricted) for t in transitions):
             continue
         if not await permission_checker.check(meta, "read", doc, user=email):
-            continue
-        if not await doc_passes(email, meta, doc):
             continue
         result.append(email)
     return result

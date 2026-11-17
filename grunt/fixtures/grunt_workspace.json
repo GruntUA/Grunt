@@ -76,14 +76,6 @@
     {
       "section": "Користувачі та доступ",
       "type": "DocType",
-      "label": "Дозволи користувачів",
-      "link_to": "UserPermission",
-      "icon": "ban",
-      "show_count": true
-    },
-    {
-      "section": "Користувачі та доступ",
-      "type": "DocType",
       "label": "API ключі",
       "link_to": "ApiKey",
       "icon": "key",

@@ -3,8 +3,8 @@ backend - and the same rows open one by one (``permission_checker.check`` with
 a document): both are the one predicate, ``grunt.permissions.query``.
 
 Every source of the read predicate (``grunt.permissions.query.read_predicate``):
-role ``match`` (a field, ``!=``, a Link hop), several rules ORed, shares, User
-Permissions (narrowing shares too), inherited access (``access_from``)
+role ``match`` (a field, ``!=``, a Link hop), several rules ORed, shares, role
+scopes (narrowing their own role only), inherited access (``access_from``)
 and child rows. NULL follows SQL: ``!=`` never matches it; ``link.field != value``
 reads "not among the linked rows where ``field == value``" - a link to a row
 whose field is empty is in, an empty link is not.
@@ -87,7 +87,6 @@ ALL = set(TASKS)
 NOTES = {"N1": "K1", "N2": "K3", "N3": None}
 
 SHARES = [("K3", "carol@x.com"), ("K1", "erin@x.com")]
-USER_PERMISSIONS = [("dave@x.com", "T2"), ("erin@x.com", "T2")]
 
 
 @pytest_asyncio.fixture
@@ -119,15 +118,22 @@ async def permission_data(ctx):
                 "permission": "Read",
             },
         )
-    for user, team in USER_PERMISSIONS:
-        await ctx.new_doc(
-            "UserPermission", {"for_user": user, "allow": "CpTeam", "for_value": team}
-        )
     await ctx.db._session().commit()
 
 
+def _in_team(role: str, team: str) -> dict:
+    """*role* held within *team* (a scoped role assignment)."""
+    return {"role_name": role, "scope_doctype": "CpTeam", "scope_value": team}
+
+
+def _role_ids(roles: list) -> str:
+    return "+".join(
+        r if isinstance(r, str) else f"{r['role_name']}@{r['scope_value']}" for r in roles
+    )
+
+
 # (user, roles) -> the tasks their list holds
-TASK_CASES: list[tuple[str, list[str], set[str] | None]] = [
+TASK_CASES: list[tuple[str, list, set[str] | None]] = [
     ("alice@x.com", ["Reader"], ALL),
     ("alice@x.com", [], None),  # no read rule at all
     ("alice@x.com", ["Own"], {"K1", "K2"}),
@@ -138,9 +144,10 @@ TASK_CASES: list[tuple[str, list[str], set[str] | None]] = [
     ("alice@x.com", ["Own", "Open"], {"K1", "K2", "K3"}),  # rules OR together
     ("carol@x.com", ["Own"], {"K5", "K3"}),  # + the task shared with her
     ("carol@x.com", [], {"K3"}),  # a share alone grants its document
-    # User Permission T2: tasks of T2, and those with no team (not strict)
-    ("dave@x.com", ["Reader"], {"K2", "K3", "K4"}),
-    ("erin@x.com", ["Own"], set()),  # her share (K1, team T1) is outside T2
+    # Reader within T2: tasks of T2 - a task with no team is outside the scope
+    ("dave@x.com", [_in_team("Reader", "T2")], {"K2", "K3"}),
+    # Own within T2: none of hers; a scope narrows its role, not her share (K1)
+    ("erin@x.com", [_in_team("Own", "T2")], {"K1"}),
 ]
 
 
@@ -165,7 +172,9 @@ async def _names(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "case", TASK_CASES, ids=[f"{u.split('@')[0]}-{'+'.join(r) or 'none'}" for u, r, _ in TASK_CASES]
+    "case",
+    TASK_CASES,
+    ids=[f"{u.split('@')[0]}-{_role_ids(r) or 'none'}" for u, r, _ in TASK_CASES],
 )
 async def test_task_list(ctx, permission_data, db_session, engine, case):
     email, roles, expected = case
