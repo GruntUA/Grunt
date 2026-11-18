@@ -15,11 +15,12 @@ import {
   type CalendarDate,
   type DateValue,
 } from '@internationalized/date'
-import type { DocType } from '@/types'
-import { eachDate, formatCalendarDate, formatMonthYear, localeTag, toCalendarDay } from '@/core/datetime'
+import type { ActiveFilter, DocType } from '@/types'
+import { daysBetween, eachDate, formatCalendarDate, formatMonthYear, localeTag, toCalendarDay } from '@/core/datetime'
 import { docsApi } from '@/core/api/docs'
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
+import { useToast } from '@/core/composables/useToast'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -34,9 +35,16 @@ const props = defineProps<{
   dateField: string
   workspace?: string
   refreshKey?: number
+  /** The list toolbar's filters - applied to the DocType's own documents. */
+  activeFilters?: ActiveFilter[]
+  quickFilterValues?: Record<string, string>
 }>()
 
+// Documents of one visible grid; more than this on one screen is unreadable anyway.
+const MAX_EVENTS = 2000
+
 const router = useRouter()
+const toast = useToast()
 const currentMonth = shallowRef<CalendarDate>(today(getLocalTimeZone()))
 const isLoading = ref(true)
 const isRescheduling = ref(false)
@@ -103,13 +111,27 @@ async function loadDocuments() {
     const gridEnd = calendarDays.value[calendarDays.value.length - 1].toString()
 
     const endField = props.doctype.calendar_end_date_field
-    const primaryFields = new Set(['name', props.dateField, props.doctype.title_field || 'name'])
+    const primaryTitleField = props.doctype.calendar_title_field || props.doctype.title_field || 'name'
+    const primaryFields = new Set(['name', props.dateField, primaryTitleField])
     if (endField) primaryFields.add(endField)
-    const primaryFetch = docsApi.list(props.doctype.name, {
-      rawFilters: { [`${props.dateField}__lte`]: endStr },
-      per_page: 200,
-      fields: [...primaryFields].join(','),
-    })
+    // Only documents overlapping the visible grid: without a lower bound a DocType with
+    // years of history filled the page with old rows and the current month came up short.
+    const listPrimary = (window: Record<string, string>) =>
+      docsApi.list(props.doctype.name, {
+        filters: props.activeFilters ?? [],
+        quickFilters: props.quickFilterValues ?? {},
+        rawFilters: { [`${props.dateField}__lte`]: gridEnd, ...window },
+        per_page: MAX_EVENTS,
+        fields: [...primaryFields].join(','),
+      })
+    // A document without an end date is a one-day event - the REST filters have no OR,
+    // so it comes in a second request.
+    const primaryFetch = endField
+      ? Promise.all([
+        listPrimary({ [`${endField}__gte`]: gridStart }),
+        listPrimary({ [`${endField}__isnull`]: '1', [`${props.dateField}__gte`]: gridStart }),
+      ]).then(([spans, days]) => ({ ...spans, data: [...(spans.data ?? []), ...(days.data ?? [])] }))
+      : listPrimary({ [`${props.dateField}__gte`]: gridStart })
 
     const sources = props.doctype.calendar_sources || []
     const secondaryFetches = sources.map(source => {
@@ -137,7 +159,6 @@ async function loadDocuments() {
     }
 
     if (primaryResp.data) {
-      const primaryTitleField = props.doctype.title_field || 'name'
       primaryResp.data.forEach((doc: any) => {
         const d_start = doc[props.dateField]
         const d_end = endField ? doc[endField] : undefined
@@ -250,6 +271,7 @@ onMounted(loadDocuments)
 watch(currentMonth, loadDocuments)
 // Bumped by the shared header's Refresh button (calendar events aren't on the shared query cache).
 watch(() => props.refreshKey, (_v, old) => { if (old !== undefined) loadDocuments() })
+watch([() => props.activeFilters, () => props.quickFilterValues], loadDocuments, { deep: true })
 
 function navigateToDoc(event: CalendarEvent) {
   const id = String(event.id)
@@ -301,13 +323,29 @@ async function onDrop(e: DragEvent, day: CalendarDate) {
   const oldDate = event.date
   event.date = newDate // Optimistic
 
+  // A multi-day event moves as a whole: the end shifts by the same number of days,
+  // otherwise dropping it after its own end would leave the end before the start.
+  const changes: Record<string, string> = { [dateField]: newDate }
+  const endField = event.doctype === props.doctype.name ? props.doctype.calendar_end_date_field : null
+  const oldStart = toCalendarDay(oldDate)
+  const oldEnd = event.end_date ? toCalendarDay(event.end_date) : null
+  if (endField && oldStart && oldEnd && event.end_date) {
+    const newEnd = oldEnd.add({ days: daysBetween(oldStart, day) }).toString()
+    changes[endField] = newEnd + (event.end_date.includes('T') ? 'T' + event.end_date.split('T')[1] : '')
+  }
+
   try {
     isRescheduling.value = true
-    await docsApi.update(event.doctype, event.id, { [dateField]: newDate })
+    await docsApi.update(event.doctype, event.id, changes)
     await loadDocuments()
   } catch (err) {
     event.date = oldDate
     console.error('Failed to reschedule:', err)
+    // Validation errors (4xx) aren't toasted by the API client - without this the
+    // event just jumped back with no reason given.
+    const message = (err as { response?: { data?: { error?: { message?: string } } } })
+      ?.response?.data?.error?.message
+    toast.error(message || t('Could not update dates'))
   } finally {
     isRescheduling.value = false
   }
