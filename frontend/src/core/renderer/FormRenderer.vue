@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useResizeObserver } from '@vueuse/core'
 import type { DocField, DocType } from '@/types'
 import { columnWidths, parseLayout } from '@/core/composables/useFormLayout'
-import { evalDependsOn } from '@/core/dependsOn'
+import { evalCondition, evalDependsOn } from '@/core/dependsOn'
 import { FORM_ERRORS } from './formErrors'
 import { columnTemplate, fieldSpanClass, hasFieldWidths, sectionGridClass } from './formGrid'
 import type { LayoutSection, LayoutTab } from '@/core/composables/useFormLayout'
@@ -82,6 +82,16 @@ const mergedFields = computed(() => {
 
 function mergedField(f: DocField): DocField {
   return mergedFields.value.get(f.fieldname) ?? f
+}
+
+// `mandatory_depends_on` / `read_only_depends_on` against the current values.
+// A new object only when a condition holds, so the field stays stable otherwise.
+function renderedField(f: DocField): DocField {
+  const field = mergedField(f)
+  const required = !field.required && evalCondition(field.mandatory_depends_on, docValues.value)
+  const readOnly = !field.read_only && evalCondition(field.read_only_depends_on, docValues.value)
+  if (!required && !readOnly) return field
+  return { ...field, ...(required && { required: true }), ...(readOnly && { read_only: true }) }
 }
 
 function isFieldVisible(f: DocField): boolean {
@@ -291,8 +301,8 @@ function toggleSection(section: LayoutSection) {
                     <span>{{ t('Editing…') }}</span>
                   </div>
 
-                  <FieldRenderer :field="mergedField(f)" :model-value="modelValue[f.fieldname]"
-                    :disabled="disabled || f.read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
+                  <FieldRenderer :field="renderedField(f)" :model-value="modelValue[f.fieldname]"
+                    :disabled="disabled || renderedField(f).read_only || !!fieldLocks?.[f.fieldname]" :error="errors?.[f.fieldname]"
                     :doc-values="modelValue" @update:model-value="update(f.fieldname, $event)"
                     @create-new="onCreateNew" @table-selection-change="onTableSelectionChange" />
                 </div>

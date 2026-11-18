@@ -115,6 +115,18 @@
       "label": "Depends on",
       "fieldtype": "LongText",
       "description": "Display condition (Python/JS)"
+    },
+    {
+      "fieldname": "mandatory_depends_on",
+      "label": "Mandatory depends on",
+      "fieldtype": "LongText",
+      "description": "Required when the condition holds (JS, checked in the form)"
+    },
+    {
+      "fieldname": "read_only_depends_on",
+      "label": "Read-only depends on",
+      "fieldtype": "LongText",
+      "description": "Read-only when the condition holds (JS, checked in the form), e.g. eval:doc.status == 'Approved'"
     }
   ]
 }
