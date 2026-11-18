@@ -268,7 +268,8 @@ async def test_tools_act_with_callers_permissions(ctx, db_session, engine, mcp_d
 def test_registry_rejects_bad_and_duplicate_names():
     from grunt.mcp import McpTool, register_tool
 
-    async def handler() -> None: ...
+    async def handler() -> None:
+        return None
 
     with pytest.raises(ValueError):
         register_tool(McpTool(name="bad name!", description="", handler=handler))

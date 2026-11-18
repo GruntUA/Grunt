@@ -9,7 +9,7 @@ shell (text/html) instead of the file.
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.testclient import TestClient
 
 from grunt.apps.loader import (
@@ -48,8 +48,8 @@ def test_app_pages_register_in_front_of_catch_all() -> None:
         return HTMLResponse("spa")
 
     @fastapi_app.get("/demo_app/news/{route}")
-    async def page(route: str) -> HTMLResponse:
-        return HTMLResponse(f"news {route}")
+    async def page(route: str) -> PlainTextResponse:
+        return PlainTextResponse(f"news {route}")
 
     _move_before_catch_all(fastapi_app)
 

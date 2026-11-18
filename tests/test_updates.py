@@ -357,7 +357,6 @@ def test_app_only_requirements(tmp_path):
 
 
 def test_old_runtimes(tmp_path, monkeypatch):
-    import json
     import sys
     from types import SimpleNamespace
 
