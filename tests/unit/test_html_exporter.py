@@ -43,6 +43,8 @@ class TestFormatter:
         assert self.fmt(("2026-10-22"), _field("d", "Date")) == "22.10.2026"
         iso = _Formatter("yyyy-mm-dd", None, "uk")
         assert iso("2026-10-22 09:05:00", _field("d", "Datetime")) == "2026-10-22 09:05"
+        slash = _Formatter("dd/mm/yyyy", None, "uk")
+        assert slash("2026-10-22", _field("d", "Date")) == "22/10/2026"
 
     def test_duration_and_bytes(self):
         assert "1" in self.fmt(3_660, _field("t", "Duration"))

@@ -31,10 +31,10 @@ async def compress_images(user: str | None = None) -> dict | None:
     eng = site_manager.get_engine(site)
     async with maker() as session, system_context(session, eng):
         with use_language(await language_of(user)):
+            report = None  # stays None when cancelled: track_progress swallows that
             async with track_progress(
                 _("Compressing images"), user=user, doctype="File", cancellable=True
             ) as progress:
                 report = await compress_existing(apply=True, progress=progress)
                 log.info("storage.images_compressed", **report)
-                return report
-    return None  # cancelled
+    return report
