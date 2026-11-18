@@ -88,3 +88,16 @@ async def test_health_lists_active_keys_in_the_old_format(ctx):
     )
     await ctx.db._session().commit()
     assert await legacy_api_keys() == [f"old ({LEGACY_KEY[5:13]})"]
+
+
+@pytest.mark.asyncio
+async def test_a_failing_key_scan_keeps_the_section(ctx, monkeypatch):
+    from grunt.monitoring import health
+
+    async def broken():
+        raise RuntimeError("no ApiKey table")
+
+    monkeypatch.setattr(health, "legacy_api_keys", broken)
+    rows = await health.check_users()
+    assert len(rows) == 5  # the four user rows and the key row, as an error
+    assert "no ApiKey table" in str(rows[-1])

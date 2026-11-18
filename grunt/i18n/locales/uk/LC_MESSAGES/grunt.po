@@ -16186,6 +16186,7 @@ msgstr "Підвищення прав"
 msgid "API keys in the old format"
 msgstr "API-ключі в старому форматі"
 
+
 #: grunt/grunt/monitoring/health.py
-msgid "Use each once (it is rehashed) or reissue it - a coming release drops the old format: %(keys)s"
-msgstr "Скористайтеся кожним хоча б раз (його буде перехешовано) або перевипустіть — найближчий випуск прибере старий формат: %(keys)s"
+msgid "Use each once, then refresh this report: a key still listed was not rehashed - reissue it. A coming release drops the old format: %(keys)s"
+msgstr "Скористайтеся кожним ключем хоча б раз і оновіть цей звіт: ключ, що лишився в списку, не перехешовано — перевипустіть його. Найближчий випуск прибере старий формат: %(keys)s"
