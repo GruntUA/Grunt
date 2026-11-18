@@ -59,7 +59,7 @@ class LoadContext:
     fastapi_app: FastAPI | None = None
 
 
-ConsumerFn = Callable[[Any, "LoadContext"], "Awaitable[None] | None"]
+ConsumerFn = Callable[[Any, "LoadContext"], Awaitable[None] | None]
 
 
 @dataclass(frozen=True, slots=True)

@@ -14,7 +14,7 @@ Steps 1–3 are :func:`boot`, which the task worker runs too.
 """
 
 import asyncio
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
@@ -33,6 +33,7 @@ from grunt.site.settings import get_setting
 from grunt.startup.validators import load_validators
 from grunt.tasks.broker import broker
 from grunt.tasks.scheduler import start_scheduler, stop_scheduler
+from grunt.utils.aio import cancel_and_wait
 from grunt.utils.redis import shared
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -146,9 +147,7 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    perf_flush.cancel()
-    with suppress(asyncio.CancelledError):
-        await perf_flush
+    await cancel_and_wait(perf_flush)
     await stop_scheduler()
     await broker.shutdown()
     await bus.stop()

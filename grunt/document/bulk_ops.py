@@ -291,7 +291,7 @@ class BulkDeleteTask:
 
                     # 1. Main rows
                     result = cast(
-                        "CursorResult",
+                        CursorResult,
                         await session.execute(sa_delete(table).where(table.c.name.in_(names))),
                     )
                     # 2. Their child rows, MultiLinks and search-index entries

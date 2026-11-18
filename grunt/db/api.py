@@ -132,7 +132,8 @@ class GruntDB:
         fieldname: list[str],
         *,
         as_dict: Literal[False] = ...,
-    ) -> list[Any] | None: ...
+    ) -> list[Any] | None:
+        """Several fields: their values as a list."""
 
     @overload
     async def get_value(
@@ -142,7 +143,8 @@ class GruntDB:
         fieldname: str | list[str],
         *,
         as_dict: Literal[True],
-    ) -> AttrDict | None: ...
+    ) -> AttrDict | None:
+        """``as_dict=True``: the fields as an :class:`AttrDict`."""
 
     @overload
     async def get_value(
@@ -152,7 +154,8 @@ class GruntDB:
         fieldname: str = ...,
         *,
         as_dict: Literal[False] = ...,
-    ) -> Any: ...
+    ) -> Any:
+        """One field: its value."""
 
     async def get_value(
         self,
@@ -283,7 +286,8 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-    ) -> list[Any]: ...
+    ) -> list[Any]:
+        """With ``pluck``: that field's values."""
 
     @overload
     async def get_all(
@@ -298,7 +302,8 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-    ) -> list[dict[str, Any]]: ...
+    ) -> list[dict[str, Any]]:
+        """Without ``pluck``: the rows as dicts."""
 
     async def get_all(
         self,

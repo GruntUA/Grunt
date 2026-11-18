@@ -23,7 +23,7 @@ def _is_trusted_host(host: str | None) -> bool:
         if name in site_manager.get_sites():
             return True
     except Exception:
-        pass
+        pass  # no site registry here (CLI, early startup): the configured origins decide
     known = [settings.app_url, *settings.allowed_origins]
     return any((urlparse(o).hostname or "").lower() == name for o in known)
 

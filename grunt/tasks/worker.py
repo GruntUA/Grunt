@@ -16,7 +16,6 @@ import asyncio
 import importlib
 import re
 import sys
-from contextlib import suppress
 from pathlib import Path
 
 from taskiq import TaskiqEvents, TaskiqState
@@ -29,6 +28,7 @@ from grunt.site.manager import site_manager
 from grunt.startup.lifespan import boot
 from grunt.tasks.broker import broker
 from grunt.tasks.redis_introspect import prune_dead_consumers, unregister_consumer
+from grunt.utils.aio import cancel_and_wait
 
 __all__ = ["broker", "import_task_modules"]
 
@@ -102,9 +102,7 @@ async def _boot_worker(state: TaskiqState) -> None:
 async def _stop_worker(state: TaskiqState) -> None:
     flush = getattr(state, "perf_flush", None)
     if flush is not None:
-        flush.cancel()
-        with suppress(asyncio.CancelledError):
-            await flush
+        await cancel_and_wait(flush)
     await bus.stop()
     try:
         await unregister_consumer()

@@ -46,7 +46,7 @@ async def fetch_file(url: str, *, folder: str | None = None) -> dict[str, Any]:
             await files.validate_file_type(content_type, name)
         except ValueError as exc:
             raise RemoteFileError(str(exc)) from exc
-        key, size = await get_storage_backend().put(cast("BinaryIO", buffer), max_bytes=limit)
+        key, size = await get_storage_backend().put(cast(BinaryIO, buffer), max_bytes=limit)
     blob = await files.compress_stored(key, size, name, content_type)
     return await files.create_file(
         blob.key,

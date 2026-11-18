@@ -30,7 +30,8 @@ _SCHEDULER_LOGGERS = ("grunt.tasks", "grunt.worker", "grunt.tasks.scheduler")
 
 _SEP = "─" * 80
 
-_console_handler: logging.Handler | None = None
+# The console handler configure_console_logging() adds - replaced, not stacked, on a re-run.
+_CONSOLE_HANDLER = "grunt.console"
 
 # Frames from these roots are library code - the compact traceback skips them.
 _LIBRARY_ROOTS = tuple(
@@ -173,7 +174,6 @@ def configure_console_logging(
     :func:`configure_logging` with the site settings - the second call
     replaces the first handler instead of adding another.
     """
-    global _console_handler
     numeric_level = getattr(logging, log_level.upper(), logging.INFO)
 
     # Shared processors - used by all loggers
@@ -213,12 +213,13 @@ def configure_console_logging(
     console_handler.setFormatter(console_formatter)
     console_handler.setLevel(logging.DEBUG if debug else numeric_level)
 
+    console_handler.set_name(_CONSOLE_HANDLER)
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG if debug else numeric_level)
-    if _console_handler is not None:
-        root.removeHandler(_console_handler)
+    for handler in [h for h in root.handlers if h.get_name() == _CONSOLE_HANDLER]:
+        root.removeHandler(handler)
     root.addHandler(console_handler)
-    _console_handler = console_handler
 
     # Suppress verbose third-party libraries that spam at DEBUG level
     _noisy_loggers = (

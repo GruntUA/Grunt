@@ -59,14 +59,16 @@ class StorageBackend(ABC):
         """Local path of the blob (for streaming responses)."""
 
     @abstractmethod
-    async def exists(self, key: str) -> bool: ...
+    async def exists(self, key: str) -> bool:
+        """Whether the blob is stored."""
 
     @abstractmethod
     async def delete(self, key: str) -> None:
         """Drop the blob and its preview."""
 
     @abstractmethod
-    async def put_thumbnail(self, key: str, content: bytes, width: int | None = None) -> None: ...
+    async def put_thumbnail(self, key: str, content: bytes, width: int | None = None) -> None:
+        """Store a preview of the blob (*width* - one of several sizes)."""
 
     @abstractmethod
     def thumbnail_path(self, key: str, width: int | None = None) -> Path:

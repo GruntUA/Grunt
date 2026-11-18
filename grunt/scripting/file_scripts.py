@@ -300,7 +300,7 @@ def get_file_client_scripts(doctype: str) -> list[dict[str, str]]:
                             js_file = candidate
                             break
             except OSError:
-                pass
+                pass  # an unreadable doctypes dir: no script, as when there is none
 
         if js_file.exists():
             source = js_file.read_text()

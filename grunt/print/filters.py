@@ -90,7 +90,7 @@ def decline_name(full_name: str | None, case: str = "nominative") -> str:
             return full_name
 
         try:
-            gender_result = shevchenko.detect_gender(cast("GenderDetectionInput", input_data))
+            gender_result = shevchenko.detect_gender(cast(GenderDetectionInput, input_data))
             gender = gender_result.get("gender")
             input_data["gender"] = gender.value if gender else "masculine"
         except Exception:

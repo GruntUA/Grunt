@@ -56,7 +56,6 @@ _SCOPE_COLUMNS = {
     "valid_from": sa.Date(),
     "valid_to": sa.Date(),
 }
-_LINKS = ("Link", "MultiLink")
 
 
 def _json(value: Any) -> Any:
