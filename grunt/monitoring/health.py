@@ -356,10 +356,7 @@ async def _api_keys_row(cat: str) -> Row:
     except Exception as e:  # noqa: BLE001 - a broken scan is a finding, not a crash
         return row(cat, _("API keys in the old format"), ERROR, "—", str(e))
     hint = (
-        _(
-            "Use each once, then refresh this report: a key still listed was not "
-            "rehashed - reissue it. A coming release drops the old format: %(keys)s"
-        )
+        _("These keys no longer work: reissue the ones still needed, deactivate the rest: %(keys)s")
         % {"keys": ", ".join(legacy[:5])}
         if legacy
         else ""
@@ -371,9 +368,9 @@ async def _api_keys_row(cat: str) -> Row:
 
 async def legacy_api_keys() -> list[str]:
     """Labels of active API keys still stored as a bare SHA-256 - from before
-    scrypt (PERMISSIONS_PLAN step 7c). The next use rehashes a key, best-effort
-    (a failed rehash is logged and the request still succeeds) - so a key used
-    and still listed needs reissuing. The old format goes in a coming release."""
+    scrypt (PERMISSIONS_PLAN step 7c). They no longer authenticate: release
+    v0.11.0 rehashed a key on its first use, so one still listed was never used
+    since - reissue it or deactivate it."""
     rows = await _db.get_all(
         "ApiKey",
         filters={"is_active": True},

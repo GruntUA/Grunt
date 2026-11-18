@@ -10,9 +10,9 @@ function, so a copy of the database doesn't make keys cheap to check offline
 cost (n=2^12, ~8 ms) is enough; it runs in a small thread pool, off the event
 loop. Nothing caches a verified key - that would keep it in memory.
 
-Keys stored before 7c are a bare SHA-256 hex digest. They still verify, and the
-first successful use rehashes them with scrypt; the next release drops the old
-format (an unused old key is then reissued).
+Keys stored before 7c (a bare SHA-256 hex digest) no longer verify: release
+v0.11.0 rehashed each on its first use, and one still in that format is
+reissued (System Health lists them).
   - The key_prefix is public and allows O(1) DB lookup without scanning all keys.
 """
 
@@ -78,24 +78,18 @@ def _hash_key(full_key: str) -> str:
     return f"{_SCHEME}${_N}${_R}${_P}${salt.hex()}${digest.hex()}"
 
 
-async def _hash_key_async(full_key: str) -> str:
-    return await asyncio.get_running_loop().run_in_executor(_KDF_POOL, _hash_key, full_key)
-
-
-def needs_rehash(stored_hash: str) -> bool:
-    """Stored before step 7c (a bare SHA-256) - rehash on the next use."""
-    return not stored_hash.startswith(f"{_SCHEME}$")
+def is_current_format(stored_hash: str) -> bool:
+    """Stored with scrypt - not a pre-7c bare SHA-256, which no longer verifies."""
+    return stored_hash.startswith(f"{_SCHEME}$")
 
 
 def verify_key(full_key: str, stored_hash: str) -> bool:
-    """Return True if *full_key* matches *stored_hash* (scrypt, or the old
-    bare SHA-256 until the next release removes it). Blocking - from async
-    code use :func:`verify_key_async`."""
-    if needs_rehash(stored_hash):
-        # Step 7c, phase 1: the pre-7c format. Removed in the next release.
-        return secrets.compare_digest(hashlib.sha256(full_key.encode()).hexdigest(), stored_hash)
+    """Return True if *full_key* matches *stored_hash* (scrypt). Blocking -
+    from async code use :func:`verify_key_async`."""
     try:
-        _scheme, n, r, p, salt_hex, digest_hex = stored_hash.split("$")
+        scheme, n, r, p, salt_hex, digest_hex = stored_hash.split("$")
+        if scheme != _SCHEME:
+            return False
         digest = _scrypt(full_key, bytes.fromhex(salt_hex), int(n), int(r), int(p))
     except ValueError:
         return False
@@ -150,16 +144,6 @@ async def authenticate_api_key(
     if not matched_row:
         log.warning("api_key.invalid_secret", prefix=key_prefix)
         return None
-
-    if needs_rehash(matched_row.get("key_hash") or ""):
-        # Step 7c: the first use of a pre-7c key stores it with scrypt.
-        try:
-            async with system_context(session), session.begin_nested():
-                new_hash = await _hash_key_async(full_key)
-                await _db.set_value("ApiKey", matched_row["name"], "key_hash", new_hash)
-            log.info("api_key.rehashed", prefix=key_prefix)
-        except Exception:
-            log.exception("api_key.rehash_failed", prefix=key_prefix)
 
     # Check expiry
     expires_at = matched_row.get("expires_at")
