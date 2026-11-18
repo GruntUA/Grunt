@@ -67,6 +67,8 @@ export interface DocType {
   status_field?: string | null
   status_indicators?: StatusIndicator[]
   workflow_state_field?: string | null
+  /** Workflow state -> its message (a banner over the form) and colour. */
+  workflow_state_messages?: Record<string, { message: string; color: string }>
   permissions?: DocPermission[]
   actions?: DocTypeActionBinding[]
   /** Registry metadata for every action bind-able on this DocType (Studio helper). */

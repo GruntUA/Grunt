@@ -17,12 +17,12 @@
 |---|-------|--------|
 | 1 | Умовний «лише читання» поля (`read_only_depends_on`) + полагодити `mandatory_depends_on` | ✅ |
 | 2 | Права `export` / `import` / `print` / `share` у DocPermission + полагодити `report` | ✔️ (PERMISSIONS 2b) |
-| 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✅ |
+| 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✔️ (PERMISSIONS 2a, 2c) |
 | 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✅ |
 | 5 | Точність (`precision`) і метод округлення чисел | ✅ |
 | 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✅ |
-| 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ❓ |
-| 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ❓ |
+| 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
+| 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
 | 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ❓ |
 | 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ❓ |
 | 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ❓ |
@@ -33,7 +33,7 @@
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
-| 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ❓ |
+| 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ❓ |
 | 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
 | 22 | Print Format Builder + параметри сторінки | ❓ |
@@ -54,7 +54,7 @@
 | 37 | EmailTemplate прив’язаний до DocType | ❓ |
 | 38 | AutoRepeat: лист із PDF, дні тижня, документ на кожного виконавця | ❓ |
 | 39 | ActivityLog: входи/виходи з IP; Comment `published`/`seen` | ❓ |
-| 40 | SharedWith: право ділитися далі, «для всіх», лист; UserPermission `hide_descendants` | ❓ |
+| 40 | SharedWith: право ділитися далі, «для всіх», лист; UserPermission `hide_descendants` | ✔️ (PERMISSIONS 5a; UserPermission прибрано в 4c) |
 | 41 | Запити на вивантаження/видалення персональних даних | ❓ |
 | 42 | Package / Package Release (перенесення налаштувань між сайтами) | ❓ |
 | 43 | FormTour: позиції, умовні кроки, тури поза формою | ❓ |
@@ -93,7 +93,7 @@
   - `share` вимагає ще й `write` (не можна поширенням видати «Запис», якого сам не маєш) — погоджено.
 
 ### 3. Рівні доступу до полів (permlevel)
-**Статус:** ❓
+**Статус:** ✔️ — `readonly_fields` (PERMISSIONS 2c, #142), діри `hidden_fields` (2a, #119)
 - **Frappe:** `DocField.permlevel` + рядки DocPerm на рівнях 1..9: група полів, яку роль може читати, але не змінювати (або не бачити).
 - **Ґрунт зараз:** `DocPermission.hidden_fields` — лише сховати поле від ролі.
 - **Навіщо:** «бухгалтер бачить зарплату, але змінює лише кадровик».
@@ -144,14 +144,14 @@
   - локально лишаються розгорнуті вузли дерева, ширина/стан бічної панелі.
 
 ### 7. Permission Inspector
-**Статус:** ❓
+**Статус:** ✔️ — `explain()` і «Перевірити доступ» (PERMISSIONS 6a, #174)
 - **Frappe:** форма «користувач + DocType + документ + дія» → пояснення, які правила дали/забрали доступ.
 - **Ґрунт зараз:** немає; доступ складається з ролей, `match`, UserPermission, shares, `inherit_permission_from` — розбиратися важко.
 - **Навіщо:** підтримка та налагодження прав.
 - **Рішення:** —
 
 ### 8. Permission Log + Access Log
-**Статус:** ❓
+**Статус:** ✔️ — Permission Log (6b, #175), Access Log (6c, #176)
 - **Frappe:** Permission Log — хто і коли змінив ролі/права/UserPermission; Access Log — хто експортував, друкував, завантажував дані.
 - **Ґрунт зараз:** ActivityLog/DocVersion для документів; окремого аудиту прав і доступу до даних немає.
 - **Навіщо:** персональні дані, вимоги держсектору.
@@ -224,10 +224,10 @@
 - **Рішення:** —
 
 ### 19. Workflow
-**Статус:** ❓
+**Статус:** ✔️ — #217, #219
 - **Frappe:** `allow_self_approval`, `enable_action_confirmation`, `transition_tasks` (дії при переході), `next_action_email_template`, повідомлення стану, кілька workflow на DocType з умовою/пріоритетом, Workflow Action — вхідні «очікує мого погодження».
 - **Ґрунт зараз:** стани, переходи з ролями, умовою, коментарем, `prompt_fields`, сповіщеннями; `update_field/update_value` у стані.
-- **Рішення:** —
+- **Рішення (2026-11-18):** робимо. Крок 1 (`feat/workflow-guards`): `deny_self_approval` (автор не погоджує власне; Next actors теж без нього), `confirm` на переході, `message` у стані (банер над формою), подія `on_transition` у ServerScript зі змінною `transition`; попутно умова з помилкою тепер **закриває** перехід (раніше `return True` — пропускала всіх). Крок 2 (`feat/workflow-inbox`): вхідні «Очікує моєї дії» — вкладка «Очікує мене» в панелі «Моя робота» (`get_my_work.awaiting`), з переходів і прав, без таблиці Workflow Action; лише явно утримувані ролі (System Manager без ролі не бачить усього), області ролей, без умов. Кілька workflow на DocType — ⏸. `next_action_email_template` покриває Notification з отримувачами Next actors.
 
 ### 20. Політика входу
 **Статус:** ❓
@@ -347,7 +347,7 @@
 - **Рішення:** —
 
 ### 40. SharedWith і UserPermission
-**Статус:** ❓
+**Статус:** ✔️ — shares: користувач / роль / всі, строк, `can_reshare`, сповіщення (PERMISSIONS 5a, #164); UserPermission з `hide_descendants` прибрано разом із UserPermission (4c, #171)
 - **Frappe:** DocShare `share` (ділитися далі), `everyone`, `notify_by_email`; UserPermission `hide_descendants`.
 - **Рішення:** —
 

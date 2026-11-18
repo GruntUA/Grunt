@@ -16,138 +16,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
-#: grunt/grunt/auth/records/role/all/all.json
-msgid "Every signed-in user holds it - a rule for All applies to everyone. Not assigned to users."
-msgstr "Її має кожен користувач, що увійшов: правило для All діє на всіх. Користувачам не призначається."
-
-#: grunt/grunt/permissions/perms.py
-msgid "Everything (*)"
-msgstr "Усе (*)"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Fast bulk delete"
-msgstr "Швидке масове видалення"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage apps and modules"
-msgstr "Керування застосунками й модулями"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage backups"
-msgstr "Керування резервними копіями"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage document types"
-msgstr "Керування типами документів"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage e-mail"
-msgstr "Керування поштою"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage file storage"
-msgstr "Керування сховищем файлів"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage integrations (webhooks)"
-msgstr "Керування інтеграціями (вебхуки)"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage users"
-msgstr "Керування користувачами"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Manage workspaces and pages"
-msgstr "Керування робочими просторами й сторінками"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Moderate comments"
-msgstr "Модерація коментарів"
-
-#: grunt/grunt/metadata/doctypes/DocType/doc_type.py
-msgid "No such role: %(roles)s"
-msgstr "Немає такої ролі: %(roles)s"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Restore deleted documents"
-msgstr "Відновлення видалених документів"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Sign in as another user"
-msgstr "Вхід від імені іншого користувача"
-
-#: grunt/grunt/permissions/perms.py
-msgid "System monitoring and background jobs"
-msgstr "Моніторинг системи й фонові задачі"
-
-#: grunt/grunt/auth/records/role/guest/guest.json
-msgid "The anonymous visitor of public pages and web forms. Not assigned to users."
-msgstr "Анонімний відвідувач публічних сторінок і веб-форм. Користувачам не призначається."
-
-#: grunt/grunt/auth/doctypes/Role/role.py
-msgid "Unknown permissions: %(perms)s"
-msgstr "Невідомі дозволи: %(perms)s"
-
-#: grunt/grunt/auth/doctypes/Role/Role.json
-msgid "What users with this role may do beyond document rules: manage users, e-mail, backups… “Everything (*)” — all of it, as System Manager."
-msgstr "Що користувачі з цією роллю можуть робити понад правила документів: керувати користувачами, поштою, резервними копіями… «Усе (*)» — усе це, як System Manager."
-
-#: grunt/grunt/auth/doctypes/Role/role.py
-msgid "You can't grant permissions you don't hold: %(perms)s"
-msgstr "Не можна видати дозволи, яких у вас немає: %(perms)s"
-
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py
-msgid "You may not restore deleted documents"
-msgstr "Вам не дозволено відновлювати видалені документи"
-
-#: grunt/grunt/auth/impersonation.py
-msgid "You may not sign in as another user."
-msgstr "Вам не дозволено входити від імені іншого користувача."
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "A table inside other documents: access follows the document that holds it"
-msgstr "Таблиця всередині інших документів: доступ — як до документа, що її містить"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "All (every user)"
-msgstr "Усі користувачі (All)"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "Changed rules: {n}"
-msgstr "Змінено правил: {n}"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "Choose a role"
-msgstr "Оберіть роль"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "Discard unsaved permission changes?"
-msgstr "Відкинути незбережені зміни прав?"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "Hidden fields: {n} · read-only: {m}"
-msgstr "Прихованих полів: {n} · лише для читання: {m}"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "Included in read"
-msgstr "Входить у читання"
-
-#: grunt/grunt/api/v1/permission_matrix.py
-msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
-msgstr "Дозволи «%(doctype)s» тим часом змінили — оновіть сторінку"
-
-#: grunt/grunt/api/v1/permission_matrix.py
-msgid "Too many document types in one save (%(count)s, at most %(max)s)"
-msgstr "Забагато типів документів в одному збереженні (%(count)s, щонайбільше %(max)s)"
-
-#: grunt/grunt/api/v1/permission_matrix.py
-msgid "Role “%(role)s” not found"
-msgstr "Роль «%(role)s» не знайдено"
-
-#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
-msgid "The matrix shows what the role may do with each document type of this page. Narrow the page with the list filters, e.g. by module."
-msgstr "Матриця показує, що роль може робити з кожним типом документа на цій сторінці. Звузьте сторінку фільтрами списку, наприклад за модулем."
-
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "\"As of\" date field"
 msgstr "Поле дати «станом на»"
@@ -163,7 +31,7 @@ msgstr ""
 msgid "#hex or var(--…)"
 msgstr "#hex або var(--…)"
 
-#: grunt/grunt/tasks/doctypes/ToDo/to_do.py
+#: grunt/grunt/notification/records/notification/task_completed/task_completed.json
 msgid "%(actor)s marked the task as done: %(task)s"
 msgstr "%(actor)s позначив завдання виконаним: %(task)s"
 
@@ -213,7 +81,7 @@ msgstr "бракує %(count)s"
 msgid "%(count)s newer versions"
 msgstr "%(count)s новіших версій"
 
-#: grunt/grunt/tasks/todo_reminders.py
+#: grunt/grunt/notification/records/notification/tasks_due/tasks_due.json
 msgid "%(count)s overdue"
 msgstr "%(count)s прострочено"
 
@@ -221,13 +89,17 @@ msgstr "%(count)s прострочено"
 msgid "%(doctype)s has no status field - choose the field to track"
 msgstr "%(doctype)s не має поля статусу — оберіть поле для відстеження"
 
-#: grunt/grunt/activity/follow.py
+#: grunt/grunt/notification/records/notification/followed_document_changed/followed_document_changed.json
 msgid "%(doctype)s “%(title)s” changed"
 msgstr "%(doctype)s «%(title)s» змінено"
 
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "%(doctype)s.%(field)s is already tracked"
 msgstr "%(doctype)s.%(field)s уже відстежується"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "%(field)s: template error - %(error)s"
+msgstr "%(field)s: помилка в шаблоні — %(error)s"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py
 msgid "%(free)s free of %(total)s"
@@ -294,15 +166,15 @@ msgstr "%(tool)s не знайдено; встановіть клієнт Postgr
 msgid "%(used)s used"
 msgstr "використано %(used)s"
 
-#: grunt/grunt/api/v1/document/collaboration.py
+#: grunt/grunt/notification/records/notification/mentioned_in_a_comment/mentioned_in_a_comment.json
 msgid "%(user)s mentioned you in a comment"
 msgstr "%(user)s згадав вас у коментарі"
 
-#: grunt/grunt/api/v1/document/collaboration.py
+#: grunt/grunt/notification/records/notification/reply_to_a_comment/reply_to_a_comment.json
 msgid "%(user)s replied to your comment"
 msgstr "%(user)s відповів(-ла) на ваш коментар"
 
-#: grunt/grunt/workflow/notify.py
+#: grunt/grunt/workflow/actors.py
 msgid "%(user)s: “%(action)s” — %(from)s → %(to)s"
 msgstr "%(user)s: «%(action)s» — %(from)s → %(to)s"
 
@@ -313,6 +185,10 @@ msgstr "«%(name)s» — singleton (єдиний запис)."
 #: grunt/grunt/io/exporters/templates/list_export.html
 msgid "(no value)"
 msgstr "(без значення)"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "+ - rules of this site, − - rules of the app this site does not have."
+msgstr "+ — правила цього сайту, − — правила застосунку, яких на сайті немає."
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "+ Add filter field"
@@ -434,6 +310,14 @@ msgstr "Перебування документа в одному значенн
 msgid "A few steps to get the system ready for your team"
 msgstr "Кілька кроків, щоб підготувати систему до роботи команди"
 
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid ""
+"A field of the document holding a user or an email address, e.g. "
+"assigned_to; through a link: customer.email"
+msgstr ""
+"Поле документа з користувачем або адресою пошти, напр. assigned_to; через "
+"посилання: customer.email"
+
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A folder can't be copied into itself"
 msgstr "Теку не можна скопіювати саму в себе"
@@ -496,13 +380,41 @@ msgstr "Відповідь має стосуватися того самого �
 msgid "A required field is empty."
 msgstr "Обов'язкове поле порожнє."
 
+#: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
+msgid "A role an API key acts with - one its user holds."
+msgstr "Роль, з якою діє API-ключ, — одна з ролей його користувача."
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
 msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid ""
+"A share of one document with a user, a role or everyone (Read / Write, until"
+" a date, may share further). Readable by whoever can read the document; only"
+" someone allowed to share it at that level can share it."
+msgstr ""
+"Доступ до одного документа для користувача, ролі або всіх (читання / "
+"редагування, до дати, з правом поширювати далі). Бачить кожен, хто може "
+"читати документ; поширити може лише той, кому це дозволено на такому рівні."
+
 #: grunt/frontend/src/components/fields/Password/Password.vue
 msgid "A special character"
 msgstr "Спеціальний символ"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"A standard notification edited here: updates of the app no longer overwrite "
+"it. Reset to standard to follow the app again"
+msgstr ""
+"Стандартне сповіщення змінено тут: оновлення додатка його більше не "
+"перезаписують. «Скинути до стандарту» — щоб знову йти за додатком"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid ""
+"A table inside other documents: access follows the document that holds it"
+msgstr ""
+"Таблиця всередині інших документів: доступ — як до документа, що її містить"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -540,6 +452,10 @@ msgstr ""
 msgid "A user's like on one document (the heart in list views)."
 msgstr "Позначка «подобається» користувача на документі (сердечко у списках)."
 
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "A value cannot contain both kinds of quotes"
+msgstr "Значення не може містити обидва види лапок"
+
 #: grunt/grunt/db/errors.py
 msgid "A value does not meet the database's rules."
 msgstr "Значення не відповідає правилам бази даних."
@@ -572,6 +488,14 @@ msgstr "API"
 msgid "API Key"
 msgstr "API-ключ"
 
+#: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
+msgid "API Key Role"
+msgstr "Роль API-ключа"
+
+#: grunt/grunt/monitoring/health.py
+msgid "API keys in the old format"
+msgstr "API-ключі в старому форматі"
+
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "API method"
 msgstr "API метод"
@@ -590,9 +514,14 @@ msgstr "Про документ"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Access"
 msgstr "Доступ"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Access Log"
+msgstr "Журнал доступу до даних"
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Access code"
@@ -603,13 +532,13 @@ msgstr "Код доступу"
 msgid "Access denied"
 msgstr "Доступ заборонено"
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Access is given by the role: {roles}"
+msgstr "Доступ дає роль: {roles}"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Access key ID"
 msgstr "Access key ID"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Access restrictions (User Permissions)"
-msgstr "Обмеження доступу (User Permissions)"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -629,10 +558,13 @@ msgstr "Акаунт заблоковано до"
 msgid "Account temporarily locked. Try again later."
 msgstr "Обліковий запис тимчасово заблоковано. Спробуйте пізніше."
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Action"
 msgstr "Дія"
 
@@ -747,9 +679,17 @@ msgstr "Напишіть коментар"
 msgid "Add a logo"
 msgstr "Додати логотип"
 
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one channel"
+msgstr "Додайте хоча б один канал"
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Add at least one column"
 msgstr "Додайте хоча б одну колонку"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Add at least one recipient"
+msgstr "Додайте хоча б одного отримувача"
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Add condition"
@@ -900,6 +840,10 @@ msgstr "Вирівнювання"
 msgid "All"
 msgstr "Усі"
 
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "All (every user)"
+msgstr "Усі користувачі (All)"
+
 #: grunt/frontend/src/components/app/AppSidebar.vue
 msgid "All apps"
 msgstr "Усі додатки"
@@ -919,6 +863,10 @@ msgstr "Усе гаразд"
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "All results →"
 msgstr "Всі результати →"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "All rows"
+msgstr "Усі рядки"
 
 #: grunt/frontend/src/components/mobile/MobileBottomNav.vue
 msgid "All sections"
@@ -987,13 +935,13 @@ msgstr "Вже маєте акаунт?"
 msgid "Already restored as “%(name)s”"
 msgstr "Уже відновлено як «%(name)s»"
 
-#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
-msgid "Also by email"
-msgstr "Також на email"
-
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Also notified on breach - same syntax"
 msgstr "Також сповіщаються при порушенні строку — той самий синтаксис"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Also notify who did it"
+msgstr "Сповіщати й того, хто це зробив"
 
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue
 msgid "Alt text"
@@ -1034,6 +982,12 @@ msgstr ""
 "Додаток, що має щонайменше стільки секцій бічної панелі, показує їх модулями"
 " (пункти відкриваються в панелі поруч із бічною), якщо стиль його панелі - "
 "«Авто»"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"An event the framework or an app raises from code, e.g. a task assigned"
+msgstr ""
+"Подія, яку фреймворк або додаток викликає з коду, напр. призначення задачі"
 
 #: grunt/frontend/src/components/ErrorBoundary.vue
 msgid "An unexpected error occurred."
@@ -1177,10 +1131,6 @@ msgstr "Застосовувати під час правки"
 msgid "Apply to"
 msgstr "Застосувати до"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "Apply to all documents"
-msgstr "Застосувати до всіх документів"
-
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Approve registration"
 msgstr "Підтвердити реєстрацію"
@@ -1242,6 +1192,10 @@ msgstr "Масив fieldname. Якщо порожньо — всі поля."
 msgid "As of date"
 msgstr "Станом на дату"
 
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "As text"
+msgstr "Як текст"
+
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Ascending"
@@ -1259,9 +1213,17 @@ msgstr ""
 "Перед переходом запитати коментар; він додається до коментарів документа й "
 "до сповіщення"
 
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Ask for confirmation"
+msgstr "Запитувати підтвердження"
+
 #: grunt/grunt/website/www/share/{token}.html
 msgid "Ask the document owner for a new link."
 msgstr "Зверніться до власника документа за новим посиланням."
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Ask “Are you sure?” before applying"
+msgstr "Перед переходом запитати «Ви впевнені?»"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assign"
@@ -1299,7 +1261,7 @@ msgstr "Призначено"
 msgid "Assigned to the user right after self sign-up."
 msgstr "Призначається користувачу одразу після самостійної реєстрації."
 
-#: grunt/grunt/tasks/doctypes/ToDo/to_do.py
+#: grunt/grunt/notification/records/notification/task_assigned/task_assigned.json
 msgid "Assigned to you: %(target)s"
 msgstr "Вам призначено: %(target)s"
 
@@ -1309,6 +1271,7 @@ msgstr "Вам призначено: %(target)s"
 msgid "Assignee"
 msgstr "Відповідальний"
 
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assignees"
 msgstr "Відповідальні"
@@ -1407,6 +1370,7 @@ msgid "Authentication required to access this file"
 msgstr "Для доступу до файлу потрібна автентифікація"
 
 #: grunt/grunt/api/v1/docs/utils.py
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Author"
 msgstr "Автор"
 
@@ -1422,7 +1386,7 @@ msgstr "Авто"
 msgid "Auto Repeat"
 msgstr "Автоповтор"
 
-#: grunt/grunt/tasks/auto_repeat.py
+#: grunt/grunt/notification/records/notification/auto_repeat_created_a_document/auto_repeat_created_a_document.json
 msgid "Auto repeat %(rule)s"
 msgstr "Автоповтор %(rule)s"
 
@@ -1430,9 +1394,17 @@ msgstr "Автоповтор %(rule)s"
 msgid "Auto repeat %(rule)s created, next copy on %(date)s"
 msgstr "Автоповтор %(rule)s створено, наступна копія %(date)s"
 
-#: grunt/grunt/tasks/auto_repeat.py
+#: grunt/grunt/notification/records/notification/auto_repeat_failed/auto_repeat_failed.json
 msgid "Auto repeat %(rule)s failed"
 msgstr "Автоповтор %(rule)s: помилка"
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat created a document"
+msgstr "Автоповтор створив документ"
+
+#: grunt/grunt/notification/events.py
+msgid "Auto repeat failed"
+msgstr "Збій автоповтору"
 
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "Auto-refresh"
@@ -1482,6 +1454,10 @@ msgstr "Зміна середнього, %"
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 msgid "Average, ms"
 msgstr "Середнє, мс"
+
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
+msgid "Awaiting me"
+msgstr "Очікує мене"
 
 #: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/bytes.ts
 #: grunt/frontend/src/components/fields/Int/Int.vue
@@ -1702,6 +1678,10 @@ msgstr "Браузер і офлайн"
 msgid "Browser network"
 msgstr "Мережа браузера"
 
+#: grunt/grunt/notification/channels.py
+msgid "Browser push"
+msgstr "Пуш у браузері"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Browser storage"
 msgstr "Сховище браузера"
@@ -1715,6 +1695,7 @@ msgid "Build"
 msgstr "Збірка"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 #: grunt/frontend/src/pages/reports/ReportView.vue
 msgid "Builder"
 msgstr "Конструктор"
@@ -1775,6 +1756,11 @@ msgstr "Продовжуючи, ви погоджуєтесь з нашими"
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "By day"
 msgstr "По днях"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"By default the user whose action triggered the notification is not notified"
+msgstr "Типово користувач, чия дія спричинила сповіщення, його не отримує"
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "By grouping"
@@ -1844,6 +1830,11 @@ msgstr "Камера недоступна."
 msgid "Can be cancelled"
 msgstr "Можна скасувати"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Can share further"
+msgstr "Може поширювати далі"
+
 #: grunt/grunt/actions/builtin.py
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.js
 #: grunt/frontend/src/components/desk/GruntDialog.vue
@@ -1854,6 +1845,7 @@ msgstr "Можна скасувати"
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
 #: grunt/frontend/src/components/workflow/WorkflowActionDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/views/form/FormModals.vue
@@ -1928,6 +1920,7 @@ msgstr "Клітинка"
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Change"
 msgstr "Змінити"
@@ -1940,18 +1933,31 @@ msgstr "Змінити пароль"
 msgid "Change queue"
 msgstr "Черга змін"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Changed"
+msgstr "Змінено"
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "Changed by"
 msgstr "Змінив"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Changed on this site"
+msgstr "Змінено на цьому сайті"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Changed rules: {n}"
+msgstr "Змінено правил: {n}"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Changed the status"
 msgstr "Змінив статус"
 
-#: grunt/grunt/activity/follow.py
+#: grunt/grunt/notification/records/notification/followed_document_changed/followed_document_changed.json
 msgid "Changed: %(fields)s"
 msgstr "Змінено: %(fields)s"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Changes"
@@ -1978,10 +1984,15 @@ msgstr "Змінити…"
 msgid "Changing it later makes everything already uploaded unreadable."
 msgstr "Якщо змінити його пізніше, усе вже вивантажене стане нечитабельним."
 
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Channel"
 msgstr "Канал"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Channels"
+msgstr "Канали"
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/reports/ReportView.vue
@@ -2000,6 +2011,12 @@ msgstr "Тип графіка"
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
 msgid "Check"
 msgstr "Перевірка"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+#: grunt/grunt/metadata/doctypes/DocType/global_list.js
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Check access"
+msgstr "Перевірити доступ"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Check again"
@@ -2125,6 +2142,10 @@ msgstr "Оберіть теку"
 msgid "Choose a replacement or delete without one."
 msgstr "Оберіть, чим їх замінити, або видаліть без заміни."
 
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Choose a role"
+msgstr "Оберіть роль"
+
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Choose a strong password"
 msgstr "Оберіть надійний пароль"
@@ -2157,9 +2178,13 @@ msgstr "Обрати зі списку"
 msgid "Choose from the tree"
 msgstr "Вибрати з дерева"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py
+#: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the date field to count from"
 msgstr "Оберіть поле дати, від якого рахувати"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the document type"
+msgstr "Оберіть тип документа"
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Choose the first available DocType"
@@ -2195,6 +2220,7 @@ msgstr "Місто (текст)"
 
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 #: grunt/frontend/src/components/fields/Link/FilterInput.vue
 #: grunt/frontend/src/components/fields/Link/Link.vue
 #: grunt/frontend/src/components/fields/Color/Color.vue
@@ -2293,7 +2319,11 @@ msgstr "Хмарне сховище"
 msgid "Cloud storage"
 msgstr "Хмарні сховища"
 
-#: grunt/grunt/core_events.py
+#: grunt/grunt/notification/events.py
+msgid "Cloud storage failing"
+msgstr "Збій хмарного сховища"
+
+#: grunt/grunt/notification/records/notification/cloud_storage_failing/cloud_storage_failing.json
 msgid "Cloud storage “%(name)s” is failing"
 msgstr "Хмарне сховище «%(name)s» не працює"
 
@@ -2312,6 +2342,10 @@ msgstr ""
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Code block"
 msgstr "Блок коду"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Code event"
+msgstr "Подія з коду"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Code from the email"
@@ -2428,7 +2462,7 @@ msgstr "Реакції на коментарі"
 msgid "Comment required"
 msgstr "Потрібен коментар"
 
-#: grunt/grunt/workflow/notify.py
+#: grunt/grunt/workflow/actors.py
 msgid "Comment:"
 msgstr "Коментар:"
 
@@ -2501,8 +2535,13 @@ msgid ""
 msgstr ""
 "Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
 
-#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Condition"
+msgstr "Умова"
+
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgid "Condition (Python)"
 msgstr "Умова (Python)"
 
@@ -2510,6 +2549,10 @@ msgstr "Умова (Python)"
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "Condition (eval:)"
 msgstr "Умова (eval:)"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Condition “%(condition)s” is not a valid expression: %(error)s"
+msgstr "Умова «%(condition)s» не є коректним виразом: %(error)s"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
@@ -2774,6 +2817,10 @@ msgstr "Не вдалося додати ключ"
 msgid "Could not apply the transition"
 msgstr "Помилка застосування переходу"
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Could not check access"
+msgstr "Не вдалося перевірити доступ"
+
 #: grunt/grunt/monitoring/updates.py
 msgid "Could not check for updates: %(error)s"
 msgstr "Не вдалося перевірити оновлення: %(error)s"
@@ -2835,6 +2882,7 @@ msgid "Could not reassign the links: uniqueness conflict"
 msgstr "Не вдалося перепризначити посилання — конфлікт унікальності"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Could not save"
 msgstr "Не вдалося зберегти"
 
@@ -2875,6 +2923,7 @@ msgid "Could not start the task"
 msgstr "Не вдалося запустити задачу"
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
+#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Could not update dates"
 msgstr "Не вдалося оновити дати"
 
@@ -2925,6 +2974,7 @@ msgstr "Emoji-прапор країни (🇺🇦)"
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/fields/Link/Link.vue
 msgid "Create"
 msgstr "Створити"
@@ -2978,13 +3028,15 @@ msgstr "Створити звіт"
 msgid "Create the first one"
 msgstr "Створити перший"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue
 msgid "Created"
 msgstr "Створив(ла)"
 
-#: grunt/grunt/tasks/auto_repeat.py
+#: grunt/grunt/notification/records/notification/auto_repeat_created_a_document/auto_repeat_created_a_document.json
 msgid "Created %(doctype)s %(name)s"
 msgstr "Створено %(doctype)s %(name)s"
 
@@ -3053,6 +3105,10 @@ msgstr "Поточний пароль"
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 msgid "Current period"
 msgstr "Поточний період"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Current user"
+msgstr "Поточний користувач"
 
 #: grunt/grunt/naming/doctypes/NamingSeries/NamingSeries.json
 msgid "Current value"
@@ -3243,7 +3299,7 @@ msgstr "Перехід на літній час"
 msgid "Days"
 msgstr "Дні"
 
-#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py
+#: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Days cannot be negative"
 msgstr "Кількість днів не може бути від'ємною"
 
@@ -3340,7 +3396,6 @@ msgstr ""
 msgid "Default role"
 msgstr "Роль за замовчуванням"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Default value"
 msgstr "Значення за замовчуванням"
@@ -3364,6 +3419,7 @@ msgstr "Визначення"
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue
 #: grunt/frontend/src/components/dashboard/WidgetCard.vue
 #: grunt/frontend/src/components/files/FileExplorer.vue
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue
 #: grunt/frontend/src/components/views/form/FormModals.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
@@ -3407,6 +3463,10 @@ msgstr "Помилка видалення"
 #: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts
 msgid "Delete file list"
 msgstr "Видалити список файлів"
+
+#: grunt/frontend/src/components/fields/RichText/extensions/fileEmbed.ts
+msgid "Delete file preview"
+msgstr "Прибрати перегляд файлу"
 
 #: grunt/frontend/src/components/fields/RichText/extensions/fileBlocks.ts
 msgid "Delete gallery"
@@ -3458,6 +3518,7 @@ msgstr ""
 "Видалити {n} записів напряму через SQL — без lifecycle-хуків і ActivityLog "
 "для кожного запису."
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/frontend/src/core/composables/useFormActions.ts
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
@@ -3624,6 +3685,10 @@ msgstr "Діалог"
 msgid "Dialog fields (comma-separated)"
 msgstr "Поля діалогу (через кому)"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Difference from the app rules"
+msgstr "Різниця з правилами застосунку"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Digits (0–9)"
 msgstr "Цифри (0–9)"
@@ -3655,6 +3720,7 @@ msgid "Disabled"
 msgstr "Вимкнено"
 
 #: grunt/frontend/src/components/layout/OfflineQueueSheet.vue
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue
 msgid "Discard"
 msgstr "Відкинути"
@@ -3662,6 +3728,14 @@ msgstr "Відкинути"
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 msgid "Discard changes"
 msgstr "Скасувати зміни"
+
+#: grunt/grunt/actions/builtin.py
+msgid "Discard the changes made on this site and take the app's version?"
+msgstr "Відкинути зміни, зроблені на цьому сайті, і взяти версію з додатка?"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Discard unsaved permission changes?"
+msgstr "Відкинути незбережені зміни прав?"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 #: grunt/frontend/src/components/views/form/FormDashboard.vue
@@ -3768,6 +3842,8 @@ msgstr "DocType «%(doctype)s» не знайдено"
 msgid "DocTypes"
 msgstr "DocType-и"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
 #: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
@@ -3793,7 +3869,8 @@ msgstr "DocType документа"
 #: grunt/grunt/activity/doctypes/ViewLog/ViewLog.json
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 msgid "Document ID"
 msgstr "ID документа"
 
@@ -3825,6 +3902,10 @@ msgstr ""
 "Зміни документів, зроблені без зв'язку. Вони надсилаються автоматично, щойно"
 " з'являється мережа; конфлікти та відхилені зміни чекають на ваше рішення."
 
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Document field"
+msgstr "Поле документа"
+
 #: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
 msgid "Document follow"
 msgstr "Підписка на документ"
@@ -3842,7 +3923,7 @@ msgid "Document links"
 msgstr "Зв'язки документа"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-#: grunt/grunt/api/v1/share.py
+#: grunt/grunt/api/v1/share.py grunt/grunt/api/v1/permission_inspector.py
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py
 #: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py
@@ -3858,6 +3939,12 @@ msgstr "Документ перезбережено, формули та хук�
 msgid "Document renamed"
 msgstr "Документ перейменовано"
 
+#: grunt/grunt/notification/events.py
+msgid "Document shared"
+msgstr "Документ поширено"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
@@ -3883,10 +3970,13 @@ msgstr "Документ перейменовано"
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/website/www/share/{token}.py
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
@@ -3897,10 +3987,6 @@ msgstr "Тип документа"
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgid "Document type to create when action = create_document"
 msgstr "Тип документа для створення при action = create_document"
-
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "Document type to restrict access by (e.g. «Company»)."
-msgstr "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
 
 #: grunt/grunt/website/www/share/{token}.html
 #: grunt/grunt/website/www/share/{token}.py
@@ -4091,6 +4177,8 @@ msgid "Each message arrives several times — notifications are duplicated."
 msgstr "Кожне повідомлення приходить кілька разів — сповіщення дублюються."
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 #: grunt/frontend/src/components/fields/Table/TableRowActions.vue
@@ -4131,13 +4219,18 @@ msgstr "Електронний підпис"
 msgid "Element"
 msgstr "Елемент"
 
-#: grunt/grunt/monitoring/health.py
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Elevated"
+msgstr "Підвищення прав"
+
+#: grunt/grunt/notification/channels.py grunt/grunt/monitoring/health.py
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Email"
 msgstr "Електронна пошта"
 
@@ -4184,6 +4277,14 @@ msgstr "Токен входу через пошту"
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Email me a code"
 msgstr "Надіслати код на пошту"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email message"
+msgstr "Лист"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Email queue"
+msgstr "Черга листів"
 
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Email sign-in is unavailable: no mail server is configured"
@@ -4444,6 +4545,7 @@ msgstr "Дорівнює"
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobLog/ScheduledJobLog.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Error"
 msgstr "Помилка"
 
@@ -4497,6 +4599,7 @@ msgstr "Європа"
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Event"
@@ -4509,6 +4612,10 @@ msgstr "Date/Datetime-поле кінця події (для багатоден�
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Event label (default: title field)"
 msgstr "Підпис події (default: поле заголовка)"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Event recipients"
+msgstr "Отримувачі з події"
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgid "Event type"
@@ -4536,6 +4643,14 @@ msgstr ""
 msgid "Every repetition is a copy of this document"
 msgstr "Кожне повторення — копія цього документа"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every signed-in user"
+msgstr "Кожен користувач, що увійшов"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every signed-in user gets access. Nobody is notified."
+msgstr "Доступ отримає кожен користувач, що увійшов. Сповіщень не буде."
+
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Every year"
 msgstr "Щороку"
@@ -4543,6 +4658,25 @@ msgstr "Щороку"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Every, hours"
 msgstr "Кожні, годин"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Everyone"
+msgstr "Усі"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid ""
+"Everyone holding the role gets access, whatever the scope of their role."
+msgstr "Доступ отримають усі, хто має роль, незалежно від області ролі."
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Everyone holding the role today"
+msgstr "Усі, хто має роль сьогодні"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Everything (*)"
+msgstr "Усе (*)"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
@@ -4605,6 +4739,11 @@ msgstr "Діє до"
 msgid "Explorer"
 msgstr "Провідник"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Export"
+msgstr "Експорт"
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/map/MapView.vue
 msgid "Export CSV"
@@ -4665,6 +4804,10 @@ msgstr "Не вдалося завантажити попередній пере
 msgid "Failures"
 msgstr "Збоїв"
 
+#: grunt/grunt/permissions/perms.py
+msgid "Fast bulk delete"
+msgstr "Швидке масове видалення"
+
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
 msgid "Fast delete"
 msgstr "Швидке видалення"
@@ -4694,12 +4837,14 @@ msgstr "Мало"
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/components/views/list/ListHeader.vue
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Field"
 msgstr "Поле"
 
@@ -4714,6 +4859,10 @@ msgstr "Список полів"
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgid "Field mapping (JSON)"
 msgstr "Маппінг полів (JSON)"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Field of the linked document"
+msgstr "Поле пов'язаного документа"
 
 #: grunt/frontend/src/core/composables/useFormInitialization.ts
 msgid "Field set: {value}"
@@ -4836,6 +4985,10 @@ msgstr ""
 "переходу. Якщо задано, Умова (за наявності) перевіряється за значеннями, "
 "введеними в діалозі."
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Fields"
+msgstr "Поля"
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
 "Fields for full-text search in the list view (name is added automatically)"
@@ -4892,6 +5045,12 @@ msgstr "Файл не знайдено"
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "File not found on storage"
 msgstr "Файл не знайдено в сховищі"
+
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
+#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue
+msgid "File preview"
+msgstr "Перегляд файлу"
 
 #: grunt/grunt/storage/files.py
 msgid "File type “%(type)s” is not allowed"
@@ -5000,10 +5159,6 @@ msgstr ""
 msgid "Fill this only if the Link field lives in a child table"
 msgstr "Заповнюйте, лише якщо Link-поле розташоване в дочірній таблиці"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "Fill this value into the matching Link field of new documents."
-msgstr "Підставляти це значення у відповідне Link-поле нових документів."
-
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 msgid "Filled in automatically after export"
 msgstr "Заповнюється автоматично після експорту"
@@ -5024,6 +5179,7 @@ msgstr "Конфігурація фільтрів (JSON)"
 msgid "Filter:"
 msgstr "Фільтр:"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/io/exporters/templates/list_export.html
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
@@ -5141,9 +5297,29 @@ msgstr ""
 msgid "Follow"
 msgstr "Стежити"
 
+#: grunt/grunt/notification/events.py
+msgid "Followed document changed"
+msgstr "Змінено документ, за яким стежать"
+
+#: grunt/grunt/notification/events.py
+msgid "Followed document commented"
+msgstr "Коментар до документа, за яким стежать"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Followers"
+msgstr "Стежать"
+
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Following"
 msgstr "Стежу"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Follows the document it belongs to"
+msgstr "Іде за документом, до якого належить"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Follows the parent document"
+msgstr "Іде за батьківським документом"
 
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue
 msgid "Font"
@@ -5173,13 +5349,14 @@ msgstr ""
 msgid "For Gmail: smtp.gmail.com — filled in automatically."
 msgstr "Для Gmail: smtp.gmail.com — підставляється автоматично."
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "For an event from code: empty - whatever document the event is about"
+msgstr ""
+"Для події з коду: порожньо — будь-який документ, якого стосується подія"
+
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgid "For birthday events — appends (N years) to the label"
 msgstr "Для birthday-подій — додає (N років) до підпису"
-
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "For document only"
-msgstr "Лише для документа"
 
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 msgid "For example: '*/5 * * * *' for every 5 minutes"
@@ -5223,6 +5400,7 @@ msgstr "Тур не знайдено"
 msgid "Form tour step"
 msgstr "Крок туру"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/frontend/src/components/fields/Code/Code.vue
 #: grunt/frontend/src/components/fields/JSON/JSON.vue
@@ -5376,6 +5554,14 @@ msgstr ""
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid ""
+"Give access to this document to a user, everyone holding a role, or every "
+"user."
+msgstr ""
+"Надайте доступ до документа користувачеві, усім з певною роллю або всім "
+"користувачам."
+
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
 msgid "Global search"
 msgstr "Глобальний пошук"
@@ -5507,6 +5693,10 @@ msgstr "Групування"
 msgid "Grunt test email"
 msgstr "Grunt — тестовий лист"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "Guests see a document only through a public link"
+msgstr "Гості бачать документ лише за публічним посиланням"
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
@@ -5623,9 +5813,17 @@ msgstr "Приховано"
 msgid "Hidden fields (comma-separated)"
 msgstr "Приховані поля (через кому)"
 
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Hidden fields: {n} · read-only: {m}"
+msgstr "Прихованих полів: {n} · лише для читання: {m}"
+
 #: grunt/frontend/src/pages/studio/builder/webform/WebFormFieldPropertiesPanel.vue
 msgid "Hidden on the form"
 msgstr "Приховане на формі"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Hidden: {fields}"
+msgstr "Приховані: {fields}"
 
 #: grunt/frontend/src/components/views/form/FormDashboard.vue
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
@@ -5935,6 +6133,11 @@ msgstr ""
 "Зображення, завантажені до ввімкнення стиснення, буде перекодовано у фоні зі"
 " збереженими налаштуваннями. Оригінали не зберігаються. Продовжити?"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Import"
+msgstr "Імпорт"
+
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
 msgid "Import error"
 msgstr "Помилка імпорту"
@@ -5998,6 +6201,10 @@ msgstr "У глобальному пошуку"
 msgid "In list view"
 msgstr "У списку"
 
+#: grunt/grunt/notification/channels.py
+msgid "In the system"
+msgstr "У системі"
+
 #: grunt/grunt/workflow/guard.py
 msgid "In the “%(state)s” state the document can't be deleted"
 msgstr "У стані «%(state)s» документ не можна видалити"
@@ -6009,6 +6216,18 @@ msgstr "У стані «%(state)s» документ не можна редаг�
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Include uploaded files"
 msgstr "Разом із завантаженими файлами"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid "Included in read"
+msgstr "Входить у читання"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Inclusive. Leave empty for no end date."
+msgstr "Включно. Порожньо — безстроково."
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Inclusive; empty - no end"
+msgstr "Включно; порожньо — безстроково"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Incoming"
@@ -6094,6 +6313,7 @@ msgstr "Початковий стан"
 msgid "Inline code"
 msgstr "Код у рядку"
 
+#: grunt/frontend/src/components/fields/RichText/RichText.vue
 #: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue
 msgid "Insert"
 msgstr "Вставити"
@@ -6127,6 +6347,10 @@ msgstr "Вставити рядок вище"
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Insert row below"
 msgstr "Вставити рядок нижче"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Inspect and manage access rights"
+msgstr "Перевіряти й налаштовувати права доступу"
 
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue
 msgid "Install on iPhone / iPad"
@@ -6361,9 +6585,23 @@ msgstr ""
 "Jinja HTML на початку документа. Доступно: doc, letter_head.logo, site_url, "
 "now; фільтри, напр. | qr"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Jinja, same variables as the subject"
+msgstr "Jinja, ті самі змінні, що й у темі"
+
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Jinja2 + HTML template"
 msgstr "Шаблон Jinja2 + HTML"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Jinja: {{ doc.field }}, {{ doctype }}, {{ event }}, {{ actor }} (who did "
+"it), {{ url }}; on a workflow transition also {{ action }}, {{ from_state "
+"}}, {{ to_state }}, {{ comment }}"
+msgstr ""
+"Jinja: {{ doc.поле }}, {{ doctype }}, {{ event }}, {{ actor }} (хто це "
+"зробив), {{ url }}; при переході робочого процесу також {{ action }}, {{ "
+"from_state }}, {{ to_state }}, {{ comment }}"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Job"
@@ -6706,9 +6944,13 @@ msgstr "Подобається"
 msgid "Limit of {n} records reached — totals cover only these."
 msgstr "Досягнуто ліміту {n} записів — підсумки лише за ними."
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "Limit this rule to a single DocType."
-msgstr "Обмежити дію цього правила одним DocType."
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid ""
+"Limit the role to documents linked to this record (a department, a section)."
+" Empty - the role applies everywhere."
+msgstr ""
+"Обмежити роль документами, пов’язаними з цим записом (підрозділ, розділ). "
+"Порожньо — роль діє скрізь."
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Line"
@@ -6838,6 +7080,7 @@ msgid "Loading fields…"
 msgstr "Завантаження полів…"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js
+#: grunt/frontend/src/components/debug/ServerErrorModal.vue
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/views/map/MapView.vue
@@ -7006,6 +7249,30 @@ msgstr "Створювати копії автоматично"
 msgid "Male"
 msgstr "Чоловіча"
 
+#: grunt/grunt/permissions/perms.py
+msgid "Manage apps and modules"
+msgstr "Керування застосунками й модулями"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage backups"
+msgstr "Керування резервними копіями"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage document types"
+msgstr "Керування типами документів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage e-mail"
+msgstr "Керування поштою"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage file storage"
+msgstr "Керування сховищем файлів"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage integrations (webhooks)"
+msgstr "Керування інтеграціями (вебхуки)"
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Manage passkeys"
 msgstr "Керувати ключами доступу"
@@ -7013,6 +7280,14 @@ msgstr "Керувати ключами доступу"
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 msgid "Manage shares"
 msgstr "Керувати доступом"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage users"
+msgstr "Керування користувачами"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Manage workspaces and pages"
+msgstr "Керування робочими просторами й сторінками"
 
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
@@ -7118,19 +7393,23 @@ msgstr "Середній"
 msgid "Mention a user"
 msgstr "Згадати користувача"
 
+#: grunt/grunt/notification/events.py
+msgid "Mentioned in a comment"
+msgstr "Згадка в коментарі"
+
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Merge cells"
 msgstr "Об'єднати клітинки"
 
 #: grunt/grunt/actions/builtin.py
+#: grunt/grunt/notification/doctypes/Notification/notification.py
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Message"
 msgstr "Повідомлення"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Message template"
-msgstr "Шаблон повідомлення"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Message-ID"
@@ -7242,6 +7521,10 @@ msgstr "Відсутня відповідь WebAuthn"
 #: grunt/grunt/api/v1/method.py
 msgid "Missing required parameters: %(items)s"
 msgstr "Бракує обов'язкових параметрів: %(items)s"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Moderate comments"
+msgstr "Модерація коментарів"
 
 #: grunt/grunt/website/www/share/{token}.py
 msgid "Modified"
@@ -7481,7 +7764,7 @@ msgstr "Новий DocType"
 msgid "New ID"
 msgstr "Новий ID"
 
-#: grunt/grunt/activity/follow.py
+#: grunt/grunt/notification/records/notification/followed_document_commented/followed_document_commented.json
 msgid "New comment: “%(title)s”"
 msgstr "Новий коментар: «%(title)s»"
 
@@ -7533,6 +7816,10 @@ msgstr "Новіші версії прийдуть з наступним рел�
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Next"
 msgstr "Далі"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Next actors"
+msgstr "Наступні виконавці"
 
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Next page"
@@ -7598,10 +7885,6 @@ msgstr "Немає доступу: після цієї зміни докумен
 #: grunt/grunt/permissions/rbac.py
 msgid "No access: you may not create a document with these values"
 msgstr "Немає доступу: документ з такими значеннями ви створити не можете"
-
-#: grunt/grunt/document/mixins/lifecycle.py
-msgid "No access: “%(field)s” is outside your user permissions"
-msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "No account?"
@@ -7677,6 +7960,10 @@ msgstr "Немає даних"
 msgid "No deliveries yet"
 msgstr "Доставок ще немає"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "No difference"
+msgstr "Різниці немає"
+
 #: grunt/grunt/monitoring/health.py
 msgid ""
 "No dist/precache-manifest.json: offline mode works only with a production "
@@ -7686,6 +7973,14 @@ msgstr ""
 "Немає dist/precache-manifest.json: офлайн працює лише з production-збірки "
 "(`npm run build`). У режимі розробки (Vite dev) service worker не "
 "реєструється."
+
+#: grunt/grunt/permissions/warnings.py
+msgid ""
+"No document type has a rule for this role and it holds no permission - it "
+"works only where code checks the role by name."
+msgstr ""
+"Жоден тип документа не має правила для цієї ролі, і в неї немає дозволів — "
+"вона діє лише там, де код перевіряє роль за назвою."
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "No documents with dates filled in."
@@ -7780,9 +8075,28 @@ msgstr "Нічого не знайдено за фільтрами"
 msgid "No records yet"
 msgstr "Записів поки немає"
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No role of the user grants this action on the document type at all."
+msgstr "Жодна роль користувача взагалі не дає цієї дії на цей тип документа."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No roles"
+msgstr "Ролей немає"
+
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "No rows"
 msgstr "Немає рядків"
+
+#: grunt/grunt/permissions/warnings.py
+msgid ""
+"No rule grants anything here: only system tasks can reach these documents."
+msgstr ""
+"Жодне правило тут нічого не дає: до цих документів дістаються лише системні "
+"задачі."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "No rule of this document type grants this action."
+msgstr "Жодне правило цього типу документа не дає цієї дії."
 
 #: grunt/grunt/reports/engine.py
 msgid "No script specified"
@@ -7791,6 +8105,10 @@ msgstr "Скрипт не вказано"
 #: grunt/frontend/src/components/fields/RichText/ui/EditorContextMenu.vue
 msgid "No shading"
 msgstr "Без заливки"
+
+#: grunt/grunt/metadata/doctypes/DocType/doc_type.py
+msgid "No such role: %(roles)s"
+msgstr "Немає такої ролі: %(roles)s"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTags.vue
 msgid "No tags"
@@ -7820,6 +8138,16 @@ msgstr "Без значення"
 #: grunt/grunt/monitoring/health.py
 msgid "No worker is connected: background jobs are not running."
 msgstr "Жоден воркер не підключений — фонові задачі не виконуються."
+
+#: grunt/grunt/permissions/warnings.py
+msgid ""
+"Nobody holds these roles - their rules give access to no one: %(roles)s"
+msgstr ""
+"Цих ролей ніхто не має — їхні правила нікому не дають доступу: %(roles)s"
+
+#: grunt/grunt/permissions/warnings.py
+msgid "Nobody holds this role."
+msgstr "Цю роль ніхто не має."
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Nobody is assigned"
@@ -7862,6 +8190,10 @@ msgstr "Не дозволено"
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py
 msgid "Not authorized"
 msgstr "Немає дозволу"
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Not by the author"
+msgstr "Не автором документа"
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Not cached, e.g.: {files}. Reload the page while online."
@@ -7936,7 +8268,7 @@ msgstr "Недостатньо прав, щоб змінити поле «%(fiel
 msgid "Not permitted to create users"
 msgstr "Недостатньо прав для створення користувача"
 
-#: grunt/grunt/actions/__init__.py
+#: grunt/grunt/actions/__init__.py grunt/grunt/actions/builtin.py
 msgid "Not permitted to run this action"
 msgstr "Недостатньо прав для цієї дії"
 
@@ -7981,6 +8313,10 @@ msgstr "Примітка"
 msgid "Notes"
 msgstr "Примітки"
 
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
+msgid "Nothing awaits your action"
+msgstr "Ніщо не чекає на вашу дію"
+
 #: grunt/frontend/src/components/DocTypeCombobox.vue
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/desk/DialogTableField.vue
@@ -8010,13 +8346,27 @@ msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 msgid "Notification"
 msgstr "Сповіщення"
 
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid "Notification Channel"
+msgstr "Канал сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Notification Delivery"
+msgstr "Доставка сповіщень"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 msgid "Notification Log"
 msgstr "Журнал сповіщень"
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Notification Recipient"
+msgstr "Отримувач сповіщення"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
@@ -8037,10 +8387,6 @@ msgstr "Сповіщення заблоковано в налаштування�
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Notify"
 msgstr "Сповіщати"
-
-#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
-msgid "Notify (comma-separated)"
-msgstr "Сповістити (через кому)"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Notify me"
@@ -8192,6 +8538,15 @@ msgstr ""
 " (.exe); розширення звіряється з іменем файлу. Файли інших типів не "
 "приймаються. Файли лише завантажуються, у браузері не відкриваються"
 
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid ""
+"One row per notification, recipient and channel: what was sent, through "
+"which channel, and whether it arrived. Old entries are deleted "
+"automatically."
+msgstr ""
+"Рядок на кожне сповіщення, отримувача й канал: що надіслано, яким каналом і "
+"чи дійшло. Старі записи видаляються автоматично."
+
 #: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
 msgid ""
 "One row per scheduled job: when it last ran and how it ended. Updated on "
@@ -8206,17 +8561,25 @@ msgstr ""
 msgid "One status per line; reaching any of them stops the clock"
 msgstr "Один статус на рядок; досягнення будь-якого зупиняє відлік"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "One user (their email)"
+msgstr "Один користувач (його email)"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "OneDrive"
 msgstr "OneDrive"
 
+#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
+msgid ""
+"Only PDF, Word, Excel and PowerPoint files can be shown in the text - the "
+"file is added as a link"
+msgstr ""
+"У тексті можна показати лише PDF, Word, Excel і PowerPoint — файл додано "
+"посиланням"
+
 #: grunt/grunt/reports/engine.py
 msgid "Only SELECT is allowed"
 msgstr "Дозволено тільки SELECT"
-
-#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py
-msgid "Only a System Manager can restore documents"
-msgstr "Відновлювати документи може лише System Manager"
 
 #: grunt/grunt/document/bulk_ops.py
 msgid "Only a superadmin can run a fast delete"
@@ -8242,15 +8605,25 @@ msgstr "Тут можна використати лише зображення"
 msgid "Only one document of this type (settings, profile)"
 msgstr "Лише один документ цього типу (налаштування, профіль)"
 
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Only someone allowed to share and edit the document can share it"
-msgstr ""
-"Поширювати документ може лише той, хто має право поширювати й редагувати "
-"його"
-
 #: grunt/grunt/document/doctypes/Comment/comment.py
 msgid "Only the author or an administrator can delete a comment"
 msgstr "Видалити коментар може лише автор або адміністратор"
+
+#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
+msgid ""
+"Only these of the user's roles (with the user's scopes); empty - all of "
+"them. The key never gets more than its user has."
+msgstr ""
+"Лише ці ролі користувача (з його областями); порожньо — усі. Ключ ніколи не "
+"отримує більше, ніж має його користувач."
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Only these transitions (their button labels), one per line; empty: every "
+"transition"
+msgstr ""
+"Лише ці переходи (назви їхніх кнопок), по одному в рядку; порожньо — будь-"
+"який перехід"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/frontend/src/core/composables/useMapMarkers.ts
@@ -8308,6 +8681,10 @@ msgstr "Відкрити при натисканні"
 msgid "Open task"
 msgstr "Відкрити задачу"
 
+#: grunt/frontend/src/components/debug/ServerErrorModal.vue
+msgid "Open the Error Log record for the traceback."
+msgstr "Трейс — у записі Error Log."
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Open the Google app passwords page"
 msgstr "Відкрити сторінку паролів додатків Google"
@@ -8332,6 +8709,10 @@ msgstr "Відкрийте «Несинхронізовані зміни» вн�
 #: grunt/grunt/monitoring/updates.py
 msgid "Operating system"
 msgstr "Операційна система"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "Operator"
+msgstr "Оператор"
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 msgid "Optimize table"
@@ -8397,6 +8778,12 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Optional. Without it the task only links to the document."
 msgstr "Необов’язково. Без тексту задача лише посилатиметься на документ."
+
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Optional: send to this row only when true, e.g. doc.priority == 'High'"
+msgstr ""
+"Необов'язково: надсилати цьому рядку лише коли умова істинна, напр. "
+"doc.priority == 'High'"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
@@ -8529,6 +8916,19 @@ msgstr "Прострочено"
 #: grunt/frontend/src/components/app/AppSidebar.vue
 msgid "Overview"
 msgstr "Огляд"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own message for this channel (Jinja), e.g. a short one for SMS; empty: the "
+"notification's message"
+msgstr ""
+"Окремий текст для цього каналу (Jinja), напр. короткий для SMS; порожньо — "
+"текст сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Own subject for this channel (Jinja); empty: the notification's subject"
+msgstr "Окрема тема для цього каналу (Jinja); порожньо — тема сповіщення"
 
 #: grunt/frontend/src/components/views/kanban/KanbanView.vue
 msgid "Owner"
@@ -8733,14 +9133,6 @@ msgstr "Очікує"
 msgid "Pending migrations. Run `grunt migrate`."
 msgstr "Є невиконані міграції. Запустіть `grunt migrate`."
 
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid ""
-"Per-user share of one document (Read / Write). Only someone who can write "
-"the document may share it."
-msgstr ""
-"Спільний доступ користувача до одного документа (Читання / Запис). "
-"Поділитися може лише той, хто має право запису в документ."
-
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "Performance Stat"
 msgstr "Статистика продуктивності"
@@ -8769,13 +9161,23 @@ msgstr "Перемикач періоду"
 msgid "Permission"
 msgstr "Дозвіл"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Permission Log"
+msgstr "Журнал прав"
+
 #: grunt/grunt/metadata/registry.py
 msgid "Permission for “%(role)s” names unknown fields: %(fields)s"
 msgstr "Права для «%(role)s» згадують невідомі поля: %(fields)s"
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+#: grunt/frontend/src/components/views/permissions/index.ts
 msgid "Permissions"
 msgstr "Дозволи"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Permissions of “%(doctype)s” were changed meanwhile - reload the page"
+msgstr "Дозволи «%(doctype)s» тим часом змінили — оновіть сторінку"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Persist browser storage"
@@ -8913,6 +9315,10 @@ msgstr ""
 msgid "Previous"
 msgstr "Назад"
 
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Previous actor"
+msgstr "Попередній виконавець"
+
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Previous page"
 msgstr "Попередня сторінка"
@@ -8933,7 +9339,9 @@ msgstr "Попереднє значення"
 msgid "Primary Date/Datetime field that places the event on the calendar"
 msgstr "Основне Date/Datetime-поле, за яким подія розміщується на календарі"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 #: grunt/frontend/src/components/views/map/MapView.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
@@ -9104,6 +9512,12 @@ msgstr ""
 "Вийшов Python %(version)s — `grunt update` поставить його, щойно uv його "
 "підтримає (з наступним релізом uv)."
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
+msgstr ""
+"Вираз Python над doc і user, напр. doc.status == 'Open'. Порожньо — завжди"
+
 #: grunt/grunt/monitoring/updates.py
 msgid "Python packages"
 msgstr "Python пакети"
@@ -9125,6 +9539,7 @@ msgid "Queue Workers"
 msgstr "Воркери черги"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Queued"
 msgstr "У черзі"
 
@@ -9199,8 +9614,10 @@ msgstr "Реакція"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Read"
 msgstr "Читання"
@@ -9213,9 +9630,14 @@ msgstr "Read Only (рекомендовано)"
 msgid "Read by recipient at"
 msgstr "Прочитано отримувачем (час)"
 
+#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/website/www/share/{token}.html
 msgid "Read only"
 msgstr "Лише для читання"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Read only: {fields}"
+msgstr "Лише читання: {fields}"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Read receipt requested"
@@ -9241,6 +9663,11 @@ msgstr ""
 "Читання вхідних листів по IMAP. Для простого надсилання листів не потрібно. "
 "Gmail вимагає того самого пароля додатка."
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Reason"
+msgstr "Причина"
+
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
 msgid "Rebuild index"
 msgstr "Перебудувати індекс"
@@ -9254,6 +9681,7 @@ msgid "Received"
 msgstr "Отримано"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Recipient"
 msgstr "Отримувач"
 
@@ -9450,19 +9878,20 @@ msgstr "Нагадати о"
 msgid "Remind me"
 msgstr "Нагадати мені"
 
-#: grunt/grunt/tasks/reminders.py
+#: grunt/grunt/notification/events.py
+#: grunt/grunt/notification/records/notification/reminder/reminder.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
 msgid "Reminder"
 msgstr "Нагадування"
 
-#: grunt/grunt/tasks/todo_reminders.py
+#: grunt/grunt/notification/records/notification/tasks_due/tasks_due.json
 msgid "Reminder: %(count)d task with a due date"
 msgid_plural "Reminder: %(count)d tasks with a due date"
 msgstr[0] "Нагадування: %(count)d завдання з терміном"
 msgstr[1] "Нагадування: %(count)d завдання з терміном"
 msgstr[2] "Нагадування: %(count)d завдань з терміном"
 
-#: grunt/grunt/tasks/reminders.py
+#: grunt/grunt/notification/records/notification/reminder/reminder.json
 msgid "Reminder: %(title)s"
 msgstr "Нагадування: %(title)s"
 
@@ -9543,6 +9972,14 @@ msgstr "Замінити файл"
 msgid "Replace image"
 msgstr "Замінити зображення"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid ""
+"Replace the rules of this site with the app rules? The change is recorded in"
+" the Permission Log."
+msgstr ""
+"Замінити правила цього сайту правилами застосунку? Зміну буде записано в "
+"журнал прав."
+
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
 #: grunt/frontend/src/components/views/form/FormModals.vue
 msgid "Replace with"
@@ -9560,10 +9997,16 @@ msgstr "Відповісти"
 msgid "Reply to"
 msgstr "Відповідь на"
 
+#: grunt/grunt/notification/events.py
+msgid "Reply to a comment"
+msgstr "Відповідь на коментар"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue
 #: grunt/frontend/src/components/dashboard/sections/ShortcutTargetSection.vue
 #: grunt/frontend/src/components/dashboard/sections/LinksSection.vue
@@ -9651,6 +10094,14 @@ msgstr "Заголовки запиту"
 msgid "Request sent"
 msgstr "Заявку надіслано"
 
+#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
+msgid ""
+"Requests with this key may only read: any other method gets 403, and no "
+"document is created, changed or deleted."
+msgstr ""
+"Запити з цим ключем можуть лише читати: інші методи отримують 403, жоден "
+"документ не створюється, не змінюється й не видаляється."
+
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid "Require two-factor authentication"
 msgstr "Вимагати двофакторну автентифікацію"
@@ -9695,6 +10146,10 @@ msgstr "Скинути до типових"
 msgid "Reset to defaults"
 msgstr "Скинути до типових"
 
+#: grunt/grunt/actions/builtin.py
+msgid "Reset to standard"
+msgstr "Скинути до стандарту"
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Reset token expiry"
 msgstr "Час дії токену відновлення"
@@ -9720,6 +10175,14 @@ msgstr "Перезавантажте сервер, щоб завершити о�
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue
 msgid "Restore"
 msgstr "Відновити"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Restore deleted documents"
+msgstr "Відновлення видалених документів"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Restore the app rules"
+msgstr "Повернути правила застосунку"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid ""
@@ -9756,16 +10219,16 @@ msgid "Restored at"
 msgstr "Час відновлення"
 
 #: grunt/grunt/actions/builtin.py
+msgid "Restored the app's version"
+msgstr "Відновлено версію з додатка"
+
+#: grunt/grunt/actions/builtin.py
 msgid "Restored: %(name)s"
 msgstr "Відновлено: %(name)s"
 
 #: grunt/grunt/db/dialects/base.py
 msgid "Restoring %(backend)s is not supported"
 msgstr "Відновлення %(backend)s не підтримується"
-
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "Restrict by"
-msgstr "Обмежити за"
 
 #: grunt/frontend/src/components/views/list/ListHeader.vue
 msgid "Restrictions"
@@ -9820,13 +10283,38 @@ msgstr "Повернення розпочато"
 msgid "Rich text"
 msgstr "Форматований текст"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+#: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Role"
 msgstr "Роль"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Role “%(role)s” not found"
+msgstr "Роль «%(role)s» не знайдено"
+
+#: grunt/grunt/auth/doctypes/User/user.py
+msgid "Role “%(role)s”: a scope needs both the document type and the document"
+msgstr "Роль «%(role)s»: для області потрібні і тип документа, і сам документ"
+
+#: grunt/grunt/auth/doctypes/User/user.py
+msgid "Role “%(role)s”: “Valid to” is before “Valid from”"
+msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Role, everyone, end date…"
+msgstr "Роль, усі, строк…"
+
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Roles"
 msgstr "Ролі"
 
@@ -9859,6 +10347,7 @@ msgid "Row actions"
 msgstr "Дії з рядком"
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Row condition"
 msgstr "Умова для рядків"
 
@@ -9885,6 +10374,7 @@ msgstr "Рядок {row}: {field} - {error}"
 msgid "Row/bar label (default: title field)"
 msgstr "Підпис рядка/смуги (default: поле заголовка)"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
@@ -9906,6 +10396,10 @@ msgstr "Рядків: {n}"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Rule ID"
 msgstr "ID правила"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Rules that grant this action"
+msgstr "Правила, що дають цю дію"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Run `grunt app deps`. Missing:"
@@ -10113,6 +10607,7 @@ msgstr "Сб"
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 #: grunt/frontend/src/components/files/CameraCapture.vue
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
@@ -10169,6 +10664,7 @@ msgstr "Збережіть ваші резервні коди! Вони відо
 
 #: grunt/frontend/src/core/composables/useFormSave.ts
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Saved"
 msgstr "Збережено"
 
@@ -10256,6 +10752,14 @@ msgstr "Планувальник"
 #: grunt/grunt/scripting/doctypes/ServerScript/ServerScript.json
 msgid "Scheduler Event"
 msgstr "Подія планувальника"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Scope"
+msgstr "Область"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Scope value"
+msgstr "Значення області"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -10437,6 +10941,7 @@ msgstr ""
 "документа"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
 msgid "Select"
 msgstr "Вибрати"
@@ -10577,6 +11082,7 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Sent"
 msgstr "Надіслано"
 
@@ -10713,11 +11219,7 @@ msgstr "Налаштуйте звіт"
 msgid "Set value"
 msgstr "Встановити значення"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/user_permission.py
-msgid "Set “Only for document” or enable “Apply to all documents”"
-msgstr ""
-"Вкажіть «Лише для документа» або увімкніть «Застосувати до всіх документів»"
-
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue
 msgid "Settings"
@@ -10733,9 +11235,12 @@ msgstr "Заливка"
 
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
 #: grunt/frontend/src/components/pwa/PWAInstallPrompt.vue
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid "Share"
 msgstr "Поділитись"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Share document"
 msgstr "Поділитися документом"
@@ -10753,6 +11258,11 @@ msgstr "Частка своєї колонки; вузькі поля стают
 msgid "Share of the section; columns without a width split the rest"
 msgstr "Частка розділу; колонки без ширини ділять решту порівну"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "Share with one of: a user, a role or everyone"
+msgstr "Поширте на когось одного: користувача, роль або всіх"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue
 msgid "Shared"
 msgstr "Поділився(-лась)"
@@ -10760,6 +11270,10 @@ msgstr "Поділився(-лась)"
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Shared With"
 msgstr "Спільний доступ"
+
+#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
+msgid "Shared with you: %(target)s"
+msgstr "Вам надано доступ: %(target)s"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -10824,10 +11338,6 @@ msgstr "Показати всі"
 msgid "Show all {n} lines"
 msgstr "Показати всі {n} рядків"
 
-#: grunt/frontend/src/components/debug/ServerErrorModal.vue
-msgid "Open the Error Log record for the traceback."
-msgstr "Трейс — у записі Error Log."
-
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Show backups"
 msgstr "Показати копії"
@@ -10883,6 +11393,10 @@ msgstr "Показано перші {n} з {total} файлів"
 #: grunt/frontend/src/components/views/list/ListToolbarControls.vue
 msgid "Shown"
 msgstr "Показані"
+
+#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
+msgid "Shown above the form while the document is in this state"
+msgstr "Показується над формою, поки документ у цьому стані"
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid "Shown in"
@@ -10947,6 +11461,10 @@ msgstr "Підпишіть тут"
 #: grunt/frontend/src/router/index.ts grunt/frontend/src/pages/auth/Login.vue
 msgid "Sign in"
 msgstr "Увійти"
+
+#: grunt/grunt/permissions/perms.py
+msgid "Sign in as another user"
+msgstr "Вхід від імені іншого користувача"
 
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Sign in as this user"
@@ -11076,6 +11594,10 @@ msgstr "Пропустити"
 msgid "Skip required fields"
 msgstr "Пропускати обов'язкові поля"
 
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Skipped"
+msgstr "Пропущено"
+
 #: grunt/grunt/monitoring/doctypes/SqlProfilerQuery/SqlProfilerQuery.json
 #: grunt/grunt/monitoring/doctypes/SqlProfilerRequest/SqlProfilerRequest.json
 msgid "Slow"
@@ -11161,7 +11683,6 @@ msgstr "Спеціальні символи"
 msgid "Specify a document type and a template to preview."
 msgstr "Вкажіть тип документа і шаблон для перегляду."
 
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py
 #: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py
 #: grunt/grunt/activity/doctypes/DocLike/doc_like.py
@@ -11272,6 +11793,7 @@ msgstr "Стани і переходи"
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Status"
 msgstr "Статус"
@@ -11384,10 +11906,6 @@ msgstr "Зберігати зображення як"
 msgid "Street"
 msgstr "Вулиця"
 
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Strict user permissions"
-msgstr "Суворі обмеження користувача"
-
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Strikethrough"
 msgstr "Закреслений"
@@ -11411,13 +11929,13 @@ msgstr "Код підрозділу (UA-30 для Києва, US-CA для Ка�
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+#: grunt/grunt/notification/doctypes/Notification/notification.py
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 msgid "Subject"
 msgstr "Тема"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Subject template"
-msgstr "Шаблон теми"
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Subscript"
@@ -11463,6 +11981,10 @@ msgstr "Сума"
 msgid "Sum (SUM)"
 msgstr "Сума (SUM)"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid "Summary"
+msgstr "Підсумок"
+
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sun"
@@ -11506,17 +12028,13 @@ msgstr "Системна"
 msgid "System Health"
 msgstr "Стан системи"
 
-#: grunt/grunt/auth/dependencies.py
-msgid "System Manager privileges required"
-msgstr "Потрібні права System Manager"
-
-#: grunt/grunt/auth/impersonation.py
-msgid "System Manager rights are required."
-msgstr "Потрібні права System Manager."
-
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "System field"
 msgstr "Поле системи"
+
+#: grunt/grunt/permissions/perms.py
+msgid "System monitoring and background jobs"
+msgstr "Моніторинг системи й фонові задачі"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "System readiness score"
@@ -11619,15 +12137,19 @@ msgstr "Задача"
 msgid "Task ID"
 msgstr "ID задачі"
 
+#: grunt/grunt/notification/events.py
+msgid "Task assigned"
+msgstr "Задачу призначено"
+
 #: grunt/grunt/actions/builtin.py
 msgid "Task cancelled"
 msgstr "Завдання скасовано"
 
-#: grunt/grunt/actions/builtin.py
+#: grunt/grunt/notification/events.py grunt/grunt/actions/builtin.py
 msgid "Task completed"
 msgstr "Завдання виконано"
 
-#: grunt/grunt/tasks/doctypes/ToDo/to_do.py
+#: grunt/grunt/notification/records/notification/task_completed/task_completed.json
 msgid "Task completed: %(target)s"
 msgstr "Завдання виконано: %(target)s"
 
@@ -11654,6 +12176,10 @@ msgstr ""
 "живий знімок з Redis Stream, нічого не зберігається в БД. Задача, що звітує "
 "прогрес (напр. резервна копія), показує відсоток і поточний етап. Завершені "
 "задачі тут не показуються; помилки дивіться в Журналі помилок."
+
+#: grunt/grunt/notification/events.py
+msgid "Tasks due (daily digest)"
+msgstr "Задачі з терміном (щоденне нагадування)"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 msgid "Tasks finished"
@@ -11686,10 +12212,6 @@ msgstr "Документ-шаблон"
 #: grunt/grunt/api/v1/document/export.py
 msgid "Template error:"
 msgstr "Помилка шаблону:"
-
-#: grunt/grunt/api/v1/document/export.py
-msgid "{error} - details are in the server log."
-msgstr "{error} - подробиці в журналі сервера."
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Template type"
@@ -11786,12 +12308,27 @@ msgstr "Обліковий запис деактивовано"
 msgid "The account is disabled."
 msgstr "Обліковий запис вимкнено."
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "The allowed record. The user will see only documents linked to it."
+#: grunt/grunt/permissions/warnings.py
+msgid ""
+"The app changed its rules for this document type after they were changed on "
+"this site - review the difference."
 msgstr ""
-"Дозволений запис. Користувач бачитиме лише документи, пов'язані з ним."
+"Застосунок змінив свої правила для цього типу документа після того, як їх "
+"змінили на цьому сайті — перегляньте різницю."
 
-#: grunt/grunt/tasks/doctypes/ToDo/to_do.py
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "The app rules are back"
+msgstr "Правила застосунку повернуто"
+
+#: grunt/grunt/actions/builtin.py
+msgid "The app ships no such record"
+msgstr "Додаток не постачає такого запису"
+
+#: grunt/grunt/api/v1/permission_layers.py
+msgid "The app's rules for this document type are not known"
+msgstr "Правила застосунку для цього типу документа невідомі"
+
+#: grunt/grunt/notification/records/notification/task_completed/task_completed.json
 msgid "The assignee"
 msgstr "Виконавець"
 
@@ -11942,6 +12479,21 @@ msgstr ""
 msgid "The document was updated by another user"
 msgstr "Документ оновлено іншим користувачем"
 
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid ""
+"The document's author cannot take this transition - someone else has to "
+"approve it"
+msgstr ""
+"Автор документа не може виконати цей перехід — погодити має хтось інший"
+
+#: grunt/grunt/notification/channels.py
+msgid "The email could not be queued"
+msgstr "Не вдалося поставити лист у чергу"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "The end date has already passed"
+msgstr "Дата завершення вже минула"
+
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 msgid ""
 "The field to point at: in a form - the field (its tab opens by itself), in a"
@@ -11949,6 +12501,18 @@ msgid ""
 msgstr ""
 "Поле, на яке вказати: у формі - саме поле (його вкладка відкриється сама), у"
 " списку - його колонка або швидкий фільтр"
+
+#: grunt/grunt/permissions/warnings.py
+msgid ""
+"The field “%(field)s” is hidden from everyone who may read these documents."
+msgstr "Поле «%(field)s» приховане від усіх, хто може читати ці документи."
+
+#: grunt/grunt/permissions/warnings.py
+msgid ""
+"The field “%(field)s” is read-only for everyone who may change these "
+"documents."
+msgstr ""
+"Поле «%(field)s» лише для читання для всіх, хто може змінювати ці документи."
 
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "The file can't be deleted: it is attached to %(doctype)s “%(doc)s”"
@@ -12003,6 +12567,10 @@ msgstr ""
 msgid "The key value “%(key)s” is missing in the row"
 msgstr "Значення ключа «%(key)s» відсутнє в рядку"
 
+#: grunt/grunt/auth/doctypes/ApiKey/api_key.py
+msgid "The key's user doesn't hold these roles: %(roles)s"
+msgstr "Користувач ключа не має цих ролей: %(roles)s"
+
 #: grunt/grunt/storage/remote.py
 msgid "The link answered with an error (%(code)s)"
 msgstr "За посиланням відповіли помилкою (%(code)s)"
@@ -12035,6 +12603,14 @@ msgstr "Посилання не знайдено або деактивовано
 #: grunt/frontend/src/components/views/list/ListHeader.vue
 msgid "The list is limited by your access rights"
 msgstr "Список обмежено вашими правами доступу"
+
+#: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
+msgid ""
+"The matrix shows what the role may do with each document type of this page. "
+"Narrow the page with the list filters, e.g. by module."
+msgstr ""
+"Матриця показує, що роль може робити з кожним типом документа на цій "
+"сторінці. Звузьте сторінку фільтрами списку, наприклад за модулем."
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
 msgid "The name shows in the sidebar, the browser tab and emails."
@@ -12137,14 +12713,18 @@ msgstr "Відновлення не вдалося, і базу не вдало�
 msgid "The restore failed, the database was left as it was: %(error)s"
 msgstr "Відновлення не вдалося, база лишилась як була: %(error)s"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid ""
-"The restriction applies to any DocType with a Link field to «Restrict by»."
-msgstr "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
-
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
 msgid "The root folder of the owner's space"
 msgstr "Коренева тека простору власника"
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The rule for “%(role)s” grants no action."
+msgstr "Правило для «%(role)s» не дає жодної дії."
+
+#: grunt/grunt/permissions/warnings.py
+msgid "The rules were changed on this site and differ from the app's."
+msgstr ""
+"Правила змінено на цьому сайті — вони відрізняються від правил застосунку."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
@@ -12271,6 +12851,10 @@ msgstr "Перехід недоступний"
 msgid "The update key is not specified"
 msgstr "Ключ для оновлення не вказаний"
 
+#: grunt/grunt/webpush/service.py
+msgid "The user has no browser subscribed to push"
+msgstr "Користувач не підписав жоден браузер на пуш-сповіщення"
+
 #: grunt/grunt/actions/builtin.py
 msgid "The user has not enabled push notifications in any browser"
 msgstr "Користувач не ввімкнув push-сповіщення в жодному браузері"
@@ -12325,9 +12909,21 @@ msgstr ""
 "Ці коди відображаються лише один раз при активації. Ви бачите це поле, тому "
 "що MFA увімкнено."
 
+#: grunt/grunt/monitoring/health.py
+msgid ""
+"These keys no longer work: reissue the ones still needed, deactivate the "
+"rest: %(keys)s"
+msgstr ""
+"Ці ключі більше не працюють: потрібні перевипустіть, решту вимкніть: "
+"%(keys)s"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "They will be sent automatically once the server is reachable."
 msgstr "Надішлються автоматично, щойно сервер стане доступний."
+
+#: grunt/grunt/auth/dependencies.py
+msgid "This API key may only read"
+msgstr "Цей API-ключ може лише читати"
 
 #: grunt/frontend/src/pages/studio/builder/PropertiesPanel.vue
 msgid "This DocType"
@@ -12367,6 +12963,10 @@ msgid ""
 msgstr ""
 "Це незворотна операція. Хуки before_delete / after_delete не виконуються. "
 "Використовуйте лише для масового очищення тестових або імпортованих даних."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "This document"
+msgstr "Цей документ"
 
 #: grunt/frontend/src/pages/desk/DocTypeForm.vue
 msgid ""
@@ -12422,10 +13022,6 @@ msgstr "Це оновить поле для всіх {n} виділених за
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "This user already has a home folder"
 msgstr "Цей користувач уже має домашню теку"
-
-#: grunt/grunt/permissions/doctypes/UserPermission/user_permission.py
-msgid "This user permission already exists"
-msgstr "Такий дозвіл користувача вже існує"
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgid "Three-digit ISO 4217 numeric code (980, 840, 978)"
@@ -12583,6 +13179,12 @@ msgstr "Токен оновлено"
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Tomorrow at 9:00"
 msgstr "Завтра о 9:00"
+
+#: grunt/grunt/api/v1/permission_matrix.py
+msgid "Too many document types in one save (%(count)s, at most %(max)s)"
+msgstr ""
+"Забагато типів документів в одному збереженні (%(count)s, щонайбільше "
+"%(max)s)"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Too many failed attempts. The account is temporarily locked."
@@ -12815,9 +13417,22 @@ msgstr "Одиниця"
 msgid "Unit of the stored number"
 msgstr "Одиниця збереженого числа"
 
+#: grunt/grunt/api/v1/permission_inspector.py
+msgid "Unknown action “%(action)s”"
+msgstr "Невідома дія «%(action)s»"
+
 #: grunt/grunt/auth/providers/registry.py
 msgid "Unknown auth provider: %(name)s"
 msgstr "Невідомий провайдер автентифікації: %(name)s"
+
+#: grunt/grunt/notification/delivery.py
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Unknown channel “%(channel)s”"
+msgstr "Невідомий канал «%(channel)s»"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Unknown code event “%(event)s”"
+msgstr "Невідома подія з коду «%(event)s»"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "Unknown error"
@@ -12850,6 +13465,10 @@ msgstr "Невідома періодичність: %(f)s"
 #: grunt/grunt/auth/providers/webauthn.py
 msgid "Unknown passkey"
 msgstr "Невідомий ключ доступу"
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Unknown permissions: %(perms)s"
+msgstr "Невідомі дозволи: %(perms)s"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Unknown section of the report: %(key)s"
@@ -13058,7 +13677,6 @@ msgid "Used to display dates and times."
 msgstr "Використовується для відображення дат і часу."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
@@ -13072,17 +13690,16 @@ msgstr "Використовується для відображення дат 
 #: grunt/grunt/activity/doctypes/CommentReaction/CommentReaction.json
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid "User"
 msgstr "Користувач"
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgid "User Agent"
 msgstr "User Agent"
-
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
-msgid "User Permission"
-msgstr "Дозвіл користувача"
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
 msgid "User not found"
@@ -13109,6 +13726,7 @@ msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+#: grunt/grunt/api/v1/permission_inspector.py
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
 
@@ -13151,10 +13769,20 @@ msgstr "Публічний ключ VAPID"
 msgid "VAPID keys are not generated yet"
 msgstr "VAPID-ключі ще не згенеровано"
 
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Valid from"
+msgstr "Діє з"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "Valid to"
+msgstr "Діє до"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/website/www/share/{token}.py
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid "Valid until"
 msgstr "Дійсно до"
 
@@ -13181,11 +13809,11 @@ msgstr "Помилка валідації"
 msgid "Validator"
 msgstr "Валідатор"
 
-#: grunt/grunt/permissions/doctypes/UserPermission/UserPermission.json
 #: grunt/grunt/api/v1/docs/utils.py
 #: grunt/grunt/monitoring/templates/system_health.html
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue
 #: grunt/frontend/src/components/views/list/ListHeader.vue
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
@@ -13455,6 +14083,10 @@ msgstr "Що плануєте зробити сьогодні?"
 msgid "What needs to be done?"
 msgstr "Що потрібно зробити?"
 
+#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
+msgid "What the key may do"
+msgstr "Що може ключ"
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid ""
 "What this role may do. Field picker - search Link-field values without the "
@@ -13471,17 +14103,26 @@ msgstr ""
 msgid "What to do"
 msgstr "Що робити"
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"What users with this role may do beyond document rules: manage users, "
+"e-mail, backups… “Everything (*)” — all of it, as System Manager."
+msgstr ""
+"Що користувачі з цією роллю можуть робити понад правила документів: керувати"
+" користувачами, поштою, резервними копіями… «Усе (*)» — усе це, як System "
+"Manager."
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "When"
 msgstr "Коли"
 
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
-"When enabled, a document with no Link field to the restricted type (or with "
-"an empty value) is hidden rather than shown."
+"When something happens to a document, who is told, what and through which "
+"channels"
 msgstr ""
-"Якщо увімкнено — документ без Link-поля на обмежений тип (або з порожнім "
-"значенням) приховується, а не показується."
+"Коли щось стається з документом — кого сповістити, про що і якими каналами"
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
@@ -13526,6 +14167,19 @@ msgstr ""
 "Які задачі воркер виконує саме зараз (×N — кілька однакових). Подробиці — в "
 "«Активних фонових задачах»."
 
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "Who"
+msgstr "Хто"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid ""
+"Who changed access and when: user roles and their scopes, role permissions, "
+"DocType rules, shares and public links. Written by the system, read only."
+msgstr ""
+"Хто й коли змінив доступ: ролі користувачів і їхні області, дозволи ролей, "
+"правила DocType, поширення й публічні посилання. Пише система, лише для "
+"читання."
+
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid ""
 "Who may edit or delete the document in this state (workflow actions are not "
@@ -13542,11 +14196,37 @@ msgstr "Хто бачить чеклист; порожньо - усі. System Ma
 msgid "Who sees the tour; empty - everyone. System Manager always does"
 msgstr "Хто бачить тур; порожньо — усі. System Manager бачить завжди"
 
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid ""
+"Who took data out of the system and when: exports, printouts, imports and "
+"report downloads - and code that ran as the system on someone's behalf "
+"(grunt.sudo). Written by the system, read only; kept a year."
+msgstr ""
+"Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження "
+"звітів — і код, що виконувався від системи за чиєюсь дією (grunt.sudo). Пише"
+" система, лише для читання; зберігається рік."
+
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
 msgid ""
 "Whose personal space the folder belongs to - taken from the parent folder"
 msgstr ""
 "Чиєму особистому простору належить тека — береться з батьківської теки"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Why a user may or may not act on {doctype} documents."
+msgstr "Чому користувач може чи не може діяти з документами {doctype}."
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "Why a user may or may not act on {doctype} {name}."
+msgstr "Чому користувач може чи не може діяти з {doctype} {name}."
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Why code ran as the system (grunt.sudo) - and where"
+msgstr "Чому код виконувався від системи (grunt.sudo) — і де"
+
+#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+msgid "Why the notification was skipped or failed"
+msgstr "Чому сповіщення пропущено або не доставлено"
 
 #: grunt/grunt/api/v1/dashboard.py
 msgid "Widget not found"
@@ -13573,6 +14253,10 @@ msgstr "Ширина"
 msgid "Width (1-4)"
 msgstr "Ширина (1-4)"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "With whom"
+msgstr "Кому"
+
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
 msgid "Without ack"
 msgstr "Без підтвердження"
@@ -13580,6 +14264,10 @@ msgstr "Без підтвердження"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Without letter head"
 msgstr "Без бланка"
+
+#: grunt/frontend/src/components/fields/RichText/extensions/fileEmbed.ts
+msgid "Word, Excel and PowerPoint files are shown on the published page"
+msgstr "Файли Word, Excel і PowerPoint показуються на опублікованій сторінці"
 
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 #: grunt/grunt/tasks/doctypes/BackgroundJob/BackgroundJob.json
@@ -13595,6 +14283,10 @@ msgstr "Воркери"
 #: grunt/frontend/src/components/views/WorkflowActions.vue
 msgid "Workflow"
 msgstr "Робочий процес"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Workflow actions"
+msgstr "Дії робочого процесу"
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Workflow state"
@@ -13678,9 +14370,13 @@ msgstr "Ви вже стежите за цим документом"
 msgid "You are not allowed to create “%(doctype)s” documents"
 msgstr "Ви не можете створювати документи «%(doctype)s»"
 
-#: grunt/grunt/tasks/reminders.py
+#: grunt/grunt/notification/records/notification/reminder/reminder.json
 msgid "You asked to be reminded"
 msgstr "Ви просили нагадати"
+
+#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
+msgid "You can now %(level)s %(target)s."
+msgstr "Тепер ви можете %(level)s %(target)s."
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "You can now sign in with your new password."
@@ -13689,6 +14385,10 @@ msgstr "Тепер ви можете увійти з новим паролем."
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "You can only create your own home folder"
 msgstr "Можна створити лише власну домашню теку"
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "You can't grant permissions you don't hold: %(perms)s"
+msgstr "Не можна видати дозволи, яких у вас немає: %(perms)s"
 
 #: grunt/grunt/auth/impersonation.py
 msgid "You cannot impersonate another administrator."
@@ -13706,7 +14406,7 @@ msgstr "Ви не надали дозвіл на сповіщення"
 msgid "You get notified about changes and comments"
 msgstr "Ви отримуєте сповіщення про зміни та коментарі"
 
-#: grunt/grunt/tasks/doctypes/ToDo/to_do.py
+#: grunt/grunt/notification/records/notification/task_assigned/task_assigned.json
 msgid "You have been assigned to %(target)s."
 msgstr "Вас призначено відповідальним за %(target)s."
 
@@ -13717,6 +14417,18 @@ msgid ""
 msgstr ""
 "Ви внесли зміни, які буде втрачено, якщо ви покинете сторінку. Покинути без "
 "збереження?"
+
+#: grunt/grunt/activity/doctypes/DeletedDocument/deleted_document.py
+msgid "You may not restore deleted documents"
+msgstr "Вам не дозволено відновлювати видалені документи"
+
+#: grunt/grunt/auth/impersonation.py
+msgid "You may not sign in as another user."
+msgstr "Вам не дозволено входити від імені іншого користувача."
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "You may share this document only at a level you have yourself"
+msgstr "Поширювати документ можна лише з тим рівнем доступу, який маєте самі"
 
 #: grunt/frontend/src/components/views/list/ListHeader.vue
 msgid "You only see records matching these values."
@@ -13777,6 +14489,14 @@ msgstr "Ваш код для входу:"
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Your sign-in code: %(code)s"
 msgstr "Ваш код для входу: %(code)s"
+
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgid ""
+"[{field, old, new}] for values; [{field, added, removed}] for rows of a "
+"table (roles, rules)"
+msgstr ""
+"[{field, old, new}] — для значень; [{field, added, removed}] — для рядків "
+"таблиці (ролі, правила)"
 
 #: grunt/grunt/monitoring/updates.py
 msgid "`grunt update` removes: %(list)s."
@@ -13843,10 +14563,6 @@ msgstr "avg — середнє"
 msgid "be at least %(count)s characters long"
 msgstr "містити щонайменше %(count)s символів"
 
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "both"
-msgstr "Обидва"
-
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 msgid "busiest {day}"
 msgstr "найбільше {day}"
@@ -13854,6 +14570,18 @@ msgstr "найбільше {day}"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "calendar"
 msgstr "Календар"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "can read"
+msgstr "може читати"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "can share"
+msgstr "може поширювати"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "cannot read"
+msgstr "не може читати"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "changed the state"
@@ -13891,6 +14619,10 @@ msgstr "значення через кому"
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "commented"
 msgstr "прокоментував(ла)"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "condition cannot be applied - grants nothing"
+msgstr "умову не можна застосувати — нічого не дає"
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgid "config_url"
@@ -13990,6 +14722,14 @@ msgstr "doctype_name і doc_id обов'язкові"
 msgid "document"
 msgstr "документ"
 
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "does not equal"
+msgstr "не дорівнює"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "does not pass"
+msgstr "не проходить"
+
 #: grunt/frontend/src/core/composables/useDocActions.ts
 msgid "done"
 msgstr "готово"
@@ -14010,9 +14750,9 @@ msgstr "напр. execution_note"
 msgid "e.g. link_field.source_field"
 msgstr "напр. link_field.source_field"
 
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "email"
-msgstr "Email"
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "edit"
+msgstr "редагувати"
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "empty"
@@ -14022,15 +14762,27 @@ msgstr "порожній"
 msgid "enabled"
 msgstr "увімкнено"
 
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "equals"
+msgstr "дорівнює"
+
 #: grunt/grunt/monitoring/health.py
 #: grunt/frontend/src/core/composables/useDocActions.ts
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgid "error"
 msgstr "помилка"
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "every document"
+msgstr "усі документи"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "exactly one copy"
 msgstr "рівно одна копія"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "expired {date}"
+msgstr "скінчився {date}"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "explorer"
@@ -14324,15 +15076,6 @@ msgstr "застарілий"
 msgid "overdue"
 msgstr "прострочено"
 
-#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
-msgid ""
-"owner — the document author; previous — who performed the previous workflow "
-"action; next — users who can take the next step (by role and access to the "
-"document)"
-msgstr ""
-"owner — автор документа; previous — хто виконав попередню дію; next — хто "
-"може зробити наступний крок (за роллю та доступом до документа)"
-
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgid "p256dh key"
 msgstr "p256dh ключ"
@@ -14349,6 +15092,10 @@ msgstr "p95, мс"
 #: grunt/frontend/src/components/fields/Default/FilterInput.vue
 msgid "part of the text…"
 msgstr "частина тексту…"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "passes"
+msgstr "проходить"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "pcloud"
@@ -14498,7 +15245,6 @@ msgid "switch back"
 msgstr "повернутися до себе"
 
 #: grunt/grunt/auth/doctypes/User/User.json
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "system"
 msgstr "Система"
 
@@ -14513,6 +15259,14 @@ msgstr "template обов'язковий"
 #: grunt/frontend/src/core/scripting/executor.ts
 msgid "text"
 msgstr "текст"
+
+#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
+msgid "the document itself"
+msgstr "сам документ"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "the user lacks this role"
+msgstr "у користувача немає цієї ролі"
 
 #: grunt/grunt/monitoring/updates.py
 msgid "timed out"
@@ -14550,6 +15304,11 @@ msgstr "невідомо"
 msgid "unknown task"
 msgstr "невідома задача"
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "until {date}"
+msgstr "до {date}"
+
 #: grunt/grunt/monitoring/health.py grunt/grunt/monitoring/updates.py
 msgid "up to date"
 msgstr "актуальний"
@@ -14575,9 +15334,33 @@ msgstr "значення %(value)s — записи: %(ids)s"
 msgid "venv %(path)s"
 msgstr "venv %(path)s"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+msgid "view"
+msgstr "переглядати"
+
 #: grunt/frontend/src/components/dashboard/widgets/Metric/Metric.vue
 msgid "was {n}"
 msgstr "було {n}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with everyone"
+msgstr "з усіма"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the role {role}"
+msgstr "з роллю {role}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the user"
+msgstr "з користувачем"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "within {doctype}: {values}"
+msgstr "в межах {doctype}: {values}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "within {value}"
+msgstr "в межах {value}"
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "wk."
@@ -14628,6 +15411,10 @@ msgstr "{apps} додатків · {docs} документів у системі
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "{conflicts} conflicts, {failed} rejected"
 msgstr "{conflicts} конфліктів, {failed} відхилено"
+
+#: grunt/grunt/api/v1/document/export.py
+msgid "{error} - details are in the server log."
+msgstr "{error} - подробиці в журналі сервера."
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "{mapped} of {total} mapped"
@@ -14782,6 +15569,14 @@ msgstr "{type} звіт"
 msgid "{used} of {quota} used"
 msgstr "Зайнято {used} з {quota}"
 
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "{user} may not {action}"
+msgstr "{user} не може: {action}"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "{user} may {action}"
+msgstr "{user} може: {action}"
+
 #: grunt/frontend/src/components/views/form/FormViewInfo.vue
 msgid "{views} views · {viewers} users"
 msgstr "{views} переглядів · {viewers} користувачів"
@@ -14851,13 +15646,21 @@ msgstr ""
 "таблиці"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
-#: grunt/grunt/notification/doctypes/NotificationRule/notification_rule.py
+#: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“%(field)s” is not a date field of %(doctype)s"
 msgstr "«%(field)s» не є полем дати в %(doctype)s"
 
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
 msgstr "«%(field)s» не є полем %(doctype)s, яке можна відстежувати"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“Event recipients” only work for a notification on a code event"
+msgstr "«Отримувачі з події» працюють лише в сповіщенні про подію з коду"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "“{action}”: are you sure?"
+msgstr "«{action}»: ви впевнені?"
 
 #: grunt/grunt/email/templates/notification_digest.html
 msgid "… and %(count)s more"
@@ -15033,14 +15836,14 @@ msgid "Title"
 msgstr "Назва"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgctxt "meta:NotificationLog.is_read"
-msgid "Read"
-msgstr "Прочитано"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgctxt "meta:Notification.is_enabled"
 msgid "Active"
 msgstr "Активне"
+
+#: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+msgctxt "meta:NotificationLog.is_read"
+msgid "Read"
+msgstr "Прочитано"
 
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 msgctxt "meta:OnboardingStep.title"
@@ -15217,6 +16020,11 @@ msgctxt "select:IncomingWebhookLog.status"
 msgid "error"
 msgstr "Помилка"
 
+#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
+msgctxt "select:PermissionLog.action"
+msgid "Created"
+msgstr "Створено"
+
 #: grunt/grunt/geo/doctypes/Region/Region.json
 msgctxt "select:Region.region_type"
 msgid "State"
@@ -15312,323 +16120,21 @@ msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
 
-#: grunt/grunt/notification/channels.py
-msgid "Browser push"
-msgstr "Пуш у браузері"
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "Email message"
-msgstr "Лист"
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "Email queue"
-msgstr "Черга листів"
-
-#: grunt/grunt/notification/channels.py
-msgid "In the system"
-msgstr "У системі"
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "Notification Delivery"
-msgstr "Доставка сповіщень"
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid ""
-"One row per notification, recipient and channel: what was sent, through "
-"which channel, and whether it arrived. Old entries are deleted "
-"automatically."
-msgstr ""
-"Рядок на кожне сповіщення, отримувача й канал: що надіслано, яким каналом і "
-"чи дійшло. Старі записи видаляються автоматично."
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "Reason"
-msgstr "Причина"
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "Skipped"
-msgstr "Пропущено"
-
-#: grunt/grunt/notification/channels.py
-msgid "The email could not be queued"
-msgstr "Не вдалося поставити лист у чергу"
-
-#: grunt/grunt/webpush/service.py
-msgid "The user has no browser subscribed to push"
-msgstr "Користувач не підписав жоден браузер на пуш-сповіщення"
-
-#: grunt/grunt/notification/delivery.py
-#, python-format
-msgid "Unknown channel “%(channel)s”"
-msgstr "Невідомий канал «%(channel)s»"
-
-#: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
-msgid "Why the notification was skipped or failed"
-msgstr "Чому сповіщення пропущено або не доставлено"
-
-#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
-msgid "Notification Channel"
-msgstr "Канал сповіщення"
-
-#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
-msgid ""
-"Own subject for this channel (Jinja); empty: the notification's subject"
-msgstr "Окрема тема для цього каналу (Jinja); порожньо — тема сповіщення"
-
-#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
-msgid ""
-"Own message for this channel (Jinja), e.g. a short one for SMS; empty: the "
-"notification's message"
-msgstr ""
-"Окремий текст для цього каналу (Jinja), напр. короткий для SMS; порожньо — "
-"текст сповіщення"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-msgid "Add at least one recipient"
-msgstr "Додайте хоча б одного отримувача"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-msgid "Add at least one channel"
-msgstr "Додайте хоча б один канал"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-#, python-format
-msgid "%(field)s: template error - %(error)s"
-msgstr "%(field)s: помилка в шаблоні — %(error)s"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-#, python-format
-msgid "Condition “%(condition)s” is not a valid expression: %(error)s"
-msgstr "Умова «%(condition)s» не є коректним виразом: %(error)s"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"When something happens to a document, who is told, what and through which "
-"channels"
-msgstr ""
-"Коли щось стається з документом — кого сповістити, про що і якими каналами"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Condition"
-msgstr "Умова"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
-msgstr ""
-"Вираз Python над doc і user, напр. doc.status == 'Open'. Порожньо — завжди"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Also notify who did it"
-msgstr "Сповіщати й того, хто це зробив"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"By default the user whose action triggered the notification is not notified"
-msgstr "Типово користувач, чия дія спричинила сповіщення, його не отримує"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"Jinja: {{ doc.field }}, {{ doctype }}, {{ event }}, {{ actor }} (who did "
-"it), {{ url }}; on a workflow transition also {{ action }}, {{ from_state "
-"}}, {{ to_state }}, {{ comment }}"
-msgstr ""
-"Jinja: {{ doc.поле }}, {{ doctype }}, {{ event }}, {{ actor }} (хто це "
-"зробив), {{ url }}; при переході робочого процесу також {{ action }}, {{ "
-"from_state }}, {{ to_state }}, {{ comment }}"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Jinja, same variables as the subject"
-msgstr "Jinja, ті самі змінні, що й у темі"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Channels"
-msgstr "Канали"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Notification Recipient"
-msgstr "Отримувач сповіщення"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Who"
-msgstr "Хто"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Document field"
-msgstr "Поле документа"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Followers"
-msgstr "Стежать"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid ""
-"A field of the document holding a user or an email address, e.g. "
-"assigned_to; through a link: customer.email"
-msgstr ""
-"Поле документа з користувачем або адресою пошти, напр. assigned_to; через "
-"посилання: customer.email"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Optional: send to this row only when true, e.g. doc.priority == 'High'"
-msgstr ""
-"Необов'язково: надсилати цьому рядку лише коли умова істинна, напр. "
-"doc.priority == 'High'"
-
-#: grunt/grunt/notification/events.py
-msgid "Task assigned"
-msgstr "Задачу призначено"
-
-#: grunt/grunt/notification/events.py
-msgid "Tasks due (daily digest)"
-msgstr "Задачі з терміном (щоденне нагадування)"
-
-#: grunt/grunt/notification/events.py
-msgid "Followed document changed"
-msgstr "Змінено документ, за яким стежать"
-
-#: grunt/grunt/notification/events.py
-msgid "Followed document commented"
-msgstr "Коментар до документа, за яким стежать"
-
-#: grunt/grunt/notification/events.py
-msgid "Mentioned in a comment"
-msgstr "Згадка в коментарі"
-
-#: grunt/grunt/notification/events.py
-msgid "Reply to a comment"
-msgstr "Відповідь на коментар"
-
-#: grunt/grunt/notification/events.py
-msgid "Auto repeat created a document"
-msgstr "Автоповтор створив документ"
-
-#: grunt/grunt/notification/events.py
-msgid "Auto repeat failed"
-msgstr "Збій автоповтору"
-
-#: grunt/grunt/notification/events.py
-msgid "Cloud storage failing"
-msgstr "Збій хмарного сховища"
-
-#: grunt/grunt/actions/builtin.py
-msgid "Reset to standard"
-msgstr "Скинути до стандарту"
-
-#: grunt/grunt/actions/builtin.py
-msgid "Discard the changes made on this site and take the app's version?"
-msgstr "Відкинути зміни, зроблені на цьому сайті, і взяти версію з додатка?"
-
-#: grunt/grunt/actions/builtin.py
-msgid "Restored the app's version"
-msgstr "Відновлено версію з додатка"
-
-#: grunt/grunt/actions/builtin.py
-msgid "The app ships no such record"
-msgstr "Додаток не постачає такого запису"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-msgid "Choose the document type"
-msgstr "Оберіть тип документа"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-#, python-format
-msgid "Unknown code event “%(event)s”"
-msgstr "Невідома подія з коду «%(event)s»"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "For an event from code: empty - whatever document the event is about"
-msgstr ""
-"Для події з коду: порожньо — будь-який документ, якого стосується подія"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Code event"
-msgstr "Подія з коду"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"An event the framework or an app raises from code, e.g. a task assigned"
-msgstr ""
-"Подія, яку фреймворк або додаток викликає з коду, напр. призначення задачі"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Changed on this site"
-msgstr "Змінено на цьому сайті"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"A standard notification edited here: updates of the app no longer overwrite "
-"it. Reset to standard to follow the app again"
-msgstr ""
-"Стандартне сповіщення змінено тут: оновлення додатка його більше не "
-"перезаписують. «Скинути до стандарту» — щоб знову йти за додатком"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Event recipients"
-msgstr "Отримувачі з події"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-msgid "“Event recipients” only work for a notification on a code event"
-msgstr "«Отримувачі з події» працюють лише в сповіщенні про подію з коду"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid "Workflow actions"
-msgstr "Дії робочого процесу"
-
-#: grunt/grunt/notification/doctypes/Notification/Notification.json
-msgid ""
-"Only these transitions (their button labels), one per line; empty: every "
-"transition"
-msgstr ""
-"Лише ці переходи (назви їхніх кнопок), по одному в рядку; порожньо — будь-"
-"який перехід"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Previous actor"
-msgstr "Попередній виконавець"
-
-#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
-msgid "Next actors"
-msgstr "Наступні виконавці"
-
-#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
-msgid ""
-"Limit the role to documents linked to this record (a department, a section). "
-"Empty - the role applies everywhere."
-msgstr ""
-"Обмежити роль документами, пов’язаними з цим записом (підрозділ, розділ). "
-"Порожньо — роль діє скрізь."
-
-#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
-msgid "Scope"
-msgstr "Область"
-
-#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
-msgid "Scope value"
-msgstr "Значення області"
-
-#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
-msgid "Valid from"
-msgstr "Діє з"
-
-#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
-msgid "Valid to"
-msgstr "Діє до"
-
-#: grunt/grunt/auth/doctypes/User/user.py
-msgid "Role “%(role)s”: a scope needs both the document type and the document"
-msgstr "Роль «%(role)s»: для області потрібні і тип документа, і сам документ"
-
-#: grunt/grunt/auth/doctypes/User/user.py
-msgid "Role “%(role)s”: “Valid to” is before “Valid from”"
-msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
-
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "
 #~ "and explains it."
 #~ msgstr ""
 #~ "Екскурсія формою документа: кожен крок вказує на поле чи елемент і пояснює "
 #~ "його."
+
+#~ msgid "Access restrictions (User Permissions)"
+#~ msgstr "Обмеження доступу (User Permissions)"
+
+#~ msgid "Also by email"
+#~ msgstr "Також на email"
+
+#~ msgid "Apply to all documents"
+#~ msgstr "Застосувати до всіх документів"
 
 #~ msgid "Backup not found"
 #~ msgstr "Резервну копію не знайдено"
@@ -15639,11 +16145,30 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 #~ msgid "Copy ID"
 #~ msgstr "Скопіювати ідентифікатор"
 
+#~ msgid "Document type to restrict access by (e.g. «Company»)."
+#~ msgstr "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+
+#~ msgid ""
+#~ "Every signed-in user holds it - a rule for All applies to everyone. Not "
+#~ "assigned to users."
+#~ msgstr ""
+#~ "Її має кожен користувач, що увійшов: правило для All діє на всіх. "
+#~ "Користувачам не призначається."
+
 #~ msgid "Field picker"
 #~ msgstr "Вибір у полі"
 
+#~ msgid "Fill this value into the matching Link field of new documents."
+#~ msgstr "Підставляти це значення у відповідне Link-поле нових документів."
+
+#~ msgid "For document only"
+#~ msgstr "Лише для документа"
+
 #~ msgid "Hook '%(doc_id)s' not found"
 #~ msgstr "Хук «%(doc_id)s» не знайдено"
+
+#~ msgid "ID"
+#~ msgstr "ID"
 
 #~ msgid ""
 #~ "Lets a user search Link-field values (name, title, search fields) without "
@@ -15654,8 +16179,31 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 #~ "доступу до списку та повного документа. Автоматично надається разом із "
 #~ "«Читати»."
 
+#~ msgid "Limit this rule to a single DocType."
+#~ msgstr "Обмежити дію цього правила одним DocType."
+
+#~ msgid "Message template"
+#~ msgstr "Шаблон повідомлення"
+
+#~ msgid "Modified by"
+#~ msgstr "Змінив"
+
+#~ msgid "No access: “%(field)s” is outside your user permissions"
+#~ msgstr "Немає доступу: значення поля «%(field)s» поза вашими дозволами"
+
 #~ msgid "No physical table — data comes from a controller"
 #~ msgstr "Без фізичної таблиці — дані з контролера"
+
+#~ msgid "Notify (comma-separated)"
+#~ msgstr "Сповістити (через кому)"
+
+#~ msgid "Only a System Manager can restore documents"
+#~ msgstr "Відновлювати документи може лише System Manager"
+
+#~ msgid "Only someone allowed to share and edit the document can share it"
+#~ msgstr ""
+#~ "Поширювати документ може лише той, хто має право поширювати й редагувати "
+#~ "його"
 
 #~ msgid "Only someone who can edit the document can share it"
 #~ msgstr "Поділитися документом може лише той, хто має право його змінювати"
@@ -15667,11 +16215,25 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 #~ "Або CSS-селектор іншого елемента, напр. [data-action=save]; без обох — крок "
 #~ "посередині екрана"
 
+#~ msgid ""
+#~ "Per-user share of one document (Read / Write). Only someone who can write "
+#~ "the document may share it."
+#~ msgstr ""
+#~ "Спільний доступ користувача до одного документа (Читання / Запис). "
+#~ "Поділитися може лише той, хто має право запису в документ."
+
 #~ msgid "Performance trend “%(name)s” not found"
 #~ msgstr "Запис динаміки продуктивності «%(name)s» не знайдено"
 
+#~ msgid "Restrict by"
+#~ msgstr "Обмежити за"
+
 #~ msgid "Scheduled job “%(name)s” not found"
 #~ msgstr "Заплановану задачу «%(name)s» не знайдено"
+
+#~ msgid "Set “Only for document” or enable “Apply to all documents”"
+#~ msgstr ""
+#~ "Вкажіть «Лише для документа» або увімкніть «Застосувати до всіх документів»"
 
 #~ msgid "SqlProfilerRequest '%(doc_id)s' not found"
 #~ msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"
@@ -15682,8 +16244,40 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 #~ msgstr ""
 #~ "Запускається, коли користувач уперше відкриває форму; надалі — з меню форми"
 
+#~ msgid "Strict user permissions"
+#~ msgstr "Суворі обмеження користувача"
+
+#~ msgid "Subject template"
+#~ msgstr "Шаблон теми"
+
+#~ msgid "System Manager privileges required"
+#~ msgstr "Потрібні права System Manager"
+
+#~ msgid "System Manager rights are required."
+#~ msgstr "Потрібні права System Manager."
+
+#~ msgid "The allowed record. The user will see only documents linked to it."
+#~ msgstr ""
+#~ "Дозволений запис. Користувач бачитиме лише документи, пов'язані з ним."
+
+#~ msgid ""
+#~ "The anonymous visitor of public pages and web forms. Not assigned to users."
+#~ msgstr ""
+#~ "Анонімний відвідувач публічних сторінок і веб-форм. Користувачам не "
+#~ "призначається."
+
 #~ msgid "The form field to point at; its tab opens by itself"
 #~ msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
+
+#~ msgid ""
+#~ "The restriction applies to any DocType with a Link field to «Restrict by»."
+#~ msgstr "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+
+#~ msgid "This user permission already exists"
+#~ msgstr "Такий дозвіл користувача вже існує"
+
+#~ msgid "User Permission"
+#~ msgstr "Дозвіл користувача"
 
 #~ msgid "Virtual"
 #~ msgstr "Віртуальний"
@@ -15691,11 +16285,31 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 #~ msgid "Virtual DocType “%(doctype)s” has no individual documents"
 #~ msgstr "Віртуальний DocType «%(doctype)s» не має окремих документів"
 
+#~ msgid ""
+#~ "When enabled, a document with no Link field to the restricted type (or with "
+#~ "an empty value) is hidden rather than shown."
+#~ msgstr ""
+#~ "Якщо увімкнено — документ без Link-поля на обмежений тип (або з порожнім "
+#~ "значенням) приховується, а не показується."
+
+#~ msgid ""
+#~ "Who took data out of the system and when: exports, printouts, imports and "
+#~ "report downloads. Written by the system, read only; kept a year."
+#~ msgstr ""
+#~ "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження "
+#~ "звітів. Пише система, лише для читання; зберігається рік."
+
+#~ msgid "both"
+#~ msgstr "Обидва"
+
 #~ msgid "contains"
 #~ msgstr "містить"
 
 #~ msgid "does not contain"
 #~ msgstr "не містить"
+
+#~ msgid "email"
+#~ msgstr "Email"
 
 #~ msgid "is empty"
 #~ msgstr "порожньо"
@@ -15708,6 +16322,14 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 
 #~ msgid "one of (comma-separated)"
 #~ msgstr "одне з (через кому)"
+
+#~ msgid ""
+#~ "owner — the document author; previous — who performed the previous workflow "
+#~ "action; next — users who can take the next step (by role and access to the "
+#~ "document)"
+#~ msgstr ""
+#~ "owner — автор документа; previous — хто виконав попередню дію; next — хто "
+#~ "може зробити наступний крок (за роллю та доступом до документа)"
 
 #~ msgid "pg_dump not found; install the PostgreSQL client"
 #~ msgstr "pg_dump не знайдено — встановіть клієнт PostgreSQL"
@@ -15729,472 +16351,3 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 #~ msgctxt "meta:DocPermission.read"
 #~ msgid "Read"
 #~ msgstr "Читати"
-
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
-#: grunt/frontend/src/components/fields/RichText/ui/InsertMenu.vue
-#: grunt/frontend/src/components/fields/RichText/RichText.vue
-msgid "File preview"
-msgstr "Перегляд файлу"
-
-#: grunt/frontend/src/components/fields/RichText/extensions/fileEmbed.ts
-msgid "Delete file preview"
-msgstr "Прибрати перегляд файлу"
-
-#: grunt/frontend/src/components/fields/RichText/extensions/fileEmbed.ts
-msgid "Word, Excel and PowerPoint files are shown on the published page"
-msgstr "Файли Word, Excel і PowerPoint показуються на опублікованій сторінці"
-
-#: grunt/frontend/src/components/fields/RichText/editor/useRichEditor.ts
-msgid "Only PDF, Word, Excel and PowerPoint files can be shown in the text - the file is added as a link"
-msgstr "У тексті можна показати лише PDF, Word, Excel і PowerPoint — файл додано посиланням"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Share with one of: a user, a role or everyone"
-msgstr "Поширте на когось одного: користувача, роль або всіх"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "The end date has already passed"
-msgstr "Дата завершення вже минула"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "You may share this document only at a level you have yourself"
-msgstr "Поширювати документ можна лише з тим рівнем доступу, який маєте самі"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "edit"
-msgstr "редагувати"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "view"
-msgstr "переглядати"
-
-#: grunt/grunt/notification/events.py
-msgid "Document shared"
-msgstr "Документ поширено"
-
-#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
-msgid "Shared with you: %(target)s"
-msgstr "Вам надано доступ: %(target)s"
-
-#: grunt/grunt/notification/records/notification/document_shared/document_shared.json
-msgid "You can now %(level)s %(target)s."
-msgstr "Тепер ви можете %(level)s %(target)s."
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "Everyone"
-msgstr "Усі"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "Can share further"
-msgstr "Може поширювати далі"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "One user (their email)"
-msgstr "Один користувач (його email)"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "Everyone holding the role today"
-msgstr "Усі, хто має роль сьогодні"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "Every signed-in user"
-msgstr "Кожен користувач, що увійшов"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "Inclusive; empty - no end"
-msgstr "Включно; порожньо — безстроково"
-
-#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
-msgid "A share of one document with a user, a role or everyone (Read / Write, until a date, may share further). Readable by whoever can read the document; only someone allowed to share it at that level can share it."
-msgstr "Доступ до одного документа для користувача, ролі або всіх (читання / редагування, до дати, з правом поширювати далі). Бачить кожен, хто може читати документ; поширити може лише той, кому це дозволено на такому рівні."
-
-#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "Give access to this document to a user, everyone holding a role, or every user."
-msgstr "Надайте доступ до документа користувачеві, усім з певною роллю або всім користувачам."
-
-#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "With whom"
-msgstr "Кому"
-
-#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "Everyone holding the role gets access, whatever the scope of their role."
-msgstr "Доступ отримають усі, хто має роль, незалежно від області ролі."
-
-#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "Every signed-in user gets access. Nobody is notified."
-msgstr "Доступ отримає кожен користувач, що увійшов. Сповіщень не буде."
-
-#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
-msgid "Inclusive. Leave empty for no end date."
-msgstr "Включно. Порожньо — безстроково."
-
-#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
-msgid "Role, everyone, end date…"
-msgstr "Роль, усі, строк…"
-
-#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
-msgid "expired {date}"
-msgstr "скінчився {date}"
-
-#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
-msgid "until {date}"
-msgstr "до {date}"
-
-#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
-msgid "can share"
-msgstr "може поширювати"
-
-#: grunt/grunt/permissions/perms.py
-msgid "Inspect and manage access rights"
-msgstr "Перевіряти й налаштовувати права доступу"
-
-#: grunt/grunt/api/v1/permission_inspector.py
-msgid "Unknown action “%(action)s”"
-msgstr "Невідома дія «%(action)s»"
-
-#: grunt/grunt/metadata/doctypes/DocType/global_form.js
-msgid "Check access"
-msgstr "Перевірити доступ"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Why a user may or may not act on {doctype} {name}."
-msgstr "Чому користувач може чи не може діяти з {doctype} {name}."
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Why a user may or may not act on {doctype} documents."
-msgstr "Чому користувач може чи не може діяти з документами {doctype}."
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Could not check access"
-msgstr "Не вдалося перевірити доступ"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "{user} may {action}"
-msgstr "{user} може: {action}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "{user} may not {action}"
-msgstr "{user} не може: {action}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Access is given by the role: {roles}"
-msgstr "Доступ дає роль: {roles}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "within {value}"
-msgstr "в межах {value}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "No roles"
-msgstr "Ролей немає"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Follows the parent document"
-msgstr "Іде за батьківським документом"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Follows the document it belongs to"
-msgstr "Іде за документом, до якого належить"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "can read"
-msgstr "може читати"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "cannot read"
-msgstr "не може читати"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "No role of the user grants this action on the document type at all."
-msgstr "Жодна роль користувача взагалі не дає цієї дії на цей тип документа."
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Rules that grant this action"
-msgstr "Правила, що дають цю дію"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "This document"
-msgstr "Цей документ"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "the user lacks this role"
-msgstr "у користувача немає цієї ролі"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "every document"
-msgstr "усі документи"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "within {doctype}: {values}"
-msgstr "в межах {doctype}: {values}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "condition cannot be applied - grants nothing"
-msgstr "умову не можна застосувати — нічого не дає"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "passes"
-msgstr "проходить"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "does not pass"
-msgstr "не проходить"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "No rule of this document type grants this action."
-msgstr "Жодне правило цього типу документа не дає цієї дії."
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "with everyone"
-msgstr "з усіма"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "with the role {role}"
-msgstr "з роллю {role}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "with the user"
-msgstr "з користувачем"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Fields"
-msgstr "Поля"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Hidden: {fields}"
-msgstr "Приховані: {fields}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Read only: {fields}"
-msgstr "Лише читання: {fields}"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Import"
-msgstr "Імпорт"
-
-#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
-msgid "Export"
-msgstr "Експорт"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgid "Permission Log"
-msgstr "Журнал прав"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgid "Summary"
-msgstr "Підсумок"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgid "Changed"
-msgstr "Змінено"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgid "[{field, old, new}] for values; [{field, added, removed}] for rows of a table (roles, rules)"
-msgstr "[{field, old, new}] — для значень; [{field, added, removed}] — для рядків таблиці (ролі, правила)"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgid "Who changed access and when: user roles and their scopes, role permissions, DocType rules, shares and public links. Written by the system, read only."
-msgstr "Хто й коли змінив доступ: ролі користувачів і їхні області, дозволи ролей, правила DocType, поширення й публічні посилання. Пише система, лише для читання."
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgctxt "select:PermissionLog.action"
-msgid "Created"
-msgstr "Створено"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgctxt "select:PermissionLog.action"
-msgid "Changed"
-msgstr "Змінено"
-
-#: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
-msgctxt "select:PermissionLog.action"
-msgid "Deleted"
-msgstr "Видалено"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgid "Access Log"
-msgstr "Журнал доступу до даних"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgid "Who took data out of the system and when: exports, printouts, imports and report downloads. Written by the system, read only; kept a year."
-msgstr "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження звітів. Пише система, лише для читання; зберігається рік."
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgctxt "select:AccessLog.action"
-msgid "Export"
-msgstr "Експорт"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgctxt "select:AccessLog.action"
-msgid "Print"
-msgstr "Друк"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgctxt "select:AccessLog.action"
-msgid "Import"
-msgstr "Імпорт"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgctxt "select:AccessLog.action"
-msgid "Report"
-msgstr "Звіт"
-
-#: grunt/grunt/permissions/warnings.py
-msgid "No rule grants anything here: only system tasks can reach these documents."
-msgstr "Жодне правило тут нічого не дає: до цих документів дістаються лише системні задачі."
-
-#: grunt/grunt/permissions/warnings.py
-msgid "The rule for “%(role)s” grants no action."
-msgstr "Правило для «%(role)s» не дає жодної дії."
-
-
-#: grunt/grunt/permissions/warnings.py
-msgid "Nobody holds this role."
-msgstr "Цю роль ніхто не має."
-
-
-#: grunt/grunt/permissions/warnings.py
-msgid "The field “%(field)s” is hidden from everyone who may read these documents."
-msgstr "Поле «%(field)s» приховане від усіх, хто може читати ці документи."
-
-#: grunt/grunt/permissions/warnings.py
-msgid "The field “%(field)s” is read-only for everyone who may change these documents."
-msgstr "Поле «%(field)s» лише для читання для всіх, хто може змінювати ці документи."
-
-#: grunt/grunt/permissions/warnings.py
-msgid "Nobody holds these roles - their rules give access to no one: %(roles)s"
-msgstr "Цих ролей ніхто не має — їхні правила нікому не дають доступу: %(roles)s"
-
-#: grunt/grunt/permissions/warnings.py
-msgid "No document type has a rule for this role and it holds no permission - it works only where code checks the role by name."
-msgstr "Жоден тип документа не має правила для цієї ролі, і в неї немає дозволів — вона діє лише там, де код перевіряє роль за назвою."
-
-#: grunt/grunt/permissions/warnings.py
-msgid "The app changed its rules for this document type after they were changed on this site - review the difference."
-msgstr "Застосунок змінив свої правила для цього типу документа після того, як їх змінили на цьому сайті — перегляньте різницю."
-
-#: grunt/grunt/permissions/warnings.py
-msgid "The rules were changed on this site and differ from the app's."
-msgstr "Правила змінено на цьому сайті — вони відрізняються від правил застосунку."
-
-#: grunt/grunt/api/v1/permission_layers.py
-msgid "The app's rules for this document type are not known"
-msgstr "Правила застосунку для цього типу документа невідомі"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js
-msgid "Difference from the app rules"
-msgstr "Різниця з правилами застосунку"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js
-msgid "+ - rules of this site, − - rules of the app this site does not have."
-msgstr "+ — правила цього сайту, − — правила застосунку, яких на сайті немає."
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js
-msgid "No difference"
-msgstr "Різниці немає"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js
-msgid "Restore the app rules"
-msgstr "Повернути правила застосунку"
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js
-msgid "Replace the rules of this site with the app rules? The change is recorded in the Permission Log."
-msgstr "Замінити правила цього сайту правилами застосунку? Зміну буде записано в журнал прав."
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.js
-msgid "The app rules are back"
-msgstr "Правила застосунку повернуто"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "All rows"
-msgstr "Усі рядки"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "Field of the linked document"
-msgstr "Поле пов'язаного документа"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "the document itself"
-msgstr "сам документ"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "Operator"
-msgstr "Оператор"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "equals"
-msgstr "дорівнює"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "does not equal"
-msgstr "не дорівнює"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "Current user"
-msgstr "Поточний користувач"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "As text"
-msgstr "Як текст"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "Modified by"
-msgstr "Змінив"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "ID"
-msgstr "ID"
-
-#: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
-msgid "A value cannot contain both kinds of quotes"
-msgstr "Значення не може містити обидва види лапок"
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "What the key may do"
-msgstr "Що може ключ"
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "Requests with this key may only read: any other method gets 403, and no document is created, changed or deleted."
-msgstr "Запити з цим ключем можуть лише читати: інші методи отримують 403, жоден документ не створюється, не змінюється й не видаляється."
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "Only these of the user's roles (with the user's scopes); empty - all of them. The key never gets more than its user has."
-msgstr "Лише ці ролі користувача (з його областями); порожньо — усі. Ключ ніколи не отримує більше, ніж має його користувач."
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "API Key Role"
-msgstr "Роль API-ключа"
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "A role an API key acts with - one its user holds."
-msgstr "Роль, з якою діє API-ключ, — одна з ролей його користувача."
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "The key's user doesn't hold these roles: %(roles)s"
-msgstr "Користувач ключа не має цих ролей: %(roles)s"
-
-#: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
-msgid "This API key may only read"
-msgstr "Цей API-ключ може лише читати"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgid "Why code ran as the system (grunt.sudo) - and where"
-msgstr "Чому код виконувався від системи (grunt.sudo) — і де"
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgid "Who took data out of the system and when: exports, printouts, imports and report downloads - and code that ran as the system on someone's behalf (grunt.sudo). Written by the system, read only; kept a year."
-msgstr "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження звітів — і код, що виконувався від системи за чиєюсь дією (grunt.sudo). Пише система, лише для читання; зберігається рік."
-
-#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
-msgctxt "select:AccessLog.action"
-msgid "Elevated"
-msgstr "Підвищення прав"
-
-#: grunt/grunt/monitoring/health.py
-msgid "API keys in the old format"
-msgstr "API-ключі в старому форматі"
-
-
-#: grunt/grunt/monitoring/health.py
-msgid "These keys no longer work: reissue the ones still needed, deactivate the rest: %(keys)s"
-msgstr "Ці ключі більше не працюють: потрібні перевипустіть, решту вимкніть: %(keys)s"

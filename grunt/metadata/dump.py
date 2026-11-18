@@ -43,6 +43,12 @@ async def dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, Any
     workflow = await get_active_workflow(dt.name)
     data["workflow_state_field"] = workflow.state_field if workflow else None
     if workflow and translate:
+        # The state's message - a banner over the form (global_form.js).
+        data["workflow_state_messages"] = {
+            st.state: {"message": _(st.message), "color": st.color}
+            for st in workflow.states
+            if st.message
+        }
         # The form hides the state (shown in the sidebar) - it moves by the header's workflow
         # actions (grunt/workflow/guard.py); the builder (raw) keeps the source.
         for fdata in data["fields"]:

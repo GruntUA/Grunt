@@ -3,7 +3,8 @@
 * :func:`previous_actor` - who performed the latest workflow action on the
   document (e.g. the author who sent it for review, when a reviewer sends it back);
 * :func:`next_actors` - users who can take the next step: they hold a role
-  allowed on a button transition out of the current state *and* can read this
+  allowed on a button transition out of the current state (the author not, on
+  a ``deny_self_approval`` one) *and* can read this
   very document (role permissions, ``match`` rules and User Permissions - so a
   section moderator hears only about their own sections).
 
@@ -18,7 +19,7 @@ from grunt.i18n import N_
 from grunt.local import require_session, system_context
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import ALL, user_perms
-from grunt.workflow.transition import user_may_take
+from grunt.workflow.transition import is_self_approval, user_may_take
 lazy from grunt.permissions.access import RoleAccess
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.roles import role_holders
@@ -48,27 +49,60 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
     meta = await doctype_registry.get_meta(doctype)
     if meta is None:
         return []
+    owner = await stored_owner(doctype, doc, transitions)
     result: list[str] = []
     async with system_context(require_session()):
         holders = await role_holders(roles)
     for holder in holders:
         email = holder.get("email")
-        if not email:
-            continue
-        # Roles that hold for this document - a scoped role only within its scope.
-        access = RoleAccess(meta, email, [])
-        held = [
-            role
-            for role, scopes in holder["roles"].items()
-            if not scopes or await doc_in_scopes(access, scopes, doc)
-        ]
-        unrestricted = ALL in await user_perms(email)
-        if not any(user_may_take(t, held, unrestricted=unrestricted) for t in transitions):
-            continue
-        if not await permission_checker.check(meta, "read", doc, user=email):
-            continue
-        result.append(email)
+        if email and await may_act(meta, email, holder["roles"], transitions, doc, owner=owner):
+            result.append(email)
     return result
+
+
+async def may_act(
+    meta: Any,
+    email: str,
+    held_roles: dict[str, Any],
+    transitions: list[Any],
+    doc: dict[str, Any],
+    *,
+    owner: str | None,
+    by_role_only: bool = False,
+) -> bool:
+    """Whether *email*, holding *held_roles* (``{role: scopes}``, from
+    :func:`role_holders`), can take one of *transitions* on *doc*: a role of
+    the transition held for this document (a scoped role only within its
+    scope), not their own document on a ``deny_self_approval`` one (*owner*
+    from :func:`stored_owner`), and read access to it. *by_role_only* - a user
+    holding every permission still needs the role here (the "awaiting my
+    action" inbox)."""
+    access = RoleAccess(meta, email, [])
+    held = [
+        role
+        for role, scopes in held_roles.items()
+        if not scopes or await doc_in_scopes(access, scopes, doc)
+    ]
+    unrestricted = not by_role_only and ALL in await user_perms(email)
+    if not any(
+        user_may_take(t, held, unrestricted=unrestricted) and not is_self_approval(t, owner, email)
+        for t in transitions
+    ):
+        return False
+    return await permission_checker.check(meta, "read", doc, user=email)
+
+
+async def stored_owner(doctype: str, doc: dict[str, Any], transitions: list[Any]) -> str | None:
+    """The document's author as stored - for ``deny_self_approval``. Not read
+    off *doc*: a permission rule may hide ``owner`` from the user reading it,
+    and a missing owner must not let the author approve. ``None`` (no query)
+    when none of *transitions* denies self-approval."""
+    if not any(t.deny_self_approval for t in transitions):
+        return None
+    if not doc.get("name"):
+        return doc.get("owner")
+    async with system_context(require_session()):
+        return await _db.get_value(doctype, doc["name"], "owner")
 
 
 async def previous_actor(doctype: str, doc_id: str) -> str | None:

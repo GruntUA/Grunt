@@ -36,16 +36,19 @@ While a DocType has an active workflow:
 |---|---|
 | `edit_roles` | Only these roles may edit or delete the document in this state (transitions are not affected). Empty — anyone with write permission. |
 | `update_field` / `update_value` | On entering the state, the value is written into the field — e.g. `published = 1`. |
+| `message` | Shown as a banner over the form while the document is in this state, in the state's `color` — e.g. “Awaiting review, editing is locked”. |
 
 ## Transition options
 
 | Field | Effect |
 |---|---|
 | `allowed_roles` | Who sees the button / may apply it (System Manager always may). |
-| `condition` | `simpleeval` expression over `doc` and `user`. |
+| `condition` | `simpleeval` expression over `doc` and `user`. A condition that fails to evaluate closes the transition (logged as `workflow.condition_eval_failed`). |
 | `prompt_fields` | Fields to fill in a dialog before applying. |
 | `require_comment` | The dialog asks for a comment (`values["__comment"]` over RPC). |
 | `on_edit` | Not a button: when a user allowed this transition **edits** the document in `from_state`, the edit is saved as this transition. Such a user also can't delete the document in that state. |
+| `deny_self_approval` | The document's author (`owner`) cannot take it, whatever their roles — someone else has to approve. **Next actors** leave the author out too. |
+| `confirm` | Ask “are you sure?” before applying — for archiving, rejecting and other steps that are hard to undo. |
 
 ## Notifications
 
@@ -60,6 +63,24 @@ A transition does not notify anyone by itself. Notifications come from **Notific
 - **Template variables**: `action`, `from_state`, `to_state`, `from_label`, `to_label`, `comment` and `title`.
 
 The rules run inside the transition's transaction. The user who made the transition is not notified unless the rule says so.
+
+## Awaiting my action
+
+The **My work** panel on the home page (`/app`) has an **Awaiting me** tab: the workflow documents the user can move on now, newest first, with the state and the buttons waiting for them. When there are any, the panel opens on that tab. The list comes from `get_my_work` (`awaiting`, `counts.awaiting`), built by `grunt.workflow.inbox.awaiting_actions` from the transitions themselves, with no table of its own:
+
+- A document counts only when a button transition out of its state has `allowed_roles` and the user actually holds one of those roles. A System Manager without the role is not shown every document on the site. This is the same rule as **Next actors**.
+- A scoped role counts only for the documents in its scope. The user must be able to read the document, and on a `deny_self_approval` transition their own document is not shown as awaiting them.
+- `condition` is not checked: a transition waiting for a field to be filled is still the user's work.
+
+## Actions on a transition
+
+- In an app: the `on_transition` hook (`hooks.py`), with `doc`, `from_state`, `to_state`, `action`, `comment` and `user`.
+- Without code: a **Server Script** of type *DocType Event* with the event `on_transition`. Besides `doc`, the script sees `transition` — a dict with `action`, `from_state`, `to_state` and `comment`:
+
+```python
+if transition["to_state"] == "Approved":
+    grunt.db.set_value("Contract", doc["name"], "approved_by", grunt.session.user)
+```
 
 ## Example: publication with review
 

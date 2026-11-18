@@ -637,6 +637,7 @@ class ServerScriptRunner:
         event: str,
         doc: dict[str, Any],
         user_email: str = "",
+        extra_context: dict[str, Any] | None = None,
     ) -> list[ScriptResult]:
         """Load and execute all server scripts for a DocType event."""
         scripts = await self.load_doctype_scripts(session, doctype, event)
@@ -646,6 +647,7 @@ class ServerScriptRunner:
                 s["script"],
                 doc=doc,
                 session=session,
+                extra_context=extra_context,
                 trusted=s.get("trusted", False),
                 user_email=user_email,
             )
