@@ -8,7 +8,13 @@
 dismiss («false positive» / «used in tests») — лише останній крок, коли код справді
 правильний і переписати його без шкоди не можна, з поясненням у коментарі dismiss.
 
-Оновлено: 2026-11-18 — усе злито до #209; develop: 134 → **1** відкритий (#1126 — Permissions 7c ф.2). Храповик увімкнено.
+Оновлено: 2026-11-18 — Python: 0 на develop і master (останній, #1126, закрив #211 — Permissions 7c ф.2, випущено у v0.14.0).
+JS: API показував 0 на develop, але повне сканування master після v0.14.0 (код той самий) дало **7** —
+#21, #22 (request forgery, `api/pages.ts`), #24–26 (remote property injection, `useListRouteSync.ts`),
+#28 (user-controlled bypass, `Login.vue`), #29 (trivial conditional, `EditorContextMenu.vue`; він же
+єдина знахідка Code Quality). Закриває гілка `fix/codeql-js-master`. Попутно знайдено ваду: `Login.vue`
+відкидав фрагмент `#signed_in=1` / `#approval_pending=1` з OAuth-колбеку (їх не було в `known`).
+**Урок:** стан алертів перевіряти на master після випуску, а не лише на develop. Храповик увімкнено.
 
 ---
 
@@ -39,7 +45,7 @@ PR #198 (злито 2026-11-18), закривається кодом:
   гілку не бачить → dismiss «won't fix» з поясненням (після злиття, коли перевіримо, що
   алерти лишились саме ці).
 - #16 / #1126 (`api_key_service.py`) — це Permissions 7c ф.2 (прибрати SHA-256 після
-  перехешування ключів), окремо тут не робимо.
+  перехешування ключів), окремо тут не робимо. ✅ #211.
 
 
 | # | Правило | Де | Що зробити |
@@ -130,8 +136,7 @@ PR #199 (злито 2026-11-18). Справжніх багів не знайшл
 | #102, #103, #106–108, #109–111 | #208: першим `case` без захоплень, `case And() \| Or():`; аліаси з `__all__` — звичайні (`X = A \| B`) |
 | #30–37 (Jinja) | #208: `_` у шаблонах приймає параметри (`_("…", name=x)`), зірки — `{% for %}` |
 | #12, #13 | #209: debug-відповідь — лише `{exc_type, error_log, request_id}`; трейс, повідомлення, SQL — у записі ErrorLog (модалка деску тягне його через REST) |
-
-Лишається **#1126** (py/weak-sensitive-data-hashing, `auth/api_key_service.py`) — SHA-256 ключів API, закриється в Permissions 7c ф.2 після перехешування ключів.
+| #1126 | #211 (Permissions 7c ф.2): ключі API перевіряються лише scrypt, гілку SHA-256 прибрано. Локальний `WeakSensitiveDataHashing.ql` по всьому `grunt/` цього алерту не відтворював — підтвердив лише CI |
 
 Локальна перевірка: Python — `~/.local/share/codeql-v2.27.4/codeql/codeql`, JavaScript — `~/.local/share/codeql-js-v2.27.4/codeql/codeql` (бандл тієї ж версії, що в CI). Мінімальний приклад у окремому каталозі → `database create` → `database analyze` швидше за CI.
 
