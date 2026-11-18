@@ -508,6 +508,19 @@ async with grunt.system_context(session):
     await grunt.new_doc("ActivityLog", {...})
 ```
 
+When a **user's** request needs more than that user's rights (a public counter,
+a lookup across documents they can't open), say so with `grunt.sudo` instead of
+`system_context` - it requires a reason and records who, why and where in the
+Access Log (action "Elevated"):
+
+```python
+async with grunt.sudo("count open appeals for the public counter"):
+    total = await grunt.db.count("MltAppeal", {"status": "Open"})
+```
+
+Keep `system_context` for code with no user behind it: background tasks,
+scheduler jobs, bootstrap and migrations.
+
 A helper that's always called from *somewhere* with an already-active context
 (the common case — most functions called from a controller or a whitelisted
 method) shouldn't take `session` as its own parameter at all. Read it via
