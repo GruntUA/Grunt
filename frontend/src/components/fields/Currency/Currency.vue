@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { NumberField, NumberFieldContent, NumberFieldInput } from '@/components/ui/number-field'
-import { currencyCode } from '@/core/currency'
+import { currencyCode, currencyPrecision } from '@/core/currency'
+import { roundToPrecision } from '@/core/numbers'
 import { fieldNumber, localeTag, onDecimalKey } from '@/core/composables/useNumberField'
 
 const props = defineProps<{
@@ -15,10 +16,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: number | null] }>()
 
-// The currency is shown by the formatter (`1 234,50 ₴`); without a code - two decimals.
+// The currency is shown by the formatter (`1 234,50 ₴`); without a code - the
+// field's decimals (precision, two by default).
+const precision = computed(() => currencyPrecision(props.field))
 const formatOptions = computed<Intl.NumberFormatOptions>(() => {
   const code = currencyCode(props.field, props.doc)
-  const plain = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+  const plain = { minimumFractionDigits: precision.value, maximumFractionDigits: precision.value }
   if (!code) return plain
   try {
     new Intl.NumberFormat(localeTag(), { style: 'currency', currency: code })
@@ -28,7 +31,8 @@ const formatOptions = computed<Intl.NumberFormatOptions>(() => {
   }
 })
 
-const toCents = (n: number) => Math.round(n * 100) / 100
+// Rounded like the server stores it (site rounding method, core/numbers.ts).
+const toPrecision = (n: number) => roundToPrecision(n, precision.value)
 </script>
 
 <template>
@@ -43,7 +47,7 @@ const toCents = (n: number) => Math.round(n * 100) / 100
     :max="field.max_value ?? undefined"
     :disabled="disabled || field.read_only"
     disable-wheel-change
-    @update:model-value="emit('update:modelValue', fieldNumber($event, toCents))"
+    @update:model-value="emit('update:modelValue', fieldNumber($event, toPrecision))"
   >
     <NumberFieldContent>
       <NumberFieldInput

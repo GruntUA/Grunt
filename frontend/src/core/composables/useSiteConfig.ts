@@ -34,6 +34,8 @@ export interface SiteConfig {
   timezone: string
   /** "dd.mm.yyyy" | "dd/mm/yyyy" | "yyyy-mm-dd" */
   dateFormat: string
+  /** SystemSettings.rounding_method - "Half up" | "Half even" (core/numbers.ts). */
+  roundingMethod: string
   allowRegistration: boolean
   loaded: boolean
 }
@@ -48,6 +50,7 @@ const state = reactive<SiteConfig>({
   ],
   timezone: '',
   dateFormat: 'dd.mm.yyyy',
+  roundingMethod: 'Half up',
   allowRegistration: false,
   loaded: false,
 })
@@ -79,6 +82,7 @@ async function _load(): Promise<void> {
         if (Array.isArray(data.languages) && data.languages.length) state.languages = data.languages
         _siteTimezone = data.timezone || ''
         state.dateFormat = data.date_format || state.dateFormat
+        state.roundingMethod = data.rounding_method || 'Half up'
         state.allowRegistration = !!data.allow_user_registration
       }
     }

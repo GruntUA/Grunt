@@ -7,7 +7,7 @@ import i18n from '@/plugins/i18n'
 import type { DocField } from '@/types'
 import { getLayoutTypeSet, getStorageClass, getTableInlineTypeSet, isNumericType } from '@/core/fieldRegistry'
 import { validateFieldValue } from '@/core/validators'
-import { currencyCode, formatCurrency } from '@/core/currency'
+import { currencyCode, currencyPrecision, formatCurrency } from '@/core/currency'
 import { formatValue } from '@/core/formatValue'
 import { selectOptionLabel } from '@/lib/selectOptions'
 
@@ -72,7 +72,7 @@ export function useTableCell() {
     const v = row[f.fieldname]
     if (isEmpty(v)) return ''
     if (getStorageClass(f.fieldtype) === 'bool') return v ? t('Yes') : t('No')
-    if (f.fieldtype === 'Currency') return formatCurrency(v, currencyCode(f, row))
+    if (f.fieldtype === 'Currency') return formatCurrency(v, currencyCode(f, row), currencyPrecision(f))
     if (f.fieldtype === 'Select') return selectOptionLabel(f, v)
     // MultiSelect (a list, or its JSON text): the options' labels, not the raw list.
     const many = Array.isArray(v) ? v : f.fieldtype === 'MultiSelect' ? parseList(v) : null

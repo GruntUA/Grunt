@@ -46,6 +46,7 @@ from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
 from grunt.query.query import Query
 from grunt.search.service import search_index_service
+from grunt.site.settings import get_system_settings
 from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
 from grunt.store.base import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store
@@ -154,7 +155,12 @@ class DocumentLifecycleMixin:
     # Pipeline
 
     async def _resolve_dt(self, doctype_name: str) -> Any:
-        """Return the freshest DocType definition, forcing a lazy reload if needed."""
+        """Return the freshest DocType definition, forcing a lazy reload if needed.
+
+        Also reads the (cached) site settings: value coercion is sync and rounds
+        numbers by the site's rounding_method (grunt.utils.numbers), which this
+        read keeps current for the save that follows."""
+        await get_system_settings()
 
         fresh = await doctype_registry._lazy_load(doctype_name)
         if fresh is not None:

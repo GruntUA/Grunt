@@ -33,6 +33,13 @@
       "description": "DocType for Link/Table, or the option list for Select"
     },
     {
+      "fieldname": "precision",
+      "label": "Precision",
+      "fieldtype": "Int",
+      "description": "Decimal places for Float / Currency / Percent: shown with and rounded to on save (Currency: 2 by default; changing it changes the column)",
+      "depends_on": "eval:['Float','Currency','Percent'].includes(doc.fieldtype)"
+    },
+    {
       "fieldname": "sec_validation",
       "label": "Validation & flags",
       "fieldtype": "Section",

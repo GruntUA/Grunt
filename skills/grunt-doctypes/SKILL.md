@@ -208,10 +208,15 @@ class ExternalCustomer(Document):
 | fieldtype | БД | Опис |
 |-----------|----|------|
 | `Int` | Integer | Ціле число; з `"options": "Bytes"` — розмір у байтах, показується як `1.4 MB` (у списку й у формі; точне число — в підказці) |
-| `Float` | Float(6) | Дробове число |
-| `Percent` | Float(6) | Відсоток, відображається з `%` |
+| `Float` | Double | Дробове число; `precision` — знаків після коми (показ і округлення при збереженні) |
+| `Percent` | Double | Відсоток, відображається з `%`; `precision` — як у Float |
 | `Duration` | Float(6) | Тривалість (год/хв) |
 | `Rating` | Float(2) | Зірки 1–5 |
+| `Currency` | Numeric(18, precision) | Сума; `precision` типово 2 (зміна = зміна колонки в Postgres); `options` — валюта (Link-поле або ISO-код) |
+
+**Округлення.** Значення з `precision` округлюються при збереженні через `Decimal` (не float:
+`1.005` → `1.01`) способом із `SystemSettings.rounding_method`: `Half up` (комерційне, типово) або
+`Half even` (банківське). Форма округлює так само (`frontend/src/core/numbers.ts`).
 
 ### Дата/час
 

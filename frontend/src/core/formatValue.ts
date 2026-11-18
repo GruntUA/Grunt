@@ -17,7 +17,7 @@ import type { DocField } from '@/types'
 import { byFieldType, isNumericType } from '@/core/fieldRegistry'
 import { formatNumber } from '@/core/currency'
 
-export type FormatField = Pick<DocField, 'fieldtype'> & Partial<Pick<DocField, 'options'>>
+export type FormatField = Pick<DocField, 'fieldtype'> & Partial<Pick<DocField, 'options' | 'precision'>>
 
 /** Formats a non-empty value of a field as plain text. */
 export type ValueFormatter = (value: unknown, field: FormatField) => string
@@ -38,7 +38,10 @@ export function registerFormatter(fieldtype: string, formatter: ValueFormatter):
 function fallback(value: unknown, field: FormatField): string {
   if (isNumericType(field.fieldtype)) {
     const n = Number(value)
-    if (Number.isFinite(n)) return formatNumber(n)
+    if (!Number.isFinite(n)) return String(value)
+    // A field's precision fixes the decimals (Float / Percent); without it - as many as needed.
+    const p = field.precision
+    return p == null ? formatNumber(n) : formatNumber(n, { minimumFractionDigits: p, maximumFractionDigits: p })
   }
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)

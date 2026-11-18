@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useId } from 'vue'
+import { computed, useId } from 'vue'
 import { usePropertyEditor } from '@/core/composables/usePropertyEditor'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Field, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
+import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 
 const { field, updateField } = usePropertyEditor()
 const { t } = useI18n()
 const id = useId()
+// Decimal places - for the fractional types (Int has none).
+const withPrecision = computed(() => ['Float', 'Currency', 'Percent'].includes(field.value.fieldtype))
 </script>
 
 <template>
@@ -35,5 +37,18 @@ const id = useId()
         />
       </Field>
     </div>
+    <Field v-if="withPrecision">
+      <FieldLabel :for="`${id}-precision`">{{ t('Precision') }}</FieldLabel>
+      <Input
+        :id="`${id}-precision`"
+        type="number"
+        min="0"
+        max="9"
+        :placeholder="field.fieldtype === 'Currency' ? '2' : ''"
+        :model-value="field.precision ?? ''"
+        @update:model-value="(v: string | number) => updateField('precision', v === '' ? undefined : Number(v))"
+      />
+      <FieldDescription>{{ t('Decimal places: shown with and rounded to on save') }}</FieldDescription>
+    </Field>
   </FieldSet>
 </template>

@@ -72,6 +72,15 @@
       "columns": 6
     },
     {
+      "fieldname": "rounding_method",
+      "label": "Rounding",
+      "fieldtype": "Select",
+      "translatable": true,
+      "options": "Half up\nHalf even",
+      "default": "Half up",
+      "description": "How numbers are rounded to a field's precision. Half up (commercial): 0.125 → 0.13. Half even (banker's): 0.125 → 0.12"
+    },
+    {
       "fieldname": "sec_registration",
       "label": "User registration",
       "fieldtype": "Section"

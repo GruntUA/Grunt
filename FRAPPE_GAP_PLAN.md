@@ -19,7 +19,7 @@
 | 2 | Права `export` / `import` / `print` / `share` у DocPermission + полагодити `report` | ✔️ (PERMISSIONS 2b) |
 | 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✔️ (PERMISSIONS 2a, 2c) |
 | 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✔️ (`feat/field-no-copy-set-once`) |
-| 5 | Точність (`precision`) і метод округлення чисел | ✅ |
+| 5 | Точність (`precision`) і метод округлення чисел | ✔️ (`feat/number-precision`, #225) |
 | 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✅ |
 | 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
@@ -119,7 +119,7 @@
   - `PROTECTED_DUPLICATE_FIELDS` лишається, але береться зі спільного джерела — `STANDARD_COLUMNS` (`grunt/metadata/compiler.py`): у списку зараз застаріле `updated_at` замість `modified_at`, а `workflow_state` дублює обробку поля стану.
 
 ### 5. Формати чисел і точність
-**Статус:** ❓
+**Статус:** ✔️ — `SystemSettings.rounding_method` (Half up — типово / Half even), `grunt.utils.numbers` і `core/numbers.ts` через десятковий запис; `precision` для Float / Currency / Percent (показ і округлення при збереженні, `coerce_field`); Currency — `Numeric(18, precision)`, diff масштабу лише для Postgres; перший день тижня з мови — #225
 - **Frappe:** `DocField.precision`, `non_negative`; SystemSettings `number_format`, `float_precision`, `currency_precision`, `rounding_method`, `time_format`, `first_day_of_the_week`; Currency `fraction`, `fraction_units`, `smallest_currency_fraction_value`, `number_format`, `symbol_on_right`; Language — формати дати/чисел, перший день тижня.
 - **Ґрунт зараз:** `date_format` у SystemSettings, `decimal_places` у Currency.
 - **Навіщо:** коректне округлення сум, відображення за локаллю.

@@ -12,6 +12,7 @@ _KEYS = {
     "languages",
     "timezone",
     "date_format",
+    "rounding_method",
     "allow_user_registration",
 }
 
