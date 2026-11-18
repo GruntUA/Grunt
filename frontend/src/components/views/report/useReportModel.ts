@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import type { DocType, DocField } from '@/types'
 import type { ListColumn } from '@/core/composables/useListColumns'
+import { useViewSetting } from '@/core/composables/useViewSetting'
 import { getFieldDef, getNonPhysicalTypeSet, isNumericType } from '@/core/fieldRegistry'
 
 /**
@@ -60,24 +61,20 @@ export interface ReportModelOptions {
 }
 
 export function useReportModel(opts: ReportModelOptions) {
-  const storageKey = computed(() => `grunt_report_v1_${opts.doctype()}`)
-
-  const _persisted = ref<PersistShape>(readPersisted(storageKey.value))
-  watch(storageKey, (k) => { _persisted.value = readPersisted(k) })
-
-  function readPersisted(key: string): PersistShape {
-    try {
-      const raw = localStorage.getItem(key)
-      return raw ? (JSON.parse(raw) as PersistShape) : {}
-    } catch {
-      return {}
-    }
-  }
+  // On the server with the user's other list settings (useViewSetting); the
+  // report keeps a working copy and hands it back on every change.
+  const doctype = opts.doctype()
+  const _stored = useViewSetting<PersistShape>(doctype, 'report', `grunt_report_v1_${doctype}`, {
+    valid: (v): v is PersistShape => typeof v === 'object' && v !== null && !Array.isArray(v),
+  })
+  const _persisted = ref<PersistShape>({ ...(_stored.value ?? {}) })
+  // The server's copy arrived (or another tab changed it).
+  watch(_stored, (v) => { _persisted.value = { ...(v ?? {}) } })
 
   function persist() {
-    try {
-      localStorage.setItem(storageKey.value, JSON.stringify(_persisted.value))
-    } catch { /* quota / private mode — non-fatal */ }
+    const shape = _persisted.value
+    const empty = shape.cols === undefined && !shape.group && !Object.keys(shape.aggs ?? {}).length
+    _stored.value = empty ? null : { ...shape }
   }
 
   // Field lookup

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Filter, X, Bookmark, Plus } from '@lucide/vue'
+import { Filter, X, Bookmark, Plus, Users } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
 import { isFilterableType } from '@/core/fieldRegistry'
@@ -13,7 +13,11 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { ListFilterReset } from '@/core/composables/useListFilterReset'
+import { savedFiltersApi, type FilterSharing, type SavedFilter } from '@/core/api/savedFilters'
+import { useAuthStore } from '@/stores/auth'
+import { useToast } from '@/core/composables/useToast'
 const props = defineProps<{
   fields: DocField[]
   doctype?: string
@@ -25,8 +29,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ change: [filters: ActiveFilter[]] }>()
-
-interface FilterPreset { name: string; filters: ActiveFilter[] }
 
 interface DraftRow {
   fieldname: string
@@ -44,44 +46,86 @@ watch(() => props.initialFilters, (v) => { activeFilters.value = v ?? [] })
 const isFilterOpen = ref(false)
 const filterAnchorEl = ref<HTMLElement | null>(null)
 
-// Saved presets
-const presetKey = computed(() => props.doctype ? `grunt_filter_presets_${props.doctype}` : null)
-const savedPresets = ref<FilterPreset[]>(loadPresets())
+// Saved filters - on the server, own or shared with roles / everyone
+// (grunt/api/v1/saved_filters.py). Only the owner deletes one.
+const auth = useAuthStore()
+const toast = useToast()
+const savedPresets = ref<SavedFilter[]>([])
 const showSaveName = ref(false)
 const presetNameInput = ref('')
+const presetSharing = ref<FilterSharing>('Nobody')
+const presetRoles = ref<string[]>([])
+// Share with one's own roles - no role directory to pick from.
+const myRoles = computed(() => (auth.user?.roles ?? []).filter((r) => r !== 'All' && r !== 'Guest'))
 
-function loadPresets(): FilterPreset[] {
-  if (!props.doctype) return []
+async function loadPresets() {
+  if (!props.doctype) return
   try {
-    const raw = localStorage.getItem(`grunt_filter_presets_${props.doctype}`)
-    return raw ? (JSON.parse(raw) as FilterPreset[]) : []
-  } catch { return [] }
+    savedPresets.value = await savedFiltersApi.list(props.doctype)
+    await migrateLocalPresets()
+  } catch {
+    savedPresets.value = []
+  }
 }
 
-function persistPresets() {
-  if (!presetKey.value) return
-  localStorage.setItem(presetKey.value, JSON.stringify(savedPresets.value))
+// Presets from before they lived on the server (localStorage) - sent up once as
+// the user's own, then the local copy goes.
+async function migrateLocalPresets() {
+  const key = `grunt_filter_presets_${props.doctype}`
+  let local: { name: string; filters: ActiveFilter[] }[] = []
+  try {
+    local = JSON.parse(localStorage.getItem(key) ?? '[]')
+  } catch { /* unreadable - drop it */ }
+  if (!Array.isArray(local) || !local.length) return
+  const have = new Set(savedPresets.value.filter((p) => p.mine).map((p) => p.title))
+  for (const p of local) {
+    if (p?.name && p.filters?.length && !have.has(p.name)) {
+      savedPresets.value.push(await savedFiltersApi.save(props.doctype!, p.name, p.filters))
+    }
+  }
+  try { localStorage.removeItem(key) } catch { /* ignore */ }
 }
 
-function savePreset() {
+watch(() => props.doctype, () => { void loadPresets() }, { immediate: true })
+
+async function savePreset() {
   const name = presetNameInput.value.trim()
   const filters = buildFiltersFromDraft()
-  if (!name || !filters.length) return
-  savedPresets.value = [...savedPresets.value.filter(p => p.name !== name), { name, filters }]
-  persistPresets()
+  if (!name || !filters.length || !props.doctype) return
+  if (presetSharing.value === 'Roles' && !presetRoles.value.length) return
+  try {
+    const saved = await savedFiltersApi.save(
+      props.doctype, name, filters, presetSharing.value, presetSharing.value === 'Roles' ? presetRoles.value : [],
+    )
+    savedPresets.value = [...savedPresets.value.filter((p) => !(p.mine && p.title === name)), saved]
+      .sort((a, b) => a.title.localeCompare(b.title))
+  } catch {
+    toast.error(t('Could not save the filter'))
+    return
+  }
   showSaveName.value = false
   presetNameInput.value = ''
+  presetSharing.value = 'Nobody'
+  presetRoles.value = []
   activeFilters.value = filters
   emitChange()
 }
 
-function applyPreset(preset: FilterPreset) {
+function applyPreset(preset: SavedFilter) {
   draftRows.value = preset.filters.map(f => ({ fieldname: f.fieldname, op: f.op, value: f.value, displayValue: f.displayValue ?? '' }))
 }
 
-function deletePreset(name: string) {
-  savedPresets.value = savedPresets.value.filter(p => p.name !== name)
-  persistPresets()
+async function deletePreset(preset: SavedFilter) {
+  try {
+    await savedFiltersApi.remove(preset.name)
+    savedPresets.value = savedPresets.value.filter((p) => p.name !== preset.name)
+  } catch {
+    toast.error(t('Could not delete the filter'))
+  }
+}
+
+function toggleRole(role: string, on: boolean) {
+  presetRoles.value = on ? [...presetRoles.value, role] : presetRoles.value.filter((r) => r !== role)
 }
 
 // Field list
@@ -293,11 +337,13 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
           <div class="flex flex-wrap gap-1">
             <Badge
               v-for="preset in savedPresets" :key="preset.name"
-              variant="outline" class="cursor-pointer pr-1 hover:bg-accent"
+              variant="outline" class="cursor-pointer hover:bg-accent" :class="preset.mine && 'pr-1'"
+              :title="preset.shared_with !== 'Nobody' ? t('Shared filter') : undefined"
               @click="applyPreset(preset)"
             >
-              {{ preset.name }}
-              <button type="button" class="hover:text-destructive" :aria-label="t('Remove')" @click.stop="deletePreset(preset.name)">
+              <Users v-if="preset.shared_with !== 'Nobody'" class="text-muted-foreground" />
+              {{ preset.title }}
+              <button v-if="preset.mine" type="button" class="hover:text-destructive" :aria-label="t('Remove')" @click.stop="deletePreset(preset)">
                 <X />
               </button>
             </Badge>
@@ -320,6 +366,14 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
                   autofocus
                   @keydown="(e: KeyboardEvent) => { if (e.key === 'Enter') savePreset(); else if (e.key === 'Escape') showSaveName = false }"
                 />
+                <Select v-model="presetSharing">
+                  <SelectTrigger class="w-36" :aria-label="t('Shared with')"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Nobody">{{ t('Only me') }}</SelectItem>
+                    <SelectItem v-if="myRoles.length" value="Roles">{{ t('My roles…') }}</SelectItem>
+                    <SelectItem value="Everyone">{{ t('Everyone') }}</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button @click="savePreset">OK</Button>
                 <Button variant="ghost" size="icon" :aria-label="t('Cancel')" @click="showSaveName = false">
                   <X />
@@ -333,6 +387,12 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
           <Button class="ml-auto" @click="applyDraft">
             {{ t('Apply Filters') }}
           </Button>
+        </div>
+        <div v-if="showSaveName && presetSharing === 'Roles'" class="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+          <label v-for="role in myRoles" :key="role" class="flex items-center gap-2 text-sm">
+            <Checkbox :model-value="presetRoles.includes(role)" @update:model-value="toggleRole(role, !!$event)" />
+            {{ role }}
+          </label>
         </div>
       </PopoverContent>
     </Popover>

@@ -45,6 +45,8 @@ export interface DocType {
   /** List order when none is chosen (backend falls back to modified_at desc). */
   sort_field?: string | null
   sort_order?: 'asc' | 'desc'
+  /** Default list columns in order ("Save as default for all"). */
+  list_columns?: string[] | null
   form_show_sidebar?: boolean
   kanban_column_field?: string | null
   calendar_date_field?: string | null

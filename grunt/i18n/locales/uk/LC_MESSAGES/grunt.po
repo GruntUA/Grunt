@@ -338,6 +338,14 @@ msgstr "Домашню теку не можна перемістити"
 msgid "A lowercase letter"
 msgstr "Мала літера"
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid ""
+"A named set of list filters - its owner's, or shared with roles or with "
+"everyone (only to apply; the owner changes and deletes it)."
+msgstr ""
+"Іменований набір фільтрів списку — власника або спільний для ролей чи для "
+"всіх (інші лише застосовують; змінює й видаляє власник)."
+
 #: grunt/grunt/workflow/guard.py
 msgid "A new document starts in the “%(state)s” state"
 msgstr "Новий документ створюється у стані «%(state)s»"
@@ -424,6 +432,10 @@ msgstr ""
 "Текстове поле зі списком name документів-попередників через кому — між ними "
 "малюються стрілки"
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "A title and at least one filter are needed"
+msgstr "Потрібні назва й хоча б один фільтр"
+
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 msgid "A tour the user has been through (instead of a checklist)"
 msgstr "Тур, який користувач пройшов (замість чеклиста)"
@@ -451,6 +463,16 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgid "A user's like on one document (the heart in list views)."
 msgstr "Позначка «подобається» користувача на документі (сердечко у списках)."
+
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid ""
+"A user's list settings per DocType and view - columns, sorting, quick "
+"filters, report layout; kept on the server so they follow the user across "
+"devices."
+msgstr ""
+"Налаштування списків користувача для кожного DocType і вигляду — колонки, "
+"сортування, швидкі фільтри, вигляд «Звіту»; зберігаються на сервері, тож "
+"переходять з користувачем між пристроями."
 
 #: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 msgid "A value cannot contain both kinds of quotes"
@@ -2170,6 +2192,10 @@ msgstr "Обрати іконку…"
 msgid "Choose at least one part to back up"
 msgstr "Оберіть хоча б одну частину для резервної копії"
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Choose at least one role"
+msgstr "Виберіть хоча б одну роль"
+
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 msgid "Choose filters"
 msgstr "Обрати фільтри"
@@ -2837,6 +2863,10 @@ msgstr "Не вдалося скопіювати"
 msgid "Could not create the page"
 msgstr "Помилка створення сторінки"
 
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not delete the filter"
+msgstr "Не вдалося видалити фільтр"
+
 #: grunt/grunt/storage/cloud/rclone.py
 msgid "Could not download rclone: checksum mismatch"
 msgstr "Не вдалося завантажити rclone: контрольна сума не збігається"
@@ -2893,6 +2923,14 @@ msgstr "Не вдалося перепризначити посилання — 
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Could not save"
 msgstr "Не вдалося зберегти"
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Could not save the defaults"
+msgstr "Не вдалося зберегти типові налаштування"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not save the filter"
+msgstr "Не вдалося зберегти фільтр"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not save the report"
@@ -3405,6 +3443,14 @@ msgstr "Колір за замовчуванням"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Default language"
 msgstr "Мова за замовчуванням"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Default list columns in order - set by “Save as default for all” in the "
+"list's settings; empty - the “In list view” fields"
+msgstr ""
+"Типові колонки списку в порядку показу — задаються кнопкою «Зберегти як "
+"типове для всіх» у налаштуваннях списку; порожньо — поля «У списку»"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -3980,6 +4026,8 @@ msgstr "Документ поширено"
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
@@ -4686,6 +4734,8 @@ msgid "Every, hours"
 msgstr "Кожні, годин"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Everyone"
@@ -5212,6 +5262,7 @@ msgstr "Фільтр:"
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 msgid "Filters"
 msgstr "Фільтри"
 
@@ -5482,7 +5533,6 @@ msgstr "Періодичність"
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Fri"
 msgstr "Пт"
 
@@ -6531,6 +6581,10 @@ msgstr "Недійсний або відсутній токен скидання
 msgid "Invalid phone format"
 msgstr "Невірний формат телефону"
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Invalid sharing"
+msgstr "Невідомий варіант доступу"
+
 #: grunt/grunt/auth/user_api.py
 msgid "Invalid theme value"
 msgstr "Недійсне значення теми"
@@ -6538,6 +6592,10 @@ msgstr "Недійсне значення теми"
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Invalid verification code"
 msgstr "Невірний код підтвердження"
+
+#: grunt/grunt/api/v1/view_settings.py
+msgid "Invalid view"
+msgstr "Невідомий вигляд"
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
 msgid "Invite users"
@@ -7089,6 +7147,10 @@ msgstr "Посилання на адреси внутрішньої мережі
 msgid "List"
 msgstr "Список"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "List columns"
+msgstr "Колонки списку"
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "List report options"
 msgstr "Параметри звіту-списку"
@@ -7334,6 +7396,10 @@ msgstr "Керування робочими просторами й сторін
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
 msgstr "Обов'язкове, якщо (Mandatory Depends On)"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Mandatory depends on"
+msgstr "Обов'язкове, якщо"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Manual"
@@ -7593,7 +7659,6 @@ msgstr "Модулі"
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Mon"
 msgstr "Пн"
 
@@ -7683,6 +7748,10 @@ msgstr "Моє місце"
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "My reminders"
 msgstr "Мої нагадування"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "My roles…"
+msgstr "Моїм ролям…"
 
 #: grunt/grunt/cli/doctype.py
 #: grunt/grunt/monitoring/templates/system_health.html
@@ -8181,6 +8250,10 @@ msgstr "Без значення"
 msgid "No worker is connected: background jobs are not running."
 msgstr "Жоден воркер не підключений — фонові задачі не виконуються."
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Nobody"
+msgstr "Нікому"
+
 #: grunt/grunt/permissions/warnings.py
 msgid ""
 "Nobody holds these roles - their rules give access to no one: %(roles)s"
@@ -8654,6 +8727,10 @@ msgstr "Завантажити можна лише посилання http:// і
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue
 msgid "Only images can be used here"
 msgstr "Тут можна використати лише зображення"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Only me"
+msgstr "Лише мені"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Only one document of this type (settings, profile)"
@@ -9685,6 +9762,10 @@ msgstr "Читання"
 msgid "Read Only (recommended)"
 msgstr "Read Only (рекомендовано)"
 
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
+msgid "Read Only Depends On"
+msgstr "Лише для читання, якщо (Read Only Depends On)"
+
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Read by recipient at"
 msgstr "Прочитано отримувачем (час)"
@@ -9706,9 +9787,21 @@ msgstr "Запитано підтвердження прочитання"
 msgid "Read-only"
 msgstr "Лише читання"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only depends on"
+msgstr "Лише для читання, якщо"
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Read-only fields (comma-separated)"
 msgstr "Поля лише для читання (через кому)"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Read-only when the condition holds (JS, checked in the form), e.g. "
+"eval:doc.status == 'Approved'"
+msgstr ""
+"Лише для читання, поки умова виконується (JS, перевіряється у формі), напр. "
+"eval:doc.status == 'Approved'"
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "Reading file structure…"
@@ -10179,6 +10272,10 @@ msgstr "Обов'язкові поля відсутні або порожні: %
 msgid "Required fields not mapped:"
 msgstr "Обов'язкові поля без прив'язки:"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Required when the condition holds (JS, checked in the form)"
+msgstr "Обов'язкове, поки умова виконується (JS, перевіряється у формі)"
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Resend"
 msgstr "Надіслати ще раз"
@@ -10354,6 +10451,10 @@ msgstr "Форматований текст"
 msgid "Role"
 msgstr "Роль"
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Role names, when shared with roles"
+msgstr "Назви ролей, якщо доступ для ролей"
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
@@ -10371,6 +10472,7 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 msgid "Role, everyone, end date…"
 msgstr "Роль, усі, строк…"
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -10662,7 +10764,6 @@ msgid "Sample data"
 msgstr "Приклад даних"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sat"
 msgstr "Сб"
 
@@ -10684,6 +10785,10 @@ msgstr "Зберегти й закрити"
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 msgid "Save and open"
 msgstr "Зберегти й відкрити"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Save as default for all"
+msgstr "Зберегти як типове для всіх"
 
 #: grunt/frontend/src/components/views/FilterBar.vue
 msgid "Save as preset"
@@ -10730,6 +10835,14 @@ msgstr "Збережіть ваші резервні коди! Вони відо
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Saved"
 msgstr "Збережено"
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Saved as the default for everyone"
+msgstr "Збережено як типове для всіх"
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Saved filter"
+msgstr "Збережений фільтр"
 
 #: grunt/frontend/src/components/views/FilterBar.vue
 msgid "Saved filters"
@@ -11286,6 +11399,7 @@ msgstr "Налаштуйте звіт"
 msgid "Set value"
 msgstr "Встановити значення"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue
@@ -11337,6 +11451,15 @@ msgstr "Поділився(-лась)"
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Shared With"
 msgstr "Спільний доступ"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared filter"
+msgstr "Спільний фільтр"
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared with"
+msgstr "Кому доступно"
 
 #: grunt/grunt/notification/records/notification/document_shared/document_shared.json
 msgid "Shared with you: %(target)s"
@@ -12053,7 +12176,6 @@ msgid "Summary"
 msgstr "Підсумок"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sun"
 msgstr "Нд"
 
@@ -12838,6 +12960,10 @@ msgstr "Service worker не зберіг відповідь API — офлайн
 msgid "The service worker works only over HTTPS (or localhost)."
 msgstr "Service worker працює лише через HTTPS (або localhost)."
 
+#: grunt/grunt/api/v1/view_settings.py
+msgid "The settings are too large"
+msgstr "Налаштування завеликі"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The shell is cached after the first page load with the network."
 msgstr "Оболонка зберігається після першого відкриття сторінки з мережею."
@@ -13103,7 +13229,6 @@ msgid "Three-letter currency code (UAH, USD, EUR)"
 msgstr "Трибуквений код валюти (UAH, USD, EUR)"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Thu"
 msgstr "Чт"
 
@@ -13194,6 +13319,7 @@ msgstr "Час виконання"
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Title"
@@ -13351,7 +13477,6 @@ msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Tue"
 msgstr "Вт"
 
@@ -13788,6 +13913,10 @@ msgstr "Роль користувача"
 msgid "User session"
 msgstr "Сесія користувача"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "User view settings"
+msgstr "Налаштування вигляду користувача"
+
 #: grunt/grunt/auth/user_api.py
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
@@ -13935,6 +14064,7 @@ msgstr "Вертикальний текст, згори донизу"
 msgid "Video URL"
 msgstr "Посилання на відео"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "View"
@@ -14118,7 +14248,6 @@ msgstr "Зображення сайту краще лишати на серве�
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Wed"
 msgstr "Ср"
 
@@ -15725,6 +15854,10 @@ msgstr "«%(field)s» не є полем %(doctype)s, яке можна відс
 msgid "“%(fields)s” can't be changed once set"
 msgstr "«%(fields)s» не можна змінити після встановлення"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "“*” - not tied to a DocType (recent documents)"
+msgstr "«*» — не прив’язано до DocType (недавні документи)"
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“Event recipients” only work for a notification on a code event"
 msgstr "«Отримувачі з події» працюють лише в сповіщенні про подію з коду"
@@ -16190,30 +16323,6 @@ msgstr "В роботі"
 msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Mandatory depends on"
-msgstr "Обов'язкове, якщо"
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Required when the condition holds (JS, checked in the form)"
-msgstr "Обов'язкове, поки умова виконується (JS, перевіряється у формі)"
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Read-only depends on"
-msgstr "Лише для читання, якщо"
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid ""
-"Read-only when the condition holds (JS, checked in the form), e.g. "
-"eval:doc.status == 'Approved'"
-msgstr ""
-"Лише для читання, поки умова виконується (JS, перевіряється у формі), напр. "
-"eval:doc.status == 'Approved'"
-
-#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
-msgid "Read Only Depends On"
-msgstr "Лише для читання, якщо (Read Only Depends On)"
 
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "

@@ -10,7 +10,7 @@ import AppCard from '@/components/desk/AppCard.vue'
 import OnboardingChecklists from '@/components/desk/OnboardingChecklists.vue'
 import ActivityStream from '@/components/dashboard/ActivityStream.vue'
 import MyWorkPanel from '@/components/dashboard/MyWorkPanel.vue'
-import { readRecent, looksLikeId, type RecentDoc } from '@/core/recentDocs'
+import { readRecent, looksLikeId, syncRecent, type RecentDoc } from '@/core/recentDocs'
 import { useColorMode, type Theme } from '@/core/composables/useColorMode'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -80,8 +80,11 @@ const totalDocsCount = computed(() => {
 onMounted(async () => {
   await appStore.loadAll()
 
-  // Read history, dropping entries whose workspace is no longer installed.
-  recentDocs.value = readRecent(appStore.workspaces.map(w => w.name))
+  // Read history, dropping entries whose workspace is no longer installed;
+  // then the same once merged with the server's (other devices).
+  const workspaces = appStore.workspaces.map(w => w.name)
+  recentDocs.value = readRecent(workspaces)
+  void syncRecent().then(() => { recentDocs.value = readRecent(workspaces) })
 
   // Fire all count requests at once instead of walking workspaces serially -
   // they are independent, so serial awaits only added round-trips.

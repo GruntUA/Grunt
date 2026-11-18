@@ -52,6 +52,7 @@ const def: ViewDefinition = {
     sortableColumns: ctx.extras.sortableColumns,
     defaultSortKey: ctx.extras.defaultSortKey,
     defaultSortOrder: ctx.extras.defaultSortOrder,
+    saveDefaults: ctx.extras.saveDefaults,
   }),
 
   mountToolbarEvents: (ctx) => ({

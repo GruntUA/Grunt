@@ -29,6 +29,7 @@ import type { DocType, QuickFilter } from '@/types'
 import { getRegisteredViews, getViewDef } from '@/core/viewRegistry'
 import { useDialog } from '@/core/composables/useDialog'
 import { useToast } from '@/core/composables/useToast'
+import { viewSettingsApi } from '@/core/api/viewSettings'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import QuickEntryDialog from '@/components/views/QuickEntryDialog.vue'
 import FormTour from '@/components/views/form/FormTour.vue'
@@ -124,7 +125,30 @@ const colState = useListColumns(
   props.doctype,
   () => (dt.value ? [...dt.value.fields, ...systemListFields()] : []),
   () => dt.value?.title_field,
+  () => dt.value?.list_columns,
 )
+
+// "Save as default for all": the current columns, sort, view and quick filters
+// become the DocType's own (exported with the app in developer mode); the
+// user's own settings are dropped, so they see the new defaults.
+async function saveListDefaults() {
+  try {
+    await viewSettingsApi.saveListDefaults(props.doctype, {
+      columns: colState.visibleKeys.value,
+      ...(sortKey.value && { sort_field: sortKey.value, sort_order: sortOrder.value }),
+      default_view: viewMode.value,
+      ...(quickFilterPrefs.selectedFields.value && { quick_filters: quickFilterPrefs.selectedFields.value }),
+    })
+    dtStore.invalidate(props.doctype)
+    dt.value = await dtStore.get(props.doctype)
+    colState.resetCols()
+    quickFilterPrefs.reset()
+    applySort('')
+    toast.success(t('Saved as the default for everyone'))
+  } catch {
+    toast.error(t('Could not save the defaults'))
+  }
+}
 
 const { data, isLoading, isFetching, meta, rows, exportCtx } = useDocTypeListData({
   doctype: props.doctype,
@@ -414,6 +438,7 @@ void (async () => {
         sortableColumns: colState.allAvailableColumns.value,
         defaultSortKey: dt?.sort_field || 'modified_at',
         defaultSortOrder: dt?.sort_field ? (dt.sort_order ?? 'desc') : 'desc',
+        saveDefaults: auth.hasPerm('grunt.manage_doctypes') ? saveListDefaults : undefined,
       }"
       @update:group-by="setGroupBy"
       @sort="applySort"
