@@ -68,8 +68,9 @@ def get_sources(*, force: bool = False) -> list[dict[str, Any]]:
     global _cache
     if not force and _cache is not None and (time.monotonic() - _cache[0]) < _CACHE_TTL:
         return _cache[1]
-    _cache = (time.monotonic(), extract_all())
-    return _cache[1]
+    rows = extract_all()
+    _cache = (time.monotonic(), rows)  # the TTL starts once the scan is done
+    return rows
 
 
 def invalidate() -> None:
