@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.15.0 - 2026-11-18
+
+### Features
+
+- **workflow:** "Awaiting me" - documents the user can move on now, in My work
+- **workflow:** no self-approval, confirmation, state message, on_transition scripts
+
+### Fixes
+
+- **workflow:** review of #217 - NULL on old rows, masked owner, script headlines
+
+### Other
+
+- FRAPPE_GAP statuses for done items; merge the translation catalogs
+
 ## v0.14.1 - 2026-11-18
 
 ### Fixes
