@@ -41,3 +41,53 @@ async def test_none_resets_and_unknown_doctype_is_refused(ctx, db_session, engin
         with pytest.raises(HTTPException) as excinfo:
             await save_view_settings("NoSuchDocType", "columns", [])
     assert excinfo.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_save_list_defaults(ctx):
+    from grunt.api.v1.meta import get_doctype, save_doctype
+    from grunt.api.v1.view_settings import save_list_defaults
+
+    await save_doctype(
+        doctype_data={
+            "name": "DefaultsThing",
+            "label": "Defaults thing",
+            "module": "crm",  # not exported to an app's files in tests
+            "__is_new": True,
+            "fields": [
+                {"fieldname": "title", "label": "Title", "fieldtype": "Data", "in_list_view": True},
+                {
+                    "fieldname": "status",
+                    "label": "Status",
+                    "fieldtype": "Data",
+                    "in_quick_filter": True,
+                },
+                {"fieldname": "owner_name", "label": "Owner", "fieldtype": "Data"},
+            ],
+        }
+    )
+    await ctx.db._session().commit()
+
+    await save_list_defaults(
+        "DefaultsThing",
+        columns=["owner_name", "title", "no_such_field", "modified_at"],
+        sort_field="title",
+        sort_order="asc",
+        default_view="kanban",
+        quick_filters=["owner_name"],
+    )
+    meta = await get_doctype("DefaultsThing", raw=True)
+    assert meta["list_columns"] == ["owner_name", "title", "modified_at"]  # unknown dropped
+    assert (meta["sort_field"], meta["sort_order"], meta["default_view"]) == (
+        "title",
+        "asc",
+        "kanban",
+    )
+    quick = {f["fieldname"]: f.get("in_quick_filter") for f in meta["fields"]}
+    assert quick["owner_name"] is True and not quick["status"]
+
+    # Only what is given changes.
+    await save_list_defaults("DefaultsThing", sort_order="desc")
+    meta = await get_doctype("DefaultsThing", raw=True)
+    assert meta["list_columns"] == ["owner_name", "title", "modified_at"]
+    assert meta["sort_order"] == "desc"

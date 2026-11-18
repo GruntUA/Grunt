@@ -11,6 +11,7 @@ import {
   Plus,
   X,
   RotateCcw,
+  Save,
   Columns3,
   Rows3,
   ArrowUpDown,
@@ -54,6 +55,8 @@ const props = defineProps<{
   sortableColumns: ListColumn[]
   defaultSortKey?: string
   defaultSortOrder?: 'asc' | 'desc'
+  /** "Save as default for all" - given only to someone who may change the DocType. */
+  saveDefaults?: () => Promise<void>
 }>()
 
 const emit = defineEmits(['update:groupBy', 'sort'])
@@ -144,6 +147,16 @@ function setSortOrder(order: 'asc' | 'desc') {
   if (!key || effectiveSortOrder.value === order) return
   emit('sort', key)
   if (!props.sortKey && order === 'desc') emit('sort', key)
+}
+
+const savingDefaults = ref(false)
+async function onSaveDefaults() {
+  savingDefaults.value = true
+  try {
+    await props.saveDefaults?.()
+  } finally {
+    savingDefaults.value = false
+  }
 }
 
 function resetAll() {
@@ -354,10 +367,16 @@ const rowClass = 'group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-
       </Tabs>
 
       <DialogFooter class="border-t px-6 py-4 sm:justify-between">
-        <Button variant="ghost" :disabled="!isCustomized" class="gap-1.5" @click="resetAll">
-          <RotateCcw class="size-4" />
-          {{ t('Reset to default') }}
-        </Button>
+        <div class="flex flex-wrap gap-1">
+          <Button variant="ghost" :disabled="!isCustomized" class="gap-1.5" @click="resetAll">
+            <RotateCcw class="size-4" />
+            {{ t('Reset to default') }}
+          </Button>
+          <Button v-if="saveDefaults" variant="ghost" class="gap-1.5" :disabled="savingDefaults" @click="onSaveDefaults">
+            <Save class="size-4" />
+            {{ t('Save as default for all') }}
+          </Button>
+        </div>
         <DialogClose as-child>
           <Button>{{ t('Done') }}</Button>
         </DialogClose>

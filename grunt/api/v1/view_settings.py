@@ -16,8 +16,10 @@ import json
 from typing import Any
 
 from grunt.api.context import whitelist
+from grunt.api.v1.meta import get_doctype, save_doctype
 from grunt.errors import not_found, unprocessable
 from grunt.i18n import _
+from grunt.metadata.compiler import STANDARD_COLUMNS
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.document.api import documents
 
@@ -76,3 +78,34 @@ async def save_view_settings(doctype: str, view: str, settings: Any = None) -> N
         await documents.new_doc(
             _DOCTYPE, {"ref_doctype": doctype, "view": view, "settings": settings}
         )
+
+
+@whitelist(perm="grunt.manage_doctypes")
+async def save_list_defaults(
+    doctype: str,
+    columns: list[str] | None = None,
+    sort_field: str | None = None,
+    sort_order: str | None = None,
+    default_view: str | None = None,
+    quick_filters: list[str] | None = None,
+) -> dict[str, Any]:
+    """ "Save as default for all": the current list settings become the DocType's
+    own - ``list_columns``, ``sort_field`` / ``sort_order``, ``default_view`` and
+    the fields' ``in_quick_filter``. Stored like any DocType change (exported to
+    the app's file in developer mode). A user's own settings still win; their
+    "Reset" goes back to these. Only the arguments given change."""
+    data = await get_doctype(doctype, raw=True)
+    known = {f["fieldname"] for f in data.get("fields") or []} | set(STANDARD_COLUMNS)
+    if columns is not None:
+        data["list_columns"] = [c for c in columns if c in known] or None
+    if sort_field is not None:
+        data["sort_field"] = sort_field if sort_field in known else None
+    if sort_order in ("asc", "desc"):
+        data["sort_order"] = sort_order
+    if default_view is not None:
+        data["default_view"] = default_view or None
+    if quick_filters is not None:
+        chosen = set(quick_filters)
+        for field in data.get("fields") or []:
+            field["in_quick_filter"] = field["fieldname"] in chosen
+    return await save_doctype(data)

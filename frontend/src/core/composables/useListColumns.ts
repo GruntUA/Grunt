@@ -28,7 +28,13 @@ export function systemListFields(): DocField[] {
   ]
 }
 
-export function useListColumns(doctype: string, fields: () => DocField[], titleField?: () => string | undefined) {
+export function useListColumns(
+  doctype: string,
+  fields: () => DocField[],
+  titleField?: () => string | undefined,
+  /** The DocType's own default columns ("Save as default for all"), in order. */
+  listColumns?: () => string[] | null | undefined,
+) {
   // The user's columns, on the server (localStorage caches them) - null: the defaults.
   const _savedKeys = useViewSetting<string[]>(doctype, 'columns', `grunt_columns_v2_${doctype}`, {
     valid: (v): v is string[] => Array.isArray(v) && v.every((k) => typeof k === 'string'),
@@ -41,8 +47,10 @@ export function useListColumns(doctype: string, fields: () => DocField[], titleF
       .map(f => ({ key: f.fieldname, label: f.label, sortable: true }))
   )
 
-  // Default visible = in_list_view fields
+  // Default visible = the DocType's list_columns, else the in_list_view fields
   const defaultKeys = computed<string[]>(() => {
+    const own = listColumns?.()
+    if (own?.length) return own
     let cols = fields().filter(f => f.in_list_view && !f.hidden).map(f => f.fieldname)
     if (!cols.length) cols = ['name']
 

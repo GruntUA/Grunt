@@ -112,4 +112,9 @@ describe('useListColumns', () => {
       expect(isVisible('notes')).toBe(true)
     })
   })
+
+  it("starts from the DocType's own list_columns when it has them", () => {
+    const { visibleKeys } = useListColumns(`${doctype}_own`, () => [titleField, statusField, extraField], undefined, () => ['notes', 'title'])
+    expect(visibleKeys.value).toEqual(['notes', 'title'])
+  })
 })

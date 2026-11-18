@@ -19,8 +19,8 @@
 | 2 | Права `export` / `import` / `print` / `share` у DocPermission + полагодити `report` | ✔️ (PERMISSIONS 2b) |
 | 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✔️ (PERMISSIONS 2a, 2c) |
 | 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✔️ (`feat/field-no-copy-set-once`) |
-| 5 | Точність (`precision`) і метод округлення чисел | ✔️ (`feat/number-precision`, #225) |
-| 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✅ |
+| 5 | Точність (`precision`) і метод округлення чисел | ✔️ (#226, #225) |
+| 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✔️ (`feat/list-settings-server`) |
 | 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
 | 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ❓ |
@@ -131,7 +131,7 @@
   - перший день тижня брати з мови (`uk` → понеділок); перевірити, чи `Calendar.vue` зараз не починає з неділі (не задано `weekStartsOn`).
 
 ### 6. Налаштування списку на сервері
-**Статус:** ❓
+**Статус:** ✔️ — `UserViewSettings` (колонки, вигляд/сортування/групування/розмір сторінки, швидкі фільтри, «Звіт», недавні документи — `ref_doctype` `*`), `localStorage` — кеш (`useViewSetting`); `SavedFilter` (нікому / ролям / всім); «Зберегти як типове для всіх» → `DocType.list_columns`, `sort_field`/`sort_order`, `default_view`, `in_quick_filter`. Групування й розмір сторінки типовими для DocType не зберігаються
 - **Frappe:** List View Settings, List Filter — збережені на сервері, з можливістю поділитися.
 - **Ґрунт зараз:** колонки та пресети фільтрів у `localStorage` (`useListColumns.ts`, `FilterBar.vue`) — не переходять між пристроями, ними не поділитися.
 - **Навіщо:** користувач працює з кількох пристроїв; керівник налаштовує вигляд для відділу.

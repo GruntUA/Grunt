@@ -312,6 +312,12 @@
       "depends_on": "eval:doc.sort_field"
     },
     {
+      "fieldname": "list_columns",
+      "label": "List columns",
+      "fieldtype": "JSON",
+      "description": "Default list columns in order - set by “Save as default for all” in the list's settings; empty - the “In list view” fields"
+    },
+    {
       "fieldname": "sec_status_config",
       "label": "Statuses",
       "fieldtype": "Section"

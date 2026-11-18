@@ -21,4 +21,18 @@ export const viewSettingsApi = {
       settings,
     })
   },
+
+  /** "Save as default for all" - the DocType's own list defaults (manage_doctypes). */
+  saveListDefaults: async (
+    doctype: string,
+    defaults: {
+      columns?: string[]
+      sort_field?: string
+      sort_order?: 'asc' | 'desc'
+      default_view?: string
+      quick_filters?: string[]
+    },
+  ): Promise<void> => {
+    await client.post('/api/v1/method/grunt.api.v1.view_settings.save_list_defaults', { doctype, ...defaults })
+  },
 }

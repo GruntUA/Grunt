@@ -342,6 +342,9 @@ class DocType(BaseModel):
     default_view: str | None = None  # "list" | "kanban" | "calendar" | "gantt" | "tree" | "map"
     sort_field: str | None = None  # list order when the request sends none (else modified_at)
     sort_order: Literal["asc", "desc"] = "desc"
+    # The list's default columns, in order - set by "Save as default for all"
+    # (grunt.api.v1.view_settings.save_list_defaults); none - the in_list_view fields.
+    list_columns: list[str] | None = None
     form_show_sidebar: bool = True  # False -> hide the document detail sidebar on the form
     kanban_column_field: str | None = None  # Select field grouping the kanban columns
     map_view: DocTypeMapView | None = None
