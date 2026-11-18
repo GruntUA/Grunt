@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.14.0 - 2026-11-18
+
+### Features
+
+- **api:** document names may contain `/` (#205)
+- **scripting:** client scripts may export their hooks (#203)
+
+### Fixes
+
+- **api-keys:** remove support for bare SHA-256 keys; update related messages and tests
+- **errors:** debug responses point to the ErrorLog instead of carrying the traceback
+- **quality:** close the two alerts from review fixes; code-scanning plan steps 3-4 done
+
+### Other
+
+- **code-scanning:** deferred alerts closed by code, develop down to #1126
+- **errors:** take the ValidationError from pytest.raises (CodeQL #1129)
+- rewrite the code CodeQL misreads (match captures, PEP 695, Jinja `%`)
+- **code-scanning:** step 5 - CodeQL ratchet ruleset on develop and master
+- close CodeQL step 4 notes in the core (#202)
+
 ## v0.13.0 - 2026-11-18
 
 ### Fixes
