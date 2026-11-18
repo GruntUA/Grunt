@@ -10,6 +10,7 @@ from grunt.document.base import Document
 from grunt.errors import forbidden, throw
 from grunt.i18n import _
 from grunt.permissions.perms import has_perm
+from grunt.permissions.roles import get_roles
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.api import documents
 
@@ -25,6 +26,27 @@ class ApiKey(Document):
     last_used_at: datetime | None
     expires_at: datetime | None
     allowed_ips: str | None
+    read_only: bool | None
+    roles: list[dict[str, Any]] | None
+
+    async def validate(self) -> None:
+        """A key acts with some of its user's roles, never others - one the
+        user doesn't hold would hand the key more than the user has."""
+        wanted = [str(r["role_name"]) for r in self.roles or [] if r.get("role_name")]
+        if not wanted:
+            return
+        held = set(await get_roles(await self._user_email()))
+        foreign = sorted({r for r in wanted if r not in held})
+        if foreign:
+            throw(
+                _("The key's user doesn't hold these roles: %(roles)s")
+                % {"roles": ", ".join(foreign)},
+                "VALIDATION_ERROR",
+            )
+
+    async def _user_email(self) -> str:
+        email = await self.grunt.db.get_value("User", self.user_id, "email")
+        return str(email or self.user_id)
 
 
 @whitelist()
@@ -32,6 +54,8 @@ async def create_api_key(
     label: str,
     expires_at: datetime | None = None,
     allowed_ips: str | None = None,
+    read_only: bool = False,
+    roles: list[str] | None = None,
     user: User | None = None,
 ) -> dict[str, Any]:
     """Create a new API key for the current user.
@@ -56,6 +80,8 @@ async def create_api_key(
             "is_active": True,
             "expires_at": expires_at,
             "allowed_ips": allowed_ips or "",
+            "read_only": read_only,
+            "roles": [{"role_name": r} for r in roles or []],
         },
     )
 

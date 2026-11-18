@@ -21,7 +21,7 @@ from grunt.auth.doctypes.User.user import User
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 from grunt.auth.users import get_user_by_id
 from grunt.db.api import GruntDB
-from grunt.local import system_context
+from grunt.local import READ_ONLY_KEY, system_context
 from grunt.log import log
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -78,7 +78,7 @@ async def authenticate_api_key(
         rows = await _db.get_all(
             "ApiKey",
             filters={"key_prefix": key_prefix, "is_active": True},
-            fields=["name", "key_hash", "user_id", "expires_at", "allowed_ips"],
+            fields=["name", "key_hash", "user_id", "expires_at", "allowed_ips", "read_only"],
             limit=5,
         )
 
@@ -124,6 +124,8 @@ async def authenticate_api_key(
     if user is None or not user.is_active:
         return None
 
+    await _limit_to_key(user, matched_row, session)
+
     # Update last_used_at (best-effort, don't fail the request)
     try:
         async with system_context(session):
@@ -133,3 +135,26 @@ async def authenticate_api_key(
 
     log.info("api_key.authenticated", prefix=key_prefix, user=user.email)
     return user
+
+
+async def _limit_to_key(user: User, key: dict, session: AsyncSession) -> None:
+    """What the key narrows its user to (PERMISSIONS_PLAN step 7): only the
+    key's roles out of the user's (scopes kept); read-only - no writes. The
+    user's own data isn't touched: the request's user is a copy."""
+    async with system_context(session):
+        roles = await _db.get_all(
+            "ApiKeyRole",
+            filters={"parent_doctype": "ApiKey", "parent_name": key["name"]},
+            pluck="role_name",
+            limit=None,
+        )
+    if not roles and not key.get("read_only"):
+        return
+    user.data = dict(user.data)
+    if roles:
+        wanted = set(roles)
+        rows = [r for r in user.data.get("role_rows") or [] if r.get("role_name") in wanted]
+        user.data["role_rows"] = rows
+        user.data["roles"] = [r for r in user.data.get("roles") or [] if r in wanted]
+    if key.get("read_only"):
+        user.data[READ_ONLY_KEY] = True

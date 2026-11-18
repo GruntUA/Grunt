@@ -115,6 +115,18 @@ def session_role_rows() -> list[dict[str, Any]]:
     return active_role_rows(rows)
 
 
+#: ``User.data`` key - the request authenticated with a read-only API key.
+READ_ONLY_KEY = "_api_read_only"
+
+
+def session_read_only() -> bool:
+    """The user the context runs as came with a read-only API key - nothing
+    may be created, changed or deleted in this request."""
+    user = _user_ctx.get()
+    data = getattr(user, "data", None)
+    return bool(isinstance(data, dict) and data.get(READ_ONLY_KEY))
+
+
 def session_roles() -> list[str]:
     """Role names of the user the context runs as (``[]`` without one)."""
     return list(dict.fromkeys(r["role_name"] for r in session_role_rows()))

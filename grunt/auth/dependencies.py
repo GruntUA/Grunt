@@ -14,7 +14,7 @@ from grunt.auth.users import get_auth_context_user
 from grunt.db.session import get_engine, get_session
 from grunt.i18n import _
 from grunt.i18n.middleware import apply_user_language
-from grunt.local import _messages_ctx, _user_ctx, bind, unbind
+from grunt.local import READ_ONLY_KEY, _messages_ctx, _user_ctx, bind, unbind
 from grunt.log import log
 lazy from grunt.auth.api_key_service import authenticate_api_key
 lazy from grunt.auth.doctypes.UserSession.user_session import client_ip
@@ -59,6 +59,12 @@ async def current_user(
         user = await authenticate_api_key(api_key_header, session, client_ip(request))
         if user is None:
             raise credentials_exception
+        # A read-only key reads: any other method is refused before it runs.
+        if user.data.get(READ_ONLY_KEY) and request.method not in ("GET", "HEAD", "OPTIONS"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=_("This API key may only read"),
+            )
 
         _user_ctx.set(user)
         apply_user_language(request, user.data.get("language"))
