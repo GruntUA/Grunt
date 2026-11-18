@@ -85,15 +85,14 @@ async def test_api_keeps_json(monkeypatch):
 
 
 async def test_validation_error_in_debug_is_logged_and_referenced(monkeypatch, _error_log):
-    from pydantic import BaseModel
+    from pydantic import BaseModel, ValidationError
 
     class Model(BaseModel):
         n: int
 
-    try:
+    with pytest.raises(ValidationError) as caught:
         Model(n="secret-input")  # pyright: ignore[reportArgumentType]
-    except Exception as exc:
-        validation = exc
+    validation = caught.value
     monkeypatch.setattr(settings, "debug", True)
     resp = await errors._validation_error(_request("/api/v1/x", "application/json"), validation)
     data = json.loads(bytes(resp.body))
