@@ -1191,8 +1191,13 @@ msgstr ""
 msgid "Ask “Are you sure?” before applying"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assign"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign only on these days (site time zone); empty - every day"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
@@ -1256,6 +1261,14 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assignment Rule"
+msgstr ""
+
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "Assignment rule"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Assignment rule user"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -1560,6 +1573,15 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue
 msgid "Barcode not found in image."
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Based on Field"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
+msgid "Based on Field needs the user field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -2254,6 +2276,11 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Close when (JSON)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Closed"
 msgstr ""
@@ -3250,6 +3277,10 @@ msgstr ""
 msgid "Days in each compared period."
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Days of the week"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Dead"
 msgstr ""
@@ -4081,6 +4112,10 @@ msgstr ""
 msgid "Due date"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Due date from"
+msgstr ""
+
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "Dumping the database"
 msgstr ""
@@ -4589,11 +4624,20 @@ msgid "Every, hours"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/frontend/src/components/views/FilterBar.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Everyone"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Everyone - every user below; Round Robin - one by one in turn; Load "
+"Balancing - the one with the fewest open assignments; Based on Field - the "
+"user in a field of the document"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
@@ -4880,10 +4924,18 @@ msgstr ""
 msgid "Fieldname for the event label (default: name)"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Date on the document - the assignment's due date"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid ""
 "Fieldname of a Date/Datetime field in the copy to set to the scheduled date "
 "(e.g. posting_date)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Link to User on the document"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
@@ -5354,6 +5406,10 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "Fri"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Friday"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
@@ -6627,6 +6683,10 @@ msgstr ""
 msgid "Last activity"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Last assigned"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Last checked"
 msgstr ""
@@ -6921,6 +6981,11 @@ msgstr ""
 msgid ""
 "Lists the sets in the storage; the chosen one is downloaded to the server "
 "and appears in Backups, ready for «grunt db restore»."
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Load Balancing"
 msgstr ""
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue
@@ -7403,6 +7468,10 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "Mon"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Monday"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -9164,6 +9233,7 @@ msgid ""
 "apps/grunt; on a new server also `playwright install-deps chromium` as root."
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Priority"
@@ -10115,6 +10185,21 @@ msgstr ""
 msgid "Root folder"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Round Robin"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid ""
+"Round robin: how many turns in a row; load balancing: share of the work (2 -"
+" twice as much)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Round robin: whose turn was last"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Rounding"
 msgstr ""
@@ -10183,6 +10268,12 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Rule ID"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Rules are tried from the highest priority; the first one that matches "
+"assigns (and none does while its assignment is open)"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -10373,6 +10464,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "Sat"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Saturday"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
@@ -11742,6 +11837,10 @@ msgstr ""
 msgid "Sun"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Sunday"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Superscript"
 msgstr ""
@@ -12435,6 +12534,10 @@ msgstr ""
 msgid "The rule for “%(role)s” grants no action."
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "The rule that made this assignment - it also cancels or closes it"
+msgstr ""
+
 #: grunt/grunt/permissions/warnings.py
 msgid "The rules were changed on this site and differ from the app's."
 msgstr ""
@@ -12584,7 +12687,7 @@ msgid "The version does not belong to this document"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
-msgid "The “Filters (JSON)” field must contain valid JSON."
+msgid "The “%(field)s” field must contain valid JSON."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -12733,6 +12836,10 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgid "Thumbnail"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Thursday"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
@@ -12969,6 +13076,10 @@ msgstr ""
 msgid "Tue"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Tuesday"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue
 msgid "Turn into"
 msgstr ""
@@ -13051,6 +13162,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Unassign"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Unassign when (JSON)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Unassigned"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -13351,6 +13470,7 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -13372,6 +13492,10 @@ msgstr ""
 
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgid "User Agent"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "User field"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
@@ -13405,6 +13529,10 @@ msgstr ""
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_inspector.py
 msgid "User “%(user)s” not found"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Users"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -13718,6 +13846,10 @@ msgstr ""
 msgid "Wed"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Wednesday"
+msgstr ""
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Weekly"
 msgstr ""
@@ -13728,6 +13860,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Weeks"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Weight"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -13779,6 +13915,18 @@ msgid ""
 "channels"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is cancelled - "
+"e.g. {\"status\": \"Cancelled\"}"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is closed as "
+"done - e.g. {\"status\": \"Answered\"}"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
 msgstr ""
@@ -13825,6 +13973,12 @@ msgstr ""
 msgid ""
 "Who changed access and when: user roles and their scopes, role permissions, "
 "DocType rules, shares and public links. Written by the system, read only."
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Who is assigned; empty - the holders of the role below (within their role "
+"scope)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -15580,6 +15734,9 @@ msgstr ""
 
 #~ msgid ""
 #~ "The restriction applies to any DocType with a Link field to «Restrict by»."
+#~ msgstr ""
+
+#~ msgid "The “Filters (JSON)” field must contain valid JSON."
 #~ msgstr ""
 
 #~ msgid "This user permission already exists"

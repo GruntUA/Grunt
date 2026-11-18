@@ -20,6 +20,13 @@
       "help": "DocType для якого буде застосовуватися це правило"
     },
     {
+      "fieldname": "priority",
+      "label": "Priority",
+      "fieldtype": "Int",
+      "default": 0,
+      "description": "Rules are tried from the highest priority; the first one that matches assigns (and none does while its assignment is open)"
+    },
+    {
       "fieldname": "section_condition",
       "label": "Conditions",
       "fieldtype": "Section"
@@ -33,23 +40,83 @@
       "default": "{}"
     },
     {
+      "fieldname": "days",
+      "label": "Days of the week",
+      "fieldtype": "MultiSelect",
+      "translatable": true,
+      "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday",
+      "description": "Assign only on these days (site time zone); empty - every day"
+    },
+    {
+      "fieldname": "unassign_condition",
+      "label": "Unassign when (JSON)",
+      "fieldtype": "Code",
+      "options": "json",
+      "description": "When the document matches, the open assignment of this rule is cancelled - e.g. {\"status\": \"Cancelled\"}"
+    },
+    {
+      "fieldname": "close_condition",
+      "label": "Close when (JSON)",
+      "fieldtype": "Code",
+      "options": "json",
+      "description": "When the document matches, the open assignment of this rule is closed as done - e.g. {\"status\": \"Answered\"}"
+    },
+    {
       "fieldname": "section_assignment",
       "label": "Assignment",
       "fieldtype": "Section"
+    },
+    {
+      "fieldname": "rule",
+      "label": "Assign",
+      "fieldtype": "Select",
+      "translatable": true,
+      "options": "Everyone\nRound Robin\nLoad Balancing\nBased on Field",
+      "default": "Everyone",
+      "description": "Everyone - every user below; Round Robin - one by one in turn; Load Balancing - the one with the fewest open assignments; Based on Field - the user in a field of the document"
+    },
+    {
+      "fieldname": "field",
+      "label": "User field",
+      "fieldtype": "Data",
+      "depends_on": "eval:doc.rule == 'Based on Field'",
+      "description": "Fieldname of a Link to User on the document"
+    },
+    {
+      "fieldname": "users",
+      "label": "Users",
+      "fieldtype": "Table",
+      "options": "AssignmentRuleUser",
+      "depends_on": "eval:doc.rule != 'Based on Field'",
+      "description": "Who is assigned; empty - the holders of the role below (within their role scope)"
     },
     {
       "fieldname": "assign_to_role",
       "label": "Assign to Role",
       "fieldtype": "Link",
       "options": "Role",
-      "help": "Всім користувачам з цієї ролі (або вибирай assign_to_user)"
+      "help": "Holders of this role (within their scope), when the user list is empty"
     },
     {
       "fieldname": "assign_to_user",
       "label": "Assign to User",
       "fieldtype": "Link",
       "options": "User",
-      "help": "Конкретному користувачеві (пріоритет над ролю)"
+      "help": "One user (older rules; the user list replaces it)"
+    },
+    {
+      "fieldname": "due_date_field",
+      "label": "Due date from",
+      "fieldtype": "Data",
+      "description": "Fieldname of a Date on the document - the assignment's due date"
+    },
+    {
+      "fieldname": "last_user",
+      "label": "Last assigned",
+      "fieldtype": "Data",
+      "read_only": true,
+      "depends_on": "eval:doc.rule == 'Round Robin'",
+      "description": "Round robin: whose turn was last"
     },
     {
       "fieldname": "section_meta",

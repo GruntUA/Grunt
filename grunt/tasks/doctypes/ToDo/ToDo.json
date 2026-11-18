@@ -111,6 +111,14 @@
       "read_only": true
     },
     {
+      "fieldname": "assignment_rule",
+      "label": "Assignment rule",
+      "fieldtype": "Link",
+      "options": "AssignmentRule",
+      "read_only": true,
+      "description": "The rule that made this assignment - it also cancels or closes it"
+    },
+    {
       "fieldname": "assigned_on",
       "label": "Assigned to",
       "fieldtype": "Datetime",

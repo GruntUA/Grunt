@@ -4,13 +4,20 @@ import json
 from typing import Any
 
 from grunt.api.context import whitelist
+from grunt.assignment.conditions import matches
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
+lazy from grunt.assignment.service import assignment_service
 lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
-lazy from grunt.permissions.scopes import holders_for
+
+_JSON_FIELDS = {
+    "filters": "Filters (JSON)",
+    "unassign_condition": "Unassign when (JSON)",
+    "close_condition": "Close when (JSON)",
+}
 
 
 class AssignmentRule(Document):
@@ -22,16 +29,20 @@ class AssignmentRule(Document):
     # Lifecycle hooks
 
     async def validate(self) -> None:
-        """Перевірити коректність JSON у полі filters."""
-        if self.filters:
-            try:
-                json.loads(self.filters)
-            except json.JSONDecodeError, TypeError:
-                throw(
-                    _("The “Filters (JSON)” field must contain valid JSON.")
-                    + ' Example: {"status": "Draft"}',
-                    title=_("Validation error"),
-                )
+        """The JSON fields must hold valid JSON; Based on Field needs the field."""
+        for fieldname, label in _JSON_FIELDS.items():
+            raw = getattr(self, fieldname, None)
+            if raw and not isinstance(raw, dict):
+                try:
+                    json.loads(raw)
+                except json.JSONDecodeError, TypeError:
+                    throw(
+                        _("The “%(field)s” field must contain valid JSON.") % {"field": _(label)}
+                        + ' Example: {"status": "Draft"}',
+                        title=_("Validation error"),
+                    )
+        if getattr(self, "rule", None) == "Based on Field" and not getattr(self, "field", None):
+            throw(_("Based on Field needs the user field"), title=_("Validation error"))
 
     # Публічний API правила
 
@@ -55,35 +66,7 @@ class AssignmentRule(Document):
             {"total": {">": 1000}}        -> doc["total"] > 1000
             {"status": "Draft", "qty": 5} -> AND по всіх умовах
         """
-        filters = self.parsed_filters()
-        if not filters:
-            return True
-
-        for field, condition in filters.items():
-            value = doc.get(field)
-
-            if isinstance(condition, dict):
-                for op, target in condition.items():
-                    if (
-                        op == ">"
-                        and not (value and value > target)
-                        or op == ">="
-                        and not (value is not None and value >= target)
-                        or op == "<"
-                        and not (value and value < target)
-                        or op == "<="
-                        and not (value is not None and value <= target)
-                        or op == "!="
-                        and value == target
-                        or op == "in"
-                        and value not in target
-                    ):
-                        return False
-            else:
-                if value != condition:
-                    return False
-
-        return True
+        return matches(self.parsed_filters(), doc)
 
     async def preview(self, test_doc: dict[str, Any]) -> dict[str, Any]:
         """Evaluate the rule against a sample document: does it match, and whom it assigns."""
@@ -92,15 +75,11 @@ class AssignmentRule(Document):
 
         will_assign_to: list[str] = []
         if matched:
-            if self.assign_to_user:
-                will_assign_to.append(self.assign_to_user)
-            elif self.assign_to_role:
-                meta = await doctype_registry.get_meta(self.doctype_target or "")
-                will_assign_to.extend(
-                    await holders_for(
-                        [self.assign_to_role], meta, test_doc if meta is not None else None
-                    )
-                )
+            rule = {**self.data, "filters": filters}
+            # Without moving a round robin's turn.
+            will_assign_to = await assignment_service.pick(
+                self.doctype_target or "", rule, test_doc, persist=False
+            )
 
         matching_fields = [field for field in filters if field in test_doc]
 
