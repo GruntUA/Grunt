@@ -333,6 +333,7 @@ async def check_users() -> list[Row]:
         pluck="name",
     )
     locked = await _db.count("User", {"locked_until__gt": datetime.now(UTC)})
+    legacy_keys = await legacy_api_keys()
     return [
         row(cat, _("Active users"), INFO, active),
         row(cat, _("Active sessions"), INFO, sessions),
@@ -344,6 +345,36 @@ async def check_users() -> list[Row]:
             ", ".join(without_mfa[:5]) if without_mfa else "",
         ),
         row(cat, _("Locked accounts"), OK if not locked else WARNING, locked),
+        row(
+            cat,
+            _("API keys in the old format"),
+            OK if not legacy_keys else WARNING,
+            len(legacy_keys),
+            _(
+                "Use each once (it is rehashed) or reissue it - a coming release drops "
+                "the old format: %(keys)s"
+            )
+            % {"keys": ", ".join(legacy_keys[:5])}
+            if legacy_keys
+            else "",
+        ),
+    ]
+
+
+async def legacy_api_keys() -> list[str]:
+    """Labels of active API keys still stored as a bare SHA-256 - from before
+    scrypt (PERMISSIONS_PLAN step 7c). Each is rehashed on its next use; the
+    old format goes in a coming release."""
+    rows = await _db.get_all(
+        "ApiKey",
+        filters={"is_active": True},
+        fields=["label", "key_prefix", "key_hash"],
+        limit=None,
+    )
+    return [
+        f"{r.get('label') or '?'} ({r.get('key_prefix')})"
+        for r in rows
+        if not str(r.get("key_hash") or "").startswith("scrypt$")
     ]
 
 
