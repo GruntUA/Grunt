@@ -411,8 +411,7 @@ async def _followed(
         if parent_meta is None:
             return TRUE, FALSE  # the target DocType is gone: the role's own rules decide
         where = await readable_predicate(user, parent_meta)
-        readable = FALSE if where is None else Linked(id_field, parent_meta.name, where)
-        return Empty(id_field), readable
+        return Empty(id_field), _points_into(id_field, parent_meta, where)
     empty: list[Expr] = [Empty(dt_field), Empty(id_field)]
     readable_any: list[Expr] = []
     for ref_doctype in targets:
@@ -425,8 +424,23 @@ async def _followed(
         where = await readable_predicate(user, parent_meta)
         if where is not None:
             points_at = Cmp(dt_field, "eq", parent_meta.name)
-            readable_any.append(and_(points_at, Linked(id_field, parent_meta.name, where)))
+            readable_any.append(and_(points_at, _points_into(id_field, parent_meta, where)))
     return or_(*empty), or_(*readable_any)
+
+
+def _points_into(id_field: str, parent_meta: Any, where: Expr | None) -> Expr:
+    """Rows whose *id_field* names a *parent_meta* document matching *where*
+    (``None`` - the user can't read that DocType at all).
+
+    A DocType without a table (virtual: system health, an external source)
+    can't be asked in a subquery - it would name a table that isn't there.
+    Its documents are then readable only when the user reads every one of
+    them; a row-level rule there can't be checked, so it grants nothing."""
+    if where is None:
+        return FALSE
+    if not parent_meta.doc.has_table:
+        return TRUE if where == TRUE else FALSE
+    return Linked(id_field, parent_meta.name, where)
 
 
 async def reference_predicates(
