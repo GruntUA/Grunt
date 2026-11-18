@@ -81,7 +81,7 @@ export const filesApi = {
     },
 
     getById: async (id: string): Promise<FileItem | null> => {
-        const res = await client.get(`/api/v1/docs/File/${id}`)
+        const res = await client.get(`/api/v1/docs/File/${encodeURIComponent(id)}`)
         const doc = res.data.data
         return doc ? {
             id: doc.id,

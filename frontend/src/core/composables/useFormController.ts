@@ -103,7 +103,7 @@ export function useFormController(
   })
 
   // Real-time WebSocket + presence
-  const wsUrl = computed(() => (id ? `/api/v1/ws/${doctype}/${id}` : null))
+  const wsUrl = computed(() => (id ? `/api/v1/ws/${encodeURIComponent(doctype)}/${encodeURIComponent(id)}` : null))
   const docWs = useWebSocket(wsUrl)
   const { lastMessage } = docWs
   const { users: presenceUsers, fieldLocks, focusField, blurField } = usePresence(docWs)
