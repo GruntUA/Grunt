@@ -55,27 +55,13 @@
 
   {% if debug %}
   <div class="card">
-    <div class="label">{{ debug.exc_type }}</div>
-    <div class="exc"><b>{{ debug.exc_type }}</b>: {{ debug.message }}</div>
-    {% if debug.where %}
-    <div class="where">
-      <code>{{ debug.where.filename }}:{{ debug.where.lineno }}</code> — <code>{{ debug.where.name }}</code>
-      {% if debug.where.line %}<pre>{{ debug.where.line }}</pre>{% endif %}
-    </div>
+    <div class="label">Debug</div>
+    <div class="exc"><b>{{ debug.exc_type }}</b></div>
+    {% if debug.error_log %}
+    <p>Traceback, message and SQL: <a href="/app/grunt/ErrorLog/{{ debug.error_log | urlencode }}">Error Log {{ debug.error_log }}</a></p>
+    {% else %}
+    <p>Traceback: the server log (by Request ID).</p>
     {% endif %}
-  </div>
-
-  {% if debug.sql %}
-  <div class="card">
-    <div class="label">SQL</div>
-    <details open><summary>{{ debug.db_error }}</summary><pre>{{ debug.sql }}{% if debug.sql_params %}
-
-{{ debug.sql_params }}{% endif %}</pre></details>
-  </div>
-  {% endif %}
-
-  <div class="card">
-    <details open><summary>Traceback</summary><pre>{{ debug.traceback }}</pre></details>
   </div>
 
   <div class="card">

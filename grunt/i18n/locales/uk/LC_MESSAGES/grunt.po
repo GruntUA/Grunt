@@ -10824,6 +10824,10 @@ msgstr "Показати всі"
 msgid "Show all {n} lines"
 msgstr "Показати всі {n} рядків"
 
+#: grunt/frontend/src/components/debug/ServerErrorModal.vue
+msgid "Open the Error Log record for the traceback."
+msgstr "Трейс — у записі Error Log."
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Show backups"
 msgstr "Показати копії"
