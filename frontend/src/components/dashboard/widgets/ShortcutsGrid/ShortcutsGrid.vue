@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { DashboardWidget, ShortcutItem } from '@/types'
 import { ExternalLink } from '@lucide/vue'
 import { useRouter } from 'vue-router'
-import { appUrl } from '@/core/workspaceUrl'
+import { appUrl, listFilterQuery } from '@/core/workspaceUrl'
 import { useLucideIcons } from '@/core/composables/useLucideIcons'
 import { Item, ItemContent, ItemMedia, ItemTitle } from '@/components/ui/item'
 
@@ -35,7 +35,10 @@ function navigate(tile: ShortcutItem) {
   if (tile.link_type === 'URL') {
     window.open(tile.link_to, '_blank')
   } else {
-    router.push(appUrl({ type: tile.link_type, name: tile.link_to, workspace: ws }))
+    const query = tile.link_type === 'DocType'
+      ? { ...listFilterQuery(tile.filters), view: tile.view }
+      : null
+    router.push(appUrl({ type: tile.link_type, name: tile.link_to, workspace: ws, query }))
   }
 }
 </script>

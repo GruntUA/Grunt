@@ -44,6 +44,13 @@ export function isSingletonDoctype(doctype: string): boolean {
   )
 }
 
+/** `{ status: 'Open', date__gt: … }` -> list-URL query `filter[status__eq]=Open&…`. */
+export function listFilterQuery(filters?: Record<string, unknown> | null): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(filters ?? {}).map(([key, val]) => [`filter[${key.includes('__') ? key : `${key}__eq`}]`, val]),
+  )
+}
+
 function withQuery(path: string, query?: Record<string, unknown> | null): string {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query ?? {})) {

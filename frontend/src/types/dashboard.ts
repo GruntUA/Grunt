@@ -15,6 +15,10 @@ export interface ShortcutItem {
   link_type: LinkType
   link_to: string
   color?: string
+  /** `DocType` only: list filters the tile opens with, e.g. `{ status: 'Open', date__gte: '2026-01-01' }`. */
+  filters?: Record<string, string | number | boolean>
+  /** `DocType` only: list view to open (`calendar`, `kanban`, `gantt`…); the DocType's default otherwise. */
+  view?: string
 }
 
 export interface DashboardWidget {
