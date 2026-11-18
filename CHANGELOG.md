@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.12.0 - 2026-11-18
+
+### Features
+
+- **health:** list API keys still in the old format (#192)
+
+### Fixes
+
+- **permissions:** no subquery into a DocType without a table (#193)
+
 ## v0.11.0 - 2026-11-18
 
 ### Features
