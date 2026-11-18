@@ -25,7 +25,7 @@ export async function getPageData(
   const params: Record<string, string> = {}
   if (opts?.dateFrom) params.date_from = opts.dateFrom
   if (opts?.dateTo)   params.date_to   = opts.dateTo
-  const r = await client.get(`/api/v1/page-data/${name}`, { params })
+  const r = await client.get(`/api/v1/page-data/${encodeURIComponent(name)}`, { params })
   return r.data.data
 }
 
@@ -39,6 +39,6 @@ export async function getPageWidgetData(
   const params: Record<string, string> = { period }
   if (opts?.dateFrom) params.date_from = opts.dateFrom
   if (opts?.dateTo)   params.date_to   = opts.dateTo
-  const r = await client.get(`/api/v1/page-data/${name}/${widget}`, { params })
+  const r = await client.get(`/api/v1/page-data/${encodeURIComponent(name)}/${encodeURIComponent(widget)}`, { params })
   return r.data.data
 }

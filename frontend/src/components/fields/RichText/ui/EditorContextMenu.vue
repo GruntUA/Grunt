@@ -28,7 +28,7 @@ const linkPopover = useTemplateRef<InstanceType<typeof LinkPopover>>('linkPopove
 const at = ref({ x: 0, y: 0 })
 // What the click landed on - read once, when the menu opens.
 const where = ref({ selection: false, link: false, table: false })
-let openLink = false
+const openLink = ref(false)
 
 // Cell shading. Translucent, so it reads on both the light site and the dark editor.
 const SHADES = [
@@ -67,8 +67,8 @@ function onOpen(open: boolean) {
 function onCloseAutoFocus(event: Event) {
   event.preventDefault()
   editor.value?.commands.focus()
-  if (openLink) {
-    openLink = false
+  if (openLink.value) {
+    openLink.value = false
     nextTick(() => linkPopover.value?.show())
   }
 }

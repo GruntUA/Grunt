@@ -93,7 +93,8 @@ async function consumeExternalRedirect() {
   const hash = window.location.hash?.slice(1)
   if (!hash) return
   const p = new URLSearchParams(hash)
-  const known = ['access_token', 'error', 'mfa_required', 'email_login_token']
+  // What grunt/api/v1/oauth.py `_spa_redirect` and the email-login link send.
+  const known = ['signed_in', 'approval_pending', 'error', 'mfa_required', 'email_login_token']
   if (!known.some((k) => p.has(k))) return
   history.replaceState(null, '', window.location.pathname + window.location.search)
 
@@ -123,10 +124,10 @@ async function consumeExternalRedirect() {
     router.push({ name: 'mfa-verify', query: { token: p.get('mfa_token') } })
     return
   }
-  // The OAuth callback set the session cookie on its redirect.
-  if (p.get('signed_in') && (await auth.refresh())) {
-    router.push(afterLoginTarget())
-  }
+  // `signed_in`: the OAuth callback set the session cookie on its redirect. The
+  // fragment only says where we came from - the server decides whether a
+  // session exists.
+  if (await auth.refresh()) router.push(afterLoginTarget())
 }
 
 function toMfa(res: { mfa_token?: string; expected_code?: string }) {

@@ -36,29 +36,26 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
   watch([options.viewMode, options.activeFilters, options.quickFilterValues, options.debouncedSearch, options.page], () => {
     _syncingToUrl = true
 
-    const query = { ...options.route.query }
+    // Filter keys come from field names and the URL: the query is built from
+    // entries (Object.fromEntries / spread define own properties - a key like
+    // `__proto__` can't reach the prototype), not by assigning query[key].
+    const owned = (k: string) => k.startsWith('filter[') || k.startsWith('ff[')
+    const filterEntries: [string, string][] = options.activeFilters.value.map(f => [
+      `filter[${filterKey(f.fieldname, f.op)}]`,
+      f.value,
+    ])
+    const quickEntries: [string, string][] = Object.entries(options.quickFilterValues?.value ?? {})
+      .filter(([, val]) => val !== '' && val != null)
+      .map(([id, val]) => [`ff[${id}]`, val])
+    const query: Record<string, any> = {
+      ...Object.fromEntries(Object.entries(options.route.query).filter(([k]) => !owned(k))),
+      ...Object.fromEntries(filterEntries),
+      ...Object.fromEntries(quickEntries),
+    }
 
     // View mode
     if (options.viewMode.value === options.getDefaultView()) delete query.view
     else query.view = options.viewMode.value
-
-    // Regular filters
-    Object.keys(query).forEach(k => {
-      if (k.startsWith('filter[')) delete query[k]
-    })
-    options.activeFilters.value.forEach(f => {
-      query[`filter[${filterKey(f.fieldname, f.op)}]`] = f.value
-    })
-
-    // Fast filters
-    Object.keys(query).forEach(k => {
-      if (k.startsWith('ff[')) delete query[k]
-    })
-    if (options.quickFilterValues) {
-      Object.entries(options.quickFilterValues.value).forEach(([id, val]) => {
-        if (val !== '' && val != null) query[`ff[${id}]`] = val
-      })
-    }
 
     // Search
     if (options.debouncedSearch) {
@@ -131,11 +128,12 @@ export function useListRouteSync(options: UseListRouteSyncOptions) {
     }
 
     // Parse fast filter values from URL: ff[id]=value
-    const ffValues: Record<string, string> = {}
-    Object.entries(options.route.query).forEach(([key, value]) => {
-      const match = key.match(/^ff\[(.+)\]$/)
-      if (match && value) ffValues[match[1]] = String(value)
-    })
+    const ffValues: Record<string, string> = Object.fromEntries(
+      Object.entries(options.route.query).flatMap(([key, value]): [string, string][] => {
+        const match = key.match(/^ff\[(.+)\]$/)
+        return match && value ? [[match[1], String(value)]] : []
+      }),
+    )
     if (Object.keys(ffValues).length > 0 && options.quickFilterValues) {
       options.quickFilterValues.value = { ...options.quickFilterValues.value, ...ffValues }
     }
