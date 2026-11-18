@@ -1,0 +1,57 @@
+{
+  "name": "SavedFilter",
+  "label": "Saved filter",
+  "description": "A named set of list filters - its owner's, or shared with roles or with everyone (only to apply; the owner changes and deletes it).",
+  "module": "site",
+  "autoname": "hash",
+  "title_field": "title",
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "in_global_search": false,
+  "indexes": [["ref_doctype", "shared_with"], ["owner", "ref_doctype"]],
+  "fields": [
+    {
+      "fieldname": "title",
+      "label": "Title",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "filters",
+      "label": "Filters",
+      "fieldtype": "JSON"
+    },
+    {
+      "fieldname": "shared_with",
+      "label": "Shared with",
+      "fieldtype": "Select",
+      "options": "Nobody\nRoles\nEveryone",
+      "default": "Nobody",
+      "translatable": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "JSON",
+      "description": "Role names, when shared with roles",
+      "depends_on": "eval:doc.shared_with == 'Roles'"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "actions": ["read", "write", "create", "delete"],
+      "match": "owner == user"
+    }
+  ]
+}

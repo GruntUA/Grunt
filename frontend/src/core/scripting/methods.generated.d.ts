@@ -203,6 +203,12 @@ interface GruntMethods {
   "grunt.api.v1.role_scopes.get_active_scopes": { args: { doctype: string }; result: Record<string, any>[] }
   /** ``{fieldname: value}`` to pre-fill on a new *doctype* form: a user who may create it only within one record of a scope DocType gets that record in its Link fields. */
   "grunt.api.v1.role_scopes.get_scope_defaults": { args: { doctype: string }; result: Record<string, string> }
+  /** Delete the current user's filter (someone else's is refused). */
+  "grunt.api.v1.saved_filters.delete_saved_filter": { args: { name: string }; result: null }
+  /** The filters the current user can apply on *doctype*: their own and the ones shared with everyone or with one of their roles. Needs read access to the DocType. */
+  "grunt.api.v1.saved_filters.list_saved_filters": { args: { doctype: string }; result: Record<string, any>[] }
+  /** Create the current user's filter, or update theirs (*name*). A title they already use on this DocType is replaced. */
+  "grunt.api.v1.saved_filters.save_saved_filter": { args: { doctype: string; title: string; filters: Record<string, any>[]; shared_with?: string; roles?: string[] | null; name?: string | null }; result: Record<string, any> }
   /** Return all enabled client scripts for a DocType. */
   "grunt.api.v1.scripting.get_client_scripts": { args: { doctype: string }; result: Record<string, any>[] }
   /** Execute a Server Script of type 'API'. */
