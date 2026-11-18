@@ -4,7 +4,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { workspaceApi, type MyWork } from '@/core/api/workspace'
 import { isAssignmentPlaceholder } from '@/core/api/docs'
-import { CheckSquare, Bell } from '@lucide/vue'
+import { CheckSquare, Bell, Stamp } from '@lucide/vue'
+import { statusToneClass } from '@/core/status'
 import { formatIntl } from '@/core/datetime'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
@@ -22,6 +23,9 @@ const loading = ref(true)
 
 const assignedCount = computed(() => data.value?.counts.assigned ?? 0)
 const unreadCount = computed(() => data.value?.counts.unread ?? 0)
+const awaitingCount = computed(() => data.value?.counts.awaiting ?? 0)
+// Open on the documents awaiting me when there are any - they block someone.
+const tab = ref('tasks')
 
 // The task text, unless it's the auto-generated assignment placeholder.
 function taskNote(t: MyWork['assigned'][number]): string {
@@ -40,6 +44,10 @@ function openNotification(n: MyWork['notifications'][number]) {
   }
 }
 
+function openAwaiting(a: MyWork['awaiting'][number]) {
+  router.push(docUrl(a.doctype, a.name))
+}
+
 function formatDue(due: string | null): string {
   if (!due) return ''
   return formatIntl(due, { day: '2-digit', month: '2-digit' })
@@ -48,6 +56,7 @@ function formatDue(due: string | null): string {
 onMounted(async () => {
   try {
     data.value = await workspaceApi.getMyWork()
+    if (data.value?.awaiting?.length) tab.value = 'awaiting'
   } catch {
     data.value = null
   } finally {
@@ -58,13 +67,18 @@ onMounted(async () => {
 
 <template>
   <div class="overflow-hidden rounded-lg border bg-card">
-    <Tabs default-value="tasks" class="gap-0">
+    <Tabs v-model="tab" class="gap-0">
       <div class="border-b p-2">
         <TabsList class="w-full">
           <TabsTrigger value="tasks" class="gap-1.5">
             <CheckSquare class="size-3.5" />
             {{ t('Tasks') }}
             <Badge v-if="assignedCount" variant="secondary" class="px-1.5">{{ assignedCount }}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="awaiting" class="gap-1.5">
+            <Stamp class="size-3.5" />
+            {{ t('Awaiting me') }}
+            <Badge v-if="awaitingCount" variant="secondary" class="px-1.5">{{ awaitingCount }}</Badge>
           </TabsTrigger>
           <TabsTrigger value="notifications" class="gap-1.5">
             <Bell class="size-3.5" />
@@ -104,6 +118,31 @@ onMounted(async () => {
                     <span class="tabular-nums">{{ formatDue(t.due_date) }}</span>
                   </template>
                 </ItemDescription>
+              </ItemContent>
+            </Item>
+          </ItemGroup>
+        </TabsContent>
+
+        <TabsContent value="awaiting" class="mt-0">
+          <Empty v-if="!data?.awaiting?.length">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><Stamp /></EmptyMedia>
+              <EmptyDescription>{{ t('Nothing awaits your action') }}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+          <ItemGroup v-else>
+            <Item v-for="a in data!.awaiting.slice(0, 8)" :key="`${a.doctype}/${a.name}`" as="button" size="sm"
+              class="w-full text-left hover:bg-accent" @click="openAwaiting(a)">
+              <ItemContent class="min-w-0">
+                <ItemTitle class="w-full truncate">{{ a.title }}</ItemTitle>
+                <ItemDescription class="flex min-w-0 items-center gap-1.5">
+                  <span class="truncate">{{ a.doctype_label }}</span>
+                  <span>·</span>
+                  <Badge variant="outline" :class="['shrink-0 px-1.5 font-normal', statusToneClass(a.color)]">
+                    {{ a.state_label }}
+                  </Badge>
+                </ItemDescription>
+                <ItemDescription class="truncate">{{ a.actions.join(' · ') }}</ItemDescription>
               </ItemContent>
             </Item>
           </ItemGroup>

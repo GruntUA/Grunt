@@ -15274,3 +15274,11 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 msgid "“{action}”: are you sure?"
 msgstr ""
+
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
+msgid "Awaiting me"
+msgstr ""
+
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
+msgid "Nothing awaits your action"
+msgstr ""

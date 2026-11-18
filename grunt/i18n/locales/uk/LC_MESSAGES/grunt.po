@@ -16222,3 +16222,11 @@ msgstr "Показується над формою, поки документ у
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 msgid "“{action}”: are you sure?"
 msgstr "«{action}»: ви впевнені?"
+
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
+msgid "Awaiting me"
+msgstr "Очікує мене"
+
+#: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
+msgid "Nothing awaits your action"
+msgstr "Ніщо не чекає на вашу дію"

@@ -64,6 +64,14 @@ A transition does not notify anyone by itself. Notifications come from **Notific
 
 The rules run inside the transition's transaction. The user who made the transition is not notified unless the rule says so.
 
+## Awaiting my action
+
+The **My work** panel on the home page (`/app`) has an **Awaiting me** tab: the workflow documents the user can move on now, newest first, with the state and the buttons waiting for them. When there are any, the panel opens on that tab. The list comes from `get_my_work` (`awaiting`, `counts.awaiting`), built by `grunt.workflow.inbox.awaiting_actions` from the transitions themselves, with no table of its own:
+
+- A document counts only when a button transition out of its state has `allowed_roles` and the user actually holds one of those roles. A System Manager without the role is not shown every document on the site. This is the same rule as **Next actors**.
+- A scoped role counts only for the documents in its scope. The user must be able to read the document, and on a `deny_self_approval` transition their own document is not shown as awaiting them.
+- `condition` is not checked: a transition waiting for a field to be filled is still the user's work.
+
 ## Actions on a transition
 
 - In an app: the `on_transition` hook (`hooks.py`), with `doc`, `from_state`, `to_state`, `action`, `comment` and `user`.
