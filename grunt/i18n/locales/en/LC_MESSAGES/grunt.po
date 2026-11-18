@@ -323,6 +323,12 @@ msgstr ""
 msgid "A lowercase letter"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid ""
+"A named set of list filters - its owner's, or shared with roles or with "
+"everyone (only to apply; the owner changes and deletes it)."
+msgstr ""
+
 #: grunt/grunt/workflow/guard.py
 msgid "A new document starts in the “%(state)s” state"
 msgstr ""
@@ -395,6 +401,10 @@ msgid ""
 "are drawn between them"
 msgstr ""
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "A title and at least one filter are needed"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 msgid "A tour the user has been through (instead of a checklist)"
 msgstr ""
@@ -417,6 +427,13 @@ msgstr ""
 
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 msgid "A user's like on one document (the heart in list views)."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid ""
+"A user's list settings per DocType and view - columns, sorting, quick "
+"filters, report layout; kept on the server so they follow the user across "
+"devices."
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
@@ -2094,6 +2111,10 @@ msgstr ""
 msgid "Choose at least one part to back up"
 msgstr ""
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Choose at least one role"
+msgstr ""
+
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 msgid "Choose filters"
 msgstr ""
@@ -2750,6 +2771,10 @@ msgstr ""
 msgid "Could not create the page"
 msgstr ""
 
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not delete the filter"
+msgstr ""
+
 #: grunt/grunt/storage/cloud/rclone.py
 msgid "Could not download rclone: checksum mismatch"
 msgstr ""
@@ -2805,6 +2830,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Could not save"
+msgstr ""
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Could not save the defaults"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not save the filter"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
@@ -3300,6 +3333,12 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Default language"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Default list columns in order - set by “Save as default for all” in the "
+"list's settings; empty - the “In list view” fields"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -3861,6 +3900,8 @@ msgstr ""
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
@@ -4548,6 +4589,8 @@ msgid "Every, hours"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Everyone"
@@ -5046,6 +5089,7 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 msgid "Filters"
 msgstr ""
 
@@ -5309,7 +5353,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Fri"
 msgstr ""
 
@@ -6310,12 +6353,20 @@ msgstr ""
 msgid "Invalid phone format"
 msgstr ""
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Invalid sharing"
+msgstr ""
+
 #: grunt/grunt/auth/user_api.py
 msgid "Invalid theme value"
 msgstr ""
 
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Invalid verification code"
+msgstr ""
+
+#: grunt/grunt/api/v1/view_settings.py
+msgid "Invalid view"
 msgstr ""
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
@@ -6850,6 +6901,10 @@ msgstr ""
 msgid "List"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "List columns"
+msgstr ""
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "List report options"
 msgstr ""
@@ -7087,6 +7142,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Mandatory depends on"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -7343,7 +7402,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Mon"
 msgstr ""
 
@@ -7429,6 +7487,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "My reminders"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "My roles…"
 msgstr ""
 
 #: grunt/grunt/cli/doctype.py
@@ -7913,6 +7975,10 @@ msgstr ""
 msgid "No worker is connected: background jobs are not running."
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Nobody"
+msgstr ""
+
 #: grunt/grunt/permissions/warnings.py
 msgid ""
 "Nobody holds these roles - their rules give access to no one: %(roles)s"
@@ -8360,6 +8426,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue
 msgid "Only images can be used here"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Only me"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -9339,6 +9409,10 @@ msgstr ""
 msgid "Read Only (recommended)"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
+msgid "Read Only Depends On"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Read by recipient at"
 msgstr ""
@@ -9360,8 +9434,18 @@ msgstr ""
 msgid "Read-only"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only depends on"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Read-only fields (comma-separated)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Read-only when the condition holds (JS, checked in the form), e.g. "
+"eval:doc.status == 'Approved'"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
@@ -9813,6 +9897,10 @@ msgstr ""
 msgid "Required fields not mapped:"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Required when the condition holds (JS, checked in the form)"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Resend"
 msgstr ""
@@ -9987,6 +10075,10 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Role names, when shared with roles"
+msgstr ""
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
@@ -10004,6 +10096,7 @@ msgstr ""
 msgid "Role, everyone, end date…"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -10279,7 +10372,6 @@ msgid "Sample data"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sat"
 msgstr ""
 
@@ -10300,6 +10392,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 msgid "Save and open"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Save as default for all"
 msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue
@@ -10343,6 +10439,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Saved"
+msgstr ""
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Saved as the default for everyone"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Saved filter"
 msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue
@@ -10883,6 +10987,7 @@ msgstr ""
 msgid "Set value"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue
@@ -10933,6 +11038,15 @@ msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Shared With"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared filter"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared with"
 msgstr ""
 
 #: grunt/grunt/notification/records/notification/document_shared/document_shared.json
@@ -11625,7 +11739,6 @@ msgid "Summary"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sun"
 msgstr ""
 
@@ -12364,6 +12477,10 @@ msgstr ""
 msgid "The service worker works only over HTTPS (or localhost)."
 msgstr ""
 
+#: grunt/grunt/api/v1/view_settings.py
+msgid "The settings are too large"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The shell is cached after the first page load with the network."
 msgstr ""
@@ -12611,7 +12728,6 @@ msgid "Three-letter currency code (UAH, USD, EUR)"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Thu"
 msgstr ""
 
@@ -12700,6 +12816,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Title"
@@ -12849,7 +12966,6 @@ msgid "Try rebuilding the index"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Tue"
 msgstr ""
 
@@ -13278,6 +13394,10 @@ msgstr ""
 msgid "User session"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "User view settings"
+msgstr ""
+
 #: grunt/grunt/auth/user_api.py
 msgid "User with email '%(email)s' already exists"
 msgstr ""
@@ -13419,6 +13539,7 @@ msgstr ""
 msgid "Video URL"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "View"
@@ -13594,7 +13715,6 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Wed"
 msgstr ""
 
@@ -15149,6 +15269,10 @@ msgstr ""
 msgid "“%(fields)s” can't be changed once set"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "“*” - not tied to a DocType (recent documents)"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“Event recipients” only work for a notification on a code event"
 msgstr ""
@@ -15328,28 +15452,6 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgctxt "status"
 msgid "Open"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Mandatory depends on"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Required when the condition holds (JS, checked in the form)"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Read-only depends on"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid ""
-"Read-only when the condition holds (JS, checked in the form), e.g. "
-"eval:doc.status == 'Approved'"
-msgstr ""
-
-#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
-msgid "Read Only Depends On"
 msgstr ""
 
 #~ msgid ""
