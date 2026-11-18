@@ -1,7 +1,8 @@
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { getNonPhysicalTypeSet } from '@/core/fieldRegistry'
 import i18n from '@/plugins/i18n'
+import { useViewSetting } from '@/core/composables/useViewSetting'
 
 export interface ListColumn {
   key: string
@@ -28,9 +29,10 @@ export function systemListFields(): DocField[] {
 }
 
 export function useListColumns(doctype: string, fields: () => DocField[], titleField?: () => string | undefined) {
-  const storageKey = `grunt_columns_v2_${doctype}`
-  const saved = localStorage.getItem(storageKey)
-  const _savedKeys = ref<string[] | null>(saved ? (JSON.parse(saved) as string[]) : null)
+  // The user's columns, on the server (localStorage caches them) - null: the defaults.
+  const _savedKeys = useViewSetting<string[]>(doctype, 'columns', `grunt_columns_v2_${doctype}`, {
+    valid: (v): v is string[] => Array.isArray(v) && v.every((k) => typeof k === 'string'),
+  })
 
   // All non-structural fields that can be shown as columns
   const allAvailableColumns = computed<ListColumn[]>(() =>
@@ -73,7 +75,6 @@ export function useListColumns(doctype: string, fields: () => DocField[], titleF
       ? current.filter(k => k !== key)
       : [...current, key]
     _savedKeys.value = next
-    localStorage.setItem(storageKey, JSON.stringify(next))
   }
 
   function reorderCols(oldIndex: number, newIndex: number) {
@@ -81,18 +82,15 @@ export function useListColumns(doctype: string, fields: () => DocField[], titleF
     const [moved] = current.splice(oldIndex, 1)
     current.splice(newIndex, 0, moved)
     _savedKeys.value = current
-    localStorage.setItem(storageKey, JSON.stringify(current))
   }
 
   function setVisibleKeys(keys: string[]) {
     _savedKeys.value = keys
-    localStorage.setItem(storageKey, JSON.stringify(keys))
   }
 
   // Back to in_list_view defaults
   function resetCols() {
     _savedKeys.value = null
-    localStorage.removeItem(storageKey)
   }
 
   // True when the user has saved a custom selection (differs from defaults)

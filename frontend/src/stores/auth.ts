@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { clearViewSettingsCache } from '@/core/composables/useViewSetting'
 import { ref, computed } from 'vue'
 import client from '@/core/api/client'
 import { accessToken } from '@/core/accessToken'
@@ -350,6 +351,8 @@ export const useAuthStore = defineStore('auth', () => {
     _writeImpersonation(null)
     // Drop the user's timezone override; fall back to the site config.
     applyUserPrefs({})
+    // Their list settings (server-side now, cached in this browser).
+    clearViewSettingsCache({ local: true })
   }
 
   async function logout() {

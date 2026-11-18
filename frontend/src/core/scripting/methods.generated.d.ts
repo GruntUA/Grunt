@@ -218,6 +218,10 @@ interface GruntMethods {
   "grunt.api.v1.site_config.get_public_config": { args: {}; result: Record<string, any> }
   /** Return the translation bundle for a locale. Allowed for guests. */
   "grunt.api.v1.translations.get_translations": { args: { locale: string }; result: Record<string, any> }
+  /** The current user's settings for *doctype*, ``{view: settings}``. */
+  "grunt.api.v1.view_settings.get_view_settings": { args: { doctype: string }; result: Record<string, any> }
+  /** Store the current user's *settings* of *view* for *doctype*; ``None`` - back to the defaults (the row is removed). */
+  "grunt.api.v1.view_settings.save_view_settings": { args: { doctype: string; view: string; settings?: any }; result: null }
   /** List recent delivery logs for an incoming webhook. Permission: grunt.manage_integrations. */
   "grunt.api.v1.webhooks.list_incoming_logs": { args: { webhook_id: string; page?: number; per_page?: number }; result: Record<string, any> }
   /** Send a test payload for an outgoing webhook. Permission: grunt.manage_integrations. */
