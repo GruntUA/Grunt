@@ -14,6 +14,7 @@ import hashlib
 import secrets
 from datetime import UTC, datetime
 
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.auth.current import user_context
@@ -21,8 +22,9 @@ from grunt.auth.doctypes.User.user import User
 from grunt.auth.ip_policy import ip_allowed, parse_ip_list
 from grunt.auth.users import get_user_by_id
 from grunt.db.api import GruntDB
-from grunt.local import system_context
+from grunt.local import READ_ONLY_KEY, system_context
 from grunt.log import log
+from grunt.metadata.registry import doctype_registry
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -124,6 +126,8 @@ async def authenticate_api_key(
     if user is None or not user.is_active:
         return None
 
+    await _limit_to_key(user, matched_row, session)
+
     # Update last_used_at (best-effort, don't fail the request)
     try:
         async with system_context(session):
@@ -133,3 +137,44 @@ async def authenticate_api_key(
 
     log.info("api_key.authenticated", prefix=key_prefix, user=user.email)
     return user
+
+
+async def _limit_to_key(user: User, key: dict, session: AsyncSession) -> None:
+    """What the key narrows its user to (PERMISSIONS_PLAN step 7): only the
+    key's roles out of the user's (scopes kept); read-only - no writes. The
+    user's own data isn't touched: the request's user is a copy.
+
+    The flag and the roles come from one statement - one snapshot: an edit
+    committed between two reads could pair the old flag with the new roles."""
+    read_only, roles = await _key_scope(session, key["name"])
+    if not roles and not read_only:
+        return
+    user.data = dict(user.data)
+    if roles:
+        rows = [r for r in user.data.get("role_rows") or [] if r.get("role_name") in roles]
+        user.data["role_rows"] = rows
+        user.data["roles"] = [r for r in user.data.get("roles") or [] if r in roles]
+    if read_only:
+        user.data[READ_ONLY_KEY] = True
+
+
+async def _key_scope(session: AsyncSession, key_name: str) -> tuple[bool, set[str]]:
+    """``(read_only, roles)`` of the key *key_name*, read in one query."""
+    key_meta = await doctype_registry.get_meta("ApiKey")
+    role_meta = await doctype_registry.get_meta("ApiKeyRole")
+    if key_meta is None or role_meta is None:
+        return False, set()
+    key_t, role_t = key_meta.table, role_meta.table
+    stmt = (
+        select(key_t.c.read_only, role_t.c.role_name)
+        .select_from(
+            key_t.outerjoin(
+                role_t,
+                and_(role_t.c.parent_name == key_t.c.name, role_t.c.parent_doctype == "ApiKey"),
+            )
+        )
+        .where(key_t.c.name == key_name)
+    )
+    rows = (await session.execute(stmt)).all()
+    read_only = any(bool(r[0]) for r in rows)
+    return read_only, {r[1] for r in rows if r[1]}

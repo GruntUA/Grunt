@@ -3,7 +3,7 @@
 from grunt.document.meta import Meta
 from grunt.errors import forbidden
 from grunt.i18n import NP_, _, pgettext
-from grunt.local import session_user
+from grunt.local import session_read_only, session_user
 from grunt.metadata.doctype import DocType
 from grunt.permissions import query
 from grunt.permissions.roles import role_access
@@ -26,6 +26,10 @@ _ACTION_VERBS: dict[str, str] = {
 }
 
 
+#: What a read-only API key may still do - nothing that changes data.
+READ_ONLY_ACTIONS = frozenset({"read", "select", "export", "print", "report"})
+
+
 class PermissionChecker:
     async def check(
         self,
@@ -37,7 +41,16 @@ class PermissionChecker:
     ) -> bool:
         """Check whether *user* (an email; ``None`` - the user the context runs as)
         may perform *action* on *doctype* (optionally *doc*) - see
-        :func:`grunt.permissions.query.allowed`."""
+        :func:`grunt.permissions.query.allowed`.
+
+        A request with a read-only API key may only read (``READ_ONLY_ACTIONS``)
+        - whatever the roles say."""
+        if (
+            action not in READ_ONLY_ACTIONS
+            and (user is None or user == session_user())
+            and session_read_only()
+        ):
+            return False
         return await query.allowed(doctype, action, doc, user=user)
 
     async def require(
