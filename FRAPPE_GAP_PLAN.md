@@ -18,7 +18,7 @@
 | 1 | Умовний «лише читання» поля (`read_only_depends_on`) + полагодити `mandatory_depends_on` | ✅ |
 | 2 | Права `export` / `import` / `print` / `share` у DocPermission + полагодити `report` | ✔️ (PERMISSIONS 2b) |
 | 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✔️ (PERMISSIONS 2a, 2c) |
-| 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✅ |
+| 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✔️ (`feat/field-no-copy-set-once`) |
 | 5 | Точність (`precision`) і метод округлення чисел | ✅ |
 | 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✅ |
 | 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
@@ -107,7 +107,7 @@
   - заодно закрити обидві діри: заборонити запис прихованих полів і фільтр/сортування за ними в `get_list`.
 
 ### 4. set_only_once, no_copy, allow_copy
-**Статус:** ❓
+**Статус:** ✔️ — `no_copy`, `set_only_once` (клієнт і сервер, у т.ч. `set_value`), `DocType.allow_duplicate`; дублювання бере дані з сервера (`grunt.copy_data` / RPC `get_copy`) — `PROTECTED_DUPLICATE_FIELDS` прибрано, джерело одне: `STANDARD_COLUMNS` + стан workflow + `no_copy`
 - **Frappe:** `set_only_once` — поле не змінюється після першого збереження; `no_copy` — не переноситься при дублюванні; `DocType.allow_copy` — вимикає «Дублювати».
 - **Ґрунт зараз:** немає.
 - **Навіщо:** номери, дати реєстрації, унікальні коди не мають копіюватися/змінюватися.

@@ -94,6 +94,15 @@ async def get_delete_impact(
 
 
 @whitelist()
+async def get_copy(doctype: str, doc_id: str) -> dict[str, Any]:
+    """The values a duplicate of the document starts with (the form's
+    "Duplicate"): ``grunt.copy_data`` - no standard columns, ``no_copy`` fields
+    or workflow state. Reading the document is checked; creating the copy is
+    checked when it's saved."""
+    return await documents.copy_data(doctype, doc_id)
+
+
+@whitelist()
 async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
     """Link hover card: title, image and the ``in_preview`` fields of a document.
 

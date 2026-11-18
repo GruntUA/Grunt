@@ -11,9 +11,8 @@ interface UseFormActionsParams {
   doctype: string
   id: string | null
   workspace?: string
-  form: Ref<Record<string, unknown>>
-  /** The DocType's workflow state field - a copy starts in the initial state. */
-  stateField: () => string | null | undefined
+  /** The values a duplicate starts with (docsApi.getCopy). */
+  getCopy: (doctype: string, id: string) => Promise<Record<string, unknown>>
   showDeleteModal: Ref<boolean>
   remove: (replaceWith?: string) => Promise<unknown>
   goToList: () => void
@@ -25,16 +24,6 @@ interface UseFormActionsParams {
     error: (message: string) => void
   }
 }
-
-const PROTECTED_DUPLICATE_FIELDS = [
-  'id',
-  'name',
-  'created_at',
-  'updated_at',
-  'owner',
-  'modified_by',
-  'workflow_state',
-]
 
 export function useFormActions(params: UseFormActionsParams) {
   function onVersionRestored() {
@@ -53,14 +42,18 @@ export function useFormActions(params: UseFormActionsParams) {
     params.showDeleteModal.value = false
   }
 
-  function handleDuplicate() {
-    const clone = { ...params.form.value }
-    PROTECTED_DUPLICATE_FIELDS.forEach((field) => {
-      delete clone[field]
-    })
-    const stateField = params.stateField()
-    if (stateField) delete clone[stateField]
-
+  /** "Duplicate": a new form filled from the saved document, minus what a copy
+   * doesn't carry (standard columns, `no_copy` fields, workflow state) - the
+   * server decides that (grunt.copy_data), the same as grunt.copy_doc. */
+  async function handleDuplicate() {
+    if (!params.id) return
+    let clone: Record<string, unknown>
+    try {
+      clone = await params.getCopy(params.doctype, params.id)
+    } catch {
+      params.toast.error(t('Could not duplicate the document'))
+      return
+    }
     const path = docUrl(params.doctype, 'new', params.workspace)
 
     params.markAllowLeave()

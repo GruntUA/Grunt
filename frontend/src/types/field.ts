@@ -32,6 +32,10 @@ export interface DocField {
   index?: boolean
   /** Changes leave no version or activity entry (system-maintained values). */
   no_history?: boolean
+  /** Not carried over by "Duplicate" / grunt.copy_doc. */
+  no_copy?: boolean
+  /** Read-only once saved with a value (the server refuses a change too). */
+  set_only_once?: boolean
   read_only?: boolean
   hidden?: boolean
   bold?: boolean

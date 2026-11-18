@@ -103,6 +103,8 @@ interface GruntMethods {
   "grunt.api.v1.document.links.link_search": { args: { doctype: string; search?: string; per_page?: number; filters?: Record<string, any> | null }; result: Record<string, any>[] }
   /** Return all documents that link to this document (backlinks). */
   "grunt.api.v1.document.meta.get_backlinks": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
+  /** The values a duplicate of the document starts with (the form's "Duplicate"): ``grunt.copy_data`` - no standard columns, ``no_copy`` fields or workflow state. Reading the document is checked; creating the copy is checked when it's saved. */
+  "grunt.api.v1.document.meta.get_copy": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
   /** Summarise what references the given document(s) - see LinkService. */
   "grunt.api.v1.document.meta.get_delete_impact": { args: { doctype: string; doc_id?: string | null; doc_ids?: string[] | null }; result: Record<string, any> }
   /** Years present in a Date/Datetime field, newest first (year quick filter). */

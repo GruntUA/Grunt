@@ -31,7 +31,7 @@ from grunt.document.update_side_effects import (
     fire_update_services,
     record_update_changes,
 )
-from grunt.document.validation import _validate_data, validate_child_rows
+from grunt.document.validation import _validate_data, refuse_set_once_changes, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
 from grunt.i18n import _
@@ -384,6 +384,7 @@ class DocumentLifecycleMixin:
         scopes = await pipeline.begin_update(self.doctype, existing, data, user)
         await check_write("update", self.doctype, existing, data, user)
         await self._refuse_hidden_writes(dt, user, data, existing)
+        refuse_set_once_changes(dt, data, existing, user)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)

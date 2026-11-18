@@ -353,6 +353,11 @@ class DocField(BaseModel):
     no_history: bool = False
     read_only: bool = False
     hidden: bool = False
+    # Not carried over when a document is duplicated (form "Duplicate",
+    # grunt.copy_doc) - registration numbers, dates, unique codes.
+    no_copy: bool = False
+    # Once saved with a value, it can't be changed (checked on the server too).
+    set_only_once: bool = False
 
     # Display
     in_list_view: bool = False

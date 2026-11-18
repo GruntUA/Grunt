@@ -20,11 +20,13 @@ from grunt.db.profiler import profile
 from grunt.document import collection
 from grunt.document.queryset import use_document_api
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
+from grunt.document.validation import refuse_set_once_changes
 from grunt.errors import forbidden, not_found, unprocessable
 from grunt.events import fire
 from grunt.i18n import _
 from grunt.local import require_engine, require_session, require_session_user
 from grunt.log import log
+from grunt.metadata.compiler import STANDARD_COLUMNS
 from grunt.metadata.registry import doctype_registry
 from grunt.naming.service import naming_service
 from grunt.permissions.guards import (
@@ -833,6 +835,7 @@ class DocumentAPI:
                 _("Not permitted to change fields: %(fields)s")
                 % {"fields": ", ".join(sorted(dt.get_label(f) for f in names & locked))}
             )
+        refuse_set_once_changes(dt, changes, row, user)
         # The new values must keep the document in the user's scope (invariant 6).
         await permission_checker.require_in_scope(dt, "write", {**row, **changes}, user=user)
         await self.db.set_value(doctype, id_or_name, fieldname, value)
@@ -848,6 +851,29 @@ class DocumentAPI:
         """
         return await self.db.get_single_value(doctype, fieldname)
 
+    async def copy_data(self, doctype: str, id_or_name: str) -> dict[str, Any]:
+        """The values a copy of a document starts with - what "Duplicate" and
+        :meth:`copy_doc` carry over.
+
+        Left out: the standard columns (``name``, ``owner``, ``created_at``,
+        ``modified_at``, ``modified_by``), the ``no_copy`` fields - in child
+        rows too - and the workflow state with the fields its states set (the
+        copy starts in the initial state).
+        """
+        original = await self.get_doc(doctype, id_or_name)
+        skip = {"id", *STANDARD_COLUMNS}
+        workflow = await get_active_workflow(doctype)
+        if workflow:
+            skip.add(workflow.state_field)
+            skip.update(s.update_field for s in workflow.states if s.update_field)
+        meta = await doctype_registry.get_meta(doctype)
+        if meta is not None:
+            skip.update(f.fieldname for f in meta.fields if f.no_copy)
+        data = {k: v for k, v in original.items() if k not in skip}
+        if meta is not None:
+            await _drop_no_copy_in_children(meta, data)
+        return data
+
     async def copy_doc(
         self,
         doctype: str,
@@ -857,23 +883,33 @@ class DocumentAPI:
     ) -> dict[str, Any]:
         """Create a copy of a document and return it.
 
-        Copies every field except ``id`` / ``name`` / ``created_at`` (child
-        tables included), then inserts a fresh document. The workflow state
-        and the fields its states set aren't copied - the copy starts in the
-        initial state. Pass ``overrides`` to change specific fields on the copy::
+        Starts from :meth:`copy_data` (no standard columns, ``no_copy`` fields
+        or workflow state), then inserts a fresh document. Pass ``overrides``
+        to change specific fields on the copy::
 
             draft = await grunt.copy_doc("Invoice", original_id, overrides={"status": "Draft"})
         """
-        original = await self.get_doc(doctype, id_or_name)
-        skip = {"id", "name", "created_at"}
-        workflow = await get_active_workflow(doctype)
-        if workflow:
-            skip.add(workflow.state_field)
-            skip.update(s.update_field for s in workflow.states if s.update_field)
-        data = {k: v for k, v in original.items() if k not in skip}
+        data = await self.copy_data(doctype, id_or_name)
         if overrides:
             data.update(overrides)
         return await self.new_doc(doctype, data)
+
+
+async def _drop_no_copy_in_children(meta: Any, data: dict[str, Any]) -> None:
+    """Leave the ``no_copy`` columns out of the child rows being copied."""
+    for field in meta.fields:
+        rows = data.get(field.fieldname)
+        if field.fieldtype != "Table" or not field.options or not isinstance(rows, list):
+            continue
+        child = await doctype_registry.get_meta(field.options)
+        if child is None:
+            continue
+        drop = {f.fieldname for f in child.fields if f.no_copy}
+        if drop:
+            data[field.fieldname] = [
+                {k: v for k, v in row.items() if k not in drop} if isinstance(row, dict) else row
+                for row in rows
+            ]
 
 
 documents = DocumentAPI()

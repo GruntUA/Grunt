@@ -342,6 +342,12 @@ export const docsApi = {
       doctype, doc_ids: ids,
     }).then(r => r.data.data),
 
+  /** The values a duplicate starts with - standard, `no_copy` and workflow fields left out. */
+  getCopy: (doctype: string, id: string): Promise<Record<string, unknown>> =>
+    client.get('/api/v1/method/grunt.api.v1.document.meta.get_copy', {
+      params: { doctype, doc_id: id },
+    }).then(r => r.data.data),
+
   getTransitions: (doctype: string, id: string): Promise<{ data: WorkflowTransitionItem[] }> =>
     client.get('/api/v1/method/grunt.api.v1.document.workflow.get_workflow_transitions', {
       params: { doctype, doc_id: id },

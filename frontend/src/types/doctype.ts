@@ -27,6 +27,8 @@ export interface DocType {
   track_views?: boolean
   quick_entry?: boolean
   show_preview_popup?: boolean
+  /** False - the form has no "Duplicate" (global_form.js). */
+  allow_duplicate?: boolean
   /** Documents can carry qualified electronic signatures (an e-signature app adds the UI). */
   is_signable?: boolean
   beta?: boolean

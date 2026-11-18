@@ -15453,3 +15453,36 @@ msgstr ""
 
 #~ msgid "“%(name)s” not found"
 #~ msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Don't copy"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not carried over when the document is duplicated"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Set only once"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Once saved with a value, it can't be changed"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Allow duplicating"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Off - the form has no “Duplicate” action"
+msgstr ""
+
+#: grunt/grunt/document/validation.py
+#, python-format
+msgid "“%(fields)s” can't be changed once set"
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useFormActions.ts
+msgid "Could not duplicate the document"
+msgstr ""
