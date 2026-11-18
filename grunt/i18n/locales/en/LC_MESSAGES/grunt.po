@@ -11079,6 +11079,10 @@ msgstr ""
 msgid "Template error:"
 msgstr ""
 
+#: grunt/grunt/api/v1/document/export.py
+msgid "{error} - details are in the server log."
+msgstr ""
+
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Template type"
 msgstr ""

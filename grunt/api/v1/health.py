@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from grunt.api.v1.schemas.response import ok
+from grunt.log import log
 
 router = APIRouter()
 
@@ -30,8 +31,9 @@ async def readiness() -> dict[str, Any]:
         async with maker() as session:
             await session.execute(text("SELECT 1"))
         checks["db"] = "ok"
-    except Exception as exc:
-        checks["db"] = f"error: {exc}"
+    except Exception:
+        log.warning("ready.db_failed", exc_info=True)
+        checks["db"] = "error"
 
     # Redis (optional)
     try:
@@ -46,8 +48,9 @@ async def readiness() -> dict[str, Any]:
             checks["redis"] = "ok"
         else:
             checks["redis"] = "not_configured"
-    except Exception as exc:
-        checks["redis"] = f"error: {exc}"
+    except Exception:
+        log.warning("ready.redis_failed", exc_info=True)
+        checks["redis"] = "error"
 
     overall = "ok" if all(v in ("ok", "not_configured") for v in checks.values()) else "degraded"
     return ok({"status": overall, "checks": checks})
