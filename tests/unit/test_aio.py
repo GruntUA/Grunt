@@ -53,6 +53,5 @@ async def test_caller_cancellation_is_kept():
     stopper = asyncio.create_task(cancel_and_wait(target))
     await asyncio.sleep(0.01)  # stopper waits on the target's cleanup
     stopper.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await stopper
+    await asyncio.wait([stopper])
     assert stopper.cancelled()
