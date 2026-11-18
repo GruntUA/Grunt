@@ -62,3 +62,17 @@ describe('CalendarView fetch window', () => {
     expect(list.mock.calls[1][1].filters).toEqual([])
   })
 })
+
+describe('CalendarView week start', () => {
+  afterEach(() => { i18n.global.locale.value = 'uk' })
+
+  it('starts the week on the language\'s first day', async () => {
+    // uk - Monday (the grid above: 2026-10-26 …); en - Sunday: 2026-11-01 … 2026-12-05.
+    i18n.global.locale.value = 'en'
+    await mountView(dt())
+    expect(list.mock.calls[0][1].rawFilters).toEqual({
+      from_date__lte: '2026-12-05',
+      from_date__gte: '2026-11-01',
+    })
+  })
+})
