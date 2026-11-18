@@ -10261,6 +10261,10 @@ msgstr ""
 msgid "Show all {n} lines"
 msgstr ""
 
+#: grunt/frontend/src/components/debug/ServerErrorModal.vue
+msgid "Open the Error Log record for the traceback."
+msgstr ""
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Show backups"
 msgstr ""

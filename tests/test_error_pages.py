@@ -38,11 +38,16 @@ def _template_error() -> UndefinedError:
 
 
 @pytest.fixture(autouse=True)
-def _no_error_log(monkeypatch):
-    async def _noop(request, exc):
-        return None
+def _error_log(monkeypatch):
+    """ErrorLog writes are stubbed: each records its status and gets an id."""
+    written: list[int] = []
 
-    monkeypatch.setattr(errors, "_persist_error_log", _noop)
+    async def _record(request, exc, http_status=500):
+        written.append(http_status)
+        return "ERR-1"
+
+    monkeypatch.setattr(errors, "_persist_error_log", _record)
+    return written
 
 
 async def test_browser_gets_html_debug_page(monkeypatch):
@@ -52,9 +57,10 @@ async def test_browser_gets_html_debug_page(monkeypatch):
     assert resp.status_code == 500
     assert resp.media_type == "text/html"
     assert "UndefinedError" in body
-    assert "&#39;settings&#39; is undefined" in body
-    # The offending template line is pinpointed.
-    assert "page.html" in body
+    # Where to read it - the ErrorLog record - not the text or traceback.
+    assert "/ErrorLog/ERR-1" in body
+    assert "is undefined" not in body
+    assert "page.html" not in body
 
 
 async def test_browser_gets_html_without_debug_details(monkeypatch):
@@ -71,8 +77,34 @@ async def test_api_keeps_json(monkeypatch):
     resp = await errors._generic_exception(_request("/api/v1/x", "text/html"), _template_error())
     data = json.loads(bytes(resp.body))
     assert data["error"]["code"] == "INTERNAL_ERROR"
-    assert data["error"]["debug"]["exc_type"] == "UndefinedError"
-    assert "Exception Group" not in data["error"]["debug"]["traceback"]
+    assert data["error"]["debug"] == {
+        "exc_type": "UndefinedError",
+        "error_log": "ERR-1",
+        "request_id": None,
+    }
+
+
+async def test_validation_error_in_debug_is_logged_and_referenced(monkeypatch, _error_log):
+    from pydantic import BaseModel, ValidationError
+
+    class Model(BaseModel):
+        n: int
+
+    with pytest.raises(ValidationError) as caught:
+        Model(n="secret-input")  # pyright: ignore[reportArgumentType]
+    validation = caught.value
+    monkeypatch.setattr(settings, "debug", True)
+    resp = await errors._validation_error(_request("/api/v1/x", "application/json"), validation)
+    data = json.loads(bytes(resp.body))
+    assert resp.status_code == 422
+    assert data["error"]["debug"]["error_log"] == "ERR-1"
+    assert "secret-input" not in bytes(resp.body).decode()
+    assert _error_log == [422]
+
+    monkeypatch.setattr(settings, "debug", False)
+    resp = await errors._validation_error(_request("/api/v1/x", "application/json"), validation)
+    assert "debug" not in json.loads(bytes(resp.body))["error"]
+    assert _error_log == [422]  # client input mistakes are not logged
 
 
 async def test_xhr_keeps_json():
