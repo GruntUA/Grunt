@@ -70,7 +70,7 @@ def get_sources(*, force: bool = False) -> list[dict[str, Any]]:
         return _cache[1]
     rows = extract_all()
     _cache = (time.monotonic(), rows)  # the TTL starts once the scan is done
-    return rows
+    return _cache[1]
 
 
 def invalidate() -> None:

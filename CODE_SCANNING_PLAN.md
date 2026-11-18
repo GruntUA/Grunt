@@ -8,7 +8,7 @@
 dismiss («false positive» / «used in tests») — лише останній крок, коли код справді
 правильний і переписати його без шкоди не можна, з поясненням у коментарі dismiss.
 
-Оновлено: 2026-11-18 — кроки 1 (#198) і 2 (#199) злито; develop: 134 → **117** відкритих, усі цільові закрито, нових нема. Далі — крок 3 або 4.
+Оновлено: 2026-11-18 — кроки 1–4 злито (#198, #199, #201, #202, #203, #205); develop: 134 → **19** відкритих (усі — ⏸ нижче). Храповик увімкнено. Далі — переписати код під ⏸.
 
 ---
 
@@ -78,7 +78,7 @@ PR #199 (злито 2026-11-18). Справжніх багів не знайшл
 Кожен uninitialized/undefined-export — перевірити, чи це реальний `NameError`/`UnboundLocalError`
 на якійсь гілці; якщо так — тест на цю гілку.
 
-### 3. Тести й CI ⏳
+### 3. Тести й CI ✅ (#201; workflow-пункти — у #198)
 
 | # | Правило | Де | Що зробити |
 |---|---|---|---|
@@ -91,7 +91,21 @@ PR #199 (злито 2026-11-18). Справжніх багів не знайшл
 | 288–302, 1061, 1104–1108, 121 | import-and-import-from, repeated-import | тести — один стиль імпорту на модуль |
 | 129–131 | py/unused-import | тести |
 
-### 4. Шум: note у робочому коді ⏳
+### 4. Шум: note у робочому коді ✅ (#202, #203)
+
+- #202: `grunt.utils.aio.cancel_and_wait()` замість п'яти копій cancel+suppress+await (за рев'ю
+  CodeRabbit — не ковтає скасування самого викликача); docstring замість `...` в `@overload`;
+  без прапорців через `global` (`functools.cache`, обробник логів за назвою, кеш i18n — кортеж,
+  `local.in_bootstrap()`); справжні типи в `cast()`; коментарі в порожніх `except`;
+  `docs.ts` кодує `doctype`/id (#5).
+- #203: клієнтські скрипти DocType пишуть хуки як `export function on_load(frm)` — executor
+  прибирає `export`; старий формат працює. Застосунки (hrm 13, inventory 4, letter 3, ua_tools 3,
+  mlt_portal 2, …) переводяться разом із наступним `required_grunt`.
+- #205 (з рев'ю #202): назви документів можуть містити `/` — `{doc_id:path}` у REST і WS.
+- Нові алерти від правок за рев'ю (#1127 `test_aio.py`, #1128 `extract.py`) — закрито окремим PR.
+
+Початковий опис кроку:
+
 
 - **py/ineffectual-statement (24)** — `cache/bus.py`, `db/api.py`, `document/api.py`,
   `document/mixins/lifecycle.py`, `progress.py`, `startup/lifespan.py`, `storage/backends.py`,
@@ -109,11 +123,22 @@ PR #199 (злито 2026-11-18). Справжніх багів не знайшл
   `utils/http.py:25` — коментар-причина або `contextlib.suppress`.
 - **py/import-and-import-from** — `bootstrap_site.py:3`.
 
-### 5. Храповик ⏳
+## Відкладено ⏸ (19 на develop, 2026-11-18)
 
-Як для циклів імпортів: після кроків 1–4 — CodeQL у CI валить PR на нових алертах
-(налаштування «Check runs failure threshold» у Code security → або `fail-on` у workflow),
-щоб лічильник лише зменшувався.
+| Алерти | Чому відкрито | Що далі |
+|---|---|---|
+| #102, #103, #106–108 py/uninitialized-local-variable | CodeQL не розуміє захоплення в `match`/`case` і `def f[T]` (PEP 695) | придумати переписування без шкоди для читабельності; виключень у `codeql.yml` не робимо (рішення власника) |
+| #109–111 py/undefined-export | `type X = …` (PEP 695) у `__all__` | те саме |
+| #30–37 js/* у Jinja-шаблонах | JS-екстрактор читає `{{ }}` як JavaScript (шаблони без `<script>`) | те саме |
+| #12, #13 py/stack-trace-exposure | трейс лише під `settings.debug`, CodeQL гілку не бачить | рішення власника: dismiss чи переписати |
+| #1126 py/weak-sensitive-data-hashing | SHA-256 ключів API | Permissions 7c ф.2 |
+
+### 5. Храповик ✅ (2026-11-18)
+
+Ruleset **«CodeQL ratchet»** (id 27547399) на `develop` і `master`: правило «Require code scanning
+results», CodeQL, обидва пороги `all` — PR, що додає будь-який новий алерт, не зливається.
+Наявні відкриті алерти злиттю не заважають. Обхід — роль admin (`grunt release` комітить у master
+напряму). Перевірити/змінити: `gh api repos/GruntUA/Grunt/rulesets/27547399`.
 
 ## Рішення
 
