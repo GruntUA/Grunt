@@ -8,7 +8,7 @@ function _escape(text) {
     return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
 
-async function on_load(frm) {
+export async function on_load(frm) {
     if (frm.is_new || !grunt.has_perm('grunt.manage_permissions')) return
     try {
         const warnings = await grunt.call('grunt.api.v1.permission_warnings.for_role', {

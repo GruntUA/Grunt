@@ -23,15 +23,15 @@
 //   grunt.confirm(msg)                   — show confirm dialog (returns Promise<boolean>)
 //   grunt.throw(msg)                     — throw an error and stop execution
 
-function on_load(frm) {
+export function on_load(frm) {
   // Called once when the form loads — add buttons, set initial state
 }
 
-function on_change(frm, fieldname) {
+export function on_change(frm, fieldname) {
   // Called when any field value changes
 }
 
-function validate(frm) {
+export function validate(frm) {
   // Called before save — return false to cancel
   return true
 }

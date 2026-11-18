@@ -1,4 +1,4 @@
-function on_load(frm) {
+export function on_load(frm) {
   frm.actions.add({
     id: 'open_builder',
     label: __('Open builder'),

@@ -15,7 +15,7 @@ const DOWNLOADS = [
 ]
 
 /** @param {FormProxy} frm */
-function on_load(frm) {
+export function on_load(frm) {
     frm.hide_sidebar()
     for (const id of ['print', 'print_xlsx', 'print_pdf', 'print_html', 'share', 'links', 'activity', 'duplicate', 'rename']) {
         frm.actions.remove(id)
@@ -33,7 +33,7 @@ function on_load(frm) {
     )
 }
 
-async function setup_list(listview) {
+export async function setup_list(listview) {
     listview.actions.remove('add')
     listview.actions.remove('bulk_edit')
     listview.actions.add({

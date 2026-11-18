@@ -206,7 +206,7 @@ async function _checkBrowser(frm) {
 }
 
 /** @param {FormProxy} frm */
-function on_load(frm) {
+export function on_load(frm) {
     frm.hide_sidebar() // assignees, tags, follow — nothing to do with a live report
     _runSections(frm)
     _checkBrowser(frm)

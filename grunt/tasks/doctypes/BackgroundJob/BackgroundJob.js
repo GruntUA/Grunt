@@ -4,7 +4,7 @@
  */
 
 /** @param {FormProxy} frm */
-function on_load(frm) {
+export function on_load(frm) {
     frm.actions.add({
         id: 'cancel_job',
         label: __('Cancel'),

@@ -6,7 +6,7 @@
  * @param {FormProxy} frm
  * @param {string} fieldname
  */
-async function on_change(frm, fieldname) {
+export async function on_change(frm, fieldname) {
     if (fieldname !== 'compress_existing_images') return
     const ok = await grunt.confirm(
         __('Images uploaded before compression was on will be re-encoded in the background with the saved settings. The originals are not kept. Continue?'),

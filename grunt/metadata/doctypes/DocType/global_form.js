@@ -19,7 +19,7 @@
 const _isSystemManager = () => (grunt.session.roles || []).includes('System Manager')
 const _saved = (frm) => !frm.is_new
 
-function on_load(frm) {
+export function on_load(frm) {
     const actions = frm.actions
 
     // ── Primary ────────────────────────────────────────────────────────────
@@ -230,7 +230,7 @@ function on_load(frm) {
  *
  * @param {FormProxy} frm
  */
-function on_transitions(frm) {
+export function on_transitions(frm) {
     frm.actions
         .list()
         .filter((a) => a.id.startsWith('workflow:'))
