@@ -429,9 +429,12 @@ class DocField(BaseModel):
     max_length: int | None = None
     regex: str | None = None
 
-    # Conditional display
+    # Conditions, evaluated in the form only (frontend/src/core/dependsOn.ts) -
+    # the server doesn't check them: shown when, required when, read-only when.
+    # `doc.__islocal` is true on a document not saved yet.
     depends_on: str | None = None
     mandatory_depends_on: str | None = None
+    read_only_depends_on: str | None = None
 
     formula: str | None = None
 

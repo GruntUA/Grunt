@@ -1,3 +1,4 @@
+import { evalCondition, evalDependsOn } from '@/core/dependsOn'
 import { nextTick, ref, type Ref } from 'vue'
 
 import { getNonPhysicalTypeSet, hasTrait } from '@/core/fieldRegistry'
@@ -92,9 +93,13 @@ export function useFormValidation(params: UseFormValidationParams) {
       }
       if (nonPhysicalTypes.has(field.fieldtype)) continue
 
+      // `mandatory_depends_on` counts while the field is shown (depends_on).
       const isRequired = params.reqdOverrides[field.fieldname] !== undefined
         ? params.reqdOverrides[field.fieldname]
-        : field.required
+        : field.required || (
+          evalCondition(field.mandatory_depends_on, params.form.value)
+          && evalDependsOn(field.depends_on, params.form.value)
+        )
 
       if (!isRequired) continue
 

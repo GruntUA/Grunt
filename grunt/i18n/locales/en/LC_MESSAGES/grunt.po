@@ -15486,3 +15486,23 @@ msgstr ""
 #: grunt/frontend/src/core/composables/useFormActions.ts
 msgid "Could not duplicate the document"
 msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Mandatory depends on"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Required when the condition holds (JS, checked in the form)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only depends on"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only when the condition holds (JS, checked in the form), e.g. eval:doc.status == 'Approved'"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
+msgid "Read Only Depends On"
+msgstr ""

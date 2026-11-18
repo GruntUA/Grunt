@@ -75,6 +75,8 @@ export interface DocField {
   // Conditional
   depends_on?: string
   mandatory_depends_on?: string
+  /** Read-only when this condition holds (evalCondition, the form only). */
+  read_only_depends_on?: string
   formula?: string | null
   // Aggregation
   aggregate_function?: string | null

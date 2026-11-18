@@ -16384,3 +16384,23 @@ msgstr "«%(fields)s» не можна змінити після встанов�
 #: grunt/frontend/src/core/composables/useFormActions.ts
 msgid "Could not duplicate the document"
 msgstr "Не вдалося дублювати документ"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Mandatory depends on"
+msgstr "Обов'язкове, якщо"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Required when the condition holds (JS, checked in the form)"
+msgstr "Обов'язкове, поки умова виконується (JS, перевіряється у формі)"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only depends on"
+msgstr "Лише для читання, якщо"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only when the condition holds (JS, checked in the form), e.g. eval:doc.status == 'Approved'"
+msgstr "Лише для читання, поки умова виконується (JS, перевіряється у формі), напр. eval:doc.status == 'Approved'"
+
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
+msgid "Read Only Depends On"
+msgstr "Лише для читання, якщо (Read Only Depends On)"

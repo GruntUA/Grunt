@@ -15,7 +15,7 @@
 
 | # | Пункт | Статус |
 |---|-------|--------|
-| 1 | Умовний «лише читання» поля (`read_only_depends_on`) + полагодити `mandatory_depends_on` | ✅ |
+| 1 | Умовний «лише читання» поля (`read_only_depends_on`) + полагодити `mandatory_depends_on` | ✔️ (`feat/read-only-depends-on`) |
 | 2 | Права `export` / `import` / `print` / `share` у DocPermission + полагодити `report` | ✔️ (PERMISSIONS 2b) |
 | 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✔️ (PERMISSIONS 2a, 2c) |
 | 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✔️ (`feat/field-no-copy-set-once`) |
@@ -70,7 +70,7 @@
 ## Деталі
 
 ### 1. Умовний «лише читання» поля
-**Статус:** ❓
+**Статус:** ✔️ — `read_only_depends_on` і робочий `mandatory_depends_on` (лише у формі: `evalCondition` у `dependsOn.ts`, без умови або з помилкою — `false`); ознака нового документа — `doc.__islocal` (немає `created_at`)
 - **Frappe:** `DocField.read_only_depends_on` — вираз, за яким поле стає лише для читання.
 - **Ґрунт зараз:** `read_only` (постійно), `depends_on` (показ), `mandatory_depends_on` (обов’язковість). Умовного read-only немає.
 - **Навіщо:** типовий сценарій «після погодження сума не змінюється», «поле редагує лише до певного статусу» — без клієнтських скриптів.

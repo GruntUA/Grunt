@@ -56,3 +56,49 @@ describe('useFormValidation - child table rows', () => {
     expect(setup([{ item: '', qty: 0 }]).v.validateForm()).toBe(true)
   })
 })
+
+describe('useFormValidation - mandatory_depends_on', () => {
+  function check(form: Record<string, unknown>) {
+    const v = useFormValidation({
+      doctype: 'Payment',
+      dt: ref(
+        doctype('Payment', [
+          field({ fieldname: 'method', fieldtype: 'Data', label: 'Method' }),
+          field({
+            fieldname: 'iban',
+            fieldtype: 'Data',
+            label: 'IBAN',
+            mandatory_depends_on: "eval:doc.method == 'Bank'",
+          }),
+          field({
+            fieldname: 'note',
+            fieldtype: 'Data',
+            label: 'Note',
+            depends_on: "eval:doc.method == 'Other'",
+            mandatory_depends_on: 'eval:true',
+          }),
+        ]),
+      ),
+      form: ref(form),
+      displayOverrides: {},
+      reqdOverrides: {},
+      toast: { error: vi.fn() },
+    })
+    return { ok: v.validateForm(), errors: v.validationErrors.value }
+  }
+
+  beforeEach(() => setActivePinia(createPinia()))
+
+  it('requires the field while its condition holds', () => {
+    const bank = check({ method: 'Bank', iban: '' })
+    expect(bank.ok).toBe(false)
+    expect(bank.errors.iban).toBeTruthy()
+    expect(check({ method: 'Bank', iban: 'UA12' }).ok).toBe(true)
+    expect(check({ method: 'Cash', iban: '' }).ok).toBe(true)
+  })
+
+  it('does not require a field its depends_on hides', () => {
+    expect(check({ method: 'Cash', note: '' }).errors.note).toBeUndefined()
+    expect(check({ method: 'Other', note: '' }).errors.note).toBeTruthy()
+  })
+})
