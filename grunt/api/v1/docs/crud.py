@@ -79,7 +79,7 @@ async def create_document(
     return ok(await _decorate(doctype, doc))
 
 
-@router.get("/{doctype}/{doc_id}")
+@router.get("/{doctype}/{doc_id:path}")
 async def get_document(
     doctype: str,
     doc_id: str,
@@ -92,7 +92,7 @@ async def get_document(
     return ok(await _decorate(doctype, doc))
 
 
-@router.put("/{doctype}/{doc_id}")
+@router.put("/{doctype}/{doc_id:path}")
 async def update_document(
     doctype: str,
     doc_id: str,
@@ -106,7 +106,7 @@ async def update_document(
     return ok(await _decorate(doctype, doc))
 
 
-@router.delete("/{doctype}/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{doctype}/{doc_id:path}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     doctype: str,
     doc_id: str,
