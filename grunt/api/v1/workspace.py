@@ -9,6 +9,7 @@ from grunt.api.v1.dashboard import page_visible
 from grunt.apps.manifest import extenders
 from grunt.auth.current import acting_user
 from grunt.document.titles import resolve_reference_titles
+from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
 from grunt.site.doctypes.AppMenu.app_menu import (
@@ -19,6 +20,7 @@ from grunt.site.doctypes.AppMenu.app_menu import (
 )
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
+from grunt.workflow.inbox import awaiting_actions
 lazy from grunt.document.api import documents
 
 
@@ -266,7 +268,8 @@ async def get_document_stats() -> dict[str, int]:
 async def get_my_work() -> dict[str, Any]:
     """Return the current user's personal work items for the home page:
 
-    open tasks assigned to them (flagged when overdue) and unread notifications.
+    open tasks assigned to them (flagged when overdue), unread notifications and
+    workflow documents awaiting their action.
     """
     user = acting_user()
     email = user.email
@@ -331,12 +334,21 @@ async def get_my_work() -> dict[str, Any]:
     except Exception:
         notifications = []
 
+    # Workflow documents I can move on now (grunt.workflow.inbox).
+    try:
+        awaiting = await awaiting_actions(email)
+    except Exception:
+        log.exception("my_work.awaiting_failed")
+        awaiting = []
+
     return {
         "assigned": assigned,
         "notifications": notifications,
+        "awaiting": awaiting,
         "counts": {
             "assigned": len(assigned),
             "overdue": overdue,
             "unread": len(notifications),
+            "awaiting": len(awaiting),
         },
     }

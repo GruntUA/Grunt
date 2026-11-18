@@ -69,10 +69,26 @@ export interface UserNotification {
   created_at: string
 }
 
+/** A workflow document the user can move on now (grunt/workflow/inbox.py). */
+export interface AwaitingAction {
+  doctype: string
+  doctype_label: string
+  name: string
+  title: string
+  state: string
+  state_label: string
+  /** The workflow state's colour (gray, blue, green, yellow, orange, red). */
+  color: string
+  /** Button labels of the transitions the user can take. */
+  actions: string[]
+  modified_at: string | null
+}
+
 export interface MyWork {
   assigned: AssignedTask[]
   notifications: UserNotification[]
-  counts: { assigned: number; overdue: number; unread: number }
+  awaiting: AwaitingAction[]
+  counts: { assigned: number; overdue: number; unread: number; awaiting: number }
 }
 
 export type OnboardingStepStatus = 'Pending' | 'Completed' | 'Skipped'

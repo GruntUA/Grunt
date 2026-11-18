@@ -227,7 +227,7 @@
 **Статус:** ✅
 - **Frappe:** `allow_self_approval`, `enable_action_confirmation`, `transition_tasks` (дії при переході), `next_action_email_template`, повідомлення стану, кілька workflow на DocType з умовою/пріоритетом, Workflow Action — вхідні «очікує мого погодження».
 - **Ґрунт зараз:** стани, переходи з ролями, умовою, коментарем, `prompt_fields`, сповіщеннями; `update_field/update_value` у стані.
-- **Рішення (2026-11-18):** робимо. Крок 1 (`feat/workflow-guards`): `deny_self_approval` (автор не погоджує власне; Next actors теж без нього), `confirm` на переході, `message` у стані (банер над формою), подія `on_transition` у ServerScript зі змінною `transition`; попутно умова з помилкою тепер **закриває** перехід (раніше `return True` — пропускала всіх). Крок 2: вхідні «Очікує моєї дії» — з переходів і прав, без таблиці Workflow Action. Кілька workflow на DocType — ⏸. `next_action_email_template` покриває Notification з отримувачами Next actors.
+- **Рішення (2026-11-18):** робимо. Крок 1 (`feat/workflow-guards`): `deny_self_approval` (автор не погоджує власне; Next actors теж без нього), `confirm` на переході, `message` у стані (банер над формою), подія `on_transition` у ServerScript зі змінною `transition`; попутно умова з помилкою тепер **закриває** перехід (раніше `return True` — пропускала всіх). Крок 2 (`feat/workflow-inbox`): вхідні «Очікує моєї дії» — вкладка «Очікує мене» в панелі «Моя робота» (`get_my_work.awaiting`), з переходів і прав, без таблиці Workflow Action; лише явно утримувані ролі (System Manager без ролі не бачить усього), області ролей, без умов. Кілька workflow на DocType — ⏸. `next_action_email_template` покриває Notification з отримувачами Next actors.
 
 ### 20. Політика входу
 **Статус:** ❓
