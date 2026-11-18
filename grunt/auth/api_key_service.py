@@ -2,16 +2,22 @@
 
 Key format: ``grnt_<64 hex chars>``
   - first 8 chars after prefix = key_prefix (stored in DB, used for lookup)
-  - full 64 chars = key_secret (hashed with SHA-256, shown to user once)
+  - full 64 chars = key_secret (shown to the user once)
 
-Security notes:
-  - SHA-256 is appropriate here because the key is a high-entropy random token
-    (64 hex chars = 256 bits of entropy). bcrypt would be wasteful.
+Stored as ``scrypt$<n>$<r>$<p>$<salt hex>$<hash hex>`` - a key derivation
+function, so a copy of the database doesn't make keys cheap to check offline
+(PERMISSIONS_PLAN step 7c, CodeQL #16). A verified key is remembered in the
+process for a few minutes: scrypt costs ~35 ms, and an integration calls often.
+
+Keys stored before 7c are a bare SHA-256 hex digest. They still verify, and the
+first successful use rehashes them with scrypt; the next release drops the old
+format (an unused old key is then reissued).
   - The key_prefix is public and allows O(1) DB lookup without scanning all keys.
 """
 
 import hashlib
 import secrets
+import time
 from datetime import UTC, datetime
 
 from sqlalchemy import and_, select
@@ -39,7 +45,7 @@ def generate_api_key() -> tuple[str, str, str]:
         (full_key, key_prefix, key_hash)
         - full_key:   shown to the user once, never stored
         - key_prefix: first 8 hex chars, stored in DB for lookup
-        - key_hash:   SHA-256 of full_key, stored in DB for verification
+        - key_hash:   scrypt of full_key, stored in DB for verification
     """
     raw = secrets.token_hex(_KEY_BYTES)  # 64 hex chars
     full_key = f"{_KEY_PREFIX}{raw}"
@@ -48,13 +54,57 @@ def generate_api_key() -> tuple[str, str, str]:
     return full_key, key_prefix, key_hash
 
 
+_SCHEME = "scrypt"
+_N, _R, _P = 2**14, 8, 1
+_SALT_BYTES = 16
+_DKLEN = 32
+
+# full key -> (stored hash it matched, monotonic time) - see the module doc.
+_VERIFIED: dict[str, tuple[str, float]] = {}
+_VERIFIED_TTL = 300.0
+_VERIFIED_MAX = 1024
+
+
+def _scrypt(full_key: str, salt: bytes, n: int, r: int, p: int) -> bytes:
+    return hashlib.scrypt(full_key.encode(), salt=salt, n=n, r=r, p=p, dklen=_DKLEN)
+
+
 def _hash_key(full_key: str) -> str:
-    return hashlib.sha256(full_key.encode()).hexdigest()
+    salt = secrets.token_bytes(_SALT_BYTES)
+    digest = _scrypt(full_key, salt, _N, _R, _P)
+    return f"{_SCHEME}${_N}${_R}${_P}${salt.hex()}${digest.hex()}"
+
+
+def needs_rehash(stored_hash: str) -> bool:
+    """Stored before step 7c (a bare SHA-256) - rehash on the next use."""
+    return not stored_hash.startswith(f"{_SCHEME}$")
 
 
 def verify_key(full_key: str, stored_hash: str) -> bool:
-    """Return True if full_key matches the stored SHA-256 hash."""
-    return secrets.compare_digest(_hash_key(full_key), stored_hash)
+    """Return True if *full_key* matches *stored_hash* (scrypt, or the old
+    bare SHA-256 until the next release removes it)."""
+    remembered = _VERIFIED.get(full_key)
+    if (
+        remembered is not None
+        and remembered[0] == stored_hash
+        and time.monotonic() - remembered[1] < _VERIFIED_TTL
+    ):
+        return True
+    if needs_rehash(stored_hash):
+        # Step 7c, phase 1: the pre-7c format. Removed in the next release.
+        ok = secrets.compare_digest(hashlib.sha256(full_key.encode()).hexdigest(), stored_hash)
+    else:
+        try:
+            _scheme, n, r, p, salt_hex, digest_hex = stored_hash.split("$")
+            digest = _scrypt(full_key, bytes.fromhex(salt_hex), int(n), int(r), int(p))
+        except ValueError:
+            return False
+        ok = secrets.compare_digest(digest.hex(), digest_hex)
+    if ok:
+        if len(_VERIFIED) >= _VERIFIED_MAX:
+            _VERIFIED.clear()
+        _VERIFIED[full_key] = (stored_hash, time.monotonic())
+    return ok
 
 
 async def authenticate_api_key(
@@ -98,6 +148,15 @@ async def authenticate_api_key(
     if not matched_row:
         log.warning("api_key.invalid_secret", prefix=key_prefix)
         return None
+
+    if needs_rehash(matched_row.get("key_hash") or ""):
+        # Step 7c: the first use of a pre-7c key stores it with scrypt.
+        try:
+            async with system_context(session), session.begin_nested():
+                await _db.set_value("ApiKey", matched_row["name"], "key_hash", _hash_key(full_key))
+            log.info("api_key.rehashed", prefix=key_prefix)
+        except Exception:
+            log.exception("api_key.rehash_failed", prefix=key_prefix)
 
     # Check expiry
     expires_at = matched_row.get("expires_at")
