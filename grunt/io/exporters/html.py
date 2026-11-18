@@ -81,13 +81,10 @@ class _Formatter:
             if self.tz:
                 d = d.astimezone(self.tz)
         y, m, day = f"{d.year:04d}", f"{d.month:02d}", f"{d.day:02d}"
-        match self.date_format:
-            case "yyyy-mm-dd":
-                out = f"{y}-{m}-{day}"
-            case "dd/mm/yyyy":
-                out = f"{day}/{m}/{y}"
-            case _:
-                out = f"{day}.{m}.{y}"
+        out = {
+            "yyyy-mm-dd": f"{y}-{m}-{day}",
+            "dd/mm/yyyy": f"{day}/{m}/{y}",
+        }.get(self.date_format, f"{day}.{m}.{y}")
         if time and isinstance(d, datetime):
             out += f" {d.hour:02d}:{d.minute:02d}"
         return out

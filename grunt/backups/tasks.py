@@ -92,10 +92,11 @@ async def scheduled_backup() -> str | None:
             return None
         try:
             # No user to notify: the progress shows in «Active Background Tasks».
+            result = None  # stays None when cancelled: track_progress swallows that
             async with track_progress(
                 _("Backup"), user=None, unit="bytes", doctype="Backup", cancellable=True
             ) as progress:
-                return await _run(
+                result = await _run(
                     site,
                     keep=cfg["keep"],
                     with_files=cfg["with_files"],
@@ -104,7 +105,7 @@ async def scheduled_backup() -> str | None:
                 )
         except BackupBusyError:  # a job that waited in the queue while that one ran
             return None
-        return None  # cancelled
+        return result
 
 
 @task

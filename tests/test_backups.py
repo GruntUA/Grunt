@@ -299,6 +299,28 @@ async def test_queued_scheduled_backup_skips_a_running_one(site, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_cancelled_scheduled_backup_returns_none(site, monkeypatch):
+    from grunt import progress
+    from grunt.progress import TaskCancelledError
+
+    async def cancelled(*a, **kw):
+        raise TaskCancelledError()
+
+    async def settings():
+        return {"enabled": True, "interval": "Daily", "keep": 3, "with_files": False, "level": 3}
+
+    monkeypatch.setattr(tasks, "_settings", settings)
+    monkeypatch.setattr(tasks, "is_due", lambda *a: True)
+    monkeypatch.setattr(tasks, "_run", cancelled)
+    # Inside a worker job track_progress ends a cancelled task quietly.
+    token = progress.current_job.set("job-1")
+    try:
+        assert await tasks.scheduled_backup() is None
+    finally:
+        progress.current_job.reset(token)
+
+
+@pytest.mark.asyncio
 async def test_backup_is_refused_without_disk_space(site, monkeypatch):
     from collections import namedtuple
 

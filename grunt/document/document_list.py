@@ -15,6 +15,10 @@ class DocumentList(list):
         super().__init__(data)
         self.meta = meta or {}
 
+    def __eq__(self, other: object) -> bool:
+        # Equal as a list: ``meta`` is pagination of this read, not content.
+        return super().__eq__(other)
+
     def to_dict(self) -> dict[str, Any]:
         return {"data": list(self), "meta": self.meta}
 
