@@ -100,6 +100,8 @@ def to_sql(
         return to_sql(e, table, doctype=doctype, tables=tables)
 
     match expr:
+        case MultiLink():
+            return _multilink(expr, table, doctype)
         case Const(value=value):
             return true() if value else false()
         case And(items=items):
@@ -108,8 +110,6 @@ def to_sql(
             return or_(*(sub(i) for i in items))
         case Raw(clause=clause):
             return clause
-        case MultiLink():
-            return _multilink(expr, table, doctype)
         case Linked(field=field, doctype=target_doctype, where=where, select=column, negate=negate):
             if tables is None or target_doctype not in tables:
                 raise ValueError(

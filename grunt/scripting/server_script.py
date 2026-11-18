@@ -101,7 +101,7 @@ def _bridged[T](fn: Callable[..., Awaitable[T]]) -> Callable[..., T]:
     """
 
     @functools.wraps(fn)
-    def wrapper(self: Any, *args: Any, **kwargs: Any) -> T:
+    def wrapper(self: Any, *args: Any, **kwargs: Any):  # -> T (see the signature)
         return self._bridge.run(fn(self, *args, **kwargs))
 
     return wrapper

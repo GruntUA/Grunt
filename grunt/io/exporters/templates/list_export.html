@@ -47,7 +47,7 @@ Filters: fmt(field) - plain-text value the way the desk shows it; css_color.
     {%- else -%}<span class="check-no">✗</span>{%- endif -%}
   {%- elif field.fieldtype == "Rating" and (value | string | float(-1)) >= 0 -%}
     {%- set n = [value | float | round | int, 5] | min -%}
-    <span class="star-on">{{ "★" * n }}</span><span class="star-off">{{ "☆" * (5 - n) }}</span>
+    <span class="star-on">{% for i in range(n) %}★{% endfor %}</span><span class="star-off">{% for i in range(5 - n) %}☆{% endfor %}</span>
   {%- elif field.fieldtype == "Select" -%}
     <span class="option">{{ field.option_labels.get(value | string, value) }}</span>
   {%- elif field.fieldtype == "Geolocation" and value is mapping and "lat" in value and "lng" in value -%}
@@ -252,9 +252,9 @@ Filters: fmt(field) - plain-text value the way the desk shows it; css_color.
     <div class="meta">
       <span class="chip">
         {%- if is_partial -%}
-          {{ _("%(shown)s of %(total)s records") % {"shown": row_count, "total": total} }}
+          {{ _("%(shown)s of %(total)s records", shown=row_count, total=total) }}
         {%- else -%}
-          {{ _("%(n)s records") % {"n": row_count} }}
+          {{ _("%(n)s records", n=row_count) }}
         {%- endif -%}
       </span>
       {%- if is_partial %}

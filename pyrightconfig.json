@@ -3,6 +3,6 @@
   "venv": ".venv",
   "pythonVersion": "3.15",
   "extraPaths": [],
-  "reportPossiblyUnbound": "error",
+  "reportPossiblyUnboundVariable": "error",
   "reportUnsupportedDunderAll": "error"
 }

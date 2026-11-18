@@ -61,7 +61,7 @@
       ><span style="color:#ffffff;">{{ _("Sign in") }}</span></a>
     </div>
     <p class="url-fallback">{{ _("Or follow this link:") }} {{ login_url }}</p>
-    <p>{{ _("The code and link are valid for %(minutes)s minutes.") % {"minutes": ttl_minutes} }}
+    <p>{{ _("The code and link are valid for %(minutes)s minutes.", minutes=ttl_minutes) }}
        {{ _("If you did not try to sign in, just ignore this email.") }}</p>
   </div>
   <div class="footer">{{ _("Automated message, please do not reply.") }}</div>

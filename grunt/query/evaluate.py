@@ -110,18 +110,18 @@ def _in(raw: Any, values: tuple[Any, ...]) -> bool:
 def matches(expr: Expr, row: dict[str, Any]) -> bool:
     """Whether *row* satisfies *expr*. A field missing from the row is NULL."""
     match expr:
-        case Const(value=value):
-            return value
-        case And(items=items):
-            return all(matches(i, row) for i in items)
-        case Or(items=items):
-            return any(matches(i, row) for i in items)
         case MultiLink():
             raise NotImplementedError("MultiLink filters need the multi-link table")
         case Linked():
             raise NotImplementedError("Linked filters read another DocType")
         case Raw():
             raise NotImplementedError("A raw SQL condition can't be evaluated in memory")
+        case Const(value=value):
+            return value
+        case And(items=items):
+            return all(matches(i, row) for i in items)
+        case Or(items=items):
+            return any(matches(i, row) for i in items)
 
     raw = row.get(expr.field)
     match expr:
