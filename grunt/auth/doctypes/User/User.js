@@ -1,6 +1,6 @@
 // User DocType — Client Script
 
-function on_load(frm) {
+export function on_load(frm) {
   // Sensitive fields: always hidden / read-only
   frm.set_df_property("hashed_password", "hidden", true);
   frm.set_df_property("mfa_secret", "hidden", true);
@@ -121,7 +121,7 @@ function on_load(frm) {
   });
 }
 
-async function on_change(frm, fieldname) {
+export async function on_change(frm, fieldname) {
   if (["first_name", "last_name", "middle_name"].includes(fieldname)) {
     const last = frm.get_value("last_name") || "";
     const first = frm.get_value("first_name") || "";

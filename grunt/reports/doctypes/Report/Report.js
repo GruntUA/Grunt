@@ -1,6 +1,6 @@
 // Report — кнопка переходу на рендер звіту (/<workspace>/report/<report_name>).
 
-function on_load(frm) {
+export function on_load(frm) {
   frm.actions.add({
     id: 'view_report',
     label: __('View report'),

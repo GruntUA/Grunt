@@ -36,7 +36,7 @@ function _applyGmailDefaults(frm) {
 }
 
 /** @param {FormProxy} frm */
-function on_load(frm) {
+export function on_load(frm) {
     if (!frm.is_new) return
     if (!frm.doc.provider) frm.set_value('provider', 'Gmail')
     if (_isGmail(frm)) _applyGmailDefaults(frm)
@@ -46,7 +46,7 @@ function on_load(frm) {
  * @param {FormProxy} frm
  * @param {string} fieldname
  */
-function on_change(frm, fieldname) {
+export function on_change(frm, fieldname) {
     if (fieldname === 'provider' && _isGmail(frm)) {
         _applyGmailDefaults(frm)
         return

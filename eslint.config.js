@@ -41,14 +41,15 @@ export default tseslint.config(
     rules: { 'vue/require-prop-type-constructor': 'off' },
   },
 
-  // DocType client scripts: plain scripts run by core/scripting/executor.ts
-  // inside `new Function(...)` - its parameters are the globals, and the
-  // top-level handlers are called by name, not referenced.
+  // DocType client scripts, run by core/scripting/executor.ts inside
+  // `new Function(...)` - its parameters are the globals. Written as modules:
+  // the hooks are `export function on_load(frm)`, so nothing reports them
+  // unused (the executor drops the `export`).
   {
     files: ['grunt/**/doctypes/**/*.js'],
     extends: [js.configs.recommended],
     languageOptions: {
-      sourceType: 'script',
+      sourceType: 'module',
       globals: {
         ...globals.browser,
         cur_frm: 'readonly',
@@ -66,8 +67,7 @@ export default tseslint.config(
         {
           args: 'none',
           caughtErrors: 'none',
-          varsIgnorePattern:
-            '^(on_load|on_change|validate|before_save|after_save|on_transitions|setup_list|on_quick_filter_change|_.*)$',
+          varsIgnorePattern: '^_',
         },
       ],
     },

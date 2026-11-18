@@ -2,12 +2,12 @@
 
 // ── Lifecycle hooks ──────────────────────────────────────────────────────────
 
-function on_load(frm) {
+export function on_load(frm) {
   _addButtons(frm)
   if (!frm.is_new) _renderResultBanner(frm)
 }
 
-function on_change(frm, fieldname) {
+export function on_change(frm, fieldname) {
   if (fieldname === 'status') _refreshStatusBanner(frm)
 }
 

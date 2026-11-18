@@ -605,6 +605,18 @@ function translate(text: string, params?: Record<string, unknown>): string {
 
 // Execution
 
+// `export` at the start of a line, before a declaration: a top-level one.
+const TOP_LEVEL_EXPORT = /^export\s+(?=(?:async\s+)?function\b|const\b|let\b|class\b)/gm
+
+/**
+ * A client script may declare its hooks as a module does - `export function
+ * on_load(frm)` - so editors and code scanning see them as used, not as dead
+ * functions. `new Function` takes a plain script: the keyword is dropped.
+ */
+export function stripExports(script: string): string {
+  return script.replace(TOP_LEVEL_EXPORT, '')
+}
+
 /**
  * The body of a client script's `new Function`: the script, then *call*.
  * In development a `//# sourceURL` names it, so it shows up in DevTools →
@@ -612,7 +624,7 @@ function translate(text: string, params?: Record<string, unknown>): string {
  * a normal file (otherwise it is an anonymous VM script).
  */
 function scriptBody(doctype: string, entry: ClientScriptEntry, call: string): string {
-  const body = `${entry.script};\n${call}`
+  const body = `${stripExports(entry.script)};\n${call}`
   if (!import.meta.env.DEV) return body
   const name = entry.name.replace(/[^\w.-]+/g, '/').replace(/^\/+/, '')
   return `${body}\n//# sourceURL=clientscript/${doctype}/${name}${name.endsWith('.js') ? '' : '.js'}`
@@ -655,11 +667,12 @@ async function runHandler(
 /**
  * Execute all client scripts for a DocType, filtering by event.
  *
- * Scripts should define handler functions matching the event name:
+ * Scripts export handler functions matching the event name (a plain
+ * `function on_load(frm)` works too):
  * ```js
- * function on_load(frm) { ... }
- * function validate(frm) { return true; }
- * function on_change(frm, fieldname) { ... }
+ * export function on_load(frm) { ... }
+ * export function validate(frm) { return true; }
+ * export function on_change(frm, fieldname) { ... }
  * ```
  *
  * Returns false if any validate handler returns false.

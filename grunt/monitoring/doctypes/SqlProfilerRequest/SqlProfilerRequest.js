@@ -1,4 +1,4 @@
-function on_load(frm) {
+export function on_load(frm) {
   frm.actions.add({
     id: 'copy_json',
     label: __('Copy JSON'),
@@ -14,7 +14,7 @@ function on_load(frm) {
   })
 }
 
-async function setup_list(listview) {
+export async function setup_list(listview) {
   listview.actions.remove('add') // read-only ring buffer view — records aren't created by hand
 
   let isRecording = false

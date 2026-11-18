@@ -16,7 +16,7 @@
 
 const _isSystemManager = () => (grunt.session.roles || []).includes('System Manager')
 
-function setup_list(listview) {
+export function setup_list(listview) {
     const actions = listview.actions
 
     actions.add({

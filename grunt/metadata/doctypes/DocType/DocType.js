@@ -184,7 +184,7 @@ function _escape(text) {
     return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
 
-async function on_load(frm) {
+export async function on_load(frm) {
     _refresh_field_selects(frm)
     _show_permission_warnings(frm)
 
@@ -211,7 +211,7 @@ async function on_load(frm) {
     }
 }
 
-async function on_change(frm, fieldname) {
+export async function on_change(frm, fieldname) {
     if (fieldname === 'fields' || fieldname === 'is_tree') return _refresh_field_selects(frm)
     if (fieldname === 'status_field') return _seed_status_indicators(frm)
     if (fieldname !== 'app') return
@@ -237,6 +237,6 @@ async function on_change(frm, fieldname) {
 }
 
 /** @param {ListViewProxy} listview */
-function setup_list(listview) {
+export function setup_list(listview) {
   listview.actions.update('add', { label: __('New DocType') })
 }
