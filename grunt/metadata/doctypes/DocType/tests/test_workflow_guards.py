@@ -179,3 +179,50 @@ async def test_server_script_sees_the_transition():
     )
     assert result.success, result.error
     assert result.response == {"to": "Approved", "by": "Approve"}
+
+
+def test_rows_from_before_the_new_columns_still_load():
+    """`grunt migrate` adds the columns as NULL on existing rows - they load with
+    the defaults instead of failing every workflow."""
+    from grunt.metadata.doctype import WorkflowState, WorkflowTransition
+
+    state = WorkflowState.model_validate({"state": "Draft", "message": None})
+    assert state.message == ""
+    transition = WorkflowTransition.model_validate(
+        {
+            "from_state": "Draft",
+            "to_state": "Review",
+            "action": "Send",
+            "deny_self_approval": None,
+            "confirm": None,
+        }
+    )
+    assert transition.deny_self_approval is False and transition.confirm is False
+
+
+@pytest.mark.asyncio
+async def test_a_hidden_owner_does_not_let_the_author_approve(ctx, db_session, engine):
+    """The author's read of the document has `owner` masked - the check reads
+    the stored owner, not the masked document."""
+    hidden = {
+        **DOCTYPE,
+        "permissions": [
+            {
+                "role": "MemoApprover",
+                "actions": ["read", "write", "create"],
+                "hidden_fields": ["owner"],
+            }
+        ],
+    }
+    await save_doctype(doctype_data={**hidden, "__is_new": True})
+    await ctx.db._session().commit()
+    await _create_workflow(ctx, WORKFLOW)
+    async with grunt.context(db_session, engine, AUTHOR):
+        doc = await grunt.new_doc("Memo", {"title": "Mine", "status": "Draft"})
+        await grunt.submit("Memo", doc["name"], "Send")
+        seen = await grunt.get_doc("Memo", doc["name"])
+    await ctx.db._session().commit()
+    assert "owner" not in seen or not seen["owner"]  # the rule really masks it
+
+    assert "Approve" not in await _actions(db_session, engine, AUTHOR, doc["name"])
+    assert "Approve" in await _actions(db_session, engine, OTHER, doc["name"])

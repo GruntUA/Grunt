@@ -49,7 +49,9 @@ def user_may_take(
     return bool(set(roles).intersection(transition.allowed_roles))
 
 
-def is_self_approval(transition: WorkflowTransition, doc: dict, user: str) -> bool:
-    """A ``deny_self_approval`` transition and *user* is the document's author -
-    they may not take it, whatever their roles (System Manager included)."""
-    return bool(transition.deny_self_approval and user and doc.get("owner") == user)
+def is_self_approval(transition: WorkflowTransition, owner: str | None, user: str) -> bool:
+    """A ``deny_self_approval`` transition and *user* is the document's author
+    (*owner*) - they may not take it, whatever their roles (System Manager
+    included). *owner* comes from :func:`grunt.workflow.actors.stored_owner`:
+    the document a user reads may have ``owner`` masked."""
+    return bool(transition.deny_self_approval and user and owner == user)

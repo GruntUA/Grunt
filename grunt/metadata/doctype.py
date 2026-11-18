@@ -75,7 +75,8 @@ def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
     A DB row predating the column (or simply never filled in) stores it as
     SQL ``NULL`` - read back as ``None``, which a bare ``list[str]`` field
     rejects, so that must become ``[]`` too rather than only splitting strings.
-    Check columns read back as ``None`` the same way - dropped so the default applies.
+    Check columns (and ``message``) read back as ``None`` the same way - dropped so
+    the default applies.
     """
     if isinstance(data, dict):
         updates: dict[str, Any] = {}
@@ -86,7 +87,16 @@ def _split_csv(data: Any, keys: tuple[str, ...]) -> Any:
             elif value is None and key in data:
                 updates[key] = []
         data = {**data, **updates}
-        for key in ("require_comment", "on_edit", "is_initial", "is_final"):
+        # Columns added later (deny_self_approval, confirm, message) are NULL on old rows.
+        for key in (
+            "require_comment",
+            "on_edit",
+            "is_initial",
+            "is_final",
+            "deny_self_approval",
+            "confirm",
+            "message",
+        ):
             if key in data and data[key] is None:
                 del data[key]
     return data

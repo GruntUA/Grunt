@@ -262,10 +262,12 @@ function _workflow_state_message(frm) {
     const field = frm.meta?.workflow_state_field
     const state = field ? frm.doc?.[field] : null
     const found = state != null ? frm.meta?.workflow_state_messages?.[state] : null
-    const ours = String(frm.dashboard.state.headline?.html ?? '').includes(_STATE_MESSAGE)
+    const current = frm.dashboard.state.headline
+    // A DocType script's own headline wins - set or cleared, it is left alone.
+    if (current && !String(current.html ?? '').includes(_STATE_MESSAGE)) return
     if (found?.message) {
         frm.dashboard.set_headline(`<span ${_STATE_MESSAGE}>${_escape(found.message)}</span>`, found.color)
-    } else if (ours) {
+    } else if (current) {
         frm.dashboard.clear_headline()
     }
 }
