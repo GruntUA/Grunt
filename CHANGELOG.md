@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.10.0 - 2026-11-18
+
+### Features
+
+- **permissions:** API keys narrowed to some of the user's roles, or read only (#185)
+- **permissions:** row condition builder for permission rules (#183)
+
+### Fixes
+
+- **ui:** table cells show MultiSelect labels; a DocType form's title in the user's language (#184)
+
 ## v0.9.0 - 2026-11-17
 
 ### Features
