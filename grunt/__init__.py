@@ -39,6 +39,7 @@ doc_cache = _app.doc_cache
 context = _app.context
 get_user = _app.get_user
 system_context = _app.system_context
+sudo = _app.sudo
 bootstrap_context = _app.bootstrap_context
 set_context = _app.set_context
 reset_context = _app.reset_context
@@ -120,6 +121,7 @@ __all__ = [
     "set_value",
     "submit",
     "system_context",
+    "sudo",
     "throw",
     "whitelist",
 ]

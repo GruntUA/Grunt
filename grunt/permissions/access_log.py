@@ -3,8 +3,10 @@
 The places that hand data out call :func:`record_access` once the permission
 check passed: list exports (every exporter, CSV, quick export, a ``DataExport``
 run), printouts of a document (HTML, PDF, XLSX, DOCX), imports and report
-downloads. A row says who, when, what (DocType and document, or the filters
-of an export), in which format and how many rows.
+downloads - and code elevated to the system on someone's behalf
+(``grunt.sudo``, action ``Elevated``, with its reason). A row says who, when,
+what (DocType and document, or the filters of an export), in which format and
+how many rows.
 
 Written as the system in the request's transaction - a failing write is
 logged and never breaks the export it describes.
@@ -23,13 +25,14 @@ from grunt.metadata.registry import doctype_registry
 
 LOG_DOCTYPE = "AccessLog"
 
-Action = Literal["Export", "Print", "Import", "Report"]
+Action = Literal["Export", "Print", "Import", "Report", "Elevated"]
 
 
 async def record_access(
     action: Action,
-    doctype: str,
+    doctype: str | None,
     *,
+    reason: str | None = None,
     doc_id: str | None = None,
     file_format: str | None = None,
     rows: int | None = None,
@@ -59,6 +62,7 @@ async def record_access(
                     doc_id=doc_id,
                     file_format=(file_format or "").lower() or None,
                     rows=rows,
+                    reason=(reason or "")[:255] or None,
                     filters=_jsonable(filters) if filters else None,
                 )
             )

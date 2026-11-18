@@ -14,7 +14,7 @@
       "fieldname": "action",
       "label": "Action",
       "fieldtype": "Select",
-      "options": "Export\nPrint\nImport\nReport",
+      "options": "Export\nPrint\nImport\nReport\nElevated",
       "translatable": true,
       "in_list_view": true,
       "in_filter": true
@@ -46,6 +46,13 @@
       "fieldtype": "Int"
     },
     {
+      "fieldname": "reason",
+      "label": "Reason",
+      "fieldtype": "Data",
+      "in_list_view": true,
+      "description": "Why code ran as the system (grunt.sudo) - and where"
+    },
+    {
       "fieldname": "filters",
       "label": "Filters",
       "fieldtype": "JSON"
@@ -57,5 +64,5 @@
       "actions": ["read", "export", "report"]
     }
   ],
-  "description": "Who took data out of the system and when: exports, printouts, imports and report downloads. Written by the system, read only; kept a year."
+  "description": "Who took data out of the system and when: exports, printouts, imports and report downloads - and code that ran as the system on someone's behalf (grunt.sudo). Written by the system, read only; kept a year."
 }

@@ -16168,3 +16168,16 @@ msgstr "Користувач ключа не має цих ролей: %(roles)s
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgid "This API key may only read"
 msgstr "Цей API-ключ може лише читати"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Why code ran as the system (grunt.sudo) - and where"
+msgstr "Чому код виконувався від системи (grunt.sudo) — і де"
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgid "Who took data out of the system and when: exports, printouts, imports and report downloads - and code that ran as the system on someone's behalf (grunt.sudo). Written by the system, read only; kept a year."
+msgstr "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження звітів — і код, що виконувався від системи за чиєюсь дією (grunt.sudo). Пише система, лише для читання; зберігається рік."
+
+#: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+msgctxt "select:AccessLog.action"
+msgid "Elevated"
+msgstr "Підвищення прав"
