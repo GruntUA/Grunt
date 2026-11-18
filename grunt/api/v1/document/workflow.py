@@ -36,6 +36,7 @@ async def get_workflow_transitions(doctype: str, doc_id: str) -> list[dict[str, 
             "to_state": t.to_state,
             "prompt_fields": t.prompt_fields,
             "require_comment": t.require_comment,
+            "confirm": t.confirm,
         }
         for t in transitions
     ]

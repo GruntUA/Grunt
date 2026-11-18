@@ -33,7 +33,7 @@
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
-| 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ❓ |
+| 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✅ |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ❓ |
 | 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
 | 22 | Print Format Builder + параметри сторінки | ❓ |
@@ -224,10 +224,10 @@
 - **Рішення:** —
 
 ### 19. Workflow
-**Статус:** ❓
+**Статус:** ✅
 - **Frappe:** `allow_self_approval`, `enable_action_confirmation`, `transition_tasks` (дії при переході), `next_action_email_template`, повідомлення стану, кілька workflow на DocType з умовою/пріоритетом, Workflow Action — вхідні «очікує мого погодження».
 - **Ґрунт зараз:** стани, переходи з ролями, умовою, коментарем, `prompt_fields`, сповіщеннями; `update_field/update_value` у стані.
-- **Рішення:** —
+- **Рішення (2026-11-18):** робимо. Крок 1 (`feat/workflow-guards`): `deny_self_approval` (автор не погоджує власне; Next actors теж без нього), `confirm` на переході, `message` у стані (банер над формою), подія `on_transition` у ServerScript зі змінною `transition`; попутно умова з помилкою тепер **закриває** перехід (раніше `return True` — пропускала всіх). Крок 2: вхідні «Очікує моєї дії» — з переходів і прав, без таблиці Workflow Action. Кілька workflow на DocType — ⏸. `next_action_email_template` покриває Notification з отримувачами Next actors.
 
 ### 20. Політика входу
 **Статус:** ❓

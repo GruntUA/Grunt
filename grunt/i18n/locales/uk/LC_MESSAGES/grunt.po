@@ -16198,3 +16198,27 @@ msgstr "API-ключі в старому форматі"
 #: grunt/grunt/monitoring/health.py
 msgid "These keys no longer work: reissue the ones still needed, deactivate the rest: %(keys)s"
 msgstr "Ці ключі більше не працюють: потрібні перевипустіть, решту вимкніть: %(keys)s"
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Not by the author"
+msgstr "Не автором документа"
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "The document's author cannot take this transition - someone else has to approve it"
+msgstr "Автор документа не може виконати цей перехід — погодити має хтось інший"
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Ask for confirmation"
+msgstr "Запитувати підтвердження"
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Ask “Are you sure?” before applying"
+msgstr "Перед переходом запитати «Ви впевнені?»"
+
+#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
+msgid "Shown above the form while the document is in this state"
+msgstr "Показується над формою, поки документ у цьому стані"
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "“{action}”: are you sure?"
+msgstr "«{action}»: ви впевнені?"

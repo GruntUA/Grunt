@@ -57,6 +57,12 @@
       "label": "Field value",
       "fieldtype": "Data",
       "depends_on": "eval:doc.update_field"
+    },
+    {
+      "fieldname": "message",
+      "label": "Message",
+      "fieldtype": "LongText",
+      "description": "Shown above the form while the document is in this state"
     }
   ]
 }

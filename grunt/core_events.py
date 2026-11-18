@@ -61,7 +61,19 @@ async def _run_server_scripts(**kwargs: Any) -> None:
         event=kwargs["event"],
         doc=kwargs.get("doc", {}),
         user_email=_user_email(kwargs),
+        extra_context=_transition_context(kwargs),
     )
+
+
+def _transition_context(kwargs: dict) -> dict[str, Any] | None:
+    """``on_transition``: the script sees ``transition`` - action, from/to state, comment."""
+    if kwargs.get("event") != "on_transition":
+        return None
+    return {
+        "transition": {
+            key: kwargs.get(key) for key in ("action", "from_state", "to_state", "comment")
+        }
+    }
 
 
 async def _sync_document_links(**kwargs: Any) -> None:

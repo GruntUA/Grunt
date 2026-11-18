@@ -47,3 +47,9 @@ def user_may_take(
     if unrestricted or not transition.allowed_roles:
         return True
     return bool(set(roles).intersection(transition.allowed_roles))
+
+
+def is_self_approval(transition: WorkflowTransition, doc: dict, user: str) -> bool:
+    """A ``deny_self_approval`` transition and *user* is the document's author -
+    they may not take it, whatever their roles (System Manager included)."""
+    return bool(transition.deny_self_approval and user and doc.get("owner") == user)
