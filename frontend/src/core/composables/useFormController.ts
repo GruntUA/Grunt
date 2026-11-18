@@ -140,9 +140,16 @@ export function useFormController(
   )
 
   // Fields read-only for this user's roles: shown, but kept (the server refuses a change).
-  const readonlyFields = computed(() =>
-    formReadonlyFields(dt.value, document.value as Record<string, unknown> | null, !id, auth.user?.roles ?? []),
-  )
+  // Plus `set_only_once` fields once saved with a value - the server refuses those too.
+  const readonlyFields = computed(() => {
+    const saved = document.value as Record<string, unknown> | null
+    const byRole = formReadonlyFields(dt.value, saved, !id, auth.user?.roles ?? [])
+    if (!id || !saved) return byRole
+    const setOnce = (dt.value?.fields ?? [])
+      .filter((f) => f.set_only_once && saved[f.fieldname] != null && saved[f.fieldname] !== '')
+      .map((f) => f.fieldname)
+    return setOnce.length ? [...new Set([...byRole, ...setOnce])] : byRole
+  })
 
   const {
     actions,
@@ -341,8 +348,7 @@ export function useFormController(
     doctype,
     id,
     workspace,
-    form,
-    stateField: () => dt.value?.workflow_state_field,
+    getCopy: docsApi.getCopy,
     showDeleteModal,
     remove,
     goToList,

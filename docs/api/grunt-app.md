@@ -91,6 +91,20 @@ await grunt.save_doc("Order", order["id"], {"status": "Confirmed"})
 
 Delete a document (runs `before_delete` / `after_delete` hooks).
 
+### `grunt.copy_doc(doctype, id_or_name, *, overrides)` / `grunt.copy_data(doctype, id_or_name)`
+
+`copy_data` returns the values a copy starts with, and `copy_doc` inserts that copy with `overrides` applied. A copy leaves out:
+
+- the standard columns (`name`, `owner`, `created_at`, `modified_at`, `modified_by`);
+- fields marked `no_copy`, in child-table rows too;
+- the workflow state and the fields its states set, so the copy starts in the initial state.
+
+The form's **Duplicate** fills a new form from the same data, through the RPC `grunt.api.v1.document.meta.get_copy`.
+
+```python
+draft = await grunt.copy_doc("Invoice", original_id, overrides={"status": "Draft"})
+```
+
 ### `grunt.get_list(doctype, *, filters, fields, limit, page, order_by, order, search)`
 
 Fetch a list of documents.

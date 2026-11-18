@@ -64,6 +64,18 @@
       "fieldtype": "Check"
     },
     {
+      "fieldname": "no_copy",
+      "label": "Don't copy",
+      "fieldtype": "Check",
+      "description": "Not carried over when the document is duplicated"
+    },
+    {
+      "fieldname": "set_only_once",
+      "label": "Set only once",
+      "fieldtype": "Check",
+      "description": "Once saved with a value, it can't be changed"
+    },
+    {
       "fieldname": "col_v2",
       "fieldtype": "Column"
     },

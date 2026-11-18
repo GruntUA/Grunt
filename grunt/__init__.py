@@ -52,6 +52,7 @@ save_doc = _app.documents.save_doc
 delete_doc = _app.documents.delete_doc
 rename_doc = _app.documents.rename_doc
 copy_doc = _app.documents.copy_doc
+copy_data = _app.documents.copy_data
 submit = _app.submit
 get_list = _app.documents.get_list
 get_all = _app.documents.get_all
@@ -85,6 +86,7 @@ __all__ = [
     "bulk_insert",
     "bulk_update",
     "context",
+    "copy_data",
     "copy_doc",
     "count",
     "db",

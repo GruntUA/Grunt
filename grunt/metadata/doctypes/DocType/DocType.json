@@ -270,6 +270,14 @@
       "depends_on": "eval:!doc.is_singleton"
     },
     {
+      "fieldname": "allow_duplicate",
+      "label": "Allow duplicating",
+      "fieldtype": "Check",
+      "default": 1,
+      "description": "Off - the form has no “Duplicate” action",
+      "depends_on": "eval:!doc.is_singleton"
+    },
+    {
       "fieldname": "sec_list_view",
       "label": "List",
       "fieldtype": "Section",

@@ -3,11 +3,13 @@
 import re
 from typing import Any
 
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.document.validators import validate_field_value
 from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.field import get_field_type_class, is_physical_fieldtype
 lazy from grunt.document.meta import Meta
+lazy from grunt.errors import forbidden
 lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.registry import doctype_registry
 
@@ -135,3 +137,25 @@ async def validate_child_rows(
                     + _("Row %(idx)s: %(error)s") % {"idx": idx, "error": message}
                 )
     return errors
+
+
+def refuse_set_once_changes(
+    dt: Any, data: dict[str, Any], existing: dict[str, Any], user: str | None
+) -> None:
+    """403 when *data* changes a ``set_only_once`` field that already holds a
+    value. The internal system user (imports, fixtures, migrations) may."""
+    if user == SYSTEM_USER_EMAIL:
+        return
+    locked = [
+        f.fieldname
+        for f in dt.fields
+        if f.set_only_once
+        and f.fieldname in data
+        and existing.get(f.fieldname) not in (None, "")
+        and data[f.fieldname] != existing.get(f.fieldname)
+    ]
+    if locked:
+        raise forbidden(
+            _("“%(fields)s” can't be changed once set")
+            % {"fields": ", ".join(dt.get_label(f) for f in locked)}
+        )
