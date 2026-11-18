@@ -24,7 +24,12 @@ export function useFormDocumentView(params: UseFormDocumentViewParams) {
 
     const titleField = params.dt.value?.title_field
 
-    const titleValue = titleField ? params.document.value[titleField] : undefined
+    let titleValue = titleField ? params.document.value[titleField] : undefined
+    // A DocType's label is a translatable source string, not data - show it
+    // in the user's language (the list of DocTypes does too).
+    if (params.dt.value?.name === 'DocType' && typeof titleValue === 'string' && titleValue) {
+      titleValue = t(titleValue)
+    }
     const nameValue = params.document.value.name
     return (titleValue as string) || (nameValue as string) || t('New {doctype}', { doctype: params.dt.value?.label ?? '' })
   })

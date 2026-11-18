@@ -57,6 +57,25 @@
       "fieldname": "allowed_ips",
       "label": "Allowed IPs (comma-separated)",
       "fieldtype": "Data"
+    },
+    {
+      "fieldname": "sec_scope",
+      "label": "What the key may do",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "read_only",
+      "label": "Read only",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Requests with this key may only read: any other method gets 403, and no document is created, changed or deleted."
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "Table",
+      "options": "ApiKeyRole",
+      "description": "Only these of the user's roles (with the user's scopes); empty - all of them. The key never gets more than its user has."
     }
   ],
   "permissions": [

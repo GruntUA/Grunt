@@ -74,10 +74,23 @@ export function useTableCell() {
     if (getStorageClass(f.fieldtype) === 'bool') return v ? t('Yes') : t('No')
     if (f.fieldtype === 'Currency') return formatCurrency(v, currencyCode(f, row))
     if (f.fieldtype === 'Select') return selectOptionLabel(f, v)
+    // MultiSelect (a list, or its JSON text): the options' labels, not the raw list.
+    const many = Array.isArray(v) ? v : f.fieldtype === 'MultiSelect' ? parseList(v) : null
+    if (many) return many.map((x) => selectOptionLabel(f, x)).join(', ')
     const label = row[`${f.fieldname}__label`]
     if (!isEmpty(label)) return String(label)
     return formatValue(f, v)
   }
 
   return { cellError, cellDisplay }
+}
+
+function parseList(v: unknown): unknown[] | null {
+  if (typeof v !== 'string') return null
+  try {
+    const parsed: unknown = JSON.parse(v)
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
+  }
 }
