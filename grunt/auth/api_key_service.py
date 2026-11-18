@@ -6,8 +6,9 @@ Key format: ``grnt_<64 hex chars>``
 
 Stored as ``scrypt$<n>$<r>$<p>$<salt hex>$<hash hex>`` - a key derivation
 function, so a copy of the database doesn't make keys cheap to check offline
-(PERMISSIONS_PLAN step 7c, CodeQL #16). A verified key is remembered in the
-process for a few minutes: scrypt costs ~35 ms, and an integration calls often.
+(PERMISSIONS_PLAN step 7c, CodeQL #16). The key is 256 random bits, so a modest
+cost (n=2^12, ~8 ms) is enough; it runs in a small thread pool, off the event
+loop. Nothing caches a verified key - that would keep it in memory.
 
 Keys stored before 7c are a bare SHA-256 hex digest. They still verify, and the
 first successful use rehashes them with scrypt; the next release drops the old
@@ -15,9 +16,10 @@ format (an unused old key is then reissued).
   - The key_prefix is public and allows O(1) DB lookup without scanning all keys.
 """
 
+import asyncio
 import hashlib
 import secrets
-import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 from sqlalchemy import and_, select
@@ -55,24 +57,29 @@ def generate_api_key() -> tuple[str, str, str]:
 
 
 _SCHEME = "scrypt"
-_N, _R, _P = 2**14, 8, 1
+_N, _R, _P = 2**12, 8, 1
 _SALT_BYTES = 16
 _DKLEN = 32
 
-# full key -> (stored hash it matched, monotonic time) - see the module doc.
-_VERIFIED: dict[str, tuple[str, float]] = {}
-_VERIFIED_TTL = 300.0
-_VERIFIED_MAX = 1024
+# scrypt runs here, not on the event loop; bounded so a burst of wrong keys
+# queues instead of taking every core.
+_KDF_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="api-key-kdf")
 
 
 def _scrypt(full_key: str, salt: bytes, n: int, r: int, p: int) -> bytes:
-    return hashlib.scrypt(full_key.encode(), salt=salt, n=n, r=r, p=p, dklen=_DKLEN)
+    return hashlib.scrypt(
+        full_key.encode(), salt=salt, n=n, r=r, p=p, dklen=_DKLEN, maxmem=128 * n * r * 2
+    )
 
 
 def _hash_key(full_key: str) -> str:
     salt = secrets.token_bytes(_SALT_BYTES)
     digest = _scrypt(full_key, salt, _N, _R, _P)
     return f"{_SCHEME}${_N}${_R}${_P}${salt.hex()}${digest.hex()}"
+
+
+async def _hash_key_async(full_key: str) -> str:
+    return await asyncio.get_running_loop().run_in_executor(_KDF_POOL, _hash_key, full_key)
 
 
 def needs_rehash(stored_hash: str) -> bool:
@@ -82,29 +89,24 @@ def needs_rehash(stored_hash: str) -> bool:
 
 def verify_key(full_key: str, stored_hash: str) -> bool:
     """Return True if *full_key* matches *stored_hash* (scrypt, or the old
-    bare SHA-256 until the next release removes it)."""
-    remembered = _VERIFIED.get(full_key)
-    if (
-        remembered is not None
-        and remembered[0] == stored_hash
-        and time.monotonic() - remembered[1] < _VERIFIED_TTL
-    ):
-        return True
+    bare SHA-256 until the next release removes it). Blocking - from async
+    code use :func:`verify_key_async`."""
     if needs_rehash(stored_hash):
         # Step 7c, phase 1: the pre-7c format. Removed in the next release.
-        ok = secrets.compare_digest(hashlib.sha256(full_key.encode()).hexdigest(), stored_hash)
-    else:
-        try:
-            _scheme, n, r, p, salt_hex, digest_hex = stored_hash.split("$")
-            digest = _scrypt(full_key, bytes.fromhex(salt_hex), int(n), int(r), int(p))
-        except ValueError:
-            return False
-        ok = secrets.compare_digest(digest.hex(), digest_hex)
-    if ok:
-        if len(_VERIFIED) >= _VERIFIED_MAX:
-            _VERIFIED.clear()
-        _VERIFIED[full_key] = (stored_hash, time.monotonic())
-    return ok
+        return secrets.compare_digest(hashlib.sha256(full_key.encode()).hexdigest(), stored_hash)
+    try:
+        _scheme, n, r, p, salt_hex, digest_hex = stored_hash.split("$")
+        digest = _scrypt(full_key, bytes.fromhex(salt_hex), int(n), int(r), int(p))
+    except ValueError:
+        return False
+    return secrets.compare_digest(digest.hex(), digest_hex)
+
+
+async def verify_key_async(full_key: str, stored_hash: str) -> bool:
+    """:func:`verify_key` in the KDF thread pool - the event loop keeps serving."""
+    return await asyncio.get_running_loop().run_in_executor(
+        _KDF_POOL, verify_key, full_key, stored_hash
+    )
 
 
 async def authenticate_api_key(
@@ -141,7 +143,7 @@ async def authenticate_api_key(
     matched_row = None
     for row in rows:
         stored_hash = row.get("key_hash") or ""
-        if verify_key(full_key, stored_hash):
+        if await verify_key_async(full_key, stored_hash):
             matched_row = row
             break
 
@@ -153,7 +155,8 @@ async def authenticate_api_key(
         # Step 7c: the first use of a pre-7c key stores it with scrypt.
         try:
             async with system_context(session), session.begin_nested():
-                await _db.set_value("ApiKey", matched_row["name"], "key_hash", _hash_key(full_key))
+                new_hash = await _hash_key_async(full_key)
+                await _db.set_value("ApiKey", matched_row["name"], "key_hash", new_hash)
             log.info("api_key.rehashed", prefix=key_prefix)
         except Exception:
             log.exception("api_key.rehash_failed", prefix=key_prefix)
