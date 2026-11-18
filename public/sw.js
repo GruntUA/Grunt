@@ -54,6 +54,8 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('message', (event) => {
+  // Only a page of this origin (a client of this SW) may clear the cache.
+  if (event.origin !== self.location.origin) return
   if (event.data === 'clear-user-data') event.waitUntil(caches.delete(API_CACHE))
 })
 

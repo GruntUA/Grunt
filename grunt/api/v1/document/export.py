@@ -9,15 +9,18 @@ RPC: grunt.api.v1.document.export.export_file - bulk export via io registry (any
 import csv as csv_module
 import io
 from datetime import datetime
+from html import escape as html_escape
 from typing import Any
 
 from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
+lazy from jinja2 import TemplateError
 
 from grunt.api.context import whitelist
 from grunt.i18n import _
 from grunt.io.exporters.registry import ListExportContext, get_exporter, get_exporters
 from grunt.local import require_session, user_email
+from grunt.log import log
 from grunt.permissions.access_log import record_access
 from grunt.permissions.guards import doctype_guard
 from grunt.permissions.rbac import permission_checker
@@ -233,6 +236,11 @@ async def print(
     )
 
 
+def _template_error_html(message: str) -> str:
+    title = _("Template error:")
+    return f"<pre style='color:red;padding:1rem'>{title}\n{html_escape(message)}</pre>"
+
+
 @whitelist()
 async def preview(
     doctype: str,
@@ -276,8 +284,15 @@ async def preview(
             fields=dt.fields,
             letter_head=rendered_lh,
         )
+    except TemplateError as e:
+        # The author's own template: its Jinja message (line, undefined name) is
+        # what they need to fix it. Escaped - it may quote template text.
+        html = _template_error_html(f"{type(e).__name__}: {e.message or ''}")
     except Exception as e:
-        html = f"<pre style='color:red;padding:1rem'>{_('Template error:')}\n{e}</pre>"
+        log.exception("print.preview_failed", doctype=doctype)
+        html = _template_error_html(
+            _("{error} - details are in the server log.").format(error=type(e).__name__)
+        )
     else:
         if rendered_lh and "letter_head" not in template_str:
             html = apply_letter_head(html, rendered_lh)
