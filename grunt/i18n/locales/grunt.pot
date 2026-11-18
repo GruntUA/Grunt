@@ -846,6 +846,10 @@ msgid "All time"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Allow duplicating"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Allow guest to view"
 msgstr ""
 
@@ -2754,6 +2758,10 @@ msgstr ""
 msgid "Could not download the file: %(error)s"
 msgstr ""
 
+#: grunt/frontend/src/core/composables/useFormActions.ts
+msgid "Could not duplicate the document"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/Geolocation/Geolocation.vue
 msgid "Could not get your location"
 msgstr ""
@@ -3251,6 +3259,16 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgid "Decimal places"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Decimal places for Float / Currency / Percent: shown with and rounded to on "
+"save (Currency: 2 by default; changing it changes the column)"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue
+msgid "Decimal places: shown with and rounded to on save"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
@@ -3918,6 +3936,10 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Domain"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Don't copy"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -5533,6 +5555,14 @@ msgstr ""
 msgid "HTTP status"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Half even"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Half up"
+msgstr ""
+
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Handler / Script"
 msgstr ""
@@ -5742,6 +5772,12 @@ msgstr ""
 msgid ""
 "How much each user's “My files” may hold; 0 - no limit. A user's own quota "
 "(User → Security) overrides it"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"How numbers are rounded to a field's precision. Half up (commercial): 0.125 "
+"→ 0.13. Half even (banker's): 0.125 → 0.12"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -7922,6 +7958,10 @@ msgstr ""
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not carried over when the document is duplicated"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/CanvasSection.vue
 msgid "Not collapsible"
 msgstr ""
@@ -8158,6 +8198,10 @@ msgstr ""
 msgid "October"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Off - the form has no “Duplicate” action"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "Official language"
 msgstr ""
@@ -8233,6 +8277,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 msgid "Onboarding step"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Once saved with a value, it can't be changed"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue
@@ -8944,6 +8992,11 @@ msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 msgid "Postal code"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue
+msgid "Precision"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -9958,6 +10011,10 @@ msgstr ""
 msgid "Root folder"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Rounding"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Route"
 msgstr ""
@@ -10789,6 +10846,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Set new password"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Set only once"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -15071,6 +15132,10 @@ msgstr ""
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
 msgstr ""
 
+#: grunt/grunt/document/validation.py
+msgid "“%(fields)s” can't be changed once set"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“Event recipients” only work for a notification on a code event"
 msgstr ""
@@ -15253,39 +15318,6 @@ msgid "Open"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Don't copy"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Not carried over when the document is duplicated"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Set only once"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Once saved with a value, it can't be changed"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Allow duplicating"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Off - the form has no “Duplicate” action"
-msgstr ""
-
-#: grunt/grunt/document/validation.py
-#, python-format
-msgid "“%(fields)s” can't be changed once set"
-msgstr ""
-
-#: grunt/frontend/src/core/composables/useFormActions.ts
-msgid "Could not duplicate the document"
-msgstr ""
-
-#: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Mandatory depends on"
 msgstr ""
 
@@ -15298,7 +15330,9 @@ msgid "Read-only depends on"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
-msgid "Read-only when the condition holds (JS, checked in the form), e.g. eval:doc.status == 'Approved'"
+msgid ""
+"Read-only when the condition holds (JS, checked in the form), e.g. "
+"eval:doc.status == 'Approved'"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue

@@ -27,6 +27,7 @@ from grunt.cache.bus import fanout
 from grunt.local import require_session
 from grunt.metadata.registry import doctype_registry
 from grunt.site.manager import current_site
+from grunt.utils.numbers import set_site_rounding
 
 _SINGLETON = "SystemSettings"
 _TTL_SECONDS = 60.0
@@ -57,6 +58,7 @@ async def get_system_settings(*, fresh: bool = False) -> dict[str, Any]:
         found = result.mappings().first()
     row = dict(found) if found is not None else {}
     _cache[site] = (time.monotonic(), row)
+    set_site_rounding(site, row.get("rounding_method"))
     return row
 
 

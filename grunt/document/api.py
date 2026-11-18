@@ -38,6 +38,7 @@ from grunt.permissions.guards import (
 )
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import get_roles
+from grunt.site.settings import get_system_settings
 from grunt.workflow.registry import get_active_workflow
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, load_document, new_document
@@ -825,6 +826,7 @@ class DocumentAPI:
         """
         dt, user, _session = await write_guard(doctype, "write")
         row = await doc_guard(doctype, id_or_name, "write")
+        await get_system_settings()  # the rounding method for the coercion below
         changes = fieldname if isinstance(fieldname, dict) else {fieldname: value}
         names = set(changes)
         locked = (await permission_checker.hidden_fields(dt, user=user)) | (

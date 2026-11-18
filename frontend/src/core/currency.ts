@@ -12,8 +12,13 @@ export function currencyCode(field: DocField, doc?: Record<string, unknown>): st
   return /^[A-Z]{3}$/.test(opt) ? opt : null
 }
 
-function formatter(code: string | null): Intl.NumberFormat {
-  const plain = { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+/** Decimal places of a Currency field: its `precision`, kopecks by default. */
+export function currencyPrecision(field: Pick<DocField, 'precision'> | null | undefined): number {
+  return field?.precision ?? 2
+}
+
+function formatter(code: string | null, precision = 2): Intl.NumberFormat {
+  const plain = { minimumFractionDigits: precision, maximumFractionDigits: precision }
   if (!code) return new Intl.NumberFormat(localeTag(), plain)
   try {
     return new Intl.NumberFormat(localeTag(), { ...plain, style: 'currency', currency: code, currencyDisplay: 'narrowSymbol' })
@@ -23,10 +28,10 @@ function formatter(code: string | null): Intl.NumberFormat {
 }
 
 /** `12 345,67 ₴` - or `12 345,67` when the currency is unknown. */
-export function formatCurrency(value: unknown, code: string | null): string {
+export function formatCurrency(value: unknown, code: string | null, precision = 2): string {
   if (value === null || value === undefined || value === '') return ''
   const n = Number(value)
-  return Number.isFinite(n) ? formatter(code).format(n) : String(value)
+  return Number.isFinite(n) ? formatter(code, precision).format(n) : String(value)
 }
 
 /** A plain number in the active UI locale (`12 345,6` / `12,345.6`). */

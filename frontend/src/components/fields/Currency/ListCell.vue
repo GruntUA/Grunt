@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DocField, DocTypeStatusConfig } from '@/types'
-import { currencyCode, formatCurrency } from '@/core/currency'
+import { currencyCode, currencyPrecision, formatCurrency } from '@/core/currency'
 
 defineProps<{
   value: unknown
@@ -12,6 +12,6 @@ defineProps<{
 
 <template>
   <span class="text-foreground/90 font-medium tabular-nums whitespace-nowrap">
-    {{ formatCurrency(value, currencyCode(field, row)) || '—' }}
+    {{ formatCurrency(value, currencyCode(field, row), currencyPrecision(field)) || '—' }}
   </span>
 </template>

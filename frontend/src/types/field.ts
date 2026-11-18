@@ -32,6 +32,8 @@ export interface DocField {
   index?: boolean
   /** Changes leave no version or activity entry (system-maintained values). */
   no_history?: boolean
+  /** Decimal places (Float / Currency / Percent); Currency defaults to 2. */
+  precision?: number
   /** Not carried over by "Duplicate" / grunt.copy_doc. */
   no_copy?: boolean
   /** Read-only once saved with a value (the server refuses a change too). */

@@ -86,6 +86,12 @@ class FieldType:
         """Convert a non-empty raw value. The default keeps it unchanged."""
         return value
 
+    @classmethod
+    def coerce_field(cls, field: Any, value: Any) -> Any:
+        """:meth:`coerce` for *field* - types whose value depends on the field's
+        settings (e.g. ``precision``) override this. The default ignores it."""
+        return cls.coerce(value)
+
 
 # Helpers shared by field type implementations
 
@@ -368,6 +374,11 @@ class DocField(BaseModel):
     # for read-only / layout fields.
     editable_in_grid: bool = False
 
+    # Decimal places for Float / Currency / Percent: shown with, and rounded to
+    # on save by the site's rounding_method (grunt.utils.numbers). Currency
+    # defaults to 2 and its column is NUMERIC(18, precision).
+    precision: int | None = None
+
     # Type-specific options
     options: str | None = None
     # Name of a registry source (see grunt.metadata.dynamic_options) whose
@@ -470,7 +481,7 @@ class DocField(BaseModel):
 
     def coerce(self, value: Any) -> Any:
         """Convert a raw value to the appropriate Python type for this field."""
-        return get_field_type_class(self.fieldtype).coerce(value)
+        return get_field_type_class(self.fieldtype).coerce_field(self, value)
 
     def has_trait(self, trait: str) -> bool:
         """Return True if this field's type declares *trait* (see :data:`TRAITS`)."""
