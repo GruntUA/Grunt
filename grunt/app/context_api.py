@@ -1,6 +1,7 @@
 """Context/session API mixin for GruntApp facade."""
 
 import contextlib
+import sys
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
@@ -9,9 +10,13 @@ from grunt.auth.current import acting_user, user_context
 from grunt.auth.doctypes.User.user import SYSTEM_USER, User
 from grunt.local import (
     _bootstrap_ctx,
+    _engine_ctx,
     bind,
+    require_session,
+    session_user,
     unbind,
 )
+from grunt.permissions.access_log import record_access
 
 
 class ContextAPI:
@@ -74,6 +79,33 @@ class ContextAPI:
                 await grunt.new_doc("ActivityLog", {...})
         """
         async with self.context(session, engine, SYSTEM_USER):
+            yield
+
+    @contextlib.asynccontextmanager
+    async def sudo(self, reason: str) -> AsyncGenerator[None]:
+        """Run the block as the system - for a stated *reason*, recorded.
+
+        The human way to step past permission checks (PERMISSIONS_PLAN step
+        7b): ``system_context`` says nothing about who needed it and why;
+        ``sudo`` writes an Access Log row (action ``Elevated``) with the user
+        the request runs as, the reason and the calling function::
+
+            async with grunt.sudo("count open appeals for the public counter"):
+                total = await grunt.db.count("MltAppeal", {"status": "Open"})
+
+        Use it where a user's action needs more than their rights; background
+        tasks and bootstrap code without a user keep ``system_context``.
+        """
+        if not reason or not reason.strip():
+            raise ValueError("grunt.sudo needs a reason")
+        session = require_session()
+        actor = session_user() or ""
+        caller = sys._getframe(2)  # the caller's frame (past contextlib)
+        where = f"{caller.f_globals.get('__name__', '?')}.{caller.f_code.co_name}"
+        await record_access(
+            "Elevated", None, reason=f"{reason.strip()} [{where}]", user=actor, session=session
+        )
+        async with self.system_context(session, _engine_ctx.get()):
             yield
 
     @contextlib.asynccontextmanager
