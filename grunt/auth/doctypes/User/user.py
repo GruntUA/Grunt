@@ -8,7 +8,7 @@ refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 import re as _re
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
@@ -235,6 +235,7 @@ class User(Document):
 
                 await enforce_password_policy(str(raw))
             self.hashed_password = await hash_password(str(raw))
+            self.data["password_changed_at"] = datetime.now(UTC)
             self.data.pop("password", None)
 
     async def check_password(self, plain: str) -> bool:

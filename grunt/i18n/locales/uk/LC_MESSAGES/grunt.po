@@ -16491,6 +16491,111 @@ msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
+" time; 0 - no limit"
+msgstr ""
+"Новий вхід завершує найстаріші сесії понад це число; 1 — один пристрій "
+"одночасно; 0 — без обмеження"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Addresses or CIDR networks, comma or newline separated - on top of the "
+"role's own limit; empty - any"
+msgstr ""
+"Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
+" ролі; порожньо — будь-які"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Administrator sign-in"
+msgstr "Вхід адміністратора"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Allowed IP addresses"
+msgstr "Дозволені IP-адреси"
+
+#: grunt/grunt/auth/user_api.py
+msgid "Choose a password different from the old one"
+msgstr "Виберіть пароль, відмінний від старого"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Password expires after, days"
+msgstr "Строк дії пароля, днів"
+
+#: grunt/grunt/auth/user_api.py
+msgid "Password sign-in is off on this site - use single sign-on"
+msgstr ""
+"Вхід за паролем на цьому сайті вимкнено — скористайтеся єдиним входом (SSO)"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Password sign-in is refused (and hidden on the sign-in page) for everyone "
+"but administrators"
+msgstr ""
+"Вхід за паролем відхиляється (і прихований на сторінці входу) для всіх, крім"
+" адміністраторів"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sessions per user"
+msgstr "Сесій на користувача"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Set the new password"
+msgstr "Встановити новий пароль"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in from"
+msgstr "Вхід з"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in until"
+msgstr "Вхід до"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sign in with SSO only"
+msgstr "Вхід лише через SSO"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in allowed only from this time (site time zone); empty - any time"
+msgstr ""
+"Вхід дозволено лише з цього часу (часовий пояс сайту); порожньо — будь-коли"
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in from this IP address is not allowed for your account"
+msgstr "Вхід з цієї IP-адреси для вашого облікового запису заборонено"
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in is allowed only from %(from)s to %(to)s"
+msgstr "Вхід дозволено лише з %(from)s до %(to)s"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in limits"
+msgstr "Обмеження входу"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Signing in with an older password asks for a new one first; 0 - never"
+msgstr "Вхід зі старішим паролем спершу вимагає новий; 0 — ніколи"
+
+#: grunt/grunt/auth/user_api.py
+msgid "The sign-in has expired - sign in again"
+msgstr "Час на вхід минув — увійдіть знову"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"When the password was last set - its age for the site's password expiry"
+msgstr ""
+"Коли пароль востаннє встановлено — його вік для строку дії паролів сайту"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Your password has expired - set a new one"
+msgstr "Строк дії пароля минув — встановіть новий"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"…and until this time; a range across midnight works too (22:00 - 06:00)"
+msgstr "…і до цього часу; проміжок через північ теж працює (22:00 — 06:00)"
+
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "
 #~ "and explains it."

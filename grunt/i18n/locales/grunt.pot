@@ -15594,3 +15594,103 @@ msgstr ""
 msgctxt "status"
 msgid "Open"
 msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
+" time; 0 - no limit"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Addresses or CIDR networks, comma or newline separated - on top of the "
+"role's own limit; empty - any"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Administrator sign-in"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Allowed IP addresses"
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "Choose a password different from the old one"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Password expires after, days"
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "Password sign-in is off on this site - use single sign-on"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Password sign-in is refused (and hidden on the sign-in page) for everyone "
+"but administrators"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sessions per user"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Set the new password"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in from"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in until"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sign in with SSO only"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in allowed only from this time (site time zone); empty - any time"
+msgstr ""
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in from this IP address is not allowed for your account"
+msgstr ""
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in is allowed only from %(from)s to %(to)s"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in limits"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Signing in with an older password asks for a new one first; 0 - never"
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "The sign-in has expired - sign in again"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
+msgid "The “Filters (JSON)” field must contain valid JSON."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"When the password was last set - its age for the site's password expiry"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Your password has expired - set a new one"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"…and until this time; a range across midnight works too (22:00 - 06:00)"
+msgstr ""

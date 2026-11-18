@@ -13,13 +13,15 @@ from grunt.auth.doctypes.UserSession.user_session import (
     client_device_id,
     client_ip,
     client_user_agent,
+    end_all_sessions,
     end_session,
     end_session_by_token,
     rotate_session,
 )
 from grunt.auth.impersonation import start_impersonation
 from grunt.auth.ip_policy import sign_in_ip_allowed
-from grunt.auth.login import issue_login
+from grunt.auth.login import PASSWORD_CHANGE, issue_login
+from grunt.auth.login_policy import mark_password_changed, password_login_allowed
 from grunt.auth.mfa import (
     MfaConfirmed,
     MfaSetup,
@@ -35,6 +37,7 @@ from grunt.auth.service import (
     consume_password_reset_token,
     create_access_token,
     create_password_reset_token,
+    verify_challenge_token,
     verify_mfa_setup_token,
     verify_mfa_token,
 )
@@ -60,7 +63,7 @@ from grunt.auth.users import (
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _, translation_service
-from grunt.local import require_session
+from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.permissions.perms import has_perm, user_perms
 from grunt.utils.http import public_base_url
@@ -126,6 +129,8 @@ async def login_api(
 
     if user is None:
         throw(_("Incorrect email or password"), "UNAUTHORIZED")
+    if not await password_login_allowed(user):
+        throw(_("Password sign-in is off on this site - use single sign-on"), "PERMISSION_DENIED")
 
     return await issue_login(
         user,
@@ -134,6 +139,41 @@ async def login_api(
         user_agent=client_user_agent(request),
         device_id=client_device_id(request),
         method="password",
+    )
+
+
+@whitelist(allow_guest=True)
+async def change_expired_password_api(
+    password_change_token: str,
+    new_password: str,
+    response: Response,
+    request: Request | None = None,
+) -> dict[str, Any]:
+    """Set a new password after a sign-in found the old one expired
+    (``password_change_required``), then go on with that sign-in - MFA next,
+    if the user has it. The new password must differ from the old one."""
+    payload = verify_challenge_token(password_change_token, PASSWORD_CHANGE)
+    if not payload:
+        throw(_("The sign-in has expired - sign in again"), "UNAUTHORIZED")
+    user = await get_user_by_id(payload["uid"])
+    if not user or not user.id or not user.is_active:
+        throw(_("User not found"), "UNAUTHORIZED")
+    await enforce_password_policy(new_password)
+    if user.hashed_password and await user.check_password(new_password):
+        throw(_("Choose a password different from the old one"), "VALIDATION_ERROR")
+    async with system_context(require_session()):
+        await _db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
+    await mark_password_changed(user.id)
+    await end_all_sessions(user.id)
+    user = await get_user_by_id(user.id)
+    assert user is not None
+    return await issue_login(
+        user,
+        response=response,
+        ip_address=client_ip(request),
+        user_agent=client_user_agent(request),
+        device_id=client_device_id(request),
+        method="password_change",
     )
 
 
@@ -468,6 +508,10 @@ async def set_user_password_api(
     # Authorised above (self + current password, or an admin): the hash is a
     # field hidden from its owner, so it is written past the field rules.
     await _db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
+    await mark_password_changed(user.id)
+    # The old password may be what someone else signed in with: end the other
+    # sessions - all of them when an admin set it, all but this one for the user.
+    await end_all_sessions(user.id, keep_sid=current.data.get("_sid") if is_self else None)
     return True
 
 

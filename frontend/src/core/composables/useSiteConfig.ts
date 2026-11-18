@@ -37,6 +37,8 @@ export interface SiteConfig {
   /** SystemSettings.rounding_method - "Half up" | "Half even" (core/numbers.ts). */
   roundingMethod: string
   allowRegistration: boolean
+  /** False - SystemSettings.disable_password_login: the sign-in page offers SSO only. */
+  passwordLogin: boolean
   loaded: boolean
 }
 
@@ -51,6 +53,7 @@ const state = reactive<SiteConfig>({
   timezone: '',
   dateFormat: 'dd.mm.yyyy',
   roundingMethod: 'Half up',
+  passwordLogin: true,
   allowRegistration: false,
   loaded: false,
 })
@@ -84,6 +87,7 @@ async function _load(): Promise<void> {
         state.dateFormat = data.date_format || state.dateFormat
         state.roundingMethod = data.rounding_method || 'Half up'
         state.allowRegistration = !!data.allow_user_registration
+        state.passwordLogin = data.password_login !== false
       }
     }
   } catch {
