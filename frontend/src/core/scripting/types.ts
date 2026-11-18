@@ -410,6 +410,8 @@ export interface WorkflowTransition {
   to_state: string
   prompt_fields: string[]
   require_comment?: boolean
+  /** Ask "are you sure?" before applying (global_form.js sets the action's `confirm`). */
+  confirm?: boolean
 }
 
 export interface FormProxyState {

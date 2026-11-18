@@ -15001,3 +15001,27 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py
 msgid "These keys no longer work: reissue the ones still needed, deactivate the rest: %(keys)s"
 msgstr ""
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Not by the author"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "The document's author cannot take this transition - someone else has to approve it"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Ask for confirmation"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
+msgid "Ask “Are you sure?” before applying"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
+msgid "Shown above the form while the document is in this state"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/global_form.js
+msgid "“{action}”: are you sure?"
+msgstr ""

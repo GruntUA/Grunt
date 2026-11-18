@@ -54,6 +54,20 @@
       "fieldtype": "Check",
       "default": false,
       "description": "Not a button: applied automatically when a user with the allowed roles changes the document in the “From” state (e.g. an edited published page goes back to review)"
+    },
+    {
+      "fieldname": "deny_self_approval",
+      "label": "Not by the author",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "The document's author cannot take this transition - someone else has to approve it"
+    },
+    {
+      "fieldname": "confirm",
+      "label": "Ask for confirmation",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "Ask “Are you sure?” before applying"
     }
   ]
 }

@@ -245,7 +245,37 @@ export function on_transitions(frm) {
             // No variant/icon: the button takes the colour & icon of the state it
             // leads to (`status_indicators`) — set them here to override.
             enabled: (f) => !f.is_saving && !f.is_dirty,
+            // A transition marked "Ask for confirmation" (archiving, rejecting…).
+            confirm: t.confirm ? __('“{action}”: are you sure?', { action: t.action }) : undefined,
             action: (f) => f.apply_transition(t.action),
         }),
     )
+    _workflow_state_message(frm)
+}
+
+// Marks the banner as the state's, so the next state (without a message) clears
+// it - a transition reloads the transitions, not on_load (which resets the dashboard).
+const _STATE_MESSAGE = 'data-workflow-state-message'
+
+/** The current workflow state's `message` as a banner over the form. */
+function _workflow_state_message(frm) {
+    const field = frm.meta?.workflow_state_field
+    const state = field ? frm.doc?.[field] : null
+    const found = state != null ? frm.meta?.workflow_state_messages?.[state] : null
+    const current = frm.dashboard.state.headline
+    // A DocType script's own headline wins - set or cleared, it is left alone.
+    if (current && !String(current.html ?? '').includes(_STATE_MESSAGE)) return
+    if (found?.message) {
+        frm.dashboard.set_headline(`<span ${_STATE_MESSAGE}>${_escape(found.message)}</span>`, found.color)
+    } else if (current) {
+        frm.dashboard.clear_headline()
+    }
+}
+
+function _escape(text) {
+    return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
 }

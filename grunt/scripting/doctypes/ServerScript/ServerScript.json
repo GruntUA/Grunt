@@ -27,7 +27,7 @@
       "fieldname": "event",
       "label": "Event",
       "fieldtype": "Select",
-      "options": "before_insert\nafter_insert\nbefore_save\nafter_save\nbefore_delete\nafter_delete\nvalidate"
+      "options": "before_insert\nafter_insert\nbefore_save\nafter_save\nbefore_delete\nafter_delete\nvalidate\non_transition"
     },
     {
       "fieldname": "api_method",
@@ -79,7 +79,17 @@
   "permissions": [
     {
       "role": "System Manager",
-      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+      "actions": [
+        "read",
+        "write",
+        "create",
+        "delete",
+        "export",
+        "import",
+        "print",
+        "share",
+        "report"
+      ]
     }
   ]
 }

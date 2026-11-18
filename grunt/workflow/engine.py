@@ -34,9 +34,9 @@ from grunt.local import as_system
 from grunt.log import log
 from grunt.permissions.perms import ALL, user_perms
 from grunt.permissions.roles import get_roles
-from grunt.workflow.actors import previous_actor
+from grunt.workflow.actors import previous_actor, stored_owner
 from grunt.workflow.registry import get_active_workflow
-from grunt.workflow.transition import ActiveTransition, _active, user_may_take
+from grunt.workflow.transition import ActiveTransition, _active, is_self_approval, user_may_take
 lazy from grunt.api.v1.ws import manager
 lazy from grunt.metadata.doctype import DocType, WorkflowState, WorkflowTransition
 lazy from grunt.notification.service import notification_service
@@ -72,12 +72,20 @@ class WorkflowEngine:
         current_state_name = current_state.state if current_state else None
 
         available: list[WorkflowTransition] = []
+        here = [
+            t
+            for t in workflow.transitions
+            if t.from_state == current_state_name and t.on_edit == on_edit
+        ]
+        owner = await stored_owner(doctype.name, doc, here)
         roles = await get_roles(user)
         unrestricted = ALL in await user_perms(user)
         for t in workflow.transitions:
             if t.from_state != current_state_name or t.on_edit != on_edit:
                 continue
             if not user_may_take(t, roles, unrestricted=unrestricted):
+                continue
+            if is_self_approval(t, owner, user):
                 continue
             # Check condition - transitions with prompt_fields defer this check
             # to apply_transition(), once the dialog values are merged in, since
@@ -273,9 +281,16 @@ class WorkflowEngine:
                 condition, functions={"now": datetime.now}, names={"doc": doc, "user": user}
             )
             return bool(result)
-        except Exception:
-            log.warning("workflow.condition_eval_failed", condition=condition, user=user)
-            return True  # Don't block on error
+        except Exception as e:
+            # Fail closed: a broken condition must not open the transition to
+            # everyone - the button disappears and the log says why.
+            log.warning(
+                "workflow.condition_eval_failed",
+                condition=condition,
+                user=user,
+                error=f"{type(e).__name__}: {e}",
+            )
+            return False
 
 
 def state_updates(workflow: Any, to_state: str) -> dict[str, Any]:
