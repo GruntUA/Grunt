@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.13.0 - 2026-11-18
+
+### Fixes
+
+- **quality:** close CodeQL step 2 alerts in backups, storage, exporter, DocumentList (#199)
+- **security:** enhance permissions and error handling in workflows and components (#198)
+- **calendar:** load only the visible grid and honour list filters (#197)
+
+### Other
+
+- close CodeQL step 3 alerts in the test suite (#201)
+- **code-scanning:** plan for zero CodeQL alerts, steps 1-2 done (#200)
+- **ideas:** 6.21 done — backup before migrations in grunt update/upgrade (#196)
+
 ## v0.12.0 - 2026-11-18
 
 ### Features
