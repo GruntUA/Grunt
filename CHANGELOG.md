@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.14.1 - 2026-11-18
+
+### Fixes
+
+- **frontend:** close the JS CodeQL alerts left on master; OAuth sign-in fragment
+
 ## v0.14.0 - 2026-11-18
 
 ### Features
