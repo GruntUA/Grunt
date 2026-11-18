@@ -12,8 +12,6 @@ from typing import cast
 import pytest
 from starlette.websockets import WebSocket
 
-from tests.support import make_user  # noqa: F401  (kept for parity with other tests)
-
 SECRET = {
     "name": "WsSecret",
     "label": "Ws Secret",

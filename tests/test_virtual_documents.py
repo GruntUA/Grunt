@@ -209,8 +209,8 @@ async def test_doctype_document_round_trip(ctx, db_session):
 
 @pytest.mark.asyncio
 async def test_unsupported_write_explains_itself(ctx):
-    from grunt import _
     from grunt.backups.doctypes.Backup.backup import BackupStore
+    from grunt.i18n import _
 
     with pytest.raises(HTTPException) as exc:
         await ctx.new_doc("Backup", {"name": "x"})

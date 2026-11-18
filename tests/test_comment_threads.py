@@ -83,7 +83,7 @@ async def test_reply_must_stay_on_the_document(ctx, boxes, comment):
 
 @pytest.mark.asyncio
 async def test_reply_notifies_thread_author_once(ctx, boxes, comment):
-    from grunt import _
+    from grunt.i18n import _
 
     root = await comment(ALICE, boxes[0], "Root")
     await comment(BOB, boxes[0], "Reply", parent=root["name"])

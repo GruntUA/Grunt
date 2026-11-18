@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from sqlalchemy.engine import make_url
 
-import grunt.backups as backups
+from grunt import backups
 from grunt.backups import api, tasks
 from grunt.db.dialects import SqliteDialect, archive
 
