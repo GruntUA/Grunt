@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.11.0 - 2026-11-18
+
+### Features
+
+- **permissions:** grunt.sudo(reason) - elevation with a reason, in the Access Log (#189)
+
+### Fixes
+
+- **auth:** store API keys with scrypt; rehash old keys on first use (#188)
+
 ## v0.10.0 - 2026-11-18
 
 ### Features
