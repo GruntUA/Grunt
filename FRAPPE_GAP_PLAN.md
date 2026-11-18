@@ -23,7 +23,7 @@
 | 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✔️ (`feat/list-settings-server`) |
 | 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
-| 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ❓ |
+| 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ✔️ (`feat/assignment-rules`) |
 | 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ❓ |
 | 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ❓ |
 | 12 | User Group | ❓ |
@@ -158,11 +158,11 @@
 - **Рішення:** —
 
 ### 9. AssignmentRule
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** правило Round Robin / Load Balancing / Based on Field, список користувачів, ваги (`weighted_users`), `unassign_condition`, `close_condition`, дні тижня, `due_date_based_on`, пріоритет правил.
 - **Ґрунт зараз:** фільтри + одна роль або один користувач.
 - **Навіщо:** розподіл звернень/заявок між виконавцями без скриптів.
-- **Рішення:** —
+- **Рішення (2026-11-18):** робимо все, крім ваг як частки в Frappe-сенсі «weighted_users» дослівно: `rule` = Everyone (як раніше) / Round Robin (вага — скільки разів поспіль, рахується з AssignmentLog) / Load Balancing (відкриті ToDo на одиницю ваги) / Based on Field; виконавці — таблиця `users` (з вагою), інакше власники ролі в межах області, інакше `assign_to_user`; `priority` — призначає **перше** правило, що підійшло, і жодне, поки відкрите призначення правила; `unassign_condition` / `close_condition` (той самий JSON, що `filters`); `days`; `due_date_field`; тригер — створення і збереження (на збереженні — лише без відкритого призначення). `ToDo.assignment_rule` пов'язує призначення з правилом.
 
 ### 10. NotificationRule
 **Статус:** ❓

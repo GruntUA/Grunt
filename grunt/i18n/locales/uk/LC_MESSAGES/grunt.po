@@ -1251,9 +1251,14 @@ msgstr "Зверніться до власника документа за но�
 msgid "Ask “Are you sure?” before applying"
 msgstr "Перед переходом запитати «Ви впевнені?»"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assign"
 msgstr "Призначити відповідального"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign only on these days (site time zone); empty - every day"
+msgstr "Призначати лише в ці дні (часовий пояс сайту); порожньо — щодня"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assign to Role"
@@ -1317,6 +1322,14 @@ msgstr "Спосіб призначення"
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assignment Rule"
 msgstr "Правило призначення"
+
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "Assignment rule"
+msgstr "Правило призначення"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Assignment rule user"
+msgstr "Виконавець правила призначення"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "At least 8 characters"
@@ -1632,6 +1645,15 @@ msgstr "Стовпчиковий"
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue
 msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Based on Field"
+msgstr "З поля документа"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
+msgid "Based on Field needs the user field"
+msgstr "Для «З поля документа» потрібне поле з користувачем"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Basics"
@@ -2335,6 +2357,11 @@ msgstr "Буфер обміну недоступний:"
 msgid "Close"
 msgstr "Закрити"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Close when (JSON)"
+msgstr "Закрити, коли (JSON)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Closed"
 msgstr "Закрито"
@@ -3353,6 +3380,10 @@ msgstr "Кількість днів не може бути від'ємною"
 msgid "Days in each compared period."
 msgstr "Кількість днів у кожному з порівнюваних періодів."
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Days of the week"
+msgstr "Дні тижня"
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Dead"
 msgstr "Мертвий"
@@ -4211,6 +4242,10 @@ msgstr "Dropbox"
 msgid "Due date"
 msgstr "Термін"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Due date from"
+msgstr "Строк з поля"
+
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "Dumping the database"
 msgstr "Вивантаження бази даних"
@@ -4734,12 +4769,24 @@ msgid "Every, hours"
 msgstr "Кожні, годин"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/frontend/src/components/views/FilterBar.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Everyone"
 msgstr "Усі"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Everyone - every user below; Round Robin - one by one in turn; Load "
+"Balancing - the one with the fewest open assignments; Based on Field - the "
+"user in a field of the document"
+msgstr ""
+"Усім — кожному з виконавців нижче; По черзі — по одному по колу; Найменш "
+"завантаженому — тому, в кого найменше відкритих призначень; З поля документа"
+" — користувачу з поля документа"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
@@ -5031,6 +5078,10 @@ msgstr "Назва поля «%(fieldname)s» довша за %(max)s симво
 msgid "Fieldname for the event label (default: name)"
 msgstr "Fieldname для тексту події (default: name)"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Date on the document - the assignment's due date"
+msgstr "Назва поля дати в документі — строк призначення"
+
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid ""
 "Fieldname of a Date/Datetime field in the copy to set to the scheduled date "
@@ -5038,6 +5089,10 @@ msgid ""
 msgstr ""
 "Назва поля типу Date/Datetime у копії, яке отримає дату за розкладом (напр. "
 "posting_date)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Link to User on the document"
+msgstr "Назва поля документа з посиланням на користувача"
 
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "Fieldname of a numeric field in the child DocType"
@@ -5535,6 +5590,10 @@ msgstr "Періодичність"
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "Fri"
 msgstr "Пт"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Friday"
+msgstr "П'ятниця"
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Friendly name of the device / authenticator"
@@ -6867,6 +6926,10 @@ msgstr "Найбільші таблиці"
 msgid "Last activity"
 msgstr "Остання активність"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Last assigned"
+msgstr "Останній призначений"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Last checked"
 msgstr "Остання перевірка"
@@ -7170,6 +7233,11 @@ msgid ""
 msgstr ""
 "Показує набори у сховищі; вибраний завантажується на сервер і з'являється в "
 "«Резервних копіях», готовий до «grunt db restore»."
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Load Balancing"
+msgstr "Найменш завантаженому"
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue
 msgid "Load error"
@@ -7661,6 +7729,10 @@ msgstr "Модулі"
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "Mon"
 msgstr "Пн"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Monday"
+msgstr "Понеділок"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Monthly"
@@ -9503,6 +9575,7 @@ msgstr ""
 " apps/grunt; на новому сервері ще й `playwright install-deps chromium` від "
 "root."
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Priority"
@@ -10491,6 +10564,23 @@ msgstr "Ролі (через кому)"
 msgid "Root folder"
 msgstr "Коренева тека"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Round Robin"
+msgstr "По черзі"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid ""
+"Round robin: how many turns in a row; load balancing: share of the work (2 -"
+" twice as much)"
+msgstr ""
+"По черзі — скільки разів поспіль; найменш завантаженому — частка роботи (2 —"
+" удвічі більше)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Round robin: whose turn was last"
+msgstr "По черзі: чия черга була останньою"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Rounding"
 msgstr "Округлення"
@@ -10561,6 +10651,14 @@ msgstr "Рядків: {n}"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Rule ID"
 msgstr "ID правила"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Rules are tried from the highest priority; the first one that matches "
+"assigns (and none does while its assignment is open)"
+msgstr ""
+"Правила перевіряються від найвищого пріоритету; призначає перше, що підійшло"
+" (і жодне — поки його призначення відкрите)"
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Rules that grant this action"
@@ -10766,6 +10864,10 @@ msgstr "Приклад даних"
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
 msgid "Sat"
 msgstr "Сб"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Saturday"
+msgstr "Субота"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
@@ -12179,6 +12281,10 @@ msgstr "Підсумок"
 msgid "Sun"
 msgstr "Нд"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Sunday"
+msgstr "Неділя"
+
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Superscript"
 msgstr "Верхній індекс"
@@ -12910,6 +13016,11 @@ msgstr "Коренева тека простору власника"
 msgid "The rule for “%(role)s” grants no action."
 msgstr "Правило для «%(role)s» не дає жодної дії."
 
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "The rule that made this assignment - it also cancels or closes it"
+msgstr ""
+"Правило, що створило це призначення, — воно ж його скасовує чи закриває"
+
 #: grunt/grunt/permissions/warnings.py
 msgid "The rules were changed on this site and differ from the app's."
 msgstr ""
@@ -13074,8 +13185,8 @@ msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
-msgid "The “Filters (JSON)” field must contain valid JSON."
-msgstr "Поле «Filters (JSON)» має містити валідний JSON."
+msgid "The “%(field)s” field must contain valid JSON."
+msgstr "Поле «%(field)s» має містити коректний JSON."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Their size"
@@ -13235,6 +13346,10 @@ msgstr "Чт"
 #: grunt/grunt/storage/doctypes/File/File.json
 msgid "Thumbnail"
 msgstr "Мініатюра"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Thursday"
+msgstr "Четвер"
 
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 msgid "Tick the items you need in the tree"
@@ -13480,6 +13595,10 @@ msgstr "Спробувати перебудувати індекс"
 msgid "Tue"
 msgstr "Вт"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Tuesday"
+msgstr "Вівторок"
+
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue
 msgid "Turn into"
 msgstr "Перетворити на"
@@ -13566,6 +13685,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Unassign"
 msgstr "Зняти призначення"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Unassign when (JSON)"
+msgstr "Зняти, коли (JSON)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Unassigned"
+msgstr "Знято"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Undelivered"
@@ -13870,6 +13997,7 @@ msgstr "Використовується для відображення дат 
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -13892,6 +14020,10 @@ msgstr "Користувач"
 #: grunt/grunt/webpush/doctypes/PushSubscription/PushSubscription.json
 msgid "User Agent"
 msgstr "User Agent"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "User field"
+msgstr "Поле користувача"
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
 msgid "User not found"
@@ -13925,6 +14057,10 @@ msgstr "Користувач з адресою «%(email)s» вже існує"
 #: grunt/grunt/api/v1/permission_inspector.py
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Users"
+msgstr "Користувачі"
 
 #: grunt/grunt/monitoring/health.py
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
@@ -14251,6 +14387,10 @@ msgstr "Зображення сайту краще лишати на серве�
 msgid "Wed"
 msgstr "Ср"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Wednesday"
+msgstr "Середа"
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Weekly"
 msgstr "Щотижня"
@@ -14262,6 +14402,10 @@ msgstr "Тижневий дайджест сповіщень"
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Weeks"
 msgstr "Тижні"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Weight"
+msgstr "Вага"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Welcome back"
@@ -14320,6 +14464,22 @@ msgid ""
 msgstr ""
 "Коли щось стається з документом — кого сповістити, про що і якими каналами"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is cancelled - "
+"e.g. {\"status\": \"Cancelled\"}"
+msgstr ""
+"Коли документ відповідає умові, відкрите призначення цього правила "
+"скасовується — напр. {\"status\": \"Cancelled\"}"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is closed as "
+"done - e.g. {\"status\": \"Answered\"}"
+msgstr ""
+"Коли документ відповідає умові, відкрите призначення цього правила "
+"закривається як виконане — напр. {\"status\": \"Answered\"}"
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
 msgstr "Коли воркер востаннє звертався до черги."
@@ -14375,6 +14535,13 @@ msgstr ""
 "Хто й коли змінив доступ: ролі користувачів і їхні області, дозволи ролей, "
 "правила DocType, поширення й публічні посилання. Пише система, лише для "
 "читання."
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Who is assigned; empty - the holders of the role below (within their role "
+"scope)"
+msgstr ""
+"Кому призначати; порожньо — власникам ролі нижче (в межах їхньої області)"
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid ""
@@ -16476,6 +16643,9 @@ msgstr "Відкрито"
 #~ msgid ""
 #~ "The restriction applies to any DocType with a Link field to «Restrict by»."
 #~ msgstr "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+
+#~ msgid "The “Filters (JSON)” field must contain valid JSON."
+#~ msgstr "Поле «Filters (JSON)» має містити валідний JSON."
 
 #~ msgid "This user permission already exists"
 #~ msgstr "Такий дозвіл користувача вже існує"
