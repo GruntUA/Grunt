@@ -58,19 +58,19 @@ _SKIP_DIRS = {
 }
 
 # in-process cache
-_cache: list[dict[str, Any]] | None = None
-_cache_at: float = 0.0
+# (when it was filled, the rows)
+_cache: tuple[float, list[dict[str, Any]]] | None = None
 _CACHE_TTL = 120.0
 
 
 def get_sources(*, force: bool = False) -> list[dict[str, Any]]:
     """Cached :func:`extract_all` (TTL 120s)."""
-    global _cache, _cache_at
-    if not force and _cache is not None and (time.monotonic() - _cache_at) < _CACHE_TTL:
-        return _cache
-    _cache = extract_all()
-    _cache_at = time.monotonic()
-    return _cache
+    global _cache
+    if not force and _cache is not None and (time.monotonic() - _cache[0]) < _CACHE_TTL:
+        return _cache[1]
+    rows = extract_all()
+    _cache = (time.monotonic(), rows)  # the TTL starts once the scan is done
+    return _cache[1]
 
 
 def invalidate() -> None:
@@ -80,9 +80,8 @@ def invalidate() -> None:
 
 def set_cache(rows: list[dict[str, Any]]) -> None:
     """Prime the cache with an already-computed result (used by the scan task)."""
-    global _cache, _cache_at
-    _cache = rows
-    _cache_at = time.monotonic()
+    global _cache
+    _cache = (time.monotonic(), rows)
 
 
 # walker

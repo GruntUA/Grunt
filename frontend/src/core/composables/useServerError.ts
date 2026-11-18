@@ -1,21 +1,15 @@
 import { ref } from 'vue'
 
-export interface ServerErrorValidationField {
-  loc: string
-  msg: string
-  type: string
-  input: string
-}
-
+/**
+ * What a debug-mode error response carries: the exception type and where to
+ * read the rest - never the exception text or traceback themselves (those are
+ * in the ErrorLog record, opened by the modal, and in the server log).
+ */
 export interface ServerErrorDebug {
   exc_type: string
-  message: string
-  traceback: string
-  sql?: string
-  sql_params?: string
-  db_error?: string
-  /** Per-field breakdown for a pydantic ValidationError (422) */
-  fields?: ServerErrorValidationField[]
+  /** The ErrorLog record with the message (SQL, failing fields) and traceback */
+  error_log?: string | null
+  request_id?: string | null
 }
 
 interface ServerErrorState {

@@ -468,7 +468,7 @@ class ReportEngine:
         # Auto-width
         for col in ws.columns:
             max_len = max((len(str(cell.value or "")) for cell in col), default=0)
-            ws.column_dimensions[cast("Cell", col[0]).column_letter].width = min(max_len + 2, 50)
+            ws.column_dimensions[cast(Cell, col[0]).column_letter].width = min(max_len + 2, 50)
 
         buf = BytesIO()
         wb.save(buf)

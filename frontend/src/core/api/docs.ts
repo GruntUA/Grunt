@@ -277,7 +277,7 @@ export const docsApi = {
     for (const [k, v] of Object.entries(rawFilters)) {
       filterParams[`filter[${k}]`] = v
     }
-    const r = await client.get(`/api/v1/docs/${doctype}`, {
+    const r = await client.get(`/api/v1/docs/${encodeURIComponent(doctype)}`, {
       params: {
         ...rest,
         ...(sort ? { sort_by: sort } : {}),
@@ -293,7 +293,7 @@ export const docsApi = {
     id: string,
     options?: { expand?: string[] | string },
   ): Promise<T> =>
-    client.get(`/api/v1/docs/${doctype}/${id}`, {
+    client.get(`/api/v1/docs/${encodeURIComponent(doctype)}/${encodeURIComponent(id)}`, {
       params: options?.expand
         ? {
           expand: Array.isArray(options.expand)
@@ -308,7 +308,7 @@ export const docsApi = {
     doctype: string,
     data: Record<string, unknown>,
   ): Promise<T> =>
-    client.post(`/api/v1/docs/${doctype}`, data)
+    client.post(`/api/v1/docs/${encodeURIComponent(doctype)}`, data)
       .then(r => r.data.data as T),
 
   update: <T extends GruntDocument = GruntDocument>(
@@ -316,11 +316,11 @@ export const docsApi = {
     id: string,
     data: Record<string, unknown>,
   ): Promise<T> =>
-    client.put(`/api/v1/docs/${doctype}/${id}`, data)
+    client.put(`/api/v1/docs/${encodeURIComponent(doctype)}/${encodeURIComponent(id)}`, data)
       .then(r => r.data.data as T),
 
   delete: (doctype: string, id: string, replaceWith?: string) =>
-    client.delete(`/api/v1/docs/${doctype}/${id}`, {
+    client.delete(`/api/v1/docs/${encodeURIComponent(doctype)}/${encodeURIComponent(id)}`, {
       params: replaceWith ? { replace_with: replaceWith } : undefined,
     }),
 
@@ -444,10 +444,10 @@ export const docsApi = {
     }).then(r => r.data.data),
 
   unshare: (shareId: string): Promise<void> =>
-    client.delete(`/api/v1/docs/SharedWith/${shareId}`).then(() => undefined),
+    client.delete(`/api/v1/docs/SharedWith/${encodeURIComponent(shareId)}`).then(() => undefined),
 
   unassign: (todoId: string): Promise<void> =>
-    client.delete(`/api/v1/docs/ToDo/${todoId}`).then(() => undefined),
+    client.delete(`/api/v1/docs/ToDo/${encodeURIComponent(todoId)}`).then(() => undefined),
 
   addTag: (doctype: string, id: string, tag: string): Promise<GruntDocument> =>
     client.post(`/api/v1/docs/DocTag`, {
@@ -457,7 +457,7 @@ export const docsApi = {
     }).then(r => r.data.data),
 
   removeTag: (tagId: string): Promise<void> =>
-    client.delete(`/api/v1/docs/DocTag/${tagId}`).then(() => undefined),
+    client.delete(`/api/v1/docs/DocTag/${encodeURIComponent(tagId)}`).then(() => undefined),
 
   // Comments
 

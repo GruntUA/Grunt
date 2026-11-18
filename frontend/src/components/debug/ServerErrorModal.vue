@@ -1,40 +1,61 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useServerError } from '@/core/composables/useServerError'
-import { X, ChevronDown } from '@lucide/vue'
+import { docsApi } from '@/core/api/docs'
+import { docUrl } from '@/core/workspaceUrl'
+import { X, ChevronDown, ExternalLink } from '@lucide/vue'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import {
   CodeBlock,
-  CodeBlockActions,
   CodeBlockContent,
   CodeBlockCopyButton,
   CodeBlockFooter,
   CodeBlockHeader,
   CodeBlockLine,
   CodeBlockTitle,
-  CodeBlockToken,
-  useHighlightedCode,
 } from '@/components/ui/code-block'
 
 const { t } = useI18n()
 
 const { state, close } = useServerError()
 
+// The response names only the exception type and its ErrorLog record; the
+// message (with SQL / failing fields) and the traceback are read from there.
+interface ErrorLogRecord { error_message?: string; traceback?: string }
+const record = ref<ErrorLogRecord | null>(null)
+const loadFailed = ref(false)
+
+watch(
+  () => state.value.open && state.value.debug?.error_log,
+  async (name) => {
+    record.value = null
+    loadFailed.value = false
+    showFullTraceback.value = false
+    if (!name) return
+    try {
+      record.value = await docsApi.get('ErrorLog', name) as ErrorLogRecord
+    } catch {
+      loadFailed.value = true
+    }
+  },
+  { immediate: true },
+)
+
+const errorLogUrl = computed(() => {
+  const name = state.value.debug?.error_log
+  return name ? docUrl('ErrorLog', name) : ''
+})
+
 const showFullTraceback = ref(false)
 
-const tracebackLines = computed(() => {
-  const tb = state.value.debug?.traceback ?? ''
-  return tb.split('\n').filter(Boolean)
-})
+const tracebackLines = computed(() => (record.value?.traceback ?? '').split('\n').filter(Boolean))
 
 // Show last N lines by default, expand to all
 const PREVIEW_LINES = 12
 const visibleLines = computed(() =>
   showFullTraceback.value ? tracebackLines.value : tracebackLines.value.slice(-PREVIEW_LINES)
 )
-
-const sqlLines = useHighlightedCode(() => state.value.debug?.sql ?? '', 'sql')
 
 // Shared look of every block on the modal's fixed dark-red palette
 const blockClass = 'border-red-900/20 bg-black/40 text-red-100/90 dark:bg-black/40'
@@ -44,14 +65,11 @@ const reportText = computed(() => {
   const d = state.value.debug
   if (!d) return ''
   return [
-    `${state.value.status} ${d.exc_type}: ${d.message}`,
-    d.fields?.length
-      ? `\nFields:\n${d.fields.map(f => `  ${f.loc}: ${f.msg} (got ${f.input})`).join('\n')}`
-      : '',
-    d.sql ? `\nSQL:\n${d.sql}` : '',
-    d.sql_params ? `\nParams: ${d.sql_params}` : '',
-    d.db_error ? `\nDB Error: ${d.db_error}` : '',
-    `\nTraceback:\n${tracebackLines.value.join('\n')}`,
+    `${state.value.status} ${d.exc_type}`,
+    d.error_log ? ` (ErrorLog ${d.error_log})` : '',
+    d.request_id ? `\nRequest ID: ${d.request_id}` : '',
+    record.value?.error_message ? `\n\n${record.value.error_message}` : '',
+    tracebackLines.value.length ? `\n\nTraceback:\n${tracebackLines.value.join('\n')}` : '',
   ].join('')
 })
 
@@ -82,9 +100,15 @@ function tracebackLineClass(line: string, idx: number) {
                 <span class="text-red-400/70 font-mono">{{ state.status >= 500 ? 'Internal Server Error' : 'Server-side Error' }}</span>
               </div>
               <p class="font-mono text-red-200 font-semibold break-words" v-if="state.debug">
-                <span class="text-red-400">{{ state.debug.exc_type }}</span>:
-                {{ state.debug.message }}
+                <span class="text-red-400">{{ state.debug.exc_type }}</span>
+                <a
+                  v-if="errorLogUrl"
+                  :href="errorLogUrl"
+                  target="_blank"
+                  class="ml-2 inline-flex items-center gap-1 font-normal text-red-300/70 hover:text-red-200 underline"
+                >ErrorLog {{ state.debug.error_log }} <ExternalLink class="size-3" /></a>
               </p>
+              <p v-if="state.debug?.request_id" class="font-mono text-red-400/50">Request ID: {{ state.debug.request_id }}</p>
               <p class="text-red-300/80" v-else>{{ state.plainMessage }}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -107,57 +131,19 @@ function tracebackLineClass(line: string, idx: number) {
 
           <!-- Body -->
           <div class="flex-1 overflow-y-auto p-5 space-y-4 font-mono">
-            <!-- Validation fields block -->
-            <template v-if="state.debug?.fields?.length">
-              <div>
-                <div class="text-red-400/60 uppercase tracking-wider mb-2">Fields</div>
-                <div class="bg-black/40 border border-red-900/20 rounded-lg divide-y divide-red-900/20">
-                  <div v-for="(f, idx) in state.debug.fields" :key="idx" class="px-4 py-2">
-                    <div class="text-yellow-200/90">{{ f.loc }} <span class="text-red-400/50">({{ f.type }})</span></div>
-                    <div class="text-red-100/80">{{ f.msg }}</div>
-                    <div class="text-red-400/50 truncate">input: {{ f.input }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="border-t border-red-900/20" />
-            </template>
+            <p v-if="state.debug?.error_log && !record && !loadFailed" class="text-red-400/50">{{ t('Loading…') }}</p>
+            <p v-if="loadFailed" class="text-red-300/80">{{ t('Open the Error Log record for the traceback.') }}</p>
 
-            <!-- SQL block -->
-            <template v-if="state.debug?.sql">
-              <CodeBlock size="sm" :class="blockClass">
-                <CodeBlockHeader>
-                  <CodeBlockTitle :class="titleClass">SQL Query</CodeBlockTitle>
-                  <CodeBlockActions>
-                    <CodeBlockCopyButton
-                      :value="state.debug.sql"
-                      class="text-red-400/60 hover:text-red-300 hover:bg-red-900/30"
-                      :aria-label="t('Copy')"
-                    />
-                  </CodeBlockActions>
-                </CodeBlockHeader>
-                <CodeBlockContent wrap>
-                  <CodeBlockLine v-for="(line, i) in sqlLines" :key="i">
-                    <CodeBlockToken v-for="(token, j) in line" :key="j" :token="token" />
-                  </CodeBlockLine>
-                </CodeBlockContent>
-              </CodeBlock>
-              <CodeBlock v-if="state.debug.sql_params" size="sm" :class="blockClass">
-                <CodeBlockHeader>
-                  <CodeBlockTitle :class="titleClass">Parameters</CodeBlockTitle>
-                </CodeBlockHeader>
-                <CodeBlockContent class="text-yellow-200/80">{{ state.debug.sql_params }}</CodeBlockContent>
-              </CodeBlock>
-              <CodeBlock v-if="state.debug.db_error" size="sm" :class="blockClass">
-                <CodeBlockHeader>
-                  <CodeBlockTitle :class="titleClass">Database Error</CodeBlockTitle>
-                </CodeBlockHeader>
-                <CodeBlockContent wrap class="text-orange-300/90">{{ state.debug.db_error }}</CodeBlockContent>
-              </CodeBlock>
-              <div class="border-t border-red-900/20" />
-            </template>
+            <!-- Message: the exception text, with SQL / failing fields -->
+            <CodeBlock v-if="record?.error_message" size="sm" :class="blockClass">
+              <CodeBlockHeader>
+                <CodeBlockTitle :class="titleClass">Message</CodeBlockTitle>
+              </CodeBlockHeader>
+              <CodeBlockContent wrap class="text-orange-300/90">{{ record.error_message }}</CodeBlockContent>
+            </CodeBlock>
 
             <!-- Traceback -->
-            <CodeBlock v-if="state.debug?.traceback" size="sm" :class="blockClass">
+            <CodeBlock v-if="tracebackLines.length" size="sm" :class="blockClass">
               <CodeBlockHeader>
                 <CodeBlockTitle :class="titleClass">Traceback</CodeBlockTitle>
               </CodeBlockHeader>

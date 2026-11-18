@@ -8,7 +8,7 @@
  * The form resets it before every `on_load`; `permanent` comments and headlines survive.
  *
  * ```js
- * function on_load(frm) {
+ * export function on_load(frm) {
  *   if (frm.doc.outstanding > 0) frm.dashboard.set_headline('Не оплачено', 'red')
  *   frm.dashboard.add_indicator(`Сума: ${frm.doc.total}`, 'green')
  *   frm.dashboard.add_progress('Оплата', frm.doc.paid / frm.doc.total * 100)

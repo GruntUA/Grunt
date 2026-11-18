@@ -11,7 +11,7 @@ const DEBOUNCE_MS = 800
 
 // ── Lifecycle hooks ───────────────────────────────────────────────────────────
 
-function on_load(frm) {
+export function on_load(frm) {
   frm.actions.add({
     id: 'preview',
     label: 'Preview',
@@ -22,7 +22,7 @@ function on_load(frm) {
   })
 }
 
-function on_change(frm, fieldname) {
+export function on_change(frm, fieldname) {
   if (fieldname !== 'template' && fieldname !== 'ref_doctype') return
   if (!_previewPanel || !_previewPanel.isConnected) return
 
@@ -30,7 +30,7 @@ function on_change(frm, fieldname) {
   _debounceTimer = setTimeout(() => _refreshPreview(frm), DEBOUNCE_MS)
 }
 
-function after_save(frm) {
+export function after_save(frm) {
   // Refresh panel if open after saving
   if (_previewPanel && _previewPanel.isConnected) {
     _refreshPreview(frm)

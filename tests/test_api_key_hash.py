@@ -1,5 +1,5 @@
 """API keys are stored with scrypt (PERMISSIONS_PLAN step 7c, CodeQL #16); a
-key stored before 7c (bare SHA-256) still works once and is rehashed."""
+key stored before 7c (bare SHA-256) no longer authenticates."""
 
 import pytest
 
@@ -12,7 +12,7 @@ LEGACY_HASH = "d4a7de7810a8b2af190132d2e8bf1c24a775df98e0eccbba1c69afb918c27d3d"
 
 def test_new_keys_are_scrypt_and_verify():
     full_key, _prefix, stored = svc.generate_api_key()
-    assert stored.startswith("scrypt$") and not svc.needs_rehash(stored)
+    assert stored.startswith("scrypt$") and svc.is_current_format(stored)
     assert svc.verify_key(full_key, stored)
     wrong = full_key[:-1] + ("1" if full_key.endswith("0") else "0")
     assert not svc.verify_key(wrong, stored)
@@ -27,6 +27,7 @@ def test_parameters_come_from_the_stored_hash():
     stored = f"scrypt${2**14}$8$1${salt.hex()}${digest.hex()}"
     assert svc.verify_key(LEGACY_KEY, stored)
     assert not svc.verify_key(LEGACY_KEY, "scrypt$broken")
+    assert not svc.verify_key(LEGACY_KEY, stored.replace("scrypt$", "bcrypt$", 1))
 
 
 @pytest.mark.asyncio
@@ -36,8 +37,9 @@ async def test_verify_runs_off_the_event_loop():
 
 
 @pytest.mark.asyncio
-async def test_pre_7c_key_works_once_and_is_rehashed(ctx, db_session):
-    assert svc.needs_rehash(LEGACY_HASH) and svc.verify_key(LEGACY_KEY, LEGACY_HASH)
+async def test_pre_7c_key_is_rejected_and_left_as_is(ctx, db_session):
+    assert not svc.is_current_format(LEGACY_HASH)
+    assert not svc.verify_key(LEGACY_KEY, LEGACY_HASH)
     user = await ctx.new_doc(
         "User", {"email": "legacy@example.com", "first_name": "L", "last_name": "K"}
     )
@@ -53,11 +55,10 @@ async def test_pre_7c_key_works_once_and_is_rehashed(ctx, db_session):
     )
     await ctx.db._session().commit()
 
-    assert (await svc.authenticate_api_key(LEGACY_KEY, db_session)) is not None
+    assert (await svc.authenticate_api_key(LEGACY_KEY, db_session)) is None
     await db_session.commit()
-    stored = await ctx.db.get_value("ApiKey", key["name"], "key_hash")
-    assert stored.startswith("scrypt$")
-    assert (await svc.authenticate_api_key(LEGACY_KEY, db_session)) is not None
+    # Not rewritten: System Health keeps listing it for reissue.
+    assert await ctx.db.get_value("ApiKey", key["name"], "key_hash") == LEGACY_HASH
 
 
 @pytest.mark.asyncio

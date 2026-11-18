@@ -1,7 +1,6 @@
 import asyncio
 
-import grunt
-from grunt import log
+from grunt import bootstrap_context, log
 from grunt.db.session import async_session_factory, get_engine
 from grunt.startup import (
     load_core_doctypes,
@@ -24,7 +23,7 @@ async def bootstrap():
         log.info("bootstrap.syncing_doctype_tables")
         await sync_all_doctypes(session, engine)
 
-        async with grunt.bootstrap_context(session, engine):
+        async with bootstrap_context(session, engine):
             log.info("bootstrap.seeding_system_settings")
             await seed_system_settings(session, engine)
 

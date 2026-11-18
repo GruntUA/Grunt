@@ -9,7 +9,7 @@
 const API = 'grunt.storage.doctypes.StorageRemote.storage_remote'
 
 /** @param {FormProxy} frm */
-function on_load(frm) {
+export function on_load(frm) {
     // Повернення з OAuth-входу (grunt.storage.cloud.oauth.callback).
     const params = new URLSearchParams(window.location.search)
     const outcome = params.get('cloud_auth')
@@ -40,7 +40,7 @@ async function _call(method, args) {
  * @param {FormProxy} frm
  * @param {string} fieldname
  */
-async function on_change(frm, fieldname) {
+export async function on_change(frm, fieldname) {
     const handler = BUTTONS[fieldname]
     if (!handler) return
     if (!_saved(frm)) return

@@ -171,7 +171,7 @@ export interface ListViewProxy {
    * framework's `global_list.js`; change or remove them by id.
    *
    * ```js
-   * function setup_list(listview) {
+   * export function setup_list(listview) {
    *   listview.actions.remove('add')
    *   listview.actions.add({ id: 'import', label: 'Імпорт', action: () => ... })
    * }

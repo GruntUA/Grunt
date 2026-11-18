@@ -10,6 +10,7 @@ import order. The workflow guard is a security check: without it registered a
 write is refused, never let through.
 """
 
+import functools
 import importlib
 from collections.abc import Iterator
 from contextlib import AbstractContextManager, ExitStack, contextmanager, nullcontext
@@ -20,7 +21,6 @@ _CORE = "grunt.core_pipeline"
 REQUIRED = frozenset({"workflow"})
 
 _extensions: list[WriteExtension] = []
-_core_loaded = False
 
 
 class UpdateScope:
@@ -84,13 +84,15 @@ def register(extension: WriteExtension) -> None:
     _extensions[:] = [e for e in _extensions if e.name != extension.name] + [extension]
 
 
+@functools.cache
+def _load_core() -> None:
+    importlib.import_module(_CORE)
+
+
 def extensions() -> list[WriteExtension]:
     """The registered extensions - the framework's loaded first; refuses to hand
     out a pipeline without a :data:`REQUIRED` one."""
-    global _core_loaded
-    if not _core_loaded:
-        importlib.import_module(_CORE)
-        _core_loaded = True
+    _load_core()
     missing = REQUIRED - {e.name for e in _extensions}
     if missing:
         raise RuntimeError(f"grunt: write pipeline extensions missing: {sorted(missing)}")

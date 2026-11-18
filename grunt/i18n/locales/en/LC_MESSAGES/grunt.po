@@ -10261,6 +10261,10 @@ msgstr ""
 msgid "Show all {n} lines"
 msgstr ""
 
+#: grunt/frontend/src/components/debug/ServerErrorModal.vue
+msgid "Open the Error Log record for the traceback."
+msgstr ""
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Show backups"
 msgstr ""
@@ -14995,5 +14999,5 @@ msgstr ""
 
 
 #: grunt/grunt/monitoring/health.py
-msgid "Use each once, then refresh this report: a key still listed was not rehashed - reissue it. A coming release drops the old format: %(keys)s"
+msgid "These keys no longer work: reissue the ones still needed, deactivate the rest: %(keys)s"
 msgstr ""

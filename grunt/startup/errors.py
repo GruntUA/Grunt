@@ -4,7 +4,6 @@ All in one place and wired by :func:`register_exception_handlers`, called
 once from :mod:`grunt.main` after the routers are mounted.
 """
 
-import traceback
 from pathlib import Path
 from typing import Any
 
@@ -30,26 +29,18 @@ def _wants_html(request: Request) -> bool:
     return "text/html" in request.headers.get("accept", "")
 
 
-def _format_traceback(exc: BaseException) -> str:
-    return "".join(traceback.format_exception(exc))
+def _debug_ref(request: Request, exc: BaseException, error_log: str | None) -> dict[str, Any]:
+    """Debug mode: where to read the error - never its text or traceback.
 
-
-def _origin_frame(exc: BaseException) -> dict[str, Any] | None:
-    """The innermost frame outside third-party packages - where to look first.
-
-    Jinja rewrites template frames to point at the ``.html`` file/line, so for
-    a template error this is the offending template line.
+    The response names the exception type and the ErrorLog record (traceback,
+    message, SQL); the desk's error modal and the error page open it from
+    there, and ``request_id`` finds it in the server log. Nothing derived from
+    the exception itself goes back to the client.
     """
-    frames = traceback.extract_tb(exc.__traceback__)
-    ours = [f for f in frames if "site-packages" not in f.filename]
-    frame = (ours or frames or [None])[-1]
-    if frame is None:
-        return None
     return {
-        "filename": frame.filename,
-        "lineno": frame.lineno,
-        "name": frame.name,
-        "line": frame.line,
+        "exc_type": type(exc).__name__,
+        "error_log": error_log,
+        "request_id": getattr(request.state, "request_id", None),
     }
 
 
@@ -97,31 +88,16 @@ async def _validation_error(request: Request, exc: ValidationError) -> Response:
         [str(e["msg"]) for e in exc.errors()],
     )
 
-    # Debug mode: attach the same rich `debug` bundle _generic_exception() gives
-    # 500s - this is a server-side pydantic bug (a metadata model rejecting a
-    # shape the DB actually holds), not a client input mistake, and the plain
-    # "422 / Помилка валідації" message alone gives no way to find it. Listing
-    # each failing field/input is what actually points at the broken model.
+    # Debug mode: this is a server-side pydantic bug (a metadata model rejecting
+    # a shape the DB actually holds), not a client input mistake - record it to
+    # the ErrorLog (every failing field and input is in its message) and point
+    # the developer there.
+    debug = None
     if settings.debug:
-        content["error"]["debug"] = {
-            "exc_type": type(exc).__name__,
-            "message": str(exc),
-            "traceback": _format_traceback(exc),
-            "fields": [
-                {
-                    "loc": ".".join(str(p) for p in e["loc"]),
-                    "msg": e["msg"],
-                    "type": e["type"],
-                    "input": repr(e.get("input")),
-                }
-                for e in exc.errors()
-            ],
-        }
+        debug = _debug_ref(request, exc, await _persist_error_log(request, exc, 422))
+        content["error"]["debug"] = debug
 
     if _wants_html(request):
-        debug = content["error"].get("debug")
-        if debug:
-            debug["where"] = _origin_frame(exc)
         return _render_error_html(request, 422, _("Validation error"), debug=debug)
     return JSONResponse(status_code=422, content=content)
 
@@ -167,83 +143,42 @@ async def _application_error(request: Request, exc: ApplicationError) -> Respons
     )
 
 
-async def _persist_error_log(request: Request, exc: Exception) -> None:
-    """Record an unhandled HTTP 500 to the ErrorLog DocType (best-effort)."""
+async def _persist_error_log(
+    request: Request, exc: Exception, http_status: int = 500
+) -> str | None:
+    """Record the error to the ErrorLog DocType (best-effort); its id."""
     try:
         from grunt.monitoring.error_log import record_error
 
         route = request.scope.get("route")
         method = getattr(route, "name", None) or request.url.path
-        await record_error(
+        return await record_error(
             exc=exc,
             context="HTTP Request",
             method=method,
-            http_status=500,
+            http_status=http_status,
             request_method=request.method,
             request_path=request.url.path,
             request_id=getattr(request.state, "request_id", None),
         )
     except Exception:  # noqa: BLE001 - the 500 response must go out regardless
         log.debug("error_log.http_persist_failed", exc_info=True)
+        return None
 
 
 async def _generic_exception(request: Request, exc: Exception) -> Response:
     log.exception("unhandled_error", path=request.url.path)
     mark_logged(exc)
-    await _persist_error_log(request, exc)
+    error_log = await _persist_error_log(request, exc)
 
-    if not settings.debug:
-        if _wants_html(request):
-            return _render_error_html(request, 500, _("Internal server error"))
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "error": {
-                    "code": "INTERNAL_ERROR",
-                    "message": _("Internal server error"),
-                },
-            },
-        )
-
-    # Debug mode: return rich error info
-    debug_info: dict = {
-        "exc_type": type(exc).__name__,
-        "message": str(exc),
-        "traceback": _format_traceback(exc),
-    }
-
-    # Extract SQL details from SQLAlchemy errors
-    try:
-        from sqlalchemy.exc import SQLAlchemyError
-
-        if isinstance(exc, SQLAlchemyError):
-            stmt = getattr(exc, "statement", None)
-            params = getattr(exc, "params", None)
-            orig = getattr(exc, "orig", None)
-            if stmt:
-                debug_info["sql"] = str(stmt)
-            if params:
-                debug_info["sql_params"] = str(params)
-            if orig:
-                debug_info["db_error"] = str(orig)
-    except Exception:
-        log.exception("suppressed_error")
-
+    # Debug mode: the type and where to read the rest (see _debug_ref).
+    debug = _debug_ref(request, exc, error_log) if settings.debug else None
     if _wants_html(request):
-        debug_info["where"] = _origin_frame(exc)
-        return _render_error_html(request, 500, _("Internal server error"), debug=debug_info)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "success": False,
-            "error": {
-                "code": "INTERNAL_ERROR",
-                "message": _("Internal server error"),
-                "debug": debug_info,
-            },
-        },
-    )
+        return _render_error_html(request, 500, _("Internal server error"), debug=debug)
+    error: dict[str, Any] = {"code": "INTERNAL_ERROR", "message": _("Internal server error")}
+    if debug:
+        error["debug"] = debug
+    return JSONResponse(status_code=500, content={"success": False, "error": error})
 
 
 def _page_title(status_code: int) -> str:

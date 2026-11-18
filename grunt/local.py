@@ -34,6 +34,11 @@ _bootstrap_ctx: ContextVar[bool] = ContextVar("grunt_bootstrap", default=False)
 # ``_require_*`` method wrappers around these for backward compatibility.
 
 
+def in_bootstrap() -> bool:
+    """Whether the context is bootstrapping a site (events don't fire then)."""
+    return _bootstrap_ctx.get()
+
+
 def require_session() -> AsyncSession:
     """Return the active session or raise if none is bound to the context."""
     s = _session_ctx.get()

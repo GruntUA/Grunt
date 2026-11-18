@@ -464,7 +464,7 @@ async def ws_public(
     await _run_simple_channel(websocket, f"public:{channel}")
 
 
-@router.websocket("/ws/{doctype}/{doc_id}")
+@router.websocket("/ws/{doctype}/{doc_id:path}")
 async def ws_document(
     websocket: WebSocket,
     doctype: str,

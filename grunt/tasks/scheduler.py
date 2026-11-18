@@ -35,6 +35,7 @@ from grunt.tasks.job_log import (
     logs_every_run,
     open_job_log,
 )
+from grunt.utils.aio import cancel_and_wait
 from grunt.utils.redis import connect
 
 # Global scheduler instance
@@ -363,9 +364,7 @@ async def stop_scheduler() -> None:
     global _election, is_leader
     if _election is not None:
         # Cancelling releases the key, so another process takes over at once.
-        _election.cancel()
-        with suppress(asyncio.CancelledError):
-            await _election
+        await cancel_and_wait(_election)
         _election = None
     is_leader = False
     if scheduler.running:

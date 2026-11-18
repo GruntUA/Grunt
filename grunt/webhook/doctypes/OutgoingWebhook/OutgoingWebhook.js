@@ -6,7 +6,7 @@ let _logsPanel = null
 
 // ── Lifecycle hooks ───────────────────────────────────────────────────────────
 
-function on_load(frm) {
+export function on_load(frm) {
   frm.actions.add({
     id: 'test_delivery',
     label: 'Test',
