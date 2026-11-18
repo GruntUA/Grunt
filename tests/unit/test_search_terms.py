@@ -3,7 +3,8 @@
 from sqlalchemy import column
 from sqlalchemy.dialects import sqlite
 
-from grunt.search.terms import escape_like, like_term, match_columns, matches_text
+from grunt.db.dialects.base import escape_like
+from grunt.search.terms import like_term, match_columns, matches_text
 from grunt.search.tokens import MAX_TERMS, fts5_query, mysql_boolean_query, split_terms, tsquery
 
 

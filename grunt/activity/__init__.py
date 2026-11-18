@@ -165,7 +165,7 @@ async def _broadcast_activity(
             if rows and rows[0].get("full_name"):
                 user_name = rows[0]["full_name"]
         except Exception:
-            pass
+            pass  # the feed shows the email instead of the name
 
         created_at = doc.get("created_at")
         payload = {

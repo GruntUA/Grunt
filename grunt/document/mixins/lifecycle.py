@@ -88,7 +88,9 @@ class DocumentLifecycleMixin:
     input_data: dict[str, Any]
     doc_before_save: dict[str, Any] | None
 
-    def _bind(self) -> None: ...
+    def _bind(self) -> None:
+        """Provided by :class:`Document`: session/engine from the active context."""
+
     @classmethod
     async def load(  # type: ignore[empty-body]  # Document.load
         cls,
@@ -98,13 +100,19 @@ class DocumentLifecycleMixin:
         expand: list[str] | None = None,
         session: Any = None,
         engine: Any = None,
-    ) -> Any: ...
-    @property
-    def user(self) -> str | None: ...  # type: ignore[empty-body]  # Document: the session user
+    ) -> Any:
+        """Provided by :class:`Document`: load a stored document."""
 
-    def _set_grunt_context(self) -> tuple: ...  # type: ignore[empty-body]
+    @property
+    def user(self) -> str | None:  # type: ignore[empty-body]  # Document: the session user
+        """Provided by :class:`Document`: the session user."""
+
+    def _set_grunt_context(self) -> tuple:  # type: ignore[empty-body]
+        """Provided by :class:`Document`: bind its session/engine for the hooks."""
+
     @staticmethod
-    def _reset_grunt_context(tokens: tuple) -> None: ...
+    def _reset_grunt_context(tokens: tuple) -> None:
+        """Provided by :class:`Document`: undo :meth:`_set_grunt_context`."""
 
     # Pipeline steps
 

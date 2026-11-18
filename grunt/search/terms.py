@@ -23,7 +23,6 @@ from sqlalchemy import and_, or_
 from sqlalchemy.sql.elements import ColumnElement
 
 from grunt.db.dialects import dialect_for
-from grunt.db.dialects.base import LIKE_ESCAPE, escape_like  # noqa: F401 - re-exported
 from grunt.search.tokens import split_terms
 
 

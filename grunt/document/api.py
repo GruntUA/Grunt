@@ -138,7 +138,8 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """By DocType name: the document as a dict."""
 
     @overload
     async def get_doc[D: Document](
@@ -147,10 +148,12 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
-    ) -> D: ...
+    ) -> D:
+        """By controller class: the document as that class."""
 
     @overload
-    async def get_doc(self, doctype: dict[str, Any]) -> Document: ...
+    async def get_doc(self, doctype: dict[str, Any]) -> Document:
+        """From a document dict: a new, unsaved :class:`Document`."""
 
     @profile("grunt.get_doc")
     async def get_doc(self, doctype, id_or_name=None, *, expand=None):
@@ -209,7 +212,8 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
-    ) -> dict[str, Any] | None: ...
+    ) -> dict[str, Any] | None:
+        """By DocType name: the dict, or ``None``."""
 
     @overload
     async def find_doc[D: Document](
@@ -218,7 +222,8 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
-    ) -> D | None: ...
+    ) -> D | None:
+        """By controller class: that class, or ``None``."""
 
     async def find_doc(self, doctype, id_or_name=None, *, expand=None):
         """Like :meth:`get_doc`, but returns ``None`` instead of raising 404."""

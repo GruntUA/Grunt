@@ -45,6 +45,7 @@ from grunt.api.v1.ws import manager
 from grunt.config import settings
 from grunt.local import user_email
 from grunt.log import log
+from grunt.utils.aio import cancel_and_wait
 from grunt.utils.redis import connect
 
 FLUSH_SECONDS = 0.5
@@ -218,9 +219,7 @@ async def track_progress(
         status, message = "error", str(exc) or type(exc).__name__
         raise
     finally:
-        flusher.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await flusher
+        await cancel_and_wait(flusher)
         if redis is not None:
             with contextlib.suppress(Exception):
                 await redis.delete(*_state_keys(p, job), _cancel_key(p.task_id))

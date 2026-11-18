@@ -19,6 +19,7 @@ Adding a stage means appending an :class:`EventSubscriber` - never editing
 :func:`fire`.
 """
 
+import functools
 import importlib
 import inspect
 from collections.abc import Awaitable, Callable, Iterable
@@ -26,7 +27,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from grunt.hooks import dispatch as _dispatch_hooks
-from grunt.local import _bootstrap_ctx
+from grunt.local import in_bootstrap
 from grunt.log import log
 
 
@@ -54,14 +55,11 @@ SUBSCRIBERS: list[EventSubscriber] = []
 # registers them. Imported by path before the first event, so the bus never
 # imports the subsystems and a stage can't be missed because nothing imported it.
 _CORE_STAGES = "grunt.core_events"
-_core_loaded = False
 
 
+@functools.cache
 def _load_core_stages() -> None:
-    global _core_loaded
-    if not _core_loaded:
-        importlib.import_module(_CORE_STAGES)
-        _core_loaded = True
+    importlib.import_module(_CORE_STAGES)
 
 
 def register_subscriber(sub: EventSubscriber) -> None:
@@ -107,10 +105,10 @@ def subscribe(
 async def fire(event: str, **kwargs: Any) -> None:
     """Fire a document lifecycle event through the whole pipeline.
 
-    No-ops entirely during bootstrap (``_bootstrap_ctx``). Runs the hook
+    No-ops entirely during bootstrap (:func:`~grunt.local.in_bootstrap`). Runs the hook
     registry first, then every matching subscriber in priority order.
     """
-    if _bootstrap_ctx.get():
+    if in_bootstrap():
         log.debug("event.skipped", reason="bootstrap", hook_event=event)
         return
     _load_core_stages()
