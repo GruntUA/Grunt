@@ -183,13 +183,19 @@ interface GruntMethods {
   "grunt.api.v1.pages.list_pages": { args: {}; result: Record<string, any>[] }
   /** Register or update a custom page from an app. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.pages.register_page": { args: { page_data: Record<string, any> }; result: Record<string, any> }
+  /** Whether *user* (an email or a User id) may perform *action* on *doctype* - or on its document *name* - and the rules, shares and followed documents behind the answer. Permission: grunt.manage_permissions. */
+  "grunt.api.v1.permission_inspector.explain_access": { args: { user: string; doctype: string; action?: string; name?: string | null }; result: Record<string, any> }
+  /** How *doctype*'s rules on this site differ from its app's: ``{customized, outdated, changes, summary}`` - ``added`` are the site's own rules, ``removed`` the app's that the site doesn't have. Permission: grunt.manage_permissions. */
+  "grunt.api.v1.permission_layers.app_rules_diff": { args: { doctype: string }; result: Record<string, any> }
+  /** Put the app's rules back on *doctype* - saved like any edit of the DocType (its write permission, the Permission Log). Permission: grunt.manage_permissions. */
+  "grunt.api.v1.permission_layers.restore_app_rules": { args: { doctype: string }; result: Record<string, any> }
   /** *role*'s rules on each of *doctypes*: ``{doctype, is_child, rules}``, a rule being ``{index, actions, match, hidden_fields, readonly_fields}``. */
   "grunt.api.v1.permission_matrix.get_role_matrix": { args: { role: string; doctypes: string[] }; result: Record<string, any>[] }
   /** Apply *changes* - ``{doctype, rules: [{index, match, original, actions}]}`` - to *role*'s rules, one ``save_doc`` per DocType; returns them as :func:`get_role_matrix` does. */
   "grunt.api.v1.permission_matrix.save_role_matrix": { args: { role: string; changes: Record<string, any>[] }; result: Record<string, any>[] }
-  /** ``[{code, message}]`` for *doctype*'s rules and fields. */
+  /** ``[{code, message}]`` for *doctype*'s rules and fields. Permission: grunt.manage_permissions. */
   "grunt.api.v1.permission_warnings.for_doctype": { args: { doctype: string }; result: Record<string, any>[] }
-  /** ``[{code, message}]`` for *role*: nobody holds it, it grants nothing. */
+  /** ``[{code, message}]`` for *role*: nobody holds it, it grants nothing. Permission: grunt.manage_permissions. */
   "grunt.api.v1.permission_warnings.for_role": { args: { role: string }; result: Record<string, any>[] }
   /** What the current user's role scopes limit a *doctype* list to - for the list's "Restrictions" popup: ``[{field, fieldname, allow, value, title}]``. */
   "grunt.api.v1.role_scopes.get_active_scopes": { args: { doctype: string }; result: Record<string, any>[] }
@@ -233,7 +239,7 @@ interface GruntMethods {
   /** Test an assignment rule against a sample document - for who may edit the rule: the answer names the users it would assign. */
   "grunt.assignment.doctypes.AssignmentRule.assignment_rule.test_rule": { args: { rule_id: string; test_doc: Record<string, any> }; result: Record<string, any> }
   /** Create a new API key for the current user. */
-  "grunt.auth.doctypes.ApiKey.api_key.create_api_key": { args: { label: string; expires_at?: string | null; allowed_ips?: string | null }; result: Record<string, any> }
+  "grunt.auth.doctypes.ApiKey.api_key.create_api_key": { args: { label: string; expires_at?: string | null; allowed_ips?: string | null; read_only?: boolean; roles?: string[] | null }; result: Record<string, any> }
   /** List API keys (secrets are never returned). */
   "grunt.auth.doctypes.ApiKey.api_key.list_api_keys": { args: {}; result: Record<string, any>[] }
   /** Permanently revoke (delete) an API key. */

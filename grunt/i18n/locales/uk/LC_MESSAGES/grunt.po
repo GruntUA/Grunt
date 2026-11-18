@@ -11683,6 +11683,10 @@ msgstr "Документ-шаблон"
 msgid "Template error:"
 msgstr "Помилка шаблону:"
 
+#: grunt/grunt/api/v1/document/export.py
+msgid "{error} - details are in the server log."
+msgstr "{error} - подробиці в журналі сервера."
+
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Template type"
 msgstr "Тип шаблону"

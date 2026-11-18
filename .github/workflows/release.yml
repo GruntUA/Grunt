@@ -6,6 +6,9 @@ on:
   push:
     tags: ["v*.*.*"]
 
+permissions:
+  contents: read # publish raises it to write for the release
+
 jobs:
   ci:
     uses: ./.github/workflows/test.yml

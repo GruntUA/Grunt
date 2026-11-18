@@ -13,7 +13,7 @@ import client from '@/core/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { useAccessInspector } from '@/core/composables/useAccessInspector'
 import { grunt as appGrunt } from '@/core/grunt'
-import { appUrl } from '@/core/workspaceUrl'
+import { appUrl, listFilterQuery } from '@/core/workspaceUrl'
 import type { ComponentDialogOptions } from '@/core/composables/useDialog'
 import { appDialog } from '@/core/appDialogs'
 import type { ActionsApi } from '@/core/actions'
@@ -279,11 +279,6 @@ export function createGruntProxy(
     return 'grunt'
   }
 
-  // `{ status: 'Open', date__gt: … }` -> list-URL query `filter[status__eq]=Open&…`.
-  const listQuery = (filters?: Record<string, unknown> | null): Record<string, unknown> =>
-    Object.fromEntries(
-      Object.entries(filters ?? {}).map(([key, val]) => [`filter[${key.includes('__') ? key : `${key}__eq`}]`, val]),
-    )
 
   const normalizeRouteParts = (route: unknown[]): string[] => {
     const parts = route.length === 1 && Array.isArray(route[0])
@@ -304,7 +299,7 @@ export function createGruntProxy(
     const lowerKind = kind.toLowerCase()
 
     if (lowerKind === 'list') {
-      return rest[0] ? appUrl({ name: rest[0], workspace, query: listQuery(filters) }) : null
+      return rest[0] ? appUrl({ name: rest[0], workspace, query: listFilterQuery(filters) }) : null
     }
     if (lowerKind === 'form') {
       const [doctype, docId] = rest
@@ -318,7 +313,7 @@ export function createGruntProxy(
       return rest[0] ? appUrl({ type: 'Report', name: rest[0], workspace }) : null
     }
     if (routeParts.length === 1) {
-      return appUrl({ name: kind, workspace, query: listQuery(filters) })
+      return appUrl({ name: kind, workspace, query: listFilterQuery(filters) })
     }
     return appUrl({ name: routeParts[0], id: routeParts[1], workspace })
   }

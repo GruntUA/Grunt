@@ -30,6 +30,8 @@ const def: ViewDefinition = {
     dateField: ctx.resolvedField?.fieldname ?? '',
     workspace: ctx.workspace,
     refreshKey: ctx.refreshKey,
+    activeFilters: ctx.activeFilters,
+    quickFilterValues: ctx.quickFilterValues,
   }),
 }
 

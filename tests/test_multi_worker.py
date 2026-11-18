@@ -193,8 +193,8 @@ async def test_one_process_leads_the_scheduler(redis, monkeypatch):
     assert await scheduler.current_leader() == scheduler.IDENTITY
 
     election.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await election
+    await asyncio.wait([election])
+    assert election.cancelled()
     assert await redis.get(scheduler.LEADER_KEY) is None  # released on stop
 
 
@@ -208,8 +208,8 @@ async def test_leader_steps_down_when_the_key_is_taken(redis, monkeypatch):
     election = asyncio.create_task(scheduler._elect())
     await asyncio.sleep(0.2)
     election.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await election
+    await asyncio.wait([election])
+    assert election.cancelled()
     assert stepped
     assert await redis.get(scheduler.LEADER_KEY) == b"other-host:1:abc"
 

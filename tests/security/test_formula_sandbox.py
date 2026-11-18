@@ -34,7 +34,7 @@ class _DT:
 
 @pytest.fixture(autouse=True)
 def _patch_meta(monkeypatch):
-    import grunt.document.formula as fmod
+    from grunt.document import formula as fmod
 
     class _Meta:
         def __init__(self, dt):
@@ -86,7 +86,7 @@ def test_legitimate_formulas_pass_the_gate(expr):
 async def test_escape_formula_does_not_execute(ctx):
     # Even driven through the evaluator, an escape attempt yields no value
     # (blocked, field left unchanged) rather than reaching os.
-    dt = cast("DocType", _DT("().__class__.__mro__[-1].__subclasses__()"))
+    dt = cast(DocType, _DT("().__class__.__mro__[-1].__subclasses__()"))
     row = {"name": "p1", "out": None}
     result = await _evaluate_formulas(dt, row, "read_formula")
     assert result["out"] is None

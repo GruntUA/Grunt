@@ -10,10 +10,11 @@ import { computed, ref, watch, type Ref } from 'vue'
 
 export type Row = Record<string, unknown> & { __uid: string }
 
+// `__uid` is only a row key, never a secret: a module counter is unique per
+// page, and crypto.randomUUID (absent on plain-http origins) adds nothing.
+let uidSeq = 0
 function genUid(): string {
-  return typeof crypto !== 'undefined' && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `r${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+  return `r${(++uidSeq).toString(36)}`
 }
 
 /** A copy that becomes a new row: no identity of the source carried over. */

@@ -27,7 +27,9 @@ def _request(path: str, accept: str) -> Request:
 
 
 def _template_error() -> UndefinedError:
-    env = Environment(loader=DictLoader({"page.html": "<title>{{ settings.title }}</title>"}))
+    env = Environment(
+        loader=DictLoader({"page.html": "<title>{{ settings.title }}</title>"}), autoescape=True
+    )
     try:
         env.get_template("page.html").render()
     except UndefinedError as exc:

@@ -66,7 +66,7 @@ async def _subjects(ctx, user):
 
 @pytest.mark.asyncio
 async def test_remind_me_and_delivery(ctx, note, as_user, db_session):
-    from grunt import _
+    from grunt.i18n import _
 
     async with as_user(ANN):
         r = await collaboration_api.add_reminder(

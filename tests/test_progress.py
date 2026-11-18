@@ -2,8 +2,13 @@ import inspect
 
 import pytest
 
-import grunt.progress as progress_mod
+from grunt import progress as progress_mod
 from grunt.progress import track_progress
+
+
+def _raise(exc: BaseException) -> None:
+    """Raise *exc* from a call, so the code after the ``with`` reads as reachable."""
+    raise exc
 
 
 @pytest.fixture
@@ -40,7 +45,7 @@ async def test_progress_is_published_and_finished(sent):
 async def test_failure_is_reported_and_raised(sent):
     with pytest.raises(RuntimeError):
         async with track_progress("Backup", user="a@x"):
-            raise RuntimeError("disk full")
+            _raise(RuntimeError("disk full"))
     assert sent[-1][1] == "task_done"
     assert sent[-1][2]["status"] == "error"
     assert sent[-1][2]["message"] == "disk full"
@@ -111,7 +116,6 @@ async def test_cancel_stops_the_task_and_reports_cancelled(sent, redis_store, mo
         assert await progress_mod.cancel_task(p.task_id) is True
         await progress_mod.asyncio.sleep(progress_mod.FLUSH_SECONDS + 0.05)
         p.advance(1)  # raises TaskCancelledError; track_progress swallows it
-        raise AssertionError("not reached")  # pragma: no cover
     assert sent[-1][1] == "task_done" and sent[-1][2]["status"] == "cancelled"
     assert redis_store == {}  # state and cancel flag are cleaned up
 
@@ -145,7 +149,6 @@ async def test_a_scheduled_task_keeps_its_progress_under_the_job_id(sent, redis_
             assert await _cancel_job("job-1") is True
             await progress_mod.asyncio.sleep(progress_mod.FLUSH_SECONDS + 0.05)
             p.advance(1)
-            raise AssertionError("not reached")  # pragma: no cover
     finally:
         progress_mod.current_job.reset(token)
     assert sent == []  # nobody to notify over the WebSocket

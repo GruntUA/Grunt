@@ -62,7 +62,8 @@ class _FakeSocket:
     def __init__(self) -> None:
         self.sent: list[dict] = []
 
-    async def accept(self, subprotocol: str | None = None) -> None: ...
+    async def accept(self, subprotocol: str | None = None) -> None:
+        return None
 
     async def send_text(self, text: str) -> None:
         self.sent.append(json.loads(text))
@@ -70,7 +71,7 @@ class _FakeSocket:
 
 @pytest.fixture
 def user_socket():
-    ws = cast("WebSocket", _FakeSocket())
+    ws = cast(WebSocket, _FakeSocket())
     channel = "user:admin@grunt.example.com"
     manager._connections.setdefault(channel, []).append(ws)
     yield ws

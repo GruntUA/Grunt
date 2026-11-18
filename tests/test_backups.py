@@ -10,7 +10,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from sqlalchemy.engine import make_url
 
-import grunt.backups as backups
+from grunt import backups
 from grunt.backups import api, tasks
 from grunt.db.dialects import SqliteDialect, archive
 
@@ -296,6 +296,28 @@ async def test_queued_scheduled_backup_skips_a_running_one(site, monkeypatch):
     monkeypatch.setattr(tasks, "create_backup", busy)
     with pytest.raises(backups.BackupBusyError):
         await tasks._run(SITE, keep=3)
+
+
+@pytest.mark.asyncio
+async def test_cancelled_scheduled_backup_returns_none(site, monkeypatch):
+    from grunt import progress
+    from grunt.progress import TaskCancelledError
+
+    async def cancelled(*a, **kw):
+        raise TaskCancelledError()
+
+    async def settings():
+        return {"enabled": True, "interval": "Daily", "keep": 3, "with_files": False, "level": 3}
+
+    monkeypatch.setattr(tasks, "_settings", settings)
+    monkeypatch.setattr(tasks, "is_due", lambda *a: True)
+    monkeypatch.setattr(tasks, "_run", cancelled)
+    # Inside a worker job track_progress ends a cancelled task quietly.
+    token = progress.current_job.set("job-1")
+    try:
+        assert await tasks.scheduled_backup() is None
+    finally:
+        progress.current_job.reset(token)
 
 
 @pytest.mark.asyncio

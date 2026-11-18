@@ -11,6 +11,11 @@ from starlette.requests import Request
 from grunt.monitoring import perf
 
 
+def _raise(exc: BaseException) -> None:
+    """Raise *exc* from a call, so the code after the ``with`` reads as reachable."""
+    raise exc
+
+
 @pytest.fixture(autouse=True)
 def _clean_buffers(engine):
     perf.attach_sql_counter(engine)
@@ -51,7 +56,7 @@ async def test_measure_counts_sql_and_errors(ctx):
         await ctx.db.get_all("User", limit=1)
         await ctx.db.get_all("User", limit=1)
     with pytest.raises(RuntimeError), perf.measure("Span", "probe"):
-        raise RuntimeError("boom")
+        _raise(RuntimeError("boom"))
 
     (stat,) = _site_stats().values()
     assert stat.calls == 2
@@ -66,9 +71,9 @@ def test_client_errors_are_not_counted():
 
     for exc in (not_found(), HTTPException(403), ApplicationError("bad", "VALIDATION")):
         with pytest.raises(type(exc)), perf.measure("Span", "probe"):
-            raise exc
+            _raise(exc)
     with pytest.raises(HTTPException), perf.measure("Span", "probe"):
-        raise HTTPException(503)
+        _raise(HTTPException(503))
 
     (stat,) = _site_stats().values()
     assert stat.calls == 4

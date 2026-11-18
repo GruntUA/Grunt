@@ -73,10 +73,13 @@ export function useFormInitialization(params: FormInitializationParams) {
 
       // Pre-fill from URL query parameters (e.g. ?parent_department=UUID)
       const query = new URLSearchParams(window.location.search)
+      // Only a real field of the DocType is written, under its own fieldname
+      // (never the query key itself) - no `__proto__` / `constructor` injection.
+      const fields = params.dt.value?.fields ?? []
       for (const [key, value] of query.entries()) {
-        const field = params.dt.value?.fields.find((f: any) => f.fieldname === key)
+        const field = fields.find((f: any) => f.fieldname === key)
         if (field) {
-          params.form.value[key] = value
+          params.form.value[field.fieldname] = value
         }
       }
 
