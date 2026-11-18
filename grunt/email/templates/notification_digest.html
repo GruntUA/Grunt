@@ -67,7 +67,8 @@
         </li>
         {% endfor %}
         {% if items | length > 10 %}
-        <li class="more">{{ _("… and %(count)s more") % {"count": items | length - 10} }}</li>
+        {% set more = items | length - 10 %}
+        <li class="more">{{ _("… and %(count)s more", count=more) }}</li>
         {% endif %}
       </ul>
     </div>

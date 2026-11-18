@@ -185,7 +185,7 @@
                                 {% endfor %}
                                 <nav class="tabnav">
                                     {% for tab in tabs %}
-                                        <label for="tab-{{ loop.index0 }}">{{ tab.label or _("Section %(n)s") % {"n": loop.index} }}</label>
+                                        <label for="tab-{{ loop.index0 }}">{{ tab.label or _("Section %(n)s", n=loop.index) }}</label>
                                     {% endfor %}
                                 </nav>
                                 <div class="tabpanels">

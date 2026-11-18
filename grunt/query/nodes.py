@@ -129,8 +129,10 @@ class Raw:
 TRUE = Const(True)
 FALSE = Const(False)
 
-type Leaf = Cmp | Like | In | Null | Empty | Year | MultiLink | Linked | Raw
-type Expr = Leaf | And | Or | Const
+# Plain aliases, not `type X = ...`: names in __all__ (CodeQL's undefined-export
+# doesn't see PEP 695 aliases).
+Leaf = Cmp | Like | In | Null | Empty | Year | MultiLink | Linked | Raw
+Expr = Leaf | And | Or | Const
 
 
 def and_(*items: Expr) -> Expr:
@@ -164,8 +166,8 @@ def or_(*items: Expr) -> Expr:
 def linked_doctypes(expr: Expr) -> set[str]:
     """Every DocType a ``Linked`` node in *expr* reads, nested ones included."""
     match expr:
-        case And(items=items) | Or(items=items):
-            return set().union(*(linked_doctypes(i) for i in items))
+        case And() | Or():
+            return set().union(*(linked_doctypes(i) for i in expr.items))
         case Linked(doctype=doctype, where=where):
             return {doctype} | linked_doctypes(where)
     return set()

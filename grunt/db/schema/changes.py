@@ -105,7 +105,9 @@ class DropColumn:
         return f"drop column {self.table.name}.{self.name}"
 
 
-type Change = (
+# A plain alias, not `type Change = ...`: it is in __all__ (CodeQL's
+# undefined-export doesn't see PEP 695 aliases).
+Change = (
     CreateTable | AddColumn | AlterType | AddUnique | DropUnique | AddIndex | DropIndex | DropColumn
 )
 

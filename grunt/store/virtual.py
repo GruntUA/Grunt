@@ -37,10 +37,9 @@ async def resolve_linked(expr: q.Expr) -> q.Expr:
     selects - read through the target DocType's store, without permissions
     (the node itself is the permission rule)."""
     match expr:
-        case q.And(items=items):
-            return q.and_(*[await resolve_linked(i) for i in items])
-        case q.Or(items=items):
-            return q.or_(*[await resolve_linked(i) for i in items])
+        case q.And() | q.Or():
+            items = [await resolve_linked(i) for i in expr.items]
+            return q.and_(*items) if isinstance(expr, q.And) else q.or_(*items)
         case q.Linked(field=field, doctype=doctype, where=where, select=column, negate=negate):
             target = await doctype_registry.get_meta(doctype)
             if target is None:
