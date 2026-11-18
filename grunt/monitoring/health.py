@@ -344,6 +344,46 @@ async def check_users() -> list[Row]:
             ", ".join(without_mfa[:5]) if without_mfa else "",
         ),
         row(cat, _("Locked accounts"), OK if not locked else WARNING, locked),
+        await _api_keys_row(cat),
+    ]
+
+
+async def _api_keys_row(cat: str) -> Row:
+    """Active API keys still in the pre-scrypt format - its own row, so a
+    failing scan doesn't hide the rest of the section."""
+    try:
+        legacy = await legacy_api_keys()
+    except Exception as e:  # noqa: BLE001 - a broken scan is a finding, not a crash
+        return row(cat, _("API keys in the old format"), ERROR, "—", str(e))
+    hint = (
+        _(
+            "Use each once, then refresh this report: a key still listed was not "
+            "rehashed - reissue it. A coming release drops the old format: %(keys)s"
+        )
+        % {"keys": ", ".join(legacy[:5])}
+        if legacy
+        else ""
+    )
+    return row(
+        cat, _("API keys in the old format"), OK if not legacy else WARNING, len(legacy), hint
+    )
+
+
+async def legacy_api_keys() -> list[str]:
+    """Labels of active API keys still stored as a bare SHA-256 - from before
+    scrypt (PERMISSIONS_PLAN step 7c). The next use rehashes a key, best-effort
+    (a failed rehash is logged and the request still succeeds) - so a key used
+    and still listed needs reissuing. The old format goes in a coming release."""
+    rows = await _db.get_all(
+        "ApiKey",
+        filters={"is_active": True},
+        fields=["label", "key_prefix", "key_hash"],
+        limit=None,
+    )
+    return [
+        f"{r.get('label') or '?'} ({r.get('key_prefix')})"
+        for r in rows
+        if not str(r.get("key_hash") or "").startswith("scrypt$")
     ]
 
 

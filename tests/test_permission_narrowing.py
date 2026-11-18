@@ -86,3 +86,45 @@ async def test_child_parents_follow_registry_changes(ctx):
         }
     )
     assert [m.name for m in await parent_doctypes("NarrowRow")] == ["NarrowHolder"]
+
+
+def _linked_doctypes(expr) -> set[str]:
+    """DocTypes the predicate asks in a subquery (``Linked`` nodes)."""
+    from grunt.query.nodes import And, Linked, Or
+
+    if isinstance(expr, Linked):
+        return {expr.doctype} | _linked_doctypes(expr.where)
+    if isinstance(expr, (And, Or)):
+        return set().union(*(_linked_doctypes(e) for e in expr.items))
+    return set()
+
+
+@pytest.mark.asyncio
+async def test_comments_of_a_table_less_doctype(ctx, db_session, engine):
+    """Regression: the timeline of System Health (virtual, no table) asked for
+    its comments with a subquery into a table that doesn't exist - a 500 on a
+    site (the test database happens to have the table, so the predicate is
+    checked directly)."""
+    import grunt
+    from grunt.metadata.registry import doctype_registry
+    from grunt.permissions.query import read_predicate
+
+    comment = await doctype_registry.get_meta("Comment")
+    pinned = And(
+        (
+            Cmp("reference_doctype", "eq", "SystemHealthReport"),
+            Cmp("reference_id", "eq", "SystemHealthReport"),
+        )
+    )
+    admin = make_user("admin@x.com", is_superadmin=True)
+    async with grunt.context(db_session, engine, admin):
+        predicate = await read_predicate("admin@x.com", comment, within=pinned)
+        assert "SystemHealthReport" not in _linked_doctypes(predicate)
+        rows = await grunt.get_list(
+            "Comment",
+            filters={
+                "reference_doctype": "SystemHealthReport",
+                "reference_id": "SystemHealthReport",
+            },
+        )
+    assert rows == []
