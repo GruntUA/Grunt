@@ -32,11 +32,7 @@ export function rememberLoginRedirect(path: unknown): void {
   }
 }
 
-/**
- * Where to go after a successful sign-in: the stashed path (consumed), else
- * the user's *home* page (``Role.home_page``), else the desk.
- */
-export function afterLoginTarget(home?: string | null): RouteLocationRaw {
+function takeStashed(): string | null {
   let path: string | null = null
   try {
     path = sessionStorage.getItem(KEY)
@@ -44,8 +40,15 @@ export function afterLoginTarget(home?: string | null): RouteLocationRaw {
   } catch {
     // storage blocked
   }
-  if (isSafe(path)) return path
-  return isSafe(home) ? home : { name: 'desk' }
+  return isSafe(path) ? path : null
+}
+
+/**
+ * Where in the SPA to go after a successful sign-in: the stashed path
+ * (consumed), else the user's *home* page (``Role.home_page``), else the desk.
+ */
+export function afterLoginTarget(home?: string | null): RouteLocationRaw {
+  return takeStashed() ?? (isSafe(home) ? home : { name: 'desk' })
 }
 
 /** A path the SPA has a page for - anything else (the website) needs a full page load. */
@@ -54,13 +57,25 @@ export function isSpaPath(router: Router, path: string): boolean {
   return name !== undefined && name !== 'not-found'
 }
 
-/** Navigate to *target*: in the SPA, or - a website page - with a full page load. */
-export function go(router: Router, target: RouteLocationRaw): void {
-  if (typeof target === 'string' && !isSpaPath(router, target)) window.location.assign(target)
-  else void router.push(target)
+/**
+ * The user's home page when it is on the website (outside the SPA) and no
+ * stashed path takes precedence - to open with a full page load. Only the
+ * server-given home page ever leaves the SPA: a stashed path comes from the
+ * URL and stays in the router.
+ */
+export function websiteHome(router: Router, home?: string | null): string | null {
+  let stashed = false
+  try {
+    stashed = isSafe(sessionStorage.getItem(KEY))
+  } catch {
+    // storage blocked
+  }
+  return !stashed && isSafe(home) && !isSpaPath(router, home) ? home : null
 }
 
-/** Sign-in finished: go to :func:`afterLoginTarget`. */
+/** Sign-in finished: the website home page with a full load, else :func:`afterLoginTarget`. */
 export function goAfterLogin(router: Router, home?: string | null): void {
-  go(router, afterLoginTarget(home))
+  const site = websiteHome(router, home)
+  if (site) window.location.assign(site)
+  else void router.push(afterLoginTarget(home))
 }

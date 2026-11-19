@@ -1,9 +1,9 @@
 """``Role.require_mfa``: users holding such a role must enroll 2FA at sign-in
 before any tokens are issued, and open sessions end on the next refresh."""
 
-import pyotp
 import pytest
 from httpx2 import AsyncClient
+from pyotp.totp import TOTP
 
 from grunt.auth.service import create_mfa_token
 from grunt.auth.users import create_user, get_user_by_email
@@ -61,7 +61,7 @@ async def test_login_forces_enrollment_then_signs_in(ctx, client: AsyncClient):
 
     done = await client.post(
         f"{M}.mfa_enroll_complete",
-        json={"mfa_token": token, "code": pyotp.TOTP(secret).now()},
+        json={"mfa_token": token, "code": TOTP(secret).now()},
     )
     assert done.status_code == 200, done.text
     body = done.json()["data"]

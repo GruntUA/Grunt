@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { afterLoginTarget, go, isSpaPath, loginLocation, rememberLoginRedirect } from '@/core/loginRedirect'
+import { afterLoginTarget, goAfterLogin, isSpaPath, loginLocation, rememberLoginRedirect, websiteHome } from '@/core/loginRedirect'
 
 const Page = { template: '<div />' }
 
@@ -58,17 +58,26 @@ describe('loginRedirect', () => {
     expect(isSpaPath(router, '/')).toBe(false)
   })
 
-  it('opens a website page with a full load', () => {
+  it('opens a website home page with a full load, a stashed path in the router', () => {
     const router = makeRouter()
     const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
     const assign = vi.fn()
     vi.stubGlobal('location', { ...window.location, assign })
     try {
-      go(router, '/cabinet')
+      expect(websiteHome(router, '/cabinet')).toBe('/cabinet')
+      expect(websiteHome(router, '/app/hrm')).toBeNull()
+      goAfterLogin(router, '/cabinet')
       expect(assign).toHaveBeenCalledWith('/cabinet')
-      go(router, '/app/hrm')
-      go(router, { name: 'desk' })
-      expect(push).toHaveBeenCalledTimes(2)
+
+      // A path from ?redirect= never leaves the router, even a website one.
+      rememberLoginRedirect('/cabinet/x')
+      expect(websiteHome(router, '/cabinet')).toBeNull()
+      goAfterLogin(router, '/cabinet')
+      expect(push).toHaveBeenLastCalledWith('/cabinet/x')
+      expect(assign).toHaveBeenCalledTimes(1)
+
+      goAfterLogin(router, '/app/hrm')
+      expect(push).toHaveBeenLastCalledWith('/app/hrm')
     } finally {
       vi.unstubAllGlobals()
     }

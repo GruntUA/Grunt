@@ -12,6 +12,7 @@ from typing import TypedDict
 
 import pyotp
 from fastapi import HTTPException
+from pyotp.totp import TOTP
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy import segno
 
@@ -38,7 +39,7 @@ def generate_mfa_secret() -> str:
 
 def get_totp_uri(secret: str, email: str) -> str:
     """Return the otpauth:// URI for QR code generation."""
-    return pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name=_APP_NAME)
+    return TOTP(secret).provisioning_uri(name=email, issuer_name=_APP_NAME)
 
 
 def get_qr_code_svg(secret: str, email: str) -> str:
@@ -64,7 +65,7 @@ def verify_totp(secret: str, code: str) -> bool:
 
     Allows a 1-step window (30s before/after) to handle clock drift.
     """
-    totp = pyotp.TOTP(secret.strip())
+    totp = TOTP(secret.strip())
     return totp.verify(code.strip(), valid_window=1)
 
 

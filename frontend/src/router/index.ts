@@ -4,7 +4,7 @@ import { loadSiteConfig } from '@/core/composables/useSiteConfig'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { i18n } from '@/plugins/i18n'
 import { useDocTypeStore } from '@/stores/doctype'
-import { afterLoginTarget, isSpaPath, loginLocation, rememberLoginRedirect } from '@/core/loginRedirect'
+import { afterLoginTarget, isSpaPath, loginLocation, rememberLoginRedirect, websiteHome } from '@/core/loginRedirect'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -152,12 +152,12 @@ router.beforeEach(async (to) => {
   // showing the form again.
   if ((to.name === 'login' || to.name === 'register') && auth.isLoggedIn) {
     rememberLoginRedirect(to.query.redirect)
-    const target = afterLoginTarget(auth.user?.home_page)
-    if (typeof target === 'string' && !isSpaPath(router, target)) {
-      window.location.assign(target)
+    const site = websiteHome(router, auth.user?.home_page)
+    if (site) {
+      window.location.assign(site)
       return false
     }
-    return target
+    return afterLoginTarget(auth.user?.home_page)
   }
 
   if (to.meta.public) return true
