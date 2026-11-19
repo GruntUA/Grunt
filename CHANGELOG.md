@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.16.0 - 2026-11-19
+
+### Features
+
+- **notification:** attachments and sender, set a field after, minutes before/after, webhook channel
+- **auth:** sign-in policy - password expiry, sessions per user, hours and IPs per user, SSO only
+- **assignment:** round robin, load balancing, by field; priority, close/unassign
+- **list:** "Save as default for all"; recent documents on the server
+- **list:** saved filters on the server, shared with roles or everyone
+- **list:** the user's list settings on the server (UserViewSettings)
+- **fields:** precision and the site's rounding method
+- **fields:** read_only_depends_on, and mandatory_depends_on that works
+- **fields:** no_copy and set_only_once; DocType allow_duplicate
+
+### Fixes
+
+- **auth:** review of #229 - one-use password-change challenge, SSO recheck, session race, sign-in page
+- **dates:** the week starts on the language's first day
+
+### Other
+
+- **deps:** bump astral-sh/setup-uv from 7.6.0 to 10.3.3
+- **i18n:** catalogs for the list settings after the rebase onto #226
+
 ## v0.15.0 - 2026-11-18
 
 ### Features
