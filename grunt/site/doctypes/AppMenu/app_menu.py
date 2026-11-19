@@ -5,6 +5,7 @@ Encapsulates logic for workspace navigation and sidebar counts.
 
 import hashlib
 import json
+from collections.abc import Callable
 from typing import Any
 
 from grunt.document.base import Document
@@ -134,8 +135,11 @@ class AppMenu(Document):
         for item in self.get("sidebar_items", []):
             item["link_doctype"] = self._LINK_DOCTYPE.get(item.get("type", ""), "")
 
-    async def get_counts(self) -> dict[str, int]:
-        """Get document counts for sidebar items that have show_count=true.
+    async def get_counts(
+        self, visible: Callable[[dict[str, Any]], bool] | None = None
+    ) -> dict[str, int]:
+        """Get document counts for sidebar items that have show_count=true -
+        of those *visible* lets through (the items the user's sidebar shows).
 
         Counts go through ``grunt.count``, so each badge reflects only the
         rows the current user may actually see (same row-level permission
@@ -144,7 +148,10 @@ class AppMenu(Document):
         items = [
             item
             for item in self.get("sidebar_items", [])
-            if item.get("show_count") and item.get("type") == "DocType" and item.get("link_to")
+            if item.get("show_count")
+            and item.get("type") == "DocType"
+            and item.get("link_to")
+            and (visible is None or visible(item))
         ]
         if not items:
             return {}

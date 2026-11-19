@@ -84,19 +84,55 @@ async def allowed(
         user = session_user()
     if not user:
         return False  # nobody in context: fail closed, even for an "All" row
+    if doc is not None:
+        if (await role_access(doctype, user)).is_unrestricted:
+            return True
+        meta = doctype if isinstance(doctype, Meta) else Meta(doctype)
+        return await row_allowed(user, meta, action, doc)
+    if await _roles_allow(doctype, action, user):
+        return True
+    if not _shareable(doctype, action):
+        return False
+    return await shares.has_share(user, doctype.name, action)
+
+
+async def allowed_doctypes(
+    doctypes: Iterable[DocType | Meta], action: PermissionAction, *, user: str | None = None
+) -> set[str]:
+    """Names of those of *doctypes* :func:`allowed` lets *user* (an email;
+    ``None`` - the context's) *action* on, DocType level - shares looked up in
+    one query for all of them rather than one per DocType (a menu, a sidebar)."""
+    if user is None:
+        user = session_user()
+    if not user:
+        return set()
+    out: set[str] = set()
+    by_share: list[str] = []
+    for doctype in doctypes:
+        if await _roles_allow(doctype, action, user):
+            out.add(doctype.name)
+        elif _shareable(doctype, action):
+            by_share.append(doctype.name)
+    return out | await shares.shared_doctypes(user, by_share, action)
+
+
+async def _roles_allow(doctype: DocType | Meta, action: PermissionAction, user: str) -> bool:
+    """DocType level, shares aside: a role grants *action* (whatever its
+    ``match``), or - for a child DocType - a parent is readable."""
     access = await role_access(doctype, user)
     if access.is_unrestricted:
         return True
-    if doc is not None:
-        meta = doctype if isinstance(doctype, Meta) else Meta(doctype)
-        return await row_allowed(user, meta, action, doc)
     if is_child(doctype):
         return await child_allowed(user, doctype, action)
-    if any(perm.grants(action) for perm in access.matching_permissions()):
-        return True
-    if action not in shares.SHAREABLE_ACTIONS or getattr(doctype, "is_singleton", False):
-        return False
-    return await shares.has_share(user, doctype.name, action)
+    return any(perm.grants(action) for perm in access.matching_permissions())
+
+
+def _shareable(doctype: DocType | Meta, action: PermissionAction) -> bool:
+    return (
+        action in shares.SHAREABLE_ACTIONS
+        and not is_child(doctype)
+        and not getattr(doctype, "is_singleton", False)
+    )
 
 
 async def read_predicate(user: str | None, meta: Meta, *, within: Expr | None = None) -> Expr:

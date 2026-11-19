@@ -47,6 +47,13 @@ untagged repository reports `0.1.devN+g<hash>`. The sidebar icon (a Lucide
 name) and colour live in the `AppMenu` record of `fixtures/00_workspace.json`;
 without a colour one is picked from a palette by the workspace name.
 
+A user sees only the parts of the menu they can open. A sidebar item shows
+when they may read its DocType (through a role or a document shared with them),
+may run its report, or may open its page. An item's `roles` (comma-separated)
+narrow it to those roles. The menu's own `roles` hide the whole app from
+everyone else, and an app with nothing visible left drops out of the app list.
+Users with `grunt.manage_desk` see every item, since they edit the menus.
+
 ## Extending another app
 
 An app can live inside another app's menu instead of having its own entry in

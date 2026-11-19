@@ -1,5 +1,7 @@
 """Workspace whitelisted methods."""
 
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from datetime import date
 from functools import cache
 from typing import Any
@@ -9,9 +11,13 @@ from grunt.api.v1.dashboard import page_visible
 from grunt.apps.manifest import extenders
 from grunt.auth.current import acting_user
 from grunt.document.titles import resolve_reference_titles
+from grunt.errors import forbidden
+from grunt.i18n import _
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
+from grunt.permissions.query import allowed_doctypes
+from grunt.permissions.rbac import permission_checker
 from grunt.site.doctypes.AppMenu.app_menu import (
     AppMenu,
     count_key,
@@ -88,25 +94,113 @@ async def _sidebar_mode(ws_data: Any, sections: list[dict[str, str]]) -> str:
     return "modules" if style == "Modules" else "sections"
 
 
-async def _workspace_to_dict(
-    ws_data: Any, pages: list[dict[str, Any]] | None = None
-) -> dict[str, Any]:
-    """Convert AppMenu document data to dict, filtering items by role."""
+@dataclass
+class _Visible:
+    """What the current user may open from the menus: the sidebar shows only
+    those items. A desk manager (``grunt.manage_desk``) sees every item - they
+    edit the menus."""
 
+    manager: bool
+    roles: frozenset[str]
+    pages: list[dict[str, Any]]
+    doctypes: set[str] = field(default_factory=set)
+    reports: set[str] = field(default_factory=set)
+
+    def app(self, ws_data: Any) -> bool:
+        """``AppMenu.roles`` - the app is for these roles only (empty: everyone)."""
+        return self.manager or _roles_allow(ws_data.get("roles"), self.roles)
+
+    def item(self, item: dict[str, Any]) -> bool:
+        if self.manager:
+            return True
+        if not _roles_allow(item.get("roles"), self.roles):
+            return False
+        target = item.get("link_to") or ""
+        match item.get("type") or "DocType":
+            case "DocType":
+                return target in self.doctypes
+            case "Report":
+                return target in self.reports
+            case "Page":
+                return any(p["name"] == target for p in self.pages)
+        return True  # URL, Divider
+
+
+def _roles_allow(roles: str | None, held: Iterable[str]) -> bool:
+    allowed = {r.strip() for r in (roles or "").split(",") if r.strip()}
+    return not allowed or bool(allowed & set(held))
+
+
+async def _visible(menus: Iterable[Any]) -> _Visible:
+    """:class:`_Visible` for the items of *menus* - the read permissions of all
+    their DocTypes and reports decided at once."""
     user = acting_user()
-    if pages is None:
-        pages = await _visible_pages()
+    manager = await has_perm("grunt.manage_desk")
+    visible = _Visible(manager, frozenset(user.role_names), await _visible_pages())
+    if manager:
+        return visible
+    items = [i for ws in menus for i in ws.get("sidebar_items") or []]
+    targets = {
+        kind: {i["link_to"] for i in items if i.get("type") == kind and i.get("link_to")}
+        for kind in ("DocType", "Report")
+    }
+    metas = [m for n in sorted(targets["DocType"]) if (m := await doctype_registry.get_meta(n))]
+    visible.doctypes = await allowed_doctypes(metas, "read")
+    visible.reports = await _visible_reports(targets["Report"])
+    return visible
+
+
+async def _visible_reports(names: set[str]) -> set[str]:
+    """Those of the reports *names* the user may run: the Report itself is
+    readable and, on a DocType, ``report`` on it (as the report engine checks)."""
+    report_meta = await doctype_registry.get_meta("Report")
+    if not names or report_meta is None or not await permission_checker.check(report_meta, "read"):
+        return set()
+    reports = await documents.get_list(
+        "Report",
+        filters={"report_name__in": sorted(names)},
+        fields=["report_name", "ref_doctype"],
+        limit=len(names),
+        include_total=False,
+    )
+    refs = {r["ref_doctype"] for r in reports if r.get("ref_doctype")}
+    metas = [m for n in sorted(refs) if (m := await doctype_registry.get_meta(n))]
+    allowed = await allowed_doctypes(metas, "report")
+    return {
+        r["report_name"] for r in reports if not r.get("ref_doctype") or r["ref_doctype"] in allowed
+    }
+
+
+def _drop_stray_dividers(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """A divider stays only between two items of its section - hidden items
+    mustn't leave one at a section's edge or two in a row."""
+    out: list[dict[str, Any]] = []
+    for i, item in enumerate(items):
+        if item["type"] != "Divider":
+            out.append(item)
+            continue
+        before = out[-1] if out else None
+        after = next((n for n in items[i + 1 :] if n["type"] != "Divider"), None)
+        if (
+            before is not None
+            and before["type"] != "Divider"
+            and before["section"] == item["section"]
+            and after is not None
+            and after["section"] == item["section"]
+        ):
+            out.append(item)
+    return out
+
+
+async def _workspace_to_dict(ws_data: Any, visible: _Visible) -> dict[str, Any]:
+    """Convert AppMenu document data to dict, with only the items the user may open."""
 
     items = []
-    manager = await has_perm("grunt.manage_desk")
     sidebar_items = ws_data.get("sidebar_items") or []
     for position, item in enumerate(order_menu(sidebar_items, ws_data.get("sections") or [])):
+        if not visible.item(item):
+            continue
         item_roles = item.get("roles", "")
-        if not manager and item_roles:
-            allowed = {r.strip() for r in item_roles.split(",") if r.strip()}
-            if not (allowed & set(user.roles)):
-                continue
-
         item_type = item.get("type", "DocType")
         link_to = item.get("link_to", "")
         item_icon = item.get("icon", "")
@@ -138,6 +232,8 @@ async def _workspace_to_dict(
             }
         )
 
+    if not visible.manager:  # the menu editor works on every row as stored
+        items = _drop_stray_dividers(items)
     sections = _sections(ws_data, items)
     return {
         "name": ws_data.get("name"),
@@ -150,7 +246,7 @@ async def _workspace_to_dict(
         "is_hidden": ws_data.get("is_hidden", False),
         "roles": ws_data.get("roles", ""),
         "home_page": ws_data.get("home_page") or None,
-        "dashboards": _dashboards(ws_data, pages),
+        "dashboards": _dashboards(ws_data, visible.pages),
         "items": items,
         "sections": sections,
         "sidebar_mode": await _sidebar_mode(ws_data, sections),
@@ -176,30 +272,44 @@ async def list_workspaces() -> list[dict[str, Any]]:
     await doctype_registry.list_all()
 
     all_ws = await documents.get_list("AppMenu", fields=["name"], order_by="sequence")
-    data = []
-    user = acting_user()
-    if not user:
+    if not acting_user():
         return []
-    pages = await _visible_pages()
-    manager = await has_perm("grunt.manage_desk")
-
+    menus = []
     for ws_brief in all_ws:
         try:
-            ws_data = await documents.get_doc(AppMenu, ws_brief["name"])
-            if ws_data.is_hidden and not manager:
-                continue
-            # Basic role check could be added here
-            data.append(await _workspace_to_dict(ws_data, pages))
+            menus.append(await documents.get_doc(AppMenu, ws_brief["name"]))
         except Exception:
             continue
+    visible = await _visible(menus)
+    data = []
+    for ws_data in menus:
+        if not visible.manager and (ws_data.is_hidden or not visible.app(ws_data)):
+            continue
+        try:
+            menu = await _workspace_to_dict(ws_data, visible)
+        except Exception:
+            continue
+        if visible.manager or _has_content(menu):
+            data.append(menu)
     return data
+
+
+def _has_content(menu: dict[str, Any]) -> bool:
+    """An app is shown when the user may open something in it: an item that
+    isn't a divider, or a dashboard."""
+    return bool(menu["dashboards"]) or any(i["type"] != "Divider" for i in menu["items"])
 
 
 @whitelist()
 async def get_workspace(name: str) -> dict[str, Any]:
-    """Get a single workspace with filtered items."""
+    """Get a single workspace with filtered items - ``403`` for an app the
+    user may not open (see :func:`list_workspaces`)."""
     ws_data = await _get_ws_controller(name)
-    return await _workspace_to_dict(ws_data)
+    visible = await _visible([ws_data])
+    menu = await _workspace_to_dict(ws_data, visible) if visible.app(ws_data) else None
+    if menu is None or not (visible.manager or _has_content(menu)):
+        raise forbidden(_("No access to the app “%(app)s”") % {"app": _(ws_data.label or name)})
+    return menu
 
 
 @whitelist(perm="grunt.manage_desk")
@@ -215,7 +325,7 @@ async def save_workspace(workspace_data: dict[str, Any]) -> dict[str, Any]:
     else:
         ws_data = await documents.new_doc("AppMenu", data)
 
-    return await _workspace_to_dict(ws_data)
+    return await _workspace_to_dict(ws_data, await _visible([ws_data]))
 
 
 @whitelist(perm="grunt.manage_desk")
@@ -229,9 +339,10 @@ async def delete_workspace(name: str) -> bool:
 async def get_counts(name: str) -> dict[str, int]:
     """Get document counts for workspace links."""
     ws = await _get_ws_controller(name)
-    if hasattr(ws, "get_counts"):
-        return await ws.get_counts()
-    return {}
+    visible = await _visible([ws])
+    if not visible.app(ws):
+        return {}
+    return await ws.get_counts(visible=visible.item)
 
 
 @whitelist()
