@@ -1,4 +1,4 @@
-import type { RouteLocationRaw } from 'vue-router'
+import type { RouteLocationRaw, Router } from 'vue-router'
 
 /**
  * "Return to the page you came from" after signing in.
@@ -32,8 +32,11 @@ export function rememberLoginRedirect(path: unknown): void {
   }
 }
 
-/** Where to go after a successful sign-in; consumes the stashed path. */
-export function afterLoginTarget(): RouteLocationRaw {
+/**
+ * Where to go after a successful sign-in: the stashed path (consumed), else
+ * the user's *home* page (``Role.home_page``), else the desk.
+ */
+export function afterLoginTarget(home?: string | null): RouteLocationRaw {
   let path: string | null = null
   try {
     path = sessionStorage.getItem(KEY)
@@ -41,5 +44,23 @@ export function afterLoginTarget(): RouteLocationRaw {
   } catch {
     // storage blocked
   }
-  return isSafe(path) ? path : { name: 'desk' }
+  if (isSafe(path)) return path
+  return isSafe(home) ? home : { name: 'desk' }
+}
+
+/** A path the SPA has a page for - anything else (the website) needs a full page load. */
+export function isSpaPath(router: Router, path: string): boolean {
+  const name = router.resolve(path).name
+  return name !== undefined && name !== 'not-found'
+}
+
+/** Navigate to *target*: in the SPA, or - a website page - with a full page load. */
+export function go(router: Router, target: RouteLocationRaw): void {
+  if (typeof target === 'string' && !isSpaPath(router, target)) window.location.assign(target)
+  else void router.push(target)
+}
+
+/** Sign-in finished: go to :func:`afterLoginTarget`. */
+export function goAfterLogin(router: Router, home?: string | null): void {
+  go(router, afterLoginTarget(home))
 }

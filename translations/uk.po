@@ -1,4 +1,3 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
@@ -13,7 +12,3 @@ msgstr "Налаштування"
 
 msgid "Profile"
 msgstr "Профіль"
-
-#, python-format
-msgid "No access to the app “%(app)s”"
-msgstr "Немає доступу до додатка «%(app)s»"

@@ -16,7 +16,7 @@ from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import active_role_rows, require_session, system_context
 from grunt.log import log
-from grunt.permissions.perms import has_perm, user_perms
+from grunt.permissions.perms import has_perm, user_landing, user_perms
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
@@ -275,8 +275,11 @@ async def authenticate(email: str, password: str) -> User | None:
 async def _auth_user_dump(user: User) -> dict[str, Any]:
     """Full user payload expected by auth UI responses - with the permissions
     the UI may offer (grunt.permissions.perms; ``*`` - everything)."""
+    landing = await user_landing(user.email)
     return {
         "permissions": sorted(await user_perms(user.email)),
+        "site_only": landing.site_only,
+        "home_page": landing.home_page,
         "id": user.id,
         "email": user.email,
         "full_name": user.full_name,

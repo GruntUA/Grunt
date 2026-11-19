@@ -4,7 +4,7 @@ import { loadSiteConfig } from '@/core/composables/useSiteConfig'
 import { setPageTitle } from '@/core/composables/usePageTitle'
 import { i18n } from '@/plugins/i18n'
 import { useDocTypeStore } from '@/stores/doctype'
-import { afterLoginTarget, loginLocation, rememberLoginRedirect } from '@/core/loginRedirect'
+import { afterLoginTarget, isSpaPath, loginLocation, rememberLoginRedirect } from '@/core/loginRedirect'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -152,11 +152,23 @@ router.beforeEach(async (to) => {
   // showing the form again.
   if ((to.name === 'login' || to.name === 'register') && auth.isLoggedIn) {
     rememberLoginRedirect(to.query.redirect)
-    return afterLoginTarget()
+    const target = afterLoginTarget(auth.user?.home_page)
+    if (typeof target === 'string' && !isSpaPath(router, target)) {
+      window.location.assign(target)
+      return false
+    }
+    return target
   }
 
   if (to.meta.public) return true
   if (!auth.isLoggedIn) return loginLocation(to.fullPath)
+
+  // Site-only users (Role.site_only) work on the website, not in the workspace.
+  if (auth.user?.site_only) {
+    const home = auth.user.home_page
+    window.location.assign(home && !isSpaPath(router, home) ? home : '/')
+    return false
+  }
 
   // A singleton's only document lives at /app/<ws>/<DocType>; a long
   // /<DocType>/<id> URL (old bookmarks, links from the server) collapses to it.

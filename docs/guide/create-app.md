@@ -445,6 +445,12 @@ order:
 {"doctype": "Role", "records": [{"name": "Sales Manager"}]}
 ```
 
+Besides permissions, a role can carry:
+
+- `home_page`: where its users land after signing in (`/app/my_crm`, or a website path such as `/cabinet`).
+- `site_only`: a portal role. Users whose roles are all site-only stay on the website and never get `/app`.
+- `disabled`: switches the role off without taking it away from users.
+
 A plain file is a **seed**: missing records are inserted, existing ones are
 never touched. To keep records built in the UI in sync with the app code,
 declare them in `hooks.py` and export them from a site:

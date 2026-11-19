@@ -3,8 +3,10 @@
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.permissions.perms import ALL, get_perm, invalidate_role_perms, user_perms
+from grunt.permissions.perms import ALL, get_perm, user_perms
+from grunt.permissions.role_props import PROTECTED_ROLES, invalidate_roles
 from grunt.site.manager import site_cache_key
+lazy from grunt.document.api import documents
 
 
 class Role(Document):
@@ -13,6 +15,9 @@ class Role(Document):
 
     role_name: str  # Name
     description: str | None  # Description
+    disabled: bool | None  # Disabled
+    site_only: bool | None  # Site only
+    home_page: str | None  # Home page
     permissions: list[str] | None  # Permissions
     require_mfa: bool | None  # Require two-factor authentication
     allowed_ips: str | None  # Allowed sign-in IPs
@@ -26,6 +31,16 @@ class Role(Document):
     permissions: list[str] | None
 
     async def validate(self) -> None:
+        if self.name in PROTECTED_ROLES and (self.get("disabled") or self.get("site_only")):
+            throw(
+                _("The role “%(role)s” can't be disabled or made site-only") % {"role": self.name},
+                "VALIDATION_ERROR",
+            )
+        home = (self.get("home_page") or "").strip()
+        if home and (not home.startswith("/") or home.startswith("//")):
+            throw(_("Home page must be a path on this site, starting with /"), "VALIDATION_ERROR")
+        self.home_page = home or None
+
         granted = list(dict.fromkeys(self.permissions or []))
         unknown = [p for p in granted if p != ALL and get_perm(p) is None]
         if unknown:
@@ -50,7 +65,12 @@ class Role(Document):
                 )
 
     async def after_save(self) -> None:
-        invalidate_role_perms(site_cache_key())
+        invalidate_roles(site_cache_key())
+        before = self.doc_before_save or {}
+        if bool(before.get("disabled")) != bool(self.get("disabled")):
+            # Signed-in users carry their roles in the cached User: drop it so
+            # disabling (or enabling) takes effect on their next request.
+            await documents.doc_cache.invalidate_doctype("User")
 
     async def after_delete(self) -> None:
-        invalidate_role_perms(site_cache_key())
+        invalidate_roles(site_cache_key())

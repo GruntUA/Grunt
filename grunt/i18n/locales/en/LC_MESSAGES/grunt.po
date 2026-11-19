@@ -289,6 +289,12 @@ msgstr ""
 msgid "A digit"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"A disabled role stays assigned to its users but gives them nothing: no "
+"permissions, no document access, no notifications or assignments through it."
+msgstr ""
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "A document's stay in one value of a tracked field"
 msgstr ""
@@ -3741,6 +3747,7 @@ msgid "Disable the action but keep the row"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Disabled"
@@ -5878,7 +5885,12 @@ msgid "Home folder"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 msgid "Home page"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Home page must be a path on this site, starting with /"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -7846,6 +7858,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "No TABLE fields in this DocType"
+msgstr ""
+
+#: grunt/grunt/api/v1/workspace.py
+msgid "No access to the app “%(app)s”"
 msgstr ""
 
 #: grunt/grunt/document/mixins/lifecycle.py
@@ -11570,6 +11586,10 @@ msgstr ""
 msgid "Site key"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "Site only"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
@@ -12674,6 +12694,10 @@ msgstr ""
 msgid "The restore failed, the database was left as it was: %(error)s"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "The role “%(role)s” can't be disabled or made site-only"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
 msgid "The root folder of the owner's space"
 msgstr ""
@@ -13698,6 +13722,12 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
+"Users whose roles are all site-only work on the website and don't get the "
+"workspace (/app). One role without this flag gives them the workspace."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
 "Users with this role can sign in only from these addresses or networks (e.g."
 " 10.0.0.0/8), one per line. Empty — no restriction."
 msgstr ""
@@ -14112,6 +14142,13 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"Where users with this role land after signing in, e.g. /app/hrm or /cabinet."
+" With several roles, the first one in the user's roles that has a home page "
+"wins."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
