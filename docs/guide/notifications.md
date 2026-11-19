@@ -16,6 +16,7 @@ Each delivery is logged in **Notification Delivery**: one row per recipient and 
 | `after_insert`, `after_save` | when a document of the rule's type is created or saved |
 | `on_transition` | on a workflow transition (only the **Workflow actions** listed, if any); templates also get `action`, `from_state`, `to_state`, `from_label`, `to_label`, `comment` |
 | `days_before`, `days_after` | once a day, N days before or after a date field |
+| `minutes_before`, `minutes_after` | N minutes before or after a date-and-time field (checked every 5 minutes; once per moment, so a document moved to another time is notified again) |
 | `code` | when code triggers the rule's **Code event** (`event_key`) |
 
 ## Recipients
@@ -88,7 +89,14 @@ If no rule for an event is enabled, the event sends nothing.
 
 ## Channels
 
-The core ships three channels: `in_app` (the bell), `web_push` and `email`. An app can add its own channel in `hooks.py`:
+The core ships four channels: `in_app` (the bell), `web_push`, `email` and `webhook`.
+
+- **Email** can attach the document as a PDF (**Attach the document as PDF**, with a **Print format** or the default one) and the files attached to the document (**Attach the document's files**, up to 10 MB in all), and can be sent from a chosen mailbox (**Send from**).
+- **Webhook** posts once per notification, not once per recipient, to the `OutgoingWebhook` chosen on the channel row. Create that webhook with the event `notification`. The JSON body carries `notification`, `subject`, `message`, `doctype`, `doc_id`, `url` and `recipients` (a count). Delivery goes through the outbox, so it is retried and logged in WebhookLog. Slack, Teams or a bot that takes a POST all work this way.
+
+**After sending:** **Set field** = **To value** writes into the document once someone was notified (e.g. `reminder_sent` = `1`). The write goes straight to the database, without save hooks, so it doesn't set the rule off again.
+
+An app can add its own channel in `hooks.py`:
 
 ```python
 notification_channels = ["my_app.sms.SmsChannel"]

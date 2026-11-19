@@ -24,7 +24,7 @@
 | 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
 | 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ✔️ (`feat/assignment-rules`) |
-| 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ❓ |
+| 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ✔️ (`feat/notification-extras`) |
 | 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ❓ |
 | 12 | User Group | ❓ |
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ❓ |
@@ -165,11 +165,11 @@
 - **Рішення (2026-11-18):** робимо все, крім ваг як частки в Frappe-сенсі «weighted_users» дослівно: `rule` = Everyone (як раніше) / Round Robin (вага — скільки разів поспіль, рахується з AssignmentLog) / Load Balancing (відкриті ToDo на одиницю ваги) / Based on Field; виконавці — таблиця `users` (з вагою), інакше власники ролі в межах області, інакше `assign_to_user`; `priority` — призначає **перше** правило, що підійшло, і жодне, поки відкрите призначення правила; `unassign_condition` / `close_condition` (той самий JSON, що `filters`); `days`; `due_date_field`; тригер — створення і збереження (на збереженні — лише без відкритого призначення). `ToDo.assignment_rule` пов'язує призначення з правилом.
 
 ### 10. NotificationRule
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** `attach_print` + `print_format`, `attach_files`, `set_property_after_alert`, `send_to_all_assignees`, вибір відправника, `minutes_offset` для Datetime, канал «вебхук» (Slack/Teams-подібний), подія «Method».
 - **Ґрунт зараз:** події після створення/збереження/переходу/зміни значення, днів до/після; канали system/email.
 - **Навіщо:** «надіслати контрагенту PDF документа», «нагадати за 30 хв до події».
-- **Рішення:** —
+- **Рішення (2026-11-19):** робимо: PDF документа (`attach_print` + `print_format`) і файли документа (`attach_files`, до 10 МБ) у листі; скринька-відправник (`email_account`); `set_field`/`set_value` після сповіщення (прямий запис, без хуків); події `minutes_before`/`minutes_after` від поля Datetime (задача кожні 5 хв, вікно 10 хв, один раз на момент документа); канал `webhook` → `OutgoingWebhook` з подією `notification` (один запит на сповіщення, через outbox). `send_to_all_assignees` уже є (отримувачі «Assignees»); подія «Method» — `code`.
 
 ### 11. Role Profile / Module Profile, властивості Role
 **Статус:** ❓

@@ -9,18 +9,19 @@
       "label": "Document type",
       "fieldtype": "Link",
       "options": "DocType",
-      "required": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "mandatory_depends_on": "eval: doc.event != 'notification'"
     },
     {
       "fieldname": "event",
       "label": "Event",
       "fieldtype": "Select",
-      "options": "after_insert\nafter_update\nafter_delete\non_submit\non_cancel",
+      "options": "after_insert\nafter_update\nafter_delete\non_submit\non_cancel\nnotification",
       "required": true,
       "in_list_view": true,
-      "in_filter": true
+      "in_filter": true,
+      "description": "notification - only from notification rules (their Webhook channel)"
     },
     {
       "fieldname": "url",

@@ -100,7 +100,7 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 | 3 | Події з коду: `grunt.notification.events` (реєстр + `notification_events` у hooks.py, `trigger()`), подія `code` + `event_key`, отримувачі «з події»; 11 стандартних правил ядра (ToDo, нагадування, стеження, згадки/відповіді, автоповтор, хмарне сховище); текст — мовою кожного отримувача; `is_customized` + «Скинути до стандарту» у `standard_records`; `docs/guide/notifications.md` | ✔️ #148 |
 | 4 | Workflow: правила `on_transition` (поле «Дії workflow», отримувачі «Попередній виконавець» / «Наступні виконавці», змінні `from_label`/`to_label`/`title`) замість `WorkflowTransition.notify/notify_email`; рушій запускає їх у транзакції переходу; міграція 0024 (детерміновані назви `<DocType> · <дія> / <дія>`); mlt_portal — стандартні записи `records/notification/` | ✅ гілки `feature/notification-workflow` (ядро), `feature/notifications-as-rules` (mlt_portal) |
 | 5 | Налаштування користувача (#18) | ⏸ |
-| 6 | SMS-канал (#45), PDF у вкладенні, зміна поля після сповіщення (#10) | ⏸ |
+| 6 | SMS-канал (#45), PDF у вкладенні, зміна поля після сповіщення (#10) | частково ✔️ `feat/notification-extras` (FRAPPE_GAP #10: PDF і файли, відправник, поле після, хвилини, канал «вебхук»); SMS-канал (#45) — ⏸ |
 
 ## Рішення користувача (2026-11-12)
 
