@@ -58,8 +58,21 @@ def type_changed(desired: Any, current: Any, sa_dialect: Any) -> bool:
     desired_str = _normalize_type(base.strip())
     if desired_str != _normalize_type(type(current).__name__):
         return True
+    if desired_str == "NUMERIC" and _scale_changed(desired, current, sa_dialect):
+        return True
     zone = getattr(current, "timezone", None)
     return desired_str == "DATETIME" and zone is not None and bool(zone) != with_zone
+
+
+def _scale_changed(desired: Any, current: Any, sa_dialect: Any) -> bool:
+    """A NUMERIC column whose scale differs (a Currency field's ``precision``) -
+    on PostgreSQL only: SQLite keeps NUMERIC as a type affinity, the scale means
+    nothing there (the value is rounded on write), and changing it would rebuild
+    the table for nothing."""
+    if getattr(sa_dialect, "name", "") != "postgresql":
+        return False
+    want, have = getattr(desired, "scale", None), getattr(current, "scale", None)
+    return want is not None and have is not None and want != have
 
 
 def is_varchar_reduction(desired: Any, current: Any) -> bool:

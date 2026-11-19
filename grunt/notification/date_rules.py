@@ -8,6 +8,13 @@ them - contract ends, probation periods, certificate expiry; with
 
 A rule notifies about a document at most once per day, so a rerun of the job
 (restart, second worker) sends nothing twice.
+
+``minutes_before`` / ``minutes_after`` (FRAPPE_GAP_PLAN #10) count from a
+date-and-time field instead: every 5 minutes :func:`check_minute_rules` runs
+the rule on the documents whose moment - the field minus / plus ``minutes`` -
+fell within the last :data:`MINUTE_WINDOW` ("30 minutes before the meeting").
+The window is twice the job's interval, so a late or missed run loses nothing;
+the delivery log keeps a document from being notified twice.
 """
 
 import calendar
@@ -27,6 +34,8 @@ lazy from grunt.site.manager import site_manager
 _db = GruntDB()  # stateless: reads through the context's session
 
 DATE_EVENTS = ("days_before", "days_after")
+MINUTE_EVENTS = ("minutes_before", "minutes_after")
+MINUTE_WINDOW = timedelta(minutes=10)
 MAX_DOCS_PER_RULE = 100_000
 
 
@@ -152,4 +161,75 @@ async def check_date_rules(today: str | None = None) -> int:
                 log.exception("notification.date_rule_failed", rule=rule["name"])
     if total:
         log.info("notification.date_rules_sent", count=total, rules=len(rules))
+    return total
+
+
+def _as_utc(value: Any) -> datetime:
+    when = value if isinstance(value, datetime) else datetime.fromisoformat(str(value))
+    return when if when.tzinfo else when.replace(tzinfo=UTC)
+
+
+def moment_window(rule: dict[str, Any], now: datetime) -> tuple[datetime, datetime]:
+    """The (start, end] range of the field's value that is due *now*: its
+    moment (the value minus / plus ``minutes``) within the last window."""
+    shift = timedelta(minutes=int(rule.get("minutes") or 0))
+    if rule["event"] == "minutes_before":
+        shift = -shift
+    # value + shift in (now - window, now]  <=>  value in (now - window - shift, now - shift]
+    return now - MINUTE_WINDOW - shift, now - shift
+
+
+async def run_minute_rule(rule: dict[str, Any], now: datetime) -> int:
+    """Notify about every document due by a minute rule, once each."""
+    doctype, field = rule["ref_doctype"], rule["date_field"]
+    start, end = moment_window(rule, now)
+    docs = await _db.get_all(
+        doctype, filters={f"{field}__gt": start, f"{field}__lte": end}, limit=MAX_DOCS_PER_RULE
+    )
+    session = require_session()
+    shift = timedelta(minutes=int(rule.get("minutes") or 0))
+    if rule["event"] == "minutes_before":
+        shift = -shift
+    sent = 0
+    for doc in docs:
+        # Once per moment: a document moved to another time is notified again.
+        moment = _as_utc(doc[field]) + shift
+        already = await _db.exists(
+            "NotificationDelivery",
+            {
+                "notification": rule["name"],
+                "doc_id": str(doc["name"]),
+                "created_at__gte": moment - 2 * MINUTE_WINDOW,
+            },
+        )
+        if already:
+            continue
+        sent += await notification_service.apply_rule(
+            session, rule, doctype, dict(doc), "", rule["event"]
+        )
+    return sent
+
+
+@retryable_task()
+async def check_minute_rules(now: str | None = None) -> int:
+    """Every 5 minutes: run every enabled minutes-before/after rule."""
+    run_at = datetime.fromisoformat(now) if now else datetime.now(UTC)
+    site = site_manager.get_active_site()
+    maker = site_manager.get_session_maker(site)
+    total = 0
+    async with maker() as session, system_context(session, site_manager.get_engine(site)):
+        rules = await _db.get_all(
+            "Notification",
+            filters={"event__in": list(MINUTE_EVENTS), "is_enabled": True},
+            limit=1000,
+        )
+        for rule in rules:
+            try:
+                total += await run_minute_rule(rule, run_at)
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                log.exception("notification.minute_rule_failed", rule=rule["name"])
+    if total:
+        log.info("notification.minute_rules_sent", count=total, rules=len(rules))
     return total

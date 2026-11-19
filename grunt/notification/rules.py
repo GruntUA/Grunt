@@ -7,6 +7,7 @@ own text). :func:`run` resolves all that and hands the result to the
 dispatcher (:func:`grunt.notification.delivery.deliver`).
 """
 
+import json
 from collections.abc import Iterable
 from typing import Any
 
@@ -14,19 +15,29 @@ from jinja2 import TemplateError
 from sqlalchemy.ext.asyncio import AsyncSession
 lazy from jinja2.sandbox import SandboxedEnvironment
 
+import grunt.outbox as outbox
 from grunt.db.api import GruntDB
-from grunt.i18n import use_language
+from grunt.i18n import _, use_language
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import system_context
 from grunt.log import log
+from grunt.notification import delivery_log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.scopes import holders_for
+lazy from grunt.print.pdf import html_to_pdf
+lazy from grunt.print.renderer import render_print_html
 lazy from grunt.site.manager import current_site
+lazy from grunt.storage.files import read as read_file
+lazy from grunt.webhook.service import deliver_webhook
 lazy from grunt.workflow.actors import next_actors, state_label
 
 _db = GruntDB()  # stateless: reads through the context's session
+
+# Attached files of a document - at most this much in all (mail servers refuse more).
+MAX_ATTACH_BYTES = 10 * 1024 * 1024
+WEBHOOK = "webhook"
 
 RECIPIENT_DOCTYPE = "NotificationRecipient"
 CHANNEL_DOCTYPE = "NotificationChannel"
@@ -343,14 +354,19 @@ async def run(
         ctx = await context(doctype, doc, event=event, actor=actor, link=link, extra=extra)
         groups = await _languages(recipients)
 
-    base = {
+    base: dict[str, Any] = {
         "ref_doctype": link[0],
         "doc_id": link[1],
         "url": await desk_url(*link),
         "notification": rule.get("name"),
         "event_key": event if rule.get("event") == "code" else None,
     }
+    rows = [r for r in rule.get("channels") or [] if r.get("channel")]
+    if any(r["channel"] == "email" for r in rows):
+        base["attachments"] = await _attachments(session, rule, doctype, doc)
+        base["email_account"] = rule.get("email_account") or None
     reached: set[str] = set()
+    webhooks = [r for r in rows if r["channel"] == WEBHOOK]
     for language, people in groups.items():
         with use_language(language):
             local = _localized(ctx)
@@ -358,10 +374,10 @@ async def run(
             message = await render(rule.get("message_template") or "", local)
             # Channels sharing the rule's text go out together; one with its own text alone.
             shared: list[str] = []
-            for row in rule.get("channels") or []:
-                channel = row.get("channel")
-                if not channel:
-                    continue
+            for row in rows:
+                channel = row["channel"]
+                if channel == WEBHOOK:
+                    continue  # once per notification, below
                 if not row.get("subject") and not row.get("message"):
                     shared.append(channel)
                     continue
@@ -374,4 +390,140 @@ async def run(
             if shared:
                 message_ = Message(subject=subject, body=message, **base)
                 reached |= (await deliver(session, people, message_, shared)).reached
+    if webhooks:
+        # In the site's language, once for everyone.
+        local = _localized(ctx)
+        subject = await render(rule.get("subject_template") or "", local)
+        message = await render(rule.get("message_template") or "", local)
+        for row in webhooks:
+            if await post_webhook(session, row, rule, subject, message, base, len(recipients)):
+                reached.add(f"webhook:{row.get('webhook')}")
+    if reached:
+        await _set_after(session, rule, doctype, doc)
     return len(reached)
+
+
+async def _attachments(
+    session: AsyncSession, rule: dict[str, Any], doctype: str, doc: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """The email's files: the document as PDF (``attach_print``) and its own
+    attached files (``attach_files``, up to :data:`MAX_ATTACH_BYTES` in all).
+    A failure leaves the file out, not the notification."""
+    files: list[dict[str, Any]] = []
+    name = str(doc.get("name") or doctype)
+    if rule.get("attach_print"):
+        try:
+            async with system_context(session):
+                html = await render_print_html(doctype, doc, rule.get("print_format") or None)
+            files.append(
+                {
+                    "filename": f"{name}.pdf",
+                    "mimetype": "application/pdf",
+                    "content": await html_to_pdf(html),
+                }
+            )
+        except Exception:  # noqa: BLE001 - no PDF is no reason to stay silent
+            log.exception("notification.attach_print_failed", rule=rule.get("name"))
+    if rule.get("attach_files"):
+        total = sum(len(f["content"]) for f in files)
+        async with system_context(session):
+            rows = await _db.get_all(
+                "File",
+                filters={"attached_to_doctype": doctype, "attached_to_id": name},
+                fields=["name", "file_name", "content_type", "file_size"],
+                order_by="created_at",
+                order="asc",
+                limit=50,
+            )
+            for row in rows:
+                if total + int(row.get("file_size") or 0) > MAX_ATTACH_BYTES:
+                    log.info("notification.attach_files_over_limit", rule=rule.get("name"))
+                    break
+                try:
+                    content = await read_file(row["name"])
+                except Exception:  # noqa: BLE001 - a missing blob drops that file only
+                    log.warning("notification.attach_file_missing", file=row["name"])
+                    continue
+                total += len(content)
+                files.append(
+                    {
+                        "filename": row.get("file_name") or row["name"],
+                        "mimetype": row.get("content_type") or "application/octet-stream",
+                        "content": content,
+                    }
+                )
+    return files
+
+
+async def post_webhook(
+    session: AsyncSession,
+    row: dict[str, Any],
+    rule: dict[str, Any],
+    subject: str,
+    message: str,
+    base: dict[str, Any],
+    recipients: int,
+) -> bool:
+    """Queue one POST of the notification to the row's ``OutgoingWebhook``
+    (delivered after the commit, retried by the outbox, logged in WebhookLog)."""
+    webhook = row.get("webhook")
+    status, reason = "Queued", None
+    if not webhook:
+        status, reason = "Skipped", _("No webhook chosen for the channel")
+    else:
+        body = json.dumps(
+            {
+                "event": "notification",
+                "notification": rule.get("name"),
+                "subject": subject,
+                "message": message,
+                "doctype": base.get("ref_doctype"),
+                "doc_id": base.get("doc_id"),
+                "url": base.get("url"),
+                "recipients": recipients,
+            },
+            ensure_ascii=False,
+        )
+        await outbox.put(
+            deliver_webhook,
+            {"webhook": str(webhook), "event": "notification", "body": body},
+            session=session,
+        )
+    try:
+        await delivery_log.record(
+            {
+                "name": delivery_log.new_id(),
+                "notification": rule.get("name"),
+                "ref_doctype": base.get("ref_doctype"),
+                "doc_id": base.get("doc_id"),
+                "recipient": str(webhook or ""),
+                "channel": WEBHOOK,
+                "status": status,
+                "reason": reason,
+                "subject": subject,
+            },
+            session=session,
+        )
+    except Exception:
+        log.exception("notification.delivery_record_failed", channel=WEBHOOK)
+    return status == "Queued"
+
+
+async def _set_after(
+    session: AsyncSession, rule: dict[str, Any], doctype: str, doc: dict[str, Any]
+) -> None:
+    """``set_field`` = ``set_value`` on the document once someone was notified -
+    written directly (no save hooks), so it can't set the rule off again."""
+    field = (rule.get("set_field") or "").strip()
+    if not field or not doc.get("name"):
+        return
+    try:
+        async with system_context(session):
+            meta = await doctype_registry.get_meta(doctype)
+            fdef = meta.get_field(field) if meta else None
+            if fdef is None:
+                log.warning("notification.set_field_unknown", rule=rule.get("name"), field=field)
+                return
+            await _db.set_value(doctype, str(doc["name"]), field, rule.get("set_value"))
+    except Exception:
+        log.exception("notification.set_field_failed", rule=rule.get("name"), field=field)

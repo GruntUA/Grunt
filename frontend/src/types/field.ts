@@ -32,6 +32,12 @@ export interface DocField {
   index?: boolean
   /** Changes leave no version or activity entry (system-maintained values). */
   no_history?: boolean
+  /** Decimal places (Float / Currency / Percent); Currency defaults to 2. */
+  precision?: number
+  /** Not carried over by "Duplicate" / grunt.copy_doc. */
+  no_copy?: boolean
+  /** Read-only once saved with a value (the server refuses a change too). */
+  set_only_once?: boolean
   read_only?: boolean
   hidden?: boolean
   bold?: boolean
@@ -71,6 +77,8 @@ export interface DocField {
   // Conditional
   depends_on?: string
   mandatory_depends_on?: string
+  /** Read-only when this condition holds (evalCondition, the form only). */
+  read_only_depends_on?: string
   formula?: string | null
   // Aggregation
   aggregate_function?: string | null

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { evalDependsOn } from '../dependsOn'
+import { evalCondition, evalDependsOn } from '../dependsOn'
 
 describe('evalDependsOn', () => {
   it('shows the field when there is no rule', () => {
@@ -26,5 +26,27 @@ describe('evalDependsOn', () => {
 
   it('fails open on a broken expression', () => {
     expect(evalDependsOn('eval:doc.(', {})).toBe(true)
+  })
+})
+
+describe('evalCondition (mandatory_depends_on / read_only_depends_on)', () => {
+  it('is false without an expression, and fails closed on a broken one', () => {
+    expect(evalCondition(undefined, {})).toBe(false)
+    expect(evalCondition('', {})).toBe(false)
+    expect(evalCondition('eval:doc.(', {})).toBe(false)
+  })
+
+  it('evaluates bare fieldnames and eval: expressions', () => {
+    expect(evalCondition('is_approved', { is_approved: 1 })).toBe(true)
+    expect(evalCondition("eval:doc.status == 'Approved'", { status: 'Approved' })).toBe(true)
+    expect(evalCondition("eval:doc.status == 'Approved'", { status: 'Draft' })).toBe(false)
+  })
+
+  it('knows a document not saved yet as doc.__islocal', () => {
+    const rule = "eval:!doc.__islocal && doc.status == 'Approved'"
+    // A typed-in name doesn't make it saved; created_at does.
+    expect(evalCondition(rule, { name: 'X-1', status: 'Approved' })).toBe(false)
+    expect(evalCondition(rule, { name: 'X-1', status: 'Approved', created_at: '2026-11-18' })).toBe(true)
+    expect(evalDependsOn('eval:doc.__islocal', {})).toBe(true)
   })
 })

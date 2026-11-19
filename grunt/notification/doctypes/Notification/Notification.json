@@ -24,7 +24,7 @@
       "fieldname": "event",
       "label": "Event",
       "fieldtype": "Select",
-      "options": "after_insert\nafter_save\non_transition\nvalue_change\ndays_before\ndays_after\ncode",
+      "options": "after_insert\nafter_save\non_transition\nvalue_change\ndays_before\ndays_after\nminutes_before\nminutes_after\ncode",
       "required": true,
       "in_list_view": true,
       "in_filter": true
@@ -55,7 +55,7 @@
       "fieldname": "date_field",
       "label": "Date field",
       "fieldtype": "Data",
-      "depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
+      "depends_on": "eval: ['days_before', 'days_after', 'minutes_before', 'minutes_after'].includes(doc.event)",
       "mandatory_depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
       "description": "Date/Datetime field of the document the reminder is counted from, e.g. contract_end"
     },
@@ -67,6 +67,13 @@
       "min_value": 0,
       "depends_on": "eval: ['days_before', 'days_after'].includes(doc.event)",
       "description": "How many days before/after the date; 0: on the day itself. Sent once a day at 08:00"
+    },
+    {
+      "fieldname": "minutes",
+      "label": "Minutes",
+      "fieldtype": "Int",
+      "depends_on": "eval: ['minutes_before', 'minutes_after'].includes(doc.event)",
+      "description": "How long before / after the date-and-time field; checked every 5 minutes"
     },
     {
       "fieldname": "every_year",
@@ -121,6 +128,32 @@
       "description": "Jinja, same variables as the subject"
     },
     {
+      "fieldname": "attach_print",
+      "label": "Attach the document as PDF",
+      "fieldtype": "Check",
+      "description": "Email: the document printed with the print format below (the default one when empty)"
+    },
+    {
+      "fieldname": "print_format",
+      "label": "Print format",
+      "fieldtype": "Link",
+      "options": "PrintFormat",
+      "depends_on": "attach_print"
+    },
+    {
+      "fieldname": "attach_files",
+      "label": "Attach the document's files",
+      "fieldtype": "Check",
+      "description": "Email: the files attached to the document (up to 10 MB in all)"
+    },
+    {
+      "fieldname": "email_account",
+      "label": "Send from",
+      "fieldtype": "Link",
+      "options": "EmailAccount",
+      "description": "Email: this mailbox instead of the site's default"
+    },
+    {
       "fieldname": "sec_channels",
       "label": "Channels",
       "fieldtype": "Section"
@@ -131,6 +164,28 @@
       "fieldtype": "Table",
       "options": "NotificationChannel",
       "required": true
+    },
+    {
+      "fieldname": "sec_after",
+      "label": "After sending",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "set_field",
+      "label": "Set field",
+      "fieldtype": "Data",
+      "description": "Fieldname on the document to set once someone was notified - e.g. reminder_sent"
+    },
+    {
+      "fieldname": "col_after",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "set_value",
+      "label": "To value",
+      "fieldtype": "Data",
+      "depends_on": "set_field"
     },
     {
       "fieldname": "sec_meta",
@@ -177,17 +232,7 @@
   "permissions": [
     {
       "role": "System Manager",
-      "actions": [
-        "read",
-        "write",
-        "create",
-        "delete",
-        "export",
-        "import",
-        "print",
-        "share",
-        "report"
-      ]
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
     }
   ],
   "description": "When something happens to a document, who is told, what and through which channels",

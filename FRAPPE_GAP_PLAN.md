@@ -15,16 +15,16 @@
 
 | # | Пункт | Статус |
 |---|-------|--------|
-| 1 | Умовний «лише читання» поля (`read_only_depends_on`) + полагодити `mandatory_depends_on` | ✅ |
+| 1 | Умовний «лише читання» поля (`read_only_depends_on`) + полагодити `mandatory_depends_on` | ✔️ (`feat/read-only-depends-on`) |
 | 2 | Права `export` / `import` / `print` / `share` у DocPermission + полагодити `report` | ✔️ (PERMISSIONS 2b) |
 | 3 | Поля «лише читання» для ролі (`readonly_fields`) + закрити діри `hidden_fields` | ✔️ (PERMISSIONS 2a, 2c) |
-| 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✅ |
-| 5 | Точність (`precision`) і метод округлення чисел | ✅ |
-| 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✅ |
+| 4 | `set_only_once`, `no_copy`, `allow_duplicate` | ✔️ (`feat/field-no-copy-set-once`) |
+| 5 | Точність (`precision`) і метод округлення чисел | ✔️ (#226, #225) |
+| 6 | Налаштування списку на сервері (колонки, фільтри, спільні пресети) | ✔️ (`feat/list-settings-server`) |
 | 7 | Permission Inspector («чому користувач бачить/не бачить документ») | ✔️ (PERMISSIONS 6a) |
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
-| 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ❓ |
-| 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ❓ |
+| 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ✔️ (`feat/assignment-rules`) |
+| 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ✔️ (`feat/notification-extras`) |
 | 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ❓ |
 | 12 | User Group | ❓ |
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ❓ |
@@ -34,7 +34,7 @@
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
-| 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ❓ |
+| 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
 | 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
 | 22 | Print Format Builder + параметри сторінки | ❓ |
 | 23 | Raw printing (ZPL / ESC-POS) для етикеток | ❓ |
@@ -70,7 +70,7 @@
 ## Деталі
 
 ### 1. Умовний «лише читання» поля
-**Статус:** ❓
+**Статус:** ✔️ — `read_only_depends_on` і робочий `mandatory_depends_on` (лише у формі: `evalCondition` у `dependsOn.ts`, без умови або з помилкою — `false`); ознака нового документа — `doc.__islocal` (немає `created_at`)
 - **Frappe:** `DocField.read_only_depends_on` — вираз, за яким поле стає лише для читання.
 - **Ґрунт зараз:** `read_only` (постійно), `depends_on` (показ), `mandatory_depends_on` (обов’язковість). Умовного read-only немає.
 - **Навіщо:** типовий сценарій «після погодження сума не змінюється», «поле редагує лише до певного статусу» — без клієнтських скриптів.
@@ -107,7 +107,7 @@
   - заодно закрити обидві діри: заборонити запис прихованих полів і фільтр/сортування за ними в `get_list`.
 
 ### 4. set_only_once, no_copy, allow_copy
-**Статус:** ❓
+**Статус:** ✔️ — `no_copy`, `set_only_once` (клієнт і сервер, у т.ч. `set_value`), `DocType.allow_duplicate`; дублювання бере дані з сервера (`grunt.copy_data` / RPC `get_copy`) — `PROTECTED_DUPLICATE_FIELDS` прибрано, джерело одне: `STANDARD_COLUMNS` + стан workflow + `no_copy`
 - **Frappe:** `set_only_once` — поле не змінюється після першого збереження; `no_copy` — не переноситься при дублюванні; `DocType.allow_copy` — вимикає «Дублювати».
 - **Ґрунт зараз:** немає.
 - **Навіщо:** номери, дати реєстрації, унікальні коди не мають копіюватися/змінюватися.
@@ -119,7 +119,7 @@
   - `PROTECTED_DUPLICATE_FIELDS` лишається, але береться зі спільного джерела — `STANDARD_COLUMNS` (`grunt/metadata/compiler.py`): у списку зараз застаріле `updated_at` замість `modified_at`, а `workflow_state` дублює обробку поля стану.
 
 ### 5. Формати чисел і точність
-**Статус:** ❓
+**Статус:** ✔️ — `SystemSettings.rounding_method` (Half up — типово / Half even), `grunt.utils.numbers` і `core/numbers.ts` через десятковий запис; `precision` для Float / Currency / Percent (показ і округлення при збереженні, `coerce_field`); Currency — `Numeric(18, precision)`, diff масштабу лише для Postgres; перший день тижня з мови — #225
 - **Frappe:** `DocField.precision`, `non_negative`; SystemSettings `number_format`, `float_precision`, `currency_precision`, `rounding_method`, `time_format`, `first_day_of_the_week`; Currency `fraction`, `fraction_units`, `smallest_currency_fraction_value`, `number_format`, `symbol_on_right`; Language — формати дати/чисел, перший день тижня.
 - **Ґрунт зараз:** `date_format` у SystemSettings, `decimal_places` у Currency.
 - **Навіщо:** коректне округлення сум, відображення за локаллю.
@@ -131,7 +131,7 @@
   - перший день тижня брати з мови (`uk` → понеділок); перевірити, чи `Calendar.vue` зараз не починає з неділі (не задано `weekStartsOn`).
 
 ### 6. Налаштування списку на сервері
-**Статус:** ❓
+**Статус:** ✔️ — `UserViewSettings` (колонки, вигляд/сортування/групування/розмір сторінки, швидкі фільтри, «Звіт», недавні документи — `ref_doctype` `*`), `localStorage` — кеш (`useViewSetting`); `SavedFilter` (нікому / ролям / всім); «Зберегти як типове для всіх» → `DocType.list_columns`, `sort_field`/`sort_order`, `default_view`, `in_quick_filter`. Групування й розмір сторінки типовими для DocType не зберігаються
 - **Frappe:** List View Settings, List Filter — збережені на сервері, з можливістю поділитися.
 - **Ґрунт зараз:** колонки та пресети фільтрів у `localStorage` (`useListColumns.ts`, `FilterBar.vue`) — не переходять між пристроями, ними не поділитися.
 - **Навіщо:** користувач працює з кількох пристроїв; керівник налаштовує вигляд для відділу.
@@ -158,18 +158,18 @@
 - **Рішення:** —
 
 ### 9. AssignmentRule
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** правило Round Robin / Load Balancing / Based on Field, список користувачів, ваги (`weighted_users`), `unassign_condition`, `close_condition`, дні тижня, `due_date_based_on`, пріоритет правил.
 - **Ґрунт зараз:** фільтри + одна роль або один користувач.
 - **Навіщо:** розподіл звернень/заявок між виконавцями без скриптів.
-- **Рішення:** —
+- **Рішення (2026-11-18):** робимо все, крім ваг як частки в Frappe-сенсі «weighted_users» дослівно: `rule` = Everyone (як раніше) / Round Robin (вага — скільки разів поспіль, рахується з AssignmentLog) / Load Balancing (відкриті ToDo на одиницю ваги) / Based on Field; виконавці — таблиця `users` (з вагою), інакше власники ролі в межах області, інакше `assign_to_user`; `priority` — призначає **перше** правило, що підійшло, і жодне, поки відкрите призначення правила; `unassign_condition` / `close_condition` (той самий JSON, що `filters`); `days`; `due_date_field`; тригер — створення і збереження (на збереженні — лише без відкритого призначення). `ToDo.assignment_rule` пов'язує призначення з правилом.
 
 ### 10. NotificationRule
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** `attach_print` + `print_format`, `attach_files`, `set_property_after_alert`, `send_to_all_assignees`, вибір відправника, `minutes_offset` для Datetime, канал «вебхук» (Slack/Teams-подібний), подія «Method».
 - **Ґрунт зараз:** події після створення/збереження/переходу/зміни значення, днів до/після; канали system/email.
 - **Навіщо:** «надіслати контрагенту PDF документа», «нагадати за 30 хв до події».
-- **Рішення:** —
+- **Рішення (2026-11-19):** робимо: PDF документа (`attach_print` + `print_format`) і файли документа (`attach_files`, до 10 МБ) у листі; скринька-відправник (`email_account`); `set_field`/`set_value` після сповіщення (прямий запис, без хуків); події `minutes_before`/`minutes_after` від поля Datetime (задача кожні 5 хв, вікно 10 хв, один раз на момент документа); канал `webhook` → `OutgoingWebhook` з подією `notification` (один запит на сповіщення, через outbox). `send_to_all_assignees` уже є (отримувачі «Assignees»); подія «Method» — `code`.
 
 ### 11. Role Profile / Module Profile, властивості Role
 **Статус:** ❓
@@ -230,10 +230,10 @@
 - **Рішення (2026-11-18):** робимо. Крок 1 (`feat/workflow-guards`): `deny_self_approval` (автор не погоджує власне; Next actors теж без нього), `confirm` на переході, `message` у стані (банер над формою), подія `on_transition` у ServerScript зі змінною `transition`; попутно умова з помилкою тепер **закриває** перехід (раніше `return True` — пропускала всіх). Крок 2 (`feat/workflow-inbox`): вхідні «Очікує моєї дії» — вкладка «Очікує мене» в панелі «Моя робота» (`get_my_work.awaiting`), з переходів і прав, без таблиці Workflow Action; лише явно утримувані ролі (System Manager без ролі не бачить усього), області ролей, без умов. Кілька workflow на DocType — ⏸. `next_action_email_template` покриває Notification з отримувачами Next actors.
 
 ### 20. Політика входу
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** оцінка надійності пароля (zxcvbn), примусова зміна раз на N днів, `deny_multiple_sessions`, `simultaneous_sessions`, `login_after/before`, IP на користувача, вхід за username/телефоном, `disable_user_pass_login`, `logout_on_password_reset`.
 - **Ґрунт зараз:** правила складності пароля, блокування за спробами, MFA, IP на роль, passkeys, вхід за посиланням.
-- **Рішення:** —
+- **Рішення (2026-11-18):** робимо: строк дії пароля (`password_max_age_days`, `User.password_changed_at`; прострочений → крок `password_change_required` до MFA; без дати — відлік від першого входу), `max_sessions_per_user` (нова сесія витісняє найстаріші), `User.login_after`/`login_before` і `User.allowed_ips` (поверх ролі), «лише SSO» (`disable_password_login`, адміністратори — виняток); попутно — зміна пароля завершує інші сесії (діра). ⏸ zxcvbn (правила складності вже є); ❌ вхід за телефоном/логіном.
 
 ### 21. Вкладення
 **Статус:** ❓

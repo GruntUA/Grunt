@@ -31,5 +31,9 @@ async def get_public_config() -> dict[str, Any]:
         ],
         "timezone": s.get("timezone") or "",
         "date_format": s.get("date_format") or "dd.mm.yyyy",
+        # The form rounds like the server does (frontend/src/core/numbers.ts).
+        "rounding_method": s.get("rounding_method") or "Half up",
         "allow_user_registration": bool(s.get("allow_user_registration")),
+        # SSO only: the sign-in page hides the password form (grunt.auth.login_policy).
+        "password_login": not s.get("disable_password_login"),
     }

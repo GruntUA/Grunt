@@ -33,6 +33,13 @@
       "description": "DocType for Link/Table, or the option list for Select"
     },
     {
+      "fieldname": "precision",
+      "label": "Precision",
+      "fieldtype": "Int",
+      "description": "Decimal places for Float / Currency / Percent: shown with and rounded to on save (Currency: 2 by default; changing it changes the column)",
+      "depends_on": "eval:['Float','Currency','Percent'].includes(doc.fieldtype)"
+    },
+    {
       "fieldname": "sec_validation",
       "label": "Validation & flags",
       "fieldtype": "Section",
@@ -62,6 +69,18 @@
       "fieldname": "read_only",
       "label": "Read-only",
       "fieldtype": "Check"
+    },
+    {
+      "fieldname": "no_copy",
+      "label": "Don't copy",
+      "fieldtype": "Check",
+      "description": "Not carried over when the document is duplicated"
+    },
+    {
+      "fieldname": "set_only_once",
+      "label": "Set only once",
+      "fieldtype": "Check",
+      "description": "Once saved with a value, it can't be changed"
     },
     {
       "fieldname": "col_v2",
@@ -103,6 +122,18 @@
       "label": "Depends on",
       "fieldtype": "LongText",
       "description": "Display condition (Python/JS)"
+    },
+    {
+      "fieldname": "mandatory_depends_on",
+      "label": "Mandatory depends on",
+      "fieldtype": "LongText",
+      "description": "Required when the condition holds (JS, checked in the form)"
+    },
+    {
+      "fieldname": "read_only_depends_on",
+      "label": "Read-only depends on",
+      "fieldtype": "LongText",
+      "description": "Read-only when the condition holds (JS, checked in the form), e.g. eval:doc.status == 'Approved'"
     }
   ]
 }

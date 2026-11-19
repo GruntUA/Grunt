@@ -19,10 +19,20 @@ from grunt.i18n import _
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
 lazy from grunt.auth.ip_policy import sign_in_ip_allowed
+lazy from grunt.auth.login_policy import (
+    credential_version,
+    enforce_session_limit,
+    lock_user,
+    login_hours,
+    password_expired,
+    user_ip_allowed,
+    within_login_hours,
+)
 lazy from grunt.auth.mfa import mfa_setup_required
 lazy from grunt.auth.service import (
     access_token_minutes,
     create_access_token,
+    create_challenge_token,
     create_mfa_setup_token,
     create_mfa_token,
 )
@@ -33,6 +43,9 @@ lazy from grunt.auth.users import (
     create_user,
     get_user_by_email,
 )
+
+# The challenge token's purpose for an expired password (change_expired_password_api).
+PASSWORD_CHANGE = "password_change"
 
 
 async def issue_login(
@@ -54,7 +67,12 @@ async def issue_login(
 
     A disabled user (``is_active`` off) is refused outright.
 
-    A role with ``Role.allowed_ips`` refuses sign-in from any other address.
+    A role with ``Role.allowed_ips``, or the user's own ``allowed_ips``, refuses
+    sign-in from any other address; ``login_after`` / ``login_before`` limit the
+    hours. A password sign-in with an expired password returns a
+    ``password_change_required`` challenge (``change_expired_password_api``) -
+    see :mod:`grunt.auth.login_policy`. A new session ends the oldest past
+    ``max_sessions_per_user``.
 
     When one of the user's roles has ``Role.require_mfa`` but MFA is off, the
     payload is the same challenge shape plus ``mfa_setup_required`` and an
@@ -85,6 +103,31 @@ async def issue_login(
 
     if not await sign_in_ip_allowed(user, ip_address):
         throw(_("Sign-in from this IP address is not allowed for your role"), "PERMISSION_DENIED")
+    if not user_ip_allowed(user, ip_address):
+        throw(
+            _("Sign-in from this IP address is not allowed for your account"), "PERMISSION_DENIED"
+        )
+    if not await within_login_hours(user):
+        start, end = login_hours(user)
+        throw(
+            _("Sign-in is allowed only from %(from)s to %(to)s")
+            % {"from": start or "00:00", "to": end or "24:00"},
+            "PERMISSION_DENIED",
+        )
+
+    # An expired password is changed before anything else - MFA follows the new one.
+    if method == "password" and await password_expired(user):
+        return {
+            "access_token": None,
+            "mfa_token": None,
+            "password_change_token": create_challenge_token(
+                PASSWORD_CHANGE, ttl_minutes=10, uid=user.id, ver=credential_version(user)
+            ),
+            "token_type": "bearer",
+            "user": await _auth_user_dump(user),
+            "mfa_required": False,
+            "password_change_required": True,
+        }
 
     if honor_mfa and await mfa_setup_required(user):
         return {
@@ -114,9 +157,11 @@ async def issue_login(
 
     await clear_failed_attempts(user)
 
+    await lock_user(user.id)
     sid, refresh_token = await open_session(
         user.id, ip_address, user_agent, device_id=device_id, method=method
     )
+    await enforce_session_limit(user.id, sid)
     access_token = create_access_token(user, await access_token_minutes(), sid=sid)
     await set_session_cookie(response, refresh_token)
 

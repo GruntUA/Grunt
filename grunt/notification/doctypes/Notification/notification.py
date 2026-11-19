@@ -8,7 +8,7 @@ from grunt.i18n import _
 from grunt.metadata.registry import doctype_registry
 from grunt.notification import rules
 from grunt.notification.channels import get_channel
-from grunt.notification.date_rules import DATE_EVENTS
+from grunt.notification.date_rules import DATE_EVENTS, MINUTE_EVENTS
 from grunt.notification.events import get_event
 from grunt.standard_records import mark_customized
 
@@ -25,9 +25,43 @@ class Notification(Document):
     message_template: str | None
     notify_actor: bool | None
 
+    async def _validate_set_field(self) -> None:
+        """The "after sending" field must be a field of the document."""
+        field = (self.get("set_field") or "").strip()
+        self.set_field = field or None
+        if not field or not self.get("ref_doctype"):
+            return
+        meta = await doctype_registry.get_meta(self.ref_doctype)
+        if meta is None or meta.get_field(field) is None:
+            throw(
+                _("“%(field)s” is not a field of %(doctype)s")
+                % {"field": field, "doctype": self.ref_doctype},
+                "VALIDATION_ERROR",
+            )
+
+    async def _validate_minutes(self) -> None:
+        """A minutes-before/after rule counts from a date-and-time field."""
+        field = (self.get("date_field") or "").strip()
+        self.date_field = field
+        if int(self.get("minutes") or 0) < 0:
+            throw(_("Minutes cannot be negative"), "VALIDATION_ERROR")
+        if not field:
+            throw(_("Choose the date field to count from"), "VALIDATION_ERROR")
+        if field in _SYSTEM_DATES:
+            return
+        meta = await doctype_registry.get_meta(self.ref_doctype)
+        fdef = meta.get_field(field) if meta else None
+        if fdef is None or fdef.fieldtype != "Datetime":
+            throw(
+                _("“%(field)s” is not a date-and-time field of %(doctype)s")
+                % {"field": field, "doctype": self.ref_doctype},
+                "VALIDATION_ERROR",
+            )
+
     async def validate(self) -> None:
         mark_customized(self)
         await self._validate_rows()
+        await self._validate_set_field()
         if self.event == "code":
             if get_event(self.get("event_key") or "") is None:
                 throw(
@@ -37,6 +71,9 @@ class Notification(Document):
             return
         if not self.get("ref_doctype"):
             throw(_("Choose the document type"), "VALIDATION_ERROR")
+        if self.event in MINUTE_EVENTS:
+            await self._validate_minutes()
+            return
         if self.event not in DATE_EVENTS:
             return
         field = (self.get("date_field") or "").strip()
@@ -78,6 +115,8 @@ class Notification(Document):
                     _("Unknown channel “%(channel)s”") % {"channel": row.get("channel")},
                     "VALIDATION_ERROR",
                 )
+            if row.get("channel") == "webhook" and not row.get("webhook"):
+                throw(_("Choose the webhook for the Webhook channel"), "VALIDATION_ERROR")
         templates = [
             (_("Subject"), self.get("subject_template")),
             (_("Message"), self.get("message_template")),

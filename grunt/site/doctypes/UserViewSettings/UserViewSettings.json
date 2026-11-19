@@ -1,0 +1,41 @@
+{
+  "name": "UserViewSettings",
+  "label": "User view settings",
+  "description": "A user's list settings per DocType and view - columns, sorting, quick filters, report layout; kept on the server so they follow the user across devices.",
+  "module": "site",
+  "autoname": "hash",
+  "track_changes": false,
+  "track_activity": false,
+  "hide_from_activity_feed": true,
+  "in_global_search": false,
+  "indexes": [["owner", "ref_doctype", "view"]],
+  "fields": [
+    {
+      "fieldname": "ref_doctype",
+      "label": "Document type",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "description": "“*” - not tied to a DocType (recent documents)"
+    },
+    {
+      "fieldname": "view",
+      "label": "View",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "settings",
+      "label": "Settings",
+      "fieldtype": "JSON"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "All",
+      "actions": ["read", "write", "create", "delete"],
+      "match": "owner == user"
+    }
+  ]
+}

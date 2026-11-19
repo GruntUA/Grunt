@@ -302,11 +302,13 @@ class EmailService:
         body: str,
         html_body: str | None = None,
         attachments: list[dict[str, Any]] | None = None,
+        email_account: str | None = None,
     ) -> str:
         """Insert a record into EmailQueue for async delivery.
 
-        Sending account: ``SystemSettings.default_email_account`` when set,
-        otherwise the first EmailAccount with ``enable_outgoing=True``.
+        Sending account: *email_account* when given, else
+        ``SystemSettings.default_email_account`` when set, otherwise the first
+        EmailAccount with ``enable_outgoing=True``.
         ``SystemSettings.email_footer`` (if any) is appended to the body.
 
         ``attachments`` - ``[{"filename", "mimetype", "content": bytes}]``; kept
@@ -316,7 +318,9 @@ class EmailService:
         email_account_id: str | None = None
         footer: str = ""
         try:
-            email_account_id = await EmailService.resolve_outgoing_account_id(session)
+            email_account_id = email_account or await EmailService.resolve_outgoing_account_id(
+                session
+            )
             async with system_context(session):
                 raw_footer = (await get_setting("email_footer") or "").strip()
                 # Ignore markup-only footers like "<p></p>" that a rich-text

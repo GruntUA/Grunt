@@ -50,8 +50,9 @@ const isLoading = ref(true)
 const isRescheduling = ref(false)
 
 const calendarDays = computed(() => {
-  const start = startOfWeek(startOfMonth(currentMonth.value), localeTag(), 'mon')
-  const end = endOfWeek(endOfMonth(currentMonth.value), localeTag(), 'mon')
+  // The language's first day of the week (uk - Monday, en-US - Sunday).
+  const start = startOfWeek(startOfMonth(currentMonth.value), localeTag())
+  const end = endOfWeek(endOfMonth(currentMonth.value), localeTag())
   return eachDate(start, end)
 })
 
@@ -362,7 +363,11 @@ function onDayClick(day: CalendarDate) {
   })
 }
 
-const weekDays = [t('Mon'), t('Tue'), t('Wed'), t('Thu'), t('Fri'), t('Sat'), t('Sun')]
+// Weekday headers in the grid's order, short names from the language.
+const weekDays = computed(() => {
+  const fmt = new Intl.DateTimeFormat(localeTag(), { weekday: 'short' })
+  return calendarDays.value.slice(0, 7).map((d) => fmt.format(d.toDate(getLocalTimeZone())))
+})
 </script>
 
 <template>

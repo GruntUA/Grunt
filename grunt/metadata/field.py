@@ -86,6 +86,12 @@ class FieldType:
         """Convert a non-empty raw value. The default keeps it unchanged."""
         return value
 
+    @classmethod
+    def coerce_field(cls, field: Any, value: Any) -> Any:
+        """:meth:`coerce` for *field* - types whose value depends on the field's
+        settings (e.g. ``precision``) override this. The default ignores it."""
+        return cls.coerce(value)
+
 
 # Helpers shared by field type implementations
 
@@ -353,6 +359,11 @@ class DocField(BaseModel):
     no_history: bool = False
     read_only: bool = False
     hidden: bool = False
+    # Not carried over when a document is duplicated (form "Duplicate",
+    # grunt.copy_doc) - registration numbers, dates, unique codes.
+    no_copy: bool = False
+    # Once saved with a value, it can't be changed (checked on the server too).
+    set_only_once: bool = False
 
     # Display
     in_list_view: bool = False
@@ -362,6 +373,11 @@ class DocField(BaseModel):
     # Edit this column inline in the Report (spreadsheet) grid view. Ignored
     # for read-only / layout fields.
     editable_in_grid: bool = False
+
+    # Decimal places for Float / Currency / Percent: shown with, and rounded to
+    # on save by the site's rounding_method (grunt.utils.numbers). Currency
+    # defaults to 2 and its column is NUMERIC(18, precision).
+    precision: int | None = None
 
     # Type-specific options
     options: str | None = None
@@ -424,9 +440,12 @@ class DocField(BaseModel):
     max_length: int | None = None
     regex: str | None = None
 
-    # Conditional display
+    # Conditions, evaluated in the form only (frontend/src/core/dependsOn.ts) -
+    # the server doesn't check them: shown when, required when, read-only when.
+    # `doc.__islocal` is true on a document not saved yet.
     depends_on: str | None = None
     mandatory_depends_on: str | None = None
+    read_only_depends_on: str | None = None
 
     formula: str | None = None
 
@@ -462,7 +481,7 @@ class DocField(BaseModel):
 
     def coerce(self, value: Any) -> Any:
         """Convert a raw value to the appropriate Python type for this field."""
-        return get_field_type_class(self.fieldtype).coerce(value)
+        return get_field_type_class(self.fieldtype).coerce_field(self, value)
 
     def has_trait(self, trait: str) -> bool:
         """Return True if this field's type declares *trait* (see :data:`TRAITS`)."""

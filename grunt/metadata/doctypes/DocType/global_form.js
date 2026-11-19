@@ -140,7 +140,8 @@ export function on_load(frm) {
         group: 'document',
         order: 300,
         shortcut: 'Mod+Shift+D',
-        visible: (f) => _saved(f) && f.perm.create,
+        // DocType "Allow duplicating" off -> no Duplicate.
+        visible: (f) => _saved(f) && f.perm.create && f.meta?.allow_duplicate !== false,
         action: (f) => f.duplicate(),
     })
     actions.add({

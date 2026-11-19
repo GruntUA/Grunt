@@ -31,7 +31,7 @@ from grunt.document.update_side_effects import (
     fire_update_services,
     record_update_changes,
 )
-from grunt.document.validation import _validate_data, validate_child_rows
+from grunt.document.validation import _validate_data, refuse_set_once_changes, validate_child_rows
 from grunt.errors import ApplicationError, not_found
 from grunt.events import fire
 from grunt.i18n import _
@@ -46,6 +46,7 @@ from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_access
 from grunt.query.query import Query
 from grunt.search.service import search_index_service
+from grunt.site.settings import get_system_settings
 from grunt.storage.references import release_dropped_files
 from grunt.storage.signing import strip_file_signatures
 from grunt.store.base import DELETE, HISTORY, INSERT, REFERENCES, UPDATE, Store
@@ -154,7 +155,12 @@ class DocumentLifecycleMixin:
     # Pipeline
 
     async def _resolve_dt(self, doctype_name: str) -> Any:
-        """Return the freshest DocType definition, forcing a lazy reload if needed."""
+        """Return the freshest DocType definition, forcing a lazy reload if needed.
+
+        Also reads the (cached) site settings: value coercion is sync and rounds
+        numbers by the site's rounding_method (grunt.utils.numbers), which this
+        read keeps current for the save that follows."""
+        await get_system_settings()
 
         fresh = await doctype_registry._lazy_load(doctype_name)
         if fresh is not None:
@@ -384,6 +390,7 @@ class DocumentLifecycleMixin:
         scopes = await pipeline.begin_update(self.doctype, existing, data, user)
         await check_write("update", self.doctype, existing, data, user)
         await self._refuse_hidden_writes(dt, user, data, existing)
+        refuse_set_once_changes(dt, data, existing, user)
 
         errors = _validate_data(dt, data, partial=True, ignore_required=ignore_required)
         errors += await validate_child_rows(dt, data, ignore_required=ignore_required)

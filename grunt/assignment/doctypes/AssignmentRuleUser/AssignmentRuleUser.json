@@ -1,0 +1,26 @@
+{
+  "name": "AssignmentRuleUser",
+  "label": "Assignment rule user",
+  "module": "assignment",
+  "is_child": true,
+  "title_field": "user",
+  "hide_from_activity_feed": true,
+  "fields": [
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Link",
+      "options": "User",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "weight",
+      "label": "Weight",
+      "fieldtype": "Int",
+      "default": 1,
+      "in_list_view": true,
+      "description": "Round robin: how many turns in a row; load balancing: share of the work (2 - twice as much)"
+    }
+  ]
+}

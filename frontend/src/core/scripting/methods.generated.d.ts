@@ -103,6 +103,8 @@ interface GruntMethods {
   "grunt.api.v1.document.links.link_search": { args: { doctype: string; search?: string; per_page?: number; filters?: Record<string, any> | null }; result: Record<string, any>[] }
   /** Return all documents that link to this document (backlinks). */
   "grunt.api.v1.document.meta.get_backlinks": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
+  /** The values a duplicate of the document starts with (the form's "Duplicate"): ``grunt.copy_data`` - no standard columns, ``no_copy`` fields or workflow state. Reading the document is checked; creating the copy is checked when it's saved. */
+  "grunt.api.v1.document.meta.get_copy": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
   /** Summarise what references the given document(s) - see LinkService. */
   "grunt.api.v1.document.meta.get_delete_impact": { args: { doctype: string; doc_id?: string | null; doc_ids?: string[] | null }; result: Record<string, any> }
   /** Years present in a Date/Datetime field, newest first (year quick filter). */
@@ -201,6 +203,12 @@ interface GruntMethods {
   "grunt.api.v1.role_scopes.get_active_scopes": { args: { doctype: string }; result: Record<string, any>[] }
   /** ``{fieldname: value}`` to pre-fill on a new *doctype* form: a user who may create it only within one record of a scope DocType gets that record in its Link fields. */
   "grunt.api.v1.role_scopes.get_scope_defaults": { args: { doctype: string }; result: Record<string, string> }
+  /** Delete the current user's filter (someone else's is refused). */
+  "grunt.api.v1.saved_filters.delete_saved_filter": { args: { name: string }; result: null }
+  /** The filters the current user can apply on *doctype*: their own and the ones shared with everyone or with one of their roles. Needs read access to the DocType. */
+  "grunt.api.v1.saved_filters.list_saved_filters": { args: { doctype: string }; result: Record<string, any>[] }
+  /** Create the current user's filter, or update theirs (*name*). A title they already use on this DocType is replaced. */
+  "grunt.api.v1.saved_filters.save_saved_filter": { args: { doctype: string; title: string; filters: Record<string, any>[]; shared_with?: string; roles?: string[] | null; name?: string | null }; result: Record<string, any> }
   /** Return all enabled client scripts for a DocType. */
   "grunt.api.v1.scripting.get_client_scripts": { args: { doctype: string }; result: Record<string, any>[] }
   /** Execute a Server Script of type 'API'. */
@@ -216,6 +224,16 @@ interface GruntMethods {
   "grunt.api.v1.site_config.get_public_config": { args: {}; result: Record<string, any> }
   /** Return the translation bundle for a locale. Allowed for guests. */
   "grunt.api.v1.translations.get_translations": { args: { locale: string }; result: Record<string, any> }
+  /** Get a single DocType definition, always re-reading from DB. */
+  "grunt.api.v1.view_settings.get_doctype": { args: { name: string; raw?: boolean }; result: Record<string, any> }
+  /** The current user's settings for *doctype*, ``{view: settings}``. */
+  "grunt.api.v1.view_settings.get_view_settings": { args: { doctype: string }; result: Record<string, any> }
+  /** Create or update a DocType. Admin only. Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.view_settings.save_doctype": { args: { doctype_data: Record<string, any> }; result: Record<string, any> }
+  /** "Save as default for all": the current list settings become the DocType's own - ``list_columns``, ``sort_field`` / ``sort_order``, ``default_view`` and the fields' ``in_quick_filter``. Stored like any DocType change (exported to the app's file in developer mode). A user's own settings still win; their "Reset" goes back to these. Only the arguments given change. Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.view_settings.save_list_defaults": { args: { doctype: string; columns?: string[] | null; sort_field?: string | null; sort_order?: string | null; default_view?: string | null; quick_filters?: string[] | null }; result: Record<string, any> }
+  /** Store the current user's *settings* of *view* for *doctype*; ``None`` - back to the defaults (the row is removed). */
+  "grunt.api.v1.view_settings.save_view_settings": { args: { doctype: string; view: string; settings?: any }; result: null }
   /** List recent delivery logs for an incoming webhook. Permission: grunt.manage_integrations. */
   "grunt.api.v1.webhooks.list_incoming_logs": { args: { webhook_id: string; page?: number; per_page?: number }; result: Record<string, any> }
   /** Send a test payload for an outgoing webhook. Permission: grunt.manage_integrations. */
@@ -264,6 +282,8 @@ interface GruntMethods {
   "grunt.auth.password_policy.password_policy_api": { args: {}; result: Record<string, number | boolean> }
   /** Approve a pending registration - the user can now sign in. System Manager only. Permission: grunt.manage_users. */
   "grunt.auth.user_api.approve_user_api": { args: { user_id: string }; result: boolean }
+  /** Set a new password after a sign-in found the old one expired (``password_change_required``), then go on with that sign-in - MFA next, if the user has it. The new password must differ from the old one. Allowed for guests. */
+  "grunt.auth.user_api.change_expired_password_api": { args: { password_change_token: string; new_password: string }; result: Record<string, any> }
   /** Confirm MFA setup for the current user. */
   "grunt.auth.user_api.confirm_mfa": { args: { code: string }; result: GruntApi.grunt.MfaConfirmed }
   /** Disable MFA for the current user. */

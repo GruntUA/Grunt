@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import type { ActiveFilter } from '@/types'
+import { useViewSetting } from '@/core/composables/useViewSetting'
 
 interface ListViewState {
   viewMode: string
@@ -32,8 +33,22 @@ function saveState(doctype: string, state: ListViewState) {
   localStorage.setItem(storageKey(doctype), JSON.stringify(state))
 }
 
+/** The part that follows the user across devices (server, useViewSetting). */
+interface ListPrefs {
+  viewMode: string
+  sortKey: string
+  sortOrder: 'asc' | 'desc'
+  groupBy: string | null
+  perPage: number
+}
+
 export function useListViewState(doctype: string) {
-  const saved = loadState(doctype)
+  // Filters and search stay local - the work of the moment, not a setting.
+  const local = loadState(doctype)
+  const prefs = useViewSetting<ListPrefs>(doctype, 'list', `grunt_list_prefs_${doctype}`, {
+    valid: (v): v is ListPrefs => typeof v === 'object' && v !== null && !Array.isArray(v),
+  })
+  const saved: Partial<ListViewState> = { ...local, ...(prefs.value ?? {}) }
 
   const viewMode = ref<string>(saved.viewMode ?? 'list')
   const sortKey = ref<string>(saved.sortKey ?? '')
@@ -47,6 +62,27 @@ export function useListViewState(doctype: string) {
       ? (saved.perPage as number)
       : DEFAULT_PER_PAGE,
   )
+
+  const current = (): ListPrefs => ({
+    viewMode: viewMode.value,
+    sortKey: sortKey.value,
+    sortOrder: sortOrder.value,
+    groupBy: groupBy.value,
+    perPage: perPage.value,
+  })
+  watch([viewMode, sortKey, sortOrder, groupBy, perPage], () => {
+    const next = current()
+    if (JSON.stringify(next) !== JSON.stringify(prefs.value)) prefs.value = next
+  })
+  // The server's copy arrived: apply it.
+  watch(prefs, (p) => {
+    if (!p || JSON.stringify(p) === JSON.stringify(current())) return
+    viewMode.value = p.viewMode ?? viewMode.value
+    sortKey.value = p.sortKey ?? sortKey.value
+    sortOrder.value = p.sortOrder ?? sortOrder.value
+    groupBy.value = p.groupBy ?? null
+    if (PER_PAGE_OPTIONS.includes(p.perPage as typeof PER_PAGE_OPTIONS[number])) perPage.value = p.perPage
+  })
 
   watch(
     [viewMode, sortKey, sortOrder, groupBy, activeFilters, quickFilterValues, search, perPage],

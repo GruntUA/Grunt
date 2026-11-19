@@ -32,6 +32,10 @@ const id = useId()
         <FieldLabel :for="`${id}-mandatory-depends-on`">{{ t('Mandatory Depends On') }}</FieldLabel>
         <Input :id="`${id}-mandatory-depends-on`" :model-value="field.mandatory_depends_on ?? ''" placeholder="eval: doc.type == 'Full'" @update:model-value="updateField('mandatory_depends_on', $event || undefined)" />
       </Field>
+      <Field>
+        <FieldLabel :for="`${id}-read-only-depends-on`">{{ t('Read Only Depends On') }}</FieldLabel>
+        <Input :id="`${id}-read-only-depends-on`" :model-value="field.read_only_depends_on ?? ''" placeholder="eval: doc.status == 'Approved'" @update:model-value="updateField('read_only_depends_on', $event || undefined)" />
+      </Field>
     </FieldGroup>
   </FieldSet>
 </template>

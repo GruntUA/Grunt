@@ -52,6 +52,10 @@ class Message:
     doc_id: str | None = None
     notification: str | None = None  # the rule that sent it
     event_key: str | None = None  # the code event, for notifications raised from code
+    # Email only: files to attach (``{"filename", "mimetype", "content": bytes}``)
+    # and the mailbox to send from (an EmailAccount; None - the site's default).
+    attachments: list[dict[str, Any]] = field(default_factory=list)
+    email_account: str | None = None
 
 
 @dataclass(slots=True)
@@ -188,10 +192,26 @@ class EmailChannel(Channel):
             subject=message.subject,
             body=message.body,
             html_body=message.html,
+            attachments=message.attachments or None,
+            email_account=message.email_account,
         )
         if not queue_id:
             return Outcome("Error", reason=_("The email could not be queued"))
         return Outcome("Queued", links={"email_queue": queue_id})
+
+
+class WebhookChannel(Channel):
+    """A POST to an ``OutgoingWebhook`` (Slack, Teams, a bot...) - once per
+    notification, not per recipient: the rule sends it itself
+    (:func:`grunt.notification.rules.post_webhook`); per recipient it does nothing."""
+
+    name = "webhook"
+    label = N_("Webhook")
+
+    async def send(
+        self, session: AsyncSession, recipient: str, message: Message, *, delivery: str
+    ) -> Outcome:
+        return Outcome("Skipped", reason=_("A webhook goes once per notification"))
 
 
 # name -> channel instance
@@ -230,6 +250,6 @@ OPTIONS_SOURCE = "grunt.notification.channel"
 register_option_provider(OPTIONS_SOURCE, lambda: [(c.name, _(c.label)) for c in list_channels()])
 
 
-CORE_CHANNELS = (InAppChannel, WebPushChannel, EmailChannel)
+CORE_CHANNELS = (InAppChannel, WebPushChannel, EmailChannel, WebhookChannel)
 for _core in CORE_CHANNELS:
     register_channel(_core)

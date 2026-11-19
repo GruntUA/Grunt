@@ -338,9 +338,25 @@ msgstr "Домашню теку не можна перемістити"
 msgid "A lowercase letter"
 msgstr "Мала літера"
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid ""
+"A named set of list filters - its owner's, or shared with roles or with "
+"everyone (only to apply; the owner changes and deletes it)."
+msgstr ""
+"Іменований набір фільтрів списку — власника або спільний для ролей чи для "
+"всіх (інші лише застосовують; змінює й видаляє власник)."
+
 #: grunt/grunt/workflow/guard.py
 msgid "A new document starts in the “%(state)s” state"
 msgstr "Новий документ створюється у стані «%(state)s»"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
+" time; 0 - no limit"
+msgstr ""
+"Новий вхід завершує найстаріші сесії понад це число; 1 — один пристрій "
+"одночасно; 0 — без обмеження"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid ""
@@ -424,6 +440,10 @@ msgstr ""
 "Текстове поле зі списком name документів-попередників через кому — між ними "
 "малюються стрілки"
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "A title and at least one filter are needed"
+msgstr "Потрібні назва й хоча б один фільтр"
+
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 msgid "A tour the user has been through (instead of a checklist)"
 msgstr "Тур, який користувач пройшов (замість чеклиста)"
@@ -452,6 +472,16 @@ msgstr ""
 msgid "A user's like on one document (the heart in list views)."
 msgstr "Позначка «подобається» користувача на документі (сердечко у списках)."
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid ""
+"A user's list settings per DocType and view - columns, sorting, quick "
+"filters, report layout; kept on the server so they follow the user across "
+"devices."
+msgstr ""
+"Налаштування списків користувача для кожного DocType і вигляду — колонки, "
+"сортування, швидкі фільтри, вигляд «Звіту»; зберігаються на сервері, тож "
+"переходять з користувачем між пристроями."
+
 #: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 msgid "A value cannot contain both kinds of quotes"
 msgstr "Значення не може містити обидва види лапок"
@@ -471,6 +501,10 @@ msgid ""
 msgstr ""
 "Екскурсія формою або списком DocType: кожен крок вказує на поле чи елемент і"
 " пояснює його."
+
+#: grunt/grunt/notification/channels.py
+msgid "A webhook goes once per notification"
+msgstr "Вебхук надсилається один раз на сповіщення"
 
 #: grunt/grunt/monitoring/health.py
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
@@ -773,6 +807,18 @@ msgstr "Адреса (URL)"
 msgid "Address type"
 msgstr "Тип адреси"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Addresses or CIDR networks, comma or newline separated - on top of the "
+"role's own limit; empty - any"
+msgstr ""
+"Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
+" ролі; порожньо — будь-які"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Administrator sign-in"
+msgstr "Вхід адміністратора"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Administrators without 2FA"
 msgstr "Адміністратори без 2FA"
@@ -798,6 +844,10 @@ msgstr "Стало"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "After how many minutes of inactivity a re-login is required."
 msgstr "Через скільки хвилин бездіяльності потрібен повторний вхід."
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "After sending"
+msgstr "Після надсилання"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
@@ -891,6 +941,10 @@ msgid "All time"
 msgstr "Весь час"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Allow duplicating"
+msgstr "Дозволити дублювання"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Allow guest to view"
 msgstr "Доступно гостям"
 
@@ -901,6 +955,10 @@ msgstr "Дозвіл для гостей"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Allow self sign-up"
 msgstr "Дозволити самостійну реєстрацію"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Allowed IP addresses"
+msgstr "Дозволені IP-адреси"
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgid "Allowed IPs (comma-separated)"
@@ -1225,9 +1283,14 @@ msgstr "Зверніться до власника документа за но�
 msgid "Ask “Are you sure?” before applying"
 msgstr "Перед переходом запитати «Ви впевнені?»"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assign"
 msgstr "Призначити відповідального"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign only on these days (site time zone); empty - every day"
+msgstr "Призначати лише в ці дні (часовий пояс сайту); порожньо — щодня"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assign to Role"
@@ -1292,6 +1355,14 @@ msgstr "Спосіб призначення"
 msgid "Assignment Rule"
 msgstr "Правило призначення"
 
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "Assignment rule"
+msgstr "Правило призначення"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Assignment rule user"
+msgstr "Виконавець правила призначення"
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "At least 8 characters"
 msgstr "Мінімум 8 символів"
@@ -1331,6 +1402,14 @@ msgstr "Прикріпити зображення…"
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Attach as a link"
 msgstr "Прикріпити посиланням"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document as PDF"
+msgstr "Вкласти документ у PDF"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document's files"
+msgstr "Вкласти файли документа"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -1484,6 +1563,10 @@ msgstr "Повернутися до свого облікового запису
 msgid "Back to sign in"
 msgstr "Повернутися до входу"
 
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Back to sign-in"
+msgstr "Повернутися до входу"
+
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Background Task"
 msgstr "Фонове завдання"
@@ -1606,6 +1689,15 @@ msgstr "Стовпчиковий"
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue
 msgid "Barcode not found in image."
 msgstr "На зображенні не знайдено штрихкоду."
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Based on Field"
+msgstr "З поля документа"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
+msgid "Based on Field needs the user field"
+msgstr "Для «З поля документа» потрібне поле з користувачем"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Basics"
@@ -2138,6 +2230,10 @@ msgstr "Оберіть поле"
 msgid "Choose a folder"
 msgstr "Оберіть теку"
 
+#: grunt/grunt/auth/user_api.py
+msgid "Choose a password different from the old one"
+msgstr "Виберіть пароль, відмінний від старого"
+
 #: grunt/frontend/src/components/views/form/FormModals.vue
 msgid "Choose a replacement or delete without one."
 msgstr "Оберіть, чим їх замінити, або видаліть без заміни."
@@ -2166,6 +2262,10 @@ msgstr "Обрати іконку…"
 msgid "Choose at least one part to back up"
 msgstr "Оберіть хоча б одну частину для резервної копії"
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Choose at least one role"
+msgstr "Виберіть хоча б одну роль"
+
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 msgid "Choose filters"
 msgstr "Обрати фільтри"
@@ -2182,6 +2282,7 @@ msgstr "Вибрати з дерева"
 msgid "Choose the date field to count from"
 msgstr "Оберіть поле дати, від якого рахувати"
 
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/outgoing_webhook.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the document type"
 msgstr "Оберіть тип документа"
@@ -2189,6 +2290,10 @@ msgstr "Оберіть тип документа"
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Choose the first available DocType"
 msgstr "Обрати перший доступний DocType"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the webhook for the Webhook channel"
+msgstr "Виберіть вебхук для каналу «Вебхук»"
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Choose them in the Builder → «Views» tab → «Gantt chart»."
@@ -2305,6 +2410,11 @@ msgstr "Буфер обміну недоступний:"
 msgid "Close"
 msgstr "Закрити"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Close when (JSON)"
+msgstr "Закрити, коли (JSON)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Closed"
 msgstr "Закрито"
@@ -2833,6 +2943,10 @@ msgstr "Не вдалося скопіювати"
 msgid "Could not create the page"
 msgstr "Помилка створення сторінки"
 
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not delete the filter"
+msgstr "Не вдалося видалити фільтр"
+
 #: grunt/grunt/storage/cloud/rclone.py
 msgid "Could not download rclone: checksum mismatch"
 msgstr "Не вдалося завантажити rclone: контрольна сума не збігається"
@@ -2848,6 +2962,10 @@ msgstr "Не вдалося завантажити файл"
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "Could not download the file: %(error)s"
 msgstr "Не вдалося завантажити файл: %(error)s"
+
+#: grunt/frontend/src/core/composables/useFormActions.ts
+msgid "Could not duplicate the document"
+msgstr "Не вдалося дублювати документ"
 
 #: grunt/frontend/src/components/fields/Geolocation/Geolocation.vue
 msgid "Could not get your location"
@@ -2885,6 +3003,14 @@ msgstr "Не вдалося перепризначити посилання — 
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Could not save"
 msgstr "Не вдалося зберегти"
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Could not save the defaults"
+msgstr "Не вдалося зберегти типові налаштування"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not save the filter"
+msgstr "Не вдалося зберегти фільтр"
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not save the report"
@@ -3307,6 +3433,10 @@ msgstr "Кількість днів не може бути від'ємною"
 msgid "Days in each compared period."
 msgstr "Кількість днів у кожному з порівнюваних періодів."
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Days of the week"
+msgstr "Дні тижня"
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Dead"
 msgstr "Мертвий"
@@ -3361,6 +3491,20 @@ msgstr "Визначає, які з налаштувань нижче мають
 msgid "Decimal places"
 msgstr "Знаків після коми"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Decimal places for Float / Currency / Percent: shown with and rounded to on "
+"save (Currency: 2 by default; changing it changes the column)"
+msgstr ""
+"Кількість знаків після коми для Float / Currency / Percent: з нею "
+"показується й до неї округлюється при збереженні (Currency: типово 2; зміна "
+"змінює колонку)"
+
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue
+msgid "Decimal places: shown with and rounded to on save"
+msgstr ""
+"Знаків після коми: з ними показується й до них округлюється при збереженні"
+
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Decrease indent"
 msgstr "Зменшити відступ"
@@ -3383,6 +3527,14 @@ msgstr "Колір за замовчуванням"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Default language"
 msgstr "Мова за замовчуванням"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Default list columns in order - set by “Save as default for all” in the "
+"list's settings; empty - the “In list view” fields"
+msgstr ""
+"Типові колонки списку в порядку показу — задаються кнопкою «Зберегти як "
+"типове для всіх» у налаштуваннях списку; порожньо — поля «У списку»"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -3958,6 +4110,8 @@ msgstr "Документ поширено"
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
@@ -4044,6 +4198,10 @@ msgstr "Не містить"
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Domain"
 msgstr "Домен"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Don't copy"
+msgstr "Не копіювати"
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
@@ -4136,6 +4294,10 @@ msgstr "Dropbox"
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Due date"
 msgstr "Термін"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Due date from"
+msgstr "Строк з поля"
 
 #: grunt/grunt/db/dialects/postgresql.py
 msgid "Dumping the database"
@@ -4307,6 +4469,22 @@ msgid "Email the report as XLSX on a schedule (daily at 07:00). Empty — off."
 msgstr ""
 "Надсилати звіт у форматі XLSX за розкладом (щодня о 07:00). Порожньо — "
 "вимкнено."
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Email: the document printed with the print format below (the default one "
+"when empty)"
+msgstr ""
+"Email: документ, надрукований друкованою формою нижче (типовою, якщо "
+"порожньо)"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: the files attached to the document (up to 10 MB in all)"
+msgstr "Email: файли, прикріплені до документа (разом до 10 МБ)"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: this mailbox instead of the site's default"
+msgstr "Email: ця скринька замість типової для сайту"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Emails (password reset, notifications) will not be sent."
@@ -4660,10 +4838,24 @@ msgid "Every, hours"
 msgstr "Кожні, годин"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Everyone"
 msgstr "Усі"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Everyone - every user below; Round Robin - one by one in turn; Load "
+"Balancing - the one with the fewest open assignments; Based on Field - the "
+"user in a field of the document"
+msgstr ""
+"Усім — кожному з виконавців нижче; По черзі — по одному по колу; Найменш "
+"завантаженому — тому, в кого найменше відкритих призначень; З поля документа"
+" — користувачу з поля документа"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
@@ -4955,6 +5147,10 @@ msgstr "Назва поля «%(fieldname)s» довша за %(max)s симво
 msgid "Fieldname for the event label (default: name)"
 msgstr "Fieldname для тексту події (default: name)"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Date on the document - the assignment's due date"
+msgstr "Назва поля дати в документі — строк призначення"
+
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid ""
 "Fieldname of a Date/Datetime field in the copy to set to the scheduled date "
@@ -4963,9 +5159,20 @@ msgstr ""
 "Назва поля типу Date/Datetime у копії, яке отримає дату за розкладом (напр. "
 "posting_date)"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Link to User on the document"
+msgstr "Назва поля документа з посиланням на користувача"
+
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "Fieldname of a numeric field in the child DocType"
 msgstr "Fieldname числового поля у дочірньому DocType"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Fieldname on the document to set once someone was notified - e.g. "
+"reminder_sent"
+msgstr ""
+"Поле документа, яке встановити, щойно когось сповіщено — напр. reminder_sent"
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgid "Fieldname on the source DocType holding the event date"
@@ -5186,6 +5393,7 @@ msgstr "Фільтр:"
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 msgid "Filters"
 msgstr "Фільтри"
 
@@ -5456,9 +5664,12 @@ msgstr "Періодичність"
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Fri"
 msgstr "Пт"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Friday"
+msgstr "П'ятниця"
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Friendly name of the device / authenticator"
@@ -5724,6 +5935,14 @@ msgstr "HTTP-запит"
 msgid "HTTP status"
 msgstr "HTTP Статус"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Half even"
+msgstr "Банківське (0,5 — до парного)"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Half up"
+msgstr "Комерційне (0,5 — вгору)"
+
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Handler / Script"
 msgstr "Обробник / Скрипт"
@@ -5927,6 +6146,11 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
+"How long before / after the date-and-time field; checked every 5 minutes"
+msgstr "За скільки до / після поля дати й часу; перевіряється кожні 5 хвилин"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
 "How many days before/after the date; 0: on the day itself. Sent once a day "
 "at 08:00"
 msgstr ""
@@ -5951,6 +6175,14 @@ msgid ""
 msgstr ""
 "Скільки може вмістити «Мої файли» кожного користувача; 0 — без обмежень. "
 "Власна квота користувача (Користувач → Безпека) має пріоритет"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"How numbers are rounded to a field's precision. Half up (commercial): 0.125 "
+"→ 0.13. Half even (banker's): 0.125 → 0.12"
+msgstr ""
+"Як числа округлюються до точності поля. Комерційне: 0,125 → 0,13. Банківське"
+" (до парного): 0,125 → 0,12"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "How this storage is shown in lists and in the backup status."
@@ -6489,6 +6721,10 @@ msgstr "Недійсний або відсутній токен скидання
 msgid "Invalid phone format"
 msgstr "Невірний формат телефону"
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Invalid sharing"
+msgstr "Невідомий варіант доступу"
+
 #: grunt/grunt/auth/user_api.py
 msgid "Invalid theme value"
 msgstr "Недійсне значення теми"
@@ -6496,6 +6732,10 @@ msgstr "Недійсне значення теми"
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Invalid verification code"
 msgstr "Невірний код підтвердження"
+
+#: grunt/grunt/api/v1/view_settings.py
+msgid "Invalid view"
+msgstr "Невідомий вигляд"
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
 msgid "Invite users"
@@ -6766,6 +7006,10 @@ msgstr "Найбільші таблиці"
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Last activity"
 msgstr "Остання активність"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Last assigned"
+msgstr "Останній призначений"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Last checked"
@@ -7047,6 +7291,10 @@ msgstr "Посилання на адреси внутрішньої мережі
 msgid "List"
 msgstr "Список"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "List columns"
+msgstr "Колонки списку"
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "List report options"
 msgstr "Параметри звіту-списку"
@@ -7066,6 +7314,11 @@ msgid ""
 msgstr ""
 "Показує набори у сховищі; вибраний завантажується на сервер і з'являється в "
 "«Резервних копіях», готовий до «grunt db restore»."
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Load Balancing"
+msgstr "Найменш завантаженому"
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue
 msgid "Load error"
@@ -7293,6 +7546,10 @@ msgstr "Керування робочими просторами й сторін
 msgid "Mandatory Depends On"
 msgstr "Обов'язкове, якщо (Mandatory Depends On)"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Mandatory depends on"
+msgstr "Обов'язкове, якщо"
+
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Manual"
 msgstr "Вручну"
@@ -7506,9 +7763,14 @@ msgstr "Мінімум (MIN)"
 msgid "Minimum password length"
 msgstr "Мінімальна довжина пароля"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 msgid "Minutes"
 msgstr "Хвилини"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Minutes cannot be negative"
+msgstr "Хвилини не можуть бути від'ємними"
 
 #: grunt/grunt/auth/providers/oauth.py
 msgid "Missing OAuth 'code'"
@@ -7551,9 +7813,12 @@ msgstr "Модулі"
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Mon"
 msgstr "Пн"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Monday"
+msgstr "Понеділок"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Monthly"
@@ -7641,6 +7906,10 @@ msgstr "Моє місце"
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "My reminders"
 msgstr "Мої нагадування"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "My roles…"
+msgstr "Моїм ролям…"
 
 #: grunt/grunt/cli/doctype.py
 #: grunt/grunt/monitoring/templates/system_health.html
@@ -7786,6 +8055,7 @@ msgstr "Нове сповіщення"
 
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
+#: grunt/frontend/src/pages/auth/Login.vue
 msgid "New password"
 msgstr "Новий пароль"
 
@@ -8135,9 +8405,17 @@ msgstr "Користувачів не знайдено"
 msgid "No value"
 msgstr "Без значення"
 
+#: grunt/grunt/notification/rules.py
+msgid "No webhook chosen for the channel"
+msgstr "Для каналу не вибрано вебхук"
+
 #: grunt/grunt/monitoring/health.py
 msgid "No worker is connected: background jobs are not running."
 msgstr "Жоден воркер не підключений — фонові задачі не виконуються."
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Nobody"
+msgstr "Нікому"
 
 #: grunt/grunt/permissions/warnings.py
 msgid ""
@@ -8198,6 +8476,10 @@ msgstr "Не автором документа"
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr "Не збережено, напр.: {files}. Перезавантажте сторінку з мережею."
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not carried over when the document is duplicated"
+msgstr "Не переноситься при дублюванні документа"
 
 #: grunt/frontend/src/pages/studio/builder/CanvasSection.vue
 msgid "Not collapsible"
@@ -8442,6 +8724,10 @@ msgstr "Область"
 msgid "October"
 msgstr "Жовтень"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Off - the form has no “Duplicate” action"
+msgstr "Вимкнено — у формі немає дії «Дублювати»"
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "Official language"
 msgstr "Офіційна мова"
@@ -8523,6 +8809,10 @@ msgstr "Прогрес перших кроків"
 msgid "Onboarding step"
 msgstr "Крок перших кроків"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Once saved with a value, it can't be changed"
+msgstr "Після збереження зі значенням змінити не можна"
+
 #: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue
 msgid "One option per line"
 msgstr "Кожна опція з нового рядка"
@@ -8600,6 +8890,10 @@ msgstr "Завантажити можна лише посилання http:// і
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue
 msgid "Only images can be used here"
 msgstr "Тут можна використати лише зображення"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Only me"
+msgstr "Лише мені"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Only one document of this type (settings, profile)"
@@ -9059,9 +9353,14 @@ msgstr "Ключі доступу (Passkeys)"
 msgid "Password"
 msgstr "Пароль"
 
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Password changed"
 msgstr "Пароль успішно змінено"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Password expires after, days"
+msgstr "Строк дії пароля, днів"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Password hash"
@@ -9088,6 +9387,19 @@ msgstr "Посилання для скидання пароля (дійсне 1 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Password reset token"
 msgstr "Токен відновлення пароля"
+
+#: grunt/grunt/auth/user_api.py
+msgid "Password sign-in is off on this site - use single sign-on"
+msgstr ""
+"Вхід за паролем на цьому сайті вимкнено — скористайтеся єдиним входом (SSO)"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Password sign-in is refused (and hidden on the sign-in page) for everyone "
+"but administrators"
+msgstr ""
+"Вхід за паролем відхиляється (і прихований на сторінці входу) для всіх, крім"
+" адміністраторів"
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Password updated!"
@@ -9277,6 +9589,11 @@ msgstr "Поштова"
 msgid "Postal code"
 msgstr "Поштовий індекс"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue
+msgid "Precision"
+msgstr "Точність"
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Preferences"
 msgstr "Налаштування"
@@ -9356,6 +9673,10 @@ msgstr "Друк / PDF"
 msgid "Print Format"
 msgstr "Формат друку"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Print format"
+msgstr "Друкована форма"
+
 #: grunt/grunt/monitoring/health.py
 msgid ""
 "Printing to PDF and signing print formats do not work. Run `grunt update` or"
@@ -9367,6 +9688,7 @@ msgstr ""
 " apps/grunt; на новому сервері ще й `playwright install-deps chromium` від "
 "root."
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Priority"
@@ -9626,6 +9948,10 @@ msgstr "Читання"
 msgid "Read Only (recommended)"
 msgstr "Read Only (рекомендовано)"
 
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
+msgid "Read Only Depends On"
+msgstr "Лише для читання, якщо (Read Only Depends On)"
+
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Read by recipient at"
 msgstr "Прочитано отримувачем (час)"
@@ -9647,9 +9973,21 @@ msgstr "Запитано підтвердження прочитання"
 msgid "Read-only"
 msgstr "Лише читання"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only depends on"
+msgstr "Лише для читання, якщо"
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Read-only fields (comma-separated)"
 msgstr "Поля лише для читання (через кому)"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Read-only when the condition holds (JS, checked in the form), e.g. "
+"eval:doc.status == 'Approved'"
+msgstr ""
+"Лише для читання, поки умова виконується (JS, перевіряється у формі), напр. "
+"eval:doc.status == 'Approved'"
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "Reading file structure…"
@@ -10120,6 +10458,10 @@ msgstr "Обов'язкові поля відсутні або порожні: %
 msgid "Required fields not mapped:"
 msgstr "Обов'язкові поля без прив'язки:"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Required when the condition holds (JS, checked in the form)"
+msgstr "Обов'язкове, поки умова виконується (JS, перевіряється у формі)"
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Resend"
 msgstr "Надіслати ще раз"
@@ -10295,6 +10637,10 @@ msgstr "Форматований текст"
 msgid "Role"
 msgstr "Роль"
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Role names, when shared with roles"
+msgstr "Назви ролей, якщо доступ для ролей"
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
@@ -10312,6 +10658,7 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 msgid "Role, everyone, end date…"
 msgstr "Роль, усі, строк…"
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -10329,6 +10676,27 @@ msgstr "Ролі (через кому)"
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Root folder"
 msgstr "Коренева тека"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Round Robin"
+msgstr "По черзі"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid ""
+"Round robin: how many turns in a row; load balancing: share of the work (2 -"
+" twice as much)"
+msgstr ""
+"По черзі — скільки разів поспіль; найменш завантаженому — частка роботи (2 —"
+" удвічі більше)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Round robin: whose turn was last"
+msgstr "По черзі: чия черга була останньою"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Rounding"
+msgstr "Округлення"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Route"
@@ -10396,6 +10764,14 @@ msgstr "Рядків: {n}"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Rule ID"
 msgstr "ID правила"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Rules are tried from the highest priority; the first one that matches "
+"assigns (and none does while its assignment is open)"
+msgstr ""
+"Правила перевіряються від найвищого пріоритету; призначає перше, що підійшло"
+" (і жодне — поки його призначення відкрите)"
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Rules that grant this action"
@@ -10599,9 +10975,12 @@ msgid "Sample data"
 msgstr "Приклад даних"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sat"
 msgstr "Сб"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Saturday"
+msgstr "Субота"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
@@ -10621,6 +11000,10 @@ msgstr "Зберегти й закрити"
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 msgid "Save and open"
 msgstr "Зберегти й відкрити"
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Save as default for all"
+msgstr "Зберегти як типове для всіх"
 
 #: grunt/frontend/src/components/views/FilterBar.vue
 msgid "Save as preset"
@@ -10667,6 +11050,14 @@ msgstr "Збережіть ваші резервні коди! Вони відо
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Saved"
 msgstr "Збережено"
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Saved as the default for everyone"
+msgstr "Збережено як типове для всіх"
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Saved filter"
+msgstr "Збережений фільтр"
 
 #: grunt/frontend/src/components/views/FilterBar.vue
 msgid "Saved filters"
@@ -11026,6 +11417,10 @@ msgstr "Вибрано: {n}"
 msgid "Send"
 msgstr "Надіслати"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Send from"
+msgstr "Надсилати з"
+
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue
 msgid "Send link"
 msgstr "Надіслати посилання"
@@ -11177,6 +11572,10 @@ msgstr "Токени сесій"
 msgid "Sessions & brute-force protection"
 msgstr "Сесії та захист від підбору"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sessions per user"
+msgstr "Сесій на користувача"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Set SECRET_KEY: with the default key, tokens can be forged."
 msgstr "Задайте SECRET_KEY — зі стандартним ключем токени можна підробити."
@@ -11191,6 +11590,7 @@ msgid ""
 msgstr ""
 "Вкажіть статуси завершення або умову — інакше відлік ніколи не зупиниться"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Set field"
 msgstr "Встановити поле"
@@ -11199,9 +11599,17 @@ msgstr "Встановити поле"
 msgid "Set new password"
 msgstr "Встановити новий пароль"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Set only once"
+msgstr "Задається один раз"
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Set password"
 msgstr "Встановити пароль"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Set the new password"
+msgstr "Встановити новий пароль"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 msgid "Set up"
@@ -11219,6 +11627,7 @@ msgstr "Налаштуйте звіт"
 msgid "Set value"
 msgstr "Встановити значення"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue
@@ -11270,6 +11679,15 @@ msgstr "Поділився(-лась)"
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Shared With"
 msgstr "Спільний доступ"
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared filter"
+msgstr "Спільний фільтр"
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared with"
+msgstr "Кому доступно"
 
 #: grunt/grunt/notification/records/notification/document_shared/document_shared.json
 msgid "Shared with you: %(target)s"
@@ -11470,6 +11888,10 @@ msgstr "Вхід від імені іншого користувача"
 msgid "Sign in as this user"
 msgstr "Увійти як цей користувач"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in from"
+msgstr "Вхід з"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "Sign in in the browser window that opens and allow access"
 msgstr "Увійдіть у вікні браузера, що відкриється, і дозвольте доступ"
@@ -11482,6 +11904,14 @@ msgstr "Увійти через браузер"
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Sign in to your account"
 msgstr "Увійдіть у свій акаунт"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in until"
+msgstr "Вхід до"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sign in with SSO only"
+msgstr "Вхід лише через SSO"
 
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid ""
@@ -11498,6 +11928,11 @@ msgstr ""
 msgid "Sign up"
 msgstr "Зареєструватися"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in allowed only from this time (site time zone); empty - any time"
+msgstr ""
+"Вхід дозволено лише з цього часу (часовий пояс сайту); порожньо — будь-коли"
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Sign-in code"
 msgstr "Код для входу"
@@ -11506,9 +11941,21 @@ msgstr "Код для входу"
 msgid "Sign-in failed"
 msgstr "Не вдалося увійти"
 
+#: grunt/grunt/auth/login.py
+msgid "Sign-in from this IP address is not allowed for your account"
+msgstr "Вхід з цієї IP-адреси для вашого облікового запису заборонено"
+
 #: grunt/grunt/auth/login.py grunt/grunt/auth/user_api.py
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі"
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in is allowed only from %(from)s to %(to)s"
+msgstr "Вхід дозволено лише з %(from)s до %(to)s"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in limits"
+msgstr "Обмеження входу"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Sign-ins"
@@ -11533,6 +11980,10 @@ msgstr "Заголовок підпису"
 #: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
 msgid "Signed in at"
 msgstr "Час входу"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Signing in with an older password asks for a new one first; 0 - never"
+msgstr "Вхід зі старішим паролем спершу вимагає новий; 0 — ніколи"
 
 #: grunt/grunt/auth/doctypes/User/user.py
 msgid "Signup state"
@@ -11986,9 +12437,12 @@ msgid "Summary"
 msgstr "Підсумок"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sun"
 msgstr "Нд"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Sunday"
+msgstr "Неділя"
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Superscript"
@@ -12721,6 +13175,11 @@ msgstr "Коренева тека простору власника"
 msgid "The rule for “%(role)s” grants no action."
 msgstr "Правило для «%(role)s» не дає жодної дії."
 
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "The rule that made this assignment - it also cancels or closes it"
+msgstr ""
+"Правило, що створило це призначення, — воно ж його скасовує чи закриває"
+
 #: grunt/grunt/permissions/warnings.py
 msgid "The rules were changed on this site and differ from the app's."
 msgstr ""
@@ -12771,9 +13230,17 @@ msgstr "Service worker не зберіг відповідь API — офлайн
 msgid "The service worker works only over HTTPS (or localhost)."
 msgstr "Service worker працює лише через HTTPS (або localhost)."
 
+#: grunt/grunt/api/v1/view_settings.py
+msgid "The settings are too large"
+msgstr "Налаштування завеликі"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The shell is cached after the first page load with the network."
 msgstr "Оболонка зберігається після першого відкриття сторінки з мережею."
+
+#: grunt/grunt/auth/user_api.py
+msgid "The sign-in has expired - sign in again"
+msgstr "Час на вхід минув — увійдіть знову"
 
 #: grunt/grunt/storage/cloud/oauth.py grunt/frontend/src/pages/auth/Login.vue
 msgid "The sign-in link is invalid or expired"
@@ -12881,8 +13348,8 @@ msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
-msgid "The “Filters (JSON)” field must contain valid JSON."
-msgstr "Поле «Filters (JSON)» має містити валідний JSON."
+msgid "The “%(field)s” field must contain valid JSON."
+msgstr "Поле «%(field)s» має містити коректний JSON."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Their size"
@@ -13036,13 +13503,16 @@ msgid "Three-letter currency code (UAH, USD, EUR)"
 msgstr "Трибуквений код валюти (UAH, USD, EUR)"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Thu"
 msgstr "Чт"
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgid "Thumbnail"
 msgstr "Мініатюра"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Thursday"
+msgstr "Четвер"
 
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
 msgid "Tick the items you need in the tree"
@@ -13127,6 +13597,7 @@ msgstr "Час виконання"
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Title"
@@ -13161,6 +13632,10 @@ msgstr ""
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "To state"
 msgstr "У стан"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "To value"
+msgstr "Значення"
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue
@@ -13284,9 +13759,12 @@ msgid "Try rebuilding the index"
 msgstr "Спробувати перебудувати індекс"
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Tue"
 msgstr "Вт"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Tuesday"
+msgstr "Вівторок"
 
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue
 msgid "Turn into"
@@ -13374,6 +13852,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Unassign"
 msgstr "Зняти призначення"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Unassign when (JSON)"
+msgstr "Зняти, коли (JSON)"
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Unassigned"
+msgstr "Знято"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Undelivered"
@@ -13678,6 +14164,7 @@ msgstr "Використовується для відображення дат 
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -13701,6 +14188,10 @@ msgstr "Користувач"
 msgid "User Agent"
 msgstr "User Agent"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "User field"
+msgstr "Поле користувача"
+
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
 msgid "User not found"
 msgstr "Користувача не знайдено"
@@ -13721,6 +14212,10 @@ msgstr "Роль користувача"
 msgid "User session"
 msgstr "Сесія користувача"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "User view settings"
+msgstr "Налаштування вигляду користувача"
+
 #: grunt/grunt/auth/user_api.py
 msgid "User with email '%(email)s' already exists"
 msgstr "Користувач з адресою «%(email)s» вже існує"
@@ -13729,6 +14224,10 @@ msgstr "Користувач з адресою «%(email)s» вже існує"
 #: grunt/grunt/api/v1/permission_inspector.py
 msgid "User “%(user)s” not found"
 msgstr "Користувача «%(user)s» не знайдено"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Users"
+msgstr "Користувачі"
 
 #: grunt/grunt/monitoring/health.py
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
@@ -13868,6 +14367,7 @@ msgstr "Вертикальний текст, згори донизу"
 msgid "Video URL"
 msgstr "Посилання на відео"
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "View"
@@ -14023,8 +14523,10 @@ msgstr ""
 msgid "WebSockets"
 msgstr "Вебсокети"
 
+#: grunt/grunt/notification/channels.py
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 msgid "Webhook"
 msgstr "Вебхук"
 
@@ -14051,9 +14553,12 @@ msgstr "Зображення сайту краще лишати на серве�
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Wed"
 msgstr "Ср"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Wednesday"
+msgstr "Середа"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Weekly"
@@ -14066,6 +14571,10 @@ msgstr "Тижневий дайджест сповіщень"
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Weeks"
 msgstr "Тижні"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Weight"
+msgstr "Вага"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Welcome back"
@@ -14124,6 +14633,28 @@ msgid ""
 msgstr ""
 "Коли щось стається з документом — кого сповістити, про що і якими каналами"
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is cancelled - "
+"e.g. {\"status\": \"Cancelled\"}"
+msgstr ""
+"Коли документ відповідає умові, відкрите призначення цього правила "
+"скасовується — напр. {\"status\": \"Cancelled\"}"
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is closed as "
+"done - e.g. {\"status\": \"Answered\"}"
+msgstr ""
+"Коли документ відповідає умові, відкрите призначення цього правила "
+"закривається як виконане — напр. {\"status\": \"Answered\"}"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"When the password was last set - its age for the site's password expiry"
+msgstr ""
+"Коли пароль востаннє встановлено — його вік для строку дії паролів сайту"
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
 msgstr "Коли воркер востаннє звертався до черги."
@@ -14138,6 +14669,14 @@ msgstr ""
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid "Where the tour runs: the document's form or the list of documents"
 msgstr "Де проходить тур: у формі документа чи в списку документів"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Where the webhook channel posts (one request per notification, not per "
+"recipient)"
+msgstr ""
+"Куди надсилає канал «Вебхук» (один запит на сповіщення, а не на кожного "
+"отримувача)"
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
@@ -14179,6 +14718,13 @@ msgstr ""
 "Хто й коли змінив доступ: ролі користувачів і їхні області, дозволи ролей, "
 "правила DocType, поширення й публічні посилання. Пише система, лише для "
 "читання."
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Who is assigned; empty - the holders of the role below (within their role "
+"scope)"
+msgstr ""
+"Кому призначати; порожньо — власникам ролі нижче (в межах їхньої області)"
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid ""
@@ -14469,6 +15015,10 @@ msgstr "Ваші ключі"
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Your latest notifications will appear here."
 msgstr "Тут з'являться ваші останні сповіщення."
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Your password has expired - set a new one"
+msgstr "Строк дії пароля минув — встановіть новий"
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid ""
@@ -15025,6 +15575,10 @@ msgstr "не підтримується"
 #: grunt/grunt/monitoring/health.py grunt/frontend/src/core/browserHealth.ts
 msgid "not working"
 msgstr "не працює"
+
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
+msgid "notification - only from notification rules (their Webhook channel)"
+msgstr "notification — лише з правил сповіщень (їхній канал «Вебхук»)"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
 msgid "now"
@@ -15650,9 +16204,25 @@ msgstr ""
 msgid "“%(field)s” is not a date field of %(doctype)s"
 msgstr "«%(field)s» не є полем дати в %(doctype)s"
 
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a date-and-time field of %(doctype)s"
+msgstr "«%(field)s» — не поле дати й часу в %(doctype)s"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a field of %(doctype)s"
+msgstr "«%(field)s» — не поле %(doctype)s"
+
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
 msgstr "«%(field)s» не є полем %(doctype)s, яке можна відстежувати"
+
+#: grunt/grunt/document/validation.py
+msgid "“%(fields)s” can't be changed once set"
+msgstr "«%(fields)s» не можна змінити після встановлення"
+
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "“*” - not tied to a DocType (recent documents)"
+msgstr "«*» — не прив’язано до DocType (недавні документи)"
 
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“Event recipients” only work for a notification on a code event"
@@ -15665,6 +16235,11 @@ msgstr "«{action}»: ви впевнені?"
 #: grunt/grunt/email/templates/notification_digest.html
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"…and until this time; a range across midnight works too (22:00 - 06:00)"
+msgstr "…і до цього часу; проміжок через північ теж працює (22:00 — 06:00)"
 
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "≤ 1 s"
@@ -16272,6 +16847,9 @@ msgstr "Відкрито"
 #~ msgid ""
 #~ "The restriction applies to any DocType with a Link field to «Restrict by»."
 #~ msgstr "Обмеження діє на будь-який DocType із Link-полем на «Обмежити за»."
+
+#~ msgid "The “Filters (JSON)” field must contain valid JSON."
+#~ msgstr "Поле «Filters (JSON)» має містити валідний JSON."
 
 #~ msgid "This user permission already exists"
 #~ msgstr "Такий дозвіл користувача вже існує"

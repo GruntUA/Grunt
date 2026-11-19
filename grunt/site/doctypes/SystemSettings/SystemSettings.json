@@ -72,6 +72,15 @@
       "columns": 6
     },
     {
+      "fieldname": "rounding_method",
+      "label": "Rounding",
+      "fieldtype": "Select",
+      "translatable": true,
+      "options": "Half up\nHalf even",
+      "default": "Half up",
+      "description": "How numbers are rounded to a field's precision. Half up (commercial): 0.125 → 0.13. Half even (banker's): 0.125 → 0.12"
+    },
+    {
       "fieldname": "sec_registration",
       "label": "User registration",
       "fieldtype": "Section"
@@ -279,6 +288,13 @@
       "columns": 6
     },
     {
+      "fieldname": "password_max_age_days",
+      "label": "Password expires after, days",
+      "fieldtype": "Int",
+      "default": 0,
+      "description": "Signing in with an older password asks for a new one first; 0 - never"
+    },
+    {
       "fieldname": "sec_sessions",
       "label": "Sessions & brute-force protection",
       "fieldtype": "Section"
@@ -317,6 +333,20 @@
       "default": 30,
       "min_value": 1,
       "columns": 6
+    },
+    {
+      "fieldname": "max_sessions_per_user",
+      "label": "Sessions per user",
+      "fieldtype": "Int",
+      "default": 0,
+      "description": "A new sign-in ends the oldest sessions past this number; 1 - one device at a time; 0 - no limit"
+    },
+    {
+      "fieldname": "disable_password_login",
+      "label": "Sign in with SSO only",
+      "fieldtype": "Check",
+      "default": 0,
+      "description": "Password sign-in is refused (and hidden on the sign-in page) for everyone but administrators"
     },
     {
       "fieldname": "sec_captcha",

@@ -315,8 +315,20 @@ msgstr ""
 msgid "A lowercase letter"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid ""
+"A named set of list filters - its owner's, or shared with roles or with "
+"everyone (only to apply; the owner changes and deletes it)."
+msgstr ""
+
 #: grunt/grunt/workflow/guard.py
 msgid "A new document starts in the “%(state)s” state"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
+" time; 0 - no limit"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -387,6 +399,10 @@ msgid ""
 "are drawn between them"
 msgstr ""
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "A title and at least one filter are needed"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 msgid "A tour the user has been through (instead of a checklist)"
 msgstr ""
@@ -411,6 +427,13 @@ msgstr ""
 msgid "A user's like on one document (the heart in list views)."
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid ""
+"A user's list settings per DocType and view - columns, sorting, quick "
+"filters, report layout; kept on the server so they follow the user across "
+"devices."
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RowCondition/RowCondition.vue
 msgid "A value cannot contain both kinds of quotes"
 msgstr ""
@@ -427,6 +450,10 @@ msgstr ""
 msgid ""
 "A walk through a DocType's form or list: each step points at a field or an "
 "element and explains it."
+msgstr ""
+
+#: grunt/grunt/notification/channels.py
+msgid "A webhook goes once per notification"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -730,6 +757,16 @@ msgstr ""
 msgid "Address type"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Addresses or CIDR networks, comma or newline separated - on top of the "
+"role's own limit; empty - any"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Administrator sign-in"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Administrators without 2FA"
 msgstr ""
@@ -754,6 +791,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "After how many minutes of inactivity a re-login is required."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "After sending"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -846,6 +887,10 @@ msgid "All time"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Allow duplicating"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Allow guest to view"
 msgstr ""
 
@@ -855,6 +900,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Allow self sign-up"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Allowed IP addresses"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
@@ -1162,8 +1211,13 @@ msgstr ""
 msgid "Ask “Are you sure?” before applying"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assign"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign only on these days (site time zone); empty - every day"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
@@ -1229,6 +1283,14 @@ msgstr ""
 msgid "Assignment Rule"
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "Assignment rule"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Assignment rule user"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "At least 8 characters"
 msgstr ""
@@ -1267,6 +1329,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Attach as a link"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document as PDF"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document's files"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -1417,6 +1487,10 @@ msgstr ""
 msgid "Back to sign in"
 msgstr ""
 
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Back to sign-in"
+msgstr ""
+
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Background Task"
 msgstr ""
@@ -1531,6 +1605,15 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/BarCode/BarCode.vue
 msgid "Barcode not found in image."
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Based on Field"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
+msgid "Based on Field needs the user field"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -2054,6 +2137,10 @@ msgstr ""
 msgid "Choose a folder"
 msgstr ""
 
+#: grunt/grunt/auth/user_api.py
+msgid "Choose a password different from the old one"
+msgstr ""
+
 #: grunt/frontend/src/components/views/form/FormModals.vue
 msgid "Choose a replacement or delete without one."
 msgstr ""
@@ -2082,6 +2169,10 @@ msgstr ""
 msgid "Choose at least one part to back up"
 msgstr ""
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Choose at least one role"
+msgstr ""
+
 #: grunt/frontend/src/components/views/list/QuickFilterSettingsDialog.vue
 msgid "Choose filters"
 msgstr ""
@@ -2098,12 +2189,17 @@ msgstr ""
 msgid "Choose the date field to count from"
 msgstr ""
 
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/outgoing_webhook.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the document type"
 msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Choose the first available DocType"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the webhook for the Webhook channel"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
@@ -2221,6 +2317,11 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Close when (JSON)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Closed"
 msgstr ""
@@ -2738,6 +2839,10 @@ msgstr ""
 msgid "Could not create the page"
 msgstr ""
 
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not delete the filter"
+msgstr ""
+
 #: grunt/grunt/storage/cloud/rclone.py
 msgid "Could not download rclone: checksum mismatch"
 msgstr ""
@@ -2752,6 +2857,10 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/file.py
 msgid "Could not download the file: %(error)s"
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useFormActions.ts
+msgid "Could not duplicate the document"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Geolocation/Geolocation.vue
@@ -2789,6 +2898,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Could not save"
+msgstr ""
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Could not save the defaults"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Could not save the filter"
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
@@ -3201,6 +3318,10 @@ msgstr ""
 msgid "Days in each compared period."
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Days of the week"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "Dead"
 msgstr ""
@@ -3253,6 +3374,16 @@ msgstr ""
 msgid "Decimal places"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Decimal places for Float / Currency / Percent: shown with and rounded to on "
+"save (Currency: 2 by default; changing it changes the column)"
+msgstr ""
+
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue
+msgid "Decimal places: shown with and rounded to on save"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Decrease indent"
 msgstr ""
@@ -3274,6 +3405,12 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Default language"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Default list columns in order - set by “Save as default for all” in the "
+"list's settings; empty - the “In list view” fields"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -3835,6 +3972,8 @@ msgstr ""
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
@@ -3918,6 +4057,10 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Domain"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Don't copy"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -4008,6 +4151,10 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Due date"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Due date from"
 msgstr ""
 
 #: grunt/grunt/db/dialects/postgresql.py
@@ -4175,6 +4322,20 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Email the report as XLSX on a schedule (daily at 07:00). Empty — off."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Email: the document printed with the print format below (the default one "
+"when empty)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: the files attached to the document (up to 10 MB in all)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: this mailbox instead of the site's default"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -4518,9 +4679,20 @@ msgid "Every, hours"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Everyone"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Everyone - every user below; Round Robin - one by one in turn; Load "
+"Balancing - the one with the fewest open assignments; Based on Field - the "
+"user in a field of the document"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
@@ -4807,14 +4979,28 @@ msgstr ""
 msgid "Fieldname for the event label (default: name)"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Date on the document - the assignment's due date"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid ""
 "Fieldname of a Date/Datetime field in the copy to set to the scheduled date "
 "(e.g. posting_date)"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Fieldname of a Link to User on the document"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "Fieldname of a numeric field in the child DocType"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Fieldname on the document to set once someone was notified - e.g. "
+"reminder_sent"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
@@ -5013,6 +5199,7 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 msgid "Filters"
 msgstr ""
 
@@ -5276,8 +5463,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Fri"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Friday"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
@@ -5533,6 +5723,14 @@ msgstr ""
 msgid "HTTP status"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Half even"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Half up"
+msgstr ""
+
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Handler / Script"
 msgstr ""
@@ -5724,6 +5922,11 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
+"How long before / after the date-and-time field; checked every 5 minutes"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
 "How many days before/after the date; 0: on the day itself. Sent once a day "
 "at 08:00"
 msgstr ""
@@ -5742,6 +5945,12 @@ msgstr ""
 msgid ""
 "How much each user's “My files” may hold; 0 - no limit. A user's own quota "
 "(User → Security) overrides it"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"How numbers are rounded to a field's precision. Half up (commercial): 0.125 "
+"→ 0.13. Half even (banker's): 0.125 → 0.12"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -6263,12 +6472,20 @@ msgstr ""
 msgid "Invalid phone format"
 msgstr ""
 
+#: grunt/grunt/api/v1/saved_filters.py
+msgid "Invalid sharing"
+msgstr ""
+
 #: grunt/grunt/auth/user_api.py
 msgid "Invalid theme value"
 msgstr ""
 
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Invalid verification code"
+msgstr ""
+
+#: grunt/grunt/api/v1/view_settings.py
+msgid "Invalid view"
 msgstr ""
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
@@ -6527,6 +6744,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Last activity"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Last assigned"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -6803,6 +7024,10 @@ msgstr ""
 msgid "List"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "List columns"
+msgstr ""
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "List report options"
 msgstr ""
@@ -6819,6 +7044,11 @@ msgstr ""
 msgid ""
 "Lists the sets in the storage; the chosen one is downloaded to the server "
 "and appears in Backups, ready for «grunt db restore»."
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Load Balancing"
 msgstr ""
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue
@@ -7042,6 +7272,10 @@ msgstr ""
 msgid "Mandatory Depends On"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Mandatory depends on"
+msgstr ""
+
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 msgid "Manual"
 msgstr ""
@@ -7251,8 +7485,13 @@ msgstr ""
 msgid "Minimum password length"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 msgid "Minutes"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Minutes cannot be negative"
 msgstr ""
 
 #: grunt/grunt/auth/providers/oauth.py
@@ -7296,8 +7535,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Mon"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Monday"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -7382,6 +7624,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "My reminders"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "My roles…"
 msgstr ""
 
 #: grunt/grunt/cli/doctype.py
@@ -7523,6 +7769,7 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
+#: grunt/frontend/src/pages/auth/Login.vue
 msgid "New password"
 msgstr ""
 
@@ -7862,8 +8109,16 @@ msgstr ""
 msgid "No value"
 msgstr ""
 
+#: grunt/grunt/notification/rules.py
+msgid "No webhook chosen for the channel"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "No worker is connected: background jobs are not running."
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Nobody"
 msgstr ""
 
 #: grunt/grunt/permissions/warnings.py
@@ -7920,6 +8175,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Not cached, e.g.: {files}. Reload the page while online."
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not carried over when the document is duplicated"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/CanvasSection.vue
@@ -8158,6 +8417,10 @@ msgstr ""
 msgid "October"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Off - the form has no “Duplicate” action"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "Official language"
 msgstr ""
@@ -8235,6 +8498,10 @@ msgstr ""
 msgid "Onboarding step"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Once saved with a value, it can't be changed"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue
 msgid "One option per line"
 msgstr ""
@@ -8301,6 +8568,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarImage.vue
 msgid "Only images can be used here"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Only me"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -8731,8 +9002,13 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Password changed"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Password expires after, days"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -8759,6 +9035,16 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Password reset token"
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "Password sign-in is off on this site - use single sign-on"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Password sign-in is refused (and hidden on the sign-in page) for everyone "
+"but administrators"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
@@ -8946,6 +9232,11 @@ msgstr ""
 msgid "Postal code"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+#: grunt/frontend/src/pages/studio/builder/sections/NumberSection.vue
+msgid "Precision"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Preferences"
 msgstr ""
@@ -9023,6 +9314,10 @@ msgstr ""
 msgid "Print Format"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Print format"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid ""
 "Printing to PDF and signing print formats do not work. Run `grunt update` or"
@@ -9030,6 +9325,7 @@ msgid ""
 "apps/grunt; on a new server also `playwright install-deps chromium` as root."
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Priority"
@@ -9275,6 +9571,10 @@ msgstr ""
 msgid "Read Only (recommended)"
 msgstr ""
 
+#: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
+msgid "Read Only Depends On"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Read by recipient at"
 msgstr ""
@@ -9296,8 +9596,18 @@ msgstr ""
 msgid "Read-only"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Read-only depends on"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Read-only fields (comma-separated)"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Read-only when the condition holds (JS, checked in the form), e.g. "
+"eval:doc.status == 'Approved'"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
@@ -9749,6 +10059,10 @@ msgstr ""
 msgid "Required fields not mapped:"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Required when the condition holds (JS, checked in the form)"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Resend"
 msgstr ""
@@ -9923,6 +10237,10 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Role names, when shared with roles"
+msgstr ""
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
@@ -9940,6 +10258,7 @@ msgstr ""
 msgid "Role, everyone, end date…"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -9956,6 +10275,25 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Root folder"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Round Robin"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid ""
+"Round robin: how many turns in a row; load balancing: share of the work (2 -"
+" twice as much)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Round robin: whose turn was last"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Rounding"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -10022,6 +10360,12 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Rule ID"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Rules are tried from the highest priority; the first one that matches "
+"assigns (and none does while its assignment is open)"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -10211,8 +10555,11 @@ msgid "Sample data"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sat"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Saturday"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
@@ -10232,6 +10579,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 msgid "Save and open"
+msgstr ""
+
+#: grunt/frontend/src/components/views/list/ListToolbarControls.vue
+msgid "Save as default for all"
 msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue
@@ -10275,6 +10626,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/QuickEntryDialog.vue
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Saved"
+msgstr ""
+
+#: grunt/frontend/src/pages/desk/DocTypeList.vue
+msgid "Saved as the default for everyone"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+msgid "Saved filter"
 msgstr ""
 
 #: grunt/frontend/src/components/views/FilterBar.vue
@@ -10623,6 +10982,10 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Send from"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue
 msgid "Send link"
 msgstr ""
@@ -10770,6 +11133,10 @@ msgstr ""
 msgid "Sessions & brute-force protection"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sessions per user"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Set SECRET_KEY: with the default key, tokens can be forged."
 msgstr ""
@@ -10783,6 +11150,7 @@ msgid ""
 "Set done statuses or a done condition - otherwise the clock never stops"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Set field"
 msgstr ""
@@ -10791,8 +11159,16 @@ msgstr ""
 msgid "Set new password"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Set only once"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Set password"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Set the new password"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
@@ -10811,6 +11187,7 @@ msgstr ""
 msgid "Set value"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 #: grunt/frontend/src/components/dashboard/WidgetConfigPanel.vue
@@ -10861,6 +11238,15 @@ msgstr ""
 
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Shared With"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared filter"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Shared with"
 msgstr ""
 
 #: grunt/grunt/notification/records/notification/document_shared/document_shared.json
@@ -11051,6 +11437,10 @@ msgstr ""
 msgid "Sign in as this user"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in from"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "Sign in in the browser window that opens and allow access"
 msgstr ""
@@ -11062,6 +11452,14 @@ msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Sign in to your account"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in until"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sign in with SSO only"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js
@@ -11076,6 +11474,10 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in allowed only from this time (site time zone); empty - any time"
+msgstr ""
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Sign-in code"
 msgstr ""
@@ -11084,8 +11486,20 @@ msgstr ""
 msgid "Sign-in failed"
 msgstr ""
 
+#: grunt/grunt/auth/login.py
+msgid "Sign-in from this IP address is not allowed for your account"
+msgstr ""
+
 #: grunt/grunt/auth/login.py grunt/grunt/auth/user_api.py
 msgid "Sign-in from this IP address is not allowed for your role"
+msgstr ""
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in is allowed only from %(from)s to %(to)s"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in limits"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -11110,6 +11524,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
 msgid "Signed in at"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Signing in with an older password asks for a new one first; 0 - never"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py
@@ -11553,8 +11971,11 @@ msgid "Summary"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Sun"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Sunday"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
@@ -12248,6 +12669,10 @@ msgstr ""
 msgid "The rule for “%(role)s” grants no action."
 msgstr ""
 
+#: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+msgid "The rule that made this assignment - it also cancels or closes it"
+msgstr ""
+
 #: grunt/grunt/permissions/warnings.py
 msgid "The rules were changed on this site and differ from the app's."
 msgstr ""
@@ -12290,8 +12715,16 @@ msgstr ""
 msgid "The service worker works only over HTTPS (or localhost)."
 msgstr ""
 
+#: grunt/grunt/api/v1/view_settings.py
+msgid "The settings are too large"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The shell is cached after the first page load with the network."
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "The sign-in has expired - sign in again"
 msgstr ""
 
 #: grunt/grunt/storage/cloud/oauth.py grunt/frontend/src/pages/auth/Login.vue
@@ -12393,7 +12826,7 @@ msgid "The version does not belong to this document"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
-msgid "The “Filters (JSON)” field must contain valid JSON."
+msgid "The “%(field)s” field must contain valid JSON."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -12537,12 +12970,15 @@ msgid "Three-letter currency code (UAH, USD, EUR)"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Thu"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgid "Thumbnail"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Thursday"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/MultiLink/TreePicker.vue
@@ -12626,6 +13062,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Title"
@@ -12653,6 +13090,10 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "To state"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "To value"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
@@ -12775,8 +13216,11 @@ msgid "Try rebuilding the index"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Tue"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Tuesday"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/ui/BlockHandle.vue
@@ -12861,6 +13305,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Unassign"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Unassign when (JSON)"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
+msgid "Unassigned"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -13161,6 +13613,7 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -13184,6 +13637,10 @@ msgstr ""
 msgid "User Agent"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "User field"
+msgstr ""
+
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
 msgid "User not found"
 msgstr ""
@@ -13204,6 +13661,10 @@ msgstr ""
 msgid "User session"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "User view settings"
+msgstr ""
+
 #: grunt/grunt/auth/user_api.py
 msgid "User with email '%(email)s' already exists"
 msgstr ""
@@ -13211,6 +13672,10 @@ msgstr ""
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_inspector.py
 msgid "User “%(user)s” not found"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Users"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -13345,6 +13810,7 @@ msgstr ""
 msgid "Video URL"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 #: grunt/frontend/src/components/dashboard/ActivityStream.vue
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "View"
@@ -13492,8 +13958,10 @@ msgstr ""
 msgid "WebSockets"
 msgstr ""
 
+#: grunt/grunt/notification/channels.py
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 msgid "Webhook"
 msgstr ""
 
@@ -13520,8 +13988,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/dashboard/widgets/Heatmap/Heatmap.vue
 #: grunt/frontend/src/components/dashboard/widgets/Calendar/Calendar.vue
-#: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Wed"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Wednesday"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -13534,6 +14005,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Weeks"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
+msgid "Weight"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -13585,6 +14060,23 @@ msgid ""
 "channels"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is cancelled - "
+"e.g. {\"status\": \"Cancelled\"}"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"When the document matches, the open assignment of this rule is closed as "
+"done - e.g. {\"status\": \"Answered\"}"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"When the password was last set - its age for the site's password expiry"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
 msgstr ""
@@ -13597,6 +14089,12 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid "Where the tour runs: the document's form or the list of documents"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Where the webhook channel posts (one request per notification, not per "
+"recipient)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
@@ -13631,6 +14129,12 @@ msgstr ""
 msgid ""
 "Who changed access and when: user roles and their scopes, role permissions, "
 "DocType rules, shares and public links. Written by the system, read only."
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid ""
+"Who is assigned; empty - the holders of the role below (within their role "
+"scope)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -13906,6 +14410,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Your latest notifications will appear here."
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Your password has expired - set a new one"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
@@ -14455,6 +14963,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py grunt/frontend/src/core/browserHealth.ts
 msgid "not working"
+msgstr ""
+
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
+msgid "notification - only from notification rules (their Webhook channel)"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
@@ -15067,8 +15579,24 @@ msgstr ""
 msgid "“%(field)s” is not a date field of %(doctype)s"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a date-and-time field of %(doctype)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a field of %(doctype)s"
+msgstr ""
+
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"
+msgstr ""
+
+#: grunt/grunt/document/validation.py
+msgid "“%(fields)s” can't be changed once set"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
+msgid "“*” - not tied to a DocType (recent documents)"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/notification.py
@@ -15081,6 +15609,11 @@ msgstr ""
 
 #: grunt/grunt/email/templates/notification_digest.html
 msgid "… and %(count)s more"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"…and until this time; a range across midnight works too (22:00 - 06:00)"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
