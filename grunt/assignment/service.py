@@ -16,8 +16,9 @@ On every insert and save of a document (grunt/core_events.py):
      unit of ``weight``;
    * ``Based on Field`` - the user in the document's ``field``.
 
-   Candidates: the rule's ``users``, else the holders of ``assign_to_role``
-   whose role scope covers the document, else ``assign_to_user``.
+   Candidates: the rule's ``users``, else the members of ``assign_to_group``,
+   else the holders of ``assign_to_role`` whose role scope covers the
+   document, else ``assign_to_user``.
 
 So a document that reaches a state later (saved, not only inserted) gets its
 assignment then, and only once per rule.
@@ -31,6 +32,7 @@ from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
+lazy from grunt.auth.doctypes.UserGroup.user_group import group_emails
 lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.notification.date_rules import local_today
@@ -47,6 +49,7 @@ _RULE_FIELDS = [
     "priority",
     "rule",
     "field",
+    "assign_to_group",
     "assign_to_role",
     "assign_to_user",
     "last_user",
@@ -170,11 +173,14 @@ class AssignmentService:
     async def _candidates(
         self, doctype: str, rule: dict[str, Any], doc: dict[str, Any]
     ) -> list[tuple[str, int]]:
-        """``(user, weight)`` in the rule's order: its users, else the role's
-        holders covering *doc*, else the single ``assign_to_user``."""
+        """``(user, weight)`` in the rule's order: its users, else the members
+        of its group, else the role's holders covering *doc*, else the single
+        ``assign_to_user``."""
         users = rule.get("users") or []
         if users:
             return [(str(u["user"]), int(u.get("weight") or 1)) for u in users if u.get("user")]
+        if rule.get("assign_to_group"):
+            return [(email, 1) for email in await group_emails([str(rule["assign_to_group"])])]
         if rule.get("assign_to_role"):
             async with system_context(require_session()):
                 meta = await doctype_registry.get_meta(doctype)

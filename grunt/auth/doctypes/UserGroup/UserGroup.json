@@ -1,0 +1,52 @@
+{
+  "name": "UserGroup",
+  "label": "User group",
+  "module": "auth",
+  "autoname": "field:group_name",
+  "title_field": "group_name",
+  "description": "People to notify, assign or share with together - a department, a commission. A group gives no permissions.",
+  "fields": [
+    {
+      "fieldname": "group_name",
+      "label": "Name",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "manager",
+      "label": "Manager",
+      "fieldtype": "Link",
+      "options": "User",
+      "in_list_view": true,
+      "description": "May change who is in the group. Only user administrators appoint the manager."
+    },
+    {
+      "fieldname": "description",
+      "label": "Description",
+      "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "users",
+      "label": "Members",
+      "fieldtype": "Table",
+      "options": "UserGroupMember"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+    },
+    {
+      "role": "All",
+      "actions": ["read"]
+    },
+    {
+      "role": "All",
+      "actions": ["read", "write"],
+      "match": "manager == user"
+    }
+  ]
+}

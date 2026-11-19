@@ -9,7 +9,7 @@
       "fieldname": "kind",
       "label": "Who",
       "fieldtype": "Select",
-      "options": "Author\nRole\nUser\nDocument field\nEmail\nAssignees\nFollowers\nPrevious actor\nNext actors\nEvent recipients",
+      "options": "Author\nRole\nUser group\nUser\nDocument field\nEmail\nAssignees\nFollowers\nPrevious actor\nNext actors\nEvent recipients",
       "translatable": true,
       "required": true,
       "default": "Author",
@@ -23,6 +23,15 @@
       "in_list_view": true,
       "depends_on": "eval: doc.kind == 'Role'",
       "mandatory_depends_on": "eval: doc.kind == 'Role'"
+    },
+    {
+      "fieldname": "user_group",
+      "label": "User group",
+      "fieldtype": "Link",
+      "options": "UserGroup",
+      "in_list_view": true,
+      "depends_on": "eval: doc.kind == 'User group'",
+      "mandatory_depends_on": "eval: doc.kind == 'User group'"
     },
     {
       "fieldname": "user",

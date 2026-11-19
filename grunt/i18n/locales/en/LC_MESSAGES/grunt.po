@@ -1236,6 +1236,10 @@ msgstr ""
 msgid "Assign to User"
 msgstr ""
 
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign to group"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Assign with a task"
 msgstr ""
@@ -3655,6 +3659,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
@@ -7279,6 +7284,10 @@ msgstr ""
 msgid "Manage workspaces and pages"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid "Manager"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
 msgstr ""
@@ -7375,12 +7384,22 @@ msgstr ""
 msgid "May"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"May change who is in the group. Only user administrators appoint the "
+"manager."
+msgstr ""
+
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "Median, ms"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Medium"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid "Members"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
@@ -7663,6 +7682,7 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -8605,6 +8625,10 @@ msgid ""
 "transition"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "Only user administrators appoint the group's manager"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/frontend/src/core/composables/useMapMarkers.ts
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
@@ -9100,6 +9124,12 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "Pending migrations. Run `grunt migrate`."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"People to notify, assign or share with together - a department, a "
+"commission. A group gives no permissions."
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
@@ -13631,6 +13661,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
+#: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
@@ -13652,6 +13683,15 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "User field"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+msgid "User group"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
+msgid "User group member"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
@@ -14146,8 +14186,8 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid ""
-"Who is assigned; empty - the holders of the role below (within their role "
-"scope)"
+"Who is assigned; empty - the members of the group below, else the holders of"
+" the role (within their role scope)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -15944,6 +15984,11 @@ msgstr ""
 #~ msgid ""
 #~ "When enabled, a document with no Link field to the restricted type (or with "
 #~ "an empty value) is hidden rather than shown."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Who is assigned; empty - the holders of the role below (within their role "
+#~ "scope)"
 #~ msgstr ""
 
 #~ msgid ""
