@@ -187,6 +187,45 @@
       "hidden": true
     },
     {
+      "fieldname": "password_changed_at",
+      "label": "Password changed",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "description": "When the password was last set - its age for the site's password expiry"
+    },
+    {
+      "fieldname": "sec_login_limits",
+      "label": "Sign-in limits",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "login_after",
+      "label": "Sign in from",
+      "fieldtype": "Time",
+      "description": "Sign-in allowed only from this time (site time zone); empty - any time"
+    },
+    {
+      "fieldname": "col_login_limits",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "login_before",
+      "label": "Sign in until",
+      "fieldtype": "Time",
+      "description": "…and until this time; a range across midnight works too (22:00 - 06:00)"
+    },
+    {
+      "fieldname": "col_login_limits_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "allowed_ips",
+      "label": "Allowed IP addresses",
+      "fieldtype": "LongText",
+      "description": "Addresses or CIDR networks, comma or newline separated - on top of the role's own limit; empty - any"
+    },
+    {
       "fieldname": "sec_roles",
       "label": "Roles",
       "fieldtype": "Section",

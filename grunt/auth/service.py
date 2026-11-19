@@ -15,6 +15,7 @@ from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 lazy from grunt.auth.doctypes.User.user import User
+lazy from grunt.auth.login_policy import mark_password_changed
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -215,6 +216,7 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
             await hash_password(new_password),
         )
 
+    await mark_password_changed(user_data["name"])
     # A password reset may be a response to a stolen account - sign out everywhere.
 
     await end_all_sessions(user_data["name"])

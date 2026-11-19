@@ -25,7 +25,7 @@ type Mode = 'signin' | 'signup'
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
-const { allowRegistration } = useSiteConfig()
+const { allowRegistration, passwordLogin } = useSiteConfig()
 
 const PENDING_MSG =
   t('Your account is registered and awaiting administrator approval. Try signing in later.')
@@ -45,6 +45,15 @@ const passkeyLoading = ref(false)
 const error = ref('')
 const notice = ref('')
 const signupDone = ref(false)
+
+// An expired password (password_change_required): the new one is set first.
+const passwordChangeToken = ref('')
+const newPassword = ref('')
+const newPasswordConfirm = ref('')
+
+// "Sign in with SSO only": the password form only behind the administrators' link.
+const adminSignIn = ref(false)
+const showPasswordForm = computed(() => passwordLogin.value || isSignup.value || adminSignIn.value)
 
 // "Sign in with email" (passwordless code / magic link)
 const emailStage = ref<'idle' | 'code'>('idle')
@@ -165,10 +174,7 @@ async function handleSubmit() {
         return
       }
     }
-    const res = await auth.login(email.value, password.value)
-    if (res.approval_pending) notice.value = PENDING_MSG
-    else if (res.mfa_required) toMfa(res)
-    else router.push(afterLoginTarget())
+    afterStep(await auth.login(email.value, password.value))
   } catch (e: any) {
     const status = e?.response?.status
     if (status === 409) {
@@ -183,6 +189,49 @@ async function handleSubmit() {
   } finally {
     loading.value = false
   }
+}
+
+/** What a sign-in step answered: the next step, or the app. */
+function afterStep(res: Awaited<ReturnType<typeof auth.login>>) {
+  if (res.approval_pending) notice.value = PENDING_MSG
+  else if (res.password_change_required && res.password_change_token) {
+    passwordChangeToken.value = res.password_change_token
+    notice.value = t('Your password has expired - set a new one')
+  } else if (res.mfa_required) toMfa(res)
+  else router.push(afterLoginTarget())
+}
+
+async function submitNewPassword() {
+  error.value = ''
+  if (newPassword.value !== newPasswordConfirm.value) {
+    error.value = t('Passwords do not match')
+    return
+  }
+  loading.value = true
+  try {
+    const res = await auth.changeExpiredPassword(passwordChangeToken.value, newPassword.value)
+    passwordChangeToken.value = ''
+    notice.value = ''
+    afterStep(res)
+  } catch (e: any) {
+    const message = e?.response?.data?.error?.message || e?.message || t('Error')
+    if (e?.response?.status === 401) {
+      // The challenge expired (or the password changed meanwhile) - sign in again.
+      cancelPasswordChange()
+    }
+    error.value = message
+  } finally {
+    loading.value = false
+  }
+}
+
+/** Back to the sign-in form - the challenge, the new password and the messages go. */
+function cancelPasswordChange() {
+  passwordChangeToken.value = ''
+  newPassword.value = ''
+  newPasswordConfirm.value = ''
+  notice.value = ''
+  error.value = ''
 }
 
 async function loginWithPasskey() {
@@ -305,9 +354,34 @@ async function verifyEmailCode() {
           <CardDescription>{{ subtitle }}</CardDescription>
         </CardHeader>
         <CardContent>
+          <!-- The password has expired: set a new one, then the sign-in goes on -->
+          <form v-if="passwordChangeToken" @submit.prevent="submitNewPassword" class="flex flex-col gap-5">
+            <Alert v-if="notice">
+              <AlertDescription>{{ notice }}</AlertDescription>
+            </Alert>
+            <Field>
+              <FieldLabel for="new-password">{{ t('New password') }}</FieldLabel>
+              <Input id="new-password" v-model="newPassword" type="password" autocomplete="new-password" required />
+            </Field>
+            <Field>
+              <FieldLabel for="new-password-confirm">{{ t('Repeat password') }}</FieldLabel>
+              <Input id="new-password-confirm" v-model="newPasswordConfirm" type="password" autocomplete="new-password" required />
+            </Field>
+            <Alert v-if="error" variant="destructive">
+              <AlertDescription>{{ error }}</AlertDescription>
+            </Alert>
+            <Button type="submit" :disabled="loading" class="w-full">
+              <Spinner v-if="loading" />
+              {{ t('Set the new password') }}
+            </Button>
+            <Button type="button" variant="link" class="text-muted-foreground" @click="cancelPasswordChange">
+              {{ t('Back to sign-in') }}
+            </Button>
+          </form>
+
           <!-- Passwordless email: enter the code from the mail -->
           <form
-            v-if="emailStage === 'code'"
+            v-else-if="emailStage === 'code'"
             @submit.prevent="verifyEmailCode"
             class="flex flex-col gap-5"
           >
@@ -398,6 +472,13 @@ async function verifyEmailCode() {
               </Button>
             </div>
 
+            <!-- SSO only: the email for the emailed code, while the password form is hidden -->
+            <Field v-if="!showPasswordForm && hasEmailLogin">
+              <FieldLabel for="email-sso">Email</FieldLabel>
+              <Input id="email-sso" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" />
+            </Field>
+
+            <template v-if="showPasswordForm">
             <FieldSeparator v-if="hasAlternatives" class="*:data-[slot=field-separator-content]:bg-card">
               {{ t('or enter your password') }}
             </FieldSeparator>
@@ -441,6 +522,7 @@ async function verifyEmailCode() {
               <FieldLabel for="password-confirm">{{ t('Repeat password') }}</FieldLabel>
               <Input id="password-confirm" v-model="passwordConfirm" type="password" autocomplete="new-password" placeholder="••••••••" required />
             </Field>
+            </template>
 
             <Alert v-if="notice">
               <AlertDescription>{{ notice }}</AlertDescription>
@@ -450,10 +532,13 @@ async function verifyEmailCode() {
             </Alert>
 
             <div class="flex flex-col gap-3">
-              <Button type="submit" :disabled="loading" class="w-full">
+              <Button v-if="showPasswordForm" type="submit" :disabled="loading" class="w-full">
                 <Spinner v-if="loading" />
                 {{ submitLabel }}
               </Button>
+              <FieldDescription v-else class="text-center">
+                <Button type="button" variant="link" class="h-auto p-0" @click="adminSignIn = true">{{ t('Administrator sign-in') }}</Button>
+              </FieldDescription>
               <FieldDescription v-if="isSignup" class="text-center">
                 {{ t('Already have an account?') }}
                 <Button type="button" variant="link" class="h-auto p-0" @click="switchMode('signin')">{{ t('Sign in') }}</Button>

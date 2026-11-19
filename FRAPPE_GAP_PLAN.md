@@ -34,7 +34,7 @@
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
-| 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ❓ |
+| 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
 | 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
 | 22 | Print Format Builder + параметри сторінки | ❓ |
 | 23 | Raw printing (ZPL / ESC-POS) для етикеток | ❓ |
@@ -230,10 +230,10 @@
 - **Рішення (2026-11-18):** робимо. Крок 1 (`feat/workflow-guards`): `deny_self_approval` (автор не погоджує власне; Next actors теж без нього), `confirm` на переході, `message` у стані (банер над формою), подія `on_transition` у ServerScript зі змінною `transition`; попутно умова з помилкою тепер **закриває** перехід (раніше `return True` — пропускала всіх). Крок 2 (`feat/workflow-inbox`): вхідні «Очікує моєї дії» — вкладка «Очікує мене» в панелі «Моя робота» (`get_my_work.awaiting`), з переходів і прав, без таблиці Workflow Action; лише явно утримувані ролі (System Manager без ролі не бачить усього), області ролей, без умов. Кілька workflow на DocType — ⏸. `next_action_email_template` покриває Notification з отримувачами Next actors.
 
 ### 20. Політика входу
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** оцінка надійності пароля (zxcvbn), примусова зміна раз на N днів, `deny_multiple_sessions`, `simultaneous_sessions`, `login_after/before`, IP на користувача, вхід за username/телефоном, `disable_user_pass_login`, `logout_on_password_reset`.
 - **Ґрунт зараз:** правила складності пароля, блокування за спробами, MFA, IP на роль, passkeys, вхід за посиланням.
-- **Рішення:** —
+- **Рішення (2026-11-18):** робимо: строк дії пароля (`password_max_age_days`, `User.password_changed_at`; прострочений → крок `password_change_required` до MFA; без дати — відлік від першого входу), `max_sessions_per_user` (нова сесія витісняє найстаріші), `User.login_after`/`login_before` і `User.allowed_ips` (поверх ролі), «лише SSO» (`disable_password_login`, адміністратори — виняток); попутно — зміна пароля завершує інші сесії (діра). ⏸ zxcvbn (правила складності вже є); ❌ вхід за телефоном/логіном.
 
 ### 21. Вкладення
 **Статус:** ❓

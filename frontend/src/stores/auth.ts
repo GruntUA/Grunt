@@ -137,24 +137,44 @@ export const useAuthStore = defineStore('auth', () => {
     return _restorePromise
   }
 
-  async function login(email: string, password: string): Promise<{
+  /** What a sign-in step answers: done, or the next step it asks for. */
+  interface LoginStep {
     mfa_required: boolean
     approval_pending: boolean
     mfa_token?: string
     expected_code?: string
-  }> {
-    const { data: body } = await client.post('/api/v1/method/grunt.auth.user_api.login_api', {
-      email,
-      password,
-    })
-    const data = body.data
+    /** The password has expired - set a new one (changeExpiredPassword) first. */
+    password_change_required?: boolean
+    password_change_token?: string
+  }
+
+  function _loginStep(data: any): LoginStep {
     if (data.access_token) adoptLogin(data)
     return {
       mfa_required: !!data.mfa_required,
       approval_pending: !!data.approval_pending,
       mfa_token: data.mfa_token,
       expected_code: data.expected_code,
+      password_change_required: !!data.password_change_required,
+      password_change_token: data.password_change_token,
     }
+  }
+
+  async function login(email: string, password: string): Promise<LoginStep> {
+    const { data: body } = await client.post('/api/v1/method/grunt.auth.user_api.login_api', {
+      email,
+      password,
+    })
+    return _loginStep(body.data)
+  }
+
+  /** An expired password: set the new one and go on with the sign-in (MFA next, if any). */
+  async function changeExpiredPassword(token: string, newPassword: string): Promise<LoginStep> {
+    const { data: body } = await client.post(
+      '/api/v1/method/grunt.auth.user_api.change_expired_password_api',
+      { password_change_token: token, new_password: newPassword },
+    )
+    return _loginStep(body.data)
   }
 
   function _jwtExpMs(jwt: string): number | null {
@@ -367,7 +387,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, user, isLoggedIn, hasPerm, restore, login, adoptLogin, loginWithPasskey,
+    token, user, isLoggedIn, hasPerm, restore, login, changeExpiredPassword, adoptLogin, loginWithPasskey,
     beginEmailLogin, completeEmailLogin, logout, refresh, fetchMe, setTheme, setLanguage,
     impersonatedBy, isImpersonating, startImpersonation, stopImpersonation,
   }

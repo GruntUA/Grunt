@@ -282,6 +282,8 @@ interface GruntMethods {
   "grunt.auth.password_policy.password_policy_api": { args: {}; result: Record<string, number | boolean> }
   /** Approve a pending registration - the user can now sign in. System Manager only. Permission: grunt.manage_users. */
   "grunt.auth.user_api.approve_user_api": { args: { user_id: string }; result: boolean }
+  /** Set a new password after a sign-in found the old one expired (``password_change_required``), then go on with that sign-in - MFA next, if the user has it. The new password must differ from the old one. Allowed for guests. */
+  "grunt.auth.user_api.change_expired_password_api": { args: { password_change_token: string; new_password: string }; result: Record<string, any> }
   /** Confirm MFA setup for the current user. */
   "grunt.auth.user_api.confirm_mfa": { args: { code: string }; result: GruntApi.grunt.MfaConfirmed }
   /** Disable MFA for the current user. */
