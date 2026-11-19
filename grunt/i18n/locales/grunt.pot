@@ -281,6 +281,12 @@ msgstr ""
 msgid "A digit"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"A disabled role stays assigned to its users but gives them nothing: no "
+"permissions, no document access, no notifications or assignments through it."
+msgstr ""
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "A document's stay in one value of a tracked field"
 msgstr ""
@@ -369,6 +375,12 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
+msgid ""
+"A set of roles handed out together: a user with the profile gets all its "
+"roles, and changing the profile changes them for every such user."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -742,6 +754,12 @@ msgstr ""
 #: grunt/grunt/site/doctypes/WorkspaceSection/WorkspaceSection.json
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgid "Added by app"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid ""
+"Added by this role profile: it changes with the profile and is rebuilt on "
+"every save."
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
@@ -3423,6 +3441,10 @@ msgstr ""
 msgid "Default role"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default role profile"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Default value"
 msgstr ""
@@ -3646,6 +3668,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -3733,6 +3756,7 @@ msgid "Disable the action but keep the row"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Disabled"
@@ -4192,6 +4216,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Each message arrives several times — notifications are duplicated."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Each profile adds its roles to the user's roles below."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
@@ -5487,6 +5515,10 @@ msgstr ""
 msgid "From cloud storage"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "From profile"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "From state"
@@ -5867,7 +5899,12 @@ msgid "Home folder"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 msgid "Home page"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Home page must be a path on this site, starting with /"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -6532,6 +6569,12 @@ msgstr ""
 msgid "Items: {n}"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Its roles are given to the user right after self sign-up, together with the "
+"default role."
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 msgid ""
 "JS expression over `doc`; falsy hides the button. E.g. doc.status === "
@@ -6925,6 +6968,7 @@ msgstr ""
 msgid "Limit of {n} records reached — totals cover only these."
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid ""
 "Limit the role to documents linked to this record (a department, a section)."
@@ -7650,6 +7694,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
@@ -7835,6 +7880,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "No TABLE fields in this DocType"
+msgstr ""
+
+#: grunt/grunt/api/v1/workspace.py
+msgid "No access to the app “%(app)s”"
 msgstr ""
 
 #: grunt/grunt/document/mixins/lifecycle.py
@@ -10226,6 +10275,7 @@ msgid "Rich text"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 #: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
@@ -10241,12 +10291,26 @@ msgstr ""
 msgid "Role names, when shared with roles"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
+#: grunt/grunt/auth/doctypes/UserRoleProfile/UserRoleProfile.json
+msgid "Role profile"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
+msgid "Role profile role"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Role profiles"
+msgstr ""
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py
+#: grunt/grunt/auth/doctypes/RoleProfile/role_profile.py
 msgid "Role “%(role)s”: a scope needs both the document type and the document"
 msgstr ""
 
@@ -10260,6 +10324,7 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Roles"
@@ -10717,10 +10782,12 @@ msgstr ""
 msgid "Scheduler Event"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope value"
 msgstr ""
@@ -11557,6 +11624,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Site key"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "Site only"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -12661,6 +12732,15 @@ msgstr ""
 msgid "The restore failed, the database was left as it was: %(error)s"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfile/role_profile.py
+msgid ""
+"The role profile is assigned to %(n)s users - take it away from them first"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "The role “%(role)s” can't be disabled or made site-only"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
 msgid "The root folder of the owner's space"
 msgstr ""
@@ -13657,6 +13737,10 @@ msgstr ""
 msgid "User role"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserRoleProfile/UserRoleProfile.json
+msgid "User role profile"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "User session"
 msgstr ""
@@ -13681,6 +13765,12 @@ msgstr ""
 #: grunt/grunt/monitoring/health.py
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Users and security"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"Users whose roles are all site-only work on the website and don't get the "
+"workspace (/app). One role without this flag gives them the workspace."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
@@ -14099,6 +14189,13 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"Where users with this role land after signing in, e.g. /app/hrm or /cabinet."
+" With several roles, the first one in the user's roles that has a home page "
+"wins."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json

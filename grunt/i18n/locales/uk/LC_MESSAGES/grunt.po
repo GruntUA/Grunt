@@ -302,6 +302,14 @@ msgstr "Не можна підставити підлеглий елемент �
 msgid "A digit"
 msgstr "Цифра"
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"A disabled role stays assigned to its users but gives them nothing: no "
+"permissions, no document access, no notifications or assignments through it."
+msgstr ""
+"Вимкнена роль лишається в користувачів, але нічого їм не дає: ні дозволів, "
+"ні доступу до документів, ні сповіщень чи призначень через неї."
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "A document's stay in one value of a tracked field"
 msgstr "Перебування документа в одному значенні відстежуваного поля"
@@ -403,6 +411,14 @@ msgstr "Роль, з якою діє API-ключ, — одна з ролей й
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
 msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
+
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
+msgid ""
+"A set of roles handed out together: a user with the profile gets all its "
+"roles, and changing the profile changes them for every such user."
+msgstr ""
+"Набір ролей, що видаються разом: користувач із профілем отримує всі його "
+"ролі, а зміна профілю змінює їх у кожного такого користувача."
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgid ""
@@ -793,6 +809,14 @@ msgstr "Додати користувача"
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
 msgid "Added by app"
 msgstr "Додано додатком"
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid ""
+"Added by this role profile: it changes with the profile and is rebuilt on "
+"every save."
+msgstr ""
+"Додано цим профілем ролей: змінюється разом із профілем і перебудовується "
+"під час кожного збереження."
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
@@ -3548,6 +3572,10 @@ msgstr ""
 msgid "Default role"
 msgstr "Роль за замовчуванням"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default role profile"
+msgstr "Профіль ролей за замовчуванням"
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Default value"
 msgstr "Значення за замовчуванням"
@@ -3776,6 +3804,7 @@ msgstr "Опис зображення для екранних читачів і 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
@@ -3866,6 +3895,7 @@ msgid "Disable the action but keep the row"
 msgstr "Вимкнути дію, зберігши рядок"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Disabled"
@@ -4337,6 +4367,10 @@ msgstr ""
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr "Кожне повідомлення приходить кілька разів — сповіщення дублюються."
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Each profile adds its roles to the user's roles below."
+msgstr "Кожен профіль додає свої ролі до ролей користувача нижче."
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -5688,6 +5722,10 @@ msgstr "За посиланням…"
 msgid "From cloud storage"
 msgstr "З хмарного сховища"
 
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "From profile"
+msgstr "З профілю"
+
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "From state"
@@ -6080,8 +6118,13 @@ msgid "Home folder"
 msgstr "Домашня тека"
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 msgid "Home page"
 msgstr "Домашня сторінка"
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Home page must be a path on this site, starting with /"
+msgstr "Домашня сторінка має бути шляхом на цьому сайті, що починається з /"
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
 msgid "Hooks"
@@ -6781,6 +6824,14 @@ msgstr "Курсив"
 msgid "Items: {n}"
 msgstr "Елементів: {n}"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Its roles are given to the user right after self sign-up, together with the "
+"default role."
+msgstr ""
+"Його ролі отримує користувач одразу після самостійної реєстрації, разом із "
+"роллю за замовчуванням."
+
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 msgid ""
 "JS expression over `doc`; falsy hides the button. E.g. doc.status === "
@@ -7188,6 +7239,7 @@ msgstr "Подобається"
 msgid "Limit of {n} records reached — totals cover only these."
 msgstr "Досягнуто ліміту {n} записів — підсумки лише за ними."
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid ""
 "Limit the role to documents linked to this record (a department, a section)."
@@ -7931,6 +7983,7 @@ msgstr "Моїм ролям…"
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
@@ -8124,6 +8177,10 @@ msgstr "Ні"
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "No TABLE fields in this DocType"
 msgstr "Немає TABLE-полів у цьому DocType"
+
+#: grunt/grunt/api/v1/workspace.py
+msgid "No access to the app “%(app)s”"
+msgstr "Немає доступу до додатка «%(app)s»"
 
 #: grunt/grunt/document/mixins/lifecycle.py
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py
@@ -10626,6 +10683,7 @@ msgid "Rich text"
 msgstr "Форматований текст"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 #: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
@@ -10641,12 +10699,26 @@ msgstr "Роль"
 msgid "Role names, when shared with roles"
 msgstr "Назви ролей, якщо доступ для ролей"
 
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
+#: grunt/grunt/auth/doctypes/UserRoleProfile/UserRoleProfile.json
+msgid "Role profile"
+msgstr "Профіль ролей"
+
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
+msgid "Role profile role"
+msgstr "Роль профілю"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Role profiles"
+msgstr "Профілі ролей"
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
 msgstr "Роль «%(role)s» не знайдено"
 
 #: grunt/grunt/auth/doctypes/User/user.py
+#: grunt/grunt/auth/doctypes/RoleProfile/role_profile.py
 msgid "Role “%(role)s”: a scope needs both the document type and the document"
 msgstr "Роль «%(role)s»: для області потрібні і тип документа, і сам документ"
 
@@ -10660,6 +10732,7 @@ msgstr "Роль, усі, строк…"
 
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Roles"
@@ -11144,10 +11217,12 @@ msgstr "Планувальник"
 msgid "Scheduler Event"
 msgstr "Подія планувальника"
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope"
 msgstr "Область"
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope value"
 msgstr "Значення області"
@@ -12018,6 +12093,10 @@ msgstr ""
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Site key"
 msgstr "Ключ сайту"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "Site only"
+msgstr "Лише сайт"
 
 #: grunt/grunt/monitoring/health.py
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
@@ -13167,6 +13246,16 @@ msgstr "Відновлення не вдалося, і базу не вдало�
 msgid "The restore failed, the database was left as it was: %(error)s"
 msgstr "Відновлення не вдалося, база лишилась як була: %(error)s"
 
+#: grunt/grunt/auth/doctypes/RoleProfile/role_profile.py
+msgid ""
+"The role profile is assigned to %(n)s users - take it away from them first"
+msgstr ""
+"Профіль ролей призначено користувачам (%(n)s) — спершу заберіть його в них"
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "The role “%(role)s” can't be disabled or made site-only"
+msgstr "Роль «%(role)s» не можна вимкнути чи зробити «лише сайт»"
+
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
 msgid "The root folder of the owner's space"
 msgstr "Коренева тека простору власника"
@@ -14208,6 +14297,10 @@ msgstr "Реєстрація користувачів"
 msgid "User role"
 msgstr "Роль користувача"
 
+#: grunt/grunt/auth/doctypes/UserRoleProfile/UserRoleProfile.json
+msgid "User role profile"
+msgstr "Профіль ролей користувача"
+
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "User session"
 msgstr "Сесія користувача"
@@ -14233,6 +14326,15 @@ msgstr "Користувачі"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Users and security"
 msgstr "Користувачі та безпека"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"Users whose roles are all site-only work on the website and don't get the "
+"workspace (/app). One role without this flag gives them the workspace."
+msgstr ""
+"Користувачі, у яких усі ролі «лише сайт», працюють на сайті й не мають "
+"робочого простору (/app). Одна роль без цієї позначки дає їм робочий "
+"простір."
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
@@ -14681,6 +14783,16 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
 msgstr "Де використовується / доступні поля"
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"Where users with this role land after signing in, e.g. /app/hrm or /cabinet."
+" With several roles, the first one in the user's roles that has a home page "
+"wins."
+msgstr ""
+"Куди потрапляють користувачі з цією роллю після входу, напр. /app/hrm або "
+"/cabinet. Якщо ролей кілька, діє перша в списку ролей користувача, що має "
+"домашню сторінку."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Which field is shown as the document title (default: name)"

@@ -86,12 +86,13 @@ async def test_contribution_to_missing_menu_is_skipped(ctx):
 
 @pytest.mark.asyncio
 async def test_menu_api_orders_contributed_rows(ctx):
-    from grunt.api.v1.workspace import _workspace_to_dict
+    from grunt.api.v1.workspace import _visible, _workspace_to_dict
 
     await _apply_workspace_fixture(BASE, "inv", {})
     await _apply_workspace_fixture(CONTRIBUTION, "crystal", {})
 
-    data = await _workspace_to_dict(await ctx.get_doc("AppMenu", "inv"))
+    menu = await ctx.get_doc("AppMenu", "inv")
+    data = await _workspace_to_dict(menu, await _visible([menu]))
 
     assert [i["label"] for i in data["items"]] == [
         "Assets",

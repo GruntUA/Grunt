@@ -128,10 +128,10 @@ async def setup_db():
 
         _clear_workflow_cache()
 
-        # Role permissions are cached per site in the process (grunt.permissions.perms).
-        from grunt.permissions.perms import _ROLE_PERMS
+        # Roles are cached per site in the process (grunt.permissions.role_props).
+        from grunt.permissions.role_props import _ROLES
 
-        _ROLE_PERMS.clear()
+        _ROLES.clear()
 
         # Compile and create core doctype tables from JSON files, and register in doctype_registry
         import json

@@ -16,7 +16,7 @@ from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import active_role_rows, require_session, system_context
 from grunt.log import log
-from grunt.permissions.perms import has_perm, user_perms
+from grunt.permissions.perms import has_perm, user_landing, user_perms
 from grunt.site.manager import site_manager
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.Role.role import Role
@@ -275,8 +275,11 @@ async def authenticate(email: str, password: str) -> User | None:
 async def _auth_user_dump(user: User) -> dict[str, Any]:
     """Full user payload expected by auth UI responses - with the permissions
     the UI may offer (grunt.permissions.perms; ``*`` - everything)."""
+    landing = await user_landing(user.email)
     return {
         "permissions": sorted(await user_perms(user.email)),
+        "site_only": landing.site_only,
+        "home_page": landing.home_page,
         "id": user.id,
         "email": user.email,
         "full_name": user.full_name,
@@ -307,29 +310,40 @@ async def _guard_registration() -> None:
 
 
 async def _assign_default_role(user_id: str | None) -> None:
-    """Give a freshly registered user the configured ``default_role`` (if any).
+    """Give a freshly registered user the configured ``default_role`` and
+    ``default_role_profile`` (if any).
 
     Runs as SYSTEM - registration happens in a guest context that cannot
     write the admin-only ``User.roles`` table.
     """
     role = await get_setting("default_role")
-    if not role or not user_id:
+    profile = await get_setting("default_role_profile")
+    if not (role or profile) or not user_id:
         return
 
     async with system_context(require_session()):
-        if not await _db.exists("Role", {"role_name": role}):
-            return
-        current = await _db.get_all(
-            "UserRole",
-            filters={"parent_name": user_id, "parent_doctype": "User"},
-            fields=["role_name"],
-            limit=100,
-        )
-        names = {r["role_name"] for r in current}
-        if role in names:
-            return
-        rows = [{"role_name": n} for n in names] + [{"role_name": role}]
-        await documents.save_doc("User", user_id, {"roles": rows})
+        changes: dict[str, Any] = {}
+        if role and await _db.exists("Role", {"role_name": role}):
+            current = await _db.get_all(
+                "UserRole",
+                filters={"parent_name": user_id, "parent_doctype": "User"},
+                fields=["role_name"],
+                limit=100,
+            )
+            names = {r["role_name"] for r in current}
+            if role not in names:
+                changes["roles"] = [{"role_name": n} for n in names] + [{"role_name": role}]
+        if profile and await _db.exists("RoleProfile", profile):
+            held = await _db.get_all(
+                "UserRoleProfile",
+                filters={"parent_name": user_id, "parent_doctype": "User"},
+                pluck="role_profile",
+                limit=None,
+            )
+            if profile not in held:
+                changes["role_profiles"] = [{"role_profile": p} for p in [*held, profile]]
+        if changes:
+            await documents.save_doc("User", user_id, changes)
 
 
 async def _apply_signup_approval(user: User) -> bool:

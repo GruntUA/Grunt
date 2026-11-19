@@ -132,6 +132,9 @@ async def test_self_edit_scope(ctx):
     async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
         u = await create_user("selfedit@grunt.example.com", "Str0ngPass", "Self", "Edit", None)
         await ctx.new_doc("Role", {"role_name": "Manager"})
+        await ctx.new_doc(
+            "RoleProfile", {"profile_name": "Managers", "roles": [{"role_name": "Manager"}]}
+        )
         # create_user() grants the very first user "System Manager" - demote so
         # this exercises the non-privileged path.
         await ctx.save_doc("User", u.id, {"roles": []})
@@ -149,6 +152,7 @@ async def test_self_edit_scope(ctx):
             {"is_active": False},
             {"signup_state": "pending"},
             {"roles": [{"role_name": "Manager"}]},
+            {"role_profiles": [{"role_profile": "Managers"}]},
             {"password": "hacked-in-plain"},
         ):
             with pytest.raises(Exception) as exc:

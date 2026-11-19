@@ -25,7 +25,7 @@
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
 | 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ✔️ (`feat/assignment-rules`) |
 | 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ✔️ (`feat/notification-extras`) |
-| 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ❓ |
+| 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ✔️ (`feat/menu-visibility`, `feat/role-props`, `feat/role-profile`) |
 | 12 | User Group | ❓ |
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ❓ |
 | 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ❓ |
@@ -172,11 +172,15 @@
 - **Рішення (2026-11-19):** робимо: PDF документа (`attach_print` + `print_format`) і файли документа (`attach_files`, до 10 МБ) у листі; скринька-відправник (`email_account`); `set_field`/`set_value` після сповіщення (прямий запис, без хуків); події `minutes_before`/`minutes_after` від поля Datetime (задача кожні 5 хв, вікно 10 хв, один раз на момент документа); канал `webhook` → `OutgoingWebhook` з подією `notification` (один запит на сповіщення, через outbox). `send_to_all_assignees` уже є (отримувачі «Assignees»); подія «Method» — `code`.
 
 ### 11. Role Profile / Module Profile, властивості Role
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** Role Profile — набір ролей, який призначається користувачу; Module Profile / `block_modules` — приховати модулі; Role `desk_access`, `home_page`, `disabled`.
 - **Ґрунт зараз:** ролі призначаються поштучно; Role має `require_mfa`, `allowed_ips`.
 - **Навіщо:** швидке заведення типових користувачів, чистіший інтерфейс.
-- **Рішення:** —
+- **Знахідка:** `AppMenu.roles` оголошено, але ніде не перевіряється — усі бачать усі додатки; пункти бічної панелі не зважають на право `read` на DocType.
+- **Рішення (2026-11-19):** робимо все, трьома кроками:
+  1. `feat/menu-visibility` — замість Module Profile: застосувати `AppMenu.roles`; ховати пункти бічної панелі без права `read` на DocType/звіт; додаток, у якого не лишилось жодного пункту й домашньої сторінки, не показувати.
+  2. `feat/role-props` — `Role.disabled` (роль лишається в користувачів, але нічого не дає: дозволів, доступу, сповіщень і призначень; System Manager/All/Guest вимкнути не можна), `Role.site_only` замість Frappe-вського `desk_access` (інвертовано, щоб не мігрувати наявні ролі; лише сайт — коли в користувача є ролі і всі вони site_only; без ролей і з `*` — робочий простір лишається; захист у роутері SPA, API — як і раніше, за правами), `Role.home_page` (локальний шлях; після входу — перша роль у порядку призначення, що має сторінку; шлях поза SPA — повне завантаження).
+  3. `feat/role-profile` — `RoleProfile` (набір ролей, рядок може мати область), `User.role_profiles`; ролі з профілю позначено `UserRole.role_profile` і перебудовуються на кожному збереженні користувача (після ручних, без дублів роль+область); збереження профілю оновлює всіх його користувачів; призначений профіль не видаляється; змінювати профілі — як і ролі, лише з `grunt.manage_users`; `SystemSettings.default_role_profile` для самореєстрації.
 
 ### 12. User Group
 **Статус:** ❓

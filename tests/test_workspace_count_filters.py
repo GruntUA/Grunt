@@ -17,24 +17,23 @@ def test_count_key_matches_filters() -> None:
 
 @pytest.mark.asyncio
 async def test_workspace_items_carry_count_filters_and_key(ctx) -> None:
-    from grunt.api.v1.workspace import _workspace_to_dict
+    from grunt.api.v1.workspace import _visible, _workspace_to_dict
 
-    data = await _workspace_to_dict(
-        {
-            "name": "demo",
-            "label": "Demo",
-            "sidebar_items": [
-                {
-                    "type": "DocType",
-                    "label": "Menu",
-                    "link_to": "WebsiteMenuItem",
-                    "show_count": 1,
-                    "count_filters": '{"menu": "mlt_portal"}',
-                },
-                {"type": "DocType", "label": "All", "link_to": "WebsiteMenuItem"},
-            ],
-        }
-    )
+    menu = {
+        "name": "demo",
+        "label": "Demo",
+        "sidebar_items": [
+            {
+                "type": "DocType",
+                "label": "Menu",
+                "link_to": "WebsiteMenuItem",
+                "show_count": 1,
+                "count_filters": '{"menu": "mlt_portal"}',
+            },
+            {"type": "DocType", "label": "All", "link_to": "WebsiteMenuItem"},
+        ],
+    }
+    data = await _workspace_to_dict(menu, await _visible([menu]))
     filtered, plain = data["items"]
     assert filtered["count_filters"] == '{"menu": "mlt_portal"}'
     assert filtered["count_key"] == "WebsiteMenuItem_mlt_portal"
