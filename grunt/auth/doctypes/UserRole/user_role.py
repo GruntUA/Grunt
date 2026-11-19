@@ -30,6 +30,7 @@ class UserRole(Document):
     scope_value: str | None  # Scope value
     valid_from: date | None  # Valid from
     valid_to: date | None  # Valid to
+    role_profile: str | None  # From profile
 
     # end: auto-generated types
 

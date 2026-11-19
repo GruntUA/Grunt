@@ -109,8 +109,17 @@
       "options": "Role",
       "columns": 6,
       "depends_on": "eval: doc.allow_user_registration",
-      "mandatory_depends_on": "eval: doc.allow_user_registration",
+      "mandatory_depends_on": "eval: doc.allow_user_registration && !doc.default_role_profile",
       "description": "Assigned to the user right after self sign-up."
+    },
+    {
+      "fieldname": "default_role_profile",
+      "label": "Default role profile",
+      "fieldtype": "Link",
+      "options": "RoleProfile",
+      "columns": 6,
+      "depends_on": "eval: doc.allow_user_registration",
+      "description": "Its roles are given to the user right after self sign-up, together with the default role."
     },
     {
       "fieldname": "sec_maintenance",

@@ -8,10 +8,11 @@ refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 import re as _re
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 from typing import Any
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
+from grunt.auth.doctypes.RoleProfile.role_profile import with_profile_roles
 from grunt.auth.doctypes.UserRole.user_role import ROLE_ROW_FIELDS, plain_role_row
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.passwords import hash_password, verify_password
@@ -81,6 +82,10 @@ class User(Document):
     signup_state: str | None  # Registration state
     password: str | None  # Set password
     hashed_password: str | None  # Password hash
+    password_changed_at: datetime | None  # Password changed
+    login_after: time | None  # Sign in from
+    login_before: time | None  # Sign in until
+    allowed_ips: str | None  # Allowed IP addresses
     storage_quota_mb: int | None  # Personal space quota, MB
     mfa_enabled: bool | None  # MFA enabled
     mfa_secret: str | None  # MFA secret
@@ -92,6 +97,7 @@ class User(Document):
     language: str | None  # Language
     reset_token: str | None  # Password reset token
     reset_token_expires_at: datetime | None  # Reset token expiry
+    role_profiles: list[dict]  # Table: UserRoleProfile
     roles: list[dict]  # Table: UserRole
 
     # end: auto-generated types
@@ -162,6 +168,10 @@ class User(Document):
             ]
             if _assignments(submitted) != _assignments([plain_role_row(r) for r in stored]):
                 throw(_("Not permitted to change roles"), "FORBIDDEN")
+        if "role_profiles" in self.data and sorted(
+            _profile_names(self.data.get("role_profiles"))
+        ) != sorted(await self._stored_profiles()):
+            throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back - quietly restore
         # the stored value rather than failing the save.
@@ -193,6 +203,45 @@ class User(Document):
         parts = [self.last_name, self.first_name, self.middle_name]
         self.full_name = " ".join([p.strip() for p in parts if p and p.strip()])
         await self._publish_avatar_file()
+        await self._apply_role_profiles()
+
+    async def _apply_role_profiles(self) -> None:
+        """Rebuild the roles copied from the user's profiles (``UserRole.role_profile``)
+        whenever the roles or the profiles are saved."""
+        if "roles" not in self.data and "role_profiles" not in self.data:
+            return
+        if "role_profiles" in self.data:
+            profiles = _profile_names(self.data.get("role_profiles"))
+        else:
+            profiles = await self._stored_profiles()
+        if "roles" in self.data:
+            roles = list(self.data.get("roles") or [])
+        elif self.name:
+            roles = await _db.get_all(
+                "UserRole",
+                filters={"parent_name": self.name, "parent_doctype": "User"},
+                fields=[*ROLE_ROW_FIELDS, "role_profile"],
+                limit=500,
+                order_by="idx",
+                order="asc",
+            )
+        else:
+            roles = []
+        rebuilt = await with_profile_roles(roles, profiles)
+        if "roles" in self.data or rebuilt != roles:
+            self.data["roles"] = rebuilt
+
+    async def _stored_profiles(self) -> list[str]:
+        if not self.name:
+            return []
+        return await _db.get_all(
+            "UserRoleProfile",
+            filters={"parent_name": self.name, "parent_doctype": "User"},
+            pluck="role_profile",
+            limit=None,
+            order_by="idx",
+            order="asc",
+        )
 
     async def _publish_avatar_file(self) -> None:
         """A profile photo is shown to colleagues (user pickers, comments,
@@ -276,6 +325,12 @@ def guest_user() -> User:
         doctype="User",
         data={"email": GUEST_USER, "full_name": "Guest", "roles": ["Guest"], "is_active": True},
     )
+
+
+def _profile_names(rows: Any) -> list[str]:
+    """Profile names of ``role_profiles`` rows, in order, each once."""
+    names = [r.get("role_profile") for r in rows or [] if isinstance(r, dict)]
+    return list(dict.fromkeys(n for n in names if n))
 
 
 def _assignments(rows: list[dict[str, Any]]) -> list[tuple[str, ...]]:

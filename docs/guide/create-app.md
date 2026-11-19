@@ -451,6 +451,11 @@ Besides permissions, a role can carry:
 - `site_only`: a portal role. Users whose roles are all site-only stay on the website and never get `/app`.
 - `disabled`: switches the role off without taking it away from users.
 
+A `RoleProfile` is a set of roles handed out together. A user's profiles add
+their roles after the ones assigned by hand, and saving a profile updates
+every user who holds it. `SystemSettings.default_role_profile` gives a profile
+on self sign-up.
+
 A plain file is a **seed**: missing records are inserted, existing ones are
 never touched. To keep records built in the UI in sync with the app code,
 declare them in `hooks.py` and export them from a site:

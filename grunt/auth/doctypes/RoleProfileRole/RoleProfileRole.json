@@ -1,0 +1,34 @@
+{
+  "name": "RoleProfileRole",
+  "label": "Role profile role",
+  "module": "auth",
+  "hide_from_activity_feed": true,
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "role_name",
+      "label": "Role",
+      "fieldtype": "Link",
+      "options": "Role",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "scope_doctype",
+      "label": "Scope",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "in_list_view": true,
+      "description": "Limit the role to documents linked to this record (a department, a section). Empty - the role applies everywhere."
+    },
+    {
+      "fieldname": "scope_value",
+      "label": "Scope value",
+      "fieldtype": "DynamicLink",
+      "options": "scope_doctype",
+      "in_list_view": true,
+      "depends_on": "eval:doc.scope_doctype",
+      "mandatory_depends_on": "eval:doc.scope_doctype"
+    }
+  ]
+}

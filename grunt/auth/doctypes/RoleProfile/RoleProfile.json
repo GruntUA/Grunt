@@ -1,0 +1,35 @@
+{
+  "name": "RoleProfile",
+  "label": "Role profile",
+  "module": "auth",
+  "autoname": "field:profile_name",
+  "title_field": "profile_name",
+  "description": "A set of roles handed out together: a user with the profile gets all its roles, and changing the profile changes them for every such user.",
+  "fields": [
+    {
+      "fieldname": "profile_name",
+      "label": "Name",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "description",
+      "label": "Description",
+      "fieldtype": "LongText"
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "Table",
+      "options": "RoleProfileRole"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+    }
+  ]
+}

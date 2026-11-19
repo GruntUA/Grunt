@@ -310,29 +310,40 @@ async def _guard_registration() -> None:
 
 
 async def _assign_default_role(user_id: str | None) -> None:
-    """Give a freshly registered user the configured ``default_role`` (if any).
+    """Give a freshly registered user the configured ``default_role`` and
+    ``default_role_profile`` (if any).
 
     Runs as SYSTEM - registration happens in a guest context that cannot
     write the admin-only ``User.roles`` table.
     """
     role = await get_setting("default_role")
-    if not role or not user_id:
+    profile = await get_setting("default_role_profile")
+    if not (role or profile) or not user_id:
         return
 
     async with system_context(require_session()):
-        if not await _db.exists("Role", {"role_name": role}):
-            return
-        current = await _db.get_all(
-            "UserRole",
-            filters={"parent_name": user_id, "parent_doctype": "User"},
-            fields=["role_name"],
-            limit=100,
-        )
-        names = {r["role_name"] for r in current}
-        if role in names:
-            return
-        rows = [{"role_name": n} for n in names] + [{"role_name": role}]
-        await documents.save_doc("User", user_id, {"roles": rows})
+        changes: dict[str, Any] = {}
+        if role and await _db.exists("Role", {"role_name": role}):
+            current = await _db.get_all(
+                "UserRole",
+                filters={"parent_name": user_id, "parent_doctype": "User"},
+                fields=["role_name"],
+                limit=100,
+            )
+            names = {r["role_name"] for r in current}
+            if role not in names:
+                changes["roles"] = [{"role_name": n} for n in names] + [{"role_name": role}]
+        if profile and await _db.exists("RoleProfile", profile):
+            held = await _db.get_all(
+                "UserRoleProfile",
+                filters={"parent_name": user_id, "parent_doctype": "User"},
+                pluck="role_profile",
+                limit=None,
+            )
+            if profile not in held:
+                changes["role_profiles"] = [{"role_profile": p} for p in [*held, profile]]
+        if changes:
+            await documents.save_doc("User", user_id, changes)
 
 
 async def _apply_signup_approval(user: User) -> bool:

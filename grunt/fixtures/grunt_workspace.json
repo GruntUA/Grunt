@@ -76,6 +76,14 @@
     {
       "section": "Користувачі та доступ",
       "type": "DocType",
+      "label": "Профілі ролей",
+      "link_to": "RoleProfile",
+      "icon": "layers",
+      "show_count": false
+    },
+    {
+      "section": "Користувачі та доступ",
+      "type": "DocType",
       "label": "Журнал прав",
       "link_to": "PermissionLog",
       "icon": "shield-check",
