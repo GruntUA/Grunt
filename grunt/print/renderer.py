@@ -19,7 +19,7 @@ from markupsafe import Markup
 lazy from docxtpl import DocxTemplate
 lazy from jinja2.sandbox import SandboxedEnvironment
 
-from grunt.app import GruntDB
+from grunt.db.api import GruntDB
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import _session_ctx
 from grunt.log import log

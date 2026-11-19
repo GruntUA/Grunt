@@ -494,6 +494,10 @@ msgstr ""
 "Екскурсія формою або списком DocType: кожен крок вказує на поле чи елемент і"
 " пояснює його."
 
+#: grunt/grunt/notification/channels.py
+msgid "A webhook goes once per notification"
+msgstr "Вебхук надсилається один раз на сповіщення"
+
 #: grunt/grunt/monitoring/health.py
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
 msgstr "Воркер без активності понад 10 хв міг впасти — див. «Воркери черги»."
@@ -820,6 +824,10 @@ msgstr "Стало"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "After how many minutes of inactivity a re-login is required."
 msgstr "Через скільки хвилин бездіяльності потрібен повторний вхід."
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "After sending"
+msgstr "Після надсилання"
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
@@ -1370,6 +1378,14 @@ msgstr "Прикріпити зображення…"
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Attach as a link"
 msgstr "Прикріпити посиланням"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document as PDF"
+msgstr "Вкласти документ у PDF"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document's files"
+msgstr "Вкласти файли документа"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
@@ -2234,6 +2250,7 @@ msgstr "Вибрати з дерева"
 msgid "Choose the date field to count from"
 msgstr "Оберіть поле дати, від якого рахувати"
 
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/outgoing_webhook.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the document type"
 msgstr "Оберіть тип документа"
@@ -2241,6 +2258,10 @@ msgstr "Оберіть тип документа"
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Choose the first available DocType"
 msgstr "Обрати перший доступний DocType"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the webhook for the Webhook channel"
+msgstr "Виберіть вебхук для каналу «Вебхук»"
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 msgid "Choose them in the Builder → «Views» tab → «Gantt chart»."
@@ -4417,6 +4438,22 @@ msgstr ""
 "Надсилати звіт у форматі XLSX за розкладом (щодня о 07:00). Порожньо — "
 "вимкнено."
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Email: the document printed with the print format below (the default one "
+"when empty)"
+msgstr ""
+"Email: документ, надрукований друкованою формою нижче (типовою, якщо "
+"порожньо)"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: the files attached to the document (up to 10 MB in all)"
+msgstr "Email: файли, прикріплені до документа (разом до 10 МБ)"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: this mailbox instead of the site's default"
+msgstr "Email: ця скринька замість типової для сайту"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Emails (password reset, notifications) will not be sent."
 msgstr "Листи (скидання пароля, сповіщення) не надсилатимуться."
@@ -5097,6 +5134,13 @@ msgstr "Назва поля документа з посиланням на ко
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "Fieldname of a numeric field in the child DocType"
 msgstr "Fieldname числового поля у дочірньому DocType"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Fieldname on the document to set once someone was notified - e.g. "
+"reminder_sent"
+msgstr ""
+"Поле документа, яке встановити, щойно когось сповіщено — напр. reminder_sent"
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
 msgid "Fieldname on the source DocType holding the event date"
@@ -6067,6 +6111,11 @@ msgid ""
 msgstr ""
 "При наведенні на посилання на документ показується картка з його назвою, "
 "зображенням і полями «У перегляді»"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"How long before / after the date-and-time field; checked every 5 minutes"
+msgstr "За скільки до / після поля дати й часу; перевіряється кожні 5 хвилин"
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
@@ -7682,9 +7731,14 @@ msgstr "Мінімум (MIN)"
 msgid "Minimum password length"
 msgstr "Мінімальна довжина пароля"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 msgid "Minutes"
 msgstr "Хвилини"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Minutes cannot be negative"
+msgstr "Хвилини не можуть бути від'ємними"
 
 #: grunt/grunt/auth/providers/oauth.py
 msgid "Missing OAuth 'code'"
@@ -8317,6 +8371,10 @@ msgstr "Користувачів не знайдено"
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
 msgid "No value"
 msgstr "Без значення"
+
+#: grunt/grunt/notification/rules.py
+msgid "No webhook chosen for the channel"
+msgstr "Для каналу не вибрано вебхук"
 
 #: grunt/grunt/monitoring/health.py
 msgid "No worker is connected: background jobs are not running."
@@ -9563,6 +9621,10 @@ msgstr "Друк / PDF"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Print Format"
 msgstr "Формат друку"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Print format"
+msgstr "Друкована форма"
 
 #: grunt/grunt/monitoring/health.py
 msgid ""
@@ -11304,6 +11366,10 @@ msgstr "Вибрано: {n}"
 msgid "Send"
 msgstr "Надіслати"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Send from"
+msgstr "Надсилати з"
+
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue
 msgid "Send link"
 msgstr "Надіслати посилання"
@@ -11469,6 +11535,7 @@ msgid ""
 msgstr ""
 "Вкажіть статуси завершення або умову — інакше відлік ніколи не зупиниться"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Set field"
 msgstr "Встановити поле"
@@ -13470,6 +13537,10 @@ msgstr ""
 msgid "To state"
 msgstr "У стан"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "To value"
+msgstr "Значення"
+
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Today"
@@ -14356,8 +14427,10 @@ msgstr ""
 msgid "WebSockets"
 msgstr "Вебсокети"
 
+#: grunt/grunt/notification/channels.py
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 msgid "Webhook"
 msgstr "Вебхук"
 
@@ -14494,6 +14567,14 @@ msgstr ""
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid "Where the tour runs: the document's form or the list of documents"
 msgstr "Де проходить тур: у формі документа чи в списку документів"
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Where the webhook channel posts (one request per notification, not per "
+"recipient)"
+msgstr ""
+"Куди надсилає канал «Вебхук» (один запит на сповіщення, а не на кожного "
+"отримувача)"
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Where used / available fields"
@@ -15389,6 +15470,10 @@ msgstr "не підтримується"
 msgid "not working"
 msgstr "не працює"
 
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
+msgid "notification - only from notification rules (their Webhook channel)"
+msgstr "notification — лише з правил сповіщень (їхній канал «Вебхук»)"
+
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
 msgid "now"
 msgstr "досі"
@@ -16012,6 +16097,14 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“%(field)s” is not a date field of %(doctype)s"
 msgstr "«%(field)s» не є полем дати в %(doctype)s"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a date-and-time field of %(doctype)s"
+msgstr "«%(field)s» — не поле дати й часу в %(doctype)s"
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a field of %(doctype)s"
+msgstr "«%(field)s» — не поле %(doctype)s"
 
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
 msgid "“%(field)s” is not a field of %(doctype)s that can be tracked"

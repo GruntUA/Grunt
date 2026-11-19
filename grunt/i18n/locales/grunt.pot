@@ -446,6 +446,10 @@ msgid ""
 "element and explains it."
 msgstr ""
 
+#: grunt/grunt/notification/channels.py
+msgid "A webhook goes once per notification"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "A worker idle for over 10 min may have crashed; see Queue Workers."
 msgstr ""
@@ -771,6 +775,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "After how many minutes of inactivity a re-login is required."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "After sending"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
@@ -1301,6 +1309,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Attach as a link"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document as PDF"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Attach the document's files"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -2145,12 +2161,17 @@ msgstr ""
 msgid "Choose the date field to count from"
 msgstr ""
 
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/outgoing_webhook.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the document type"
 msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid "Choose the first available DocType"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Choose the webhook for the Webhook channel"
 msgstr ""
 
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
@@ -4275,6 +4296,20 @@ msgstr ""
 msgid "Email the report as XLSX on a schedule (daily at 07:00). Empty — off."
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Email: the document printed with the print format below (the default one "
+"when empty)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: the files attached to the document (up to 10 MB in all)"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Email: this mailbox instead of the site's default"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Emails (password reset, notifications) will not be sent."
 msgstr ""
@@ -4932,6 +4967,12 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/AggregateSection.vue
 msgid "Fieldname of a numeric field in the child DocType"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"Fieldname on the document to set once someone was notified - e.g. "
+"reminder_sent"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeCalendarSource/DocTypeCalendarSource.json
@@ -5849,6 +5890,11 @@ msgstr ""
 msgid ""
 "Hovering a link to a document shows a card with its title, image and the "
 "\"In preview\" fields"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"How long before / after the date-and-time field; checked every 5 minutes"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
@@ -7411,8 +7457,13 @@ msgstr ""
 msgid "Minimum password length"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/frontend/src/core/duration.ts
 msgid "Minutes"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Minutes cannot be negative"
 msgstr ""
 
 #: grunt/grunt/auth/providers/oauth.py
@@ -8027,6 +8078,10 @@ msgstr ""
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
 msgid "No value"
+msgstr ""
+
+#: grunt/grunt/notification/rules.py
+msgid "No webhook chosen for the channel"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -9213,6 +9268,10 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Print Format"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Print format"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -10879,6 +10938,10 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "Send from"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue
 msgid "Send link"
 msgstr ""
@@ -11039,6 +11102,7 @@ msgid ""
 "Set done statuses or a done condition - otherwise the clock never stops"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Set field"
 msgstr ""
@@ -12940,6 +13004,10 @@ msgstr ""
 msgid "To state"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid "To value"
+msgstr ""
+
 #: grunt/frontend/src/components/views/gantt/GanttView.vue
 #: grunt/frontend/src/components/views/calendar/CalendarView.vue
 msgid "Today"
@@ -13802,8 +13870,10 @@ msgstr ""
 msgid "WebSockets"
 msgstr ""
 
+#: grunt/grunt/notification/channels.py
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 msgid "Webhook"
 msgstr ""
 
@@ -13926,6 +13996,12 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid "Where the tour runs: the document's form or the list of documents"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
+msgid ""
+"Where the webhook channel posts (one request per notification, not per "
+"recipient)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
@@ -14792,6 +14868,10 @@ msgstr ""
 msgid "not working"
 msgstr ""
 
+#: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
+msgid "notification - only from notification rules (their Webhook channel)"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
 msgid "now"
 msgstr ""
@@ -15400,6 +15480,14 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "“%(field)s” is not a date field of %(doctype)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a date-and-time field of %(doctype)s"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "“%(field)s” is not a field of %(doctype)s"
 msgstr ""
 
 #: grunt/grunt/activity/doctypes/MilestoneTracker/milestone_tracker.py
