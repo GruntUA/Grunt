@@ -176,3 +176,34 @@ async def test_allowed_doctypes_batches_shares(ctx, menus, db_session, engine):
 
     batched, one_by_one = await _as(db_session, engine, _bob("Clerk"), check)
     assert batched == one_by_one == {"OpenBox", "SharedBox"}
+
+
+@pytest.mark.asyncio
+async def test_page_items_by_publication_and_roles(ctx, menus, db_session, engine):
+    from grunt.api.v1.workspace import get_workspace
+
+    for name, published, roles in (
+        ("open-page", 1, ""),
+        ("draft-page", 0, ""),
+        ("boss-page", 1, "Boss"),
+    ):
+        await ctx.new_doc(
+            "Page", {"name": name, "label": name, "is_published": published, "roles": roles}
+        )
+    await ctx.new_doc(
+        "AppMenu",
+        {
+            "name": "pages",
+            "label": "Pages",
+            "sidebar_items": [
+                {"type": "Page", "label": n, "link_to": n, "section": "Main"}
+                for n in ("open-page", "draft-page", "boss-page")
+            ],
+        },
+    )
+    await ctx.db._session().commit()
+
+    menu = await _as(db_session, engine, _bob("Clerk"), get_workspace, "pages")
+    assert [i["label"] for i in menu["items"]] == ["open-page"]
+    menu = await _as(db_session, engine, _bob("Clerk", "Boss"), get_workspace, "pages")
+    assert [i["label"] for i in menu["items"]] == ["open-page", "boss-page"]

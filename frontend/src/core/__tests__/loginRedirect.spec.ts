@@ -35,7 +35,7 @@ describe('loginRedirect', () => {
   })
 
   it('ignores off-site and non-string targets', () => {
-    for (const bad of ['//evil.com', '/\\evil.com', 'https://evil.com', ['/a'], undefined]) {
+    for (const bad of ['//evil.com', '/\\evil.com', '/\t/evil.com', '/a\n', 'https://evil.com', ['/a'], undefined]) {
       rememberLoginRedirect(bad)
       expect(afterLoginTarget()).toEqual({ name: 'desk' })
     }
@@ -45,9 +45,11 @@ describe('loginRedirect', () => {
     expect(afterLoginTarget('/app/hrm')).toBe('/app/hrm')
     rememberLoginRedirect('/app/hr/Employee')
     expect(afterLoginTarget('/app/hrm')).toBe('/app/hr/Employee')
-    for (const bad of ['//evil.com', 'https://evil.com', '', null]) {
+    for (const bad of ['//evil.com', 'https://evil.com', '/\t/evil.com', '/\\evil.com', '/login', '', null]) {
       expect(afterLoginTarget(bad)).toEqual({ name: 'desk' })
     }
+    // The site root is a fine home page (not a fine "return to" path).
+    expect(afterLoginTarget('/')).toBe('/')
   })
 
   it('tells SPA pages from website pages', () => {

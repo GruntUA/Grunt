@@ -37,7 +37,11 @@ class Role(Document):
                 "VALIDATION_ERROR",
             )
         home = (self.get("home_page") or "").strip()
-        if home and (not home.startswith("/") or home.startswith("//")):
+        if home and (
+            not home.startswith("/")
+            or home.startswith("//")
+            or any(c.isspace() or c == "\\" or not c.isprintable() for c in home)
+        ):
             throw(_("Home page must be a path on this site, starting with /"), "VALIDATION_ERROR")
         self.home_page = home or None
 

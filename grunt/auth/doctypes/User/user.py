@@ -156,21 +156,20 @@ class User(Document):
         # the child table (see the update pipeline) - so key presence == an attempt.
         if "roles" in self.data:
             # The whole assignment counts - a scope or a period is as much a
-            # privilege as the role itself.
+            # privilege as the role itself, and so is where it came from: a
+            # row taken off its profile would outlive the profile.
             stored = await _db.get_all(
                 "UserRole",
                 filters={"parent_name": self.name, "parent_doctype": "User"},
-                fields=ROLE_ROW_FIELDS,
+                fields=[*ROLE_ROW_FIELDS, "role_profile"],
                 limit=500,
             )
-            submitted = [
-                plain_role_row(r) for r in (self.data.get("roles") or []) if isinstance(r, dict)
-            ]
-            if _assignments(submitted) != _assignments([plain_role_row(r) for r in stored]):
+            submitted = [r for r in (self.data.get("roles") or []) if isinstance(r, dict)]
+            if _assignments(submitted) != _assignments(stored):
                 throw(_("Not permitted to change roles"), "FORBIDDEN")
-        if "role_profiles" in self.data and sorted(
+        if "role_profiles" in self.data and set(
             _profile_names(self.data.get("role_profiles"))
-        ) != sorted(await self._stored_profiles()):
+        ) != set(await self._stored_profiles()):
             throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back - quietly restore
@@ -334,8 +333,12 @@ def _profile_names(rows: Any) -> list[str]:
 
 
 def _assignments(rows: list[dict[str, Any]]) -> list[tuple[str, ...]]:
-    """Role assignment rows compared as a set (order and row ids don't matter)."""
-    return sorted(tuple(str(r.get(f) or "") for f in ROLE_ROW_FIELDS) for r in rows)
+    """Role assignment rows compared as a set (order and row ids don't matter),
+    with the profile each came from."""
+    return sorted(
+        (*(str(v or "") for v in plain_role_row(r).values()), str(r.get("role_profile") or ""))
+        for r in rows
+    )
 
 
 def _validate_role_rows(rows: list[Any]) -> None:

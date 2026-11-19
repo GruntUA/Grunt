@@ -99,10 +99,12 @@ async def with_profile_roles(
     roles: list[dict[str, Any]], profiles: list[str]
 ) -> list[dict[str, Any]]:
     """The user's role rows: those assigned by hand (no ``role_profile``) and
-    then the roles of *profiles*, in order - a role the user already holds in
-    the same scope isn't added again."""
+    then the roles of *profiles*, in order - a role the user already holds by
+    hand in the same scope, without a period, isn't added again. One held for
+    a period (``valid_from``/``valid_to``) is: the profile's grant stays when
+    the period is over."""
     manual = [r for r in roles if isinstance(r, dict) and not r.get("role_profile")]
-    held = {_key(r) for r in manual}
+    held = {_key(r) for r in manual if not r.get("valid_from") and not r.get("valid_to")}
     out = list(manual)
     if not profiles:
         return out

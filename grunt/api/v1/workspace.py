@@ -105,6 +105,7 @@ class _Visible:
     pages: list[dict[str, Any]]
     doctypes: set[str] = field(default_factory=set)
     reports: set[str] = field(default_factory=set)
+    page_items: set[str] = field(default_factory=set)
 
     def app(self, ws_data: Any) -> bool:
         """``AppMenu.roles`` - the app is for these roles only (empty: everyone)."""
@@ -122,7 +123,7 @@ class _Visible:
             case "Report":
                 return target in self.reports
             case "Page":
-                return any(p["name"] == target for p in self.pages)
+                return target in self.page_items
         return True  # URL, Divider
 
 
@@ -142,12 +143,28 @@ async def _visible(menus: Iterable[Any]) -> _Visible:
     items = [i for ws in menus for i in ws.get("sidebar_items") or []]
     targets = {
         kind: {i["link_to"] for i in items if i.get("type") == kind and i.get("link_to")}
-        for kind in ("DocType", "Report")
+        for kind in ("DocType", "Report", "Page")
     }
     metas = [m for n in sorted(targets["DocType"]) if (m := await doctype_registry.get_meta(n))]
     visible.doctypes = await allowed_doctypes(metas, "read")
     visible.reports = await _visible_reports(targets["Report"])
+    visible.page_items = await _visible_page_items(targets["Page"], visible.roles)
     return visible
+
+
+async def _visible_page_items(names: set[str], roles: frozenset[str]) -> set[str]:
+    """Those of the pages *names* (sidebar items) the user may open - looked up
+    by name, not out of the capped list of pages the dashboards use."""
+    if not names:
+        return set()
+    pages = await documents.get_list(
+        "Page",
+        filters={"name__in": sorted(names)},
+        fields=["name", "is_published", "roles"],
+        limit=len(names),
+        include_total=False,
+    )
+    return {p["name"] for p in pages if page_visible(p, roles)}
 
 
 async def _visible_reports(names: set[str]) -> set[str]:

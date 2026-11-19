@@ -67,7 +67,9 @@ async def test_protected_roles_cannot_be_disabled_or_site_only(ctx, role):
             await _set(ctx, role, **{flag: 1})
 
 
-@pytest.mark.parametrize("path", ["https://evil.example", "//evil.example", "app/hrm"])
+@pytest.mark.parametrize(
+    "path", ["https://evil.example", "//evil.example", "app/hrm", "/\t/evil.example", "/\\evil"]
+)
 async def test_home_page_is_a_local_path(ctx, path):
     with pytest.raises(HTTPException):
         await _role(ctx, "Odd", home_page=path)
@@ -101,3 +103,8 @@ async def test_everything_permission_keeps_the_workspace(ctx, bob):
     await _set(ctx, "Reader", site_only=1, permissions=["*"])
     await _set(ctx, "Clerk", site_only=1)
     assert not (await user_landing(bob)).site_only
+
+
+async def test_site_root_is_a_home_page(ctx):
+    await _role(ctx, "Visitor", home_page="/")
+    assert (await ctx.get_doc("Role", "Visitor"))["home_page"] == "/"

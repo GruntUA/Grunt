@@ -12,6 +12,7 @@ from typing import Any
 
 from grunt.cache.bus import fanout
 from grunt.db.api import GruntDB
+from grunt.db.commit import on_commit
 from grunt.local import _session_ctx
 from grunt.site.manager import site_cache_key
 
@@ -32,12 +33,29 @@ class RoleProps:
 
 # {site: {role: props}}
 _ROLES: dict[str, dict[str, RoleProps]] = {}
+# Bumped on every invalidation: a load that started before one doesn't store
+# what it read (the rows may predate the change).
+_epoch = 0
 
 
 @fanout
 def invalidate_roles(site: str | None = None) -> None:
     """Drop the cached roles of *site* (``None`` - every site). Called from the
-    Role controller after save / delete."""
+    Role controller after save / delete - inside its transaction, so the cache
+    is dropped again once it commits: a request reading the Role rows in
+    between still saw the old ones (other processes hear of it only after the
+    commit, through the bus)."""
+    _evict(site)
+
+    async def after_commit() -> None:
+        _evict(site)
+
+    on_commit(after_commit)
+
+
+def _evict(site: str | None) -> None:
+    global _epoch
+    _epoch += 1
     if site is None:
         _ROLES.clear()
     else:
@@ -50,6 +68,7 @@ async def role_props() -> dict[str, RoleProps]:
     cached = _ROLES.get(key)
     if cached is not None:
         return cached
+    epoch = _epoch
     rows = await _db.get_all(
         "Role",
         fields=["name", "permissions", "disabled", "site_only", "home_page"],
@@ -64,7 +83,8 @@ async def role_props() -> dict[str, RoleProps]:
         )
         for r in rows
     }
-    _ROLES[key] = loaded
+    if epoch == _epoch:
+        _ROLES[key] = loaded
     return loaded
 
 

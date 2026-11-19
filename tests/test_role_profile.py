@@ -123,3 +123,46 @@ async def test_sign_up_gets_the_default_profile(ctx, clerk):
     await ctx.new_doc("User", {"email": "new@example.com", "first_name": "N", "last_name": "U"})
     await _assign_default_role("new@example.com")
     assert await _rows(ctx, "new@example.com") == [("Clerk", "Office"), ("Reader", "Office")]
+
+
+async def test_a_manual_role_for_a_period_keeps_the_profile_grant(ctx, clerk):
+    """When the manual row lapses, the profile's grant is still stored."""
+    await ctx.save_doc(
+        "User",
+        clerk,
+        {
+            "roles": [
+                {"role_name": "Archivist"},
+                {"role_name": "Clerk", "valid_from": "2020-01-01", "valid_to": "2020-12-31"},
+            ],
+            "role_profiles": [{"role_profile": "Office"}],
+        },
+    )
+    assert await _rows(ctx, clerk) == [
+        ("Archivist", None),
+        ("Clerk", None),
+        ("Clerk", "Office"),
+        ("Reader", "Office"),
+    ]
+    assert await get_roles(clerk) == ["Archivist", "Clerk", "Reader"]
+
+
+async def test_self_edit_cannot_take_a_role_off_its_profile(ctx, clerk):
+    """Echoing the form back is fine; dropping ``role_profile`` from a row (so
+    it would outlive the profile) or listing a profile twice changes nothing
+    the user may change."""
+    from grunt.auth.doctypes.User.user import User
+
+    stored = (await ctx.get_doc("User", clerk))["roles"]
+    await ctx.db._session().commit()
+    me = User(doctype="User", data={"email": clerk, "name": clerk, "roles": []})
+    async with ctx.context(ctx.db._session(), ctx.get_engine(), me):
+        await ctx.save_doc(
+            "User",
+            clerk,
+            {"roles": stored, "role_profiles": [{"role_profile": "Office"}] * 2},
+        )
+        stripped = [{**r, "role_profile": None} for r in stored]
+        with pytest.raises(HTTPException) as exc:
+            await ctx.save_doc("User", clerk, {"roles": stripped})
+        assert exc.value.status_code == 403
