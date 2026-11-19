@@ -24,9 +24,12 @@ from datetime import UTC, datetime, time
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from sqlalchemy import select
+
 from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
+from grunt.metadata.registry import doctype_registry
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.ip_policy import ip_allowed, parse_ip_list
@@ -132,3 +135,24 @@ async def enforce_session_limit(user_id: str, keep_sid: str) -> int:
         for sid in ended:
             await _db.set_value("UserSession", sid, "is_active", False)
     return len(ended)
+
+
+def credential_version(user: User) -> str:
+    """The password's version for a password-change challenge: when it was
+    last set. Every password change stamps a new one (:func:`mark_password_changed`),
+    so a challenge issued before any later change - by the user, an admin or a
+    reset - no longer works, and one already used can't be used again."""
+    return str(user.data.get("password_changed_at") or "")
+
+
+async def lock_user(user_id: str) -> None:
+    """Hold the user's row until the request commits - sign-ins of one user
+    then open their sessions one at a time, so two at once can't both stay
+    past ``max_sessions_per_user``. (SQLite already writes one at a time.)"""
+    meta = await doctype_registry.get_meta("User")
+    if meta is None:
+        return
+    table = meta.table
+    await require_session().execute(
+        select(table.c.name).where(table.c.name == user_id).with_for_update()
+    )

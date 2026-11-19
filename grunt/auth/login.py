@@ -20,7 +20,9 @@ lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.doctypes.UserSession.user_session import open_session
 lazy from grunt.auth.ip_policy import sign_in_ip_allowed
 lazy from grunt.auth.login_policy import (
+    credential_version,
     enforce_session_limit,
+    lock_user,
     login_hours,
     password_expired,
     user_ip_allowed,
@@ -119,7 +121,7 @@ async def issue_login(
             "access_token": None,
             "mfa_token": None,
             "password_change_token": create_challenge_token(
-                PASSWORD_CHANGE, ttl_minutes=10, uid=user.id
+                PASSWORD_CHANGE, ttl_minutes=10, uid=user.id, ver=credential_version(user)
             ),
             "token_type": "bearer",
             "user": await _auth_user_dump(user),
@@ -155,6 +157,7 @@ async def issue_login(
 
     await clear_failed_attempts(user)
 
+    await lock_user(user.id)
     sid, refresh_token = await open_session(
         user.id, ip_address, user_agent, device_id=device_id, method=method
     )

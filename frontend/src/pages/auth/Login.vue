@@ -214,10 +214,24 @@ async function submitNewPassword() {
     notice.value = ''
     afterStep(res)
   } catch (e: any) {
-    error.value = e?.response?.data?.error?.message || e?.message || t('Error')
+    const message = e?.response?.data?.error?.message || e?.message || t('Error')
+    if (e?.response?.status === 401) {
+      // The challenge expired (or the password changed meanwhile) - sign in again.
+      cancelPasswordChange()
+    }
+    error.value = message
   } finally {
     loading.value = false
   }
+}
+
+/** Back to the sign-in form - the challenge, the new password and the messages go. */
+function cancelPasswordChange() {
+  passwordChangeToken.value = ''
+  newPassword.value = ''
+  newPasswordConfirm.value = ''
+  notice.value = ''
+  error.value = ''
 }
 
 async function loginWithPasskey() {
@@ -360,6 +374,9 @@ async function verifyEmailCode() {
               <Spinner v-if="loading" />
               {{ t('Set the new password') }}
             </Button>
+            <Button type="button" variant="link" class="text-muted-foreground" @click="cancelPasswordChange">
+              {{ t('Back to sign-in') }}
+            </Button>
           </form>
 
           <!-- Passwordless email: enter the code from the mail -->
@@ -454,6 +471,12 @@ async function verifyEmailCode() {
                 {{ t('Email me a code') }}
               </Button>
             </div>
+
+            <!-- SSO only: the email for the emailed code, while the password form is hidden -->
+            <Field v-if="!showPasswordForm && hasEmailLogin">
+              <FieldLabel for="email-sso">Email</FieldLabel>
+              <Input id="email-sso" v-model="email" type="email" autocomplete="username" placeholder="admin@grunt.local" />
+            </Field>
 
             <template v-if="showPasswordForm">
             <FieldSeparator v-if="hasAlternatives" class="*:data-[slot=field-separator-content]:bg-card">

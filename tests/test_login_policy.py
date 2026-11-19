@@ -155,3 +155,52 @@ async def test_changing_the_password_ends_the_other_sessions(ctx, client, accoun
     await ctx.db._session().commit()
     assert len(await _active_sessions(ctx, account)) == 1
     assert other["access_token"] != me["access_token"]
+
+
+async def _expired_challenge(ctx, client, account) -> str:
+    old = datetime.now(UTC) - timedelta(days=31)
+    await ctx.db.set_value("User", account, "password_changed_at", old)
+    await ctx.db._session().commit()
+    data = (await _login(client)).json()["data"]
+    assert data["password_change_required"]
+    return data["password_change_token"]
+
+
+@pytest.mark.asyncio
+async def test_a_password_change_challenge_works_once(ctx, client, account):
+    async with site(ctx, password_max_age_days=30):
+        token = await _expired_challenge(ctx, client, account)
+        body = {"password_change_token": token, "new_password": "N3wStrongPass"}
+        assert (await client.post(_CHANGE_EXPIRED, json=body)).status_code == 200
+        again = await client.post(_CHANGE_EXPIRED, json={**body, "new_password": "Th1rdStrong"})
+        assert again.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_a_challenge_is_void_after_another_change_or_sso_only(ctx, client, account):
+    from grunt.auth.login_policy import mark_password_changed
+
+    async with site(ctx, password_max_age_days=30):
+        token = await _expired_challenge(ctx, client, account)
+        # An admin (or a reset) changed the password meanwhile.
+        async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+            await mark_password_changed(account)
+        await ctx.db._session().commit()
+        body = {"password_change_token": token, "new_password": "N3wStrongPass"}
+        assert (await client.post(_CHANGE_EXPIRED, json=body)).status_code == 401
+
+    from grunt.auth.users import create_user
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        plain = await create_user("plain2@grunt.example.com", PASSWORD, "Pl", "Ain", None)
+        old = datetime.now(UTC) - timedelta(days=31)
+        await ctx.db.set_value("User", plain.id, "password_changed_at", old)
+        await ctx.db._session().commit()
+    async with site(ctx, password_max_age_days=30):
+        resp = await client.post(
+            _LOGIN, json={"email": "plain2@grunt.example.com", "password": PASSWORD}
+        )
+        token = resp.json()["data"]["password_change_token"]
+    async with site(ctx, disable_password_login=True):
+        body = {"password_change_token": token, "new_password": "N3wStrongPass"}
+        assert (await client.post(_CHANGE_EXPIRED, json=body)).status_code == 403

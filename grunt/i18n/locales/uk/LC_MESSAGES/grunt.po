@@ -352,6 +352,14 @@ msgstr "Новий документ створюється у стані «%(sta
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid ""
+"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
+" time; 0 - no limit"
+msgstr ""
+"Новий вхід завершує найстаріші сесії понад це число; 1 — один пристрій "
+"одночасно; 0 — без обмеження"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
 "A new user cannot sign in until an administrator approves their "
 "registration."
 msgstr ""
@@ -795,6 +803,18 @@ msgstr "Адреса (URL)"
 msgid "Address type"
 msgstr "Тип адреси"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Addresses or CIDR networks, comma or newline separated - on top of the "
+"role's own limit; empty - any"
+msgstr ""
+"Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
+" ролі; порожньо — будь-які"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Administrator sign-in"
+msgstr "Вхід адміністратора"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Administrators without 2FA"
 msgstr "Адміністратори без 2FA"
@@ -927,6 +947,10 @@ msgstr "Дозвіл для гостей"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Allow self sign-up"
 msgstr "Дозволити самостійну реєстрацію"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Allowed IP addresses"
+msgstr "Дозволені IP-адреси"
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgid "Allowed IPs (comma-separated)"
@@ -1521,6 +1545,10 @@ msgstr "Повернутися до свого облікового запису
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue
 msgid "Back to sign in"
+msgstr "Повернутися до входу"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Back to sign-in"
 msgstr "Повернутися до входу"
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -2185,6 +2213,10 @@ msgstr "Оберіть поле"
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue
 msgid "Choose a folder"
 msgstr "Оберіть теку"
+
+#: grunt/grunt/auth/user_api.py
+msgid "Choose a password different from the old one"
+msgstr "Виберіть пароль, відмінний від старого"
 
 #: grunt/frontend/src/components/views/form/FormModals.vue
 msgid "Choose a replacement or delete without one."
@@ -7969,6 +8001,7 @@ msgstr "Нове сповіщення"
 
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
+#: grunt/frontend/src/pages/auth/Login.vue
 msgid "New password"
 msgstr "Новий пароль"
 
@@ -9262,9 +9295,14 @@ msgstr "Ключі доступу (Passkeys)"
 msgid "Password"
 msgstr "Пароль"
 
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Password changed"
 msgstr "Пароль успішно змінено"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Password expires after, days"
+msgstr "Строк дії пароля, днів"
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Password hash"
@@ -9291,6 +9329,19 @@ msgstr "Посилання для скидання пароля (дійсне 1 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Password reset token"
 msgstr "Токен відновлення пароля"
+
+#: grunt/grunt/auth/user_api.py
+msgid "Password sign-in is off on this site - use single sign-on"
+msgstr ""
+"Вхід за паролем на цьому сайті вимкнено — скористайтеся єдиним входом (SSO)"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Password sign-in is refused (and hidden on the sign-in page) for everyone "
+"but administrators"
+msgstr ""
+"Вхід за паролем відхиляється (і прихований на сторінці входу) для всіх, крім"
+" адміністраторів"
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Password updated!"
@@ -11455,6 +11506,10 @@ msgstr "Токени сесій"
 msgid "Sessions & brute-force protection"
 msgstr "Сесії та захист від підбору"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sessions per user"
+msgstr "Сесій на користувача"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Set SECRET_KEY: with the default key, tokens can be forged."
 msgstr "Задайте SECRET_KEY — зі стандартним ключем токени можна підробити."
@@ -11484,6 +11539,10 @@ msgstr "Задається один раз"
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Set password"
 msgstr "Встановити пароль"
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Set the new password"
+msgstr "Встановити новий пароль"
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
 msgid "Set up"
@@ -11762,6 +11821,10 @@ msgstr "Вхід від імені іншого користувача"
 msgid "Sign in as this user"
 msgstr "Увійти як цей користувач"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in from"
+msgstr "Вхід з"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "Sign in in the browser window that opens and allow access"
 msgstr "Увійдіть у вікні браузера, що відкриється, і дозвольте доступ"
@@ -11774,6 +11837,14 @@ msgstr "Увійти через браузер"
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Sign in to your account"
 msgstr "Увійдіть у свій акаунт"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in until"
+msgstr "Вхід до"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sign in with SSO only"
+msgstr "Вхід лише через SSO"
 
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid ""
@@ -11790,6 +11861,11 @@ msgstr ""
 msgid "Sign up"
 msgstr "Зареєструватися"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in allowed only from this time (site time zone); empty - any time"
+msgstr ""
+"Вхід дозволено лише з цього часу (часовий пояс сайту); порожньо — будь-коли"
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Sign-in code"
 msgstr "Код для входу"
@@ -11798,9 +11874,21 @@ msgstr "Код для входу"
 msgid "Sign-in failed"
 msgstr "Не вдалося увійти"
 
+#: grunt/grunt/auth/login.py
+msgid "Sign-in from this IP address is not allowed for your account"
+msgstr "Вхід з цієї IP-адреси для вашого облікового запису заборонено"
+
 #: grunt/grunt/auth/login.py grunt/grunt/auth/user_api.py
 msgid "Sign-in from this IP address is not allowed for your role"
 msgstr "Вхід з цієї IP-адреси заборонено для вашої ролі"
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in is allowed only from %(from)s to %(to)s"
+msgstr "Вхід дозволено лише з %(from)s до %(to)s"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in limits"
+msgstr "Обмеження входу"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Sign-ins"
@@ -11825,6 +11913,10 @@ msgstr "Заголовок підпису"
 #: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
 msgid "Signed in at"
 msgstr "Час входу"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Signing in with an older password asks for a new one first; 0 - never"
+msgstr "Вхід зі старішим паролем спершу вимагає новий; 0 — ніколи"
 
 #: grunt/grunt/auth/doctypes/User/user.py
 msgid "Signup state"
@@ -13078,6 +13170,10 @@ msgstr "Налаштування завеликі"
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The shell is cached after the first page load with the network."
 msgstr "Оболонка зберігається після першого відкриття сторінки з мережею."
+
+#: grunt/grunt/auth/user_api.py
+msgid "The sign-in has expired - sign in again"
+msgstr "Час на вхід минув — увійдіть знову"
 
 #: grunt/grunt/storage/cloud/oauth.py grunt/frontend/src/pages/auth/Login.vue
 msgid "The sign-in link is invalid or expired"
@@ -14480,6 +14576,12 @@ msgstr ""
 "Коли документ відповідає умові, відкрите призначення цього правила "
 "закривається як виконане — напр. {\"status\": \"Answered\"}"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"When the password was last set - its age for the site's password expiry"
+msgstr ""
+"Коли пароль востаннє встановлено — його вік для строку дії паролів сайту"
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
 msgstr "Коли воркер востаннє звертався до черги."
@@ -14832,6 +14934,10 @@ msgstr "Ваші ключі"
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Your latest notifications will appear here."
 msgstr "Тут з'являться ваші останні сповіщення."
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Your password has expired - set a new one"
+msgstr "Строк дії пароля минув — встановіть новий"
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid ""
@@ -16037,6 +16143,11 @@ msgstr "«{action}»: ви впевнені?"
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"…and until this time; a range across midnight works too (22:00 - 06:00)"
+msgstr "…і до цього часу; проміжок через північ теж працює (22:00 — 06:00)"
+
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "≤ 1 s"
 msgstr "≤ 1 с"
@@ -16490,111 +16601,6 @@ msgstr "В роботі"
 msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid ""
-"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
-" time; 0 - no limit"
-msgstr ""
-"Новий вхід завершує найстаріші сесії понад це число; 1 — один пристрій "
-"одночасно; 0 — без обмеження"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid ""
-"Addresses or CIDR networks, comma or newline separated - on top of the "
-"role's own limit; empty - any"
-msgstr ""
-"Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
-" ролі; порожньо — будь-які"
-
-#: grunt/frontend/src/pages/auth/Login.vue
-msgid "Administrator sign-in"
-msgstr "Вхід адміністратора"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Allowed IP addresses"
-msgstr "Дозволені IP-адреси"
-
-#: grunt/grunt/auth/user_api.py
-msgid "Choose a password different from the old one"
-msgstr "Виберіть пароль, відмінний від старого"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Password expires after, days"
-msgstr "Строк дії пароля, днів"
-
-#: grunt/grunt/auth/user_api.py
-msgid "Password sign-in is off on this site - use single sign-on"
-msgstr ""
-"Вхід за паролем на цьому сайті вимкнено — скористайтеся єдиним входом (SSO)"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid ""
-"Password sign-in is refused (and hidden on the sign-in page) for everyone "
-"but administrators"
-msgstr ""
-"Вхід за паролем відхиляється (і прихований на сторінці входу) для всіх, крім"
-" адміністраторів"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Sessions per user"
-msgstr "Сесій на користувача"
-
-#: grunt/frontend/src/pages/auth/Login.vue
-msgid "Set the new password"
-msgstr "Встановити новий пароль"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign in from"
-msgstr "Вхід з"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign in until"
-msgstr "Вхід до"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Sign in with SSO only"
-msgstr "Вхід лише через SSO"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign-in allowed only from this time (site time zone); empty - any time"
-msgstr ""
-"Вхід дозволено лише з цього часу (часовий пояс сайту); порожньо — будь-коли"
-
-#: grunt/grunt/auth/login.py
-msgid "Sign-in from this IP address is not allowed for your account"
-msgstr "Вхід з цієї IP-адреси для вашого облікового запису заборонено"
-
-#: grunt/grunt/auth/login.py
-msgid "Sign-in is allowed only from %(from)s to %(to)s"
-msgstr "Вхід дозволено лише з %(from)s до %(to)s"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign-in limits"
-msgstr "Обмеження входу"
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Signing in with an older password asks for a new one first; 0 - never"
-msgstr "Вхід зі старішим паролем спершу вимагає новий; 0 — ніколи"
-
-#: grunt/grunt/auth/user_api.py
-msgid "The sign-in has expired - sign in again"
-msgstr "Час на вхід минув — увійдіть знову"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid ""
-"When the password was last set - its age for the site's password expiry"
-msgstr ""
-"Коли пароль востаннє встановлено — його вік для строку дії паролів сайту"
-
-#: grunt/frontend/src/pages/auth/Login.vue
-msgid "Your password has expired - set a new one"
-msgstr "Строк дії пароля минув — встановіть новий"
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid ""
-"…and until this time; a range across midnight works too (22:00 - 06:00)"
-msgstr "…і до цього часу; проміжок через північ теж працює (22:00 — 06:00)"
 
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "

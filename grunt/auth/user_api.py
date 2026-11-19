@@ -21,7 +21,11 @@ from grunt.auth.doctypes.UserSession.user_session import (
 from grunt.auth.impersonation import start_impersonation
 from grunt.auth.ip_policy import sign_in_ip_allowed
 from grunt.auth.login import PASSWORD_CHANGE, issue_login
-from grunt.auth.login_policy import mark_password_changed, password_login_allowed
+from grunt.auth.login_policy import (
+    credential_version,
+    mark_password_changed,
+    password_login_allowed,
+)
 from grunt.auth.mfa import (
     MfaConfirmed,
     MfaSetup,
@@ -158,6 +162,13 @@ async def change_expired_password_api(
     user = await get_user_by_id(payload["uid"])
     if not user or not user.id or not user.is_active:
         throw(_("User not found"), "UNAUTHORIZED")
+    # Issued for this very password: not after it was changed (by anyone, or by
+    # this challenge already).
+    if payload.get("ver") != credential_version(user):
+        throw(_("The sign-in has expired - sign in again"), "UNAUTHORIZED")
+    # SSO only may have been switched on since.
+    if not await password_login_allowed(user):
+        throw(_("Password sign-in is off on this site - use single sign-on"), "PERMISSION_DENIED")
     await enforce_password_policy(new_password)
     if user.hashed_password and await user.check_password(new_password):
         throw(_("Choose a password different from the old one"), "VALIDATION_ERROR")

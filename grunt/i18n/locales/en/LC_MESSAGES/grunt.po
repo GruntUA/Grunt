@@ -335,6 +335,12 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid ""
+"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
+" time; 0 - no limit"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
 "A new user cannot sign in until an administrator approves their "
 "registration."
 msgstr ""
@@ -755,6 +761,16 @@ msgstr ""
 msgid "Address type"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Addresses or CIDR networks, comma or newline separated - on top of the "
+"role's own limit; empty - any"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Administrator sign-in"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Administrators without 2FA"
 msgstr ""
@@ -884,6 +900,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Allow self sign-up"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Allowed IP addresses"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
@@ -1457,6 +1477,10 @@ msgstr ""
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 #: grunt/frontend/src/pages/auth/ForgotPassword.vue
 msgid "Back to sign in"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Back to sign-in"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
@@ -2103,6 +2127,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FolderPickerDialog.vue
 msgid "Choose a folder"
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "Choose a password different from the old one"
 msgstr ""
 
 #: grunt/frontend/src/components/views/form/FormModals.vue
@@ -7701,6 +7729,7 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
+#: grunt/frontend/src/pages/auth/Login.vue
 msgid "New password"
 msgstr ""
 
@@ -8929,8 +8958,13 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Password changed"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Password expires after, days"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
@@ -8957,6 +8991,16 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Password reset token"
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "Password sign-in is off on this site - use single sign-on"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Password sign-in is refused (and hidden on the sign-in page) for everyone "
+"but administrators"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
@@ -11037,6 +11081,10 @@ msgstr ""
 msgid "Sessions & brute-force protection"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sessions per user"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Set SECRET_KEY: with the default key, tokens can be forged."
 msgstr ""
@@ -11064,6 +11112,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Set password"
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Set the new password"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
@@ -11332,6 +11384,10 @@ msgstr ""
 msgid "Sign in as this user"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in from"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "Sign in in the browser window that opens and allow access"
 msgstr ""
@@ -11343,6 +11399,14 @@ msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Sign in to your account"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign in until"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Sign in with SSO only"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.js
@@ -11357,6 +11421,10 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in allowed only from this time (site time zone); empty - any time"
+msgstr ""
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Sign-in code"
 msgstr ""
@@ -11365,8 +11433,20 @@ msgstr ""
 msgid "Sign-in failed"
 msgstr ""
 
+#: grunt/grunt/auth/login.py
+msgid "Sign-in from this IP address is not allowed for your account"
+msgstr ""
+
 #: grunt/grunt/auth/login.py grunt/grunt/auth/user_api.py
 msgid "Sign-in from this IP address is not allowed for your role"
+msgstr ""
+
+#: grunt/grunt/auth/login.py
+msgid "Sign-in is allowed only from %(from)s to %(to)s"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Sign-in limits"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -11391,6 +11471,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
 msgid "Signed in at"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Signing in with an older password asks for a new one first; 0 - never"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py
@@ -12586,6 +12670,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The shell is cached after the first page load with the network."
+msgstr ""
+
+#: grunt/grunt/auth/user_api.py
+msgid "The sign-in has expired - sign in again"
 msgstr ""
 
 #: grunt/grunt/storage/cloud/oauth.py grunt/frontend/src/pages/auth/Login.vue
@@ -13927,6 +14015,11 @@ msgid ""
 "done - e.g. {\"status\": \"Answered\"}"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"When the password was last set - its age for the site's password expiry"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/BackgroundWorker.json
 msgid "When the worker last checked the queue."
 msgstr ""
@@ -14254,6 +14347,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Your latest notifications will appear here."
+msgstr ""
+
+#: grunt/frontend/src/pages/auth/Login.vue
+msgid "Your password has expired - set a new one"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
@@ -15439,6 +15536,11 @@ msgstr ""
 msgid "… and %(count)s more"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"…and until this time; a range across midnight works too (22:00 - 06:00)"
+msgstr ""
+
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "≤ 1 s"
 msgstr ""
@@ -15606,102 +15708,6 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgctxt "status"
 msgid "Open"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid ""
-"A new sign-in ends the oldest sessions past this number; 1 - one device at a"
-" time; 0 - no limit"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid ""
-"Addresses or CIDR networks, comma or newline separated - on top of the "
-"role's own limit; empty - any"
-msgstr ""
-
-#: grunt/frontend/src/pages/auth/Login.vue
-msgid "Administrator sign-in"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Allowed IP addresses"
-msgstr ""
-
-#: grunt/grunt/auth/user_api.py
-msgid "Choose a password different from the old one"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Password expires after, days"
-msgstr ""
-
-#: grunt/grunt/auth/user_api.py
-msgid "Password sign-in is off on this site - use single sign-on"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid ""
-"Password sign-in is refused (and hidden on the sign-in page) for everyone "
-"but administrators"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Sessions per user"
-msgstr ""
-
-#: grunt/frontend/src/pages/auth/Login.vue
-msgid "Set the new password"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign in from"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign in until"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Sign in with SSO only"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign-in allowed only from this time (site time zone); empty - any time"
-msgstr ""
-
-#: grunt/grunt/auth/login.py
-msgid "Sign-in from this IP address is not allowed for your account"
-msgstr ""
-
-#: grunt/grunt/auth/login.py
-msgid "Sign-in is allowed only from %(from)s to %(to)s"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid "Sign-in limits"
-msgstr ""
-
-#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
-msgid "Signing in with an older password asks for a new one first; 0 - never"
-msgstr ""
-
-#: grunt/grunt/auth/user_api.py
-msgid "The sign-in has expired - sign in again"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid ""
-"When the password was last set - its age for the site's password expiry"
-msgstr ""
-
-#: grunt/frontend/src/pages/auth/Login.vue
-msgid "Your password has expired - set a new one"
-msgstr ""
-
-#: grunt/grunt/auth/doctypes/User/User.json
-msgid ""
-"…and until this time; a range across midnight works too (22:00 - 06:00)"
 msgstr ""
 
 #~ msgid ""
