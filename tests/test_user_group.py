@@ -70,6 +70,24 @@ async def test_manager_changes_members_not_the_manager(ctx, group, db_session, e
     assert exc.value.status_code == 403
 
 
+async def test_manager_whose_user_name_is_not_the_email(ctx, group, db_session, engine):
+    """The rule matches the manager's email, not their User name."""
+    await ctx.rename_doc("User", ANN, "ann-renamed")
+    await ctx.db._session().commit()
+    assert (await ctx.get_doc("UserGroup", group))["manager"] == "ann-renamed"
+
+    async def add_cid_only(grunt):
+        return await grunt.save_doc("UserGroup", group, {"users": [{"user": CID}]})
+
+    await _as(db_session, engine, ANN, add_cid_only)
+    assert await group_emails([group]) == [CID]
+
+
+async def test_group_name_without_closing_bracket(ctx, group):
+    with pytest.raises(HTTPException):
+        await ctx.new_doc("UserGroup", {"group_name": "Desk] East"})
+
+
 async def test_others_may_read_not_change(ctx, group, db_session, engine):
     async def read(grunt):
         return await grunt.get_doc("UserGroup", group)

@@ -311,6 +311,10 @@ msgstr ""
 msgid "A folder must be inside another folder"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't contain “]”"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
 msgstr ""

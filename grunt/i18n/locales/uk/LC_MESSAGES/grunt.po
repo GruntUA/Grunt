@@ -326,6 +326,10 @@ msgstr "Теку не можна скопіювати саму в себе"
 msgid "A folder must be inside another folder"
 msgstr "Тека має бути всередині іншої теки"
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't contain “]”"
+msgstr "Назва групи не може містити «]»"
+
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
 msgstr "Домашню теку не можна видалити"

@@ -320,6 +320,9 @@ const allGroups = ref<string[] | null>(null)
 const mentionDropdown = ref<MentionOption[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
+// Where the "@" being completed sits in the input - the query is lowercased
+// for matching, so it can't be found again by searching the text.
+const mentionStart = ref(-1)
 
 async function ensureUsers() {
   const loads: Promise<unknown>[] = []
@@ -347,6 +350,7 @@ function onCommentInput(e: Event) {
   const before = val.slice(0, pos)
   const match = before.match(/@([\w.+-]*)$/)
   if (match) {
+    mentionStart.value = pos - match[0].length
     mentionQuery.value = match[1].toLowerCase()
     ensureUsers().then(() => {
       const q = mentionQuery.value
@@ -368,7 +372,8 @@ function onCommentInput(e: Event) {
 
 function insertMention(option: MentionOption) {
   const before = commentInput.value
-  const pos = before.lastIndexOf('@' + mentionQuery.value)
+  const pos = mentionStart.value
+  if (pos < 0) return
   const token = option.kind === 'user' ? `@${option.user.email} ` : `@[${option.name}] `
   commentInput.value = before.slice(0, pos) + token + before.slice(pos + 1 + mentionQuery.value.length)
   mentionDropdown.value = []

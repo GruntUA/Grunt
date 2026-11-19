@@ -46,7 +46,7 @@
     {
       "role": "All",
       "actions": ["read", "write"],
-      "match": "manager == user"
+      "match": "manager.email == user"
     }
   ]
 }

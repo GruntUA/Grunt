@@ -26,6 +26,9 @@ class UserGroup(Document):
     # end: auto-generated types
 
     async def validate(self) -> None:
+        if "]" in (self.get("group_name") or ""):
+            # ``@[Group name]`` in a comment ends at the first "]".
+            throw(_("A group name can't contain “]”"), "VALIDATION_ERROR")
         members = [r for r in self.get("users") or [] if isinstance(r, dict) and r.get("user")]
         unique = list({r["user"]: r for r in members}.values())  # the same person once
         self.users = unique
