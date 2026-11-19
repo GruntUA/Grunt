@@ -2,8 +2,9 @@
 
 Whom: exactly one of ``user`` (an email), ``role`` (everyone holding it
 today - without its scope: a scope narrows a role's *rules*, a share is a
-deliberate choice of this document) or ``everyone`` (every signed-in user;
-guests only ever see a public link, ``DocumentShare``).
+deliberate choice of this document), ``user_group`` (the group's members)
+or ``everyone`` (every signed-in user; guests only ever see a public link,
+``DocumentShare``).
 
 What: ``permission = "Read"`` grants read (and select); ``"Write"`` also
 grants write; ``can_reshare`` adds ``share`` - passing the document on, at
@@ -25,6 +26,7 @@ from grunt.local import _session_ctx
 from grunt.metadata.registry import doctype_registry
 from grunt.query.nodes import FALSE, Cmp, Empty, Expr, In, Linked, and_, or_
 from grunt.query.query import Query
+lazy from grunt.permissions.groups import user_groups
 lazy from grunt.permissions.roles import get_roles
 lazy from grunt.permissions.trees import expand_tree_values
 lazy from grunt.store.lookup import store_for
@@ -50,9 +52,11 @@ async def grants(user: str, doctype: str, action: str, *, on: date | None = None
     held = await get_roles(user)
     if user == GUEST_USER_EMAIL or "Guest" in held:
         return FALSE  # a guest sees a document only through a public link
+    groups = await user_groups(user)
     whom = or_(
         Cmp("user", "eq", user),
         In("role", tuple(held)) if held else FALSE,
+        In("user_group", tuple(groups)) if groups else FALSE,
         Cmp("everyone", "eq", True),
     )
     in_force = or_(Empty("valid_to"), Cmp("valid_to", "gte", on or date.today()))

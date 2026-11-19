@@ -32,10 +32,10 @@ from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
-lazy from grunt.auth.doctypes.UserGroup.user_group import group_emails
 lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.notification.date_rules import local_today
+lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
 lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note
 

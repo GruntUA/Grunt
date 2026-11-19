@@ -78,6 +78,13 @@ function actionLabel(a: string): string {
   }
   return labels[a] ?? a
 }
+
+function shareVia(s: { via: string; role: string | null; user_group: string | null }): string {
+  if (s.via === 'everyone') return t('with everyone')
+  if (s.via === 'role') return t('with the role {role}', { role: s.role ?? '' })
+  if (s.via === 'group') return t('with the group {group}', { group: s.user_group ?? '' })
+  return t('with the user')
+}
 </script>
 
 <template>
@@ -197,9 +204,9 @@ function actionLabel(a: string): string {
           <ul class="flex flex-col gap-1 text-sm">
             <li v-for="s in trace.shares" :key="s.name" class="flex items-center gap-2">
               <Globe v-if="s.via === 'everyone'" class="size-4" />
-              <Users v-else-if="s.via === 'role'" class="size-4" />
+              <Users v-else-if="s.via === 'role' || s.via === 'group'" class="size-4" />
               <Share2 v-else class="size-4" />
-              {{ s.via === 'everyone' ? t('with everyone') : s.via === 'role' ? t('with the role {role}', { role: s.role }) : t('with the user') }}
+              {{ shareVia(s) }}
               <Badge variant="outline" class="font-normal">{{ s.permission === 'Write' ? t('Edit') : t('Read') }}</Badge>
               <Badge v-if="s.valid_to" variant="outline" class="font-normal"><CalendarClock />{{ t('until {date}', { date: formatDate(s.valid_to) }) }}</Badge>
             </li>

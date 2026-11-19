@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import { ArrowRight, Trash2, Send, Reply } from '@lucide/vue'
+import { ArrowRight, Trash2, Send, Reply, Users } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
 import { authApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
@@ -312,15 +312,32 @@ function onReplyKeydown(e: KeyboardEvent) {
   }
 }
 
-// @mention autocomplete logic (retained for functionality)
+// @mention autocomplete: users (@email) and user groups (@[Group name] -
+// every member is notified).
+type MentionOption = { kind: 'user'; user: Colleague } | { kind: 'group'; name: string }
 const allUsers = ref<Colleague[]>([])
-const mentionDropdown = ref<Colleague[]>([])
+const allGroups = ref<string[] | null>(null)
+const mentionDropdown = ref<MentionOption[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
 
 async function ensureUsers() {
-  if (allUsers.value.length) return
-  try { allUsers.value = await authApi.listColleagues() } catch { /* silent */ }
+  const loads: Promise<unknown>[] = []
+  if (!allUsers.value.length) {
+    loads.push(authApi.listColleagues().then((u) => { allUsers.value = u }).catch(() => {}))
+  }
+  if (allGroups.value === null) {
+    loads.push(
+      docsApi.list('UserGroup', { fields: 'name', per_page: 200, sort: 'name', order: 'asc' })
+        .then((r) => { allGroups.value = r.data.map((g) => String(g.name)) })
+        .catch(() => { allGroups.value = [] }),
+    )
+  }
+  await Promise.all(loads)
+}
+
+function mentionKey(o: MentionOption): string {
+  return o.kind === 'user' ? `u:${o.user.email}` : `g:${o.name}`
 }
 
 function onCommentInput(e: Event) {
@@ -332,12 +349,16 @@ function onCommentInput(e: Event) {
   if (match) {
     mentionQuery.value = match[1].toLowerCase()
     ensureUsers().then(() => {
-      mentionDropdown.value = allUsers.value
-        .filter(u =>
-          u.email.toLowerCase().includes(mentionQuery.value) ||
-          u.full_name?.toLowerCase().includes(mentionQuery.value)
-        )
+      const q = mentionQuery.value
+      const users: MentionOption[] = allUsers.value
+        .filter(u => u.email.toLowerCase().includes(q) || u.full_name?.toLowerCase().includes(q))
         .slice(0, 6)
+        .map(user => ({ kind: 'user', user }))
+      const groups: MentionOption[] = (allGroups.value ?? [])
+        .filter(name => name.toLowerCase().includes(q))
+        .slice(0, 3)
+        .map(name => ({ kind: 'group', name }))
+      mentionDropdown.value = [...users, ...groups]
       mentionIndex.value = 0
     })
   } else {
@@ -345,10 +366,11 @@ function onCommentInput(e: Event) {
   }
 }
 
-function insertMention(user: Colleague) {
+function insertMention(option: MentionOption) {
   const before = commentInput.value
   const pos = before.lastIndexOf('@' + mentionQuery.value)
-  commentInput.value = before.slice(0, pos) + `@${user.email} ` + before.slice(pos + 1 + mentionQuery.value.length)
+  const token = option.kind === 'user' ? `@${option.user.email} ` : `@[${option.name}] `
+  commentInput.value = before.slice(0, pos) + token + before.slice(pos + 1 + mentionQuery.value.length)
   mentionDropdown.value = []
 }
 
@@ -401,20 +423,29 @@ onMounted(loadTimeline)
         </PopoverAnchor>
         <PopoverContent side="top" align="start" class="w-(--reka-popper-anchor-width) p-1"
           @open-auto-focus.prevent @close-auto-focus.prevent>
-          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user') }}</div>
+          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user or a group') }}</div>
           <ItemGroup class="max-h-56 overflow-y-auto">
-            <Item v-for="(u, i) in mentionDropdown" :key="u.id" as="button" type="button" size="sm"
+            <Item v-for="(o, i) in mentionDropdown" :key="mentionKey(o)" as="button" type="button" size="sm"
               class="w-full flex-nowrap gap-2 px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground"
               :class="i === mentionIndex && 'bg-accent text-accent-foreground'"
-              @mousedown.prevent="insertMention(u)">
+              @mousedown.prevent="insertMention(o)">
               <ItemMedia>
                 <Avatar class="size-6">
-                  <AvatarFallback class="text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback>
+                  <AvatarFallback class="text-[10px]">
+                    <Users v-if="o.kind === 'group'" class="size-3.5" />
+                    <template v-else>{{ (o.user.full_name || o.user.email).slice(0, 2).toUpperCase() }}</template>
+                  </AvatarFallback>
                 </Avatar>
               </ItemMedia>
               <ItemContent class="min-w-0 gap-0">
-                <ItemTitle class="w-full"><span class="truncate">{{ u.full_name || u.email }}</span></ItemTitle>
-                <ItemDescription v-if="u.full_name" class="truncate text-xs">{{ u.email }}</ItemDescription>
+                <template v-if="o.kind === 'group'">
+                  <ItemTitle class="w-full"><span class="truncate">{{ o.name }}</span></ItemTitle>
+                  <ItemDescription class="truncate text-xs">{{ t('every member of the group') }}</ItemDescription>
+                </template>
+                <template v-else>
+                  <ItemTitle class="w-full"><span class="truncate">{{ o.user.full_name || o.user.email }}</span></ItemTitle>
+                  <ItemDescription v-if="o.user.full_name" class="truncate text-xs">{{ o.user.email }}</ItemDescription>
+                </template>
               </ItemContent>
             </Item>
           </ItemGroup>

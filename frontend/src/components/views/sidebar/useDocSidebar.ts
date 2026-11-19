@@ -63,6 +63,13 @@ export function useDocSidebar(
     await docsApi.assign(d, i, user.trim(), description)
     await reload()
   }
+  async function assignGroup(group: string, description?: string): Promise<string[]> {
+    const d = dt(); const i = id()
+    if (!d || !i || !group.trim()) return []
+    const { assigned } = await docsApi.assignToGroup(d, i, group.trim(), description)
+    await reload()
+    return assigned
+  }
   async function unassign(name: string): Promise<void> {
     await docsApi.unassign(name)
     bundle.value.assignees = bundle.value.assignees.filter((a) => a.name !== name)
@@ -194,6 +201,7 @@ export function useDocSidebar(
     loaded,
     reload,
     assign,
+    assignGroup,
     unassign,
     share,
     unshare,

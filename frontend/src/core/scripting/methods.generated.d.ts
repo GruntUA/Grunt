@@ -71,10 +71,12 @@ interface GruntMethods {
   "grunt.api.v1.docs.crud.rename": { args: { doctype: string; doc_id: string; new_name: string }; result: Record<string, any> }
   /** Bookmark a document. */
   "grunt.api.v1.document.collaboration.add_bookmark": { args: { doctype: string; doc_id: string; title?: string }; result: Record<string, any> }
-  /** Add a comment to a document. Parses @email mentions. */
+  /** Add a comment to a document. Parses @email mentions and ``@[Group name]`` - every active member of the user group. */
   "grunt.api.v1.document.collaboration.add_comment": { args: { doctype: string; doc_id: string; content: string; comment_type?: string; parent_comment?: string | null }; result: Record<string, any> }
   /** Remind the current user about this document at *remind_at*. */
   "grunt.api.v1.document.collaboration.add_reminder": { args: { doctype: string; doc_id: string; remind_at: string; description?: string }; result: Record<string, any> }
+  /** Assign the document to every active member of *group* - a ToDo each, as if assigned one by one (needs creating ToDos); members it is already openly assigned to are skipped. Returns ``{"assigned": [emails]}``. */
+  "grunt.api.v1.document.collaboration.assign_to_group": { args: { doctype: string; doc_id: string; group: string; description?: string }; result: Record<string, any> }
   /** Delete a comment. */
   "grunt.api.v1.document.collaboration.delete_comment": { args: { doctype: string; doc_id: string; comment_id: string }; result: null }
   /** Return the current user's bookmark. */

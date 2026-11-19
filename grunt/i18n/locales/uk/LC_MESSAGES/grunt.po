@@ -1300,6 +1300,10 @@ msgstr "Призначати ролі"
 msgid "Assign to User"
 msgstr "Призначати користувачу"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Assign to a group…"
+msgstr "Призначити групі…"
+
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assign to group"
 msgstr "Призначати групі"
@@ -4339,6 +4343,11 @@ msgstr ""
 "Кожен код можна використати один раз, якщо немає доступу до автентифікатора."
 " Більше вони не показуватимуться."
 
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Each member gets their own task; members already assigned are skipped."
+msgstr ""
+"Кожен учасник отримує своє завдання; тих, кому вже призначено, пропущено."
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr "Кожне повідомлення приходить кілька разів — сповіщення дублюються."
@@ -4811,6 +4820,14 @@ msgid ""
 msgstr ""
 "Кожен документ — ще й публічна вебсторінка; шаблон — templates/<Name>.html "
 "доктайпа або типовий макет"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every member of the group"
+msgstr "Усі учасники групи"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every member of the group gets access, including those added later."
+msgstr "Доступ отримують усі учасники групи, зокрема додані згодом."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
@@ -5772,11 +5789,11 @@ msgstr "Отримувати сповіщення про зміни та ком�
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
-"Give access to this document to a user, everyone holding a role, or every "
-"user."
+"Give access to this document to a user, everyone holding a role, the members"
+" of a group, or every user."
 msgstr ""
-"Надайте доступ до документа користувачеві, усім з певною роллю або всім "
-"користувачам."
+"Надайте доступ до документа користувачеві, усім з певною роллю, учасникам "
+"групи або всім користувачам."
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
 msgid "Global search"
@@ -5890,6 +5907,8 @@ msgstr "Зелений"
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 #: grunt/grunt/metadata/doctypes/DocTypeLink/DocTypeLink.json
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
 msgid "Group"
@@ -7668,8 +7687,8 @@ msgid "Members"
 msgstr "Учасники"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-msgid "Mention a user"
-msgstr "Згадати користувача"
+msgid "Mention a user or a group"
+msgstr "Згадати користувача чи групу"
 
 #: grunt/grunt/notification/events.py
 msgid "Mentioned in a comment"
@@ -11702,8 +11721,8 @@ msgid "Share of the section; columns without a width split the rest"
 msgstr "Частка розділу; колонки без ширини ділять решту порівну"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Share with one of: a user, a role or everyone"
-msgstr "Поширте на когось одного: користувача, роль або всіх"
+msgid "Share with one of: a user, a role, a user group or everyone"
+msgstr "Поширте щось одне: користувачу, ролі, групі користувачів або всім"
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/dashboard/widgets/Activity/Activity.vue
@@ -14216,6 +14235,7 @@ msgstr "Використовується для відображення дат 
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "User"
 msgstr "Користувач"
 
@@ -14227,14 +14247,22 @@ msgstr "User Agent"
 msgid "User field"
 msgstr "Поле користувача"
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "User group"
 msgstr "Група користувачів"
 
 #: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
 msgid "User group member"
 msgstr "Учасник групи користувачів"
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+#: grunt/grunt/api/v1/document/collaboration.py
+msgid "User group “%(group)s” not found"
+msgstr "Групу користувачів «%(group)s» не знайдено"
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
 msgid "User not found"
@@ -15371,6 +15399,10 @@ msgstr "помилка"
 msgid "every document"
 msgstr "усі документи"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "every member of the group"
+msgstr "усі учасники групи"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "exactly one copy"
 msgstr "рівно одна копія"
@@ -15944,6 +15976,10 @@ msgstr "було {n}"
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "with everyone"
 msgstr "з усіма"
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the group {group}"
+msgstr "з групою {group}"
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "with the role {role}"
@@ -16784,6 +16820,13 @@ msgstr "Відкрито"
 #~ msgid "For document only"
 #~ msgstr "Лише для документа"
 
+#~ msgid ""
+#~ "Give access to this document to a user, everyone holding a role, or every "
+#~ "user."
+#~ msgstr ""
+#~ "Надайте доступ до документа користувачеві, усім з певною роллю або всім "
+#~ "користувачам."
+
 #~ msgid "Hook '%(doc_id)s' not found"
 #~ msgstr "Хук «%(doc_id)s» не знайдено"
 
@@ -16801,6 +16844,9 @@ msgstr "Відкрито"
 
 #~ msgid "Limit this rule to a single DocType."
 #~ msgstr "Обмежити дію цього правила одним DocType."
+
+#~ msgid "Mention a user"
+#~ msgstr "Згадати користувача"
 
 #~ msgid "Message template"
 #~ msgstr "Шаблон повідомлення"
@@ -16854,6 +16900,9 @@ msgstr "Відкрито"
 #~ msgid "Set “Only for document” or enable “Apply to all documents”"
 #~ msgstr ""
 #~ "Вкажіть «Лише для документа» або увімкніть «Застосувати до всіх документів»"
+
+#~ msgid "Share with one of: a user, a role or everyone"
+#~ msgstr "Поширте на когось одного: користувача, роль або всіх"
 
 #~ msgid "SqlProfilerRequest '%(doc_id)s' not found"
 #~ msgstr "SqlProfilerRequest «%(doc_id)s» не знайдено"

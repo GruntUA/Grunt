@@ -1228,6 +1228,10 @@ msgstr ""
 msgid "Assign to User"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Assign to a group…"
+msgstr ""
+
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assign to group"
 msgstr ""
@@ -4195,6 +4199,10 @@ msgid ""
 "will not be shown again."
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Each member gets their own task; members already assigned are skipped."
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr ""
@@ -4654,6 +4662,14 @@ msgstr ""
 msgid ""
 "Every document is also a public web page, rendered by the DocType's "
 "templates/<Name>.html or the generic layout"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every member of the group"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every member of the group gets access, including those added later."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -5569,8 +5585,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
-"Give access to this document to a user, everyone holding a role, or every "
-"user."
+"Give access to this document to a user, everyone holding a role, the members"
+" of a group, or every user."
 msgstr ""
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
@@ -5679,6 +5695,8 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 #: grunt/grunt/metadata/doctypes/DocTypeLink/DocTypeLink.json
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
 msgid "Group"
@@ -7392,7 +7410,7 @@ msgid "Members"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-msgid "Mention a user"
+msgid "Mention a user or a group"
 msgstr ""
 
 #: grunt/grunt/notification/events.py
@@ -11258,7 +11276,7 @@ msgid "Share of the section; columns without a width split the rest"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Share with one of: a user, a role or everyone"
+msgid "Share with one of: a user, a role, a user group or everyone"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -13661,6 +13679,7 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "User"
 msgstr ""
 
@@ -13672,13 +13691,21 @@ msgstr ""
 msgid "User field"
 msgstr ""
 
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "User group"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
 msgid "User group member"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+#: grunt/grunt/api/v1/document/collaboration.py
+msgid "User group “%(group)s” not found"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
@@ -14757,6 +14784,10 @@ msgstr ""
 msgid "every document"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "every member of the group"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "exactly one copy"
 msgstr ""
@@ -15323,6 +15354,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "with everyone"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the group {group}"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue

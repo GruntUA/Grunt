@@ -24,8 +24,8 @@ from grunt.log import log
 from grunt.notification import delivery_log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
-lazy from grunt.auth.doctypes.UserGroup.user_group import group_emails
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
 lazy from grunt.print.pdf import html_to_pdf
 lazy from grunt.print.renderer import render_print_html

@@ -6,8 +6,8 @@ import pytest
 from fastapi import HTTPException
 
 from grunt.api.v1.meta import save_doctype
-from grunt.auth.doctypes.UserGroup.user_group import group_emails
 from grunt.notification.service import notification_service
+from grunt.permissions.groups import group_emails
 from tests.support import make_user
 
 ANN, BOB, CID = "ann@grunt.example.com", "bob@grunt.example.com", "cid@grunt.example.com"
@@ -125,3 +125,116 @@ async def test_assignment_rule_to_a_group(ctx, group):
         limit=None,
     )
     assert sorted(r["assigned_to"] for r in rows) == [BOB, CID]
+
+
+# Step 2: shares, assigning by hand, @mentions.
+
+
+async def _share(ctx, ticket: str, group: str) -> None:
+    await ctx.new_doc(
+        "SharedWith",
+        {"reference_doctype": "GroupTicket", "reference_id": ticket, "user_group": group},
+    )
+    await ctx.db._session().commit()
+
+
+async def _reads(db_session, engine, email, ticket) -> bool:
+    import grunt
+
+    async with grunt.context(db_session, engine, make_user(email, roles=[])):
+        try:
+            await grunt.get_doc("GroupTicket", ticket)
+        except HTTPException:
+            return False
+        rows = await grunt.get_list("GroupTicket", fields=["name"])
+        return [r["name"] for r in rows] == [ticket]
+
+
+async def test_share_with_a_group_reaches_its_members(ctx, group, db_session, engine):
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    await ctx.db._session().commit()
+    assert not await _reads(db_session, engine, BOB, ticket)
+
+    await _share(ctx, ticket, group)
+    assert await _reads(db_session, engine, BOB, ticket)
+    assert not await _reads(db_session, engine, ANN, ticket)  # the manager isn't a member
+
+    # Someone added later gets the access too; someone removed loses it.
+    await ctx.save_doc("UserGroup", group, {"users": [{"user": CID}, {"user": ANN}]})
+    await ctx.db._session().commit()
+    assert await _reads(db_session, engine, ANN, ticket)
+    assert not await _reads(db_session, engine, BOB, ticket)
+
+
+async def test_share_with_a_group_tells_its_members(ctx, group, standard_notifications):
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    await _share(ctx, ticket, group)
+    rows = await ctx.db.get_all("NotificationLog", fields=["user"], limit=10)
+    assert sorted(r["user"] for r in rows) == [BOB, CID]
+
+
+async def test_share_names_one_target(ctx, group):
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    with pytest.raises(HTTPException):
+        await ctx.new_doc(
+            "SharedWith",
+            {
+                "reference_doctype": "GroupTicket",
+                "reference_id": ticket,
+                "user_group": group,
+                "everyone": 1,
+            },
+        )
+    with pytest.raises(HTTPException):
+        await _share(ctx, ticket, "No such group")
+
+
+async def test_access_inspector_names_the_group(ctx, group):
+    from grunt.metadata.registry import doctype_registry
+    from grunt.permissions.explain import _shares
+
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    await _share(ctx, ticket, group)
+    meta = await doctype_registry.get_meta("GroupTicket")
+    found = await _shares(BOB, meta, "read", {"name": ticket})
+    assert [(s["via"], s["user_group"]) for s in found] == [("group", group)]
+
+
+async def test_assign_to_a_group_skips_those_assigned(ctx, group):
+    from grunt.api.v1.document.collaboration import assign_to_group
+
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    await ctx.new_doc(
+        "ToDo",
+        {
+            "reference_doctype": "GroupTicket",
+            "reference_id": ticket,
+            "assigned_to": BOB,
+            "status": "Open",
+            "description": "Вже призначено",
+        },
+    )
+    result = await assign_to_group("GroupTicket", ticket, group, "Розгляньте")
+    assert result == {"assigned": [CID]}
+    rows = await ctx.db.get_all(
+        "ToDo",
+        filters={"reference_doctype": "GroupTicket", "reference_id": ticket},
+        fields=["assigned_to", "description"],
+        limit=None,
+    )
+    assert sorted((r["assigned_to"], r["description"]) for r in rows)[1] == (CID, "Розгляньте")
+    assert await assign_to_group("GroupTicket", ticket, group) == {"assigned": []}
+
+
+async def test_mention_a_group(ctx, group, standard_notifications, db_session, engine):
+    import grunt
+    from grunt.api.v1.document.collaboration import add_comment
+
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    await ctx.db._session().commit()
+    async with grunt.context(db_session, engine, make_user(BOB, roles=["System Manager"])):
+        await add_comment("GroupTicket", ticket, f"Погляньте, @[{group}] і @{ANN}")
+    await db_session.commit()
+    rows = await ctx.db.get_all("NotificationLog", fields=["user"], limit=10)
+    # Bob wrote it - he isn't told about his own mention.
+    assert sorted(r["user"] for r in rows) == [ANN, CID]

@@ -141,8 +141,15 @@ async def _shares(user: str, meta: Meta, action: str, doc: dict[str, Any]) -> li
     return [
         {
             "name": str(row["name"]),
-            "via": "user" if row.get("user") else "role" if row.get("role") else "everyone",
+            "via": "user"
+            if row.get("user")
+            else "role"
+            if row.get("role")
+            else "group"
+            if row.get("user_group")
+            else "everyone",
             "role": row.get("role") or None,
+            "user_group": row.get("user_group") or None,
             "permission": row.get("permission"),
             "can_reshare": bool(row.get("can_reshare")),
             "valid_to": _iso(row.get("valid_to")),
