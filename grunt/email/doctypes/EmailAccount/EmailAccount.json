@@ -175,6 +175,124 @@
       "fieldtype": "Check",
       "default": true,
       "depends_on": "eval: doc.enable_incoming && (doc.provider || 'Gmail') !== 'Gmail'"
+    },
+    {
+      "fieldname": "sec_folders",
+      "fieldtype": "Section",
+      "depends_on": "enable_incoming"
+    },
+    {
+      "fieldname": "imap_folders",
+      "label": "IMAP folders",
+      "fieldtype": "Data",
+      "default": "INBOX",
+      "placeholder": "INBOX, Support",
+      "description": "Comma-separated. New letters are read without marking them as read in the mailbox"
+    },
+    {
+      "fieldname": "imap_state",
+      "label": "IMAP position",
+      "fieldtype": "JSON",
+      "hidden": true,
+      "read_only": true,
+      "no_copy": true,
+      "description": "The last letter read in each folder (UIDVALIDITY + UID)"
+    },
+    {
+      "fieldname": "tab_processing",
+      "label": "Processing",
+      "fieldtype": "Tab",
+      "icon": "workflow"
+    },
+    {
+      "fieldname": "sec_append",
+      "label": "Incoming letters → documents",
+      "fieldtype": "Section",
+      "description": "A reply to a letter sent from a document lands on that document. A new letter creates a document of the chosen type"
+    },
+    {
+      "fieldname": "append_to",
+      "label": "Create documents",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "description": "Only document types with “Create from incoming mail” on"
+    },
+    {
+      "fieldname": "col_append_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "auto_reply",
+      "label": "Auto-reply",
+      "fieldtype": "Check",
+      "depends_on": "append_to",
+      "description": "Answer each letter that created a document. Not sent to robots, mailing lists or no-reply addresses"
+    },
+    {
+      "fieldname": "auto_reply_message",
+      "label": "Auto-reply text",
+      "fieldtype": "RichText",
+      "depends_on": "auto_reply",
+      "description": "Placeholders: {name} - the document, {subject} - the letter's subject, {sender} - its address"
+    },
+    {
+      "fieldname": "sec_unreplied",
+      "label": "Unanswered letters",
+      "fieldtype": "Section",
+      "depends_on": "append_to"
+    },
+    {
+      "fieldname": "notify_if_unreplied",
+      "label": "Notify if not answered",
+      "fieldtype": "Check",
+      "description": "When the last letter on a document has had no reply from it for the set time: the document's assignees, or the group when nobody is assigned"
+    },
+    {
+      "fieldname": "col_unreplied_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "unreplied_minutes",
+      "label": "Minutes without a reply",
+      "fieldtype": "Int",
+      "default": 30,
+      "depends_on": "notify_if_unreplied"
+    },
+    {
+      "fieldname": "unreplied_group",
+      "label": "Notify group",
+      "fieldtype": "Link",
+      "options": "UserGroup",
+      "depends_on": "notify_if_unreplied"
+    },
+    {
+      "fieldname": "sec_out_extras",
+      "label": "Outgoing letters",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "signature",
+      "label": "Signature",
+      "fieldtype": "RichText",
+      "description": "Added to letters written from documents and to auto-replies"
+    },
+    {
+      "fieldname": "col_out_extras_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "reply_to",
+      "label": "Reply-To",
+      "fieldtype": "Data",
+      "validator": "email",
+      "description": "Where replies should go, when not to this mailbox"
+    },
+    {
+      "fieldname": "always_bcc",
+      "label": "Always BCC",
+      "fieldtype": "Data",
+      "validator": "email",
+      "description": "Every letter from this mailbox also goes, hidden, to this address (an archive)"
     }
   ],
   "permissions": [

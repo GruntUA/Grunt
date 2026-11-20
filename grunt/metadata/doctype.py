@@ -318,6 +318,13 @@ class DocType(BaseModel):
     # Hovering a link to a document of this DocType pops up a card with its
     # title, image and the in_preview fields (required fields when none set).
     show_preview_popup: bool = False
+    # Incoming mail (grunt.email.routing): a mailbox whose ``append_to`` names
+    # this DocType turns a new letter into a document, the sender's address
+    # into ``sender_field`` and the subject into ``subject_field``; replies in
+    # the same thread land on that document.
+    email_append_to: bool = False
+    sender_field: str | None = None
+    subject_field: str | None = None
 
     # Web view - each document is also a public page (see grunt.website.generator).
     # URL: <app mount>/<web_route>/<doc route> - the app mount follows the www/

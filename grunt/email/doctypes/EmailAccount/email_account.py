@@ -2,6 +2,9 @@
 
 from grunt.document.base import Document
 from grunt.email.service import SMTP_PASSWORD_MASK
+from grunt.errors import throw
+from grunt.i18n import _
+from grunt.metadata.registry import doctype_registry
 
 
 class EmailAccount(Document):
@@ -9,12 +12,9 @@ class EmailAccount(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     provider: str | None  # Mail service
-    email_address: str | None  # Email address
-    open_app_passwords: None  # Open the Google app passwords page
+    email_address: str  # Email address
     smtp_user: str | None  # SMTP user
     smtp_password: str | None  # SMTP password (app password)
-    test_connection: None  # Test connection (SMTP)
-    test_send: None  # Send test email
     enable_outgoing: bool | None  # Enable outgoing mail
     smtp_server: str | None  # SMTP server
     smtp_port: int | None  # SMTP port
@@ -23,8 +23,33 @@ class EmailAccount(Document):
     imap_server: str | None  # IMAP server
     imap_port: int | None  # IMAP port
     use_ssl: bool | None  # Use SSL
+    imap_folders: str | None  # IMAP folders
+    imap_state: dict | None  # IMAP position
+    append_to: str | None  # Create documents
+    auto_reply: bool | None  # Auto-reply
+    auto_reply_message: str | None  # Auto-reply text
+    notify_if_unreplied: bool | None  # Notify if not answered
+    unreplied_minutes: int | None  # Minutes without a reply
+    unreplied_group: str | None  # Notify group
+    signature: str | None  # Signature
+    reply_to: str | None  # Reply-To
+    always_bcc: str | None  # Always BCC
 
     # end: auto-generated types
+
+    async def validate(self) -> None:
+        if self.append_to:
+            meta = await doctype_registry.get_meta(self.append_to)
+            if meta is None or not meta.email_append_to:
+                throw(
+                    _(
+                        "“%(doctype)s” does not take incoming mail: turn on “Create from"
+                        " incoming mail” in its settings first"
+                    )
+                    % {"doctype": self.append_to}
+                )
+        if self.notify_if_unreplied and (self.unreplied_minutes or 0) < 1:
+            self.unreplied_minutes = 30
 
     async def before_save(self) -> None:
         await self._keep_password_when_masked()

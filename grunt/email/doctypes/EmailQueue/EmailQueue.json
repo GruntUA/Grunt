@@ -18,6 +18,21 @@
       "in_list_view": true
     },
     {
+      "fieldname": "cc",
+      "label": "Cc",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "bcc",
+      "label": "Bcc",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "reply_to",
+      "label": "Reply-To",
+      "fieldtype": "Data"
+    },
+    {
       "fieldname": "subject",
       "label": "Subject",
       "fieldtype": "Data",
@@ -67,6 +82,38 @@
       "read_only": true,
       "hidden": true,
       "description": "Files sent with the message: [{filename, mimetype, content_b64}]."
+    },
+    {
+      "fieldname": "message_id",
+      "label": "Message-ID",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "Set in advance when the letter is already on a document's timeline as “Queued”"
+    },
+    {
+      "fieldname": "in_reply_to",
+      "label": "In-Reply-To",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "message_references",
+      "label": "References",
+      "fieldtype": "LongText",
+      "read_only": true,
+      "hidden": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Source — type",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "ref_name",
+      "label": "Source — record",
+      "fieldtype": "Data",
+      "read_only": true
     }
   ],
   "permissions": [

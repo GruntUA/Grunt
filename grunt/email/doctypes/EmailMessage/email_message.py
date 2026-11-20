@@ -29,4 +29,8 @@ class EmailMessage(Document):
     ref_doctype: str | None
     ref_name: str | None
     message_id: str | None
+    in_reply_to: str | None
+    message_references: str | None
+    unreplied_checked: bool | None
+    is_auto_reply: bool | None
     is_read: bool | None

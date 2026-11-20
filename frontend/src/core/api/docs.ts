@@ -28,7 +28,7 @@ export interface DocVersionChange {
 }
 
 export interface TimelineItem {
-  type: 'activity' | 'comment' | 'version'
+  type: 'activity' | 'comment' | 'version' | 'email'
   id: string
   action?: string
   content?: string
@@ -46,6 +46,44 @@ export interface TimelineItem {
   created_at: string | null
   /** comment items only: emoji reactions, in the order of the configured choices. */
   reactions?: CommentReaction[]
+  /** email items only (the document's correspondence, EmailMessage). */
+  direction?: 'Incoming' | 'Outgoing'
+  status?: string
+  subject?: string
+  sender?: string
+  recipients?: string
+  cc?: string | null
+  is_auto_reply?: boolean
+  error_message?: string | null
+  attachments?: { filename: string; file: string | null }[]
+  message_date?: string | null
+}
+
+/** What the "Write an email" dialog starts with (grunt.api.v1.email.compose_context). */
+export interface EmailComposeContext {
+  accounts: { name: string; email_address: string }[]
+  /** mailbox -> its signature (HTML) */
+  signatures: Record<string, string>
+  account: string | null
+  to: string
+  cc: string
+  subject: string
+  files: { name: string; file_name: string; file_size: number | null }[]
+  templates: { name: string; label: string | null }[]
+  can_print: boolean
+}
+
+export interface SendEmailParams {
+  to: string
+  subject: string
+  content: string
+  cc?: string
+  bcc?: string
+  email_account?: string | null
+  /** The EmailMessage this letter answers. */
+  reply_to?: string | null
+  attach_print?: boolean
+  files?: string[]
 }
 
 export interface CommentReaction {
@@ -513,6 +551,23 @@ export const docsApi = {
     client.get('/api/v1/method/grunt.api.v1.document.history.get_timeline', {
       params: { doctype, doc_id: id },
     }).then(r => r.data.data ?? []),
+
+  // Letters on a document
+
+  emailComposeContext: (doctype: string, id: string, replyTo?: string | null): Promise<EmailComposeContext> =>
+    client.get('/api/v1/method/grunt.api.v1.email.compose_context', {
+      params: { doctype, doc_id: id, ...(replyTo ? { reply_to: replyTo } : {}) },
+    }).then(r => r.data.data),
+
+  renderEmailTemplate: (doctype: string, id: string, template: string): Promise<{ subject: string; body: string }> =>
+    client.post('/api/v1/method/grunt.api.v1.email.render_email_template', {
+      doctype, doc_id: id, template,
+    }).then(r => r.data.data),
+
+  sendEmail: (doctype: string, id: string, params: SendEmailParams): Promise<{ message: string | null }> =>
+    client.post('/api/v1/method/grunt.api.v1.email.send_email', {
+      doctype, doc_id: id, ...params,
+    }).then(r => r.data.data),
 
   restoreVersion: (doctype: string, id: string, versionId: string): Promise<{ document: GruntDocument; restored_to_version: number }> =>
     client.post('/api/v1/method/grunt.api.v1.document.history.restore_version', {
