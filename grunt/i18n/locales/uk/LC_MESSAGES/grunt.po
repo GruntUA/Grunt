@@ -150,6 +150,10 @@ msgstr "%(policy)s — строк до %(due)s"
 msgid "%(queued)s queued, %(running)s running"
 msgstr "%(queued)s у черзі, %(running)s виконується"
 
+#: grunt/grunt/email/tasks.py
+msgid "%(sender)s: %(subject)s"
+msgstr "%(sender)s: %(subject)s"
+
 #: grunt/grunt/io/exporters/templates/list_export.html
 msgid "%(shown)s of %(total)s records"
 msgstr "Записів: %(shown)s з %(total)s"
@@ -181,6 +185,11 @@ msgstr "%(user)s: «%(action)s» — %(from)s → %(to)s"
 #: grunt/grunt/document/mixins/lifecycle.py
 msgid "'%(name)s' is a singleton."
 msgstr "«%(name)s» — singleton (єдиний запис)."
+
+#: grunt/grunt/email/routing.py grunt/grunt/api/v1/email.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "(no subject)"
+msgstr "(без теми)"
 
 #: grunt/grunt/io/exporters/templates/list_export.html
 msgid "(no value)"
@@ -338,6 +347,14 @@ msgstr "Тека має бути всередині іншої теки"
 msgid "A group name can't contain “]”"
 msgstr "Назва групи не може містити «]»"
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't start or end with a space"
+msgstr "Назва групи не може починатися чи закінчуватися пробілом"
+
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name is at most %(count)d characters"
+msgstr "Назва групи — щонайбільше %(count)d символів"
+
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
 msgstr "Домашню теку не можна видалити"
@@ -349,6 +366,15 @@ msgstr "Домашню теку не можна перемістити"
 #: grunt/frontend/src/components/fields/Password/Password.vue
 msgid "A lowercase letter"
 msgstr "Мала літера"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"A mailbox (Email Account → “Create documents”) turns new letters into "
+"documents of this type; replies land on the same document"
+msgstr ""
+"Поштова скринька (Поштовий обліковий запис → «Створювати документи») "
+"перетворює нові листи на документи цього типу; відповіді потрапляють у той "
+"самий документ"
 
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 msgid ""
@@ -403,6 +429,14 @@ msgstr "Запис з таким значенням вже існує. Введ�
 #: grunt/grunt/document/doctypes/Comment/comment.py
 msgid "A reply must belong to the same document"
 msgstr "Відповідь має стосуватися того самого документа"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"A reply to a letter sent from a document lands on that document. A new "
+"letter creates a document of the chosen type"
+msgstr ""
+"Відповідь на лист, надісланий з документа, потрапляє в цей документ. Новий "
+"лист створює документ вибраного типу"
 
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
@@ -822,6 +856,10 @@ msgstr ""
 "Додано цим профілем ролей: змінюється разом із профілем і перебудовується "
 "під час кожного збереження."
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Added to letters written from documents and to auto-replies"
+msgstr "Додається до листів, написаних з документів, і до автовідповідей"
+
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 msgid "Address"
@@ -1029,9 +1067,21 @@ msgstr "Також сповіщаються при порушенні строк
 msgid "Also notify who did it"
 msgstr "Сповіщати й того, хто це зробив"
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"Also the group's id and how a comment mentions it (@[Name]). To change it "
+"later, rename the group."
+msgstr ""
+"Це й ідентифікатор групи, і те, як її згадують у коментарі (@[Назва]). Щоб "
+"змінити згодом — перейменуйте групу."
+
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue
 msgid "Alt text"
 msgstr "Альтернативний текст"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Always BCC"
+msgstr "Завжди прихована копія"
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 msgid ""
@@ -1098,6 +1148,14 @@ msgstr "Інша резервна копія вже створюється"
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Another sign-in method"
 msgstr "Інший спосіб входу"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Answer each letter that created a document. Not sent to robots, mailing "
+"lists or no-reply addresses"
+msgstr ""
+"Відповідати на кожен лист, що створив документ. Не надсилається роботам, "
+"розсилкам і адресам no-reply"
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "Antarctica"
@@ -1212,6 +1270,10 @@ msgstr "Застосувати мої"
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgid "Apply on edit"
 msgstr "Застосовувати під час правки"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Apply template"
+msgstr "Застосувати шаблон"
 
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "Apply to"
@@ -1439,7 +1501,12 @@ msgstr "Прикріпити зображення…"
 msgid "Attach as a link"
 msgstr "Прикріпити посиланням"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Attach files"
+msgstr "Вкласти файли"
+
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Attach the document as PDF"
 msgstr "Вкласти документ у PDF"
 
@@ -1524,6 +1591,15 @@ msgstr "Збій автоповтору"
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "Auto-refresh"
 msgstr "Автооновлення"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "Auto-reply"
+msgstr "Автовідповідь"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Auto-reply text"
+msgstr "Текст автовідповіді"
 
 #: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue
 msgid "Autocomplete suggestions — one per line"
@@ -1738,6 +1814,11 @@ msgstr "Для «З поля документа» потрібне поле з �
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Basics"
 msgstr "Базові дані"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Bcc"
+msgstr "Прихована копія"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Before"
@@ -2037,7 +2118,9 @@ msgstr "Столиця"
 msgid "Caps Lock is on"
 msgstr "Увімкнено Caps Lock"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Cc"
 msgstr "Копія (Cc)"
 
@@ -2187,6 +2270,10 @@ msgstr "Перевірте пошту"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgid "Checked"
 msgstr "Перевірено"
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "Checked for a reply"
+msgstr "Перевірено на відповідь"
 
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
 #: grunt/frontend/src/components/views/form/FormModals.vue
@@ -2583,6 +2670,13 @@ msgstr "Стовпці, групування, сортування"
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
 msgstr "Список через кому: usb, nfc, ble, internal, hybrid"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Comma-separated. New letters are read without marking them as read in the "
+"mailbox"
+msgstr ""
+"Через кому. Нові листи читаються, не позначаючись у скриньці прочитаними"
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
 #: grunt/grunt/activity/doctypes/ActivityLog/ActivityLog.json
@@ -3160,6 +3254,14 @@ msgstr "Створити акаунт"
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Create backup"
 msgstr "Створити резервну копію"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Create documents"
+msgstr "Створювати документи"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Create from incoming mail"
+msgstr "Створювати з вхідної пошти"
 
 #: grunt/frontend/src/components/fields/Link/Link.vue
 msgid "Create new"
@@ -4440,6 +4542,7 @@ msgstr "Підвищення прав"
 #: grunt/grunt/notification/channels.py grunt/grunt/monitoring/health.py
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
@@ -4858,6 +4961,14 @@ msgid ""
 msgstr ""
 "Кожен документ — ще й публічна вебсторінка; шаблон — templates/<Name>.html "
 "доктайпа або типовий макет"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Every letter from this mailbox also goes, hidden, to this address (an "
+"archive)"
+msgstr ""
+"Кожен лист із цієї скриньки також надходить прихованою копією на цю адресу "
+"(архів)"
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
 msgid "Every member of the group"
@@ -5736,6 +5847,7 @@ msgid "Friendly name of the device / authenticator"
 msgstr "Дружня назва пристрою / автентифікатора"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "From"
 msgstr "Від"
@@ -5828,6 +5940,14 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Get notified about changes and comments"
 msgstr "Отримувати сповіщення про зміни та коментарі"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Gets the letter's subject"
+msgstr "Отримує тему листа"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Gets the sender's address; replies from the document go there"
+msgstr "Отримує адресу відправника; відповіді з документа йдуть на неї"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
@@ -6276,12 +6396,24 @@ msgid "IBAN (international)"
 msgstr "IBAN (міжнародний)"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "IMAP folders"
+msgstr "Теки IMAP"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "IMAP port"
 msgstr "IMAP порт"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "IMAP position"
+msgstr "Позиція IMAP"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "IMAP server"
 msgstr "IMAP сервер"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "INBOX, Support"
+msgstr "INBOX, Support"
 
 #: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -6516,6 +6648,11 @@ msgstr "У стані «%(state)s» документ не можна видал�
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr "У стані «%(state)s» документ не можна редагувати"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "In-Reply-To"
+msgstr "In-Reply-To"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Include uploaded files"
 msgstr "Разом із завантаженими файлами"
@@ -6543,6 +6680,14 @@ msgstr "Вхідний вебхук"
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgid "Incoming Webhook Log"
 msgstr "Лог вхідного вебхуку"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Incoming letters → documents"
+msgstr "Вхідні листи → документи"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Incoming mail"
+msgstr "Вхідна пошта"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Incoming mail (IMAP)"
@@ -6727,6 +6872,10 @@ msgstr "Невірний TOTP код"
 #: grunt/frontend/src/core/validators.ts
 msgid "Invalid URL format"
 msgstr "Невірний формат URL"
+
+#: grunt/grunt/api/v1/email.py
+msgid "Invalid address: %(address)s"
+msgstr "Неправильна адреса: %(address)s"
 
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Invalid code or error"
@@ -7756,6 +7905,7 @@ msgstr "Об'єднати клітинки"
 
 #: grunt/grunt/actions/builtin.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
@@ -7764,6 +7914,7 @@ msgstr "Об'єднати клітинки"
 msgid "Message"
 msgstr "Повідомлення"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Message-ID"
 msgstr "Message-ID"
@@ -7867,6 +8018,10 @@ msgstr "Хвилини"
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Minutes cannot be negative"
 msgstr "Хвилини не можуть бути від'ємними"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Minutes without a reply"
+msgstr "Хвилин без відповіді"
 
 #: grunt/grunt/auth/providers/oauth.py
 msgid "Missing OAuth 'code'"
@@ -8404,6 +8559,11 @@ msgstr "Немає посилань"
 msgid "No longer supported since %(date)s."
 msgstr "Не підтримується з %(date)s."
 
+#: grunt/grunt/api/v1/email.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "No mailbox to send from - set up an email account"
+msgstr "Немає скриньки для надсилання — налаштуйте поштовий обліковий запис"
+
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 msgid "No new notifications"
 msgstr "Немає нових сповіщень"
@@ -8446,6 +8606,10 @@ msgstr "Нічого не знайдено за фільтрами"
 #: grunt/frontend/src/components/views/tree/TreeView.vue
 msgid "No records yet"
 msgstr "Записів поки немає"
+
+#: grunt/grunt/email/tasks.py
+msgid "No reply to a letter: %(doctype)s %(name)s"
+msgstr "Лист без відповіді: %(doctype)s %(name)s"
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "No role of the user grants this action on the document type at all."
@@ -8587,6 +8751,10 @@ msgstr "Не переноситься при дублюванні докумен
 msgid "Not collapsible"
 msgstr "Не згортається"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Not delivered"
+msgstr "Не доставлено"
+
 #: grunt/grunt/backups/__init__.py
 msgid "Not enough disk space for a backup: %(need)s needed, %(free)s free"
 msgstr ""
@@ -8652,6 +8820,10 @@ msgstr "Недостатньо прав, щоб змінити поле «%(fiel
 msgid "Not permitted to create users"
 msgstr "Недостатньо прав для створення користувача"
 
+#: grunt/grunt/api/v1/email.py
+msgid "Not permitted to print this document"
+msgstr "Немає права друкувати цей документ"
+
 #: grunt/grunt/actions/__init__.py grunt/grunt/actions/builtin.py
 msgid "Not permitted to run this action"
 msgstr "Недостатньо прав для цієї дії"
@@ -8668,6 +8840,10 @@ msgstr "Немає доступу до полів: %(fields)s"
 #: grunt/grunt/document/sidebar.py
 msgid "Not published - open preview"
 msgstr "Не опубліковано — відкрити попередній перегляд"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Not sent"
+msgstr "Не надіслано"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
@@ -8771,6 +8947,14 @@ msgstr "Сповіщення заблоковано в налаштування�
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Notify"
 msgstr "Сповіщати"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Notify group"
+msgstr "Сповіщати групу"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Notify if not answered"
+msgstr "Сповіщати, якщо немає відповіді"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Notify me"
@@ -8977,6 +9161,10 @@ msgstr "Дозволено тільки SELECT"
 msgid "Only a superadmin can run a fast delete"
 msgstr "Тільки суперадмін може виконати швидке видалення"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Only document types with “Create from incoming mail” on"
+msgstr "Лише типи документів з увімкненим «Створювати з вхідної пошти»"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Only files of"
 msgstr "Лише файли з"
@@ -9004,6 +9192,10 @@ msgstr "Лише один документ цього типу (налаштув
 #: grunt/grunt/document/doctypes/Comment/comment.py
 msgid "Only the author or an administrator can delete a comment"
 msgstr "Видалити коментар може лише автор або адміністратор"
+
+#: grunt/grunt/api/v1/email.py
+msgid "Only the document's own files can be attached"
+msgstr "Вкладати можна лише файли самого документа"
 
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgid ""
@@ -9296,6 +9488,10 @@ msgstr "Обліковий запис для надсилання"
 #: grunt/grunt/api/v1/email.py
 msgid "Outgoing email is disabled for this account."
 msgstr "Для цього облікового запису вимкнена вихідна пошта."
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Outgoing letters"
+msgstr "Вихідні листи"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Outgoing mail (SMTP)"
@@ -9679,6 +9875,14 @@ msgstr "Розмістити перед"
 msgid "Placeholder"
 msgstr "Підказка в полі (Placeholder)"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Placeholders: {name} - the document, {subject} - the letter's subject, "
+"{sender} - its address"
+msgstr ""
+"Підстановки: {name} — документ, {subject} — тема листа, {sender} — адреса "
+"відправника"
+
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Please enter the 6-digit code from your app or a backup code."
 msgstr "Будь ласка, введіть 6-значний код з вашого додатку або резервний код."
@@ -9829,6 +10033,10 @@ msgstr "Оброблено"
 msgid "Processed:"
 msgstr "Оброблено:"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Processing"
+msgstr "Обробка"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Production build"
 msgstr "Production-збірка"
@@ -9976,6 +10184,7 @@ msgstr "Воркери черги"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Queued"
 msgstr "У черзі"
 
@@ -10141,6 +10350,10 @@ msgstr "Отримувач"
 msgid "Recipient address"
 msgstr "Адреса отримувача"
 
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Recipient “%(kind)s”: choose whom it means"
+msgstr "Отримувач «%(kind)s»: вкажіть, кого саме"
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Recipients"
@@ -10212,6 +10425,11 @@ msgstr "Redis недоступний"
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Redo"
 msgstr "Повторити"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "References"
+msgstr "References"
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
@@ -10452,6 +10670,15 @@ msgstr "Відповідь на"
 #: grunt/grunt/notification/events.py
 msgid "Reply to a comment"
 msgstr "Відповідь на коментар"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Reply to the letter"
+msgstr "Відповісти на лист"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Reply-To"
+msgstr "Адреса для відповіді (Reply-To)"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -11582,6 +11809,10 @@ msgstr "Надіслати звіт отримувачам розсилки за
 msgid "Sender"
 msgstr "Відправник"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Sender field"
+msgstr "Поле відправника"
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Sending"
 msgstr "Надсилається"
@@ -11612,6 +11843,10 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Sent"
 msgstr "Надіслано"
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "Sent by the mailbox's auto-reply - not counted as an answer"
+msgstr "Надіслано автовідповіддю скриньки — не вважається відповіддю"
 
 #: grunt/grunt/actions/builtin.py
 msgid "Sent to %(sent)s of %(total)s browsers"
@@ -11726,6 +11961,13 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Set field"
 msgstr "Встановити поле"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"Set in advance when the letter is already on a document's timeline as "
+"“Queued”"
+msgstr ""
+"Задається заздалегідь, коли лист уже є на стрічці документа як «У черзі»"
 
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Set new password"
@@ -11900,9 +12142,14 @@ msgstr "Показати лічильник"
 msgid "Show first rows of the file ({n})"
 msgstr "Показати перші рядки файлу ({n})"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 msgid "Show less"
 msgstr "Згорнути"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Show more"
+msgstr "Показати більше"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Show only the first N rows (top N). Empty — all."
@@ -12097,6 +12344,10 @@ msgstr "Входи"
 msgid "Sign-ins kept per device"
 msgstr "Скільки входів зберігати на пристрій"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Signature"
+msgstr "Підпис"
+
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
 msgid "Signature algorithm"
 msgstr "Алгоритм підпису"
@@ -12242,10 +12493,12 @@ msgstr "ID джерела"
 msgid "Source type"
 msgstr "Тип джерела"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Source — record"
 msgstr "Джерело — запис"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Source — type"
 msgstr "Джерело — тип"
@@ -12518,11 +12771,16 @@ msgstr "Код підрозділу (UA-30 для Києва, US-CA для Ка�
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/Notification/notification.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 msgid "Subject"
 msgstr "Тема"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Subject field"
+msgstr "Поле теми"
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Subscript"
@@ -12792,6 +13050,7 @@ msgid "Technical details"
 msgstr "Технічні дані"
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Template"
 msgstr "Шаблон"
 
@@ -12925,6 +13184,10 @@ msgstr "Виконавець"
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "The assignee gets a task linked to this document."
 msgstr "Відповідальний отримає задачу, пов’язану з цим документом."
+
+#: grunt/grunt/api/v1/email.py
+msgid "The attachments are over 10 MB"
+msgstr "Вкладення перевищують 10 МБ"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "The browser declined the request (try installing the app as a PWA)"
@@ -13160,6 +13423,14 @@ msgstr "Значення ключа «%(key)s» відсутнє в рядку"
 #: grunt/grunt/auth/doctypes/ApiKey/api_key.py
 msgid "The key's user doesn't hold these roles: %(roles)s"
 msgstr "Користувач ключа не має цих ролей: %(roles)s"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "The last letter read in each folder (UIDVALIDITY + UID)"
+msgstr "Останній прочитаний лист у кожній теці (UIDVALIDITY + UID)"
+
+#: grunt/grunt/api/v1/email.py
+msgid "The letter is not on this document"
+msgstr "Цього листа немає в документі"
 
 #: grunt/grunt/storage/remote.py
 msgid "The link answered with an error (%(code)s)"
@@ -13497,6 +13768,10 @@ msgstr "Версія не належить цьому документу"
 msgid "The “%(field)s” field must contain valid JSON."
 msgstr "Поле «%(field)s» має містити коректний JSON."
 
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "The “not answered in N minutes” check is done for this letter"
+msgstr "Перевірку «без відповіді N хвилин» для цього листа виконано"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Their size"
 msgstr "Їхній розмір"
@@ -13754,6 +14029,7 @@ msgid "Title field"
 msgstr "Поле заголовка"
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "To"
 msgstr "До"
@@ -13994,6 +14270,10 @@ msgstr ""
 "Префікс адреси під монтуванням застосунку: /<маршрут>/<маршрут документа>. "
 "Частина документа — його поле `route` (заповнюється із заголовка при "
 "збереженні) або name"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Unanswered letters"
+msgstr "Листи без відповіді"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Unassign"
@@ -14643,6 +14923,14 @@ msgstr "Попередження"
 msgid "Watch"
 msgstr "Переглянути"
 
+#: grunt/grunt/email/routing.py
+msgid ""
+"We have received your letter and registered it as %(name)s. We will answer "
+"soon."
+msgstr ""
+"Ми отримали ваш лист і зареєстрували його під номером %(name)s. Невдовзі "
+"відповімо."
+
 #: grunt/grunt/email/templates/password_reset.html
 msgid "We received a request to reset the password for your account."
 msgstr "Ми отримали запит на скидання пароля для вашого облікового запису."
@@ -14827,6 +15115,14 @@ msgstr ""
 "Коли документ відповідає умові, відкрите призначення цього правила "
 "закривається як виконане — напр. {\"status\": \"Answered\"}"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"When the last letter on a document has had no reply from it for the set "
+"time: the document's assignees, or the group when nobody is assigned"
+msgstr ""
+"Коли на останній лист у документі за вказаний час не відповіли з документа: "
+"виконавцям документа, а якщо їх немає — групі"
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid ""
 "When the password was last set - its age for the site's password expiry"
@@ -14843,6 +15139,10 @@ msgid ""
 "any yet."
 msgstr ""
 "Коли воркер востаннє взяв задачу з черги. Порожньо — ще жодної не брав."
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Where replies should go, when not to this mailbox"
+msgstr "Куди надсилати відповіді, якщо не в цю скриньку"
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 msgid "Where the tour runs: the document's form or the list of documents"
@@ -14940,6 +15240,10 @@ msgstr ""
 "Хто й коли виносив дані з системи: експорт, друк, імпорт, завантаження "
 "звітів — і код, що виконувався від системи за чиєюсь дією (grunt.sudo). Пише"
 " система, лише для читання; зберігається рік."
+
+#: grunt/grunt/api/v1/email.py
+msgid "Whom to send it to?"
+msgstr "Кому надіслати?"
 
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
 msgid ""
@@ -15053,6 +15357,10 @@ msgstr ""
 "Записувати в ActivityLog створення/оновлення/видалення. Вимикайте для частих"
 " системних змін (сесії, черги, журнали) — ніколи для звичайних бізнес-"
 "записів"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Write an email"
+msgstr "Написати лист"
 
 #: grunt/frontend/src/core/datetime.ts
 msgid "YYYY-MM-DD"
@@ -15954,6 +16262,14 @@ msgstr "Вибір у полі"
 msgid "selected"
 msgstr "вибрано"
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "sent a letter"
+msgstr "надіслав(ла) лист"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "sent an auto-reply"
+msgstr "надіслано автовідповідь"
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "share"
 msgstr "Поширення"
@@ -16128,6 +16444,10 @@ msgstr "працює"
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "write"
 msgstr "Редагування"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "wrote a letter"
+msgstr "написав(ла) лист"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "xxxx xxxx xxxx xxxx"
@@ -16376,6 +16696,14 @@ msgstr "«%(doctype)s» не підтримує заміну посилань"
 #: grunt/grunt/store/base.py
 msgid "“%(doctype)s” does not support this operation"
 msgstr "«%(doctype)s» не підтримує цю операцію"
+
+#: grunt/grunt/email/doctypes/EmailAccount/email_account.py
+msgid ""
+"“%(doctype)s” does not take incoming mail: turn on “Create from incoming "
+"mail” in its settings first"
+msgstr ""
+"«%(doctype)s» не приймає вхідну пошту: спершу увімкніть «Створювати з "
+"вхідної пошти» в його налаштуваннях"
 
 #: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
@@ -16891,26 +17219,6 @@ msgstr "В роботі"
 msgctxt "status:ToDo"
 msgid "Open"
 msgstr "Відкрито"
-
-#: grunt/grunt/notification/doctypes/Notification/notification.py
-msgid "Recipient “%(kind)s”: choose whom it means"
-msgstr "Отримувач «%(kind)s»: вкажіть, кого саме"
-
-#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
-msgid "A group name can't start or end with a space"
-msgstr "Назва групи не може починатися чи закінчуватися пробілом"
-
-#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
-msgid "A group name is at most %(count)d characters"
-msgstr "Назва групи — щонайбільше %(count)d символів"
-
-#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
-msgid ""
-"Also the group's id and how a comment mentions it (@[Name]). To change it "
-"later, rename the group."
-msgstr ""
-"Це й ідентифікатор групи, і те, як її згадують у коментарі (@[Назва]). Щоб "
-"змінити згодом — перейменуйте групу."
 
 #~ msgid ""
 #~ "A walk through a DocType's form: each step points at a field or an element "

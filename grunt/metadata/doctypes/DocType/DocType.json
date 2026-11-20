@@ -654,6 +654,38 @@
       "options": ""
     },
     {
+      "fieldname": "sec_email",
+      "label": "Incoming mail",
+      "fieldtype": "Section",
+      "depends_on": "eval:!doc.is_singleton",
+      "description": "A mailbox (Email Account → “Create documents”) turns new letters into documents of this type; replies land on the same document"
+    },
+    {
+      "fieldname": "email_append_to",
+      "label": "Create from incoming mail",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "col_email_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "sender_field",
+      "label": "Sender field",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "email_append_to",
+      "description": "Gets the sender's address; replies from the document go there"
+    },
+    {
+      "fieldname": "subject_field",
+      "label": "Subject field",
+      "fieldtype": "Select",
+      "options": "",
+      "depends_on": "email_append_to",
+      "description": "Gets the letter's subject"
+    },
+    {
       "fieldname": "tab_actions",
       "label": "Actions and links",
       "fieldtype": "Tab",

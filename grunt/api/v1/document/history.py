@@ -15,12 +15,13 @@ from grunt.api.context import whitelist
 from grunt.document.versioning import version_service
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import require_session, user_email
+from grunt.local import require_session, system_context, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import doc_guard
 lazy from grunt.activity.reactions import reactions_for
 lazy from grunt.auth.users import get_users_by_emails
 lazy from grunt.document.api import documents
+lazy from grunt.email.inbound import sender_address
 
 
 @whitelist()
@@ -109,9 +110,69 @@ async def get_activity_log(doctype: str, doc_id: str, per_page: int = 10) -> lis
     ]
 
 
+async def _email_items(doctype: str, doc_id: str) -> list[dict[str, Any]]:
+    """The document's correspondence (``EmailMessage`` with this ref) - seen by
+    whoever may read the document, like its comments."""
+    async with system_context(require_session()):
+        rows = await documents.get_list(
+            "EmailMessage",
+            filters={"ref_doctype": doctype, "ref_name": doc_id},
+            fields=[
+                "name",
+                "direction",
+                "status",
+                "subject",
+                "sender",
+                "recipients",
+                "cc",
+                "body_html",
+                "body_text",
+                "message_date",
+                "created_at",
+                "is_auto_reply",
+                "error_message",
+            ],
+            limit=500,
+        )
+        files: dict[str, list[dict[str, Any]]] = {}
+        if rows:
+            for a in await documents.get_list(
+                "EmailAttachment",
+                filters={"parent_name__in": [str(r["name"]) for r in rows]},
+                fields=["parent_name", "filename", "file"],
+                limit=5000,
+            ):
+                files.setdefault(str(a["parent_name"]), []).append(
+                    {"filename": a.get("filename"), "file": a.get("file")}
+                )
+    items = []
+    for r in rows:
+        sender = sender_address(r.get("sender"))
+        items.append(
+            {
+                "type": "email",
+                "name": str(r["name"]),
+                "direction": r.get("direction"),
+                "status": r.get("status"),
+                "subject": r.get("subject"),
+                "sender": r.get("sender"),
+                "recipients": r.get("recipients"),
+                "cc": r.get("cc"),
+                "content": r.get("body_html") or r.get("body_text") or "",
+                "is_auto_reply": bool(r.get("is_auto_reply")),
+                "error_message": r.get("error_message"),
+                "attachments": files.get(str(r["name"]), []),
+                "user": sender,
+                "message_date": str(r["message_date"]) if r.get("message_date") else None,
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
+            }
+        )
+    return items
+
+
 @whitelist()
 async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
-    """Return a merged timeline of activity, field-value versions and comments."""
+    """Return a merged timeline of activity, field-value versions, comments and letters."""
     await doc_guard(doctype, doc_id)
 
     dt = await doctype_registry.get_meta(doctype)
@@ -170,6 +231,8 @@ async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
                 "created_at": str(r["created_at"]) if r.get("created_at") else None,
             }
         )
+
+    items.extend(await _email_items(doctype, doc_id))
 
     reactions = await reactions_for([str(r["name"]) for r in comment_rows])
     for i in items:

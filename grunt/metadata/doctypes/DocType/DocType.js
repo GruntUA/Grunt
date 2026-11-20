@@ -82,6 +82,8 @@ const PICKERS = {
     calendar_title_field: 'all',
     is_published_field: 'check',
     retention_date_field: 'date',
+    sender_field: 'text',
+    subject_field: 'text',
 }
 
 const opt = names => '\n' + names.join('\n')

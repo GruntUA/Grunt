@@ -58,6 +58,7 @@ async def test_send_now_builds_html_alternative():
     }
 
     sent: list = []
+    envelopes: list = []
 
     class _FakeSMTP:
         async def __aenter__(self):
@@ -69,8 +70,9 @@ async def test_send_now_builds_html_alternative():
         async def login(self, *a):
             pass
 
-        async def send_message(self, msg):
+        async def send_message(self, msg, recipients=None):
             sent.append(msg)
+            envelopes.append(recipients)
 
     with (
         patch("grunt.email.service.aiosmtplib.SMTP", lambda **kw: _FakeSMTP()),
@@ -79,6 +81,7 @@ async def test_send_now_builds_html_alternative():
         await EmailService.send_now(account, message)
 
     assert sent, "send_message was not called"
+    assert envelopes == [["user@example.com"]]
     msg = sent[0]
     assert msg.is_multipart()
     types = {p.get_content_type() for p in msg.walk()}

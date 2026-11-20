@@ -47,6 +47,8 @@ description: Довідник по всіх типах полів, налашт�
 | `is_tree` | bool | Ієрархічна структура |
 | `quick_entry` | bool | Діалог швидкого створення |
 | `allow_duplicate` | bool | `false` — у формі немає «Дублювати». Default `true` |
+| `email_append_to` | bool | Вхідна пошта може створювати документи (скринька з `append_to` = цей DocType); див. `docs/guide/email.md` |
+| `sender_field` / `subject_field` | str | Куди записати адресу відправника / тему листа; на `sender_field` іде «Лист» з документа |
 | `storage` | `"sql"` \| `"virtual"` | Де лежать документи: `sql` (типово) — таблиця DocType; `virtual` — без таблиці, документи дає сховище контролера, `store_class` (див. нижче). `meta.has_table` — `storage == "sql"` |
 
 ### Віртуальний DocType — сховище `VirtualStore`

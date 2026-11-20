@@ -95,7 +95,7 @@ interface GruntMethods {
   "grunt.api.v1.document.export.print": { args: { doctype: string; doc_id: string; fmt?: string; print_format?: string | null; autoprint?: boolean; token?: string | null }; result: unknown }
   /** Return the activity log for a document. */
   "grunt.api.v1.document.history.get_activity_log": { args: { doctype: string; doc_id: string; per_page?: number }; result: Record<string, any>[] }
-  /** Return a merged timeline of activity, field-value versions and comments. */
+  /** Return a merged timeline of activity, field-value versions, comments and letters. */
   "grunt.api.v1.document.history.get_timeline": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
   /** Return version history for a document. */
   "grunt.api.v1.document.history.get_versions": { args: { doctype: string; doc_id: string }; result: Record<string, any>[] }
@@ -139,14 +139,20 @@ interface GruntMethods {
   "grunt.api.v1.documents.rename_doc": { args: { doctype: string; name: string; new_name: string }; result: Record<string, any> }
   /** Update an existing document. */
   "grunt.api.v1.documents.save_doc": { args: { doctype: string; name: string; data: Record<string, any> }; result: Record<string, any> }
+  /** What the "Write an email" dialog starts with: the mailboxes, the one to send from, the addressee and subject (a reply - to the answered letter's correspondent), the signature, the document's files and the templates. */
+  "grunt.api.v1.email.compose_context": { args: { doctype: string; doc_id: string; reply_to?: string | null }; result: Record<string, any> }
   /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.get_account": { args: { account_id: string }; result: Record<string, any> }
   /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.list_accounts": { args: {}; result: Record<string, any>[] }
   /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.list_queue": { args: { status?: string | null; page?: number; per_page?: number }; result: Record<string, any> }
+  /** An EmailTemplate filled with the document's values (``{field}``). */
+  "grunt.api.v1.email.render_email_template": { args: { doctype: string; doc_id: string; template: string }; result: Record<string, any> }
   /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.retry_item": { args: { queue_id: string }; result: boolean }
+  /** Send a letter from the document (on its timeline at once, ``Queued``). */
+  "grunt.api.v1.email.send_email": { args: { doctype: string; doc_id: string; to: string; subject: string; content: string; cc?: string | null; bcc?: string | null; email_account?: string | null; reply_to?: string | null; attach_print?: boolean; files?: string[] | null }; result: Record<string, any> }
   /** Send a short test message through a saved EmailAccount. Permission: grunt.manage_email. */
   "grunt.api.v1.email.send_test_email": { args: { account_id: string; recipient: string }; result: GruntApi.grunt.Outcome }
   /** Attempt SMTP connect+login without sending a message. Permission: grunt.manage_email. */

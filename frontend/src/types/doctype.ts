@@ -29,6 +29,11 @@ export interface DocType {
   show_preview_popup?: boolean
   /** False - the form has no "Duplicate" (global_form.js). */
   allow_duplicate?: boolean
+  /** Incoming mail may create documents of this type (grunt.email.routing). */
+  email_append_to?: boolean
+  /** Field holding the correspondent's address - "Write an email" sends there. */
+  sender_field?: string | null
+  subject_field?: string | null
   /** Documents can carry qualified electronic signatures (an e-signature app adds the UI). */
   is_signable?: boolean
   beta?: boolean

@@ -27,7 +27,7 @@
 | 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ✔️ (`feat/notification-extras`) |
 | 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ✔️ (`feat/menu-visibility`, `feat/role-props`, `feat/role-profile`) |
 | 12 | User Group | ✔️ (`feat/user-group`, `feat/user-group-share`) |
-| 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ❓ |
+| 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ✔️ (`feat/inbound-email-to-doc`) |
 | 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ❓ |
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ❓ |
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
@@ -193,11 +193,18 @@
   2. `feat/user-group-share` — `SharedWith.user_group` (документ бачать поточні учасники: членство перевіряється під час запиту, тож доданий згодом теж отримує доступ, а вилучений втрачає); «призначити групі» в бічній панелі (`assign_to_group`: ToDo кожному активному учаснику, кому ще не призначено); `@[Назва групи]` у коментарях сповіщає всіх учасників. Членство — `grunt/permissions/groups.py`.
 
 ### 13. Вхідна пошта → документ, можливості EmailAccount
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** `append_to` + `DocType.email_append_to/sender_field/subject_field` — вхідний лист створює або доповнює документ; автовідповідь, підпис, футер, `notify_if_unreplied`, IMAP-теки, `always_bcc`, Reply-To, рахунок за замовчуванням для вхідних/вихідних.
 - **Ґрунт зараз:** SMTP/IMAP, EmailMessage з `ref_doctype/ref_name`.
 - **Навіщо:** звернення громадян, заявки сервісу, листування з контрагентами.
-- **Рішення:** —
+- **Рішення (2026-11-19):** робимо одним PR (`feat/inbound-email-to-doc`):
+  - `DocType.email_append_to` / `sender_field` / `subject_field`; `EmailAccount.append_to` (лише на такий DocType). Маршрут листа (`grunt/email/routing.py`): `In-Reply-To`/`References` збігається з листом на документі → у той документ; інакше новий документ `append_to`; інакше лише в скриньку. Вкладення листа — вкладення документа. Подія `inbound_email` отримує ще `filed`.
+  - IMAP за UID з `BODY.PEEK[]` (прапорці `\Seen` не чіпаємо), `imap_folders`, позиція в `imap_state` (UIDVALIDITY + останній UID; без неї — непрочитані), до 200 листів на теку за прохід.
+  - Листи на стрічці документа (тип `email`) + «Лист» / «Відповісти» (діалог: скринька, кому/копія/прихована, тема, `EmailTemplate`, PDF документа з правом print, файли документа до 10 МБ); надсилання — право write; лист одразу на стрічці «У черзі», той самий рядок `EmailMessage` стає «Надіслано»/«Помилка»; тред до листа, на який відповідаємо, або до останнього листа документа.
+  - Автовідповідь (лише на новий документ; не роботам/розсилкам/no-reply/собі), підпис, `reply_to`, `always_bcc` (лише в конверті); `EmailQueue` — cc/bcc/reply_to/message_id/in_reply_to/references/ref.
+  - «Без відповіді N хв» (`check_unreplied`, кожні 5 хв): останній вхідний лист документа без відповіді з документа (автовідповідь не рахується) → виконавцям документа, інакше групі скриньки (`unreplied_group`); кожен лист перевіряється раз.
+  - Не робимо: футер скриньки (є `SystemSettings.email_footer` і підпис), статус документа Replied/Open (Workflow/`on_change`), окрему «вхідну за замовчуванням».
+  - Попутно: блок «Відстеження доставки» в `EmailMessage` ніколи не показувався (`'Вихідний'` замість `Outgoing`).
 
 ### 14. OAuth для Gmail / Microsoft 365
 **Статус:** ❓
