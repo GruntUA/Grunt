@@ -84,6 +84,8 @@ export interface SendEmailParams {
   reply_to?: string | null
   attach_print?: boolean
   files?: string[]
+  /** ISO date-time to send it at (empty - now). */
+  send_after?: string | null
 }
 
 export interface CommentReaction {

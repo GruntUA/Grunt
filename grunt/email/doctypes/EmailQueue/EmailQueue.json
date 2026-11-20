@@ -65,6 +65,38 @@
       "in_filter": true
     },
     {
+      "fieldname": "priority",
+      "label": "Priority",
+      "fieldtype": "Select",
+      "options": "High\nNormal\nLow",
+      "translatable": true,
+      "default": "Normal",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "High — sign-in codes and password resets; Low — notifications, digests and scheduled reports. The worker sends higher first, older first within one level."
+    },
+    {
+      "fieldname": "send_after",
+      "label": "Send after",
+      "fieldtype": "Datetime",
+      "description": "Not before this time: a letter scheduled for later, or the next attempt after a temporary failure."
+    },
+    {
+      "fieldname": "retry",
+      "label": "Attempts failed",
+      "fieldtype": "Int",
+      "default": "0",
+      "read_only": true,
+      "description": "A temporary failure (the server does not answer, 4xx) is tried again later, up to 5 times; a permanent one (5xx) is an error at once."
+    },
+    {
+      "fieldname": "unsubscribe_url",
+      "label": "Unsubscribe link",
+      "fieldtype": "Data",
+      "read_only": true,
+      "hidden": true
+    },
+    {
       "fieldname": "error_message",
       "label": "Error",
       "fieldtype": "LongText"

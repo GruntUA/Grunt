@@ -154,7 +154,7 @@ interface GruntMethods {
   /** Permission: grunt.manage_email. */
   "grunt.api.v1.email.retry_item": { args: { queue_id: string }; result: boolean }
   /** Send a letter from the document (on its timeline at once, ``Queued``). */
-  "grunt.api.v1.email.send_email": { args: { doctype: string; doc_id: string; to: string; subject: string; content: string; cc?: string | null; bcc?: string | null; email_account?: string | null; reply_to?: string | null; attach_print?: boolean; files?: string[] | null }; result: Record<string, any> }
+  "grunt.api.v1.email.send_email": { args: { doctype: string; doc_id: string; to: string; subject: string; content: string; cc?: string | null; bcc?: string | null; email_account?: string | null; reply_to?: string | null; attach_print?: boolean; files?: string[] | null; send_after?: string | null }; result: Record<string, any> }
   /** Send a short test message through a saved EmailAccount. Permission: grunt.manage_email. */
   "grunt.api.v1.email.send_test_email": { args: { account_id: string; recipient: string }; result: GruntApi.grunt.Outcome }
   /** Attempt SMTP connect+login without sending a message. Permission: grunt.manage_email. */
@@ -348,6 +348,8 @@ interface GruntMethods {
   "grunt.backups.api.download": { args: { file: string; exp: number; sig: string }; result: unknown }
   /** Return grouped connection stats for one document. */
   "grunt.document.connections.get_connections": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
+  /** The link in a notification letter: GET asks, POST unsubscribes (the page's buttons and a mail client's one-click ``List-Unsubscribe-Post``). Allowed for guests. */
+  "grunt.email.unsubscribe.unsubscribe": { args: { email?: string; token?: string; notification?: string }; result: unknown }
   /** The provider's consent page that connects *doctype* / *name* through *connected_app*. */
   "grunt.integrations.oauth.authorize": { args: { connected_app: string; doctype: string; name: string }; result: GruntApi.grunt.AuthorizeLink }
   /** The provider sends the browser back here with a code (or an error). Allowed for guests. */

@@ -32,7 +32,9 @@ from grunt.local import system_context
 from grunt.log import log
 from grunt.metadata.dynamic_options import register_option_provider
 from grunt.notification.delivery_log import Status
-lazy from grunt.email.service import email_service
+lazy from grunt.email.service import PRIORITY_LOW, email_service
+lazy from grunt.email.unsubscribe import footer as unsubscribe_footer
+lazy from grunt.email.unsubscribe import is_unsubscribed, unsubscribe_url
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.webpush.service import deliver_push
 
@@ -186,14 +188,25 @@ class EmailChannel(Channel):
     async def send(
         self, session: AsyncSession, recipient: str, message: Message, *, delivery: str
     ) -> Outcome:
+        if await is_unsubscribed(recipient, message.notification):
+            return Outcome("Skipped", reason=_("The recipient unsubscribed from these emails"))
+        # A rule's letter can be turned off by its reader (List-Unsubscribe).
+        link = unsubscribe_url(recipient, message.notification) if message.notification else None
+        body, html = message.body, message.html
+        if link:
+            html_line, text_line = unsubscribe_footer(link)
+            body = f"{body}\n\n{text_line}"
+            html = f"{html}{html_line}" if html else None
         queue_id = await email_service.queue_email(
             session=session,
             to=recipient,
             subject=message.subject,
-            body=message.body,
-            html_body=message.html,
+            body=body,
+            html_body=html,
             attachments=message.attachments or None,
             email_account=message.email_account,
+            priority=PRIORITY_LOW,
+            unsubscribe_url=link,
         )
         if not queue_id:
             return Outcome("Error", reason=_("The email could not be queued"))

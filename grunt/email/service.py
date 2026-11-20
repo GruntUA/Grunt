@@ -19,7 +19,7 @@ from grunt.site.settings import get_setting
 from grunt.storage.files import store
 from grunt.tasks.broker import by_name
 lazy from grunt.document.api import documents
-lazy from grunt.integrations.oauth import get_access_token
+lazy from grunt.integrations.oauth import OAuthError, get_access_token
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -32,6 +32,27 @@ SMTP_PASSWORD_MASK = "••••••••"
 
 # Outgoing ``EmailMessage`` statuses a later send attempt overwrites.
 PENDING_STATUSES = ("Queued", "Error")
+
+# ``EmailQueue.priority``: the worker sends higher first (an empty one - a row
+# queued before priorities - counts as normal).
+PRIORITY_HIGH, PRIORITY_NORMAL, PRIORITY_LOW = "High", "Normal", "Low"
+PRIORITIES = (PRIORITY_HIGH, PRIORITY_NORMAL, PRIORITY_LOW)
+
+# A temporary failure is tried again after these pauses (minutes); past the
+# last one the letter is an error.
+RETRY_DELAYS_MINUTES = (1, 5, 15, 60, 240)
+
+
+def is_temporary(exc: BaseException) -> bool:
+    """Whether sending may work later: no answer, a dropped connection, a 4xx
+    reply, a token that could not be renewed. A 5xx (a bad address, a refused
+    sign-in) and anything unexpected (likely a bug - better seen at once) are
+    final."""
+    if isinstance(exc, aiosmtplib.SMTPRecipientsRefused):
+        return all(400 <= r.code < 500 for r in exc.recipients)
+    if isinstance(exc, aiosmtplib.SMTPResponseException):
+        return 400 <= exc.code < 500
+    return isinstance(exc, (aiosmtplib.SMTPException, OSError, TimeoutError, OAuthError))
 
 
 def split_addresses(value: str | None) -> list[str]:
@@ -151,6 +172,11 @@ class EmailService:
             msg["In-Reply-To"] = message["in_reply_to"]
         if message.get("message_references"):
             msg["References"] = message["message_references"]
+
+        if message.get("unsubscribe_url"):
+            # One-click unsubscribe (RFC 8058) - Gmail / Yahoo ask it of bulk mail.
+            msg["List-Unsubscribe"] = f"<{message['unsubscribe_url']}>"
+            msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
         if message.get("request_receipt"):
             # Ask the recipient's client for a read receipt (MDN). Honoured only
@@ -417,6 +443,9 @@ class EmailService:
         ref_doctype: str | None = None,
         ref_name: str | None = None,
         footer: bool = True,
+        priority: str = PRIORITY_NORMAL,
+        send_after: datetime | None = None,
+        unsubscribe_url: str | None = None,
     ) -> str:
         """Insert a record into EmailQueue for async delivery.
 
@@ -425,7 +454,10 @@ class EmailService:
         record, e.g. on a document's timeline); ``in_reply_to`` /
         ``message_references`` - the thread it answers; ``ref_doctype`` /
         ``ref_name`` - the document it is logged against. ``footer=False``
-        leaves out ``SystemSettings.email_footer``.
+        leaves out ``SystemSettings.email_footer``. ``priority`` - ``High``
+        (sign-in codes, password resets), ``Normal`` or ``Low`` (notifications,
+        digests, reports); ``send_after`` - not before then;
+        ``unsubscribe_url`` - the ``List-Unsubscribe`` link of a notification.
 
         Sending account: *email_account* when given, else
         ``SystemSettings.default_email_account`` when set, otherwise the first
@@ -493,6 +525,10 @@ class EmailService:
                         "message_references": message_references or None,
                         "ref_doctype": ref_doctype or None,
                         "ref_name": ref_name or None,
+                        "priority": priority if priority in PRIORITIES else PRIORITY_NORMAL,
+                        "send_after": send_after,
+                        "retry": 0,
+                        "unsubscribe_url": unsubscribe_url or None,
                     },
                 )
         except Exception:

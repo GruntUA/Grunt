@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.auth.users import get_user_by_email
 from grunt.db.api import GruntDB
-from grunt.email.service import email_service
+from grunt.email.service import PRIORITY_LOW, email_service
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import require_session, system_context
@@ -88,7 +88,9 @@ async def send_report(report: dict[str, Any], session: AsyncSession) -> int:
     attachment = {"filename": f"{name[:50]}.xlsx", "mimetype": XLSX_MIMETYPE, "content": xlsx}
 
     for to in recipients:
-        await email_service.queue_email(session, to, subject, body, attachments=[attachment])
+        await email_service.queue_email(
+            session, to, subject, body, attachments=[attachment], priority=PRIORITY_LOW
+        )
     await _db.set_value("Report", report["name"], "last_sent_at", datetime.now(UTC))
     log.info("reports.delivered", report=name, recipients=len(recipients), rows=rows)
     return len(recipients)

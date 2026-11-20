@@ -10,6 +10,7 @@ Message-ID in ``In-Reply-To`` / ``References`` and lands on the same document
 
 import html as html_lib
 import re
+from datetime import datetime
 from email.utils import make_msgid
 from typing import Any
 
@@ -105,6 +106,7 @@ async def send_on_document(
     in_reply_to: str | None = None,
     message_references: str | None = None,
     is_auto_reply: bool = False,
+    send_after: datetime | None = None,
 ) -> str | None:
     """Queue a letter from *account* about document *doctype*/*name* and put it
     on the document's timeline. Returns the ``EmailMessage`` name."""
@@ -152,5 +154,6 @@ async def send_on_document(
             message_references=message_references,
             ref_doctype=doctype,
             ref_name=name,
+            send_after=send_after,
         )
     return message

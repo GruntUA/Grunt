@@ -484,6 +484,10 @@ async function composeEmail(replyTo?: TimelineItem) {
       option_labels: Object.fromEntries(start.files.map(f => [f.name, f.file_name])),
     })
   }
+  fields.push({
+    fieldname: 'send_after', label: t('Send at'), fieldtype: 'Datetime',
+    description: t('Empty — send now'),
+  })
   const buttons: DialogActionButton[] = start.templates.length ? [{
     label: t('Apply template'),
     variant: 'outline',
@@ -515,6 +519,7 @@ async function composeEmail(replyTo?: TimelineItem) {
       reply_to: replyTo?.id ?? null,
       attach_print: !!values.attach_print,
       files: Array.isArray(values.files) ? values.files.map(String) : [],
+      send_after: values.send_after ? String(values.send_after) : null,
     })
     await loadTimeline()
   } catch { /* the API client reports the error */ }

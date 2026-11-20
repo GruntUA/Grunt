@@ -244,6 +244,14 @@
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
+      "label": "Відписки від листів",
+      "link_to": "EmailUnsubscribe",
+      "icon": "mail-x",
+      "show_count": false
+    },
+    {
+      "section": "Пошта та сповіщення",
+      "type": "DocType",
       "label": "Черга листів",
       "link_to": "EmailQueue",
       "icon": "send",

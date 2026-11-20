@@ -76,7 +76,7 @@ from grunt.utils.templates import render as render_template_text
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
 lazy from grunt.auth.mfa import disable_mfa as _disable_mfa
 lazy from grunt.document.api import documents
-lazy from grunt.email.service import email_service
+lazy from grunt.email.service import PRIORITY_HIGH, email_service
 lazy from grunt.i18n import use_language
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -600,6 +600,7 @@ async def forgot_password_api(email: str, request: Request | None = None) -> boo
             subject=subject,
             body=plain,
             html_body=html_body,
+            priority=PRIORITY_HIGH,
         )
         await session.flush()
         log.info("auth.forgot_password", email=user.email)
