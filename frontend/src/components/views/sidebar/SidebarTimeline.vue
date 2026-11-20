@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import { ArrowRight, Trash2, Send, Reply } from '@lucide/vue'
-import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
+import { ArrowRight, Trash2, Send, Reply, Users, Mail, Paperclip } from '@lucide/vue'
+import { docsApi, type TimelineItem, type DocVersionChange, type EmailComposeContext } from '@/core/api/docs'
 import { authApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
-import { useDialog } from '@/core/composables/useDialog'
+import { useDialog, type DialogActionButton, type DialogField } from '@/core/composables/useDialog'
 import type { Colleague, DocType, GruntDocument } from '@/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -99,8 +99,11 @@ const foldedVersion = (item: TimelineItem) => timelineView.value.folded[item.id]
 type TimelineFilter = 'all' | 'comments' | 'changes'
 const filter = useLocalStorage<TimelineFilter>('grunt.timeline.filter', 'all')
 
+// "Comments" is the conversation: comments and the document's letters.
+const isTalk = (i: TimelineItem) => i.type === 'comment' || i.type === 'email'
+
 const filterCounts = computed(() => {
-  const comments = reversedTimeline.value.filter((i) => i.type === 'comment').length
+  const comments = reversedTimeline.value.filter(isTalk).length
   return { all: reversedTimeline.value.length, comments, changes: reversedTimeline.value.length - comments }
 })
 
@@ -123,7 +126,7 @@ const visibleTimeline = computed(() => {
   const feed = reversedTimeline.value.filter((i) => !isReply(i))
   if (filter.value === 'all') return feed
   const wantComments = filter.value === 'comments'
-  return feed.filter((i) => (i.type === 'comment') === wantComments)
+  return feed.filter((i) => isTalk(i) === wantComments)
 })
 
 function workflowState(item: TimelineItem, key: 'from' | 'to') {
@@ -192,6 +195,10 @@ function initials(item: TimelineItem): string {
 /** Short action text after the author's name. */
 function summary(item: TimelineItem): string {
   if (item.type === 'comment') return t('commented')
+  if (item.type === 'email') {
+    if (item.direction === 'Incoming') return t('wrote a letter')
+    return item.is_auto_reply ? t('sent an auto-reply') : t('sent a letter')
+  }
   if (item.type === 'version') {
     const n = item.changes?.length ?? 0
     return tn('changed {n} field', 'changed {n} fields', n)
@@ -312,15 +319,38 @@ function onReplyKeydown(e: KeyboardEvent) {
   }
 }
 
-// @mention autocomplete logic (retained for functionality)
+// @mention autocomplete: users (@email) and user groups (@[Group name] -
+// every member is notified).
+type MentionOption = { kind: 'user'; user: Colleague } | { kind: 'group'; name: string }
 const allUsers = ref<Colleague[]>([])
-const mentionDropdown = ref<Colleague[]>([])
+const mentionDropdown = ref<MentionOption[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
+// Where the "@" being completed sits in the input - the query is lowercased
+// for matching, so it can't be found again by searching the text.
+const mentionStart = ref(-1)
 
 async function ensureUsers() {
   if (allUsers.value.length) return
-  try { allUsers.value = await authApi.listColleagues() } catch { /* silent */ }
+  allUsers.value = await authApi.listColleagues().catch(() => [])
+}
+
+// Groups are searched on the server - however many there are; a failed
+// search just offers none this time.
+async function searchGroups(q: string): Promise<string[]> {
+  try {
+    const r = await docsApi.list('UserGroup', {
+      fields: 'name', per_page: 3, sort: 'name', order: 'asc',
+      ...(q ? { rawFilters: { name__like: q } } : {}),
+    })
+    return r.data.map((g) => String(g.name))
+  } catch {
+    return []
+  }
+}
+
+function mentionKey(o: MentionOption): string {
+  return o.kind === 'user' ? `u:${o.user.email}` : `g:${o.name}`
 }
 
 function onCommentInput(e: Event) {
@@ -328,16 +358,20 @@ function onCommentInput(e: Event) {
   const val = ta.value
   const pos = ta.selectionStart ?? val.length
   const before = val.slice(0, pos)
-  const match = before.match(/@([\w.+-]*)$/)
+  // Letters of any script: an email prefix or the start of a group name.
+  const match = before.match(/@([\p{L}\p{N}_.+-]*)$/u)
   if (match) {
+    mentionStart.value = pos - match[0].length
     mentionQuery.value = match[1].toLowerCase()
-    ensureUsers().then(() => {
-      mentionDropdown.value = allUsers.value
-        .filter(u =>
-          u.email.toLowerCase().includes(mentionQuery.value) ||
-          u.full_name?.toLowerCase().includes(mentionQuery.value)
-        )
+    const q = mentionQuery.value
+    Promise.all([ensureUsers(), searchGroups(match[1])]).then(([, groupNames]) => {
+      if (q !== mentionQuery.value) return // the user typed on meanwhile
+      const users: MentionOption[] = allUsers.value
+        .filter(u => u.email.toLowerCase().includes(q) || u.full_name?.toLowerCase().includes(q))
         .slice(0, 6)
+        .map(user => ({ kind: 'user', user }))
+      const groups: MentionOption[] = groupNames.map(name => ({ kind: 'group', name }))
+      mentionDropdown.value = [...users, ...groups]
       mentionIndex.value = 0
     })
   } else {
@@ -345,10 +379,12 @@ function onCommentInput(e: Event) {
   }
 }
 
-function insertMention(user: Colleague) {
+function insertMention(option: MentionOption) {
   const before = commentInput.value
-  const pos = before.lastIndexOf('@' + mentionQuery.value)
-  commentInput.value = before.slice(0, pos) + `@${user.email} ` + before.slice(pos + 1 + mentionQuery.value.length)
+  const pos = mentionStart.value
+  if (pos < 0) return
+  const token = option.kind === 'user' ? `@${option.user.email} ` : `@[${option.name}] `
+  commentInput.value = before.slice(0, pos) + token + before.slice(pos + 1 + mentionQuery.value.length)
   mentionDropdown.value = []
 }
 
@@ -378,7 +414,118 @@ function onCommentKeydown(e: KeyboardEvent) {
   }
 }
 
-defineExpose({ loadTimeline })
+// Letters (EmailMessage on this document)
+
+const expandedEmails = ref(new Set<string>())
+const emailText = (item: TimelineItem) => htmlToText(item.content ?? '')
+
+function toggleEmail(id: string) {
+  const next = new Set(expandedEmails.value)
+  if (!next.delete(id)) next.add(id)
+  expandedEmails.value = next
+}
+
+function emailBadge(item: TimelineItem): { label: string; variant: 'secondary' | 'destructive' } | null {
+  switch (item.status) {
+    case 'Queued': return { label: t('Queued'), variant: 'secondary' }
+    case 'Error': return { label: t('Not sent'), variant: 'destructive' }
+    case 'Undelivered': return { label: t('Not delivered'), variant: 'destructive' }
+    default: return null
+  }
+}
+
+const withSignature = (body: string, signature: string | undefined) =>
+  signature?.trim() ? `${body}<p></p>${signature}` : body
+
+/** "Write an email" / "Reply" to a letter - sent from a mailbox, kept on the timeline. */
+async function composeEmail(replyTo?: TimelineItem) {
+  let start: EmailComposeContext
+  try {
+    start = await docsApi.emailComposeContext(props.doctype.name, props.document.name, replyTo?.id)
+  } catch { return }
+  if (!start.accounts.length) {
+    await dialog.msgprint({ message: t('No mailbox to send from - set up an email account'), indicator: 'orange' })
+    return
+  }
+  const signatureOf = (account: unknown) => start.signatures[String(account ?? start.account ?? '')]
+  const fields: DialogField[] = []
+  if (start.accounts.length > 1) {
+    fields.push({
+      fieldname: 'email_account', label: t('From'), fieldtype: 'Select', required: true,
+      options: start.accounts.map(a => a.name).join('\n'),
+      option_labels: Object.fromEntries(start.accounts.map(a => [a.name, a.email_address])),
+      default: start.account,
+    })
+  }
+  fields.push(
+    { fieldname: 'to', label: t('To'), fieldtype: 'Data', required: true, default: start.to },
+    { fieldname: 'cc', label: t('Cc'), fieldtype: 'Data', default: start.cc },
+    { fieldname: 'bcc', label: t('Bcc'), fieldtype: 'Data' },
+    { fieldname: 'subject', label: t('Subject'), fieldtype: 'Data', required: true, default: start.subject },
+  )
+  if (start.templates.length) {
+    fields.push({
+      fieldname: 'template', label: t('Template'), fieldtype: 'Select',
+      options: '\n' + start.templates.map(x => x.name).join('\n'),
+      option_labels: Object.fromEntries(start.templates.map(x => [x.name, x.label || x.name])),
+    })
+  }
+  fields.push({
+    fieldname: 'content', label: t('Message'), fieldtype: 'RichText',
+    default: withSignature('<p></p>', signatureOf(start.account)),
+  })
+  if (start.can_print) {
+    fields.push({ fieldname: 'attach_print', label: t('Attach the document as PDF'), fieldtype: 'Check' })
+  }
+  if (start.files.length) {
+    fields.push({
+      fieldname: 'files', label: t('Attach files'), fieldtype: 'MultiSelect',
+      options: start.files.map(f => f.name).join('\n'),
+      option_labels: Object.fromEntries(start.files.map(f => [f.name, f.file_name])),
+    })
+  }
+  fields.push({
+    fieldname: 'send_after', label: t('Send at'), fieldtype: 'Datetime',
+    description: t('Empty — send now'),
+  })
+  const buttons: DialogActionButton[] = start.templates.length ? [{
+    label: t('Apply template'),
+    variant: 'outline',
+    action: async (ctx) => {
+      const template = String(ctx.values.template ?? '')
+      if (!template) return
+      const r = await docsApi.renderEmailTemplate(props.doctype.name, props.document.name, template)
+      ctx.setField('subject', { default: r.subject })
+      ctx.setField('content', { default: withSignature(r.body, signatureOf(ctx.values.email_account)) })
+    },
+  }] : []
+
+  const values = await dialog.form({
+    title: replyTo ? t('Reply to the letter') : t('Write an email'),
+    fields,
+    buttons,
+    primaryLabel: t('Send'),
+    size: 'large',
+  })
+  if (!values) return
+  try {
+    await docsApi.sendEmail(props.doctype.name, props.document.name, {
+      to: String(values.to ?? ''),
+      cc: String(values.cc ?? ''),
+      bcc: String(values.bcc ?? ''),
+      subject: String(values.subject ?? ''),
+      content: String(values.content ?? ''),
+      email_account: (values.email_account as string | undefined) ?? start.account,
+      reply_to: replyTo?.id ?? null,
+      attach_print: !!values.attach_print,
+      files: Array.isArray(values.files) ? values.files.map(String) : [],
+      send_after: values.send_after ? String(values.send_after) : null,
+    })
+    await loadTimeline()
+  } catch { /* the API client reports the error */ }
+}
+
+defineExpose({ loadTimeline, composeEmail })
 onMounted(loadTimeline)
 </script>
 
@@ -401,20 +548,29 @@ onMounted(loadTimeline)
         </PopoverAnchor>
         <PopoverContent side="top" align="start" class="w-(--reka-popper-anchor-width) p-1"
           @open-auto-focus.prevent @close-auto-focus.prevent>
-          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user') }}</div>
+          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user or a group') }}</div>
           <ItemGroup class="max-h-56 overflow-y-auto">
-            <Item v-for="(u, i) in mentionDropdown" :key="u.id" as="button" type="button" size="sm"
+            <Item v-for="(o, i) in mentionDropdown" :key="mentionKey(o)" as="button" type="button" size="sm"
               class="w-full flex-nowrap gap-2 px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground"
               :class="i === mentionIndex && 'bg-accent text-accent-foreground'"
-              @mousedown.prevent="insertMention(u)">
+              @mousedown.prevent="insertMention(o)">
               <ItemMedia>
                 <Avatar class="size-6">
-                  <AvatarFallback class="text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback>
+                  <AvatarFallback class="text-[10px]">
+                    <Users v-if="o.kind === 'group'" class="size-3.5" />
+                    <template v-else>{{ (o.user.full_name || o.user.email).slice(0, 2).toUpperCase() }}</template>
+                  </AvatarFallback>
                 </Avatar>
               </ItemMedia>
               <ItemContent class="min-w-0 gap-0">
-                <ItemTitle class="w-full"><span class="truncate">{{ u.full_name || u.email }}</span></ItemTitle>
-                <ItemDescription v-if="u.full_name" class="truncate text-xs">{{ u.email }}</ItemDescription>
+                <template v-if="o.kind === 'group'">
+                  <ItemTitle class="w-full"><span class="truncate">{{ o.name }}</span></ItemTitle>
+                  <ItemDescription class="truncate text-xs">{{ t('every member of the group') }}</ItemDescription>
+                </template>
+                <template v-else>
+                  <ItemTitle class="w-full"><span class="truncate">{{ o.user.full_name || o.user.email }}</span></ItemTitle>
+                  <ItemDescription v-if="o.user.full_name" class="truncate text-xs">{{ o.user.email }}</ItemDescription>
+                </template>
               </ItemContent>
             </Item>
           </ItemGroup>
@@ -425,11 +581,17 @@ onMounted(loadTimeline)
             <Kbd>Ctrl</Kbd><Kbd>Enter</Kbd>
             <span>{{ t('to send') }}</span>
           </KbdGroup>
-          <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment">
-            <Spinner v-if="commentSending" />
-            <Send v-else />
-            {{ t('Send') }}
-          </Button>
+          <div class="flex items-center gap-2">
+            <Button size="sm" variant="outline" @click="composeEmail()">
+              <Mail />
+              {{ t('Email') }}
+            </Button>
+            <Button size="sm" :disabled="!commentInput.trim() || commentSending" @click="sendComment">
+              <Spinner v-if="commentSending" />
+              <Send v-else />
+              {{ t('Send') }}
+            </Button>
+          </div>
       </div>
     </div>
 
@@ -473,10 +635,10 @@ onMounted(loadTimeline)
               </TooltipTrigger>
               <TooltipContent>{{ formatFull(item.created_at) }}</TooltipContent>
             </Tooltip>
-            <Button v-if="item.type === 'comment'" variant="ghost" size="icon-xs"
+            <Button v-if="item.type === 'comment' || item.type === 'email'" variant="ghost" size="icon-xs"
               class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
               :aria-label="t('Reply')"
-              @click="openReply(item)">
+              @click="item.type === 'email' ? composeEmail(item) : openReply(item)">
               <Reply />
             </Button>
             <Button v-if="canDelete(item)"
@@ -507,6 +669,37 @@ onMounted(loadTimeline)
             {{ htmlToText(item.content ?? '') }}
           </p>
           <CommentReactions v-if="item.type === 'comment'" v-model="item.reactions" :comment="item.id" />
+
+          <!-- A letter: subject, addressees, text (folded when long), files -->
+          <div v-if="item.type === 'email'" class="flex flex-col gap-1.5 rounded-md border px-3 py-2 text-sm">
+            <div class="flex min-w-0 items-center gap-2">
+              <Mail class="size-3.5 shrink-0 text-muted-foreground" />
+              <span class="min-w-0 flex-1 truncate font-medium">{{ item.subject || t('(no subject)') }}</span>
+              <Badge v-if="emailBadge(item)" :variant="emailBadge(item)!.variant">{{ emailBadge(item)!.label }}</Badge>
+            </div>
+            <p class="truncate text-xs text-muted-foreground">
+              {{ t('To') }}: {{ item.recipients }}<template v-if="item.cc"> · {{ t('Cc') }}: {{ item.cc }}</template>
+            </p>
+            <p class="break-words whitespace-pre-line" :class="!expandedEmails.has(item.id) && 'line-clamp-4'">
+              {{ emailText(item) }}
+            </p>
+            <Button v-if="emailText(item).length > 280" variant="link" size="xs" class="self-start px-0"
+              @click="toggleEmail(item.id)">
+              {{ expandedEmails.has(item.id) ? t('Show less') : t('Show more') }}
+            </Button>
+            <ul v-if="item.attachments?.length" class="flex flex-wrap gap-1.5">
+              <li v-for="(a, i) in item.attachments" :key="i">
+                <Badge variant="outline" class="gap-1">
+                  <Paperclip class="size-3" />
+                  <a v-if="a.file" :href="a.file" target="_blank" rel="noopener" class="hover:underline">{{ a.filename }}</a>
+                  <span v-else>{{ a.filename }}</span>
+                </Badge>
+              </li>
+            </ul>
+            <p v-if="item.status === 'Error' && item.error_message" class="text-xs text-destructive">
+              {{ item.error_message }}
+            </p>
+          </div>
 
           <!-- Thread: replies, then the reply box -->
           <ol v-if="repliesOf[item.id]?.length" class="flex flex-col gap-3 border-l pl-3">

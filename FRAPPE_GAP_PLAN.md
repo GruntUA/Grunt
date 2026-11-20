@@ -25,11 +25,11 @@
 | 8 | Permission Log + Access Log (аудит прав, експорту, друку) | ✔️ (PERMISSIONS 6b, 6c) |
 | 9 | AssignmentRule: Round Robin / Load Balancing / за полем, зняття призначення | ✔️ (`feat/assignment-rules`) |
 | 10 | NotificationRule: PDF у вкладенні, зміна поля після сповіщення, зсув у хвилинах | ✔️ (`feat/notification-extras`) |
-| 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ❓ |
-| 12 | User Group | ❓ |
-| 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ❓ |
-| 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ❓ |
-| 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ❓ |
+| 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ✔️ (`feat/menu-visibility`, `feat/role-props`, `feat/role-profile`) |
+| 12 | User Group | ✔️ (`feat/user-group`, `feat/user-group-share`) |
+| 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ✔️ (`feat/inbound-email-to-doc`) |
+| 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ✔️ (`feat/email-oauth`) |
+| 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ✔️ (`feat/email-queue`) |
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
@@ -172,38 +172,61 @@
 - **Рішення (2026-11-19):** робимо: PDF документа (`attach_print` + `print_format`) і файли документа (`attach_files`, до 10 МБ) у листі; скринька-відправник (`email_account`); `set_field`/`set_value` після сповіщення (прямий запис, без хуків); події `minutes_before`/`minutes_after` від поля Datetime (задача кожні 5 хв, вікно 10 хв, один раз на момент документа); канал `webhook` → `OutgoingWebhook` з подією `notification` (один запит на сповіщення, через outbox). `send_to_all_assignees` уже є (отримувачі «Assignees»); подія «Method» — `code`.
 
 ### 11. Role Profile / Module Profile, властивості Role
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** Role Profile — набір ролей, який призначається користувачу; Module Profile / `block_modules` — приховати модулі; Role `desk_access`, `home_page`, `disabled`.
 - **Ґрунт зараз:** ролі призначаються поштучно; Role має `require_mfa`, `allowed_ips`.
 - **Навіщо:** швидке заведення типових користувачів, чистіший інтерфейс.
-- **Рішення:** —
+- **Знахідка:** `AppMenu.roles` оголошено, але ніде не перевіряється — усі бачать усі додатки; пункти бічної панелі не зважають на право `read` на DocType.
+- **Рішення (2026-11-19):** робимо все, трьома кроками:
+  1. `feat/menu-visibility` — замість Module Profile: застосувати `AppMenu.roles`; ховати пункти бічної панелі без права `read` на DocType/звіт; додаток, у якого не лишилось жодного пункту й домашньої сторінки, не показувати.
+  2. `feat/role-props` — `Role.disabled` (роль лишається в користувачів, але нічого не дає: дозволів, доступу, сповіщень і призначень; System Manager/All/Guest вимкнути не можна), `Role.site_only` замість Frappe-вського `desk_access` (інвертовано, щоб не мігрувати наявні ролі; лише сайт — коли в користувача є ролі і всі вони site_only; без ролей і з `*` — робочий простір лишається; захист у роутері SPA, API — як і раніше, за правами), `Role.home_page` (локальний шлях; після входу — перша роль у порядку призначення, що має сторінку; шлях поза SPA — повне завантаження).
+  3. `feat/role-profile` — `RoleProfile` (набір ролей, рядок може мати область), `User.role_profiles`; ролі з профілю позначено `UserRole.role_profile` і перебудовуються на кожному збереженні користувача (після ручних, без дублів роль+область); збереження профілю оновлює всіх його користувачів; призначений профіль не видаляється; змінювати профілі — як і ролі, лише з `grunt.manage_users`; `SystemSettings.default_role_profile` для самореєстрації.
 
 ### 12. User Group
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** групи користувачів, які можна вказувати в призначеннях, сповіщеннях, Link-полях.
 - **Ґрунт зараз:** лише ролі.
 - **Навіщо:** «надіслати відділу», «призначити групі» без створення ролі під кожен відділ.
-- **Рішення:** —
+- **Зауваження:** роль без дозволів уже працює як група (сповіщення, правила призначення, поширення); група дає окремий від ролей список, склад, який веде відповідальний (не лише `grunt.manage_users`), і жодних прав.
+- **Рішення (2026-11-19):** робимо, двома кроками:
+  1. `feat/user-group` — DocType `UserGroup` (назва, опис, відповідальний, члени; читають усі, склад змінюють System Manager і відповідальний); отримувач «Група» в `NotificationRecipient`; `AssignmentRule.assign_to_group` (виконавці — члени групи).
+  2. `feat/user-group-share` — `SharedWith.user_group` (документ бачать поточні учасники: членство перевіряється під час запиту, тож доданий згодом теж отримує доступ, а вилучений втрачає); «призначити групі» в бічній панелі (`assign_to_group`: ToDo кожному активному учаснику, кому ще не призначено); `@[Назва групи]` у коментарях сповіщає всіх учасників. Членство — `grunt/permissions/groups.py`.
 
 ### 13. Вхідна пошта → документ, можливості EmailAccount
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** `append_to` + `DocType.email_append_to/sender_field/subject_field` — вхідний лист створює або доповнює документ; автовідповідь, підпис, футер, `notify_if_unreplied`, IMAP-теки, `always_bcc`, Reply-To, рахунок за замовчуванням для вхідних/вихідних.
 - **Ґрунт зараз:** SMTP/IMAP, EmailMessage з `ref_doctype/ref_name`.
 - **Навіщо:** звернення громадян, заявки сервісу, листування з контрагентами.
-- **Рішення:** —
+- **Рішення (2026-11-19):** робимо одним PR (`feat/inbound-email-to-doc`):
+  - `DocType.email_append_to` / `sender_field` / `subject_field`; `EmailAccount.append_to` (лише на такий DocType). Маршрут листа (`grunt/email/routing.py`): `In-Reply-To`/`References` збігається з листом на документі → у той документ; інакше новий документ `append_to`; інакше лише в скриньку. Вкладення листа — вкладення документа. Подія `inbound_email` отримує ще `filed`.
+  - IMAP за UID з `BODY.PEEK[]` (прапорці `\Seen` не чіпаємо), `imap_folders`, позиція в `imap_state` (UIDVALIDITY + останній UID; без неї — непрочитані), до 200 листів на теку за прохід.
+  - Листи на стрічці документа (тип `email`) + «Лист» / «Відповісти» (діалог: скринька, кому/копія/прихована, тема, `EmailTemplate`, PDF документа з правом print, файли документа до 10 МБ); надсилання — право write; лист одразу на стрічці «У черзі», той самий рядок `EmailMessage` стає «Надіслано»/«Помилка»; тред до листа, на який відповідаємо, або до останнього листа документа.
+  - Автовідповідь (лише на новий документ; не роботам/розсилкам/no-reply/собі), підпис, `reply_to`, `always_bcc` (лише в конверті); `EmailQueue` — cc/bcc/reply_to/message_id/in_reply_to/references/ref.
+  - «Без відповіді N хв» (`check_unreplied`, кожні 5 хв): останній вхідний лист документа без відповіді з документа (автовідповідь не рахується) → виконавцям документа, інакше групі скриньки (`unreplied_group`); кожен лист перевіряється раз.
+  - Не робимо: футер скриньки (є `SystemSettings.email_footer` і підпис), статус документа Replied/Open (Workflow/`on_change`), окрему «вхідну за замовчуванням».
+  - Попутно: блок «Відстеження доставки» в `EmailMessage` ніколи не показувався (`'Вихідний'` замість `Outgoing`).
 
 ### 14. OAuth для Gmail / Microsoft 365
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** EmailAccount → Connected App (OAuth2 XOAUTH2).
 - **Ґрунт зараз:** паролі застосунків.
 - **Навіщо:** M365 вимкнув basic auth, Google обмежує паролі застосунків.
-- **Рішення:** —
+- **Рішення (2026-11-20):** як у Frappe — окремий DocType, одним PR (`feat/email-oauth`):
+  - Новий модуль `grunt/integrations`: `ConnectedApp` (Google / Microsoft з tenant / Other з власними адресами; client_id, client_secret, додаткові scopes) і `OAuthToken` (≈ Token Cache: що застосунок надав одному документу — `reference_doctype/reference_name`, access/refresh, термін, обліковий запис, остання помилка; System Manager лише дивиться й видаляє). Секрети й токени не віддаються на читанні нікому (`after_read`, маска; збереження маски = «без змін»).
+  - `grunt/integrations/oauth.py`: `authorize` (право write на документ; scopes = базові провайдера + `oauth_scopes(provider)` контролера + додаткові застосунку; Google — `access_type=offline&prompt=consent`), `callback` (підписаний `state`, обмін коду, без refresh token — помилка; хук контролера `on_oauth_connected(account)`; акаунт — з `id_token`), `get_access_token` (оновлення за 2 хв до кінця, з комітом; відмова → `last_error`, «підключіть знову»), `status`, `disconnect`. Redirect URI: `/api/v1/method/grunt.integrations.oauth.callback` (форма ConnectedApp його показує).
+  - `EmailAccount`: провайдер «Microsoft 365» (сервери підставляє й сервер — `PRESETS`), `auth_method` Password/OAuth (M365 — лише OAuth), `connected_app`, `oauth_account`, кнопки «Підключити обліковий запис» / «Відключити»; SMTP — `auth_xoauth2`, IMAP — `xoauth2`, від імені `oauth_account` (той, хто дозволив); перевірка з'єднання і тестовий лист теж. Видалення скриньки видаляє її токен.
+  - Не робимо: Gmail API / Graph API замість IMAP/SMTP; PKCE (клієнт конфіденційний); відкликання доступу в провайдера при «Відключити» (лише забуваємо токен); спільні скриньки M365 з делегованим входом.
 
 ### 15. EmailQueue
 **Статус:** ❓
 - **Frappe:** `send_after`, `priority`, `retry`, посилання відписки (`add_unsubscribe_link`, Email Unsubscribe), `expose_recipients`, `show_as_cc`.
 - **Ґрунт зараз:** черга з базовими полями.
-- **Рішення:** —
+- **Рішення (2026-11-20):** усі чотири, одним PR (`feat/email-queue`, від `feat/email-oauth`):
+  - **Пріоритет** `EmailQueue.priority` High / Normal / Low: коди входу й скидання пароля — High, листи з документа й шаблони — Normal, сповіщення, дайджест і звіти за розкладом — Low. Воркер (`due_emails`) бере рівень за рівнем, у межах рівня — давніші; порожній пріоритет (старі рядки) = Normal.
+  - **Відкладене надсилання** `send_after` (`queue_email(send_after=...)`, поле «Надіслати о» в діалозі листа з документа; минулий час = зараз). Точність — до проходу воркера (5 хв або поштовх після коміту).
+  - **Повтори:** тимчасовий збій (нема зв'язку, таймаут, 4xx, не оновився OAuth-токен) → знову Pending з `send_after` через 1, 5, 15, 60, 240 хв (`retry` — лічильник); постійний (5xx, 535, вимкнена вихідна пошта) або понад 5 спроб → Error. Доставка сповіщення лишається «Queued», доки не остаточно. «Повторити» скидає лічильник.
+  - **Відписка:** `EmailUnsubscribe` (адреса + правило `Notification`; порожнє = усі листи-сповіщення й дайджест). Листи правил і дайджест мають `List-Unsubscribe` + `List-Unsubscribe-Post` (one-click, RFC 8058) і рядок «Відписатися від цих листів»; посилання підписане секретом сайту для адреси (`grunt/email/unsubscribe.py`); GET — сторінка «це правило / усі сповіщення», POST — відписка. Канал email пропускає відписаних (`Skipped`). Коди входу, скидання пароля й листи з документа відписки не мають.
+  - Не робимо: `expose_recipients` / `show_as_cc`; позначку «заплановано на …» на стрічці документа (лист там «У черзі»).
 
 ### 16. Prepared Report та Report
 **Статус:** ❓

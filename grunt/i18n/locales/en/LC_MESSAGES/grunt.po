@@ -92,6 +92,10 @@ msgstr ""
 msgid "%(doctype)s.%(field)s is already tracked"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "%(email)s will no longer get %(what)s."
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "%(field)s: template error - %(error)s"
 msgstr ""
@@ -144,6 +148,10 @@ msgstr ""
 msgid "%(queued)s queued, %(running)s running"
 msgstr ""
 
+#: grunt/grunt/email/tasks.py
+msgid "%(sender)s: %(subject)s"
+msgstr ""
+
 #: grunt/grunt/io/exporters/templates/list_export.html
 msgid "%(shown)s of %(total)s records"
 msgstr ""
@@ -174,6 +182,11 @@ msgstr ""
 
 #: grunt/grunt/document/mixins/lifecycle.py
 msgid "'%(name)s' is a singleton."
+msgstr ""
+
+#: grunt/grunt/email/routing.py grunt/grunt/api/v1/email.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "(no subject)"
 msgstr ""
 
 #: grunt/grunt/io/exporters/templates/list_export.html
@@ -289,6 +302,12 @@ msgstr ""
 msgid "A digit"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"A disabled role stays assigned to its users but gives them nothing: no "
+"permissions, no document access, no notifications or assignments through it."
+msgstr ""
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "A document's stay in one value of a tracked field"
 msgstr ""
@@ -311,6 +330,18 @@ msgstr ""
 msgid "A folder must be inside another folder"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't contain “]”"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't start or end with a space"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name is at most %(count)d characters"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
 msgstr ""
@@ -321,6 +352,12 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/Password/Password.vue
 msgid "A lowercase letter"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"A mailbox (Email Account → “Create documents”) turns new letters into "
+"documents of this type; replies land on the same document"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
@@ -367,6 +404,12 @@ msgstr ""
 msgid "A reply must belong to the same document"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"A reply to a letter sent from a document lands on that document. A new "
+"letter creates a document of the chosen type"
+msgstr ""
+
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
 msgstr ""
@@ -376,7 +419,14 @@ msgid "A role an API key acts with - one its user holds."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
+msgid ""
+"A set of roles handed out together: a user with the profile gets all its "
+"roles, and changing the profile changes them for every such user."
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -399,6 +449,12 @@ msgstr ""
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid ""
 "A table inside other documents: access follows the document that holds it"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"A temporary failure (the server does not answer, 4xx) is tried again later, "
+"up to 5 times; a permanent one (5xx) is an error at once."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -515,6 +571,12 @@ msgstr ""
 msgid "Access Log"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid ""
+"Access a connected app granted to a document. Created by «Connect account» "
+"on the document; delete to disconnect."
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Access code"
 msgstr ""
@@ -522,6 +584,10 @@ msgstr ""
 #: grunt/grunt/startup/errors.py grunt/frontend/src/router/index.ts
 #: grunt/frontend/src/core/api/client.ts
 msgid "Access denied"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Access expires at"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -532,9 +598,19 @@ msgstr ""
 msgid "Access key ID"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Access token"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid ""
+"Access was allowed by {account}, not by {email}: mail is sent as {account}."
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 msgid "Account"
 msgstr ""
 
@@ -752,6 +828,16 @@ msgstr ""
 msgid "Added by app"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid ""
+"Added by this role profile: it changes with the profile and is rebuilt on "
+"every save."
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Added to letters written from documents and to auto-replies"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 msgid "Address"
@@ -769,6 +855,13 @@ msgstr ""
 msgid ""
 "Addresses or CIDR networks, comma or newline separated - on top of the "
 "role's own limit; empty - any"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid ""
+"Addresses that turned off notification emails - all of them, or one "
+"notification. Made by the unsubscribe link in a letter; delete a row to send"
+" them again."
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -955,8 +1048,18 @@ msgstr ""
 msgid "Also notify who did it"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"Also the group's id and how a comment mentions it (@[Name]). To change it "
+"later, rename the group."
+msgstr ""
+
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue
 msgid "Alt text"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Always BCC"
 msgstr ""
 
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
@@ -973,6 +1076,13 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"An OAuth app registered at Google, Microsoft or another provider: through it"
+" a document (an email account) gets access to the service without a "
+"password."
 msgstr ""
 
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
@@ -1011,6 +1121,12 @@ msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Another sign-in method"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Answer each letter that created a document. Not sent to robots, mailing "
+"lists or no-reply addresses"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Country/Country.json
@@ -1125,6 +1241,10 @@ msgstr ""
 msgid "Apply on edit"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Apply template"
+msgstr ""
+
 #: grunt/frontend/src/components/fields/Table/Table.vue
 msgid "Apply to"
 msgstr ""
@@ -1144,6 +1264,10 @@ msgstr ""
 #: grunt/frontend/src/components/app/AppSidebar.vue
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "Apps"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.js
+msgid "Apps are registered at"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -1234,6 +1358,14 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assign to User"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Assign to a group…"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign to group"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
@@ -1339,7 +1471,12 @@ msgstr ""
 msgid "Attach as a link"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Attach files"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Attach the document as PDF"
 msgstr ""
 
@@ -1350,6 +1487,10 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Attachments"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Attempts failed"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
@@ -1387,6 +1528,10 @@ msgstr ""
 msgid "Author"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Authorization URL"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue
 #: grunt/frontend/src/components/fields/RichText/ui/ImageBubble.vue
@@ -1421,6 +1566,15 @@ msgstr ""
 
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "Auto-refresh"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "Auto-reply"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Auto-reply text"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/OptionsSection.vue
@@ -1626,6 +1780,11 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Basics"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Bcc"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
@@ -1920,7 +2079,9 @@ msgstr ""
 msgid "Caps Lock is on"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Cc"
 msgstr ""
 
@@ -2068,6 +2229,10 @@ msgstr ""
 msgid "Checked"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "Checked for a reply"
+msgstr ""
+
 #: grunt/frontend/src/components/views/BulkActionDialogs.vue
 #: grunt/frontend/src/components/views/form/FormModals.vue
 msgid "Checking links…"
@@ -2193,6 +2358,14 @@ msgstr ""
 msgid "Choose from the tree"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "Choose the connected app first"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/email_account.py
+msgid "Choose the connected app the mailbox signs in through"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the date field to count from"
 msgstr ""
@@ -2298,7 +2471,12 @@ msgstr ""
 msgid "Click to copy «{name}»"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Client"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "Client ID"
 msgstr ""
 
@@ -2307,6 +2485,7 @@ msgid "Client Script"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "Client secret"
 msgstr ""
 
@@ -2459,6 +2638,12 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
 msgid "Comma-separated list: usb, nfc, ble, internal, hybrid"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Comma-separated. New letters are read without marking them as read in the "
+"mailbox"
 msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/Comment.json
@@ -2637,11 +2822,30 @@ msgstr ""
 msgid "Connect a mailbox"
 msgstr ""
 
-#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
-msgid "Connected account"
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Connect account"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Connected App"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Connected account"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Connected app"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid "Connected app “%(name)s” not found"
+msgstr ""
+
+#: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 msgid "Connected at"
 msgstr ""
 
@@ -3025,6 +3229,14 @@ msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "Create backup"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Create documents"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Create from incoming mail"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Link/Link.vue
@@ -3431,6 +3643,10 @@ msgstr ""
 msgid "Default role"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default role profile"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Default value"
 msgstr ""
@@ -3654,7 +3870,9 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/FormTourStep/FormTourStep.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
@@ -3728,6 +3946,12 @@ msgstr ""
 msgid "Direction"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"Directory (tenant) ID of your organization, or «common» to let any Microsoft"
+" account connect, «organizations» — any work account."
+msgstr ""
+
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Disable"
 msgstr ""
@@ -3741,6 +3965,7 @@ msgid "Disable the action but keep the row"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
 #: grunt/grunt/print/doctypes/LetterHead/LetterHead.json
 msgid "Disabled"
@@ -3762,6 +3987,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Discard unsaved permission changes?"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Disconnect"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "Disconnect the account?"
 msgstr ""
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
@@ -3873,6 +4106,7 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Document"
 msgstr ""
@@ -3993,6 +4227,7 @@ msgstr ""
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
@@ -4198,8 +4433,16 @@ msgid ""
 "will not be shown again."
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Each member gets their own task; members already assigned are skipped."
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Each message arrives several times — notifications are duplicated."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Each profile adds its roles to the user's roles below."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
@@ -4252,6 +4495,8 @@ msgstr ""
 #: grunt/grunt/notification/channels.py grunt/grunt/monitoring/health.py
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
@@ -4278,6 +4523,10 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Email Template"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid "Email Unsubscribe"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -4393,8 +4642,16 @@ msgid ""
 "Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid "Empty — all notification emails, including the digest."
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Empty — not connected yet. Connect with one of the buttons below."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Empty — send now"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -4444,6 +4701,7 @@ msgstr ""
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Enabled"
 msgstr ""
@@ -4515,6 +4773,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Enter an http(s) link"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid "Enter the Client ID and secret of the connected app first"
 msgstr ""
 
 #: grunt/grunt/storage/cloud/oauth.py
@@ -4657,6 +4919,20 @@ msgstr ""
 msgid ""
 "Every document is also a public web page, rendered by the DocType's "
 "templates/<Name>.html or the generic layout"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Every letter from this mailbox also goes, hidden, to this address (an "
+"archive)"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every member of the group"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every member of the group gets access, including those added later."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -4804,6 +5080,10 @@ msgstr ""
 msgid ""
 "Extra backend options, one «key = value» per line; they override the "
 "generated ones. Option names — in the backend's page on rclone.org."
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Extra scopes"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -5486,6 +5766,7 @@ msgid "Friendly name of the device / authenticator"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "From"
 msgstr ""
@@ -5496,6 +5777,10 @@ msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid "From cloud storage"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRole/UserRole.json
+msgid "From profile"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
@@ -5573,10 +5858,18 @@ msgstr ""
 msgid "Get notified about changes and comments"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Gets the letter's subject"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Gets the sender's address; replies from the document go there"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
-"Give access to this document to a user, everyone holding a role, or every "
-"user."
+"Give access to this document to a user, everyone holding a role, the members"
+" of a group, or every user."
 msgstr ""
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
@@ -5589,9 +5882,8 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid ""
-"Gmail — SMTP/IMAP servers and ports are filled in automatically; you only "
-"need the email and an app password. Choose «Other» to enter the settings "
-"manually."
+"Gmail and Microsoft 365 — SMTP/IMAP servers and ports are filled in "
+"automatically. Choose «Other» to enter the settings manually."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -5647,11 +5939,21 @@ msgstr ""
 msgid "Google Drive of the IT department"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Google Workspace of the council"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid ""
 "Google rejected the sign-in. Use a 16-character «app password» (App "
 "Password), not the regular account password, and make sure 2-Step "
 "Verification is enabled."
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"Google — Gmail and Google Workspace; Microsoft — Microsoft 365 and "
+"Outlook.com; Other — any OAuth 2.0 provider, enter its addresses below."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
@@ -5685,6 +5987,8 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 #: grunt/grunt/metadata/doctypes/DocTypeLink/DocTypeLink.json
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
 msgid "Group"
@@ -5856,8 +6160,16 @@ msgstr ""
 msgid "Hide from global feed"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"High — sign-in codes and password resets; Low — notifications, digests and "
+"scheduled reports. The worker sends higher first, older first within one "
+"level."
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
@@ -5878,7 +6190,12 @@ msgid "Home folder"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
+#: grunt/grunt/auth/doctypes/Role/Role.json
 msgid "Home page"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "Home page must be a path on this site, starting with /"
 msgstr ""
 
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -5985,11 +6302,23 @@ msgid "IBAN (international)"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "IMAP folders"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "IMAP port"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "IMAP position"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "IMAP server"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "INBOX, Support"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSessionLogin/UserSessionLogin.json
@@ -6216,6 +6545,11 @@ msgstr ""
 msgid "In the “%(state)s” state the document can't be edited"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "In-Reply-To"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Include uploaded files"
 msgstr ""
@@ -6242,6 +6576,14 @@ msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 msgid "Incoming Webhook Log"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Incoming letters → documents"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Incoming mail"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -6421,12 +6763,20 @@ msgstr ""
 msgid "Invalid URL format"
 msgstr ""
 
+#: grunt/grunt/api/v1/email.py
+msgid "Invalid address: %(address)s"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/User.js
 msgid "Invalid code or error"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Invalid code. Try again."
+msgstr ""
+
+#: grunt/grunt/api/v1/email.py
+msgid "Invalid date and time: %(value)s"
 msgstr ""
 
 #: grunt/frontend/src/core/validators.ts
@@ -6541,6 +6891,12 @@ msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Items: {n}"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Its roles are given to the user right after self sign-up, together with the "
+"default role."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
@@ -6781,6 +7137,7 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 msgid "Last error"
 msgstr ""
 
@@ -6936,6 +7293,7 @@ msgstr ""
 msgid "Limit of {n} records reached — totals cover only these."
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid ""
 "Limit the role to documents linked to this record (a department, a section)."
@@ -7150,6 +7508,7 @@ msgstr ""
 msgid "Longitude (decimal degrees)"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Low"
 msgstr ""
@@ -7279,6 +7638,10 @@ msgstr ""
 msgid "Manage workspaces and pages"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid "Manager"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
 msgstr ""
@@ -7375,6 +7738,12 @@ msgstr ""
 msgid "May"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"May change who is in the group. Only user administrators appoint the "
+"manager."
+msgstr ""
+
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "Median, ms"
 msgstr ""
@@ -7383,8 +7752,12 @@ msgstr ""
 msgid "Medium"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid "Members"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-msgid "Mention a user"
+msgid "Mention a user or a group"
 msgstr ""
 
 #: grunt/grunt/notification/events.py
@@ -7397,6 +7770,7 @@ msgstr ""
 
 #: grunt/grunt/actions/builtin.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
@@ -7405,6 +7779,7 @@ msgstr ""
 msgid "Message"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Message-ID"
 msgstr ""
@@ -7455,6 +7830,10 @@ msgstr ""
 msgid "Method spans"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Microsoft 365"
+msgstr ""
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "Milestone"
 msgstr ""
@@ -7503,6 +7882,10 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Minutes cannot be negative"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Minutes without a reply"
 msgstr ""
 
 #: grunt/grunt/auth/providers/oauth.py
@@ -7661,9 +8044,12 @@ msgstr ""
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/Bookmark/Bookmark.json
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Name"
@@ -7848,6 +8234,10 @@ msgstr ""
 msgid "No TABLE fields in this DocType"
 msgstr ""
 
+#: grunt/grunt/api/v1/workspace.py
+msgid "No access to the app “%(app)s”"
+msgstr ""
+
 #: grunt/grunt/document/mixins/lifecycle.py
 #: grunt/grunt/activity/doctypes/DocFollow/doc_follow.py
 #: grunt/grunt/activity/doctypes/CommentReaction/comment_reaction.py
@@ -7916,7 +8306,7 @@ msgstr ""
 msgid "No changes yet"
 msgstr ""
 
-#: grunt/grunt/storage/cloud/oauth.py
+#: grunt/grunt/integrations/oauth.py grunt/grunt/storage/cloud/oauth.py
 msgid "No code returned"
 msgstr ""
 
@@ -8019,6 +8409,11 @@ msgstr ""
 msgid "No longer supported since %(date)s."
 msgstr ""
 
+#: grunt/grunt/api/v1/email.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "No mailbox to send from - set up an email account"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 msgid "No new notifications"
 msgstr ""
@@ -8060,6 +8455,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/tree/TreeView.vue
 msgid "No records yet"
+msgstr ""
+
+#: grunt/grunt/email/tasks.py
+msgid "No reply to a letter: %(doctype)s %(name)s"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -8161,6 +8560,10 @@ msgstr ""
 msgid "None yet"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Normal"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "North America"
 msgstr ""
@@ -8180,6 +8583,12 @@ msgstr ""
 msgid "Not authorized"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"Not before this time: a letter scheduled for later, or the next attempt "
+"after a temporary failure."
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgid "Not by the author"
 msgstr ""
@@ -8194,6 +8603,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/CanvasSection.vue
 msgid "Not collapsible"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Not delivered"
 msgstr ""
 
 #: grunt/grunt/backups/__init__.py
@@ -8255,6 +8668,10 @@ msgstr ""
 msgid "Not permitted to create users"
 msgstr ""
 
+#: grunt/grunt/api/v1/email.py
+msgid "Not permitted to print this document"
+msgstr ""
+
 #: grunt/grunt/actions/__init__.py grunt/grunt/actions/builtin.py
 msgid "Not permitted to run this action"
 msgstr ""
@@ -8269,6 +8686,10 @@ msgstr ""
 
 #: grunt/grunt/document/sidebar.py
 msgid "Not published - open preview"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Not sent"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
@@ -8331,6 +8752,7 @@ msgstr ""
 msgid "Nothing to back up"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
@@ -8374,6 +8796,14 @@ msgstr "Notifications are blocked in the browser settings for this site"
 msgid "Notify"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Notify group"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Notify if not answered"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Notify me"
 msgstr ""
@@ -8401,6 +8831,14 @@ msgstr ""
 #: grunt/grunt/geo/doctypes/Country/Country.json
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgid "Numeric code"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "OAuth"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "OAuth Token"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -8565,6 +9003,10 @@ msgstr ""
 msgid "Only a superadmin can run a fast delete"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Only document types with “Create from incoming mail” on"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Only files of"
 msgstr ""
@@ -8593,6 +9035,10 @@ msgstr ""
 msgid "Only the author or an administrator can delete a comment"
 msgstr ""
 
+#: grunt/grunt/api/v1/email.py
+msgid "Only the document's own files can be attached"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 msgid ""
 "Only these of the user's roles (with the user's scopes); empty - all of "
@@ -8603,6 +9049,10 @@ msgstr ""
 msgid ""
 "Only these transitions (their button labels), one per line; empty: every "
 "transition"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "Only user administrators appoint the group's manager"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -8665,6 +9115,10 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Open the Google app passwords page"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Open the link from the letter again."
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -8857,6 +9311,10 @@ msgid "Outgoing email is disabled for this account."
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Outgoing letters"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Outgoing mail (SMTP)"
 msgstr ""
 
@@ -9008,6 +9466,7 @@ msgid "Passkeys"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Password"
@@ -9062,6 +9521,13 @@ msgstr ""
 msgid "Password updated!"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Password — an app password (Gmail) or the mailbox password. OAuth — sign in "
+"through Google or Microsoft without a password; needed for Microsoft 365, "
+"where password sign-in is turned off."
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -9100,6 +9566,12 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "Pending migrations. Run `grunt migrate`."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"People to notify, assign or share with together - a department, a "
+"commission. A group gives no permissions."
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
@@ -9219,6 +9691,12 @@ msgstr ""
 msgid "Placeholder"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Placeholders: {name} - the document, {subject} - the letter's subject, "
+"{sender} - its address"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Please enter the 6-digit code from your app or a backup code."
 msgstr ""
@@ -9336,6 +9814,7 @@ msgid ""
 "apps/grunt; on a new server also `playwright install-deps chromium` as root."
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -9361,6 +9840,10 @@ msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
 msgid "Processed:"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Processing"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -9394,7 +9877,12 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "Provider"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Provider addresses"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -9500,6 +9988,7 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Queued"
 msgstr ""
 
@@ -9657,6 +10146,10 @@ msgstr ""
 msgid "Recipient address"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Recipient “%(kind)s”: choose whom it means"
+msgstr ""
+
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Recipients"
@@ -9694,6 +10187,10 @@ msgstr ""
 msgid "Red"
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.js
+msgid "Redirect URI to register in the app"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py
 #: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py
 msgid "Redis broker not configured"
@@ -9724,6 +10221,11 @@ msgstr ""
 msgid "Redo"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "References"
+msgstr ""
+
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.js
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
@@ -9738,6 +10240,10 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 msgid "Refresh (Ctrl+Enter)"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Refresh token"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -9952,6 +10458,15 @@ msgstr ""
 
 #: grunt/grunt/notification/events.py
 msgid "Reply to a comment"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Reply to the letter"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Reply-To"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
@@ -10237,6 +10752,7 @@ msgid "Rich text"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 #: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
@@ -10252,12 +10768,26 @@ msgstr ""
 msgid "Role names, when shared with roles"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
+#: grunt/grunt/auth/doctypes/UserRoleProfile/UserRoleProfile.json
+msgid "Role profile"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
+msgid "Role profile role"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Role profiles"
+msgstr ""
+
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
 #: grunt/grunt/api/v1/permission_matrix.py
 msgid "Role “%(role)s” not found"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py
+#: grunt/grunt/auth/doctypes/RoleProfile/role_profile.py
 msgid "Role “%(role)s”: a scope needs both the document type and the document"
 msgstr ""
 
@@ -10271,6 +10801,7 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Roles"
@@ -10618,7 +11149,17 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "Save the account first"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "Save the account first, then send a test email."
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Save the account first. A Google or Microsoft page opens: sign in to the "
+"mailbox and allow access."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
@@ -10728,12 +11269,18 @@ msgstr ""
 msgid "Scheduler Event"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/RoleProfileRole/RoleProfileRole.json
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope value"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Scopes"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
@@ -10993,6 +11540,14 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Send after"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Send at"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Send from"
 msgstr ""
@@ -11026,6 +11581,10 @@ msgstr ""
 msgid "Sender"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Sender field"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Sending"
 msgstr ""
@@ -11053,6 +11612,10 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/Reminder/Reminder.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 msgid "Sent"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "Sent by the mailbox's auto-reply - not counted as an answer"
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py
@@ -11166,6 +11729,12 @@ msgstr ""
 msgid "Set field"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"Set in advance when the letter is already on a document's timeline as "
+"“Queued”"
+msgstr ""
+
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Set new password"
 msgstr ""
@@ -11239,7 +11808,7 @@ msgid "Share of the section; columns without a width split the rest"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Share with one of: a user, a role or everyone"
+msgid "Share with one of: a user, a role, a user group or everyone"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -11336,8 +11905,13 @@ msgstr ""
 msgid "Show first rows of the file ({n})"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/components/views/sidebar/TimelineChanges.vue
 msgid "Show less"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Show more"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -11485,6 +12059,10 @@ msgstr ""
 msgid "Sign up"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Sign-in"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Sign-in allowed only from this time (site time zone); empty - any time"
 msgstr ""
@@ -11494,6 +12072,7 @@ msgid "Sign-in code"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "Sign-in failed"
 msgstr ""
 
@@ -11519,6 +12098,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Sign-ins kept per device"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Signature"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/IncomingWebhook/IncomingWebhook.json
@@ -11568,6 +12151,10 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Site key"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid "Site only"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -11657,10 +12244,12 @@ msgstr ""
 msgid "Source type"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Source — record"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Source — type"
 msgstr ""
@@ -11827,6 +12416,10 @@ msgid "Step 1 — Google app password"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Step 1 — connect the account"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Step 2 — authentication"
 msgstr ""
 
@@ -11927,10 +12520,15 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/Notification/notification.py
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 msgid "Subject"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Subject field"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
@@ -12194,6 +12792,7 @@ msgid "Technical details"
 msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 msgid "Template"
 msgstr ""
 
@@ -12207,6 +12806,10 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 msgid "Template type"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Tenant"
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -12277,6 +12880,12 @@ msgstr ""
 msgid "The Gantt chart needs start and end fields (Date/Datetime)."
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"The OAuth app of your Google Workspace or Microsoft 365 through which the "
+"mailbox is connected (Integrations → Connected apps)."
+msgstr ""
+
 #: grunt/grunt/api/v1/email.py
 msgid "The SMTP password is not saved. Save the account with a password."
 msgstr ""
@@ -12286,6 +12895,7 @@ msgid "The SQLite database has no file to back up"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "The account is connected"
 msgstr ""
 
@@ -12296,6 +12906,19 @@ msgstr ""
 
 #: grunt/grunt/auth/impersonation.py
 msgid "The account is disabled."
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "The account is disconnected"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "The account is not connected: click “Connect account”"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "The account that allowed access. Sign in as the owner of the mailbox."
 msgstr ""
 
 #: grunt/grunt/permissions/warnings.py
@@ -12322,6 +12945,14 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "The assignee gets a task linked to this document."
+msgstr ""
+
+#: grunt/grunt/api/v1/email.py
+msgid "The attachments are over 10 MB"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The authorization URL of the connected app is not set"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
@@ -12384,6 +13015,18 @@ msgstr ""
 
 #: grunt/grunt/document/doctypes/Comment/comment.py
 msgid "The comment you reply to no longer exists"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The connected app is disabled"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The connection has expired: connect the account again"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "The connection stopped working, connect the account again"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/File/File.json
@@ -12541,12 +13184,24 @@ msgstr ""
 msgid "The key's user doesn't hold these roles: %(roles)s"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "The last letter read in each folder (UIDVALIDITY + UID)"
+msgstr ""
+
+#: grunt/grunt/api/v1/email.py
+msgid "The letter is not on this document"
+msgstr ""
+
 #: grunt/grunt/storage/remote.py
 msgid "The link answered with an error (%(code)s)"
 msgstr ""
 
 #: grunt/grunt/api/v1/share.py
 msgid "The link has expired"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "The link is invalid"
 msgstr ""
 
 #: grunt/grunt/auth/providers/email_link.py
@@ -12572,6 +13227,13 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListHeader.vue
 msgid "The list is limited by your access rights"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid ""
+"The mailbox will stop sending and receiving mail until it is connected "
+"again. Access granted at the provider stays — revoke it in the account "
+"security settings if needed."
 msgstr ""
 
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
@@ -12626,13 +13288,30 @@ msgstr ""
 msgid "The password must %(requirements)s."
 msgstr ""
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/connected_app.py
+msgid "The provider addresses must start with https://"
+msgstr ""
+
 #: grunt/grunt/auth/providers/oauth.py
 msgid "The provider did not confirm this email address"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The provider gave no refresh token: allow offline access and try again"
+msgstr ""
+
+#: grunt/grunt/integrations/oauth.py
+msgid ""
+"The provider refused to renew access (%(error)s): connect the account again"
 msgstr ""
 
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
 msgstr "The pywebpush package is not installed"
+
+#: grunt/grunt/notification/channels.py
+msgid "The recipient unsubscribed from these emails"
+msgstr ""
 
 #: grunt/grunt/db/errors.py
 msgid ""
@@ -12672,6 +13351,15 @@ msgstr ""
 
 #: grunt/grunt/db/dialects/sqlite.py
 msgid "The restore failed, the database was left as it was: %(error)s"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/RoleProfile/role_profile.py
+msgid ""
+"The role profile is assigned to %(n)s users - take it away from them first"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/role.py
+msgid "The role “%(role)s” can't be disabled or made site-only"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
@@ -12740,7 +13428,8 @@ msgstr ""
 msgid "The sign-in has expired - sign in again"
 msgstr ""
 
-#: grunt/grunt/storage/cloud/oauth.py grunt/frontend/src/pages/auth/Login.vue
+#: grunt/grunt/integrations/oauth.py grunt/grunt/storage/cloud/oauth.py
+#: grunt/frontend/src/pages/auth/Login.vue
 msgid "The sign-in link is invalid or expired"
 msgstr ""
 
@@ -12802,6 +13491,10 @@ msgstr ""
 msgid "The test file read back differs from what was written"
 msgstr ""
 
+#: grunt/grunt/integrations/oauth.py
+msgid "The token URL of the connected app is not set"
+msgstr ""
+
 #: grunt/grunt/workflow/engine.py
 msgid "The transition is unavailable"
 msgstr ""
@@ -12840,6 +13533,10 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
 msgid "The “%(field)s” field must contain valid JSON."
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+msgid "The “not answered in N minutes” check is done for this letter"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -13086,6 +13783,7 @@ msgid "Title field"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
 #: grunt/frontend/src/pages/app/AppPage.vue
 msgid "To"
 msgstr ""
@@ -13117,6 +13815,10 @@ msgstr ""
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Token"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Token URL"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -13316,6 +14018,10 @@ msgid ""
 "name"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Unanswered letters"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Unassign"
 msgstr ""
@@ -13463,6 +14169,26 @@ msgstr ""
 #: grunt/frontend/src/components/views/GruntDataTable.vue
 #: grunt/frontend/src/components/views/list/ListCards.vue
 msgid "Unseen"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from all notification emails"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from these emails"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from “%(name)s”"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Unsubscribe link"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/data_import.py
@@ -13631,6 +14357,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
+#: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
@@ -13643,6 +14370,7 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "User"
 msgstr ""
 
@@ -13652,6 +14380,23 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "User field"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "User group"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
+msgid "User group member"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+#: grunt/grunt/api/v1/document/collaboration.py
+msgid "User group “%(group)s” not found"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
@@ -13668,6 +14413,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "User role"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserRoleProfile/UserRoleProfile.json
+msgid "User role profile"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
@@ -13698,12 +14447,24 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
+"Users whose roles are all site-only work on the website and don't get the "
+"workspace (/app). One role without this flag gives them the workspace."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
 "Users with this role can sign in only from these addresses or networks (e.g."
 " 10.0.0.0/8), one per line. Empty — no restriction."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid "Users with this role must set up 2FA (TOTP) before they can sign in."
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"Usually empty: what an email account needs is asked for automatically. "
+"Separate several scopes with spaces or new lines."
 msgstr ""
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue
@@ -13918,6 +14679,12 @@ msgstr ""
 msgid "Watch"
 msgstr ""
 
+#: grunt/grunt/email/routing.py
+msgid ""
+"We have received your letter and registered it as %(name)s. We will answer "
+"soon."
+msgstr ""
+
 #: grunt/grunt/email/templates/password_reset.html
 msgid "We received a request to reset the password for your account."
 msgstr ""
@@ -14085,6 +14852,12 @@ msgid ""
 "done - e.g. {\"status\": \"Answered\"}"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"When the last letter on a document has had no reply from it for the set "
+"time: the document's assignees, or the group when nobody is assigned"
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid ""
 "When the password was last set - its age for the site's password expiry"
@@ -14098,6 +14871,10 @@ msgstr ""
 msgid ""
 "When the worker last took a task from the queue. Empty — it has not taken "
 "any yet."
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Where replies should go, when not to this mailbox"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
@@ -14114,12 +14891,23 @@ msgstr ""
 msgid "Where used / available fields"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/Role/Role.json
+msgid ""
+"Where users with this role land after signing in, e.g. /app/hrm or /cabinet."
+" With several roles, the first one in the user's roles that has a home page "
+"wins."
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Which field is shown as the document title (default: name)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Which field to show as the node label (default: title field)"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Which letters should %(email)s no longer get?"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -14146,8 +14934,8 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid ""
-"Who is assigned; empty - the holders of the role below (within their role "
-"scope)"
+"Who is assigned; empty - the members of the group below, else the holders of"
+" the role (within their role scope)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -14169,6 +14957,10 @@ msgid ""
 "Who took data out of the system and when: exports, printouts, imports and "
 "report downloads - and code that ran as the system on someone's behalf "
 "(grunt.sudo). Written by the system, read only; kept a year."
+msgstr ""
+
+#: grunt/grunt/api/v1/email.py
+msgid "Whom to send it to?"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/FileFolder/FileFolder.json
@@ -14280,6 +15072,10 @@ msgid ""
 "business records"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Write an email"
+msgstr ""
+
 #: grunt/frontend/src/core/datetime.ts
 msgid "YYYY-MM-DD"
 msgstr ""
@@ -14329,6 +15125,10 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "You are unsubscribed"
 msgstr ""
 
 #: grunt/grunt/notification/records/notification/reminder/reminder.json
@@ -14730,6 +15530,10 @@ msgstr ""
 msgid "every document"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "every member of the group"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "exactly one copy"
 msgstr ""
@@ -14772,6 +15576,14 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "https://cloud.example.com/remote.php/dav/files/user/"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "https://id.example.com/oauth2/authorize"
+msgstr ""
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "https://id.example.com/oauth2/token"
 msgstr ""
 
 #: grunt/grunt/api/v1/docs/crud.py
@@ -14982,6 +15794,10 @@ msgstr ""
 msgid "notification - only from notification rules (their Webhook channel)"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "notification emails"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
 msgid "now"
 msgstr ""
@@ -15161,6 +15977,14 @@ msgstr ""
 msgid "selected"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "sent a letter"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "sent an auto-reply"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "share"
 msgstr ""
@@ -15299,6 +16123,10 @@ msgid "with everyone"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the group {group}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "with the role {role}"
 msgstr ""
 
@@ -15328,6 +16156,10 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "write"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "wrote a letter"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -15570,6 +16402,12 @@ msgstr ""
 msgid "“%(doctype)s” does not support this operation"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailAccount/email_account.py
+msgid ""
+"“%(doctype)s” does not take incoming mail: turn on “Create from incoming "
+"mail” in its settings first"
+msgstr ""
+
 #: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr ""
@@ -15606,6 +16444,10 @@ msgstr ""
 
 #: grunt/grunt/document/validation.py
 msgid "“%(fields)s” can't be changed once set"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "“%(name)s” letters"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
@@ -15833,6 +16675,17 @@ msgstr ""
 #~ msgid "For document only"
 #~ msgstr ""
 
+#~ msgid ""
+#~ "Give access to this document to a user, everyone holding a role, or every "
+#~ "user."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Gmail — SMTP/IMAP servers and ports are filled in automatically; you only "
+#~ "need the email and an app password. Choose «Other» to enter the settings "
+#~ "manually."
+#~ msgstr ""
+
 #~ msgid "Hook '%(doc_id)s' not found"
 #~ msgstr ""
 
@@ -15846,6 +16699,9 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Limit this rule to a single DocType."
+#~ msgstr ""
+
+#~ msgid "Mention a user"
 #~ msgstr ""
 
 #~ msgid "Message template"
@@ -15896,6 +16752,9 @@ msgstr ""
 #~ msgid "Set “Only for document” or enable “Apply to all documents”"
 #~ msgstr ""
 
+#~ msgid "Share with one of: a user, a role or everyone"
+#~ msgstr ""
+
 #~ msgid "SqlProfilerRequest '%(doc_id)s' not found"
 #~ msgstr ""
 
@@ -15944,6 +16803,11 @@ msgstr ""
 #~ msgid ""
 #~ "When enabled, a document with no Link field to the restricted type (or with "
 #~ "an empty value) is hidden rather than shown."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Who is assigned; empty - the holders of the role below (within their role "
+#~ "scope)"
 #~ msgstr ""
 
 #~ msgid ""

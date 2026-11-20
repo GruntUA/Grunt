@@ -18,6 +18,7 @@ from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
 from grunt.db.api import GruntDB
 from grunt.local import _session_ctx, active_role_rows, session_role_rows, session_user
 from grunt.permissions.access import RoleAccess, Scope, Target
+from grunt.permissions.role_props import without_disabled
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -52,8 +53,10 @@ async def get_role_rows(user: str | None = None) -> list[dict[str, Any]]:
         filters={"parent_name": name, "parent_doctype": "User"},
         fields=_ROW_FIELDS,
         limit=500,
+        order_by="idx",
+        order="asc",
     )
-    return active_role_rows(rows)
+    return active_role_rows(await without_disabled(rows))
 
 
 async def get_roles(user: str | None = None) -> list[str]:
@@ -109,7 +112,7 @@ async def role_holders(roles: Iterable[str], *, active_only: bool = True) -> lis
         limit=None,
     )
     by_user: dict[str, list[dict[str, Any]]] = {}
-    for row in active_role_rows(rows):
+    for row in active_role_rows(await without_disabled(rows)):
         by_user.setdefault(row["parent_name"], []).append(row)
     if not by_user:
         return []

@@ -62,6 +62,8 @@ export interface DialogField {
   required?: boolean
   default?: unknown
   options?: string // for Select: newline-separated; for Link: DocType name
+  /** Select / MultiSelect: caption of each value (value -> label). */
+  option_labels?: Record<string, string>
   placeholder?: string
   read_only?: boolean
   description?: string

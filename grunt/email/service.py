@@ -4,7 +4,7 @@ import re
 import uuid
 from datetime import UTC, datetime
 from email.message import EmailMessage
-from email.utils import make_msgid, parsedate_to_datetime
+from email.utils import getaddresses, make_msgid, parsedate_to_datetime
 from typing import Any
 
 import aiosmtplib
@@ -19,6 +19,7 @@ from grunt.site.settings import get_setting
 from grunt.storage.files import store
 from grunt.tasks.broker import by_name
 lazy from grunt.document.api import documents
+lazy from grunt.integrations.oauth import OAuthError, get_access_token
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -29,6 +30,51 @@ _db = GruntDB()  # stateless: reads through the context's session
 # (EmailAccount.before_save).
 SMTP_PASSWORD_MASK = "••••••••"
 
+# Outgoing ``EmailMessage`` statuses a later send attempt overwrites.
+PENDING_STATUSES = ("Queued", "Error")
+
+# ``EmailQueue.priority``: the worker sends higher first (an empty one - a row
+# queued before priorities - counts as normal).
+PRIORITY_HIGH, PRIORITY_NORMAL, PRIORITY_LOW = "High", "Normal", "Low"
+PRIORITIES = (PRIORITY_HIGH, PRIORITY_NORMAL, PRIORITY_LOW)
+
+# A temporary failure is tried again after these pauses (minutes); past the
+# last one the letter is an error.
+RETRY_DELAYS_MINUTES = (1, 5, 15, 60, 240)
+
+
+def is_temporary(exc: BaseException) -> bool:
+    """Whether sending may work later: no answer, a dropped connection, a 4xx
+    reply, a token that could not be renewed. A 5xx (a bad address, a refused
+    sign-in) and anything unexpected (likely a bug - better seen at once) are
+    final."""
+    if isinstance(exc, aiosmtplib.SMTPRecipientsRefused):
+        return all(400 <= r.code < 500 for r in exc.recipients)
+    if isinstance(exc, aiosmtplib.SMTPResponseException):
+        return 400 <= exc.code < 500
+    return isinstance(exc, (aiosmtplib.SMTPException, OSError, TimeoutError, OAuthError))
+
+
+def split_addresses(value: str | None) -> list[str]:
+    """Bare addresses from a To/Cc/Bcc header value (``"A <a@x>, b@y"``)."""
+    return [addr for _name, addr in getaddresses([value or ""]) if addr]
+
+
+def envelope_recipients(
+    msg: EmailMessage, message: dict[str, Any], account: dict[str, Any]
+) -> list[str]:
+    """Everyone the letter goes to: To, Cc, its Bcc and the mailbox's ``always_bcc``."""
+    seen: dict[str, None] = {}
+    for value in (
+        msg["To"],
+        msg["Cc"],
+        message.get("bcc"),
+        account.get("always_bcc"),
+    ):
+        for addr in split_addresses(value):
+            seen.setdefault(addr.lower(), None)
+    return list(seen)
+
 
 async def _kick_queue() -> None:
     """Best-effort nudge for the ``process_email_queue`` scheduled task."""
@@ -36,6 +82,33 @@ async def _kick_queue() -> None:
         await by_name("grunt.email.tasks:process_email_queue").kiq()
     except Exception:
         log.warning("email.queue_kick_failed", exc_info=True)
+
+
+def uses_oauth(account: dict[str, Any]) -> bool:
+    return account.get("auth_method") == "OAuth"
+
+
+def oauth_user(account: dict[str, Any]) -> str:
+    """Who XOAUTH2 signs in as: the account that granted access."""
+    return account.get("oauth_account") or account.get("email_address") or ""
+
+
+async def oauth_token(account: dict[str, Any]) -> str:
+    """A fresh access token of an OAuth mailbox (may refresh and commit)."""
+    return await get_access_token("EmailAccount", account["name"])
+
+
+async def smtp_sign_in(
+    smtp: aiosmtplib.SMTP, account: dict[str, Any], password: str | None = None
+) -> None:
+    """Sign *smtp* in as *account*: XOAUTH2 for OAuth, else the password if any."""
+    if uses_oauth(account):
+        await smtp.auth_xoauth2(oauth_user(account), await oauth_token(account))
+        return
+    username = account.get("smtp_user") or account.get("email_address")
+    password = password if password is not None else account.get("smtp_password")
+    if username and password:
+        await smtp.login(username, password)
 
 
 def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
@@ -81,15 +154,29 @@ class EmailService:
         smtp_server = account.get("smtp_server") or ""
         smtp_port = account.get("smtp_port", 587)
         use_tls = account.get("use_tls", True)
-        username = account.get("smtp_user") or account.get("email_address")
-        password = account.get("smtp_password")
 
         # Construct EmailMessage
         msg = EmailMessage()
         msg["Subject"] = message.get("subject", "")
         msg["From"] = account.get("email_address")
         msg["To"] = message.get("recipient")
+        if message.get("cc"):
+            msg["Cc"] = message["cc"]
+        reply_to = message.get("reply_to") or account.get("reply_to")
+        if reply_to:
+            msg["Reply-To"] = reply_to
         msg["Message-ID"] = message.get("message_id") or make_msgid()
+        # Threading: a reply carries the letter it answers and the chain before
+        # it, so the recipient's client - and our own inbox routing - can tell.
+        if message.get("in_reply_to"):
+            msg["In-Reply-To"] = message["in_reply_to"]
+        if message.get("message_references"):
+            msg["References"] = message["message_references"]
+
+        if message.get("unsubscribe_url"):
+            # One-click unsubscribe (RFC 8058) - Gmail / Yahoo ask it of bulk mail.
+            msg["List-Unsubscribe"] = f"<{message['unsubscribe_url']}>"
+            msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
 
         if message.get("request_receipt"):
             # Ask the recipient's client for a read receipt (MDN). Honoured only
@@ -127,18 +214,17 @@ class EmailService:
             async with aiosmtplib.SMTP(
                 **smtp_connect_kwargs(smtp_server, smtp_port, use_tls)
             ) as smtp:
-                if username and password:
-                    await smtp.login(username, password)
-                await smtp.send_message(msg)
+                await smtp_sign_in(smtp, account)
+                # Bcc (the letter's and the mailbox's ``always_bcc``) goes in
+                # the envelope only - never as a header the others would see.
+                await smtp.send_message(msg, recipients=envelope_recipients(msg, message, account))
 
             log.info(
                 "email.sent", recipient=message.get("recipient"), subject=message.get("subject")
             )
         except Exception as e:
             log.error("email.send_failed", error=str(e), recipient=message.get("recipient"))
-            await EmailService._log_outgoing(
-                account, message, msg, status="Error", error=str(e), dedup=False
-            )
+            await EmailService._log_outgoing(account, message, msg, status="Error", error=str(e))
             raise
         return await EmailService._log_outgoing(account, message, msg, status="Sent")
 
@@ -150,7 +236,6 @@ class EmailService:
         *,
         status: str,
         error: str | None = None,
-        dedup: bool = True,
     ) -> str | None:
         html = bool(message.get("is_html") or message.get("html"))
         content = message.get("content", "")
@@ -166,7 +251,9 @@ class EmailService:
             body_html=content if html else None,
             body_text=plain if html else content,
             message_date=datetime.now(UTC),
-            message_id=(msg["Message-ID"] if dedup else None),
+            message_id=msg["Message-ID"],
+            in_reply_to=message.get("in_reply_to"),
+            message_references=message.get("message_references"),
             error_message=error,
             request_receipt=bool(message.get("request_receipt")),
             ref_doctype=message.get("ref_doctype"),
@@ -182,12 +269,28 @@ class EmailService:
         )
 
     @staticmethod
-    async def store_bytes(content: bytes, filename: str, mimetype: str | None) -> str | None:
-        """Save raw bytes through the storage backend as a private File; return its URL."""
+    async def store_bytes(
+        content: bytes,
+        filename: str,
+        mimetype: str | None,
+        *,
+        attached_to_doctype: str | None = None,
+        attached_to_id: str | None = None,
+    ) -> str | None:
+        """Save raw bytes through the storage backend as a private File; return its URL.
+
+        With ``attached_to_*`` the file is also the document's attachment.
+        """
         try:
             # Mail attachments are private; the UI opens them via signed URLs
             # (grunt.storage.signing).
-            fdoc = await store(content, filename or "attachment", mimetype)
+            fdoc = await store(
+                content,
+                filename or "attachment",
+                mimetype,
+                attached_to_doctype=attached_to_doctype,
+                attached_to_id=attached_to_id,
+            )
             return fdoc["file_url"]
         except Exception:
             log.exception("email.store_bytes_failed")
@@ -213,9 +316,18 @@ class EmailService:
         attachments: list[dict[str, Any]] | None = None,
         is_read: bool | None = None,
         request_receipt: bool = False,
+        in_reply_to: str | None = None,
+        message_references: str | None = None,
+        is_auto_reply: bool = False,
         session: AsyncSession | None = None,
     ) -> str | None:
-        """Best-effort: persist one ``EmailMessage`` row (dedup by Message-ID)."""
+        """Best-effort: persist one ``EmailMessage`` row (dedup by Message-ID).
+
+        An outgoing letter already on record as ``Queued`` or ``Error`` under
+        the same Message-ID (written from a document before the queue sent it,
+        or a failed try) is updated to the new status instead; any other
+        duplicate is skipped (None).
+        """
         try:
             sess = session or require_session()
         except RuntimeError:
@@ -226,8 +338,23 @@ class EmailService:
         att_rows = attachments or []
         try:
             async with system_context(sess):
-                if mid and await _db.exists("EmailMessage", {"message_id": mid}):
-                    return None
+                if mid:
+                    existing = await _db.get_value(
+                        "EmailMessage", {"message_id": mid}, ["name", "status"], as_dict=True
+                    )
+                    if existing:
+                        if direction == "Outgoing" and existing.get("status") in PENDING_STATUSES:
+                            await _db.set_value(
+                                "EmailMessage",
+                                existing["name"],
+                                {
+                                    "status": status,
+                                    "error_message": error_message or None,
+                                    "message_date": message_date or datetime.now(UTC),
+                                },
+                            )
+                            return str(existing["name"])
+                        return None
                 doc = await documents.new_doc(
                     "EmailMessage",
                     {
@@ -246,6 +373,9 @@ class EmailService:
                         "ref_doctype": ref_doctype or None,
                         "ref_name": ref_name or None,
                         "request_receipt": bool(request_receipt),
+                        "in_reply_to": (in_reply_to or "").strip() or None,
+                        "message_references": (message_references or "").strip() or None,
+                        "is_auto_reply": bool(is_auto_reply),
                         "has_attachments": bool(att_rows),
                         "is_read": (
                             bool(is_read) if is_read is not None else (direction == "Outgoing")
@@ -303,8 +433,31 @@ class EmailService:
         html_body: str | None = None,
         attachments: list[dict[str, Any]] | None = None,
         email_account: str | None = None,
+        *,
+        cc: str | None = None,
+        bcc: str | None = None,
+        reply_to: str | None = None,
+        message_id: str | None = None,
+        in_reply_to: str | None = None,
+        message_references: str | None = None,
+        ref_doctype: str | None = None,
+        ref_name: str | None = None,
+        footer: bool = True,
+        priority: str = PRIORITY_NORMAL,
+        send_after: datetime | None = None,
+        unsubscribe_url: str | None = None,
     ) -> str:
         """Insert a record into EmailQueue for async delivery.
+
+        ``cc`` / ``bcc`` / ``reply_to`` - extra headers (Bcc only in the
+        envelope); ``message_id`` - fixed in advance (the letter is already on
+        record, e.g. on a document's timeline); ``in_reply_to`` /
+        ``message_references`` - the thread it answers; ``ref_doctype`` /
+        ``ref_name`` - the document it is logged against. ``footer=False``
+        leaves out ``SystemSettings.email_footer``. ``priority`` - ``High``
+        (sign-in codes, password resets), ``Normal`` or ``Low`` (notifications,
+        digests, reports); ``send_after`` - not before then;
+        ``unsubscribe_url`` - the ``List-Unsubscribe`` link of a notification.
 
         Sending account: *email_account* when given, else
         ``SystemSettings.default_email_account`` when set, otherwise the first
@@ -316,7 +469,7 @@ class EmailService:
         """
         # Resolve the outgoing account id (best-effort - None if unconfigured)
         email_account_id: str | None = None
-        footer: str = ""
+        footer_html: str = ""
         try:
             email_account_id = email_account or await EmailService.resolve_outgoing_account_id(
                 session
@@ -325,19 +478,19 @@ class EmailService:
                 raw_footer = (await get_setting("email_footer") or "").strip()
                 # Ignore markup-only footers like "<p></p>" that a rich-text
                 # editor leaves behind when the field is "empty".
-                if re.sub(r"<[^>]+>", "", raw_footer).strip():
-                    footer = raw_footer
+                if footer and re.sub(r"<[^>]+>", "", raw_footer).strip():
+                    footer_html = raw_footer
         except Exception:
             log.exception("suppressed_error")
 
         is_html = bool(html_body)
         html_content = html_body or ""
         text_content = body
-        if footer:
-            plain_footer = re.sub(r"<[^>]+>", "", footer).strip()
+        if footer_html:
+            plain_footer = re.sub(r"<[^>]+>", "", footer_html).strip()
             text_content = f"{body}\n\n{plain_footer}"
             if is_html:
-                html_content = f"{html_body}<br><br>{footer}"
+                html_content = f"{html_body}<br><br>{footer_html}"
 
         # ``content`` is what SMTP sends as the primary body; ``text_content`` is
         # the ``text/plain`` alternative (and the fallback for HTML mail).
@@ -364,6 +517,18 @@ class EmailService:
                         "status": "Pending",
                         "email_account": email_account_id,
                         "attachments": encode_attachments(attachments),
+                        "cc": cc or None,
+                        "bcc": bcc or None,
+                        "reply_to": reply_to or None,
+                        "message_id": message_id or None,
+                        "in_reply_to": in_reply_to or None,
+                        "message_references": message_references or None,
+                        "ref_doctype": ref_doctype or None,
+                        "ref_name": ref_name or None,
+                        "priority": priority if priority in PRIORITIES else PRIORITY_NORMAL,
+                        "send_after": send_after,
+                        "retry": 0,
+                        "unsubscribe_url": unsubscribe_url or None,
                     },
                 )
         except Exception:

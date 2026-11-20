@@ -5,10 +5,12 @@ Outgoing mail (SMTP, the queue, the ``EmailMessage`` log) lives in
 """
 
 import email
+import json
 import re
 from datetime import UTC, datetime
 from email.header import decode_header, make_header
 from email.message import Message
+from email.utils import parseaddr
 from typing import Any
 
 import aioimaplib
@@ -18,28 +20,84 @@ from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.document.api import documents
+lazy from grunt.email.service import oauth_token, oauth_user, uses_oauth
 
 _db = GruntDB()  # stateless: reads through the context's session
 
 
-async def pull_emails(account: dict[str, Any]) -> list[dict[str, Any]]:
-    """Fetch unread emails from the IMAP server and mark them ``\\Seen``.
+# One run reads at most this many letters per folder; the rest wait for the next.
+FETCH_LIMIT = 200
 
-    Each returned dict: ``message_id, sender, recipients, cc, subject, date,
-    text, html, attachments`` where ``attachments`` is a list of
-    ``{filename, content: bytes, mimetype}``.
+
+def _folders(account: dict[str, Any]) -> list[str]:
+    raw = str(account.get("imap_folders") or "INBOX")
+    return [f.strip() for f in raw.split(",") if f.strip()] or ["INBOX"]
+
+
+def _quote_mailbox(name: str) -> str:
+    if name.startswith('"') or not re.search(r'[\s"()]', name):
+        return name
+    return '"' + name.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _uidvalidity(lines: list[Any]) -> str | None:
+    for line in lines:
+        text = line.decode(errors="replace") if isinstance(line, (bytes, bytearray)) else str(line)
+        m = re.search(r"UIDVALIDITY (\d+)", text)
+        if m:
+            return m.group(1)
+    return None
+
+
+def _uids(lines: list[Any]) -> list[int]:
+    uids: list[int] = []
+    for line in lines:
+        text = line.decode(errors="replace") if isinstance(line, (bytes, bytearray)) else str(line)
+        uids.extend(int(t) for t in text.split() if t.isdigit())
+    return sorted(set(uids))
+
+
+def _raw_message(lines: list[Any]) -> bytes | None:
+    """The literal of a ``UID FETCH ... (BODY.PEEK[])`` response."""
+    for line in lines:
+        if isinstance(line, bytearray):
+            return bytes(line)
+    return None
+
+
+async def pull_emails(account: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Fetch the letters that arrived since the last run, folder by folder.
+
+    Reads by UID with ``BODY.PEEK[]``, so the mailbox's ``\\Seen`` flags stay
+    as the people reading it left them. ``imap_state`` -
+    ``{folder: {"uidvalidity", "last_uid"}}`` - is where the previous run
+    stopped; with none (a new account, or the server renumbered the folder) a
+    folder starts with its unread letters. At most :data:`FETCH_LIMIT` per
+    folder per run.
+
+    Returns ``(emails, state)``: each email is :func:`parse_message` plus
+    ``folder`` and ``uid``; *state* is the new ``imap_state`` - the caller
+    saves it once the letters are filed (a crash in between re-reads them,
+    and Message-ID dedup keeps them single).
     """
+    raw_state = account.get("imap_state") or {}
+    if isinstance(raw_state, str):
+        try:
+            raw_state = json.loads(raw_state or "{}")
+        except ValueError:
+            raw_state = {}
+    state: dict[str, Any] = dict(raw_state) if isinstance(raw_state, dict) else {}
     if not account.get("enable_incoming"):
-        return []
+        return [], state
 
     imap_server: str | None = account.get("imap_server")
-    imap_port: int = account.get("imap_port", 993)
+    imap_port: int = account.get("imap_port") or 993
     use_ssl: bool = account.get("use_ssl", True)
     username: str | None = account.get("email_address")
     password: str | None = account.get("smtp_password")
 
-    if not imap_server or not username or not password:
-        return []
+    if not imap_server or not username or not (password or uses_oauth(account)):
+        return [], state
 
     emails: list[dict[str, Any]] = []
 
@@ -50,22 +108,45 @@ async def pull_emails(account: dict[str, Any]) -> list[dict[str, Any]]:
             else aioimaplib.IMAP4(imap_server, imap_port)
         )
         await imap.wait_hello_from_server()
-        await imap.login(username, password)
-        await imap.select("INBOX")
+        if uses_oauth(account):
+            token = await oauth_token(account)
+            # aioimaplib annotates the token as bytes, but formats it into the
+            # SASL string as text (IMAP4ClientProtocol.xoauth2) - str is right.
+            signed_in = await imap.xoauth2(oauth_user(account), token)  # pyright: ignore[reportArgumentType]
+            if signed_in.result != "OK":
+                raise ConnectionError(f"IMAP XOAUTH2: {signed_in.lines}")
+        else:
+            await imap.login(username, password or "")
 
-        status, messages = await imap.search("UNSEEN")
-        if status == "OK" and messages and messages[0]:
-            for num in messages[0].split():
-                st, data = await imap.fetch(num, "(RFC822)")
-                if st != "OK" or not data or not isinstance(data[1], (bytes, bytearray)):
+        for folder in _folders(account):
+            sel = await imap.select(_quote_mailbox(folder))
+            if sel.result != "OK":
+                log.warning("email.imap_select_failed", folder=folder, account=username)
+                continue
+            validity = _uidvalidity(sel.lines)
+            known = state.get(folder) or {}
+            if known.get("uidvalidity") == validity and known.get("last_uid") is not None:
+                last = int(known["last_uid"])
+                res = await imap.uid_search(f"UID {last + 1}:*", charset=None)
+                # "N:*" always matches the newest letter, even an old one.
+                uids = [u for u in _uids(res.lines[:1]) if u > last] if res.result == "OK" else []
+            else:
+                last = 0
+                res = await imap.uid_search("UNSEEN", charset=None)
+                uids = _uids(res.lines[:1]) if res.result == "OK" else []
+                if not uids:
+                    # Nothing unread: start after the newest letter.
+                    every = await imap.uid_search("ALL", charset=None)
+                    last = max(_uids(every.lines[:1]) or [0])
+            for uid in uids[:FETCH_LIMIT]:
+                fetched = await imap.uid("fetch", str(uid), "(BODY.PEEK[])")
+                raw = _raw_message(fetched.lines) if fetched.result == "OK" else None
+                last = max(last, uid)
+                if raw is None:
                     continue
-                msg = email.message_from_bytes(data[1])
-                emails.append(parse_message(msg))
-                num_str = num.decode() if isinstance(num, bytes) else str(num)
-                try:
-                    await imap.store(num_str, "+FLAGS", "\\Seen")
-                except Exception:
-                    log.warning("email.imap_mark_seen_failed", num=num_str)
+                parsed = parse_message(email.message_from_bytes(raw))
+                emails.append({**parsed, "folder": folder, "uid": uid})
+            state[folder] = {"uidvalidity": validity, "last_uid": last}
 
         await imap.logout()
         log.info("email.pulled", count=len(emails), account=username)
@@ -73,7 +154,7 @@ async def pull_emails(account: dict[str, Any]) -> list[dict[str, Any]]:
     except Exception as e:
         log.error("email.pull_failed", error=str(e), account=username)
 
-    return emails
+    return emails, state
 
 
 def decode_header_value(value: str | None) -> str:
@@ -129,6 +210,9 @@ def parse_message(msg: Message) -> dict[str, Any]:
 
     return {
         "message_id": (msg["Message-ID"] or "").strip() or None,
+        "in_reply_to": _clean_mid(msg["In-Reply-To"]),
+        "references": " ".join(re.findall(r"<[^>]+>", str(msg["References"] or ""))) or None,
+        "auto_generated": is_auto_generated(msg),
         "sender": decode_header_value(msg["From"]),
         "recipients": decode_header_value(msg["To"]),
         "cc": decode_header_value(msg["Cc"]),
@@ -139,6 +223,30 @@ def parse_message(msg: Message) -> dict[str, Any]:
         "attachments": attachments,
         "report": parse_report(msg, text_body),
     }
+
+
+_NO_REPLY = re.compile(
+    r"(^|[._+-])(no-?reply|do-?not-?reply|mailer-daemon|postmaster)([._+-]|@)", re.I
+)
+
+
+def is_auto_generated(msg: Message) -> bool:
+    """A letter a robot or a list sent - one never to auto-reply to (RFC 3834)."""
+    auto = str(msg["Auto-Submitted"] or "").strip().lower()
+    if auto and auto != "no":
+        return True
+    if str(msg["Precedence"] or "").strip().lower() in ("bulk", "list", "junk", "auto_reply"):
+        return True
+    if msg["List-Id"] or msg["List-Unsubscribe"] or msg["X-Autoreply"] or msg["X-Autorespond"]:
+        return True
+    if str(msg["X-Auto-Response-Suppress"] or "").strip():
+        return True
+    return bool(_NO_REPLY.search(sender_address(decode_header_value(msg["From"]))))
+
+
+def sender_address(value: str | None) -> str:
+    """The bare address of a From value (``"Ім'я <a@b.c>"`` -> ``a@b.c``), lowercased."""
+    return (parseaddr(value or "")[1] or "").strip().lower()
 
 
 # Delivery / read-receipt reports (DSN / MDN)

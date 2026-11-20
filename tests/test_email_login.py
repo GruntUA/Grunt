@@ -14,7 +14,7 @@ def captured_mail(monkeypatch):
     """Swap the email queue for an in-memory sink so tests can read the code."""
     sent: list[dict] = []
 
-    async def _fake_queue_email(session, to, subject, body, html_body=None):
+    async def _fake_queue_email(session, to, subject, body, html_body=None, **_kwargs):
         sent.append({"to": to, "subject": subject, "body": body, "html_body": html_body})
         return "queued-id"
 

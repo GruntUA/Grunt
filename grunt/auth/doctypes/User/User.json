@@ -232,6 +232,13 @@
       "description": "The user's roles. Only a System Manager can edit these."
     },
     {
+      "fieldname": "role_profiles",
+      "label": "Role profiles",
+      "fieldtype": "Table",
+      "options": "UserRoleProfile",
+      "description": "Each profile adds its roles to the user's roles below."
+    },
+    {
       "fieldname": "roles",
       "label": "Roles",
       "fieldtype": "Table",

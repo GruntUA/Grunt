@@ -1,0 +1,17 @@
+{
+  "name": "UserRoleProfile",
+  "label": "User role profile",
+  "module": "auth",
+  "hide_from_activity_feed": true,
+  "is_child": true,
+  "fields": [
+    {
+      "fieldname": "role_profile",
+      "label": "Role profile",
+      "fieldtype": "Link",
+      "options": "RoleProfile",
+      "required": true,
+      "in_list_view": true
+    }
+  ]
+}

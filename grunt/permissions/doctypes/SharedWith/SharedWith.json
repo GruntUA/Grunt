@@ -42,6 +42,13 @@
       "description": "Everyone holding the role today"
     },
     {
+      "fieldname": "user_group",
+      "label": "User group",
+      "fieldtype": "Link",
+      "options": "UserGroup",
+      "description": "Every member of the group"
+    },
+    {
       "fieldname": "everyone",
       "label": "Everyone",
       "fieldtype": "Check",

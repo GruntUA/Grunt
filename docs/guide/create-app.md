@@ -47,6 +47,13 @@ untagged repository reports `0.1.devN+g<hash>`. The sidebar icon (a Lucide
 name) and colour live in the `AppMenu` record of `fixtures/00_workspace.json`;
 without a colour one is picked from a palette by the workspace name.
 
+A user sees only the parts of the menu they can open. A sidebar item shows
+when they may read its DocType (through a role or a document shared with them),
+may run its report, or may open its page. An item's `roles` (comma-separated)
+narrow it to those roles. The menu's own `roles` hide the whole app from
+everyone else, and an app with nothing visible left drops out of the app list.
+Users with `grunt.manage_desk` see every item, since they edit the menus.
+
 ## Extending another app
 
 An app can live inside another app's menu instead of having its own entry in
@@ -437,6 +444,17 @@ order:
 ```json title="my_crm/fixtures/00_roles.json"
 {"doctype": "Role", "records": [{"name": "Sales Manager"}]}
 ```
+
+Besides permissions, a role can carry:
+
+- `home_page`: where its users land after signing in (`/app/my_crm`, or a website path such as `/cabinet`).
+- `site_only`: a portal role. Users whose roles are all site-only stay on the website and never get `/app`.
+- `disabled`: switches the role off without taking it away from users.
+
+A `RoleProfile` is a set of roles handed out together. A user's profiles add
+their roles after the ones assigned by hand, and saving a profile updates
+every user who holds it. `SystemSettings.default_role_profile` gives a profile
+on self sign-up.
 
 A plain file is a **seed**: missing records are inserted, existing ones are
 never touched. To keep records built in the UI in sync with the app code,

@@ -2,8 +2,9 @@
 
 Whom: exactly one of ``user`` (an email), ``role`` (everyone holding it
 today - without its scope: a scope narrows a role's *rules*, a share is a
-deliberate choice of this document) or ``everyone`` (every signed-in user;
-guests only ever see a public link, ``DocumentShare``).
+deliberate choice of this document), ``user_group`` (the group's members)
+or ``everyone`` (every signed-in user; guests only ever see a public link,
+``DocumentShare``).
 
 What: ``permission = "Read"`` grants read (and select); ``"Write"`` also
 grants write; ``can_reshare`` adds ``share`` - passing the document on, at
@@ -25,6 +26,7 @@ from grunt.local import _session_ctx
 from grunt.metadata.registry import doctype_registry
 from grunt.query.nodes import FALSE, Cmp, Empty, Expr, In, Linked, and_, or_
 from grunt.query.query import Query
+lazy from grunt.permissions.groups import user_groups
 lazy from grunt.permissions.roles import get_roles
 lazy from grunt.permissions.trees import expand_tree_values
 lazy from grunt.store.lookup import store_for
@@ -44,19 +46,26 @@ async def grants(user: str, doctype: str, action: str, *, on: date | None = None
     """The ``SharedWith`` rows that grant *user* *action* on *doctype*
     documents, in force *on* a day (today by default) - ``FALSE`` when no
     share grants *action*."""
+    return and_(Cmp("reference_doctype", "eq", doctype), await _granting(user, action, on))
+
+
+async def _granting(user: str, action: str, on: date | None = None) -> Expr:
+    """The ``SharedWith`` rows of any DocType that grant *user* *action*, in force *on* a day."""
     level = _GRANTS.get(action)
     if level is None:
         return FALSE
     held = await get_roles(user)
     if user == GUEST_USER_EMAIL or "Guest" in held:
         return FALSE  # a guest sees a document only through a public link
+    groups = await user_groups(user)
     whom = or_(
         Cmp("user", "eq", user),
         In("role", tuple(held)) if held else FALSE,
+        In("user_group", tuple(groups)) if groups else FALSE,
         Cmp("everyone", "eq", True),
     )
     in_force = or_(Empty("valid_to"), Cmp("valid_to", "gte", on or date.today()))
-    return and_(Cmp("reference_doctype", "eq", doctype), level, whom, in_force)
+    return and_(level, whom, in_force)
 
 
 async def _rows(where: Expr, fields: tuple[str, ...]) -> list[dict[str, Any]]:
@@ -79,6 +88,20 @@ async def has_share(user: str | None, doctype: str, action: str) -> bool:
         return False
     query = Query(doctype=meta.name, where=await grants(user, doctype, action), limit=1)
     return await store_for(meta).count(query) > 0
+
+
+async def shared_doctypes(user: str | None, doctypes: Collection[str], action: str) -> set[str]:
+    """Those of *doctypes* where *user* holds a share granting *action* on some
+    document - :func:`has_share` for many DocTypes in one query."""
+    if action not in _GRANTS or not user or not doctypes or _session_ctx.get() is None:
+        return set()
+    meta = await doctype_registry.get_meta("SharedWith")
+    if meta is None:
+        return set()
+    where = and_(In("reference_doctype", tuple(doctypes)), await _granting(user, action))
+    query = Query(doctype=meta.name, where=where, group_by=("reference_doctype",))
+    rows = await store_for(meta).aggregate(query)
+    return {r["reference_doctype"] for r in rows if r.get("reference_doctype")}
 
 
 async def _subtree_parent_field(doctype: str) -> str | None:

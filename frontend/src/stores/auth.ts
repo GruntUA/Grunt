@@ -18,6 +18,10 @@ interface User {
   roles: string[]
   /** Permissions through the roles (grunt.permissions.perms); `*` - all. */
   permissions?: string[]
+  /** Every role is site-only (Role.site_only): the website, not the workspace. */
+  site_only?: boolean
+  /** Where to land after signing in (Role.home_page). */
+  home_page?: string | null
   mfa_enabled?: boolean
   /** False for accounts provisioned via OIDC / email link that never set one. */
   has_password?: boolean

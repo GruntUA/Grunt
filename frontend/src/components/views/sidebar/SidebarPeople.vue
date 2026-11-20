@@ -26,6 +26,8 @@ import { docUrl } from '@/core/workspaceUrl'
 import SidebarUserCommand from './SidebarUserCommand.vue'
 import SidebarPersonCard from './SidebarPersonCard.vue'
 import SidebarShareDialog from './SidebarShareDialog.vue'
+import LinkField from '@/components/fields/Link/Link.vue'
+import type { DocField } from '@/types'
 import { useAuthStore } from '@/stores/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -104,22 +106,29 @@ async function quickAssign(email: string) {
   }
 }
 
-// "Assign with a task" - the user picker plus a task text.
+// "Assign with a task" - a user (or every member of a group) plus a task text.
 const taskDialog = ref(false)
+const taskKind = ref<'user' | 'group'>('user')
 const taskUser = ref('')
+const taskGroup = ref('')
 const taskNote = ref('')
 const taskSaving = ref(false)
-function openTaskDialog() {
+const groupField = { fieldname: 'user_group', fieldtype: 'Link', label: '', options: 'UserGroup' } as DocField
+function openTaskDialog(kind: 'user' | 'group' = 'user') {
   assignOpen.value = false
+  taskKind.value = kind
   taskUser.value = ''
+  taskGroup.value = ''
   taskNote.value = ''
   taskDialog.value = true
 }
+const taskReady = computed(() => (taskKind.value === 'group' ? !!taskGroup.value : !!taskUser.value))
 async function submitTask() {
-  if (!taskUser.value) return
+  if (!taskReady.value) return
   taskSaving.value = true
   try {
-    await props.sb.assign(taskUser.value, taskNote.value)
+    if (taskKind.value === 'group') await props.sb.assignGroup(taskGroup.value, taskNote.value)
+    else await props.sb.assign(taskUser.value, taskNote.value)
     taskDialog.value = false
   } catch {
     /* silent */
@@ -154,6 +163,7 @@ function permissionLabel(p: string): string {
 function shareTitle(s: SidebarShare): string {
   if (s.everyone) return t('Everyone')
   if (s.role) return s.role
+  if (s.user_group) return s.user_group
   return props.sb.personName(s.user ?? '')
 }
 function isExpired(s: SidebarShare): boolean {
@@ -184,9 +194,13 @@ function canRemove(s: SidebarShare): boolean {
         <PopoverContent align="end" class="w-64 p-0">
           <SidebarUserCommand v-if="assignOpen" :sb="sb" :exclude="assignees.map((a) => a.assigned_to)" @select="quickAssign">
             <template #footer>
-              <CommandItem value="__with-task" @select="openTaskDialog">
+              <CommandItem value="__with-task" @select="openTaskDialog('user')">
                 <NotebookPen class="size-4" />
                 {{ t('Assign with a task…') }}
+              </CommandItem>
+              <CommandItem value="__to-group" @select="openTaskDialog('group')">
+                <Users class="size-4" />
+                {{ t('Assign to a group…') }}
               </CommandItem>
             </template>
           </SidebarUserCommand>
@@ -378,7 +392,22 @@ function canRemove(s: SidebarShare): boolean {
       </DialogHeader>
 
       <FieldGroup>
-        <Field>
+        <ToggleGroup
+          :model-value="taskKind"
+          type="single"
+          variant="outline"
+          class="w-full"
+          @update:model-value="(v) => { if (v) taskKind = v as 'user' | 'group' }"
+        >
+          <ToggleGroupItem value="user" class="flex-1">{{ t('User') }}</ToggleGroupItem>
+          <ToggleGroupItem value="group" class="flex-1">{{ t('Group') }}</ToggleGroupItem>
+        </ToggleGroup>
+        <Field v-if="taskKind === 'group'">
+          <FieldLabel>{{ t('User group') }}</FieldLabel>
+          <LinkField :field="groupField" :model-value="taskGroup" @update:model-value="taskGroup = ($event as string) ?? ''" />
+          <FieldDescription>{{ t('Each member gets their own task; members already assigned are skipped.') }}</FieldDescription>
+        </Field>
+        <Field v-else>
           <FieldLabel>{{ t('Assignee') }}</FieldLabel>
           <div class="rounded-md border">
             <SidebarUserCommand v-if="!taskUser" :sb="sb" @select="taskUser = $event" />
@@ -415,7 +444,7 @@ function canRemove(s: SidebarShare): boolean {
 
       <DialogFooter>
         <Button variant="outline" @click="taskDialog = false">{{ t('Cancel') }}</Button>
-        <Button :disabled="!taskUser || taskSaving" @click="submitTask">
+        <Button :disabled="!taskReady || taskSaving" @click="submitTask">
           <Spinner v-if="taskSaving" />
           <Plus v-else />
           {{ t('Assign') }}

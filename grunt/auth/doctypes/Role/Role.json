@@ -21,6 +21,27 @@
       "fieldtype": "LongText"
     },
     {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "A disabled role stays assigned to its users but gives them nothing: no permissions, no document access, no notifications or assignments through it."
+    },
+    {
+      "fieldname": "site_only",
+      "label": "Site only",
+      "fieldtype": "Check",
+      "in_filter": true,
+      "description": "Users whose roles are all site-only work on the website and don't get the workspace (/app). One role without this flag gives them the workspace."
+    },
+    {
+      "fieldname": "home_page",
+      "label": "Home page",
+      "fieldtype": "Data",
+      "description": "Where users with this role land after signing in, e.g. /app/hrm or /cabinet. With several roles, the first one in the user's roles that has a home page wins."
+    },
+    {
       "fieldname": "permissions",
       "label": "Permissions",
       "fieldtype": "MultiSelect",

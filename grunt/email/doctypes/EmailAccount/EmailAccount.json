@@ -19,11 +19,11 @@
       "fieldname": "provider",
       "label": "Mail service",
       "fieldtype": "Select",
-      "options": "Gmail\nOther",
+      "options": "Gmail\nMicrosoft 365\nOther",
       "translatable": true,
       "default": "Gmail",
       "in_list_view": true,
-      "description": "Gmail — SMTP/IMAP servers and ports are filled in automatically; you only need the email and an app password. Choose «Other» to enter the settings manually."
+      "description": "Gmail and Microsoft 365 — SMTP/IMAP servers and ports are filled in automatically. Choose «Other» to enter the settings manually."
     },
     {
       "fieldname": "email_address",
@@ -35,10 +35,64 @@
       "description": "Full email address. For Gmail it is also used as the SMTP login."
     },
     {
+      "fieldname": "auth_method",
+      "label": "Sign-in",
+      "fieldtype": "Select",
+      "options": "Password\nOAuth",
+      "default": "Password",
+      "translatable": true,
+      "description": "Password — an app password (Gmail) or the mailbox password. OAuth — sign in through Google or Microsoft without a password; needed for Microsoft 365, where password sign-in is turned off."
+    },
+    {
+      "fieldname": "sec_oauth",
+      "label": "Step 1 — connect the account",
+      "fieldtype": "Section",
+      "depends_on": "eval: doc.auth_method === 'OAuth'"
+    },
+    {
+      "fieldname": "col_oauth_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "connected_app",
+      "label": "Connected app",
+      "fieldtype": "Link",
+      "options": "ConnectedApp",
+      "mandatory_depends_on": "eval: doc.auth_method === 'OAuth'",
+      "description": "The OAuth app of your Google Workspace or Microsoft 365 through which the mailbox is connected (Integrations → Connected apps)."
+    },
+    {
+      "fieldname": "oauth_account",
+      "label": "Connected account",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "The account that allowed access. Sign in as the owner of the mailbox."
+    },
+    {
+      "fieldname": "col_oauth_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "connect_oauth",
+      "label": "Connect account",
+      "fieldtype": "Button",
+      "options": "default",
+      "icon": "log-in",
+      "description": "Save the account first. A Google or Microsoft page opens: sign in to the mailbox and allow access."
+    },
+    {
+      "fieldname": "disconnect_oauth",
+      "label": "Disconnect",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "unplug",
+      "depends_on": "oauth_account"
+    },
+    {
       "fieldname": "sec_gmail",
       "label": "Step 1 — Google app password",
       "fieldtype": "Section",
-      "depends_on": "eval: (doc.provider || 'Gmail') === 'Gmail'"
+      "depends_on": "eval: (doc.provider || 'Gmail') === 'Gmail' && doc.auth_method !== 'OAuth'"
     },
     {
       "fieldname": "open_app_passwords",
@@ -61,7 +115,8 @@
       "fieldname": "smtp_user",
       "label": "SMTP user",
       "fieldtype": "Data",
-      "description": "SMTP login. Usually the same as the email address; filled in automatically for Gmail."
+      "description": "SMTP login. Usually the same as the email address; filled in automatically for Gmail.",
+      "depends_on": "eval: doc.auth_method !== 'OAuth'"
     },
     {
       "fieldname": "col_creds_2",
@@ -71,9 +126,10 @@
       "fieldname": "smtp_password",
       "label": "SMTP password (app password)",
       "fieldtype": "Password",
-      "mandatory_depends_on": "eval: doc.enable_outgoing",
+      "mandatory_depends_on": "eval: doc.enable_outgoing && doc.auth_method !== 'OAuth'",
       "placeholder": "xxxx xxxx xxxx xxxx",
-      "description": "For Gmail — a 16-character app password (App Password). The regular Google account password does not work.\nA saved password is not shown again — to change it, enter a new one."
+      "description": "For Gmail — a 16-character app password (App Password). The regular Google account password does not work.\nA saved password is not shown again — to change it, enter a new one.",
+      "depends_on": "eval: doc.auth_method !== 'OAuth'"
     },
     {
       "fieldname": "test_connection",
@@ -175,6 +231,124 @@
       "fieldtype": "Check",
       "default": true,
       "depends_on": "eval: doc.enable_incoming && (doc.provider || 'Gmail') !== 'Gmail'"
+    },
+    {
+      "fieldname": "sec_folders",
+      "fieldtype": "Section",
+      "depends_on": "enable_incoming"
+    },
+    {
+      "fieldname": "imap_folders",
+      "label": "IMAP folders",
+      "fieldtype": "Data",
+      "default": "INBOX",
+      "placeholder": "INBOX, Support",
+      "description": "Comma-separated. New letters are read without marking them as read in the mailbox"
+    },
+    {
+      "fieldname": "imap_state",
+      "label": "IMAP position",
+      "fieldtype": "JSON",
+      "hidden": true,
+      "read_only": true,
+      "no_copy": true,
+      "description": "The last letter read in each folder (UIDVALIDITY + UID)"
+    },
+    {
+      "fieldname": "tab_processing",
+      "label": "Processing",
+      "fieldtype": "Tab",
+      "icon": "workflow"
+    },
+    {
+      "fieldname": "sec_append",
+      "label": "Incoming letters → documents",
+      "fieldtype": "Section",
+      "description": "A reply to a letter sent from a document lands on that document. A new letter creates a document of the chosen type"
+    },
+    {
+      "fieldname": "append_to",
+      "label": "Create documents",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "description": "Only document types with “Create from incoming mail” on"
+    },
+    {
+      "fieldname": "col_append_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "auto_reply",
+      "label": "Auto-reply",
+      "fieldtype": "Check",
+      "depends_on": "append_to",
+      "description": "Answer each letter that created a document. Not sent to robots, mailing lists or no-reply addresses"
+    },
+    {
+      "fieldname": "auto_reply_message",
+      "label": "Auto-reply text",
+      "fieldtype": "RichText",
+      "depends_on": "auto_reply",
+      "description": "Placeholders: {name} - the document, {subject} - the letter's subject, {sender} - its address"
+    },
+    {
+      "fieldname": "sec_unreplied",
+      "label": "Unanswered letters",
+      "fieldtype": "Section",
+      "depends_on": "append_to"
+    },
+    {
+      "fieldname": "notify_if_unreplied",
+      "label": "Notify if not answered",
+      "fieldtype": "Check",
+      "description": "When the last letter on a document has had no reply from it for the set time: the document's assignees, or the group when nobody is assigned"
+    },
+    {
+      "fieldname": "col_unreplied_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "unreplied_minutes",
+      "label": "Minutes without a reply",
+      "fieldtype": "Int",
+      "default": 30,
+      "depends_on": "notify_if_unreplied"
+    },
+    {
+      "fieldname": "unreplied_group",
+      "label": "Notify group",
+      "fieldtype": "Link",
+      "options": "UserGroup",
+      "depends_on": "notify_if_unreplied"
+    },
+    {
+      "fieldname": "sec_out_extras",
+      "label": "Outgoing letters",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "signature",
+      "label": "Signature",
+      "fieldtype": "RichText",
+      "description": "Added to letters written from documents and to auto-replies"
+    },
+    {
+      "fieldname": "col_out_extras_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "reply_to",
+      "label": "Reply-To",
+      "fieldtype": "Data",
+      "validator": "email",
+      "description": "Where replies should go, when not to this mailbox"
+    },
+    {
+      "fieldname": "always_bcc",
+      "label": "Always BCC",
+      "fieldtype": "Data",
+      "validator": "email",
+      "description": "Every letter from this mailbox also goes, hidden, to this address (an archive)"
     }
   ],
   "permissions": [

@@ -60,6 +60,7 @@ _DOCTYPE_JSON = {
     "Notification": (_GRUNT_ROOT / "notification/doctypes/Notification/Notification.json"),
     "WebhookLog": _GRUNT_ROOT / "webhook/doctypes/WebhookLog/WebhookLog.json",
     "NamingSeries": _GRUNT_ROOT / "naming/doctypes/NamingSeries/NamingSeries.json",
+    "ConnectedApp": _GRUNT_ROOT / "integrations/doctypes/ConnectedApp/ConnectedApp.json",
 }
 
 

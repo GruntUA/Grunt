@@ -18,6 +18,21 @@
       "in_list_view": true
     },
     {
+      "fieldname": "cc",
+      "label": "Cc",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "bcc",
+      "label": "Bcc",
+      "fieldtype": "Data"
+    },
+    {
+      "fieldname": "reply_to",
+      "label": "Reply-To",
+      "fieldtype": "Data"
+    },
+    {
       "fieldname": "subject",
       "label": "Subject",
       "fieldtype": "Data",
@@ -50,6 +65,38 @@
       "in_filter": true
     },
     {
+      "fieldname": "priority",
+      "label": "Priority",
+      "fieldtype": "Select",
+      "options": "High\nNormal\nLow",
+      "translatable": true,
+      "default": "Normal",
+      "in_list_view": true,
+      "in_filter": true,
+      "description": "High — sign-in codes and password resets; Low — notifications, digests and scheduled reports. The worker sends higher first, older first within one level."
+    },
+    {
+      "fieldname": "send_after",
+      "label": "Send after",
+      "fieldtype": "Datetime",
+      "description": "Not before this time: a letter scheduled for later, or the next attempt after a temporary failure."
+    },
+    {
+      "fieldname": "retry",
+      "label": "Attempts failed",
+      "fieldtype": "Int",
+      "default": "0",
+      "read_only": true,
+      "description": "A temporary failure (the server does not answer, 4xx) is tried again later, up to 5 times; a permanent one (5xx) is an error at once."
+    },
+    {
+      "fieldname": "unsubscribe_url",
+      "label": "Unsubscribe link",
+      "fieldtype": "Data",
+      "read_only": true,
+      "hidden": true
+    },
+    {
       "fieldname": "error_message",
       "label": "Error",
       "fieldtype": "LongText"
@@ -67,6 +114,38 @@
       "read_only": true,
       "hidden": true,
       "description": "Files sent with the message: [{filename, mimetype, content_b64}]."
+    },
+    {
+      "fieldname": "message_id",
+      "label": "Message-ID",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "Set in advance when the letter is already on a document's timeline as “Queued”"
+    },
+    {
+      "fieldname": "in_reply_to",
+      "label": "In-Reply-To",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "message_references",
+      "label": "References",
+      "fieldtype": "LongText",
+      "read_only": true,
+      "hidden": true
+    },
+    {
+      "fieldname": "ref_doctype",
+      "label": "Source — type",
+      "fieldtype": "Data",
+      "read_only": true
+    },
+    {
+      "fieldname": "ref_name",
+      "label": "Source — record",
+      "fieldtype": "Data",
+      "read_only": true
     }
   ],
   "permissions": [

@@ -88,7 +88,14 @@
       "fieldtype": "Table",
       "options": "AssignmentRuleUser",
       "depends_on": "eval:doc.rule != 'Based on Field'",
-      "description": "Who is assigned; empty - the holders of the role below (within their role scope)"
+      "description": "Who is assigned; empty - the members of the group below, else the holders of the role (within their role scope)"
+    },
+    {
+      "fieldname": "assign_to_group",
+      "label": "Assign to group",
+      "fieldtype": "Link",
+      "options": "UserGroup",
+      "help": "Members of this group, when the user list is empty"
     },
     {
       "fieldname": "assign_to_role",

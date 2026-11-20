@@ -1,7 +1,7 @@
 """SharedWith controller - who may share a document, with whom, and the
 notification that tells them.
 
-A share goes to exactly one of a user, a role or everyone. The sharer needs
+A share goes to exactly one of a user, a role, a user group or everyone. The sharer needs
 ``share`` on the document *and* the level they hand out (``read`` for Read,
 ``write`` for Write) - a share never passes on more than the sharer has. Who
 received a share may drop it themselves. The grant itself is enforced in
@@ -15,6 +15,7 @@ from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.notification.events import trigger
+from grunt.permissions.groups import group_emails
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import role_holders
 
@@ -30,6 +31,7 @@ class SharedWith(Document):
         # ``user`` is a field here, but ``self.user`` is the acting user.
         target = (self.data.get("user") or "").strip() or None
         role = (self.data.get("role") or "").strip() or None
+        group = (self.data.get("user_group") or "").strip() or None
         everyone = bool(self.data.get("everyone"))
         # "All" is every user, held implicitly - that's what "everyone" is;
         # a guest never gets a share (only a public link).
@@ -37,9 +39,9 @@ class SharedWith(Document):
             role, everyone = None, True
         if role == "Guest":
             throw(_("Guests see a document only through a public link"))
-        if sum((target is not None, role is not None, everyone)) != 1:
-            throw(_("Share with one of: a user, a role or everyone"))
-        self.data.update(user=target, role=role, everyone=everyone)
+        if sum((target is not None, role is not None, group is not None, everyone)) != 1:
+            throw(_("Share with one of: a user, a role, a user group or everyone"))
+        self.data.update(user=target, role=role, user_group=group, everyone=everyone)
         if self.permission not in ("Read", "Write"):
             self.data["permission"] = "Read"
         self.data["can_reshare"] = bool(self.data.get("can_reshare"))
@@ -47,6 +49,8 @@ class SharedWith(Document):
             throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
         if role and not await self.grunt.db.exists("Role", role):
             throw(_("Role “%(role)s” not found") % {"role": role}, "NOT_FOUND")
+        if group and not await self.grunt.db.exists("UserGroup", group):
+            throw(_("User group “%(group)s” not found") % {"group": group}, "NOT_FOUND")
         valid_to = _day(self.data.get("valid_to"))
         if valid_to is not None and valid_to < date.today():
             throw(_("The end date has already passed"))
@@ -66,6 +70,8 @@ class SharedWith(Document):
         elif self.data.get("role"):
             holders = await role_holders([self.data["role"]])
             recipients = [h["email"] for h in holders if h.get("email")]
+        elif self.data.get("user_group"):
+            recipients = await group_emails([self.data["user_group"]])
         # "Everyone" tells nobody: a notification to every account is noise.
         recipients = [r for r in recipients if r != self.user]
         if not recipients:
