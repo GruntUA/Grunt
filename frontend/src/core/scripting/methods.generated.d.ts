@@ -248,7 +248,7 @@ interface GruntMethods {
   "grunt.api.v1.workspace.get_document_stats": { args: {}; result: Record<string, number> }
   /** Return the current user's personal work items for the home page: */
   "grunt.api.v1.workspace.get_my_work": { args: {}; result: Record<string, any> }
-  /** Get a single workspace with filtered items. */
+  /** Get a single workspace with filtered items - ``403`` for an app the user may not open (see :func:`list_workspaces`). */
   "grunt.api.v1.workspace.get_workspace": { args: { name: string }; result: Record<string, any> }
   /** List workspaces visible to the current user. */
   "grunt.api.v1.workspace.list_workspaces": { args: {}; result: Record<string, any>[] }

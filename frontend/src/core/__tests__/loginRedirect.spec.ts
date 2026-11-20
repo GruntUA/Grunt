@@ -1,5 +1,20 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { afterLoginTarget, loginLocation, rememberLoginRedirect } from '@/core/loginRedirect'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
+import { afterLoginTarget, goAfterLogin, isSpaPath, loginLocation, rememberLoginRedirect, websiteHome } from '@/core/loginRedirect'
+
+const Page = { template: '<div />' }
+
+function makeRouter() {
+  return createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/app', name: 'desk', component: Page },
+      { path: '/app/:workspaceName', name: 'workspace-home', component: Page },
+      { path: '/:workspaceName/:rest(.*)*', redirect: (to) => '/app' + to.fullPath },
+      { path: '/:pathMatch(.*)*', name: 'not-found', component: Page },
+    ],
+  })
+}
 
 describe('loginRedirect', () => {
   beforeEach(() => sessionStorage.clear())
@@ -20,9 +35,53 @@ describe('loginRedirect', () => {
   })
 
   it('ignores off-site and non-string targets', () => {
-    for (const bad of ['//evil.com', '/\\evil.com', 'https://evil.com', ['/a'], undefined]) {
+    for (const bad of ['//evil.com', '/\\evil.com', '/\t/evil.com', '/a\n', 'https://evil.com', ['/a'], undefined]) {
       rememberLoginRedirect(bad)
       expect(afterLoginTarget()).toEqual({ name: 'desk' })
+    }
+  })
+
+  it('falls back to the home page, then the desk', () => {
+    expect(afterLoginTarget('/app/hrm')).toBe('/app/hrm')
+    rememberLoginRedirect('/app/hr/Employee')
+    expect(afterLoginTarget('/app/hrm')).toBe('/app/hr/Employee')
+    for (const bad of ['//evil.com', 'https://evil.com', '/\t/evil.com', '/\\evil.com', '/login', '', null]) {
+      expect(afterLoginTarget(bad)).toEqual({ name: 'desk' })
+    }
+    // The site root is a fine home page (not a fine "return to" path).
+    expect(afterLoginTarget('/')).toBe('/')
+  })
+
+  it('tells SPA pages from website pages', () => {
+    const router = makeRouter()
+    expect(isSpaPath(router, '/app')).toBe(true)
+    expect(isSpaPath(router, '/app/hrm')).toBe(true)
+    expect(isSpaPath(router, '/cabinet')).toBe(false)
+    expect(isSpaPath(router, '/')).toBe(false)
+  })
+
+  it('opens a website home page with a full load, a stashed path in the router', () => {
+    const router = makeRouter()
+    const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
+    const assign = vi.fn()
+    vi.stubGlobal('location', { ...window.location, assign })
+    try {
+      expect(websiteHome(router, '/cabinet')).toBe('/cabinet')
+      expect(websiteHome(router, '/app/hrm')).toBeNull()
+      goAfterLogin(router, '/cabinet')
+      expect(assign).toHaveBeenCalledWith('/cabinet')
+
+      // A path from ?redirect= never leaves the router, even a website one.
+      rememberLoginRedirect('/cabinet/x')
+      expect(websiteHome(router, '/cabinet')).toBeNull()
+      goAfterLogin(router, '/cabinet')
+      expect(push).toHaveBeenLastCalledWith('/cabinet/x')
+      expect(assign).toHaveBeenCalledTimes(1)
+
+      goAfterLogin(router, '/app/hrm')
+      expect(push).toHaveBeenLastCalledWith('/app/hrm')
+    } finally {
+      vi.unstubAllGlobals()
     }
   })
 })

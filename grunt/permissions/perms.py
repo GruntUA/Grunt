@@ -27,13 +27,12 @@ a word, and an administrator could never grant it.
 from dataclasses import dataclass
 
 from grunt.auth.constants import SYSTEM_USER_EMAIL
-from grunt.cache.bus import fanout
 from grunt.db.api import GruntDB
 from grunt.i18n import N_, _
 from grunt.local import _session_ctx, session_user
 from grunt.metadata.dynamic_options import register_option_provider
-from grunt.permissions.roles import get_roles
-from grunt.site.manager import site_cache_key
+from grunt.permissions.role_props import role_props
+from grunt.permissions.roles import BUILT_IN_ROLES, get_roles
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -81,32 +80,12 @@ def _options() -> list[tuple[str, str]]:
 register_option_provider(OPTIONS_SOURCE, _options)
 
 
-# {site: {role: permissions}} - every Role of the site, loaded at once (roles are few).
-_ROLE_PERMS: dict[str, dict[str, frozenset[str]]] = {}
-
-
-@fanout
-def invalidate_role_perms(site: str | None = None) -> None:
-    """Drop the cached role permissions of *site* (``None`` - every site).
-    Called from the Role controller after save / delete."""
-    if site is None:
-        _ROLE_PERMS.clear()
-    else:
-        _ROLE_PERMS.pop(site, None)
-
-
 async def role_perms() -> dict[str, frozenset[str]]:
-    """``{role: permissions}`` of the context's site."""
-    key = site_cache_key()
-    cached = _ROLE_PERMS.get(key)
-    if cached is not None:
-        return cached
-    rows = await _db.get_all("Role", fields=["name", "permissions"], limit=None)
-    loaded: dict[str, frozenset[str]] = {
-        r["name"]: frozenset(r.get("permissions") or []) for r in rows
+    """``{role: permissions}`` of the context's site - a disabled role grants none."""
+    return {
+        name: frozenset() if props.disabled else props.permissions
+        for name, props in (await role_props()).items()
     }
-    _ROLE_PERMS[key] = loaded
-    return loaded
 
 
 async def user_perms(user: str | None = None) -> frozenset[str]:
@@ -125,6 +104,31 @@ async def user_perms(user: str | None = None) -> frozenset[str]:
     for role in await get_roles(user):
         held |= by_role.get(role, frozenset())
     return frozenset(held)
+
+
+@dataclass(frozen=True)
+class Landing:
+    """Where a user works: ``site_only`` - on the website, without the
+    workspace (``/app``); ``home_page`` - where they land after signing in."""
+
+    site_only: bool
+    home_page: str | None
+
+
+async def user_landing(user: str | None = None) -> Landing:
+    """:class:`Landing` of *user* (an email; ``None`` - the context's), from
+    their roles in the order they're assigned. Site-only only when they hold
+    roles and every one of them is site-only - a user without roles keeps the
+    workspace; whoever holds every permission (``*``) always does."""
+    if _session_ctx.get() is None:
+        return Landing(site_only=False, home_page=None)  # no database in context
+    props = await role_props()
+    held = [props[r] for r in await get_roles(user) if r in props and r not in BUILT_IN_ROLES]
+    home = next((p.home_page for p in held if p.home_page), None)
+    site_only = bool(held) and all(p.site_only for p in held)
+    if site_only and ALL in await user_perms(user):
+        site_only = False
+    return Landing(site_only=site_only, home_page=home)
 
 
 async def has_perm(name: str, *, user: str | None = None) -> bool:

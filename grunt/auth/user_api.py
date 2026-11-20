@@ -3,6 +3,7 @@
 Method paths: ``grunt.auth.user_api.<name>``.
 """
 
+from dataclasses import asdict
 from typing import Any
 
 from fastapi import HTTPException, Request, Response
@@ -69,7 +70,7 @@ from grunt.errors import throw
 from grunt.i18n import _, translation_service
 from grunt.local import require_session, system_context
 from grunt.log import log
-from grunt.permissions.perms import has_perm, user_perms
+from grunt.permissions.perms import has_perm, user_landing, user_perms
 from grunt.utils.http import public_base_url
 from grunt.utils.templates import render as render_template_text
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
@@ -292,6 +293,8 @@ async def whoami() -> dict[str, Any]:
         "impersonated_by": ctx_user.data.get("_impersonator"),
         # What the UI may offer (grunt.permissions.perms); "*" - everything.
         "permissions": sorted(await user_perms(ctx_user.email)),
+        # Site-only users don't get the workspace; home_page - where to land.
+        **asdict(await user_landing(ctx_user.email)),
     }
 
 

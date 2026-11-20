@@ -40,6 +40,15 @@
       "fieldname": "valid_to",
       "label": "Valid to",
       "fieldtype": "Date"
+    },
+    {
+      "fieldname": "role_profile",
+      "label": "From profile",
+      "fieldtype": "Link",
+      "options": "RoleProfile",
+      "read_only": true,
+      "in_list_view": true,
+      "description": "Added by this role profile: it changes with the profile and is rebuilt on every save."
     }
   ]
 }

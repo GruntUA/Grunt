@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useSiteConfig } from '@/core/composables/useSiteConfig'
 import { authApi, type AuthMethod } from '@/core/api/auth'
 import { isWebAuthnSupported } from '@/core/composables/useWebAuthn'
-import { afterLoginTarget, rememberLoginRedirect } from '@/core/loginRedirect'
+import { goAfterLogin, rememberLoginRedirect } from '@/core/loginRedirect'
 import AppBrand from '@/components/app/AppBrand.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -113,7 +113,7 @@ async function consumeExternalRedirect() {
       const res = await auth.completeEmailLogin({ token: p.get('email_login_token')! })
       if (res.approval_pending) notice.value = PENDING_MSG
       else if (res.mfa_required) router.push({ name: 'mfa-verify', query: { token: res.mfa_token } })
-      else router.push(afterLoginTarget())
+      else goAfterLogin(router, auth.user?.home_page)
     } catch (e: any) {
       error.value =
         e?.response?.data?.error?.message || t('The sign-in link is invalid or expired')
@@ -136,7 +136,7 @@ async function consumeExternalRedirect() {
   // `signed_in`: the OAuth callback set the session cookie on its redirect. The
   // fragment only says where we came from - the server decides whether a
   // session exists.
-  if (await auth.refresh()) router.push(afterLoginTarget())
+  if (await auth.refresh()) goAfterLogin(router, auth.user?.home_page)
 }
 
 function toMfa(res: { mfa_token?: string; expected_code?: string }) {
@@ -198,7 +198,7 @@ function afterStep(res: Awaited<ReturnType<typeof auth.login>>) {
     passwordChangeToken.value = res.password_change_token
     notice.value = t('Your password has expired - set a new one')
   } else if (res.mfa_required) toMfa(res)
-  else router.push(afterLoginTarget())
+  else goAfterLogin(router, auth.user?.home_page)
 }
 
 async function submitNewPassword() {
@@ -240,7 +240,7 @@ async function loginWithPasskey() {
   passkeyLoading.value = true
   try {
     await auth.loginWithPasskey(email.value || undefined)
-    router.push(afterLoginTarget())
+    goAfterLogin(router, auth.user?.home_page)
   } catch (e: any) {
     if (e?.message === 'approval_pending') {
       notice.value = PENDING_MSG
@@ -317,7 +317,7 @@ async function verifyEmailCode() {
     } else if (res.mfa_required) {
       toMfa({ mfa_token: res.mfa_token })
     } else {
-      router.push(afterLoginTarget())
+      goAfterLogin(router, auth.user?.home_page)
     }
   } catch (e: any) {
     error.value =
