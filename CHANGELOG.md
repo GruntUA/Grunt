@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.17.0 - 2026-11-20
+
+### Features
+
+- **email:** queue priority, send-after, retries and unsubscribe
+- **email:** OAuth sign-in for Gmail / Microsoft 365 through ConnectedApp
+- **email:** incoming mail -> documents, letters from a document, mailbox extras
+- **groups:** share with a group, assign to a group, @mention a group
+- **groups:** UserGroup for notifications and assignment rules
+- Introduce Role Profiles and enhance User role management
+- **auth:** enhance role management with home page and site-only features
+- **menu:** show only the apps and sidebar items the user may open
+
+### Fixes
+
+- second review of #235 - mention search, group names, empty recipients
+- review of #235 - manager by email, ] in group names, mention position
+- review of #234 - role cache, profile roles, sidebar pages, paths
+- keep ?redirect= paths in the router; import TOTP from pyotp.totp
+
+### Other
+
+- **tests:** wrap a long assert in test_connected_app_oauth
+- Refactor code structure for improved readability and maintainability
+
 ## v0.16.0 - 2026-11-19
 
 ### Features
