@@ -1,0 +1,39 @@
+{
+  "name": "EmailUnsubscribe",
+  "label": "Email Unsubscribe",
+  "module": "email",
+  "icon": "mail-x",
+  "autoname": "hash",
+  "title_field": "email",
+  "track_activity": false,
+  "description": "Addresses that turned off notification emails - all of them, or one notification. Made by the unsubscribe link in a letter; delete a row to send them again.",
+  "indexes": [
+    [
+      "email",
+      "notification"
+    ]
+  ],
+  "fields": [
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "notification",
+      "label": "Notification",
+      "fieldtype": "Link",
+      "options": "Notification",
+      "in_list_view": true,
+      "description": "Empty — all notification emails, including the digest."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+    }
+  ]
+}

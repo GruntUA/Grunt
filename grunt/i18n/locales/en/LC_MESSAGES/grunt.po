@@ -92,6 +92,10 @@ msgstr ""
 msgid "%(doctype)s.%(field)s is already tracked"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "%(email)s will no longer get %(what)s."
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "%(field)s: template error - %(error)s"
 msgstr ""
@@ -445,6 +449,12 @@ msgstr ""
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid ""
 "A table inside other documents: access follows the document that holds it"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"A temporary failure (the server does not answer, 4xx) is tried again later, "
+"up to 5 times; a permanent one (5xx) is an error at once."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -845,6 +855,13 @@ msgstr ""
 msgid ""
 "Addresses or CIDR networks, comma or newline separated - on top of the "
 "role's own limit; empty - any"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid ""
+"Addresses that turned off notification emails - all of them, or one "
+"notification. Made by the unsubscribe link in a letter; delete a row to send"
+" them again."
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -1470,6 +1487,10 @@ msgstr ""
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Attachments"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Attempts failed"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
@@ -4475,6 +4496,7 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
@@ -4501,6 +4523,10 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Email Template"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid "Email Unsubscribe"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
@@ -4616,8 +4642,16 @@ msgid ""
 "Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid "Empty — all notification emails, including the digest."
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Empty — not connected yet. Connect with one of the buttons below."
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Empty — send now"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -6126,8 +6160,16 @@ msgstr ""
 msgid "Hide from global feed"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"High — sign-in codes and password resets; Low — notifications, digests and "
+"scheduled reports. The worker sends higher first, older first within one "
+"level."
 msgstr ""
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
@@ -6731,6 +6773,10 @@ msgstr ""
 
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Invalid code. Try again."
+msgstr ""
+
+#: grunt/grunt/api/v1/email.py
+msgid "Invalid date and time: %(value)s"
 msgstr ""
 
 #: grunt/frontend/src/core/validators.ts
@@ -7462,6 +7508,7 @@ msgstr ""
 msgid "Longitude (decimal degrees)"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Low"
 msgstr ""
@@ -8513,6 +8560,10 @@ msgstr ""
 msgid "None yet"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Normal"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "North America"
 msgstr ""
@@ -8530,6 +8581,12 @@ msgstr ""
 
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py
 msgid "Not authorized"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"Not before this time: a letter scheduled for later, or the next attempt "
+"after a temporary failure."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
@@ -8695,6 +8752,7 @@ msgstr ""
 msgid "Nothing to back up"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
@@ -9057,6 +9115,10 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Open the Google app passwords page"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Open the link from the letter again."
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -9752,6 +9814,7 @@ msgid ""
 "apps/grunt; on a new server also `playwright install-deps chromium` as root."
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -11477,6 +11540,14 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Send after"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Send at"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Send from"
 msgstr ""
@@ -13129,6 +13200,10 @@ msgstr ""
 msgid "The link has expired"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "The link is invalid"
+msgstr ""
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "The link is invalid or already used. Request a new code."
 msgstr ""
@@ -13233,6 +13308,10 @@ msgstr ""
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
 msgstr "The pywebpush package is not installed"
+
+#: grunt/grunt/notification/channels.py
+msgid "The recipient unsubscribed from these emails"
+msgstr ""
 
 #: grunt/grunt/db/errors.py
 msgid ""
@@ -14092,6 +14171,26 @@ msgstr ""
 msgid "Unseen"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from all notification emails"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from these emails"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from “%(name)s”"
+msgstr ""
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Unsubscribe link"
+msgstr ""
+
 #: grunt/grunt/io/doctypes/DataImport/data_import.py
 msgid "Unsupported file format: %(format)s"
 msgstr ""
@@ -14807,6 +14906,10 @@ msgstr ""
 msgid "Which field to show as the node label (default: title field)"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "Which letters should %(email)s no longer get?"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid ""
 "Which rows this rule covers: field == user, field != 'value' or "
@@ -15022,6 +15125,10 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "You are unsubscribed"
 msgstr ""
 
 #: grunt/grunt/notification/records/notification/reminder/reminder.json
@@ -15687,6 +15794,10 @@ msgstr ""
 msgid "notification - only from notification rules (their Webhook channel)"
 msgstr ""
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "notification emails"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
 msgid "now"
 msgstr ""
@@ -16333,6 +16444,10 @@ msgstr ""
 
 #: grunt/grunt/document/validation.py
 msgid "“%(fields)s” can't be changed once set"
+msgstr ""
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "“%(name)s” letters"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json

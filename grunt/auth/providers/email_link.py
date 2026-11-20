@@ -37,7 +37,7 @@ from grunt.auth.users import (
 )
 from grunt.config import settings
 from grunt.db.api import GruntDB
-from grunt.email.service import email_service
+from grunt.email.service import PRIORITY_HIGH, email_service
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import require_session, system_context
@@ -244,6 +244,7 @@ class EmailLoginProvider(AuthProvider):
             subject=_("Sign-in code"),
             body=plain,
             html_body=html_body,
+            priority=PRIORITY_HIGH,
         )
         await session.flush()
         if not queued:

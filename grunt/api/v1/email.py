@@ -7,6 +7,7 @@ RPC: grunt.api.v1.email.send_email
 
 import html as html_lib
 import re
+from datetime import UTC, datetime
 from typing import Any
 
 import aiosmtplib
@@ -169,7 +170,11 @@ async def list_queue(
 
 @whitelist(perm="grunt.manage_email")
 async def retry_item(queue_id: str) -> bool:
-    await _db.set_value("EmailQueue", queue_id, {"status": "Pending", "error_message": None})
+    await _db.set_value(
+        "EmailQueue",
+        queue_id,
+        {"status": "Pending", "error_message": None, "retry": 0, "send_after": None},
+    )
     return True
 
 
@@ -299,6 +304,17 @@ async def render_email_template(doctype: str, doc_id: str, template: str) -> dic
     return {"subject": subject, "body": body}
 
 
+def _parse_send_after(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        when = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        raise unprocessable(_("Invalid date and time: %(value)s") % {"value": value}) from None
+    when = when if when.tzinfo else when.replace(tzinfo=UTC)
+    return when if when > datetime.now(UTC) else None
+
+
 @whitelist()
 async def send_email(
     doctype: str,
@@ -312,14 +328,19 @@ async def send_email(
     reply_to: str | None = None,
     attach_print: bool = False,
     files: list[str] | None = None,
+    send_after: str | None = None,
 ) -> dict[str, Any]:
     """Send a letter from the document (on its timeline at once, ``Queued``).
+
+    ``send_after`` - an ISO date-time to send it at (a naive one is UTC, as the
+    form's Datetime field sends it); a past one means now.
 
     Needs write access to the document (and print access for its PDF). The
     files must be the document's own, up to 10 MB in all.
     """
     doc = await doc_guard(doctype, doc_id, "write")
     meta = await doctype_registry.get_meta(doctype)
+    when = _parse_send_after(send_after)
     if not split_addresses(to):
         raise unprocessable(_("Whom to send it to?"))
     for value in (to, cc, bcc):
@@ -391,5 +412,6 @@ async def send_email(
         attachments=attachments,
         in_reply_to=in_reply_to,
         message_references=references,
+        send_after=when,
     )
     return {"message": message}

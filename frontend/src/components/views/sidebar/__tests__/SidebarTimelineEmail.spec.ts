@@ -87,7 +87,7 @@ describe('SidebarTimeline - letters', () => {
 
     expect(api.emailComposeContext).toHaveBeenCalledWith('MailCase', 'C-1', 'm1')
     const fields = form.mock.calls[0][0].fields as { fieldname: string; default?: unknown }[]
-    expect(fields.map(f => f.fieldname)).toEqual(['to', 'cc', 'bcc', 'subject', 'content'])
+    expect(fields.map(f => f.fieldname)).toEqual(['to', 'cc', 'bcc', 'subject', 'content', 'send_after'])
     expect(String(fields.find(f => f.fieldname === 'content')?.default)).toContain('Підпис')
     expect(api.sendEmail).toHaveBeenCalledWith('MailCase', 'C-1', expect.objectContaining({
       to: 'citizen@example.org', reply_to: 'm1', email_account: 'acc', files: [],

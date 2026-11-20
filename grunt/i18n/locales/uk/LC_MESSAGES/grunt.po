@@ -97,6 +97,10 @@ msgstr "%(doctype)s «%(title)s» змінено"
 msgid "%(doctype)s.%(field)s is already tracked"
 msgstr "%(doctype)s.%(field)s уже відстежується"
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "%(email)s will no longer get %(what)s."
+msgstr "На %(email)s більше не надходитимуть %(what)s."
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "%(field)s: template error - %(error)s"
 msgstr "%(field)s: помилка в шаблоні — %(error)s"
@@ -486,6 +490,14 @@ msgid ""
 "A table inside other documents: access follows the document that holds it"
 msgstr ""
 "Таблиця всередині інших документів: доступ — як до документа, що її містить"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"A temporary failure (the server does not answer, 4xx) is tried again later, "
+"up to 5 times; a permanent one (5xx) is an error at once."
+msgstr ""
+"Після тимчасового збою (сервер не відповідає, 4xx) лист пробуємо надіслати "
+"знову, до 5 разів; після постійного (5xx) — одразу помилка."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -904,6 +916,15 @@ msgid ""
 msgstr ""
 "Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
 " ролі; порожньо — будь-які"
+
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid ""
+"Addresses that turned off notification emails - all of them, or one "
+"notification. Made by the unsubscribe link in a letter; delete a row to send"
+" them again."
+msgstr ""
+"Адреси, які вимкнули листи-сповіщення — усі або одне сповіщення. Створюються"
+" посиланням «Відписатися» в листі; видаліть рядок, щоб знову надсилати."
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Administrator sign-in"
@@ -1556,6 +1577,10 @@ msgstr "Вкласти файли документа"
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Attachments"
 msgstr "Вкладення"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Attempts failed"
+msgstr "Невдалих спроб"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid ""
@@ -4636,6 +4661,7 @@ msgstr "Підвищення прав"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
@@ -4663,6 +4689,10 @@ msgstr "Черга листів"
 #: grunt/grunt/email/doctypes/EmailTemplate/EmailTemplate.json
 msgid "Email Template"
 msgstr "Шаблон листа"
+
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid "Email Unsubscribe"
+msgstr "Відписка від листів"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Email address"
@@ -4785,9 +4815,17 @@ msgstr ""
 "Порожньо — CAPTCHA вимкнено для всього сайту, навіть на формах, які її "
 "вимагають."
 
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
+msgid "Empty — all notification emails, including the digest."
+msgstr "Порожньо — усі листи-сповіщення, зокрема дайджест."
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Empty — not connected yet. Connect with one of the buttons below."
 msgstr "Порожньо — ще не підключено. Підключіть однією з кнопок нижче."
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Empty — send now"
+msgstr "Порожньо — надіслати зараз"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Empty — the standard one (SFTP 22, SMB 445)."
@@ -6356,9 +6394,20 @@ msgstr "Сховати чеклист"
 msgid "Hide from global feed"
 msgstr "Приховати із загальної стрічки"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
 msgstr "Високий"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"High — sign-in codes and password resets; Low — notifications, digests and "
+"scheduled reports. The worker sends higher first, older first within one "
+"level."
+msgstr ""
+"Високий — коди входу й скидання пароля; Низький — сповіщення, дайджести й "
+"звіти за розкладом. Спершу надсилаються листи з вищим пріоритетом, у межах "
+"рівня — давніші."
 
 #: grunt/frontend/src/components/fields/RichText/editor/commands.ts
 msgid "Highlight"
@@ -6996,6 +7045,10 @@ msgstr "Невірний код або помилка"
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Invalid code. Try again."
 msgstr "Невірний код. Спробуйте ще раз."
+
+#: grunt/grunt/api/v1/email.py
+msgid "Invalid date and time: %(value)s"
+msgstr "Неправильні дата й час: %(value)s"
 
 #: grunt/frontend/src/core/validators.ts
 msgid "Invalid email format"
@@ -7755,6 +7808,7 @@ msgstr "Довгота"
 msgid "Longitude (decimal degrees)"
 msgstr "Географічна довгота (десяткові градуси)"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "Low"
 msgstr "Низький"
@@ -8831,6 +8885,10 @@ msgstr "Немає"
 msgid "None yet"
 msgstr "Ще немає"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Normal"
+msgstr "Звичайний"
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "North America"
 msgstr "Північна Америка"
@@ -8852,6 +8910,14 @@ msgstr "Не дозволено"
 #: grunt/grunt/startup/doctypes/GruntInstalledApp/grunt_installed_app.py
 msgid "Not authorized"
 msgstr "Немає дозволу"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid ""
+"Not before this time: a letter scheduled for later, or the next attempt "
+"after a temporary failure."
+msgstr ""
+"Не раніше цього часу: лист, запланований на потім, або наступна спроба після"
+" тимчасового збою."
 
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 msgid "Not by the author"
@@ -9023,6 +9089,7 @@ msgstr "Нічого не знайдено за запитом «{query}»"
 msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
+#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
@@ -9406,6 +9473,10 @@ msgstr "Трейс — у записі Error Log."
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Open the Google app passwords page"
 msgstr "Відкрити сторінку паролів додатків Google"
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Open the link from the letter again."
+msgstr "Відкрийте посилання з листа ще раз."
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid ""
@@ -10143,6 +10214,7 @@ msgstr ""
 " apps/grunt; на новому сервері ще й `playwright install-deps chromium` від "
 "root."
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/scripting/doctypes/Hook/Hook.json
@@ -11942,6 +12014,14 @@ msgstr "Вибрано: {n}"
 msgid "Send"
 msgstr "Надіслати"
 
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Send after"
+msgstr "Надіслати після"
+
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "Send at"
+msgstr "Надіслати о"
+
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid "Send from"
 msgstr "Надсилати з"
@@ -13657,6 +13737,10 @@ msgstr "За посиланням відповіли помилкою (%(code)s)
 msgid "The link has expired"
 msgstr "Термін дії посилання закінчився"
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "The link is invalid"
+msgstr "Посилання недійсне"
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "The link is invalid or already used. Request a new code."
 msgstr "Посилання недійсне або вже використане. Запросіть новий код."
@@ -13775,6 +13859,10 @@ msgstr ""
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
 msgstr "Пакет pywebpush не встановлено"
+
+#: grunt/grunt/notification/channels.py
+msgid "The recipient unsubscribed from these emails"
+msgstr "Отримувач відписався від цих листів"
 
 #: grunt/grunt/db/errors.py
 msgid ""
@@ -14680,6 +14768,26 @@ msgstr "Знайдено незбережені зміни ({time}). Відно�
 msgid "Unseen"
 msgstr "Не переглянуто"
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe"
+msgstr "Відписатися"
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from all notification emails"
+msgstr "Відписатися від усіх листів-сповіщень"
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from these emails"
+msgstr "Відписатися від цих листів"
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "Unsubscribe from “%(name)s”"
+msgstr "Відписатися від «%(name)s»"
+
+#: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
+msgid "Unsubscribe link"
+msgstr "Посилання для відписки"
+
 #: grunt/grunt/io/doctypes/DataImport/data_import.py
 msgid "Unsupported file format: %(format)s"
 msgstr "Непідтримуваний формат файлу: %(format)s"
@@ -15439,6 +15547,10 @@ msgstr "Яке поле відображається як назва докум�
 msgid "Which field to show as the node label (default: title field)"
 msgstr "Яке поле показувати як підпис вузла (default: поле заголовка)"
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "Which letters should %(email)s no longer get?"
+msgstr "Які листи більше не надсилати на %(email)s?"
+
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid ""
 "Which rows this rule covers: field == user, field != 'value' or "
@@ -15673,6 +15785,10 @@ msgstr "Ви вже стежите за цим документом"
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
 msgstr "Ви не можете створювати документи «%(doctype)s»"
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "You are unsubscribed"
+msgstr "Вас відписано"
 
 #: grunt/grunt/notification/records/notification/reminder/reminder.json
 msgid "You asked to be reminded"
@@ -16350,6 +16466,10 @@ msgstr "не працює"
 msgid "notification - only from notification rules (their Webhook channel)"
 msgstr "notification — лише з правил сповіщень (їхній канал «Вебхук»)"
 
+#: grunt/grunt/email/unsubscribe.py
+msgid "notification emails"
+msgstr "листи-сповіщення"
+
 #: grunt/frontend/src/components/views/sidebar/SidebarMilestones.vue
 msgid "now"
 msgstr "досі"
@@ -17013,6 +17133,10 @@ msgstr "«%(field)s» не є полем %(doctype)s, яке можна відс
 #: grunt/grunt/document/validation.py
 msgid "“%(fields)s” can't be changed once set"
 msgstr "«%(fields)s» не можна змінити після встановлення"
+
+#: grunt/grunt/email/unsubscribe.py
+msgid "“%(name)s” letters"
+msgstr "листи «%(name)s»"
 
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 msgid "“*” - not tied to a DocType (recent documents)"
