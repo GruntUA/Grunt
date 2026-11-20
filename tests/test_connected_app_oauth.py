@@ -249,7 +249,11 @@ async def test_expired_token_is_refreshed_and_refresh_token_kept(ctx, mailbox, t
     )
     answers.append({"access_token": "NEW", "expires_in": 3600})
     assert await oauth.get_access_token("EmailAccount", mailbox["name"]) == "NEW"
-    assert calls[-1] == {"app": "Council M365", "grant_type": "refresh_token", "refresh_token": "RT"}
+    assert calls[-1] == {
+        "app": "Council M365",
+        "grant_type": "refresh_token",
+        "refresh_token": "RT",
+    }
     token = await oauth.find_token("EmailAccount", mailbox["name"])
     assert token and token["refresh_token"] == "RT" and token["access_token"] == "NEW"
 
