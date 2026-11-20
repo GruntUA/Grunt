@@ -25,6 +25,7 @@ Each row in the **Recipients** table adds recipients of one kind:
 
 - **Author**: the document's owner.
 - **Role**: every active user with the role.
+- **User group**: every active member of the group (`UserGroup`). A group gives no permissions, and its manager keeps the member list.
 - **User**: one user.
 - **Document field**: the user or email address in a field of the document. The value can also come through a link, e.g. `client.email`.
 - **Email**: a literal email address.

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import { ArrowRight, Trash2, Send, Reply } from '@lucide/vue'
+import { ArrowRight, Trash2, Send, Reply, Users } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange } from '@/core/api/docs'
 import { authApi } from '@/core/api/auth-admin'
 import { useAuthStore } from '@/stores/auth'
@@ -312,15 +312,38 @@ function onReplyKeydown(e: KeyboardEvent) {
   }
 }
 
-// @mention autocomplete logic (retained for functionality)
+// @mention autocomplete: users (@email) and user groups (@[Group name] -
+// every member is notified).
+type MentionOption = { kind: 'user'; user: Colleague } | { kind: 'group'; name: string }
 const allUsers = ref<Colleague[]>([])
-const mentionDropdown = ref<Colleague[]>([])
+const mentionDropdown = ref<MentionOption[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
+// Where the "@" being completed sits in the input - the query is lowercased
+// for matching, so it can't be found again by searching the text.
+const mentionStart = ref(-1)
 
 async function ensureUsers() {
   if (allUsers.value.length) return
-  try { allUsers.value = await authApi.listColleagues() } catch { /* silent */ }
+  allUsers.value = await authApi.listColleagues().catch(() => [])
+}
+
+// Groups are searched on the server - however many there are; a failed
+// search just offers none this time.
+async function searchGroups(q: string): Promise<string[]> {
+  try {
+    const r = await docsApi.list('UserGroup', {
+      fields: 'name', per_page: 3, sort: 'name', order: 'asc',
+      ...(q ? { rawFilters: { name__like: q } } : {}),
+    })
+    return r.data.map((g) => String(g.name))
+  } catch {
+    return []
+  }
+}
+
+function mentionKey(o: MentionOption): string {
+  return o.kind === 'user' ? `u:${o.user.email}` : `g:${o.name}`
 }
 
 function onCommentInput(e: Event) {
@@ -328,16 +351,20 @@ function onCommentInput(e: Event) {
   const val = ta.value
   const pos = ta.selectionStart ?? val.length
   const before = val.slice(0, pos)
-  const match = before.match(/@([\w.+-]*)$/)
+  // Letters of any script: an email prefix or the start of a group name.
+  const match = before.match(/@([\p{L}\p{N}_.+-]*)$/u)
   if (match) {
+    mentionStart.value = pos - match[0].length
     mentionQuery.value = match[1].toLowerCase()
-    ensureUsers().then(() => {
-      mentionDropdown.value = allUsers.value
-        .filter(u =>
-          u.email.toLowerCase().includes(mentionQuery.value) ||
-          u.full_name?.toLowerCase().includes(mentionQuery.value)
-        )
+    const q = mentionQuery.value
+    Promise.all([ensureUsers(), searchGroups(match[1])]).then(([, groupNames]) => {
+      if (q !== mentionQuery.value) return // the user typed on meanwhile
+      const users: MentionOption[] = allUsers.value
+        .filter(u => u.email.toLowerCase().includes(q) || u.full_name?.toLowerCase().includes(q))
         .slice(0, 6)
+        .map(user => ({ kind: 'user', user }))
+      const groups: MentionOption[] = groupNames.map(name => ({ kind: 'group', name }))
+      mentionDropdown.value = [...users, ...groups]
       mentionIndex.value = 0
     })
   } else {
@@ -345,10 +372,12 @@ function onCommentInput(e: Event) {
   }
 }
 
-function insertMention(user: Colleague) {
+function insertMention(option: MentionOption) {
   const before = commentInput.value
-  const pos = before.lastIndexOf('@' + mentionQuery.value)
-  commentInput.value = before.slice(0, pos) + `@${user.email} ` + before.slice(pos + 1 + mentionQuery.value.length)
+  const pos = mentionStart.value
+  if (pos < 0) return
+  const token = option.kind === 'user' ? `@${option.user.email} ` : `@[${option.name}] `
+  commentInput.value = before.slice(0, pos) + token + before.slice(pos + 1 + mentionQuery.value.length)
   mentionDropdown.value = []
 }
 
@@ -401,20 +430,29 @@ onMounted(loadTimeline)
         </PopoverAnchor>
         <PopoverContent side="top" align="start" class="w-(--reka-popper-anchor-width) p-1"
           @open-auto-focus.prevent @close-auto-focus.prevent>
-          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user') }}</div>
+          <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ t('Mention a user or a group') }}</div>
           <ItemGroup class="max-h-56 overflow-y-auto">
-            <Item v-for="(u, i) in mentionDropdown" :key="u.id" as="button" type="button" size="sm"
+            <Item v-for="(o, i) in mentionDropdown" :key="mentionKey(o)" as="button" type="button" size="sm"
               class="w-full flex-nowrap gap-2 px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground"
               :class="i === mentionIndex && 'bg-accent text-accent-foreground'"
-              @mousedown.prevent="insertMention(u)">
+              @mousedown.prevent="insertMention(o)">
               <ItemMedia>
                 <Avatar class="size-6">
-                  <AvatarFallback class="text-[10px]">{{ (u.full_name || u.email).slice(0, 2).toUpperCase() }}</AvatarFallback>
+                  <AvatarFallback class="text-[10px]">
+                    <Users v-if="o.kind === 'group'" class="size-3.5" />
+                    <template v-else>{{ (o.user.full_name || o.user.email).slice(0, 2).toUpperCase() }}</template>
+                  </AvatarFallback>
                 </Avatar>
               </ItemMedia>
               <ItemContent class="min-w-0 gap-0">
-                <ItemTitle class="w-full"><span class="truncate">{{ u.full_name || u.email }}</span></ItemTitle>
-                <ItemDescription v-if="u.full_name" class="truncate text-xs">{{ u.email }}</ItemDescription>
+                <template v-if="o.kind === 'group'">
+                  <ItemTitle class="w-full"><span class="truncate">{{ o.name }}</span></ItemTitle>
+                  <ItemDescription class="truncate text-xs">{{ t('every member of the group') }}</ItemDescription>
+                </template>
+                <template v-else>
+                  <ItemTitle class="w-full"><span class="truncate">{{ o.user.full_name || o.user.email }}</span></ItemTitle>
+                  <ItemDescription v-if="o.user.full_name" class="truncate text-xs">{{ o.user.email }}</ItemDescription>
+                </template>
               </ItemContent>
             </Item>
           </ItemGroup>

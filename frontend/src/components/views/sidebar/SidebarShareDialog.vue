@@ -29,10 +29,11 @@ const emit = defineEmits<{ shared: [] }>()
 
 const { t } = useI18n()
 
-type Kind = 'user' | 'role' | 'everyone'
+type Kind = 'user' | 'role' | 'group' | 'everyone'
 const kind = ref<Kind>('user')
 const user = ref('')
 const role = ref('')
+const group = ref('')
 const permission = ref<'Read' | 'Write'>('Read')
 const canReshare = ref(false)
 const validTo = ref<string | null>(null)
@@ -48,17 +49,22 @@ watch(open, (v) => {
   kind.value = 'user'
   user.value = ''
   role.value = ''
+  group.value = ''
   permission.value = 'Read'
   canReshare.value = false
   validTo.value = null
 })
 
 const roleField = { fieldname: 'role', fieldtype: 'Link', label: '', options: 'Role' } as DocField
+const groupField = { fieldname: 'user_group', fieldtype: 'Link', label: '', options: 'UserGroup' } as DocField
 const dateField = { fieldname: 'valid_to', fieldtype: 'Date', label: '' } as DocField
 
-const ready = computed(() =>
-  kind.value === 'everyone' || (kind.value === 'user' ? !!user.value : !!role.value),
-)
+const ready = computed(() => {
+  if (kind.value === 'user') return !!user.value
+  if (kind.value === 'role') return !!role.value
+  if (kind.value === 'group') return !!group.value
+  return true
+})
 
 async function submit() {
   if (!ready.value) return
@@ -69,6 +75,7 @@ async function submit() {
   }
   if (kind.value === 'user') target.user = user.value
   else if (kind.value === 'role') target.role = role.value
+  else if (kind.value === 'group') target.user_group = group.value
   else target.everyone = true
   const mine = session
   saving.value = true
@@ -90,7 +97,7 @@ async function submit() {
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>{{ t('Share document') }}</DialogTitle>
-        <DialogDescription>{{ t('Give access to this document to a user, everyone holding a role, or every user.') }}</DialogDescription>
+        <DialogDescription>{{ t('Give access to this document to a user, everyone holding a role, the members of a group, or every user.') }}</DialogDescription>
       </DialogHeader>
 
       <FieldGroup>
@@ -105,6 +112,7 @@ async function submit() {
           >
             <ToggleGroupItem value="user" class="flex-1">{{ t('User') }}</ToggleGroupItem>
             <ToggleGroupItem value="role" class="flex-1">{{ t('Role') }}</ToggleGroupItem>
+            <ToggleGroupItem value="group" class="flex-1">{{ t('Group') }}</ToggleGroupItem>
             <ToggleGroupItem value="everyone" class="flex-1">{{ t('Everyone') }}</ToggleGroupItem>
           </ToggleGroup>
         </Field>
@@ -136,6 +144,12 @@ async function submit() {
           <FieldLabel>{{ t('Role') }}</FieldLabel>
           <LinkField :field="roleField" :model-value="role" @update:model-value="role = ($event as string) ?? ''" />
           <FieldDescription>{{ t('Everyone holding the role gets access, whatever the scope of their role.') }}</FieldDescription>
+        </Field>
+
+        <Field v-else-if="kind === 'group'">
+          <FieldLabel>{{ t('User group') }}</FieldLabel>
+          <LinkField :field="groupField" :model-value="group" @update:model-value="group = ($event as string) ?? ''" />
+          <FieldDescription>{{ t('Every member of the group gets access, including those added later.') }}</FieldDescription>
         </Field>
 
         <FieldDescription v-else>{{ t('Every signed-in user gets access. Nobody is notified.') }}</FieldDescription>

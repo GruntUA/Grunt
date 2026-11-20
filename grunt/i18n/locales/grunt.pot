@@ -309,6 +309,10 @@ msgstr ""
 msgid "A folder must be inside another folder"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't contain “]”"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
 msgstr ""
@@ -1244,6 +1248,14 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "Assign to User"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Assign to a group…"
+msgstr ""
+
+#: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
+msgid "Assign to group"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
@@ -3670,6 +3682,7 @@ msgstr ""
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
@@ -4214,6 +4227,10 @@ msgid ""
 "will not be shown again."
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "Each member gets their own task; members already assigned are skipped."
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Each message arrives several times — notifications are duplicated."
 msgstr ""
@@ -4677,6 +4694,14 @@ msgstr ""
 msgid ""
 "Every document is also a public web page, rendered by the DocType's "
 "templates/<Name>.html or the generic layout"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+msgid "Every member of the group"
+msgstr ""
+
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+msgid "Every member of the group gets access, including those added later."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -5596,8 +5621,8 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 msgid ""
-"Give access to this document to a user, everyone holding a role, or every "
-"user."
+"Give access to this document to a user, everyone holding a role, the members"
+" of a group, or every user."
 msgstr ""
 
 #: grunt/frontend/src/pages/app/SearchResultsPage.vue
@@ -5706,6 +5731,8 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/DocTypeAction/DocTypeAction.json
 #: grunt/grunt/metadata/doctypes/DocTypeLink/DocTypeLink.json
 #: grunt/frontend/src/components/dashboard/widgets/Table/Table.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/components/views/list/ListGroupedView.vue
 msgid "Group"
@@ -7312,6 +7339,10 @@ msgstr ""
 msgid "Manage workspaces and pages"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid "Manager"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
 msgstr ""
@@ -7408,6 +7439,12 @@ msgstr ""
 msgid "May"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"May change who is in the group. Only user administrators appoint the "
+"manager."
+msgstr ""
+
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
 msgid "Median, ms"
 msgstr ""
@@ -7416,8 +7453,12 @@ msgstr ""
 msgid "Medium"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid "Members"
+msgstr ""
+
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-msgid "Mention a user"
+msgid "Mention a user or a group"
 msgstr ""
 
 #: grunt/grunt/notification/events.py
@@ -7697,6 +7738,7 @@ msgstr ""
 #: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -8643,6 +8685,10 @@ msgid ""
 "transition"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "Only user administrators appoint the group's manager"
+msgstr ""
+
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 #: grunt/frontend/src/core/composables/useMapMarkers.ts
 #: grunt/frontend/src/components/desk/OnboardingChecklists.vue
@@ -9138,6 +9184,12 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "Pending migrations. Run `grunt migrate`."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"People to notify, assign or share with together - a department, a "
+"commission. A group gives no permissions."
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfStat/PerfStat.json
@@ -11295,7 +11347,7 @@ msgid "Share of the section; columns without a width split the rest"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
-msgid "Share with one of: a user, a role or everyone"
+msgid "Share with one of: a user, a role, a user group or everyone"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -13698,6 +13750,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/auth/doctypes/WebAuthnCredential/WebAuthnCredential.json
+#: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/ApiKey/ApiKey.json
@@ -13710,6 +13763,7 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "User"
 msgstr ""
 
@@ -13719,6 +13773,23 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid "User field"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+#: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
+#: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
+#: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
+msgid "User group"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroupMember/UserGroupMember.json
+msgid "User group member"
+msgstr ""
+
+#: grunt/grunt/permissions/doctypes/SharedWith/shared_with.py
+#: grunt/grunt/api/v1/document/collaboration.py
+msgid "User group “%(group)s” not found"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py grunt/grunt/auth/impersonation.py
@@ -14230,8 +14301,8 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 msgid ""
-"Who is assigned; empty - the holders of the role below (within their role "
-"scope)"
+"Who is assigned; empty - the members of the group below, else the holders of"
+" the role (within their role scope)"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -14814,6 +14885,10 @@ msgstr ""
 msgid "every document"
 msgstr ""
 
+#: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
+msgid "every member of the group"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "exactly one copy"
 msgstr ""
@@ -15383,6 +15458,10 @@ msgid "with everyone"
 msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
+msgid "with the group {group}"
+msgstr ""
+
+#: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "with the role {role}"
 msgstr ""
 
@@ -15880,4 +15959,22 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgctxt "status"
 msgid "Open"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/notification.py
+msgid "Recipient “%(kind)s”: choose whom it means"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name can't start or end with a space"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/user_group.py
+msgid "A group name is at most %(count)d characters"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
+msgid ""
+"Also the group's id and how a comment mentions it (@[Name]). To change it "
+"later, rename the group."
 msgstr ""

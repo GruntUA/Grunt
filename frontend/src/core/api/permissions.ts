@@ -39,7 +39,7 @@ export interface AccessTrace {
   role_grants: boolean
   /** False - the document follows the access of the documents in `followed`. */
   rules_decide: boolean
-  shares: { name: string; via: 'user' | 'role' | 'everyone'; role: string | null; permission: string; can_reshare: boolean; valid_to: string | null }[]
+  shares: { name: string; via: 'user' | 'role' | 'group' | 'everyone'; role: string | null; user_group: string | null; permission: string; can_reshare: boolean; valid_to: string | null }[]
   followed: { field: string; doctype: string; name: string; allowed: boolean }[]
   hidden_fields: string[]
   readonly_fields: string[]

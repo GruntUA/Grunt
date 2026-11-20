@@ -68,6 +68,14 @@
     {
       "section": "Користувачі та доступ",
       "type": "DocType",
+      "label": "Групи користувачів",
+      "link_to": "UserGroup",
+      "icon": "users-round",
+      "show_count": false
+    },
+    {
+      "section": "Користувачі та доступ",
+      "type": "DocType",
       "label": "Ролі",
       "link_to": "Role",
       "icon": "shield",

@@ -13,6 +13,14 @@ from grunt.notification.events import get_event
 from grunt.standard_records import mark_customized
 
 _SYSTEM_DATES = ("created_at", "modified_at")
+# Recipient kind -> the field naming whom it means.
+_RECIPIENT_TARGET = {
+    "Role": "role",
+    "User group": "user_group",
+    "User": "user",
+    "Document field": "field",
+    "Email": "email",
+}
 
 
 class Notification(Document):
@@ -101,6 +109,15 @@ class Notification(Document):
             throw(_("Add at least one recipient"), "VALIDATION_ERROR")
         if not self.get("channels"):
             throw(_("Add at least one channel"), "VALIDATION_ERROR")
+        for row in self.get("recipients") or []:
+            # ``mandatory_depends_on`` holds in the form only - a row without
+            # its target would silently notify nobody.
+            field = _RECIPIENT_TARGET.get(row.get("kind") or "")
+            if field and not str(row.get(field) or "").strip():
+                throw(
+                    _("Recipient “%(kind)s”: choose whom it means") % {"kind": _(row["kind"])},
+                    "VALIDATION_ERROR",
+                )
         if self.get("event") != "code" and any(
             row.get("kind") == "Event recipients" for row in self.get("recipients") or []
         ):

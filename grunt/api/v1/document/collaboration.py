@@ -3,6 +3,7 @@
 RPC: grunt.api.v1.document.collaboration.get_comments
 RPC: grunt.api.v1.document.collaboration.add_comment
 RPC: grunt.api.v1.document.collaboration.delete_comment
+RPC: grunt.api.v1.document.collaboration.assign_to_group
 RPC: grunt.api.v1.document.collaboration.get_bookmark
 RPC: grunt.api.v1.document.collaboration.add_bookmark
 RPC: grunt.api.v1.document.collaboration.remove_bookmark
@@ -19,6 +20,7 @@ from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.local import require_session, system_context, user_email
 from grunt.notification.events import trigger
+from grunt.permissions.groups import MAX_GROUP_NAME, group_emails
 from grunt.permissions.guards import doc_guard
 from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
@@ -59,7 +61,8 @@ async def add_comment(
     comment_type: str = "Comment",
     parent_comment: str | None = None,
 ) -> dict[str, Any]:
-    """Add a comment to a document. Parses @email mentions.
+    """Add a comment to a document. Parses @email mentions and
+    ``@[Group name]`` - every active member of the user group.
 
     ``parent_comment`` makes it a reply; the parent's author is notified.
     """
@@ -82,6 +85,11 @@ async def add_comment(
 
     # @mention notifications
     mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
+    # The name as written and trimmed - a group saved before names were
+    # trimmed (UserGroup.validate) keeps its padded id.
+    raw = re.findall(rf"@\[([^\]\n]{{1,{MAX_GROUP_NAME}}})\]", content)
+    groups = sorted({g for name in raw for g in (name, name.strip()) if g.strip()})
+    mentions |= set(await group_emails(groups))
     mentions.discard(user_email())  # do not notify self
     if mentions:
         await _comment_event("grunt.comment.mentioned", comment, sorted(mentions))
@@ -95,6 +103,50 @@ async def add_comment(
             await _comment_event("grunt.comment.replied", comment, [root_author])
 
     return comment
+
+
+@whitelist()
+async def assign_to_group(
+    doctype: str, doc_id: str, group: str, description: str = ""
+) -> dict[str, Any]:
+    """Assign the document to every active member of *group* - a ToDo each,
+    as if assigned one by one (needs creating ToDos); members it is already
+    openly assigned to are skipped. Returns ``{"assigned": [emails]}``."""
+    await doc_guard(doctype, doc_id)
+    async with system_context(require_session()):
+        if not await _db.exists("UserGroup", group):
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND,
+                detail=_("User group “%(group)s” not found") % {"group": group},
+            )
+        taken = set(
+            await _db.get_all(
+                "ToDo",
+                filters={
+                    "reference_doctype": doctype,
+                    "reference_id": doc_id,
+                    "status__in": ["Open", "In Progress"],
+                },
+                pluck="assigned_to",
+                limit=None,
+            )
+        )
+    assigned: list[str] = []
+    for email in await group_emails([group]):
+        if email in taken:
+            continue
+        await documents.new_doc(
+            "ToDo",
+            {
+                "reference_doctype": doctype,
+                "reference_id": doc_id,
+                "assigned_to": email,
+                "status": "Open",
+                "description": description.strip() or f"Assigned to {email}",
+            },
+        )
+        assigned.append(email)
+    return {"assigned": assigned}
 
 
 async def _comment_event(key: str, comment: dict[str, Any], recipients: list[str]) -> None:

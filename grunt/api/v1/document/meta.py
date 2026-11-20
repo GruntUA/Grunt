@@ -311,6 +311,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
                 "name": str(r["name"]),
                 "user": r.get("user"),
                 "role": r.get("role"),
+                "user_group": r.get("user_group") or None,
                 "everyone": bool(r.get("everyone")),
                 "permission": r.get("permission"),
                 "can_reshare": bool(r.get("can_reshare")),

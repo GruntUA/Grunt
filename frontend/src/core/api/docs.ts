@@ -94,6 +94,7 @@ export interface SidebarShare {
   name: string
   user: string | null
   role: string | null
+  user_group: string | null
   everyone: boolean
   permission: 'Read' | 'Write'
   can_reshare: boolean
@@ -105,6 +106,7 @@ export interface SidebarShare {
 export interface ShareTarget {
   user?: string
   role?: string
+  user_group?: string
   everyone?: boolean
   permission: 'Read' | 'Write'
   can_reshare?: boolean
@@ -440,6 +442,15 @@ export const docsApi = {
       assigned_to: user,
       status: 'Open',
       description: description?.trim() || assignmentPlaceholder(user),
+    }).then(r => r.data.data),
+
+  /** A ToDo for every active member of *group* not openly assigned yet. */
+  assignToGroup: (doctype: string, id: string, group: string, description?: string): Promise<{ assigned: string[] }> =>
+    client.post('/api/v1/method/grunt.api.v1.document.collaboration.assign_to_group', {
+      doctype,
+      doc_id: id,
+      group,
+      description: description?.trim() ?? '',
     }).then(r => r.data.data),
 
   share: (doctype: string, id: string, target: ShareTarget): Promise<GruntDocument> =>

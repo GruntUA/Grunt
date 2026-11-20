@@ -25,6 +25,7 @@ from grunt.notification import delivery_log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
 lazy from grunt.print.pdf import html_to_pdf
 lazy from grunt.print.renderer import render_print_html
@@ -198,6 +199,8 @@ async def resolve_recipients(
             found.append(str(doc.get("owner") or ""))
         elif kind == "Role" and row.get("role"):
             found += await _role_users(row["role"], doctype, doc)
+        elif kind == "User group" and row.get("user_group"):
+            found += await group_emails([row["user_group"]])
         elif kind == "User" and row.get("user"):
             found.append(await _user_email(row["user"]) or "")
         elif kind == "Document field" and row.get("field"):

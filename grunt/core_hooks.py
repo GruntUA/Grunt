@@ -35,6 +35,10 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_save": ["grunt.notification.sla.invalidate"],
         "after_delete": ["grunt.notification.sla.invalidate"],
     },
+    # A group's id is its name (autoname field:group_name): a rename renames both.
+    "UserGroup": {
+        "after_rename": ["grunt.permissions.groups.rename_group"],
+    },
     # Tell a document's followers (DocFollow) about new comments on it.
     "Comment": {
         "after_insert": ["grunt.activity.follow.notify_followers_of_comment"],
