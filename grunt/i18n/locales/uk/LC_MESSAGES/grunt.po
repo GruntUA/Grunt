@@ -447,6 +447,7 @@ msgid "A role an API key acts with - one its user holds."
 msgstr "Роль, з якою діє API-ключ, — одна з ролей його користувача."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
 msgstr "Збережений секрет більше не показується — щоб змінити, введіть новий."
 
@@ -611,6 +612,14 @@ msgstr "Доступ"
 msgid "Access Log"
 msgstr "Журнал доступу до даних"
 
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid ""
+"Access a connected app granted to a document. Created by «Connect account» "
+"on the document; delete to disconnect."
+msgstr ""
+"Доступ, який підключений застосунок надав документу. Створюється кнопкою "
+"«Підключити обліковий запис» у документі; видаліть, щоб відключити."
+
 #: grunt/frontend/src/pages/auth/MfaVerify.vue
 msgid "Access code"
 msgstr "Код доступу"
@@ -620,6 +629,10 @@ msgstr "Код доступу"
 msgid "Access denied"
 msgstr "Доступ заборонено"
 
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Access expires at"
+msgstr "Доступ діє до"
+
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Access is given by the role: {roles}"
 msgstr "Доступ дає роль: {roles}"
@@ -628,9 +641,20 @@ msgstr "Доступ дає роль: {roles}"
 msgid "Access key ID"
 msgstr "Access key ID"
 
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Access token"
+msgstr "Токен доступу"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid ""
+"Access was allowed by {account}, not by {email}: mail is sent as {account}."
+msgstr ""
+"Доступ надав {account}, а не {email}: пошта йтиме від імені {account}."
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 msgid "Account"
 msgstr "Обліковий запис"
 
@@ -1103,6 +1127,16 @@ msgstr ""
 msgid "An Image or Attach field for the document avatar"
 msgstr "Поле типу Image або Attach для аватара документа"
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"An OAuth app registered at Google, Microsoft or another provider: through it"
+" a document (an email account) gets access to the service without a "
+"password."
+msgstr ""
+"OAuth-застосунок, зареєстрований у Google, Microsoft або іншого провайдера: "
+"через нього документ (поштова скринька) отримує доступ до сервісу без "
+"пароля."
+
 #: grunt/grunt/site/records/module_onboarding/system_setup/system_setup.json
 msgid ""
 "An SMTP account the system sends notifications and password resets from."
@@ -1295,6 +1329,10 @@ msgstr "Приблизно: зафіксовано на початку відс�
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "Apps"
 msgstr "Додатки"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.js
+msgid "Apps are registered at"
+msgstr "Застосунки реєструють тут"
 
 #: grunt/grunt/monitoring/health.py
 msgid ""
@@ -1555,6 +1593,10 @@ msgstr "Для доступу до файлу потрібна автентиф�
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Author"
 msgstr "Автор"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Authorization URL"
+msgstr "Адреса авторизації"
 
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/frontend/src/components/fields/RichText/ui/FontMenus.vue
@@ -2401,6 +2443,14 @@ msgstr "Обрати зі списку"
 msgid "Choose from the tree"
 msgstr "Вибрати з дерева"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "Choose the connected app first"
+msgstr "Спершу виберіть підключений застосунок"
+
+#: grunt/grunt/email/doctypes/EmailAccount/email_account.py
+msgid "Choose the connected app the mailbox signs in through"
+msgstr "Виберіть підключений застосунок, через який скринька входить"
+
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Choose the date field to count from"
 msgstr "Оберіть поле дати, від якого рахувати"
@@ -2506,7 +2556,12 @@ msgstr "Натисніть на будь-який тип у лівій пане�
 msgid "Click to copy «{name}»"
 msgstr "Клацніть, щоб скопіювати «{name}»"
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Client"
+msgstr "Клієнт"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "Client ID"
 msgstr "Client ID"
 
@@ -2515,6 +2570,7 @@ msgid "Client Script"
 msgstr "Клієнтський скрипт"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "Client secret"
 msgstr "Client secret"
 
@@ -2858,11 +2914,30 @@ msgstr "Підключити"
 msgid "Connect a mailbox"
 msgstr "Підключити поштову скриньку"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Connect account"
+msgstr "Підключити обліковий запис"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Connected App"
+msgstr "Підключений застосунок"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Connected account"
 msgstr "Підключений обліковий запис"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Connected app"
+msgstr "Підключений застосунок"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "Connected app “%(name)s” not found"
+msgstr "Підключений застосунок «%(name)s» не знайдено"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 msgid "Connected at"
 msgstr "Підключено"
 
@@ -3997,6 +4072,14 @@ msgstr "Пряме посилання"
 msgid "Direction"
 msgstr "Напрям"
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"Directory (tenant) ID of your organization, or «common» to let any Microsoft"
+" account connect, «organizations» — any work account."
+msgstr ""
+"Ідентифікатор каталогу (tenant) вашої організації; «common» — будь-який "
+"обліковий запис Microsoft, «organizations» — будь-який робочий."
+
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Disable"
 msgstr "Вимкнути"
@@ -4033,6 +4116,14 @@ msgstr "Відкинути зміни, зроблені на цьому сайт
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid "Discard unsaved permission changes?"
 msgstr "Відкинути незбережені зміни прав?"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Disconnect"
+msgstr "Відключити"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "Disconnect the account?"
+msgstr "Відключити обліковий запис?"
 
 #: grunt/frontend/src/components/desk/TaskProgressPanel.vue
 #: grunt/frontend/src/components/views/form/FormDashboard.vue
@@ -4146,6 +4237,7 @@ msgstr "DocType-и"
 #: grunt/grunt/activity/doctypes/DocFollow/DocFollow.json
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Document"
 msgstr "Документ"
@@ -4268,6 +4360,7 @@ msgstr "Документ поширено"
 #: grunt/grunt/activity/doctypes/DocLike/DocLike.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
@@ -4743,6 +4836,7 @@ msgstr "Увімкнути push-сповіщення"
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Enabled"
 msgstr "Увімкнено"
@@ -4817,6 +4911,10 @@ msgstr "Введіть коректну адресу електронної по
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Enter an http(s) link"
 msgstr "Введіть посилання http(s)"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "Enter the Client ID and secret of the connected app first"
+msgstr "Спершу вкажіть Client ID і секрет підключеного застосунку"
 
 #: grunt/grunt/storage/cloud/oauth.py
 msgid "Enter the Client ID and secret of your app and save first"
@@ -5136,6 +5234,10 @@ msgstr ""
 "Додаткові параметри бекенда, по одному «ключ = значення» в рядку; вони "
 "перекривають згенеровані. Назви параметрів — на сторінці бекенда на "
 "rclone.org."
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Extra scopes"
+msgstr "Додаткові області доступу (scopes)"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Extra sources"
@@ -5967,13 +6069,11 @@ msgstr "Gmail"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid ""
-"Gmail — SMTP/IMAP servers and ports are filled in automatically; you only "
-"need the email and an app password. Choose «Other» to enter the settings "
-"manually."
+"Gmail and Microsoft 365 — SMTP/IMAP servers and ports are filled in "
+"automatically. Choose «Other» to enter the settings manually."
 msgstr ""
-"Gmail — сервери SMTP/IMAP і порти заповнюються автоматично, потрібно лише "
-"вказати email і пароль додатка. Оберіть «Інший провайдер», щоб ввести "
-"параметри вручну."
+"Gmail і Microsoft 365 — сервери й порти SMTP/IMAP заповнюються автоматично. "
+"Виберіть «Інше», щоб ввести налаштування вручну."
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Gmail: 587 (STARTTLS)."
@@ -6028,6 +6128,10 @@ msgstr "Google Drive"
 msgid "Google Drive of the IT department"
 msgstr "Google Drive ІТ-відділу"
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Google Workspace of the council"
+msgstr "Google Workspace міськради"
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid ""
 "Google rejected the sign-in. Use a 16-character «app password» (App "
@@ -6037,6 +6141,14 @@ msgstr ""
 "Google відхилив вхід. Використайте 16-значний «пароль додатка» (App "
 "Password), а не звичайний пароль акаунта, і переконайтесь, що увімкнена "
 "двоетапна перевірка."
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"Google — Gmail and Google Workspace; Microsoft — Microsoft 365 and "
+"Outlook.com; Other — any OAuth 2.0 provider, enter its addresses below."
+msgstr ""
+"Google — Gmail і Google Workspace; Microsoft — Microsoft 365 і Outlook.com; "
+"Інше — будь-який провайдер OAuth 2.0, його адреси вкажіть нижче."
 
 #: grunt/grunt/metadata/doctypes/Workflow/Workflow.json
 msgid "Graph"
@@ -7259,6 +7371,7 @@ msgstr "Останнє завершення"
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/tasks/doctypes/ScheduledJob/ScheduledJob.json
 #: grunt/grunt/tasks/doctypes/ScheduledJobState/ScheduledJobState.json
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
 msgid "Last error"
 msgstr "Остання помилка"
 
@@ -7969,6 +8082,10 @@ msgstr "Метод / маршрут"
 msgid "Method spans"
 msgstr "Спани методів"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Microsoft 365"
+msgstr "Microsoft 365"
+
 #: grunt/grunt/activity/doctypes/Milestone/Milestone.json
 msgid "Milestone"
 msgstr "Етап"
@@ -8187,6 +8304,7 @@ msgstr "Моїм ролям…"
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 #: grunt/grunt/activity/doctypes/DeletedDocument/DeletedDocument.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Name"
@@ -8450,7 +8568,7 @@ msgstr "Немає змін, що чекають на надсилання."
 msgid "No changes yet"
 msgstr "Поки що немає змін"
 
-#: grunt/grunt/storage/cloud/oauth.py
+#: grunt/grunt/integrations/oauth.py grunt/grunt/storage/cloud/oauth.py
 msgid "No code returned"
 msgstr "Код авторизації не повернуто"
 
@@ -8984,6 +9102,14 @@ msgstr "Нумерований список"
 #: grunt/grunt/geo/doctypes/Currency/Currency.json
 msgid "Numeric code"
 msgstr "Числовий код"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "OAuth"
+msgstr "OAuth"
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "OAuth Token"
+msgstr "Токен OAuth"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "OAuth extra"
@@ -9650,6 +9776,7 @@ msgid "Passkeys"
 msgstr "Ключі доступу (Passkeys)"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Password"
@@ -9706,6 +9833,16 @@ msgstr ""
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
 msgid "Password updated!"
 msgstr "Пароль оновлено!"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Password — an app password (Gmail) or the mailbox password. OAuth — sign in "
+"through Google or Microsoft without a password; needed for Microsoft 365, "
+"where password sign-in is turned off."
+msgstr ""
+"Пароль — пароль застосунку (Gmail) або пароль скриньки. OAuth — вхід через "
+"Google чи Microsoft без пароля; потрібен для Microsoft 365, де вхід за "
+"паролем вимкнено."
 
 #: grunt/grunt/auth/doctypes/User/User.js
 #: grunt/frontend/src/pages/auth/ResetPassword.vue
@@ -10070,8 +10207,13 @@ msgstr ""
 "Turnstile."
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "Provider"
 msgstr "Провайдер"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Provider addresses"
+msgstr "Адреси провайдера"
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Provider unavailable"
@@ -10395,6 +10537,10 @@ msgstr ""
 msgid "Red"
 msgstr "Червоний"
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.js
+msgid "Redirect URI to register in the app"
+msgstr "Redirect URI, який треба вписати в застосунку"
+
 #: grunt/grunt/tasks/doctypes/BackgroundWorker/background_worker.py
 #: grunt/grunt/tasks/doctypes/BackgroundJob/background_job.py
 msgid "Redis broker not configured"
@@ -10446,6 +10592,10 @@ msgstr "Оновити"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 msgid "Refresh (Ctrl+Enter)"
 msgstr "Оновити (Ctrl+Enter)"
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Refresh token"
+msgstr "Токен оновлення"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Refresh token hash"
@@ -11387,8 +11537,20 @@ msgstr ""
 " копію: rclone copy secret:backups/<site>/ ./ (без шифрування — remote:)."
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "Save the account first"
+msgstr "Спершу збережіть обліковий запис"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "Save the account first, then send a test email."
 msgstr "Спочатку збережіть обліковий запис, потім надсилайте тестовий лист."
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"Save the account first. A Google or Microsoft page opens: sign in to the "
+"mailbox and allow access."
+msgstr ""
+"Спершу збережіть обліковий запис. Відкриється сторінка Google чи Microsoft: "
+"увійдіть у скриньку й дозвольте доступ."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 msgid "Save the storage first"
@@ -11510,6 +11672,10 @@ msgstr "Область"
 #: grunt/grunt/auth/doctypes/UserRole/UserRole.json
 msgid "Scope value"
 msgstr "Значення області"
+
+#: grunt/grunt/integrations/doctypes/OAuthToken/OAuthToken.json
+msgid "Scopes"
+msgstr "Області доступу"
 
 #: grunt/grunt/geo/doctypes/Language/Language.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
@@ -12307,6 +12473,10 @@ msgstr ""
 msgid "Sign up"
 msgstr "Зареєструватися"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Sign-in"
+msgstr "Вхід"
+
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Sign-in allowed only from this time (site time zone); empty - any time"
 msgstr ""
@@ -12317,6 +12487,7 @@ msgid "Sign-in code"
 msgstr "Код для входу"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "Sign-in failed"
 msgstr "Не вдалося увійти"
 
@@ -12665,6 +12836,10 @@ msgstr "Крок %(step)s з %(steps)s"
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Step 1 — Google app password"
 msgstr "Крок 1 — пароль додатка Google"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "Step 1 — connect the account"
+msgstr "Крок 1 — підключіть обліковий запис"
 
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Step 2 — authentication"
@@ -13066,6 +13241,10 @@ msgstr "Помилка шаблону:"
 msgid "Template type"
 msgstr "Тип шаблону"
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Tenant"
+msgstr "Tenant (каталог)"
+
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Terms of Service"
 msgstr "Умовами використання"
@@ -13136,6 +13315,14 @@ msgid "The Gantt chart needs start and end fields (Date/Datetime)."
 msgstr ""
 "Для діаграми Ганта потрібні поля початку та завершення (Date/Datetime)."
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid ""
+"The OAuth app of your Google Workspace or Microsoft 365 through which the "
+"mailbox is connected (Integrations → Connected apps)."
+msgstr ""
+"OAuth-застосунок вашого Google Workspace чи Microsoft 365, через який "
+"підключено скриньку (Скрипти та інтеграції → Підключені застосунки)."
+
 #: grunt/grunt/api/v1/email.py
 msgid "The SMTP password is not saved. Save the account with a password."
 msgstr "Пароль SMTP не збережено. Збережіть обліковий запис із паролем."
@@ -13145,6 +13332,7 @@ msgid "The SQLite database has no file to back up"
 msgstr "База даних SQLite не має файлу для резервного копіювання"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid "The account is connected"
 msgstr "Обліковий запис підключено"
 
@@ -13156,6 +13344,19 @@ msgstr "Обліковий запис деактивовано"
 #: grunt/grunt/auth/impersonation.py
 msgid "The account is disabled."
 msgstr "Обліковий запис вимкнено."
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "The account is disconnected"
+msgstr "Обліковий запис відключено"
+
+#: grunt/grunt/integrations/oauth.py
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "The account is not connected: click “Connect account”"
+msgstr "Обліковий запис не підключено: натисніть «Підключити обліковий запис»"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
+msgid "The account that allowed access. Sign in as the owner of the mailbox."
+msgstr "Обліковий запис, який дозволив доступ. Входьте як власник скриньки."
 
 #: grunt/grunt/permissions/warnings.py
 msgid ""
@@ -13188,6 +13389,10 @@ msgstr "Відповідальний отримає задачу, пов’яз�
 #: grunt/grunt/api/v1/email.py
 msgid "The attachments are over 10 MB"
 msgstr "Вкладення перевищують 10 МБ"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The authorization URL of the connected app is not set"
+msgstr "У підключеному застосунку не вказано адресу авторизації"
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "The browser declined the request (try installing the app as a PWA)"
@@ -13252,6 +13457,18 @@ msgstr "Коментар, на який це відповідь (гілки ма
 #: grunt/grunt/document/doctypes/Comment/comment.py
 msgid "The comment you reply to no longer exists"
 msgstr "Коментар, на який ви відповідаєте, уже видалено"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The connected app is disabled"
+msgstr "Підключений застосунок вимкнено"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The connection has expired: connect the account again"
+msgstr "Підключення застаріло: підключіть обліковий запис знову"
+
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid "The connection stopped working, connect the account again"
+msgstr "Підключення перестало працювати, підключіть обліковий запис знову"
 
 #: grunt/grunt/storage/doctypes/File/File.json
 msgid ""
@@ -13465,6 +13682,16 @@ msgstr "Посилання не знайдено або деактивовано
 msgid "The list is limited by your access rights"
 msgstr "Список обмежено вашими правами доступу"
 
+#: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
+msgid ""
+"The mailbox will stop sending and receiving mail until it is connected "
+"again. Access granted at the provider stays — revoke it in the account "
+"security settings if needed."
+msgstr ""
+"Скринька не надсилатиме й не отримуватиме пошту, доки її не підключать "
+"знову. Доступ, наданий у провайдера, лишиться — за потреби відкличте його в "
+"налаштуваннях безпеки облікового запису."
+
 #: grunt/frontend/src/components/views/permissions/PermissionMatrixView.vue
 msgid ""
 "The matrix shows what the role may do with each document type of this page. "
@@ -13524,9 +13751,26 @@ msgstr "Сторінку відкрито до встановлення service 
 msgid "The password must %(requirements)s."
 msgstr "Пароль повинен %(requirements)s."
 
+#: grunt/grunt/integrations/doctypes/ConnectedApp/connected_app.py
+msgid "The provider addresses must start with https://"
+msgstr "Адреси провайдера мають починатися з https://"
+
 #: grunt/grunt/auth/providers/oauth.py
 msgid "The provider did not confirm this email address"
 msgstr "Провайдер не підтвердив цю адресу електронної пошти"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The provider gave no refresh token: allow offline access and try again"
+msgstr ""
+"Провайдер не видав токен оновлення: дозвольте офлайн-доступ і спробуйте "
+"знову"
+
+#: grunt/grunt/integrations/oauth.py
+msgid ""
+"The provider refused to renew access (%(error)s): connect the account again"
+msgstr ""
+"Провайдер відмовився поновити доступ (%(error)s): підключіть обліковий запис"
+" знову"
 
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
@@ -13659,7 +13903,8 @@ msgstr "Оболонка зберігається після першого ві
 msgid "The sign-in has expired - sign in again"
 msgstr "Час на вхід минув — увійдіть знову"
 
-#: grunt/grunt/storage/cloud/oauth.py grunt/frontend/src/pages/auth/Login.vue
+#: grunt/grunt/integrations/oauth.py grunt/grunt/storage/cloud/oauth.py
+#: grunt/frontend/src/pages/auth/Login.vue
 msgid "The sign-in link is invalid or expired"
 msgstr "Посилання для входу недійсне або застаріле"
 
@@ -13726,6 +13971,10 @@ msgstr "Задача вже завершилась"
 #: grunt/grunt/storage/doctypes/StorageRemote/storage_remote.py
 msgid "The test file read back differs from what was written"
 msgstr "Прочитаний тестовий файл відрізняється від записаного"
+
+#: grunt/grunt/integrations/oauth.py
+msgid "The token URL of the connected app is not set"
+msgstr "У підключеному застосунку не вказано адресу токенів"
 
 #: grunt/grunt/workflow/engine.py
 msgid "The transition is unavailable"
@@ -14068,6 +14317,10 @@ msgstr "Сьогодні"
 #: grunt/grunt/document/doctypes/DocumentShare/DocumentShare.json
 msgid "Token"
 msgstr "Токен"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "Token URL"
+msgstr "Адреса токенів"
 
 #: grunt/grunt/auth/doctypes/UserSession/UserSession.json
 msgid "Token rotated at"
@@ -14705,6 +14958,14 @@ msgid "Users with this role must set up 2FA (TOTP) before they can sign in."
 msgstr ""
 "Користувачі з цією роллю мають налаштувати 2FA (TOTP), перш ніж зможуть "
 "увійти."
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid ""
+"Usually empty: what an email account needs is asked for automatically. "
+"Separate several scopes with spaces or new lines."
+msgstr ""
+"Зазвичай порожньо: потрібне для поштової скриньки запитується автоматично. "
+"Кілька областей розділяйте пробілами або новими рядками."
 
 #: grunt/frontend/src/components/views/form/FormHeader.vue
 msgid ""
@@ -15870,6 +16131,14 @@ msgstr "Гант"
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "https://cloud.example.com/remote.php/dav/files/user/"
 msgstr "https://cloud.example.com/remote.php/dav/files/user/"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "https://id.example.com/oauth2/authorize"
+msgstr "https://id.example.com/oauth2/authorize"
+
+#: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
+msgid "https://id.example.com/oauth2/token"
+msgstr "https://id.example.com/oauth2/token"
 
 #: grunt/grunt/api/v1/docs/crud.py
 msgid "ids is required"
@@ -17270,6 +17539,15 @@ msgstr "Відкрито"
 #~ msgstr ""
 #~ "Надайте доступ до документа користувачеві, усім з певною роллю або всім "
 #~ "користувачам."
+
+#~ msgid ""
+#~ "Gmail — SMTP/IMAP servers and ports are filled in automatically; you only "
+#~ "need the email and an app password. Choose «Other» to enter the settings "
+#~ "manually."
+#~ msgstr ""
+#~ "Gmail — сервери SMTP/IMAP і порти заповнюються автоматично, потрібно лише "
+#~ "вказати email і пароль додатка. Оберіть «Інший провайдер», щоб ввести "
+#~ "параметри вручну."
 
 #~ msgid "Hook '%(doc_id)s' not found"
 #~ msgstr "Хук «%(doc_id)s» не знайдено"

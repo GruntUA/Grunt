@@ -1,0 +1,113 @@
+{
+  "name": "OAuthToken",
+  "label": "OAuth Token",
+  "module": "integrations",
+  "icon": "key-round",
+  "autoname": "hash",
+  "title_field": "account",
+  "track_changes": false,
+  "hide_from_activity_feed": true,
+  "description": "Access a connected app granted to a document. Created by «Connect account» on the document; delete to disconnect.",
+  "indexes": [
+    [
+      "reference_doctype",
+      "reference_name"
+    ]
+  ],
+  "fields": [
+    {
+      "fieldname": "connected_app",
+      "label": "Connected app",
+      "fieldtype": "Link",
+      "options": "ConnectedApp",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "account",
+      "label": "Account",
+      "fieldtype": "Data",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "col_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "reference_doctype",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "reference_name",
+      "label": "Document",
+      "fieldtype": "DynamicLink",
+      "options": "reference_doctype",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "sec_token",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "connected_at",
+      "label": "Connected at",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "expires_at",
+      "label": "Access expires at",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "col_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "scopes",
+      "label": "Scopes",
+      "fieldtype": "LongText",
+      "read_only": true
+    },
+    {
+      "fieldname": "last_error",
+      "label": "Last error",
+      "fieldtype": "LongText",
+      "read_only": true,
+      "depends_on": "last_error"
+    },
+    {
+      "fieldname": "access_token",
+      "label": "Access token",
+      "fieldtype": "Password",
+      "hidden": true
+    },
+    {
+      "fieldname": "refresh_token",
+      "label": "Refresh token",
+      "fieldtype": "Password",
+      "hidden": true
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": [
+        "read",
+        "delete",
+        "report"
+      ]
+    }
+  ]
+}

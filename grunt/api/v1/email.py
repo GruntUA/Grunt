@@ -19,7 +19,9 @@ from grunt.email.service import (
     SMTP_PASSWORD_MASK,
     EmailService,
     smtp_connect_kwargs,
+    smtp_sign_in,
     split_addresses,
+    uses_oauth,
 )
 from grunt.email.templates import EmailTemplateError
 from grunt.email.templates import render as render_template
@@ -64,14 +66,26 @@ async def test_smtp_connection(
     password of that account is used (reads mask it, so the form can't send it
     back).
     """
-    if account_id and (not smtp_password or smtp_password == SMTP_PASSWORD_MASK):
-        smtp_password = await _db.get_value("EmailAccount", account_id, "smtp_password")
+    stored = (
+        await _db.get_value(
+            "EmailAccount",
+            account_id,
+            ["name", "auth_method", "oauth_account", "email_address", "smtp_password"],
+            as_dict=True,
+        )
+        if account_id
+        else None
+    )
+    if stored and (not smtp_password or smtp_password == SMTP_PASSWORD_MASK):
+        smtp_password = stored["smtp_password"]
     try:
         async with aiosmtplib.SMTP(
             timeout=10,
             **smtp_connect_kwargs(smtp_server, smtp_port, bool(use_tls)),
         ) as smtp:
-            if smtp_user and smtp_password:
+            if stored and uses_oauth(stored):
+                await smtp_sign_in(smtp, dict(stored))
+            elif smtp_user and smtp_password:
                 await smtp.login(smtp_user, smtp_password)
         return {"success": True}
     except Exception as e:
@@ -95,7 +109,7 @@ async def send_test_email(account_id: str, recipient: str) -> Outcome:
 
     # Reads mask the password - pull the real one straight from the column.
     account["smtp_password"] = await _db.get_value("EmailAccount", account_id, "smtp_password")
-    if not account["smtp_password"]:
+    if not account["smtp_password"] and not uses_oauth(account):
         return {
             "success": False,
             "error": _("The SMTP password is not saved. Save the account with a password."),

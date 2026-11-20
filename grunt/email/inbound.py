@@ -20,6 +20,7 @@ from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.document.api import documents
+lazy from grunt.email.service import oauth_token, oauth_user, uses_oauth
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -95,7 +96,7 @@ async def pull_emails(account: dict[str, Any]) -> tuple[list[dict[str, Any]], di
     username: str | None = account.get("email_address")
     password: str | None = account.get("smtp_password")
 
-    if not imap_server or not username or not password:
+    if not imap_server or not username or not (password or uses_oauth(account)):
         return [], state
 
     emails: list[dict[str, Any]] = []
@@ -107,7 +108,15 @@ async def pull_emails(account: dict[str, Any]) -> tuple[list[dict[str, Any]], di
             else aioimaplib.IMAP4(imap_server, imap_port)
         )
         await imap.wait_hello_from_server()
-        await imap.login(username, password)
+        if uses_oauth(account):
+            token = await oauth_token(account)
+            # aioimaplib annotates the token as bytes, but formats it into the
+            # SASL string as text (IMAP4ClientProtocol.xoauth2) - str is right.
+            signed_in = await imap.xoauth2(oauth_user(account), token)  # pyright: ignore[reportArgumentType]
+            if signed_in.result != "OK":
+                raise ConnectionError(f"IMAP XOAUTH2: {signed_in.lines}")
+        else:
+            await imap.login(username, password or "")
 
         for folder in _folders(account):
             sel = await imap.select(_quote_mailbox(folder))

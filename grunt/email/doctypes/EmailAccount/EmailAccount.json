@@ -19,11 +19,11 @@
       "fieldname": "provider",
       "label": "Mail service",
       "fieldtype": "Select",
-      "options": "Gmail\nOther",
+      "options": "Gmail\nMicrosoft 365\nOther",
       "translatable": true,
       "default": "Gmail",
       "in_list_view": true,
-      "description": "Gmail — SMTP/IMAP servers and ports are filled in automatically; you only need the email and an app password. Choose «Other» to enter the settings manually."
+      "description": "Gmail and Microsoft 365 — SMTP/IMAP servers and ports are filled in automatically. Choose «Other» to enter the settings manually."
     },
     {
       "fieldname": "email_address",
@@ -35,10 +35,64 @@
       "description": "Full email address. For Gmail it is also used as the SMTP login."
     },
     {
+      "fieldname": "auth_method",
+      "label": "Sign-in",
+      "fieldtype": "Select",
+      "options": "Password\nOAuth",
+      "default": "Password",
+      "translatable": true,
+      "description": "Password — an app password (Gmail) or the mailbox password. OAuth — sign in through Google or Microsoft without a password; needed for Microsoft 365, where password sign-in is turned off."
+    },
+    {
+      "fieldname": "sec_oauth",
+      "label": "Step 1 — connect the account",
+      "fieldtype": "Section",
+      "depends_on": "eval: doc.auth_method === 'OAuth'"
+    },
+    {
+      "fieldname": "col_oauth_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "connected_app",
+      "label": "Connected app",
+      "fieldtype": "Link",
+      "options": "ConnectedApp",
+      "mandatory_depends_on": "eval: doc.auth_method === 'OAuth'",
+      "description": "The OAuth app of your Google Workspace or Microsoft 365 through which the mailbox is connected (Integrations → Connected apps)."
+    },
+    {
+      "fieldname": "oauth_account",
+      "label": "Connected account",
+      "fieldtype": "Data",
+      "read_only": true,
+      "description": "The account that allowed access. Sign in as the owner of the mailbox."
+    },
+    {
+      "fieldname": "col_oauth_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "connect_oauth",
+      "label": "Connect account",
+      "fieldtype": "Button",
+      "options": "default",
+      "icon": "log-in",
+      "description": "Save the account first. A Google or Microsoft page opens: sign in to the mailbox and allow access."
+    },
+    {
+      "fieldname": "disconnect_oauth",
+      "label": "Disconnect",
+      "fieldtype": "Button",
+      "options": "outline",
+      "icon": "unplug",
+      "depends_on": "oauth_account"
+    },
+    {
       "fieldname": "sec_gmail",
       "label": "Step 1 — Google app password",
       "fieldtype": "Section",
-      "depends_on": "eval: (doc.provider || 'Gmail') === 'Gmail'"
+      "depends_on": "eval: (doc.provider || 'Gmail') === 'Gmail' && doc.auth_method !== 'OAuth'"
     },
     {
       "fieldname": "open_app_passwords",
@@ -61,7 +115,8 @@
       "fieldname": "smtp_user",
       "label": "SMTP user",
       "fieldtype": "Data",
-      "description": "SMTP login. Usually the same as the email address; filled in automatically for Gmail."
+      "description": "SMTP login. Usually the same as the email address; filled in automatically for Gmail.",
+      "depends_on": "eval: doc.auth_method !== 'OAuth'"
     },
     {
       "fieldname": "col_creds_2",
@@ -71,9 +126,10 @@
       "fieldname": "smtp_password",
       "label": "SMTP password (app password)",
       "fieldtype": "Password",
-      "mandatory_depends_on": "eval: doc.enable_outgoing",
+      "mandatory_depends_on": "eval: doc.enable_outgoing && doc.auth_method !== 'OAuth'",
       "placeholder": "xxxx xxxx xxxx xxxx",
-      "description": "For Gmail — a 16-character app password (App Password). The regular Google account password does not work.\nA saved password is not shown again — to change it, enter a new one."
+      "description": "For Gmail — a 16-character app password (App Password). The regular Google account password does not work.\nA saved password is not shown again — to change it, enter a new one.",
+      "depends_on": "eval: doc.auth_method !== 'OAuth'"
     },
     {
       "fieldname": "test_connection",

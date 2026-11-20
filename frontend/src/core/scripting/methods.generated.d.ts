@@ -3,6 +3,8 @@
 
 declare namespace GruntApi.grunt {
   interface AuthorizeLink { url: string; redirect_uri: string }
+  interface AuthorizeLink2 { url: string; redirect_uri: string }
+  interface ConnectionStatus { connected: boolean; account: string; connected_app: string; connected_at: string; error: string }
   interface MfaConfirmed { backup_codes: string[] }
   interface MfaSetup { secret: string; qr_svg: string }
   interface Outcome { success: boolean; error?: string }
@@ -346,6 +348,14 @@ interface GruntMethods {
   "grunt.backups.api.download": { args: { file: string; exp: number; sig: string }; result: unknown }
   /** Return grouped connection stats for one document. */
   "grunt.document.connections.get_connections": { args: { doctype: string; doc_id: string }; result: Record<string, any> }
+  /** The provider's consent page that connects *doctype* / *name* through *connected_app*. */
+  "grunt.integrations.oauth.authorize": { args: { connected_app: string; doctype: string; name: string }; result: GruntApi.grunt.AuthorizeLink }
+  /** The provider sends the browser back here with a code (or an error). Allowed for guests. */
+  "grunt.integrations.oauth.callback": { args: { state?: string; code?: string; error?: string; error_description?: string }; result: unknown }
+  /** Forget the token of *doctype* / *name*. */
+  "grunt.integrations.oauth.disconnect": { args: { doctype: string; name: string }; result: boolean }
+  /** Whether *doctype* / *name* holds a token - for the form, no secrets. */
+  "grunt.integrations.oauth.status": { args: { doctype: string; name: string }; result: GruntApi.grunt.ConnectionStatus }
   /** Markup for the browser's own checks (frontend/src/core/browserHealth.ts) - the same table as the server sections. Permission: grunt.system_monitor. */
   "grunt.monitoring.health.render_checks": { args: { rows: Record<string, any>[] }; result: string }
   /** One section of the report: its rows and their markup. Permission: grunt.system_monitor. */
@@ -385,7 +395,7 @@ interface GruntMethods {
   /** Register a new installed app. Needs ``grunt.manage_apps``. */
   "grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app.register_app": { args: { name: string; title?: string | null; version?: string; modules?: string[] | null }; result: Record<string, any> }
   /** The provider's sign-in URL for *name* (needs its own client id/secret). Permission: grunt.manage_storage. */
-  "grunt.storage.cloud.oauth.authorize": { args: { name: string }; result: GruntApi.grunt.AuthorizeLink }
+  "grunt.storage.cloud.oauth.authorize": { args: { name: string }; result: GruntApi.grunt.AuthorizeLink2 }
   /** The provider sends the browser back here with a code (or an error). Allowed for guests. */
   "grunt.storage.cloud.oauth.callback": { args: { state?: string; code?: string; error?: string; error_description?: string }; result: unknown }
   /** Store a token pasted from ``rclone authorize``. Permission: grunt.manage_storage. */

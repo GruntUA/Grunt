@@ -1,0 +1,128 @@
+{
+  "name": "ConnectedApp",
+  "label": "Connected App",
+  "module": "integrations",
+  "icon": "plug",
+  "autoname": "field:title",
+  "title_field": "title",
+  "sort_field": "title",
+  "sort_order": "asc",
+  "description": "An OAuth app registered at Google, Microsoft or another provider: through it a document (an email account) gets access to the service without a password.",
+  "fields": [
+    {
+      "fieldname": "sec_main",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "title",
+      "label": "Name",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "placeholder": "Google Workspace of the council"
+    },
+    {
+      "fieldname": "provider",
+      "label": "Provider",
+      "fieldtype": "Select",
+      "options": "Google\nMicrosoft\nOther",
+      "default": "Google",
+      "required": true,
+      "in_list_view": true,
+      "description": "Google — Gmail and Google Workspace; Microsoft — Microsoft 365 and Outlook.com; Other — any OAuth 2.0 provider, enter its addresses below."
+    },
+    {
+      "fieldname": "col_main_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "enabled",
+      "label": "Enabled",
+      "fieldtype": "Check",
+      "default": "1",
+      "in_list_view": true
+    },
+    {
+      "fieldname": "tenant",
+      "label": "Tenant",
+      "fieldtype": "Data",
+      "default": "common",
+      "depends_on": "eval: doc.provider === 'Microsoft'",
+      "description": "Directory (tenant) ID of your organization, or «common» to let any Microsoft account connect, «organizations» — any work account."
+    },
+    {
+      "fieldname": "sec_client",
+      "label": "Client",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "client_id",
+      "label": "Client ID",
+      "fieldtype": "Data",
+      "required": true
+    },
+    {
+      "fieldname": "col_client_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "client_secret",
+      "label": "Client secret",
+      "fieldtype": "Password",
+      "required": true,
+      "description": "A saved secret is not shown again — to change it, enter a new one."
+    },
+    {
+      "fieldname": "sec_endpoints",
+      "label": "Provider addresses",
+      "fieldtype": "Section",
+      "depends_on": "eval: doc.provider === 'Other'"
+    },
+    {
+      "fieldname": "authorization_url",
+      "label": "Authorization URL",
+      "fieldtype": "Data",
+      "mandatory_depends_on": "eval: doc.provider === 'Other'",
+      "placeholder": "https://id.example.com/oauth2/authorize"
+    },
+    {
+      "fieldname": "col_endpoints_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "token_url",
+      "label": "Token URL",
+      "fieldtype": "Data",
+      "mandatory_depends_on": "eval: doc.provider === 'Other'",
+      "placeholder": "https://id.example.com/oauth2/token"
+    },
+    {
+      "fieldname": "sec_scopes",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "scopes",
+      "label": "Extra scopes",
+      "fieldtype": "LongText",
+      "description": "Usually empty: what an email account needs is asked for automatically. Separate several scopes with spaces or new lines."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": [
+        "read",
+        "write",
+        "create",
+        "delete",
+        "export",
+        "import",
+        "print",
+        "share",
+        "report"
+      ]
+    }
+  ]
+}
