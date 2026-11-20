@@ -316,7 +316,6 @@ function onReplyKeydown(e: KeyboardEvent) {
 // every member is notified).
 type MentionOption = { kind: 'user'; user: Colleague } | { kind: 'group'; name: string }
 const allUsers = ref<Colleague[]>([])
-const allGroups = ref<string[] | null>(null)
 const mentionDropdown = ref<MentionOption[]>([])
 const mentionIndex = ref(0)
 const mentionQuery = ref('')
@@ -325,18 +324,22 @@ const mentionQuery = ref('')
 const mentionStart = ref(-1)
 
 async function ensureUsers() {
-  const loads: Promise<unknown>[] = []
-  if (!allUsers.value.length) {
-    loads.push(authApi.listColleagues().then((u) => { allUsers.value = u }).catch(() => {}))
+  if (allUsers.value.length) return
+  allUsers.value = await authApi.listColleagues().catch(() => [])
+}
+
+// Groups are searched on the server - however many there are; a failed
+// search just offers none this time.
+async function searchGroups(q: string): Promise<string[]> {
+  try {
+    const r = await docsApi.list('UserGroup', {
+      fields: 'name', per_page: 3, sort: 'name', order: 'asc',
+      ...(q ? { rawFilters: { name__like: q } } : {}),
+    })
+    return r.data.map((g) => String(g.name))
+  } catch {
+    return []
   }
-  if (allGroups.value === null) {
-    loads.push(
-      docsApi.list('UserGroup', { fields: 'name', per_page: 200, sort: 'name', order: 'asc' })
-        .then((r) => { allGroups.value = r.data.map((g) => String(g.name)) })
-        .catch(() => { allGroups.value = [] }),
-    )
-  }
-  await Promise.all(loads)
 }
 
 function mentionKey(o: MentionOption): string {
@@ -348,20 +351,19 @@ function onCommentInput(e: Event) {
   const val = ta.value
   const pos = ta.selectionStart ?? val.length
   const before = val.slice(0, pos)
-  const match = before.match(/@([\w.+-]*)$/)
+  // Letters of any script: an email prefix or the start of a group name.
+  const match = before.match(/@([\p{L}\p{N}_.+-]*)$/u)
   if (match) {
     mentionStart.value = pos - match[0].length
     mentionQuery.value = match[1].toLowerCase()
-    ensureUsers().then(() => {
-      const q = mentionQuery.value
+    const q = mentionQuery.value
+    Promise.all([ensureUsers(), searchGroups(match[1])]).then(([, groupNames]) => {
+      if (q !== mentionQuery.value) return // the user typed on meanwhile
       const users: MentionOption[] = allUsers.value
         .filter(u => u.email.toLowerCase().includes(q) || u.full_name?.toLowerCase().includes(q))
         .slice(0, 6)
         .map(user => ({ kind: 'user', user }))
-      const groups: MentionOption[] = (allGroups.value ?? [])
-        .filter(name => name.toLowerCase().includes(q))
-        .slice(0, 3)
-        .map(name => ({ kind: 'group', name }))
+      const groups: MentionOption[] = groupNames.map(name => ({ kind: 'group', name }))
       mentionDropdown.value = [...users, ...groups]
       mentionIndex.value = 0
     })

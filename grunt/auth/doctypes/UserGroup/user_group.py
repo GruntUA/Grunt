@@ -11,6 +11,7 @@ from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import _user_ctx
+from grunt.permissions.groups import MAX_GROUP_NAME
 from grunt.permissions.perms import has_perm
 
 
@@ -26,9 +27,18 @@ class UserGroup(Document):
     # end: auto-generated types
 
     async def validate(self) -> None:
-        if "]" in (self.get("group_name") or ""):
+        name = self.get("group_name") or ""
+        if "]" in name:
             # ``@[Group name]`` in a comment ends at the first "]".
             throw(_("A group name can't contain “]”"), "VALIDATION_ERROR")
+        if name != name.strip():
+            # The name is the group's id: a padded one would never match a mention.
+            throw(_("A group name can't start or end with a space"), "VALIDATION_ERROR")
+        if len(name) > MAX_GROUP_NAME:
+            throw(
+                _("A group name is at most %(count)d characters") % {"count": MAX_GROUP_NAME},
+                "VALIDATION_ERROR",
+            )
         members = [r for r in self.get("users") or [] if isinstance(r, dict) and r.get("user")]
         unique = list({r["user"]: r for r in members}.values())  # the same person once
         self.users = unique

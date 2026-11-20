@@ -12,6 +12,11 @@ from grunt.local import _session_ctx, require_session, system_context
 _db = GruntDB()  # stateless: reads through the context's session
 
 
+# Longest group name - as long as a ``@[Group name]`` comment mention carries
+# (UserGroup.validate, grunt.api.v1.document.collaboration).
+MAX_GROUP_NAME = 140
+
+
 async def group_members(groups: Iterable[str]) -> list[dict[str, Any]]:
     """Active members of *groups*: ``[{"user": name, "email"}]``, each once, in
     group then table order."""
@@ -63,3 +68,12 @@ async def user_groups(user: str | None) -> list[str]:
             limit=None,
         )
     return sorted(set(rows))
+
+
+async def rename_group(**kwargs: Any) -> None:
+    """``after_rename`` of ``UserGroup``: the group's name follows its new id
+    (Link fields to it are repointed by the rename itself)."""
+    new_id = kwargs.get("new_id")
+    if new_id:
+        async with system_context(require_session()):
+            await _db.set_value("UserGroup", str(new_id), "group_name", str(new_id))

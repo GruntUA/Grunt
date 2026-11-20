@@ -20,7 +20,7 @@ from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.local import require_session, system_context, user_email
 from grunt.notification.events import trigger
-from grunt.permissions.groups import group_emails
+from grunt.permissions.groups import MAX_GROUP_NAME, group_emails
 from grunt.permissions.guards import doc_guard
 from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
@@ -85,7 +85,10 @@ async def add_comment(
 
     # @mention notifications
     mentions = set(re.findall(r"@([\w.+\-]+@[\w.\-]+)", content))
-    groups = [g.strip() for g in re.findall(r"@\[([^\]\n]{1,140})\]", content)]
+    # The name as written and trimmed - a group saved before names were
+    # trimmed (UserGroup.validate) keeps its padded id.
+    raw = re.findall(rf"@\[([^\]\n]{{1,{MAX_GROUP_NAME}}})\]", content)
+    groups = sorted({g for name in raw for g in (name, name.strip()) if g.strip()})
     mentions |= set(await group_emails(groups))
     mentions.discard(user_email())  # do not notify self
     if mentions:

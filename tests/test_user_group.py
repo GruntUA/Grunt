@@ -2,6 +2,8 @@
 change the members, not appoint a manager; a group gives no permissions; a
 notification to a group; an assignment rule to a group."""
 
+from datetime import UTC, datetime
+
 import pytest
 from fastapi import HTTPException
 
@@ -86,6 +88,41 @@ async def test_manager_whose_user_name_is_not_the_email(ctx, group, db_session, 
 async def test_group_name_without_closing_bracket(ctx, group):
     with pytest.raises(HTTPException):
         await ctx.new_doc("UserGroup", {"group_name": "Desk] East"})
+
+
+@pytest.mark.parametrize("name", [" Desk East", "Desk East ", "Д" * 141])
+async def test_group_name_a_mention_can_carry(ctx, group, name):
+    # Untrimmed or longer than a @[...] mention takes - it could never be mentioned.
+    with pytest.raises(HTTPException):
+        await ctx.new_doc("UserGroup", {"group_name": name})
+    await ctx.new_doc("UserGroup", {"group_name": "Д" * 140})
+
+
+async def test_name_is_set_once_and_renamed_as_one(ctx, group, db_session, engine):
+    async def retitle(grunt):
+        return await grunt.save_doc("UserGroup", group, {"group_name": "Front desk"})
+
+    with pytest.raises(HTTPException):  # even the group's manager
+        await _as(db_session, engine, ANN, retitle)
+    await ctx.rename_doc("UserGroup", group, "Front desk")
+    doc = await ctx.get_doc("UserGroup", "Front desk")
+    assert doc["group_name"] == "Front desk"  # the id and the name stay one
+    assert await group_emails(["Front desk"]) == [BOB, CID]
+
+
+async def test_recipient_row_must_name_its_target(ctx, group):
+    for kind in ("User group", "Role", "User", "Email"):
+        with pytest.raises(HTTPException):
+            await ctx.new_doc(
+                "Notification",
+                {
+                    "ref_doctype": "GroupTicket",
+                    "event": "after_save",
+                    "recipients": [{"kind": kind}],
+                    "channels": [{"channel": "in_app"}],
+                    "subject_template": "x",
+                },
+            )
 
 
 async def test_others_may_read_not_change(ctx, group, db_session, engine):
@@ -256,3 +293,35 @@ async def test_mention_a_group(ctx, group, standard_notifications, db_session, e
     rows = await ctx.db.get_all("NotificationLog", fields=["user"], limit=10)
     # Bob wrote it - he isn't told about his own mention.
     assert sorted(r["user"] for r in rows) == [ANN, CID]
+
+
+async def test_mention_reaches_a_group_saved_padded(
+    ctx, group, standard_notifications, db_session, engine
+):
+    import grunt
+    from grunt.api.v1.document.collaboration import add_comment
+
+    # A group saved before names were trimmed keeps its padded id.
+    now = datetime.now(UTC)
+    stamp = {"owner": "system", "modified_by": "system", "created_at": now, "modified_at": now}
+    await ctx.db.insert_one(
+        "UserGroup", {"name": " Old desk ", "group_name": " Old desk ", **stamp}
+    )
+    await ctx.db.insert_one(
+        "UserGroupMember",
+        {
+            "name": "m-old",
+            "parent_name": " Old desk ",
+            "parent_doctype": "UserGroup",
+            "parent_field": "users",
+            "user": CID,
+            **stamp,
+        },
+    )
+    ticket = (await ctx.new_doc("GroupTicket", {"subject": "x"}))["name"]
+    await ctx.db._session().commit()
+    async with grunt.context(db_session, engine, make_user(BOB, roles=["System Manager"])):
+        await add_comment("GroupTicket", ticket, "@[ Old desk ] гляньте")
+    await db_session.commit()
+    rows = await ctx.db.get_all("NotificationLog", fields=["user"], limit=10)
+    assert [r["user"] for r in rows] == [CID]
