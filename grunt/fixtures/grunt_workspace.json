@@ -218,6 +218,14 @@
       "show_count": true
     },
     {
+      "section": "Скрипти та інтеграції",
+      "type": "DocType",
+      "label": "Підключені застосунки",
+      "link_to": "ConnectedApp",
+      "icon": "plug",
+      "show_count": true
+    },
+    {
       "section": "Пошта та сповіщення",
       "type": "DocType",
       "label": "Email акаунти",

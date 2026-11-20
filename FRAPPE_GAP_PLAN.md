@@ -28,7 +28,7 @@
 | 11 | Role Profile / Module Profile, `desk_access`, `home_page`, `disabled` у Role | ✔️ (`feat/menu-visibility`, `feat/role-props`, `feat/role-profile`) |
 | 12 | User Group | ✔️ (`feat/user-group`, `feat/user-group-share`) |
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ✔️ (`feat/inbound-email-to-doc`) |
-| 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ❓ |
+| 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ✔️ (`feat/email-oauth`) |
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ❓ |
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
@@ -207,11 +207,15 @@
   - Попутно: блок «Відстеження доставки» в `EmailMessage` ніколи не показувався (`'Вихідний'` замість `Outgoing`).
 
 ### 14. OAuth для Gmail / Microsoft 365
-**Статус:** ❓
+**Статус:** ✔️
 - **Frappe:** EmailAccount → Connected App (OAuth2 XOAUTH2).
 - **Ґрунт зараз:** паролі застосунків.
 - **Навіщо:** M365 вимкнув basic auth, Google обмежує паролі застосунків.
-- **Рішення:** —
+- **Рішення (2026-11-20):** як у Frappe — окремий DocType, одним PR (`feat/email-oauth`):
+  - Новий модуль `grunt/integrations`: `ConnectedApp` (Google / Microsoft з tenant / Other з власними адресами; client_id, client_secret, додаткові scopes) і `OAuthToken` (≈ Token Cache: що застосунок надав одному документу — `reference_doctype/reference_name`, access/refresh, термін, обліковий запис, остання помилка; System Manager лише дивиться й видаляє). Секрети й токени не віддаються на читанні нікому (`after_read`, маска; збереження маски = «без змін»).
+  - `grunt/integrations/oauth.py`: `authorize` (право write на документ; scopes = базові провайдера + `oauth_scopes(provider)` контролера + додаткові застосунку; Google — `access_type=offline&prompt=consent`), `callback` (підписаний `state`, обмін коду, без refresh token — помилка; хук контролера `on_oauth_connected(account)`; акаунт — з `id_token`), `get_access_token` (оновлення за 2 хв до кінця, з комітом; відмова → `last_error`, «підключіть знову»), `status`, `disconnect`. Redirect URI: `/api/v1/method/grunt.integrations.oauth.callback` (форма ConnectedApp його показує).
+  - `EmailAccount`: провайдер «Microsoft 365» (сервери підставляє й сервер — `PRESETS`), `auth_method` Password/OAuth (M365 — лише OAuth), `connected_app`, `oauth_account`, кнопки «Підключити обліковий запис» / «Відключити»; SMTP — `auth_xoauth2`, IMAP — `xoauth2`, від імені `oauth_account` (той, хто дозволив); перевірка з'єднання і тестовий лист теж. Видалення скриньки видаляє її токен.
+  - Не робимо: Gmail API / Graph API замість IMAP/SMTP; PKCE (клієнт конфіденційний); відкликання доступу в провайдера при «Відключити» (лише забуваємо токен); спільні скриньки M365 з делегованим входом.
 
 ### 15. EmailQueue
 **Статус:** ❓

@@ -19,6 +19,7 @@ from grunt.site.settings import get_setting
 from grunt.storage.files import store
 from grunt.tasks.broker import by_name
 lazy from grunt.document.api import documents
+lazy from grunt.integrations.oauth import get_access_token
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -60,6 +61,33 @@ async def _kick_queue() -> None:
         await by_name("grunt.email.tasks:process_email_queue").kiq()
     except Exception:
         log.warning("email.queue_kick_failed", exc_info=True)
+
+
+def uses_oauth(account: dict[str, Any]) -> bool:
+    return account.get("auth_method") == "OAuth"
+
+
+def oauth_user(account: dict[str, Any]) -> str:
+    """Who XOAUTH2 signs in as: the account that granted access."""
+    return account.get("oauth_account") or account.get("email_address") or ""
+
+
+async def oauth_token(account: dict[str, Any]) -> str:
+    """A fresh access token of an OAuth mailbox (may refresh and commit)."""
+    return await get_access_token("EmailAccount", account["name"])
+
+
+async def smtp_sign_in(
+    smtp: aiosmtplib.SMTP, account: dict[str, Any], password: str | None = None
+) -> None:
+    """Sign *smtp* in as *account*: XOAUTH2 for OAuth, else the password if any."""
+    if uses_oauth(account):
+        await smtp.auth_xoauth2(oauth_user(account), await oauth_token(account))
+        return
+    username = account.get("smtp_user") or account.get("email_address")
+    password = password if password is not None else account.get("smtp_password")
+    if username and password:
+        await smtp.login(username, password)
 
 
 def smtp_connect_kwargs(host: str, port: int | None, use_tls: bool) -> dict[str, Any]:
@@ -105,8 +133,6 @@ class EmailService:
         smtp_server = account.get("smtp_server") or ""
         smtp_port = account.get("smtp_port", 587)
         use_tls = account.get("use_tls", True)
-        username = account.get("smtp_user") or account.get("email_address")
-        password = account.get("smtp_password")
 
         # Construct EmailMessage
         msg = EmailMessage()
@@ -162,8 +188,7 @@ class EmailService:
             async with aiosmtplib.SMTP(
                 **smtp_connect_kwargs(smtp_server, smtp_port, use_tls)
             ) as smtp:
-                if username and password:
-                    await smtp.login(username, password)
+                await smtp_sign_in(smtp, account)
                 # Bcc (the letter's and the mailbox's ``always_bcc``) goes in
                 # the envelope only - never as a header the others would see.
                 await smtp.send_message(msg, recipients=envelope_recipients(msg, message, account))

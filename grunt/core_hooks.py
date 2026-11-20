@@ -15,6 +15,13 @@ doc_events: dict[str, dict[str, list[str]]] = {
     "StorageRemote": {
         "after_read": ["grunt.storage.cloud.mask_secrets"],
     },
+    # OAuth client secrets and tokens never leave the server (grunt.integrations.oauth).
+    "ConnectedApp": {
+        "after_read": ["grunt.integrations.oauth.mask_secrets"],
+    },
+    "OAuthToken": {
+        "after_read": ["grunt.integrations.oauth.mask_secrets"],
+    },
     # Keep the notification-rule index (grunt.events "notification_rules"
     # stage) fresh.
     "Notification": {
