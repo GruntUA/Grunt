@@ -93,15 +93,15 @@ def test_empty_field_value_is_refused():
 
 def test_naming_date_is_local(monkeypatch):
     """23:30 UTC on 31 December is already the new year in Kyiv."""
-    import grunt.naming.service as service
+    from grunt.naming.service import local_today
 
     class _Now(datetime):
         @classmethod
         def now(cls, tz=None):
             return datetime(2026, 12, 31, 23, 30, tzinfo=UTC).astimezone(tz)
 
-    monkeypatch.setattr(service, "datetime", _Now)
-    assert service.local_today() == date(2027, 1, 1)
+    monkeypatch.setattr("grunt.naming.service.datetime", _Now)
+    assert local_today() == date(2027, 1, 1)
 
 
 def test_naming_date_from_datetime_field_is_local():
