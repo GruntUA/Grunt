@@ -1,6 +1,6 @@
 import client from './client'
 import { useAuthStore } from '@/stores/auth'
-import type { DocField, ReportDetail, ReportResult, ReportSummary } from '@/types'
+import type { DocField, PreparedState, ReportDetail, ReportResult, ReportSummary } from '@/types'
 import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
@@ -54,6 +54,12 @@ export const reportsApi = {
   run: (reportName: string, filters: Record<string, unknown> = {}): Promise<ReportResult> =>
     client
       .post('/api/v1/method/grunt.reports.doctypes.Report.report.run', { name: reportName, filters })
+      .then(r => r.data.data),
+
+  /** Queue a background calculation of a prepared report for `filters`. */
+  prepare: (reportName: string, filters: Record<string, unknown> = {}): Promise<PreparedState> =>
+    client
+      .post('/api/v1/method/grunt.reports.doctypes.Report.report.prepare', { name: reportName, filters })
       .then(r => r.data.data),
 
   exportXlsxUrl: (reportName: string): string => {

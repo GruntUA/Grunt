@@ -302,6 +302,11 @@ msgstr ""
 msgid "A digit"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"A disabled report can't be run or sent on schedule and is hidden from menus."
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
 "A disabled role stays assigned to its users but gives them nothing: no "
@@ -340,6 +345,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name is at most %(count)d characters"
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "A heavy report is calculated in the background and saved."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
@@ -408,6 +417,12 @@ msgstr ""
 msgid ""
 "A reply to a letter sent from a document lands on that document. A new "
 "letter creates a document of the chosen type"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid ""
+"A report result calculated in the background - for the user who asked, with "
+"their permissions."
 msgstr ""
 
 #: grunt/grunt/db/errors.py
@@ -565,6 +580,10 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Access"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Access & execution"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
@@ -1962,8 +1981,22 @@ msgstr ""
 msgid "Cache Storage"
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculate"
+msgstr ""
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Calculate for all"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Calculated in the background: the report shows the last saved result for the"
+" chosen filters and a “Recalculate” button. For heavy reports."
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculated {date}"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
@@ -2706,6 +2739,7 @@ msgid ""
 "have at least 10 calls."
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Completed"
 msgstr ""
@@ -3964,6 +3998,7 @@ msgstr ""
 msgid "Disable the action but keep the row"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
@@ -4833,6 +4868,7 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/document/doctypes/Comment/Comment.json
@@ -5488,6 +5524,7 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
@@ -5501,6 +5538,10 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Filters Matched"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Filters hash"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -5517,6 +5558,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useTaskTracker.ts
 msgid "Finished - see notifications"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Finished at"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
@@ -6879,6 +6924,12 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Issues"
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid ""
+"It runs in the background - you can leave the page; the result will appear "
+"here."
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -8597,6 +8648,10 @@ msgstr ""
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Not calculated for these filters yet"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Not carried over when the document is duplicated"
 msgstr ""
@@ -9043,6 +9098,13 @@ msgstr ""
 msgid ""
 "Only these of the user's roles (with the user's scopes); empty - all of "
 "them. The key never gets more than its user has."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Only these roles may open and run the report (and, on a DocType, only with "
+"the “Report” permission on it). Empty — whoever may report on the DocType; a"
+" report without a DocType — System Manager only."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
@@ -9734,6 +9796,14 @@ msgstr ""
 msgid "Prefix"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Prepared Report"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Prepared report"
+msgstr ""
+
 #: grunt/grunt/backups/__init__.py
 msgid "Preparing"
 msgstr ""
@@ -9986,6 +10056,7 @@ msgstr ""
 msgid "Queue Workers"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
@@ -10130,6 +10201,7 @@ msgid "Rebuild index"
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py
+#: grunt/frontend/src/pages/reports/ReportView.vue
 msgid "Recalculate"
 msgstr ""
 
@@ -10470,6 +10542,7 @@ msgid "Reply-To"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
@@ -10514,6 +10587,10 @@ msgstr ""
 msgid "Report saved"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Report timeout, sec"
+msgstr ""
+
 #: grunt/grunt/reports/engine.py
 msgid "Report type “%(type)s” is not supported"
 msgstr ""
@@ -10526,14 +10603,29 @@ msgstr ""
 msgid "Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached."
 msgstr ""
 
+#: grunt/grunt/reports/access.py
+msgid "Report “%(name)s” is disabled"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "Report “%(name)s” is not a prepared report"
+msgstr ""
+
 #: grunt/grunt/reports/engine.py grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s” not found"
+msgstr ""
+
+#: grunt/grunt/reports/engine.py
+msgid ""
+"Report “%(name)s” ran longer than %(seconds)s s and was stopped. Narrow the "
+"filters or make it a prepared report."
 msgstr ""
 
 #: grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s”, %(date)s"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue
@@ -10711,6 +10803,7 @@ msgid "Result column to sort by."
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 msgid "Result file"
 msgstr ""
 
@@ -10799,6 +10892,7 @@ msgstr ""
 msgid "Role, everyone, end date…"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
@@ -10882,6 +10976,7 @@ msgid "Row/bar label (default: title field)"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
@@ -12334,8 +12429,13 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Started"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Started at"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
@@ -12372,6 +12472,7 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -12985,6 +13086,10 @@ msgstr ""
 msgid "The browser will not delete offline data"
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The calculation failed"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid ""
@@ -13229,6 +13334,18 @@ msgstr ""
 msgid "The list is limited by your access rights"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"The longest a report's SQL may run when opened on screen; 0 — no limit. A "
+"report can set its own; prepared reports have none unless they do."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"The longest a report's SQL may run. Empty — the site default (System "
+"Settings) when run on screen, no limit for a prepared report."
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid ""
 "The mailbox will stop sending and receiving mail until it is connected "
@@ -13337,6 +13454,14 @@ msgstr ""
 
 #: grunt/grunt/document/collection.py
 msgid "The replacement cannot be the document being deleted"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "The report hasn't been calculated for these filters yet"
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The report is being calculated…"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -13742,12 +13867,20 @@ msgstr ""
 msgid "Time zone"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Time, ms"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Timeline"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgid "Timeout (sec)"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Timeout, sec"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -14352,6 +14485,7 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
@@ -15125,6 +15259,10 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
+msgstr ""
+
+#: grunt/grunt/reports/access.py
+msgid "You are not allowed to run report “%(name)s”"
 msgstr ""
 
 #: grunt/grunt/email/unsubscribe.py

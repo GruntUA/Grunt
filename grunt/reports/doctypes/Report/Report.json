@@ -124,6 +124,45 @@
       "mandatory_depends_on": "is_standard"
     },
     {
+      "fieldname": "sec_access",
+      "label": "Access & execution",
+      "fieldtype": "Section",
+      "collapsible": true
+    },
+    {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check",
+      "default": 0,
+      "in_filter": true,
+      "description": "A disabled report can't be run or sent on schedule and is hidden from menus."
+    },
+    {
+      "fieldname": "roles",
+      "label": "Roles",
+      "fieldtype": "MultiLink",
+      "options": "Role",
+      "description": "Only these roles may open and run the report (and, on a DocType, only with the “Report” permission on it). Empty — whoever may report on the DocType; a report without a DocType — System Manager only."
+    },
+    {
+      "fieldname": "col_access",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "prepared_report",
+      "label": "Prepared report",
+      "fieldtype": "Check",
+      "default": 0,
+      "description": "Calculated in the background: the report shows the last saved result for the chosen filters and a “Recalculate” button. For heavy reports."
+    },
+    {
+      "fieldname": "timeout",
+      "label": "Timeout, sec",
+      "fieldtype": "Int",
+      "min_value": 0,
+      "description": "The longest a report's SQL may run. Empty — the site default (System Settings) when run on screen, no limit for a prepared report."
+    },
+    {
       "fieldname": "sec_schedule",
       "label": "Scheduled delivery",
       "fieldtype": "Section",

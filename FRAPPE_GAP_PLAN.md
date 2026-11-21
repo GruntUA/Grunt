@@ -30,7 +30,7 @@
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ✔️ (`feat/inbound-email-to-doc`) |
 | 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ✔️ (`feat/email-oauth`) |
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ✔️ (`feat/email-queue`) |
-| 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
+| 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ✅ (`feat/prepared-report`) |
 | 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
@@ -231,8 +231,14 @@
 ### 16. Prepared Report та Report
 **Статус:** ❓
 - **Frappe:** Prepared Report — звіт рахується у фоні, користувач отримує збережений результат; Report `add_total_row`, `roles`, `disabled`, `timeout`, `reference_report`.
-- **Ґрунт зараз:** звіти рахуються синхронно.
-- **Рішення:** —
+- **Ґрунт зараз:** звіти рахуються синхронно; рядок «Разом» є для Query/Script (прапорець `total` у колонці); Report читають усі (роль All), і Query/Script-звіт без `ref_doctype` запускає будь-хто — діра.
+- **Рішення (2026-11-20):** робимо, одним PR (`feat/prepared-report`):
+  - **Prepared Report:** прапорець `Report.prepared_report` (вмикається вручну, без автоперемикання за тайм-аутом). «Запустити» ставить задачу у воркер; новий `PreparedReport` (звіт, фільтри + хеш, статус Queued/Started/Completed/Error, автор, рядки, час, помилка; результат — стиснутий JSON у File). Відкриття звіту показує останній готовий результат для тих самих фільтрів і кнопку «Перерахувати»; готовність — через realtime. Рахується від імені того, хто запустив. Старі результати прибирає `retention_days`.
+  - **Ролі:** `Report.roles` (Table MultiSelect) — задано: звіт бачать і запускають лише ці ролі (і право `report` на `ref_doctype`, якщо він є); порожнє без `ref_doctype` — лише System Manager.
+  - **`disabled`:** вимкнений звіт не запускається, не розсилається, не видно в меню.
+  - **`timeout`** (сек.): обрив SQL — PG `statement_timeout`, SQLite `progress_handler`, MySQL `max_execution_time`; дефолт із налаштувань.
+  - **Підсумок у List-звітах:** рядок «Разом» (`total` у колонці) — і в List-звітах, і в розсилці.
+  - Не робимо: `reference_report` (є `is_standard`/`app`).
 
 ### 17. Document Naming Rule
 **Статус:** ❓

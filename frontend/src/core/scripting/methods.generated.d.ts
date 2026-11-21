@@ -370,10 +370,12 @@ interface GruntMethods {
   "grunt.progress.cancel_job": { args: { job_id: string }; result: boolean }
   /** Ask the current user's running *task_id* to stop; False if there is no such task. */
   "grunt.progress.cancel_task": { args: { task_id: string }; result: boolean }
-  /** Run a report and return the result as an xlsx file download. */
+  /** Run a report and return the result as an xlsx file download - a prepared report's latest result for these filters. */
   "grunt.reports.doctypes.Report.report.export_xlsx": { args: { name: string; filters?: Record<string, any> | null; token?: string | null }; result: unknown }
   /** The fields the report builder may offer for *doctype* - those a report can read for the current user (:func:`grunt.reports.joins.report_fields`). */
   "grunt.reports.doctypes.Report.report.fields": { args: { doctype: string }; result: Record<string, any>[] }
+  /** Queue a background calculation of the prepared report *name* for these *filters*; the user gets a ``prepared_report`` realtime event when it is done. */
+  "grunt.reports.doctypes.Report.report.prepare": { args: { name: string; filters?: Record<string, any> | null }; result: Record<string, any> }
   /** Execute an ad-hoc List report configuration (the builder's preview). */
   "grunt.reports.doctypes.Report.report.preview": { args: { doctype: string; columns?: Record<string, any>[] | null; filters?: Record<string, any> | null; conditions?: Record<string, any>[] | null; sort_by?: string | null; sort_order?: string | null; row_limit?: number | null }; result: Record<string, any> }
   /** Execute a report and return results. */
