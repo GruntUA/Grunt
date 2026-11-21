@@ -1,5 +1,7 @@
 """Report access (roles, disabled), the SQL time limit, List totals and prepared reports."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 import pytest_asyncio
 from fastapi import HTTPException
@@ -91,6 +93,8 @@ async def test_runnable_filters_a_menu(ctx, users):
 
 @pytest.mark.asyncio
 async def test_slow_query_is_stopped_at_the_timeout(ctx):
+    if ctx.get_engine().dialect.name == "mysql":
+        pytest.skip("MySQL stops the recursive CTE at cte_max_recursion_depth first")
     await _report(ctx, "Slow", query=SLOW_SQL, timeout=1)
     with pytest.raises(ApplicationError) as e:
         await run_report(name="Slow")
@@ -165,3 +169,32 @@ async def test_prepared_report_error_is_recorded(ctx, monkeypatch):
     await prepared.run_prepared(sent[0]["prepared_id"])
     state = (await run_report(name="Broken"))["prepared"]
     assert state["status"] == "Error" and "no_such_table" in state["error"]
+
+
+@pytest.mark.asyncio
+async def test_a_lost_pending_run_is_replaced(ctx, monkeypatch):
+    sent: list[dict] = []
+    monkeypatch.setattr(prepared, "enqueue", lambda task, **kw: sent.append(kw))
+    await _report(ctx, "Lost", prepared_report=True)
+    first = await prepare_report(name="Lost")
+    await ctx.db._session().commit()
+    # The worker died after taking it: Started two hours ago, never finished.
+    await ctx.db.set_value(
+        "PreparedReport",
+        first["name"],
+        {"status": "Started", "started_at": datetime.now(UTC) - timedelta(hours=2)},
+    )
+    second = await prepare_report(name="Lost")
+    assert second["name"] != first["name"] and second["status"] == "Queued"
+    assert await ctx.db.get_value("PreparedReport", first["name"], "status") == "Error"
+    assert len(sent) == 2
+
+
+def test_stale_rule():
+    now = datetime.now(UTC)
+    queued = {"status": "Queued", "created_at": now - timedelta(minutes=30)}
+    assert not prepared._stale(queued, {})
+    assert prepared._stale({**queued, "created_at": now - timedelta(hours=2)}, {})
+    started = {"status": "Started", "started_at": (now - timedelta(hours=2)).replace(tzinfo=None)}
+    assert prepared._stale(started, {})
+    assert not prepared._stale(started, {"timeout": 3 * 3600})  # its own limit is longer

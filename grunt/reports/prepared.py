@@ -17,7 +17,7 @@ import hashlib
 import json
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from grunt.db.api import GruntDB
@@ -40,6 +40,10 @@ _db = GruntDB()  # stateless: reads through the context's session
 EVENT = "prepared_report"
 
 PENDING = ("Queued", "Started")
+
+#: A pending run older than this (plus the report's own timeout) is taken for
+#: lost - a worker stopped mid-run, a broker dropped the task - and replaced.
+STALE_AFTER = timedelta(hours=1)
 
 _FIELDS = [
     "name",
@@ -84,7 +88,13 @@ async def prepare(
     *filters*; an unfinished run for the same filters is returned instead."""
     current = await latest(report["name"], user, filters)
     if current and current["status"] in PENDING:
-        return current
+        if not _stale(current, report):
+            return current
+        await _db.set_value(
+            "PreparedReport",
+            current["name"],
+            {"status": "Error", "error": "Interrupted: the background run didn't finish"},
+        )
     now = datetime.now(UTC)
     row = {
         "name": uuid.uuid4().hex,
@@ -103,6 +113,21 @@ async def prepare(
     enqueue(generate, site=site_manager.get_active_site(), prepared_id=row["name"])
     log.info("reports.prepared_queued", report=report.get("report_name"), user=user)
     return {k: row.get(k) for k in _FIELDS}
+
+
+def _aware(value: datetime | str | None) -> datetime | None:
+    if isinstance(value, str):
+        value = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if value is not None and value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    return value
+
+
+def _stale(row: dict[str, Any], report: dict[str, Any]) -> bool:
+    """A pending *row* nobody will finish any more."""
+    since = _aware(row.get("started_at") if row["status"] == "Started" else row.get("created_at"))
+    limit = STALE_AFTER + timedelta(seconds=report.get("timeout") or 0)
+    return since is not None and datetime.now(UTC) - since > limit
 
 
 async def load_result(prepared: dict[str, Any]) -> dict[str, Any] | None:
@@ -142,6 +167,8 @@ async def _drop_older(prepared: dict[str, Any]) -> None:
             "filters_hash": prepared["filters_hash"],
             "status__in": ["Completed", "Error"],
             "name__ne": prepared["name"],
+            # Only older runs: a slower, older run finishing last keeps a newer result.
+            "created_at__lt": prepared["created_at"],
         },
         pluck="name",
         limit=None,
@@ -156,7 +183,7 @@ async def run_prepared(prepared_id: str) -> None:
     rows = await _db.get_all(
         "PreparedReport",
         filters={"name": prepared_id},
-        fields=["name", "report", "user", "status", "filters", "filters_hash"],
+        fields=["name", "report", "user", "status", "filters", "filters_hash", "created_at"],
         limit=1,
     )
     if not rows or rows[0]["status"] != "Queued":
@@ -168,10 +195,11 @@ async def run_prepared(prepared_id: str) -> None:
     )
     await session.commit()
 
-    report_name = await _db.get_value("Report", prepared["report"], "report_name")
+    report_name: str | None = None
     start = time.monotonic()
     values: dict[str, Any]
-    try:
+    try:  # from here on every way out records a terminal status
+        report_name = await _db.get_value("Report", prepared["report"], "report_name")
         if not report_name:
             raise ApplicationError("Report not found", code="NOT_FOUND")
         report = await report_engine.load(report_name, user, session)

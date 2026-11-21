@@ -51,10 +51,16 @@ const preparing = ref(false)
 const isPrepared = computed(() => !!report.value?.prepared_report)
 const pending = computed(() => prepared.value?.status === 'Queued' || prepared.value?.status === 'Started')
 
+// Each request for the report's state takes a number; a response that is no
+// longer the latest (the filters or the report changed meanwhile) is dropped.
+let generation = 0
+
 async function prepare() {
+    const mine = ++generation
     preparing.value = true
     try {
-        prepared.value = await reportsApi.prepare(props.reportName, filters.value)
+        const state = await reportsApi.prepare(props.reportName, filters.value)
+        if (mine === generation) prepared.value = state
     } finally {
         preparing.value = false
     }
@@ -115,6 +121,7 @@ function onFiltersChange(active: ActiveFilter[]) {
 }
 
 async function fetchReport() {
+    const mine = ++generation
     loading.value = true
     try {
         // 1. Fetch metadata
@@ -124,12 +131,13 @@ async function fetchReport() {
 
         // 2. Run report
         const runRes = await reportsApi.run(props.reportName, filters.value)
+        if (mine !== generation) return
         data.value = runRes.data
         columns.value = runRes.columns
         meta.value = runRes.meta
         prepared.value = runRes.prepared ?? null
     } finally {
-        loading.value = false
+        if (mine === generation) loading.value = false
     }
 }
 
@@ -228,7 +236,7 @@ function openBuilder() {
                     {{ t('Refresh') }}
                 </Button>
                 <Button v-if="!isPrepared || prepared?.status === 'Completed'" variant="outline" size="sm" as="a"
-                    :href="reportsApi.exportXlsxUrl(reportName)" download>
+                    :href="reportsApi.exportXlsxUrl(reportName, filters)" download>
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>

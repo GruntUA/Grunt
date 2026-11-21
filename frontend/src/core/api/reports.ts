@@ -62,8 +62,11 @@ export const reportsApi = {
       .post('/api/v1/method/grunt.reports.doctypes.Report.report.prepare', { name: reportName, filters })
       .then(r => r.data.data),
 
-  exportXlsxUrl: (reportName: string): string => {
+  /** XLSX of the report as shown - with these `filters` (a prepared report: its result for them). */
+  exportXlsxUrl: (reportName: string, filters: Record<string, unknown> = {}): string => {
     const auth = useAuthStore()
-    return `/api/v1/method/grunt.reports.doctypes.Report.report.export_xlsx?name=${encodeURIComponent(reportName)}&token=${encodeURIComponent(auth.token ?? '')}`
+    const params = new URLSearchParams({ name: reportName, token: auth.token ?? '' })
+    if (Object.keys(filters).length) params.set('filters', JSON.stringify(filters))
+    return `/api/v1/method/grunt.reports.doctypes.Report.report.export_xlsx?${params}`
   },
 }

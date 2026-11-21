@@ -334,14 +334,22 @@ class SqliteDialect(Dialect):
             yield
             return
         # The progress handler runs on the driver's thread every N VM steps;
-        # a true return interrupts the statement ("interrupted").
+        # a true return interrupts the statement ("interrupted"). The deadline
+        # restarts with every statement - a limit per statement, as PostgreSQL's.
         conn = await session.connection()
         raw = (await conn.get_raw_connection()).driver_connection
-        deadline = time.monotonic() + seconds
-        await raw.set_progress_handler(lambda: time.monotonic() > deadline, _PROGRESS_STEPS)
+        deadline = [time.monotonic() + seconds]
+
+        def restart(*_: Any) -> None:
+            deadline[0] = time.monotonic() + seconds
+
+        event.listen(conn.sync_connection, "before_cursor_execute", restart)
         try:
+            # Inside the try: a cancellation during this await still removes it.
+            await raw.set_progress_handler(lambda: time.monotonic() > deadline[0], _PROGRESS_STEPS)
             yield
         finally:
+            event.remove(conn.sync_connection, "before_cursor_execute", restart)
             await raw.set_progress_handler(None, _PROGRESS_STEPS)
 
     def is_timeout(self, exc: BaseException) -> bool:
