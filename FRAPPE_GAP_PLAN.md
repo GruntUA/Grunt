@@ -30,8 +30,8 @@
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ✔️ (`feat/inbound-email-to-doc`) |
 | 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ✔️ (`feat/email-oauth`) |
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ✔️ (`feat/email-queue`) |
-| 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ✅ (`feat/prepared-report`) |
-| 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
+| 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ✔️ (#240) |
+| 17 | Document Naming Rule (серія нумерації за умовою) | ✅ (`feat/naming-rules`) |
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
@@ -229,7 +229,7 @@
   - Не робимо: `expose_recipients` / `show_as_cc`; позначку «заплановано на …» на стрічці документа (лист там «У черзі»).
 
 ### 16. Prepared Report та Report
-**Статус:** ❓
+**Статус:** ✔️ — #240
 - **Frappe:** Prepared Report — звіт рахується у фоні, користувач отримує збережений результат; Report `add_total_row`, `roles`, `disabled`, `timeout`, `reference_report`.
 - **Ґрунт зараз:** звіти рахуються синхронно; рядок «Разом» є для Query/Script (прапорець `total` у колонці); Report читають усі (роль All), і Query/Script-звіт без `ref_doctype` запускає будь-хто — діра.
 - **Рішення (2026-11-20):** робимо, одним PR (`feat/prepared-report`):
@@ -241,10 +241,18 @@
   - Не робимо: `reference_report` (є `is_standard`/`app`).
 
 ### 17. Document Naming Rule
-**Статус:** ❓
+**Статус:** ✅ — `feat/naming-rules`
 - **Frappe:** правило іменування з умовами та пріоритетом (різні серії для різних підрозділів/типів).
 - **Ґрунт зараз:** `autoname` + NamingSeries на DocType.
-- **Рішення:** —
+- **Рішення (2026-11-21):** робимо все, одним PR (`feat/naming-rules`):
+  - **Document Naming Rule** (`grunt/naming/doctypes/DocumentNamingRule`, кеш — `grunt/naming/rules.py`): DocType + `condition` + `priority` + `disabled` → шаблон назви. Умова — Python-вираз на simpleeval (`doc.department == 'ЦНАП'`), як у Notification/Workflow/Webhook, а не таблиця умов, як у Frappe; помилка = не збігається. Перше правило, умова якого справджується, перекриває `autoname` DocType і `autoname()` контролера.
+  - **Поля в шаблоні:** `{fieldname}` (свій лічильник на кожне значення; порожнє → помилка); токени в дужках `{YYYY}`/`{####}`, як у `format:` у Frappe.
+  - **Дата з документа:** `DocType.naming_date_field` («Дата для назви»).
+  - **`naming_series:`:** користувач обирає серію в Select-полі `naming_series`; значення поза варіантами відхиляється.
+  - **Лічильник в UI:** «Наступна назва» і кнопка «Лічильник серії…» у формах DocType і правила; API `grunt.api.v1.naming.preview/counter/set_counter` (`grunt.manage_doctypes`).
+  - **Зайняті назви** пропускаються (до 1000 поспіль), замість помилки унікального ключа.
+  - Попутно: дата в назві рахувалася в UTC — 1 січня до 02:00 за Києвом документ отримував минулий рік; тепер місцева дата (`settings.default_timezone`). Видалення додатка чистить лічильники `{field}`/`naming_series`/правил і самі правила.
+  - Не робимо: таблицю умов (field/condition/value), окремий DocType «Document Naming Settings», назву для поправок (amended_from, у ґрунті немає Submit).
 
 ### 18. Налаштування сповіщень користувача
 **Статус:** ❓

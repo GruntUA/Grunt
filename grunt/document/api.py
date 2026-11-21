@@ -565,7 +565,7 @@ class DocumentAPI:
         names: list[str] = []
 
         for rec in records:
-            doc_name = await naming_service.generate(dt.autoname or "", rec, session)
+            doc_name = await naming_service.new_name(dt, rec, session, honor_explicit=False)
             names.append(doc_name)
             row = {k: v for k, v in rec.items() if k in table.c}
             standard = {

@@ -128,7 +128,19 @@
       "fieldname": "autoname",
       "label": "Autoname",
       "fieldtype": "Data",
-      "description": "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+      "description": "Series (CONTR-.YYYY.-.####, a field in braces: {department}), naming_series:, field:fieldname, prompt or hash. Document Naming Rules can pick another series by condition."
+    },
+    {
+      "fieldname": "naming_date_field",
+      "label": "Date for the name",
+      "fieldtype": "Select",
+      "description": "YYYY, MM and DD in the name come from this field instead of today's date"
+    },
+    {
+      "fieldname": "naming_counter",
+      "label": "Series counter…",
+      "fieldtype": "Button",
+      "depends_on": "eval:!doc.__islocal"
     },
     {
       "fieldname": "title_field",

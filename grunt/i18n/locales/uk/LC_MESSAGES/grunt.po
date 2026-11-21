@@ -469,6 +469,10 @@ msgstr "Обов'язкове поле порожнє."
 msgid "A role an API key acts with - one its user holds."
 msgstr "Роль, з якою діє API-ключ, — одна з ролей його користувача."
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "A rule needs a naming pattern, e.g. ВХ-.YYYY.-.####"
+msgstr "Правилу потрібен шаблон назви, напр. ВХ-.YYYY.-.####"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
@@ -1222,6 +1226,18 @@ msgstr ""
 #: grunt/grunt/backups/__init__.py
 msgid "Another backup is being made right now"
 msgstr "Інша резервна копія вже створюється"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Another naming series for documents that meet a condition: a separate count "
+"for a department, a document type, a year. The first enabled rule (highest "
+"priority first) whose condition holds names the new document instead of the "
+"DocType's autoname."
+msgstr ""
+"Інша серія нумерації для документів, що відповідають умові: окремий лік для "
+"підрозділу, виду документа, року. Перше ввімкнене правило (спершу з вищим "
+"пріоритетом), умова якого справджується, дає назву новому документу замість "
+"autoname DocType."
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Another sign-in method"
@@ -2433,6 +2449,10 @@ msgstr "Поле дочірнього DocType"
 msgid "Child DocType whose rows hold the link field"
 msgstr "Child DocType, у рядках якого лежить поле-посилання"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "Child tables and singletons are not named by series"
+msgstr "Дочірні таблиці й одиночні DocType не нумеруються серіями"
+
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgid "Chinese"
 msgstr "Китайська"
@@ -2896,6 +2916,7 @@ msgid ""
 msgstr ""
 "Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -3355,6 +3376,11 @@ msgstr "Відлік від поля"
 msgid "Count page views"
 msgstr "Рахувати перегляди сторінок"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Counter updated"
+msgstr "Лічильник оновлено"
+
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/geo/doctypes/Region/Region.json
 #: grunt/grunt/geo/doctypes/City/City.json
@@ -3648,6 +3674,10 @@ msgstr "Поле дати"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Date field that enables the date picker in the tree panel"
 msgstr "Date-поле, що вмикає вибір дати в панелі дерева"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Date for the name"
+msgstr "Дата для назви"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Date format"
@@ -4157,6 +4187,7 @@ msgstr "Вимкнути MFA"
 msgid "Disable the action but keep the row"
 msgstr "Вимкнути дію, зберігши рядок"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
@@ -4333,6 +4364,10 @@ msgstr "ID документа"
 msgid "Document Link"
 msgstr "Зв'язок документа"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Document Naming Rule"
+msgstr "Правило нумерації документів"
+
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgid "Document Tag"
 msgstr "Тег документа"
@@ -4398,6 +4433,7 @@ msgstr "Документ перейменовано"
 msgid "Document shared"
 msgstr "Документ поширено"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -4650,6 +4686,10 @@ msgstr "Кожне повідомлення приходить кілька ра
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Each profile adds its roles to the user's roles below."
 msgstr "Кожен профіль додає свої ролі до ролей користувача нижче."
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+msgid "Each value of {fields} has its own count"
+msgstr "Для кожного значення {fields} — свій лік"
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -5018,6 +5058,10 @@ msgstr "Введіть код або перейдіть за посилання�
 #: grunt/grunt/storage/cloud/providers.py
 msgid "Enter the rclone backend type"
 msgstr "Вкажіть тип бекенда rclone"
+
+#: grunt/grunt/api/v1/naming.py
+msgid "Enter the series prefix"
+msgstr "Вкажіть префікс серії"
 
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Enter the verification code"
@@ -5706,6 +5750,10 @@ msgstr "Заповніть обов'язкові поля"
 #: grunt/frontend/src/core/composables/useFormValidation.ts
 msgid "Fill in the required fields: {fields}"
 msgstr "Заповніть обов'язкові поля: {fields}"
+
+#: grunt/grunt/naming/service.py
+msgid "Fill in “%(field)s”: the document's name is built from it"
+msgstr "Заповніть «%(field)s»: з нього будується назва документа"
 
 #: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue
 msgid ""
@@ -7506,6 +7554,15 @@ msgstr "Прізвище є обов'язковим"
 msgid "Last name, First name, Patronymic"
 msgstr "Прізвище, Ім'я, По-батькові"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid ""
+"Last number given out in “{prefix}” (now {current}). The next document gets "
+"the one after it."
+msgstr ""
+"Останній виданий номер у «{prefix}» (зараз {current}). Наступний документ "
+"отримає номер після нього."
+
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Last page"
 msgstr "Остання сторінка"
@@ -7635,6 +7692,16 @@ msgstr "Світла"
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Like"
 msgstr "Подобається"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Like the DocType's autoname: .YYYY. .YY. .MM. .DD., counter .####., a "
+"field's value in braces {department}. Everything before the counter has its "
+"own count."
+msgstr ""
+"Як autoname DocType: .YYYY. .YY. .MM. .DD., лічильник .####., значення поля "
+"у фігурних дужках {department}. Для всього, що перед лічильником, — свій "
+"лік."
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Limit of {n} records reached — totals cover only these."
@@ -8470,6 +8537,14 @@ msgstr "Серія нумерації"
 msgid "Naming and display"
 msgstr "Іменування і відображення"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Naming pattern"
+msgstr "Шаблон назви"
+
+#: grunt/grunt/naming/service.py
+msgid "Naming series “%(series)s” is not one of the allowed ones"
+msgstr "Серії «%(series)s» немає серед дозволених"
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "National domain (.ua, .us)"
 msgstr "Національний домен (.ua, .us)"
@@ -8573,6 +8648,11 @@ msgstr "Далі"
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Next actors"
 msgstr "Наступні виконавці"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Next name"
+msgstr "Наступна назва"
 
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Next page"
@@ -10294,6 +10374,7 @@ msgstr ""
 " apps/grunt; на новому сервері ще й `playwright install-deps chromium` від "
 "root."
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -10455,6 +10536,14 @@ msgid ""
 "Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
 msgstr ""
 "Вираз Python над doc і user, напр. doc.status == 'Open'. Порожньо — завжди"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Python expression on the new document, e.g. doc.department == 'ЦНАП'. Empty:"
+" every document. An expression that fails counts as false."
+msgstr ""
+"Вираз Python над новим документом, напр. doc.department == 'ЦНАП'. Порожньо "
+"— будь-який документ. Вираз, що падає з помилкою, вважається хибним."
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Python packages"
@@ -11463,6 +11552,10 @@ msgstr ""
 msgid "Rules that grant this action"
 msgstr "Правила, що дають цю дію"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Rules with a higher priority are tried first"
+msgstr "Правила з вищим пріоритетом перевіряються першими"
+
 #: grunt/grunt/monitoring/health.py
 msgid "Run `grunt app deps`. Missing:"
 msgstr "Виконайте `grunt app deps`. Бракує:"
@@ -12214,8 +12307,29 @@ msgid "September"
 msgstr "Вересень"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
-msgstr "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"
+msgid ""
+"Series (CONTR-.YYYY.-.####, a field in braces: {department}), "
+"naming_series:, field:fieldname, prompt or hash. Document Naming Rules can "
+"pick another series by condition."
+msgstr ""
+"Серія (CONTR-.YYYY.-.####, поле у фігурних дужках: {department}), "
+"naming_series:, field:fieldname, prompt або hash. Правила нумерації "
+"документів можуть обрати іншу серію за умовою."
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series counter"
+msgstr "Лічильник серії"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Series counter…"
+msgstr "Лічильник серії…"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series prefix — the name up to the number, e.g. ВХ-2026-"
+msgstr "Префікс серії — назва до номера, напр. ВХ-2026-"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -13655,6 +13769,10 @@ msgstr "Коментар, на який це відповідь (гілки ма
 msgid "The comment you reply to no longer exists"
 msgstr "Коментар, на який ви відповідаєте, уже видалено"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "The condition is not a valid expression: %(error)s"
+msgstr "Умова не є коректним виразом: %(error)s"
+
 #: grunt/grunt/integrations/oauth.py
 msgid "The connected app is disabled"
 msgstr "Підключений застосунок вимкнено"
@@ -13674,6 +13792,14 @@ msgid ""
 msgstr ""
 "Вміст перенесено з диска сервера в це сховище; на запит він завантажується "
 "назад (grunt.storage.cloud.files)."
+
+#: grunt/grunt/naming/service.py
+msgid "The counter can't be negative"
+msgstr "Лічильник не може бути від’ємним"
+
+#: grunt/grunt/api/v1/naming.py
+msgid "The counter must be a whole number"
+msgstr "Лічильник має бути цілим числом"
 
 #: grunt/grunt/auth/user_api.py
 msgid "The current password is incorrect"
@@ -13930,6 +14056,14 @@ msgstr ""
 "Новий тип зберігає значення інакше (окрема колонка або дочірня таблиця). "
 "Наявні дані цього поля не переносяться автоматично — вивантажте їх до "
 "міграції."
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"The next %(count)s names of series “%(prefix)s” are all taken: set its "
+"counter"
+msgstr ""
+"Наступні %(count)s назв серії «%(prefix)s» уже зайняті: встановіть її "
+"лічильник"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "The oldest versions past this number are deleted. 0 - keep all"
@@ -15885,6 +16019,12 @@ msgstr ""
 msgid "Write an email"
 msgstr "Написати лист"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"YYYY, MM and DD in the name come from this field instead of today's date"
+msgstr ""
+"YYYY, MM і DD у назві беруться з цього поля замість сьогоднішньої дати"
+
 #: grunt/frontend/src/core/datetime.ts
 msgid "YYYY-MM-DD"
 msgstr "РРРР-ММ-ДД"
@@ -17203,6 +17343,10 @@ msgstr "{words} сл. · {chars} симв."
 msgid "~{n} min"
 msgstr "~{n} хв"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "ВХ-ЦНАП-.YYYY.-.####"
+msgstr "ВХ-ЦНАП-.YYYY.-.####"
+
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue
 msgid "— All —"
 msgstr "— Усі —"
@@ -17248,6 +17392,10 @@ msgstr ""
 "«%(doctype)s» не приймає вхідну пошту: спершу увімкніть «Створювати з "
 "вхідної пошти» в його налаштуваннях"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "“%(doctype)s” has no fields %(fields)s"
+msgstr "У «%(doctype)s» немає полів %(fields)s"
+
 #: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr "«%(doctype)s» не має таблиці для агрегації"
@@ -17266,6 +17414,14 @@ msgid ""
 msgstr ""
 "«%(doctype)s» не має таблиці: grunt.db.%(action)s працює лише з рядками "
 "таблиці"
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"“%(doctype)s” is named by series but has no “naming_series” field with "
+"options"
+msgstr ""
+"«%(doctype)s» нумерується за серією, але не має поля «naming_series» з "
+"варіантами"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
@@ -17291,6 +17447,10 @@ msgstr "«%(fields)s» не можна змінити після встанов�
 #: grunt/grunt/email/unsubscribe.py
 msgid "“%(name)s” letters"
 msgstr "листи «%(name)s»"
+
+#: grunt/grunt/naming/service.py
+msgid "“%(value)s” is not a date the name can be built from"
+msgstr "«%(value)s» — не дата, з якої можна побудувати назву"
 
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 msgid "“*” - not tied to a DocType (recent documents)"
@@ -17896,6 +18056,9 @@ msgstr "Відкрито"
 
 #~ msgid "Scheduled job “%(name)s” not found"
 #~ msgstr "Заплановану задачу «%(name)s» не знайдено"
+
+#~ msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+#~ msgstr "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"
 
 #~ msgid "Set “Only for document” or enable “Apply to all documents”"
 #~ msgstr ""
