@@ -74,7 +74,7 @@ async def send_report(report: dict[str, Any], session: AsyncSession) -> int:
 
     name = report["report_name"]
     filters = report.get("schedule_filters") or {}
-    result = await report_engine.run(name, filters, await _run_as(report), session)
+    result = await report_engine.run(name, filters, await _run_as(report), session, background=True)
     xlsx = await report_engine.export_excel(result, name)
 
     today = datetime.now(UTC).date().isoformat()
@@ -104,6 +104,7 @@ _REPORT_FIELDS = [
     "schedule_recipients",
     "schedule_filters",
     "last_sent_at",
+    "disabled",
 ]
 
 
@@ -123,7 +124,9 @@ async def send_scheduled_reports() -> None:
             limit=None,
         )
         for report in reports:
-            if not is_due(report["schedule_frequency"], report.get("last_sent_at"), today):
+            if report.get("disabled") or not is_due(
+                report["schedule_frequency"], report.get("last_sent_at"), today
+            ):
                 continue
             try:
                 await send_report(report, session)

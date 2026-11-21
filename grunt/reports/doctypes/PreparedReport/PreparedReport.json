@@ -1,0 +1,112 @@
+{
+  "name": "PreparedReport",
+  "label": "Prepared Report",
+  "module": "reports",
+  "icon": "file-clock",
+  "track_changes": false,
+  "track_activity": false,
+  "track_deletions": false,
+  "hide_from_activity_feed": true,
+  "retention_days": 30,
+  "description": "A report result calculated in the background - for the user who asked, with their permissions.",
+  "fields": [
+    {
+      "fieldname": "report",
+      "label": "Report",
+      "fieldtype": "Link",
+      "options": "Report",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "user",
+      "label": "User",
+      "fieldtype": "Data",
+      "required": true,
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true,
+      "index": true
+    },
+    {
+      "fieldname": "status",
+      "label": "Status",
+      "fieldtype": "Select",
+      "options": "Queued\nStarted\nCompleted\nError",
+      "translatable": true,
+      "default": "Queued",
+      "read_only": true,
+      "in_list_view": true,
+      "in_filter": true
+    },
+    {
+      "fieldname": "filters",
+      "label": "Filters",
+      "fieldtype": "JSON",
+      "read_only": true
+    },
+    {
+      "fieldname": "filters_hash",
+      "label": "Filters hash",
+      "fieldtype": "Data",
+      "read_only": true,
+      "hidden": true,
+      "index": true
+    },
+    {
+      "fieldname": "col_main",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "started_at",
+      "label": "Started at",
+      "fieldtype": "Datetime",
+      "read_only": true
+    },
+    {
+      "fieldname": "finished_at",
+      "label": "Finished at",
+      "fieldtype": "Datetime",
+      "read_only": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "rows",
+      "label": "Rows",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "time_ms",
+      "label": "Time, ms",
+      "fieldtype": "Int",
+      "read_only": true
+    },
+    {
+      "fieldname": "result_file",
+      "label": "Result file",
+      "fieldtype": "Data",
+      "read_only": true,
+      "hidden": true
+    },
+    {
+      "fieldname": "sec_error",
+      "label": "Error",
+      "fieldtype": "Section",
+      "depends_on": "error"
+    },
+    {
+      "fieldname": "error",
+      "label": "Error",
+      "fieldtype": "LongText",
+      "read_only": true
+    }
+  ],
+  "permissions": [
+    {"role": "All", "actions": ["read", "delete"], "match": "user == user"},
+    {"role": "System Manager", "actions": ["read", "delete"]}
+  ]
+}

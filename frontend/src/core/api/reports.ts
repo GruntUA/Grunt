@@ -1,6 +1,6 @@
 import client from './client'
 import { useAuthStore } from '@/stores/auth'
-import type { DocField, ReportDetail, ReportResult, ReportSummary } from '@/types'
+import type { DocField, PreparedState, ReportDetail, ReportResult, ReportSummary } from '@/types'
 import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
@@ -56,8 +56,17 @@ export const reportsApi = {
       .post('/api/v1/method/grunt.reports.doctypes.Report.report.run', { name: reportName, filters })
       .then(r => r.data.data),
 
-  exportXlsxUrl: (reportName: string): string => {
+  /** Queue a background calculation of a prepared report for `filters`. */
+  prepare: (reportName: string, filters: Record<string, unknown> = {}): Promise<PreparedState> =>
+    client
+      .post('/api/v1/method/grunt.reports.doctypes.Report.report.prepare', { name: reportName, filters })
+      .then(r => r.data.data),
+
+  /** XLSX of the report as shown - with these `filters` (a prepared report: its result for them). */
+  exportXlsxUrl: (reportName: string, filters: Record<string, unknown> = {}): string => {
     const auth = useAuthStore()
-    return `/api/v1/method/grunt.reports.doctypes.Report.report.export_xlsx?name=${encodeURIComponent(reportName)}&token=${encodeURIComponent(auth.token ?? '')}`
+    const params = new URLSearchParams({ name: reportName, token: auth.token ?? '' })
+    if (Object.keys(filters).length) params.set('filters', JSON.stringify(filters))
+    return `/api/v1/method/grunt.reports.doctypes.Report.report.export_xlsx?${params}`
   },
 }

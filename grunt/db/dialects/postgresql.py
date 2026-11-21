@@ -4,6 +4,8 @@ import os
 import re
 import shutil
 import subprocess
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -160,6 +162,30 @@ class PostgresDialect(Dialect):
             "dead_tuples": int(dead or 0),
             "reclaim_scope": "table",
         }
+
+    # ── Statement timeout ───────────────────────────────────────────────────
+
+    @asynccontextmanager
+    async def statement_timeout(self, session: Any, seconds: float | None) -> AsyncGenerator[None]:
+        if not seconds:
+            yield
+            return
+        # In a savepoint: a cancelled statement aborts it alone (the request's
+        # transaction stays usable), and rolling it back undoes SET LOCAL too.
+        async with session.begin_nested():
+            await session.execute(
+                text(f"SET LOCAL statement_timeout = {max(1, int(seconds * 1000))}")
+            )
+            yield
+            await session.execute(text("SET LOCAL statement_timeout = DEFAULT"))
+
+    def is_timeout(self, exc: BaseException) -> bool:
+        orig = getattr(exc, "orig", None) or exc
+        for source in (orig, orig.__cause__):
+            code = getattr(source, "sqlstate", None) or getattr(source, "pgcode", None)
+            if code == "57014":  # query_canceled
+                return True
+        return False
 
     # ── Errors ──────────────────────────────────────────────────────────────
 

@@ -315,6 +315,13 @@ msgstr "Не можна підставити підлеглий елемент �
 msgid "A digit"
 msgstr "Цифра"
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"A disabled report can't be run or sent on schedule and is hidden from menus."
+msgstr ""
+"Вимкнений звіт не запускається, не розсилається за розкладом і не "
+"показується в меню."
+
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
 "A disabled role stays assigned to its users but gives them nothing: no "
@@ -358,6 +365,10 @@ msgstr "Назва групи не може починатися чи закін
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name is at most %(count)d characters"
 msgstr "Назва групи — щонайбільше %(count)d символів"
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "A heavy report is calculated in the background and saved."
+msgstr "Важкий звіт рахується у фоні й зберігається."
 
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
@@ -441,6 +452,14 @@ msgid ""
 msgstr ""
 "Відповідь на лист, надісланий з документа, потрапляє в цей документ. Новий "
 "лист створює документ вибраного типу"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid ""
+"A report result calculated in the background - for the user who asked, with "
+"their permissions."
+msgstr ""
+"Результат звіту, розрахований у фоні, — для користувача, що його запросив, з"
+" його правами."
 
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
@@ -619,6 +638,10 @@ msgstr "Про документ"
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Access"
 msgstr "Доступ"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Access & execution"
+msgstr "Доступ і виконання"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 msgid "Access Log"
@@ -2066,9 +2089,25 @@ msgstr "Кеш"
 msgid "Cache Storage"
 msgstr "Cache Storage"
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculate"
+msgstr "Розрахувати"
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Calculate for all"
 msgstr "Порахувати за всіма"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Calculated in the background: the report shows the last saved result for the"
+" chosen filters and a “Recalculate” button. For heavy reports."
+msgstr ""
+"Рахується у фоні: звіт показує останній збережений результат для вибраних "
+"фільтрів і кнопку «Перерахувати». Для важких звітів."
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculated {date}"
+msgstr "Розраховано {date}"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "Calculator"
@@ -2822,6 +2861,7 @@ msgstr ""
 "стало повільнішим, а що швидшим. Зміна показується, лише коли в обох "
 "періодах щонайменше 10 викликів."
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Completed"
 msgstr "Завершено"
@@ -4117,6 +4157,7 @@ msgstr "Вимкнути MFA"
 msgid "Disable the action but keep the row"
 msgstr "Вимкнути дію, зберігши рядок"
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
@@ -5008,6 +5049,7 @@ msgstr "Дорівнює"
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/document/doctypes/Comment/Comment.json
@@ -5702,6 +5744,7 @@ msgstr "Фільтр:"
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
@@ -5716,6 +5759,10 @@ msgstr "Фільтри (JSON)"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Filters Matched"
 msgstr "Збіглися фільтри"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Filters hash"
+msgstr "Хеш фільтрів"
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Final"
@@ -5732,6 +5779,10 @@ msgstr "Завершити"
 #: grunt/frontend/src/core/composables/useTaskTracker.ts
 msgid "Finished - see notifications"
 msgstr "Завершено — підсумок у сповіщеннях"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Finished at"
+msgstr "Завершено о"
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "First choose a DocType and upload a file"
@@ -7153,6 +7204,13 @@ msgstr "Це дерево (Is Tree)"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 msgid "Issues"
 msgstr "Зауваження"
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid ""
+"It runs in the background - you can leave the page; the result will appear "
+"here."
+msgstr ""
+"Розрахунок іде у фоні — сторінку можна закрити, результат з’явиться тут."
 
 #: grunt/grunt/monitoring/health.py
 msgid "It will be downloaded automatically on first use."
@@ -8927,6 +8985,10 @@ msgstr "Не автором документа"
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr "Не збережено, напр.: {files}. Перезавантажте сторінку з мережею."
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Not calculated for these filters yet"
+msgstr "Для цих фільтрів звіт ще не розраховано"
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Not carried over when the document is duplicated"
 msgstr "Не переноситься при дублюванні документа"
@@ -9397,6 +9459,16 @@ msgid ""
 msgstr ""
 "Лише ці ролі користувача (з його областями); порожньо — усі. Ключ ніколи не "
 "отримує більше, ніж має його користувач."
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Only these roles may open and run the report (and, on a DocType, only with "
+"the “Report” permission on it). Empty — whoever may report on the DocType; a"
+" report without a DocType — System Manager only."
+msgstr ""
+"Відкривати й запускати звіт можуть лише ці ролі (а для звіту за DocType — "
+"лише з правом «Звіт» на нього). Порожньо — усі, хто має право «Звіт» на "
+"DocType; звіт без DocType — лише System Manager."
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
@@ -10128,6 +10200,14 @@ msgstr "Налаштування"
 msgid "Prefix"
 msgstr "Префікс"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Prepared Report"
+msgstr "Підготовлений звіт"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Prepared report"
+msgstr "Підготовлений звіт"
+
 #: grunt/grunt/backups/__init__.py
 msgid "Preparing"
 msgstr "Підготовка"
@@ -10396,6 +10476,7 @@ msgstr "Черга"
 msgid "Queue Workers"
 msgstr "Воркери черги"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
@@ -10548,6 +10629,7 @@ msgid "Rebuild index"
 msgstr "Перебудувати індекс"
 
 #: grunt/grunt/actions/builtin.py
+#: grunt/frontend/src/pages/reports/ReportView.vue
 msgid "Recalculate"
 msgstr "Перерахувати"
 
@@ -10903,6 +10985,7 @@ msgid "Reply-To"
 msgstr "Адреса для відповіді (Reply-To)"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
@@ -10947,6 +11030,10 @@ msgstr "Звіт поставлено в чергу для %(count)s отрим�
 msgid "Report saved"
 msgstr "Звіт збережено"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Report timeout, sec"
+msgstr "Тайм-аут звіту, с"
+
 #: grunt/grunt/reports/engine.py
 msgid "Report type “%(type)s” is not supported"
 msgstr "Тип звіту «%(type)s» не підтримується"
@@ -10960,14 +11047,31 @@ msgid "Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached
 msgstr ""
 "Звіт «%(name)s» станом на %(date)s: %(rows)s рядків. Файл у вкладенні."
 
+#: grunt/grunt/reports/access.py
+msgid "Report “%(name)s” is disabled"
+msgstr "Звіт «%(name)s» вимкнено"
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "Report “%(name)s” is not a prepared report"
+msgstr "Звіт «%(name)s» не є підготовленим"
+
 #: grunt/grunt/reports/engine.py grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s” not found"
 msgstr "Звіт «%(name)s» не знайдено"
+
+#: grunt/grunt/reports/engine.py
+msgid ""
+"Report “%(name)s” ran longer than %(seconds)s s and was stopped. Narrow the "
+"filters or make it a prepared report."
+msgstr ""
+"Звіт «%(name)s» виконувався довше за %(seconds)s с і був зупинений. Звузьте "
+"фільтри або зробіть його підготовленим."
 
 #: grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s”, %(date)s"
 msgstr "Звіт «%(name)s» — %(date)s"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue
@@ -11148,6 +11252,7 @@ msgid "Result column to sort by."
 msgstr "Колонка результату для сортування."
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 msgid "Result file"
 msgstr "Файл результату"
 
@@ -11236,6 +11341,7 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 msgid "Role, everyone, end date…"
 msgstr "Роль, усі, строк…"
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
@@ -11322,6 +11428,7 @@ msgid "Row/bar label (default: title field)"
 msgstr "Підпис рядка/смуги (default: поле заголовка)"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
@@ -12834,9 +12941,14 @@ msgstr "Поле початку"
 msgid "Start recording"
 msgstr "Почати запис"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Started"
 msgstr "Розпочато"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Started at"
+msgstr "Розпочато о"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
 msgid "Starting…"
@@ -12874,6 +12986,7 @@ msgstr "Стани і переходи"
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -13504,6 +13617,10 @@ msgstr "Браузер більше не приймає цю підписку (H
 msgid "The browser will not delete offline data"
 msgstr "Браузер не видалятиме офлайн-дані"
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The calculation failed"
+msgstr "Розрахунок не вдався"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid ""
@@ -13766,6 +13883,22 @@ msgstr "Посилання не знайдено або деактивовано
 msgid "The list is limited by your access rights"
 msgstr "Список обмежено вашими правами доступу"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"The longest a report's SQL may run when opened on screen; 0 — no limit. A "
+"report can set its own; prepared reports have none unless they do."
+msgstr ""
+"Найдовший час виконання SQL звіту, відкритого на екрані; 0 — без обмеження. "
+"Звіт може задати власний; підготовлені звіти без власного не обмежуються."
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"The longest a report's SQL may run. Empty — the site default (System "
+"Settings) when run on screen, no limit for a prepared report."
+msgstr ""
+"Найдовший час виконання SQL звіту. Порожньо — типовий для сайту "
+"(Налаштування системи) на екрані, без обмеження для підготовленого звіту."
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid ""
 "The mailbox will stop sending and receiving mail until it is connected "
@@ -13891,6 +14024,14 @@ msgstr "Заміна не може бути одним із записів, що
 #: grunt/grunt/document/collection.py
 msgid "The replacement cannot be the document being deleted"
 msgstr "Заміна не може збігатися з документом, що видаляється"
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "The report hasn't been calculated for these filters yet"
+msgstr "Для цих фільтрів звіт ще не розраховано"
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The report is being calculated…"
+msgstr "Звіт розраховується…"
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The response came from the offline cache."
@@ -14325,6 +14466,10 @@ msgstr ""
 msgid "Time zone"
 msgstr "Часовий пояс"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Time, ms"
+msgstr "Час, мс"
+
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Timeline"
 msgstr "Хронологія"
@@ -14332,6 +14477,10 @@ msgstr "Хронологія"
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgid "Timeout (sec)"
 msgstr "Тайм-аут (сек)"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Timeout, sec"
+msgstr "Тайм-аут, с"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Timestamp"
@@ -14951,6 +15100,7 @@ msgstr "Використовується для відображення дат 
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
@@ -15785,6 +15935,10 @@ msgstr "Ви вже стежите за цим документом"
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
 msgstr "Ви не можете створювати документи «%(doctype)s»"
+
+#: grunt/grunt/reports/access.py
+msgid "You are not allowed to run report “%(name)s”"
+msgstr "Вам не дозволено запускати звіт «%(name)s»"
 
 #: grunt/grunt/email/unsubscribe.py
 msgid "You are unsubscribed"

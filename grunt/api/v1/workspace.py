@@ -18,6 +18,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
 from grunt.permissions.query import allowed_doctypes
 from grunt.permissions.rbac import permission_checker
+from grunt.reports.access import ACCESS_FIELDS, runnable
 from grunt.site.doctypes.AppMenu.app_menu import (
     AppMenu,
     count_key,
@@ -168,24 +169,19 @@ async def _visible_page_items(names: set[str], roles: frozenset[str]) -> set[str
 
 
 async def _visible_reports(names: set[str]) -> set[str]:
-    """Those of the reports *names* the user may run: the Report itself is
-    readable and, on a DocType, ``report`` on it (as the report engine checks)."""
+    """Those of the reports *names* the user may run
+    (:func:`grunt.reports.access.runnable`) - and so open."""
     report_meta = await doctype_registry.get_meta("Report")
     if not names or report_meta is None or not await permission_checker.check(report_meta, "read"):
         return set()
     reports = await documents.get_list(
         "Report",
         filters={"report_name__in": sorted(names)},
-        fields=["report_name", "ref_doctype"],
+        fields=ACCESS_FIELDS,
         limit=len(names),
         include_total=False,
     )
-    refs = {r["ref_doctype"] for r in reports if r.get("ref_doctype")}
-    metas = [m for n in sorted(refs) if (m := await doctype_registry.get_meta(n))]
-    allowed = await allowed_doctypes(metas, "report")
-    return {
-        r["report_name"] for r in reports if not r.get("ref_doctype") or r["ref_doctype"] in allowed
-    }
+    return {r["report_name"] for r in await runnable(reports, acting_user().email)}
 
 
 def _drop_stray_dividers(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
