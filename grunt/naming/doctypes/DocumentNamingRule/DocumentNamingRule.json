@@ -1,0 +1,80 @@
+{
+  "name": "DocumentNamingRule",
+  "label": "Document Naming Rule",
+  "module": "naming",
+  "icon": "file-cog",
+  "autoname": "hash",
+  "title_field": "document_type",
+  "sort_field": "priority",
+  "sort_order": "desc",
+  "description": "Another naming series for documents that meet a condition: a separate count for a department, a document type, a year. The first enabled rule (highest priority first) whose condition holds names the new document instead of the DocType's autoname.",
+  "fields": [
+    {
+      "fieldname": "sec_main",
+      "label": "",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "col_main_1",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "document_type",
+      "label": "Document type",
+      "fieldtype": "Link",
+      "options": "DocType",
+      "required": true,
+      "in_list_view": true
+    },
+    {
+      "fieldname": "autoname",
+      "label": "Naming pattern",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "placeholder": "ВХ-ЦНАП-.YYYY.-.####",
+      "description": "Like the DocType's autoname: .YYYY. .YY. .MM. .DD., counter .####., a field's value in braces {department}. Everything before the counter has its own count."
+    },
+    {
+      "fieldname": "naming_counter",
+      "label": "Series counter…",
+      "fieldtype": "Button",
+      "depends_on": "eval:!doc.__islocal"
+    },
+    {
+      "fieldname": "col_main_2",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "priority",
+      "label": "Priority",
+      "fieldtype": "Int",
+      "default": "0",
+      "in_list_view": true,
+      "description": "Rules with a higher priority are tried first"
+    },
+    {
+      "fieldname": "disabled",
+      "label": "Disabled",
+      "fieldtype": "Check"
+    },
+    {
+      "fieldname": "sec_condition",
+      "label": "Condition",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "condition",
+      "label": "Condition",
+      "fieldtype": "Code",
+      "options": "python",
+      "description": "Python expression on the new document, e.g. doc.department == 'ЦНАП'. Empty: every document. An expression that fails counts as false."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+    }
+  ]
+}

@@ -36,6 +36,7 @@ description: Довідник по всіх типах полів, налашт�
 | `label` | str | Назва в UI |
 | `module` | str | Модуль додатку (snake_case) |
 | `autoname` | str | Правило генерації `name` — див. grunt-naming |
+| `naming_date_field` | str | Поле Date/Datetime, з якого беруться YYYY/MM/DD у назві (default: сьогодні за місцевим часом) — див. grunt-naming |
 | `title_field` | str | Яке поле відображається як заголовок (default: `"name"`) |
 | `image_field` | str | Поле Image/Attach для аватара в списку |
 | `search_fields` | list[str] | Поля пошуку в списку й Link-полі (`name` і `title_field` — завжди); кожне слово запиту має знайтися в якомусь полі |

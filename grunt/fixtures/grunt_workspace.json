@@ -148,6 +148,14 @@
     {
       "section": "Конструктор",
       "type": "DocType",
+      "label": "Правила нумерації",
+      "link_to": "DocumentNamingRule",
+      "icon": "file-cog",
+      "show_count": true
+    },
+    {
+      "section": "Конструктор",
+      "type": "DocType",
       "label": "Звіти",
       "link_to": "Report",
       "icon": "trending-up",

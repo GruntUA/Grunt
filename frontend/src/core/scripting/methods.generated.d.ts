@@ -175,6 +175,12 @@ interface GruntMethods {
   "grunt.api.v1.meta.sync_doctype": { args: { name: string }; result: Record<string, any> }
   /** Return physical storage info for a DocType's backing table. Admin only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.table_info": { args: { name: string }; result: Record<string, any> }
+  /** The last number given out under *prefix* (0 - none yet). Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.naming.counter": { args: { prefix: string }; result: number }
+  /** ``{pattern, prefix, current, next, fields}`` for *pattern* (the DocType's ``autoname`` when omitted) - nothing is counted. *doc* - field values for ``{field}`` tokens and ``naming_date_field``; the fields still missing are listed in ``fields``. Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.naming.preview": { args: { doctype: string; pattern?: string | null; doc?: Record<string, any> | null }; result: Record<string, any> }
+  /** Set the last number given out under *prefix*; the next document gets +1. A number already taken is skipped when it comes up. Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.naming.set_counter": { args: { prefix: string; current: number }; result: number }
   /** Get the count of unread notifications for the current user. */
   "grunt.api.v1.notifications.get_unread_count": { args: {}; result: number }
   /** Return the VAPID public key needed to subscribe to Web Push. */

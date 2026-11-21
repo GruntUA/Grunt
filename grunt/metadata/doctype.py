@@ -408,6 +408,8 @@ class DocType(BaseModel):
 
     # Naming / display
     autoname: str | None = None  # "CONTR-.YYYY.-.####" or "field:title"
+    # Date/Datetime field whose value gives the YYYY/MM/DD of the name (default: today)
+    naming_date_field: str | None = None
     title_field: str = "name"  # field used as document title
     image_field: str | None = None  # field (Image/Attach) used as document avatar
 

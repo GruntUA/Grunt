@@ -38,7 +38,6 @@ from grunt.i18n import _
 from grunt.local import require_session_user
 from grunt.log import log
 from grunt.monitoring import perf
-from grunt.naming.patterns import has_counter, parse_pattern
 from grunt.naming.service import naming_service
 from grunt.permissions import audit
 from grunt.permissions.query import reference_readable
@@ -214,25 +213,17 @@ class DocumentLifecycleMixin:
     ) -> dict[str, Any]:
         """The new document: name, audit fields, coerced values and workflow state."""
         user = require_session_user()
-        # An explicit caller-supplied name wins over autoname for fixtures and
-        # imports, which rely on stable names regardless of the DocType's
-        # naming scheme - but NOT for counter-based series (e.g.
-        # "ВХ-.YYYY.-.####"), where the counter is the source of truth and
-        # must always be consulted. Otherwise any caller (a frontend bug, a
-        # crafted API request) could pass an arbitrary `name` and silently
-        # hijack the series - the counter would never advance and a later,
-        # properly-generated name could collide with it.
-        pattern = (dt.autoname or "").removeprefix("format:")
-        if data.get("name") and not has_counter(parse_pattern(pattern)):
-            doc_name = str(data["name"])
-        else:
-            custom_autoname: Callable[..., Awaitable[str]] | None = getattr(
-                type(self), "autoname", None
-            )
-            if custom_autoname is not None and callable(custom_autoname):
-                doc_name = await custom_autoname(data, self.session)
-            else:
-                doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
+        # Rule -> caller's name (not for a counter series) -> controller's
+        # autoname() -> the DocType's autoname: grunt.naming.service.new_name.
+        custom_autoname: Callable[..., Awaitable[str]] | None = getattr(
+            type(self), "autoname", None
+        )
+        doc_name = await naming_service.new_name(
+            dt,
+            data,
+            self.session,
+            controller_autoname=custom_autoname if callable(custom_autoname) else None,
+        )
 
         columns = self._store.columns
         row: dict[str, Any] = (

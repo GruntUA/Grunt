@@ -46,6 +46,7 @@ export interface DocType {
   /** Composite (multi-column) indexes - [["reference_doctype", "reference_id"]]. */
   indexes?: string[][]
   autoname?: string | null
+  naming_date_field?: string | null
   default_view?: string | null
   /** List order when none is chosen (backend falls back to modified_at desc). */
   sort_field?: string | null

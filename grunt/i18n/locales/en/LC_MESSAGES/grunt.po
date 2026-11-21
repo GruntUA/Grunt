@@ -433,6 +433,10 @@ msgstr ""
 msgid "A role an API key acts with - one its user holds."
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "A rule needs a naming pattern, e.g. ВХ-.YYYY.-.####"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
 msgid "A saved secret is not shown again — to change it, enter a new one."
@@ -1136,6 +1140,14 @@ msgstr ""
 
 #: grunt/grunt/backups/__init__.py
 msgid "Another backup is being made right now"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Another naming series for documents that meet a condition: a separate count "
+"for a department, a document type, a year. The first enabled rule (highest "
+"priority first) whose condition holds names the new document instead of the "
+"DocType's autoname."
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -2318,6 +2330,10 @@ msgstr ""
 msgid "Child DocType whose rows hold the link field"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "Child tables and singletons are not named by series"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgid "Chinese"
 msgstr ""
@@ -2773,6 +2789,7 @@ msgid ""
 "Computed on every save. All document fields are available as variables."
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -3227,6 +3244,11 @@ msgstr ""
 msgid "Count page views"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Counter updated"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/geo/doctypes/Region/Region.json
 #: grunt/grunt/geo/doctypes/City/City.json
@@ -3510,6 +3532,10 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Date field that enables the date picker in the tree panel"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Date for the name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -3998,6 +4024,7 @@ msgstr ""
 msgid "Disable the action but keep the row"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
@@ -4171,6 +4198,10 @@ msgstr ""
 msgid "Document Link"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Document Naming Rule"
+msgstr ""
+
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgid "Document Tag"
 msgstr ""
@@ -4234,6 +4265,7 @@ msgstr ""
 msgid "Document shared"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -4478,6 +4510,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/User.json
 msgid "Each profile adds its roles to the user's roles below."
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+msgid "Each value of {fields} has its own count"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
@@ -4836,6 +4872,10 @@ msgstr ""
 
 #: grunt/grunt/storage/cloud/providers.py
 msgid "Enter the rclone backend type"
+msgstr ""
+
+#: grunt/grunt/api/v1/naming.py
+msgid "Enter the series prefix"
 msgstr ""
 
 #: grunt/grunt/auth/providers/email_link.py
@@ -5487,6 +5527,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormValidation.ts
 msgid "Fill in the required fields: {fields}"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "Fill in “%(field)s”: the document's name is built from it"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue
@@ -7212,6 +7256,13 @@ msgstr ""
 msgid "Last name, First name, Patronymic"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid ""
+"Last number given out in “{prefix}” (now {current}). The next document gets "
+"the one after it."
+msgstr ""
+
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Last page"
 msgstr ""
@@ -7338,6 +7389,13 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Like"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Like the DocType's autoname: .YYYY. .YY. .MM. .DD., counter .####., a "
+"field's value in braces {department}. Everything before the counter has its "
+"own count."
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
@@ -8151,6 +8209,14 @@ msgstr ""
 msgid "Naming and display"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Naming pattern"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "Naming series “%(series)s” is not one of the allowed ones"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "National domain (.ua, .us)"
 msgstr ""
@@ -8251,6 +8317,11 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Next actors"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Next name"
 msgstr ""
 
 #: grunt/frontend/src/components/views/ListPagination.vue
@@ -9884,6 +9955,7 @@ msgid ""
 "apps/grunt; on a new server also `playwright install-deps chromium` as root."
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -10034,6 +10106,12 @@ msgstr ""
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
 "Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Python expression on the new document, e.g. doc.department == 'ЦНАП'. Empty:"
+" every document. An expression that fails counts as false."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
@@ -11009,6 +11087,10 @@ msgstr ""
 msgid "Rules that grant this action"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Rules with a higher priority are tried first"
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Run `grunt app deps`. Missing:"
 msgstr ""
@@ -11726,7 +11808,25 @@ msgid "September"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+msgid ""
+"Series (CONTR-.YYYY.-.####, a field in braces: {department}), "
+"naming_series:, field:fieldname, prompt or hash. Document Naming Rules can "
+"pick another series by condition."
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series counter"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Series counter…"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series prefix — the name up to the number, e.g. ВХ-2026-"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -13122,6 +13222,10 @@ msgstr ""
 msgid "The comment you reply to no longer exists"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "The condition is not a valid expression: %(error)s"
+msgstr ""
+
 #: grunt/grunt/integrations/oauth.py
 msgid "The connected app is disabled"
 msgstr ""
@@ -13138,6 +13242,14 @@ msgstr ""
 msgid ""
 "The contents were moved off the server disk into this storage; they are "
 "fetched back on request (grunt.storage.cloud.files)."
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "The counter can't be negative"
+msgstr ""
+
+#: grunt/grunt/api/v1/naming.py
+msgid "The counter must be a whole number"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py
@@ -13368,6 +13480,12 @@ msgid ""
 "The new type stores values differently (a separate column or a child table)."
 " Existing data of this field is not moved automatically — export it before "
 "migrating."
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"The next %(count)s names of series “%(prefix)s” are all taken: set its "
+"counter"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -15210,6 +15328,11 @@ msgstr ""
 msgid "Write an email"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"YYYY, MM and DD in the name come from this field instead of today's date"
+msgstr ""
+
 #: grunt/frontend/src/core/datetime.ts
 msgid "YYYY-MM-DD"
 msgstr ""
@@ -16503,6 +16626,10 @@ msgstr ""
 msgid "~{n} min"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "ВХ-ЦНАП-.YYYY.-.####"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue
 msgid "— All —"
 msgstr ""
@@ -16546,6 +16673,10 @@ msgid ""
 "mail” in its settings first"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "“%(doctype)s” has no fields %(fields)s"
+msgstr ""
+
 #: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr ""
@@ -16561,6 +16692,12 @@ msgstr ""
 #: grunt/grunt/db/api.py
 msgid ""
 "“%(doctype)s” has no table: grunt.db.%(action)s works on table rows only"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"“%(doctype)s” is named by series but has no “naming_series” field with "
+"options"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
@@ -16586,6 +16723,10 @@ msgstr ""
 
 #: grunt/grunt/email/unsubscribe.py
 msgid "“%(name)s” letters"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "“%(value)s” is not a date the name can be built from"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
@@ -16885,6 +17026,9 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Scheduled job “%(name)s” not found"
+#~ msgstr ""
+
+#~ msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
 #~ msgstr ""
 
 #~ msgid "Set “Only for document” or enable “Apply to all documents”"
