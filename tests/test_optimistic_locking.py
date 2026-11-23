@@ -32,7 +32,7 @@ async def test_stale_form_save_is_a_conflict(client, auth_headers):
     stale = await client.put(url, json={**role, "description": "mine"}, headers=auth_headers)
     assert stale.status_code == 409, stale.text
     assert stale.json()["error"]["code"] == "STALE_DOCUMENT"  # the desk offers a reload
-    got =await client.get(url, headers=auth_headers)
+    got = await client.get(url, headers=auth_headers)
     assert got.json()["data"]["description"] == "theirs"
 
     # Reloaded, the same edit goes through - and saving the result again does too.
@@ -123,3 +123,48 @@ async def test_stamp_stored_in_another_format_still_saves(ctx, db_session):
     doc.data["description"] = "saved"
     await doc.save()
     assert (await ctx.get_doc("Role", "Lock Format Clerk"))["description"] == "saved"
+
+
+@pytest.mark.asyncio
+async def test_format_fallback_retry_is_still_guarded(ctx, db_session, monkeypatch):
+    """A commit landing between the fallback's read-back and its retry is
+    refused too - the retry is conditional on the stamp text it read."""
+    if db_session.bind.dialect.name != "sqlite":
+        pytest.skip("only SQLite keeps the stamp as text")
+    import grunt.store.sql as sql_store
+    from grunt.document.serde import same_instant
+    from grunt.metadata.registry import doctype_registry
+
+    await ctx.new_doc("Role", {"role_name": "Lock Fallback Clerk"})
+    table = (await doctype_registry.get_meta("Role")).table.name
+    await db_session.execute(
+        text(f'UPDATE "{table}" SET modified_at = :v WHERE name = :n'),
+        {"v": "2026-01-02T03:04:05+00:00", "n": "Lock Fallback Clerk"},
+    )
+    doc = await ctx.get_doc_instance("Role", "Lock Fallback Clerk")
+
+    read_back = False
+
+    def _mark_read_back(a, b):
+        nonlocal read_back
+        read_back = True
+        return same_instant(a, b)
+
+    execute = db_session.execute
+
+    async def _execute(statement, *args, **kwargs):
+        nonlocal read_back
+        if read_back:  # the retry is next - another session's save lands first
+            read_back = False
+            await execute(
+                text(f'UPDATE "{table}" SET modified_at = :v, description = :d WHERE name = :n'),
+                {"v": "2026-05-06 07:08:09.000000", "d": "theirs", "n": "Lock Fallback Clerk"},
+            )
+        return await execute(statement, *args, **kwargs)
+
+    monkeypatch.setattr(sql_store, "same_instant", _mark_read_back)
+    monkeypatch.setattr(db_session, "execute", _execute)
+    doc.data["description"] = "mine"
+    with pytest.raises(HTTPException) as exc:
+        await doc.save()
+    assert exc.value.status_code == 409

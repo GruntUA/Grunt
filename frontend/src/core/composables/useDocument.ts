@@ -7,7 +7,7 @@ import type { GruntDocument } from '@/types'
 export function useDocument(doctype: string, id: string | null) {
   const queryClient = useQueryClient()
 
-  const { data: document, isLoading, isError } = useQuery({
+  const { data: document, isLoading, isError, refetch } = useQuery({
     queryKey: ['document', doctype, id],
     queryFn: () => docsApi.get(doctype, id!),
     enabled: computed(() => !!id),
@@ -44,6 +44,17 @@ export function useDocument(doctype: string, id: string | null) {
     }
   })
 
+  /** Drop the edits (and their draft) and load the stored document again -
+   *  after a save was refused as based on an outdated copy. The form is set
+   *  here, not by the watcher: an unchanged refetch would not trigger it. */
+  const reload = async () => {
+    const { data: fresh } = await refetch()
+    if (!fresh) return
+    form.value = { ...fresh }
+    savedBaseline.value = JSON.stringify(fresh)
+    clearFormDraft(doctype, id)
+  }
+
   const { mutateAsync: remove } = useMutation({
     mutationFn: (replaceWith?: string) => docsApi.delete(doctype, id!, replaceWith),
     onSuccess: () => {
@@ -59,5 +70,5 @@ export function useDocument(doctype: string, id: string | null) {
     }
   })
 
-  return { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean }
+  return { document, form, isLoading, isError, isDirty, isSaving, save, reload, remove, rename, markClean }
 }

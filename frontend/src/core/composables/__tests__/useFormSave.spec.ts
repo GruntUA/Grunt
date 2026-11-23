@@ -15,6 +15,7 @@ function rejectWith(status: number, code: string) {
 function setup(error: unknown) {
   const toast = { success: vi.fn(), error: vi.fn(), warning: vi.fn() }
   const queryClient = { invalidateQueries: vi.fn() }
+  const reload = vi.fn(async () => {})
   const { handleSave } = useFormSave({
     doctype: 'Role',
     id: 'Clerk',
@@ -22,6 +23,7 @@ function setup(error: unknown) {
     form: ref({ name: 'Clerk' }),
     validationErrors: ref({}),
     save: () => Promise.reject(error),
+    reload,
     runScriptEvent: async () => true,
     validateForm: () => true,
     focusFirstError: vi.fn(),
@@ -32,12 +34,12 @@ function setup(error: unknown) {
     router: {} as never,
     toast,
   })
-  return { handleSave, toast, queryClient }
+  return { handleSave, toast, reload }
 }
 
 describe('form save conflicts', () => {
   it('a stale document (someone saved it meanwhile) offers a reload', async () => {
-    const { handleSave, toast, queryClient } = setup(rejectWith(409, 'STALE_DOCUMENT'))
+    const { handleSave, toast, reload } = setup(rejectWith(409, 'STALE_DOCUMENT'))
     await handleSave()
 
     expect(toast.error).not.toHaveBeenCalled()
@@ -47,7 +49,7 @@ describe('form save conflicts', () => {
     expect(opts.duration).toBe(Infinity)
 
     opts.action.onClick()
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['document', 'Role', 'Clerk'] })
+    expect(reload).toHaveBeenCalledOnce()
   })
 
   it('any other conflict (a duplicate value) is a plain error', async () => {

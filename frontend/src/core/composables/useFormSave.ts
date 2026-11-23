@@ -18,6 +18,8 @@ interface UseFormSaveParams {
   form: Ref<Record<string, unknown>>
   validationErrors: Ref<Record<string, string>>
   save: () => Promise<unknown>
+  /** Load the stored document into the form again, dropping the edits. */
+  reload: () => Promise<void>
   runScriptEvent: (event: 'validate' | 'before_save' | 'after_save', changedField?: string) => Promise<boolean>
   validateForm: () => boolean
   focusFirstError: () => void
@@ -155,9 +157,7 @@ export function useFormSave(params: UseFormSaveParams) {
             action: {
               label: t('Reload'),
               onClick: () => {
-                params.queryClient.invalidateQueries({
-                  queryKey: ['document', params.doctype, params.id],
-                })
+                void params.reload()
               },
             },
           },
