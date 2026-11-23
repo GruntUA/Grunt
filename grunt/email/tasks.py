@@ -24,6 +24,7 @@ from grunt.log import log
 from grunt.notification import delivery_log
 from grunt.permissions.groups import group_emails
 from grunt.site.manager import site_manager
+from grunt.site.settings import get_setting
 from grunt.tasks.broker import retryable_task
 from grunt.utils.templates import render as render_template_text
 lazy from grunt.document.api import documents
@@ -332,9 +333,11 @@ async def _render_digest(period: str, rows: list[dict], groups: dict[str, list])
 
 @retryable_task()
 async def send_notification_digest(period: str = "daily") -> None:
-    """Send unread-notification digest emails to all active users.
+    """Send unread-notification digest emails to the users who chose *period*.
 
-    ``period`` must be ``"daily"`` or ``"weekly"``.
+    ``period`` must be ``"daily"`` or ``"weekly"``. A user's choice is
+    ``User.notification_digest`` (empty - ``SystemSettings.default_notification_digest``,
+    ``Never`` out of the box), so each gets one digest at most.
     Collects unread notifications from the last 24h (daily) or 7d (weekly),
     groups them by DocType, and sends one email per user who has unread items.
     """
@@ -347,13 +350,19 @@ async def send_notification_digest(period: str = "daily") -> None:
     async with maker() as session:
         sent = 0
         async with system_context(session):
+            default = await get_setting("default_notification_digest", "Never") or "Never"
+            wanted = "Daily" if period == "daily" else "Weekly"
             user_rows = await _db.get_all(
                 "User",
                 filters={"is_active": True},
-                fields=["email", "language"],
+                fields=["email", "language", "notification_digest"],
                 limit=10_000,
             )
-            users = [(r["email"], r.get("language")) for r in user_rows if r.get("email")]
+            users = [
+                (r["email"], r.get("language"))
+                for r in user_rows
+                if r.get("email") and (r.get("notification_digest") or default) == wanted
+            ]
 
             for user_email, user_language in users:
                 if await is_unsubscribed(user_email):

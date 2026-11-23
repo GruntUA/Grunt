@@ -34,7 +34,7 @@ from grunt.metadata.dynamic_options import register_option_provider
 from grunt.notification.delivery_log import Status
 lazy from grunt.email.service import PRIORITY_LOW, email_service
 lazy from grunt.email.unsubscribe import footer as unsubscribe_footer
-lazy from grunt.email.unsubscribe import is_unsubscribed, unsubscribe_url
+lazy from grunt.email.unsubscribe import unsubscribe_url
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.webpush.service import deliver_push
 
@@ -53,6 +53,7 @@ class Message:
     ref_doctype: str | None = None
     doc_id: str | None = None
     notification: str | None = None  # the rule that sent it
+    mandatory: bool = False  # the rule can't be turned off (no preferences, no unsubscribe link)
     event_key: str | None = None  # the code event, for notifications raised from code
     # Email only: files to attach (``{"filename", "mimetype", "content": bytes}``)
     # and the mailbox to send from (an EmailAccount; None - the site's default).
@@ -188,10 +189,13 @@ class EmailChannel(Channel):
     async def send(
         self, session: AsyncSession, recipient: str, message: Message, *, delivery: str
     ) -> Outcome:
-        if await is_unsubscribed(recipient, message.notification):
-            return Outcome("Skipped", reason=_("The recipient unsubscribed from these emails"))
-        # A rule's letter can be turned off by its reader (List-Unsubscribe).
-        link = unsubscribe_url(recipient, message.notification) if message.notification else None
+        # A rule's letter can be turned off by its reader (List-Unsubscribe) -
+        # unless the rule is mandatory; the dispatcher skips who already did.
+        link = (
+            unsubscribe_url(recipient, message.notification)
+            if message.notification and not message.mandatory
+            else None
+        )
         body, html = message.body, message.html
         if link:
             html_line, text_line = unsubscribe_footer(link)

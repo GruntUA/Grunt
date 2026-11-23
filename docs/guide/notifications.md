@@ -108,3 +108,21 @@ A channel subclasses `grunt.notification.channels.Channel`:
 - It sets `name` and `label`.
 - It implements `send(session, recipient, message, *, delivery)`, which returns an `Outcome`.
 - A queued channel settles its delivery row later with `grunt.notification.delivery_log.settle`.
+
+## Personal settings
+
+Each person decides which notifications they get, and through which channels.
+
+- **Notification settings** (profile → **Preferences**, or the gear in the bell) is a table of rules × channels. A switch turns one rule off in one channel. The first row, **All notifications**, turns a whole channel off, the bell included.
+- **Don't send these** on a bell item turns its rule off in every channel.
+- The **Unsubscribe** link in a letter turns the rule off for email, or every notification email.
+
+All three write `NotificationPreference` rows (`email`, `notification`, `channel`; an empty field means "all"). The dispatcher skips what is off and logs the delivery as **Skipped** with the reason "Turned off in the recipient's settings". An administrator sees and deletes the rows in **Notification Preference**.
+
+A rule marked **Mandatory** ignores all of this: it can't be switched off, and its letters carry no unsubscribe link. Use it for approvals and deadlines.
+
+The table lists a rule when it is enabled, sends to people (not only to a webhook), and is about a DocType the person can read. Rules on code events have no DocType, so they are always listed.
+
+**Email digest:** unread notifications in one letter, every morning at 08:00 (**Daily**) or on Mondays (**Weekly**). Each person picks it in the profile (**Email digest**). Empty means the site default, **System Settings → Notifications → Default digest**, which is **Never** out of the box.
+
+**Auto-follow:** the profile's **Follow documents I create / comment on / assigned to me / shared with me** add a `DocFollow` row when that happens. A followed document notifies about its changes and comments (the standard rules **Followed document changed / commented**). All four are off by default. Only documents of DocTypes that keep an activity log are followed, and never child or single DocTypes.

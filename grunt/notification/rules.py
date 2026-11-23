@@ -362,6 +362,7 @@ async def run(
         "doc_id": link[1],
         "url": await desk_url(*link),
         "notification": rule.get("name"),
+        "mandatory": bool(rule.get("is_mandatory")),
         "event_key": event if rule.get("event") == "code" else None,
     }
     rows = [r for r in rule.get("channels") or [] if r.get("channel")]

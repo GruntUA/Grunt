@@ -8,6 +8,8 @@ export interface GruntNotification {
   doc_id?: string | null
   is_read: boolean
   created_at: string | null
+  /** The rule that sent it - empty for a notification sent from code. */
+  notification?: string | null
 }
 
 export type RealtimeMessageType = 'success' | 'error' | 'info' | 'warning'

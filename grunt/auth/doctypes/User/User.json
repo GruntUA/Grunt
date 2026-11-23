@@ -351,6 +351,54 @@
       "description": "Interface language. Empty = the site default."
     },
     {
+      "fieldname": "sec_notifications",
+      "label": "Notifications",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "notification_digest",
+      "label": "Email digest",
+      "fieldtype": "Select",
+      "options": "\nNever\nDaily\nWeekly",
+      "translatable": true,
+      "description": "Unread notifications by email: every morning or on Mondays. Empty = the site default."
+    },
+    {
+      "fieldname": "notification_settings_button",
+      "label": "Notification settings",
+      "fieldtype": "Button",
+      "description": "Which notifications to get, and through which channels: the bell, browser push, email."
+    },
+    {
+      "fieldname": "col_notifications",
+      "fieldtype": "Column"
+    },
+    {
+      "fieldname": "follow_created",
+      "label": "Follow documents I create",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "follow_commented",
+      "label": "Follow documents I comment on",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "follow_assigned",
+      "label": "Follow documents assigned to me",
+      "fieldtype": "Check",
+      "default": false
+    },
+    {
+      "fieldname": "follow_shared",
+      "label": "Follow documents shared with me",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "A followed document notifies you about its changes and comments."
+    },
+    {
       "fieldname": "sec_tokens",
       "label": "Session tokens",
       "fieldtype": "Section",

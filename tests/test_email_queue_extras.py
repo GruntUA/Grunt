@@ -256,9 +256,21 @@ async def test_email_channel_skips_unsubscribed_and_links_the_rest(ctx, outbox):
     assert row["unsubscribe_url"].replace("&", "&amp;") in row["content"]
     assert row["unsubscribe_url"] in row["text_content"]
 
+    # The dispatcher skips who unsubscribed (NotificationPreference, channel email).
+    from grunt.notification.delivery import deliver
+
     await unsub.add(READER, "Unsubscribe test rule")
-    skipped = await EmailChannel().send(session, READER, message, delivery="dl-2")
-    assert skipped.status == "Skipped"
+    report = await deliver(session, [READER], message, ["email"])
+    assert report.counts == {"Skipped": 1}
+
+    # A mandatory rule's letter: no link, and the unsubscribe doesn't stop it.
+    message.mandatory = True
+    report = await deliver(session, [READER], message, ["email"])
+    assert report.counts == {"Queued": 1}
+    mandatory = await EmailChannel().send(session, READER, message, delivery="dl-3")
+    assert not await ctx.db.get_value(
+        "EmailQueue", mandatory.links["email_queue"], "unsubscribe_url"
+    )
 
 
 @pytest.mark.asyncio

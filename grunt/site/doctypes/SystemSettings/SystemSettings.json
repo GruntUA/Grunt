@@ -492,6 +492,21 @@
       "icon": "bell"
     },
     {
+      "fieldname": "sec_digest",
+      "label": "Email digest",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "default_notification_digest",
+      "label": "Default digest",
+      "fieldtype": "Select",
+      "options": "Never\nDaily\nWeekly",
+      "translatable": true,
+      "default": "Never",
+      "columns": 12,
+      "description": "Unread notifications by email for users who didn't choose in their profile: every morning at 08:00 or on Mondays."
+    },
+    {
       "fieldname": "sec_webpush",
       "label": "Web Push (browser notifications)",
       "fieldtype": "Section"

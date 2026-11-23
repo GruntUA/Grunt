@@ -354,6 +354,11 @@ msgstr "Теку не можна скопіювати саму в себе"
 msgid "A folder must be inside another folder"
 msgstr "Тека має бути всередині іншої теки"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "A followed document notifies you about its changes and comments."
+msgstr ""
+"Про зміни й коментарі в документі, за яким ви стежите, приходять сповіщення."
+
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name can't contain “]”"
 msgstr "Назва групи не може містити «]»"
@@ -944,15 +949,6 @@ msgstr ""
 "Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
 " ролі; порожньо — будь-які"
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid ""
-"Addresses that turned off notification emails - all of them, or one "
-"notification. Made by the unsubscribe link in a letter; delete a row to send"
-" them again."
-msgstr ""
-"Адреси, які вимкнули листи-сповіщення — усі або одне сповіщення. Створюються"
-" посиланням «Відписатися» в листі; видаліть рядок, щоб знову надсилати."
-
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Administrator sign-in"
 msgstr "Вхід адміністратора"
@@ -1047,6 +1043,14 @@ msgstr "Усі придатні поля вже додано"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgid "All good"
 msgstr "Усе гаразд"
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications"
+msgstr "Усі сповіщення"
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications are off in this channel"
+msgstr "У цьому каналі вимкнено всі сповіщення"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "All results →"
@@ -2319,6 +2323,7 @@ msgstr "Якщо змінити його пізніше, усе вже вива�
 
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Channel"
 msgstr "Канал"
@@ -2564,6 +2569,14 @@ msgstr "Оберіть, коли нагадати"
 msgid "Choose which columns to show, how to group and sort the records"
 msgstr "Оберіть, які стовпці показувати, як групувати та сортувати записи"
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid ""
+"Choose which notifications you get, and through which channels. Mandatory "
+"ones can’t be turned off."
+msgstr ""
+"Оберіть, які сповіщення отримувати й якими каналами. Обов’язкові вимкнути не"
+" можна."
+
 #: grunt/grunt/monitoring/health.py
 msgid "Chromium (Playwright)"
 msgstr "Chromium (Playwright)"
@@ -2669,6 +2682,7 @@ msgstr "Буфер обміну недоступний:"
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
 msgstr "Закрити"
@@ -3278,6 +3292,10 @@ msgstr "Не вдалося завантажити поля обраного Doc
 msgid "Could not load the list of apps"
 msgstr "Не вдалося завантажити список додатків"
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not load the notification settings"
+msgstr "Не вдалося завантажити налаштування сповіщень"
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not open the report"
 msgstr "Не вдалося відкрити звіт"
@@ -3306,6 +3324,11 @@ msgstr "Не вдалося зберегти фільтр"
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not save the report"
 msgstr "Не вдалося зберегти звіт"
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not save the setting"
+msgstr "Не вдалося зберегти налаштування"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTags.vue
 msgid "Could not save the tag"
@@ -3591,6 +3614,8 @@ msgid ""
 msgstr "Шаблон DOCX не знайдено. Створіть PrintFormat з template_type='docx'."
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Daily"
 msgstr "Щодня"
 
@@ -3831,6 +3856,10 @@ msgstr "Обліковий запис за замовчуванням"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Default colour"
 msgstr "Колір за замовчуванням"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default digest"
+msgstr "Дайджест за замовчуванням"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Default language"
@@ -4564,6 +4593,10 @@ msgstr "Завершено, коли"
 msgid "Donut"
 msgstr "Кільцева"
 
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Don’t send these"
+msgstr "Не надсилати такі"
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Download"
@@ -4742,11 +4775,11 @@ msgstr "Підвищення прав"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Email"
 msgstr "Електронна пошта"
@@ -4771,10 +4804,6 @@ msgstr "Черга листів"
 msgid "Email Template"
 msgstr "Шаблон листа"
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Email Unsubscribe"
-msgstr "Відписка від листів"
-
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Email address"
 msgstr "Email адреса"
@@ -4786,6 +4815,11 @@ msgstr "Email-адреси через кому або кожна з нового
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Email body"
 msgstr "Текст листа"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Email digest"
+msgstr "Дайджест поштою"
 
 #: grunt/grunt/auth/doctypes/User/user.py
 msgid "Email is required"
@@ -4896,9 +4930,13 @@ msgstr ""
 "Порожньо — CAPTCHA вимкнено для всього сайту, навіть на формах, які її "
 "вимагають."
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Empty — all notification emails, including the digest."
-msgstr "Порожньо — усі листи-сповіщення, зокрема дайджест."
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — all notifications (the digest too, for email)."
+msgstr "Порожньо — усі сповіщення (для пошти — і дайджест)."
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — every channel."
+msgstr "Порожньо — усі канали."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Empty — not connected yet. Connect with one of the buttons below."
@@ -5914,6 +5952,22 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Follow"
 msgstr "Стежити"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I comment on"
+msgstr "Стежити за документами, які я коментую"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I create"
+msgstr "Стежити за документами, які я створюю"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents assigned to me"
+msgstr "Стежити за документами, призначеними мені"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents shared with me"
+msgstr "Стежити за документами, якими зі мною поділилися"
 
 #: grunt/grunt/notification/events.py
 msgid "Followed document changed"
@@ -8067,6 +8121,11 @@ msgstr "Керування робочими просторами й сторін
 msgid "Manager"
 msgstr "Відповідальний"
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Mandatory"
+msgstr "Обов’язкове"
+
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
 msgstr "Обов'язкове, якщо (Mandatory Depends On)"
@@ -8573,6 +8632,11 @@ msgstr "Мережа"
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 msgid "Network error:"
 msgstr "Помилка мережі:"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Never"
+msgstr "Ніколи"
 
 #: grunt/frontend/src/router/index.ts
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue
@@ -9231,10 +9295,11 @@ msgstr "Нічого не знайдено за запитом «{query}»"
 msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 msgid "Notification"
 msgstr "Сповіщення"
 
@@ -9251,16 +9316,43 @@ msgstr "Доставка сповіщень"
 msgid "Notification Log"
 msgstr "Журнал сповіщень"
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Notification Preference"
+msgstr "Вимкнене сповіщення"
+
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Notification Recipient"
 msgstr "Отримувач сповіщення"
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "Notification not found"
+msgstr "Сповіщення не знайдено"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/User/User.js
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Notification settings"
+msgstr "Налаштування сповіщень"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 msgid "Notifications"
 msgstr "Сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid ""
+"Notifications a person turned off - one rule or all of them, in one channel "
+"or in every one. Made in the profile (Preferences → Notifications), from the"
+" bell and by the unsubscribe link in a letter; delete a row to send them "
+"again. Mandatory notifications ignore it."
+msgstr ""
+"Сповіщення, які людина вимкнула: одне правило чи всі, в одному каналі чи в "
+"усіх. Створюються в профілі («Налаштування» → «Сповіщення»), із дзвоника та "
+"за посиланням «Відписатися» в листі; видаліть рядок, щоб надсилати знову. На"
+" обов’язкові сповіщення не впливає."
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Notifications and document updates will not arrive live."
@@ -10106,6 +10198,14 @@ msgstr "Очікує"
 #: grunt/grunt/monitoring/health.py
 msgid "Pending migrations. Run `grunt migrate`."
 msgstr "Є невиконані міграції. Запустіть `grunt migrate`."
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"People can't turn it off - neither in their notification settings nor by the"
+" unsubscribe link (approvals, deadlines)."
+msgstr ""
+"Люди не можуть його вимкнути — ні в налаштуваннях сповіщень, ні посиланням "
+"«Відписатися» (погодження, строки)."
 
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 msgid ""
@@ -14102,6 +14202,10 @@ msgstr "Сторінку відкрито до встановлення service 
 msgid "The password must %(requirements)s."
 msgstr "Пароль повинен %(requirements)s."
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "The person's email - a user's or any address a rule writes to."
+msgstr "Email людини — користувача або будь-яка адреса, на яку пише правило."
+
 #: grunt/grunt/integrations/doctypes/ConnectedApp/connected_app.py
 msgid "The provider addresses must start with https://"
 msgstr "Адреси провайдера мають починатися з https://"
@@ -14126,10 +14230,6 @@ msgstr ""
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
 msgstr "Пакет pywebpush не встановлено"
-
-#: grunt/grunt/notification/channels.py
-msgid "The recipient unsubscribed from these emails"
-msgstr "Отримувач відписався від цих листів"
 
 #: grunt/grunt/db/errors.py
 msgid ""
@@ -14495,6 +14595,14 @@ msgstr ""
 msgid "This message is in HTML format."
 msgstr "Це повідомлення у форматі HTML."
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification can't be turned off"
+msgstr "Це сповіщення не можна вимкнути"
+
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification has no rule to turn off"
+msgstr "У цього сповіщення немає правила, яке можна вимкнути"
+
 #: grunt/grunt/auth/providers/webauthn.py
 msgid "This passkey is already registered"
 msgstr "Цей ключ доступу вже зареєстровано"
@@ -14816,6 +14924,10 @@ msgstr "Вівторок"
 msgid "Turn into"
 msgstr "Перетворити на"
 
+#: grunt/grunt/notification/delivery.py
+msgid "Turned off in the recipient's settings"
+msgstr "Вимкнено в налаштуваннях отримувача"
+
 #: grunt/frontend/src/router/index.ts
 msgid "Two-factor authentication"
 msgstr "Двофакторна автентифікація"
@@ -14961,7 +15073,7 @@ msgstr "Невідома дія «%(action)s»"
 msgid "Unknown auth provider: %(name)s"
 msgstr "Невідомий провайдер автентифікації: %(name)s"
 
-#: grunt/grunt/notification/delivery.py
+#: grunt/grunt/notification/delivery.py grunt/grunt/api/v1/notifications.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Unknown channel “%(channel)s”"
 msgstr "Невідомий канал «%(channel)s»"
@@ -15029,6 +15141,22 @@ msgstr "Більше не подобається"
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Unmute notification sound"
 msgstr "Увімкнути звук сповіщень"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Unread notifications by email for users who didn't choose in their profile: "
+"every morning at 08:00 or on Mondays."
+msgstr ""
+"Непрочитані сповіщення поштою для користувачів, які не обрали в профілі: "
+"щоранку о 08:00 або щопонеділка."
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Unread notifications by email: every morning or on Mondays. Empty = the site"
+" default."
+msgstr ""
+"Непрочитані сповіщення поштою: щоранку або щопонеділка. Порожньо — як на "
+"сайті."
 
 #: grunt/grunt/monitoring/health.py
 msgid "Unregistered jobs"
@@ -15680,6 +15808,8 @@ msgid "Wednesday"
 msgstr "Середа"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Weekly"
 msgstr "Щотижня"
 
@@ -15834,6 +15964,13 @@ msgstr "Яке поле показувати як підпис вузла (defau
 #: grunt/grunt/email/unsubscribe.py
 msgid "Which letters should %(email)s no longer get?"
 msgstr "Які листи більше не надсилати на %(email)s?"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Which notifications to get, and through which channels: the bell, browser "
+"push, email."
+msgstr ""
+"Які сповіщення отримувати й якими каналами: дзвоник, пуш у браузері, пошта."
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid ""
@@ -17464,6 +17601,14 @@ msgstr "«Отримувачі з події» працюють лише в сп
 msgid "“{action}”: are you sure?"
 msgstr "«{action}»: ви впевнені?"
 
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid ""
+"“{name}” notifications are off. Turn them back on in the notification "
+"settings."
+msgstr ""
+"Сповіщення «{name}» вимкнено. Увімкнути знову можна в налаштуваннях "
+"сповіщень."
+
 #: grunt/grunt/email/templates/notification_digest.html
 msgid "… and %(count)s more"
 msgstr "… і ще %(count)s"
@@ -17937,6 +18082,14 @@ msgstr "Відкрито"
 #~ msgid "Access restrictions (User Permissions)"
 #~ msgstr "Обмеження доступу (User Permissions)"
 
+#~ msgid ""
+#~ "Addresses that turned off notification emails - all of them, or one "
+#~ "notification. Made by the unsubscribe link in a letter; delete a row to send"
+#~ " them again."
+#~ msgstr ""
+#~ "Адреси, які вимкнули листи-сповіщення — усі або одне сповіщення. Створюються"
+#~ " посиланням «Відписатися» в листі; видаліть рядок, щоб знову надсилати."
+
 #~ msgid "Also by email"
 #~ msgstr "Також на email"
 
@@ -17954,6 +18107,12 @@ msgstr "Відкрито"
 
 #~ msgid "Document type to restrict access by (e.g. «Company»)."
 #~ msgstr "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+
+#~ msgid "Email Unsubscribe"
+#~ msgstr "Відписка від листів"
+
+#~ msgid "Empty — all notification emails, including the digest."
+#~ msgstr "Порожньо — усі листи-сповіщення, зокрема дайджест."
 
 #~ msgid ""
 #~ "Every signed-in user holds it - a rule for All applies to everyone. Not "
@@ -18100,6 +18259,9 @@ msgstr "Відкрито"
 
 #~ msgid "The form field to point at; its tab opens by itself"
 #~ msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
+
+#~ msgid "The recipient unsubscribed from these emails"
+#~ msgstr "Отримувач відписався від цих листів"
 
 #~ msgid ""
 #~ "The restriction applies to any DocType with a Link field to «Restrict by»."

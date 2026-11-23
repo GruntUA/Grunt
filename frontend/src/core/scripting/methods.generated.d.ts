@@ -181,6 +181,8 @@ interface GruntMethods {
   "grunt.api.v1.naming.preview": { args: { doctype: string; pattern?: string | null; doc?: Record<string, any> | null }; result: Record<string, any> }
   /** Set the last number given out under *prefix*; the next document gets +1. A number already taken is skipped when it comes up. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.naming.set_counter": { args: { prefix: string; current: number }; result: number }
+  /** The current user's notification settings: the channels, the rules they could get (with each rule's channels) and what they turned off. */
+  "grunt.api.v1.notifications.get_preferences": { args: {}; result: Record<string, any> }
   /** Get the count of unread notifications for the current user. */
   "grunt.api.v1.notifications.get_unread_count": { args: {}; result: number }
   /** Return the VAPID public key needed to subscribe to Web Push. */
@@ -191,6 +193,10 @@ interface GruntMethods {
   "grunt.api.v1.notifications.mark_all_as_read": { args: {}; result: Record<string, any> }
   /** Mark a notification as read - only if it belongs to the current user. */
   "grunt.api.v1.notifications.mark_as_read": { args: { notification_id: string }; result: boolean }
+  /** The bell's "Don't send these": turn off, in every channel, the rule that sent the current user's *notification_id*. Returns the rule's name. */
+  "grunt.api.v1.notifications.mute_like": { args: { notification_id: string }; result: string }
+  /** Turn *notification* (empty - all notifications) on or off in *channel* for the current user; returns the settings as :func:`get_preferences`. */
+  "grunt.api.v1.notifications.set_preference": { args: { channel: string; enabled: boolean; notification?: string }; result: Record<string, any> }
   /** Save a browser push subscription for the current user. */
   "grunt.api.v1.notifications.subscribe_push": { args: { endpoint: string; p256dh: string; auth: string; user_agent?: string }; result: boolean }
   /** Remove a browser push subscription for the current user. */

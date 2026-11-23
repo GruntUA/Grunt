@@ -47,14 +47,29 @@ doc_events: dict[str, dict[str, list[str]]] = {
         "after_rename": ["grunt.permissions.groups.rename_group"],
     },
     # Tell a document's followers (DocFollow) about new comments on it.
+    # Auto-follow (User.follow_*): who comments / is assigned / gets a share.
     "Comment": {
-        "after_insert": ["grunt.activity.follow.notify_followers_of_comment"],
+        "after_insert": [
+            "grunt.activity.follow.notify_followers_of_comment",
+            "grunt.activity.follow.follow_commented",
+        ],
+    },
+    "ToDo": {
+        "after_insert": ["grunt.activity.follow.follow_assigned"],
+        "after_save": ["grunt.activity.follow.follow_assigned"],
+    },
+    "SharedWith": {
+        "after_insert": ["grunt.activity.follow.follow_shared"],
     },
     # ToDo assignment notifications live in its controller
     # (grunt.tasks.doctypes.ToDo.to_do.ToDo) - create / reassign / complete.
     # Log every document lifecycle event to ActivityLog.
     "*": {
-        "after_insert": ["grunt.activity.log_activity"],
+        "after_insert": [
+            "grunt.activity.log_activity",
+            # The author follows it (User.follow_created).
+            "grunt.activity.follow.follow_created",
+        ],
         # Standard records (DocType.standard_records) -> JSON files in their app.
         "after_save": [
             "grunt.standard_records.sync_files",
