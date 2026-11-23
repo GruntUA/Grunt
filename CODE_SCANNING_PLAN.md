@@ -144,7 +144,7 @@ PR #199 (злито 2026-11-18). Справжніх багів не знайшл
 
 Ruleset **«CodeQL ratchet»** (id 27547399) на `develop` і `master`: правило «Require code scanning
 results», CodeQL, обидва пороги `all` — PR, що додає будь-який новий алерт, не зливається.
-Наявні відкриті алерти злиттю не заважають. Обхід — роль admin (`grunt release` комітить у master
+Наявні відкриті алерти злиттю не заважають. Обхід — роль admin (`grunt release` пушить коміт випуску в develop
 напряму). Перевірити/змінити: `gh api repos/GruntUA/Grunt/rulesets/27547399`.
 
 ## Рішення

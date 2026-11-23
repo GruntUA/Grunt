@@ -1,5 +1,6 @@
 """Versions from git tags, required_grunt, `grunt release` and `grunt test --changed`."""
 
+import importlib
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -10,8 +11,19 @@ from packaging.version import Version
 
 from grunt import version as versions
 from grunt.cli.changed_tests import select
-from grunt.cli.release import changelog_section, new_migrations, next_version, prepend_changelog
+from grunt.cli.release import (
+    auto_bump,
+    changelog_section,
+    changelog_version,
+    deploy_notes,
+    new_migrations,
+    next_version,
+    prepend_changelog,
+)
 from grunt.testkit import write_app_manifest
+
+# `grunt.cli.release` is shadowed by the click command of the same name.
+rel = importlib.import_module("grunt.cli.release")
 
 
 def git(repo: Path, *args: str) -> None:
@@ -90,6 +102,49 @@ def test_next_version():
     assert next_version(Version("1.2.3"), "1.5.0") == Version("1.5.0")
     with pytest.raises(click.BadParameter):
         next_version(Version("1.2.3"), "1.0.0")
+    assert next_version(Version("0.4.2"), "auto", ["fix: x", "feat: y"]) == Version("0.5.0")
+
+
+@pytest.mark.parametrize(
+    ("current", "subjects", "bump"),
+    [
+        ("0.4.2", ["fix: a", "docs: b"], "patch"),
+        ("0.4.2", ["fix: a", "feat(x): b"], "minor"),
+        ("0.4.2", ["fix!: a"], "minor"),
+        ("1.4.2", ["refactor(db)!: a", "feat: b"], "major"),
+        ("1.4.2", ["tidy up"], "patch"),
+    ],
+)
+def test_auto_bump(current: str, subjects: list[str], bump: str):
+    assert auto_bump(Version(current), subjects) == bump
+
+
+def test_deploy_notes():
+    notes = deploy_notes(
+        [
+            ("A", "grunt/x/doctypes/Thing/Thing.json"),
+            ("M", "grunt/y/doctypes/Other/Other.json"),
+            ("M", "uv.lock"),
+            ("M", "grunt/a.py"),
+        ],
+        ["0030_x"],
+    )
+    text = "\n".join(notes)
+    assert "back up" in text
+    assert "grunt migrate" in text
+    assert "New DocTypes (Thing)" in text
+    assert "uv.lock" in text
+
+    only_doctype = deploy_notes([("M", "grunt/y/doctypes/Other/Other.json")], [])
+    assert only_doctype == ["`grunt migrate --dry-run`, then `grunt migrate` on every site."]
+    assert deploy_notes([("M", "grunt/a.py")], []) == [
+        "No migrations: update the code and restart the services."
+    ]
+
+
+def test_changelog_version():
+    assert changelog_version("# Changelog\n\n## v0.3.1 - x\n\n## v0.3.0 - y\n") == Version("0.3.1")
+    assert changelog_version("# Changelog\n") is None
 
 
 def test_changelog_groups_conventional_commits():
@@ -134,6 +189,81 @@ def test_prepend_changelog_keeps_newest_first(tmp_path: Path):
     prepend_changelog(path, "## v0.1.0\n")
     prepend_changelog(path, "## v0.2.0\n")
     assert path.read_text() == "# Changelog\n\n## v0.2.0\n\n## v0.1.0\n"
+
+
+@pytest.fixture
+def released(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
+    """An app checkout whose origin has master (tagged v0.1.0) and develop."""
+    origin = tmp_path / "origin.git"
+    seed = tmp_path / "seed"
+    seed.mkdir()
+    git(tmp_path, "init", "-q", "--bare", str(origin))
+    git(seed, "init", "-q", "-b", "master")
+    (seed / "a.txt").write_text("1")
+    git(seed, "add", ".")
+    git(seed, "commit", "-qm", "first")
+    git(seed, "tag", "-a", "v0.1.0", "-m", "v0.1.0")
+    git(seed, "checkout", "-qb", "develop")
+    (seed / "grunt" / "db" / "migrations" / "versions").mkdir(parents=True)
+    (seed / "grunt" / "db" / "migrations" / "versions" / "0002_b.py").write_text("")
+    git(seed, "add", ".")
+    git(seed, "commit", "-qm", "feat(db): new table")
+    git(seed, "remote", "add", "origin", str(origin))
+    git(seed, "push", "-q", "--follow-tags", "origin", "master", "develop")
+
+    apps = tmp_path / "apps"
+    apps.mkdir()
+    app = apps / "grunt"
+    git(tmp_path, "clone", "-q", str(origin), str(app))
+    git(app, "config", "user.name", "t")
+    git(app, "config", "user.email", "t@t")
+    (app / "local.txt").write_text("uncommitted work stays")
+    monkeypatch.setattr(rel, "_apps_dir", lambda: apps)
+    monkeypatch.setattr(rel.shutil, "which", lambda name: None)  # no gh
+    return app, origin
+
+
+def test_release_pushes_the_release_commit_to_develop(released):
+    app, origin = released
+    from click.testing import CliRunner
+
+    dry = CliRunner().invoke(rel.release, ["--dry-run"])
+    assert dry.exit_code == 0, dry.output
+    assert "## v0.2.0" in dry.output and "0002_b" in dry.output and "back up" in dry.output
+
+    result = CliRunner().invoke(rel.release, ["--yes"])
+    assert result.exit_code == 0, result.output
+    log = subprocess.run(
+        ["git", "-C", str(origin), "log", "-1", "--format=%s", "develop"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    assert log == "chore(release): v0.2.0"
+    changelog = subprocess.run(
+        ["git", "-C", str(origin), "show", "develop:CHANGELOG.md"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert changelog.startswith("# Changelog\n\n## v0.2.0")
+    # The checkout is untouched and no worktree is left behind.
+    assert (app / "local.txt").exists() and not (app / "CHANGELOG.md").exists()
+    assert (
+        len(
+            subprocess.run(
+                ["git", "-C", str(app), "worktree", "list"],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.splitlines()
+        )
+        == 1
+    )
+
+    # Until the pull request is merged and tagged, another release is refused.
+    again = CliRunner().invoke(rel.release, ["--dry-run"])
+    assert again.exit_code != 0 and "not tagged yet" in again.output
 
 
 def _tree(root: Path, files: dict[str, str]) -> None:

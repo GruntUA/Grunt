@@ -1,8 +1,14 @@
 """``grunt version`` and ``grunt release``: versions come from git tags ``vX.Y.Z``
 (see :mod:`grunt.version`)."""
 
+import json
 import re
+import shutil
 import subprocess
+import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -14,12 +20,16 @@ lazy from grunt.site.manager import site_manager
 lazy from grunt.version import app_version, compatibility_error, framework_version
 
 CHANGELOG = "CHANGELOG.md"
+RELEASE_BRANCH = "master"
 _CONVENTIONAL = re.compile(
     r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]*)\))?(?P<breaking>!)?:\s*(?P<text>.+)"
 )
 # Changelog section per conventional-commit type; anything else goes to "Other".
 _SECTIONS = {"feat": "Features", "fix": "Fixes", "perf": "Performance"}
 _SECTION_ORDER = ("Breaking changes", "Features", "Fixes", "Performance", "Other")
+_CHANGELOG_HEADING = re.compile(r"^## v(?P<version>\d+\.\d+\.\d+)\b", re.MULTILINE)
+_DOCTYPE_JSON = re.compile(r"(^|/)doctypes/[^/]+/[^/]+\.json$")
+_DEPENDENCY_FILES = ("uv.lock", "package-lock.json", "mise.toml")
 
 
 def _apps_dir() -> Path:
@@ -33,29 +43,57 @@ def _git(repo: Path, *args: str) -> str:
     ).stdout.strip()
 
 
-def last_tag(repo: Path) -> str | None:
+def _step(repo: Path, *args: str) -> str:
+    """``_git`` for a step of the release: a failure stops it with git's own message."""
     try:
-        return _git(repo, "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*") or None
+        return _git(repo, *args)
+    except subprocess.CalledProcessError as exc:
+        raise click.ClickException(f"git {' '.join(args)}: {exc.stderr.strip()}") from None
+
+
+def last_tag(repo: Path, ref: str = "HEAD") -> str | None:
+    try:
+        return _git(repo, "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*", ref) or None
     except subprocess.CalledProcessError:
         return None
 
 
-def new_migrations(repo: Path, since: str) -> list[str]:
+def _changed(repo: Path, since: str, ref: str) -> list[tuple[str, str]]:
+    """``(status, path)`` of the files changed between ``since`` and ``ref``."""
+    out = _git(repo, "diff", "--name-status", "--no-renames", f"{since}..{ref}")
+    return [(line[0], line.split("\t", 1)[1]) for line in out.splitlines() if "\t" in line]
+
+
+def new_migrations(repo: Path, since: str, ref: str = "HEAD") -> list[str]:
     """Names of the Alembic migration files added after the ``since`` tag."""
     out = _git(
         repo,
         "diff",
         "--name-only",
         "--diff-filter=A",
-        f"{since}..HEAD",
+        f"{since}..{ref}",
         "--",
         ":(glob)**/migrations/versions/*.py",
     )
     return sorted(Path(line).stem for line in out.splitlines())
 
 
-def next_version(current: Version | None, bump: str) -> Version:
-    """``patch`` / ``minor`` / ``major`` after ``current``, or an explicit ``X.Y.Z``."""
+def auto_bump(current: Version | None, subjects: list[str]) -> str:
+    """The bump the commits ask for. Before 1.0 a breaking change is a ``minor``
+    (CONTRIBUTING.md), from 1.0 on it is a ``major``."""
+    kinds = [m for m in map(_CONVENTIONAL.match, subjects) if m]
+    if any(m["breaking"] for m in kinds):
+        return "major" if current and current.major >= 1 else "minor"
+    if any(m["type"] == "feat" for m in kinds):
+        return "minor"
+    return "patch"
+
+
+def next_version(current: Version | None, bump: str, subjects: list[str] | None = None) -> Version:
+    """``patch`` / ``minor`` / ``major`` after ``current``, an explicit ``X.Y.Z``
+    or ``auto`` - picked from the conventional ``subjects``."""
+    if bump == "auto":
+        bump = auto_bump(current, subjects or [])
     major, minor, patch = (*(current.release if current else ()), 0, 0, 0)[:3]
     match bump:
         case "major":
@@ -67,10 +105,17 @@ def next_version(current: Version | None, bump: str) -> Version:
     try:
         target = Version(bump)
     except InvalidVersion:
-        raise click.BadParameter(f"expected patch, minor, major or X.Y.Z, got {bump!r}") from None
+        raise click.BadParameter(
+            f"expected auto, patch, minor, major or X.Y.Z, got {bump!r}"
+        ) from None
     if current and target <= current:
         raise click.BadParameter(f"{target} is not newer than {current}")
     return target
+
+
+def non_conventional(subjects: list[str]) -> list[str]:
+    """Subjects that will land under "Other" because they are not conventional commits."""
+    return [s for s in subjects if not _CONVENTIONAL.match(s)]
 
 
 def changelog_section(
@@ -103,11 +148,156 @@ def changelog_section(
     return "\n".join(lines) + "\n"
 
 
+def deploy_notes(changes: list[tuple[str, str]], migrations: list[str]) -> list[str]:
+    """What a site needs after updating to the release, from the changed files."""
+    doctypes = [path for status, path in changes if _DOCTYPE_JSON.search(path)]
+    new_doctypes = [
+        Path(path).parent.name
+        for status, path in changes
+        if status == "A" and _DOCTYPE_JSON.search(path)
+    ]
+    deps = sorted({Path(p).name for _, p in changes if Path(p).name in _DEPENDENCY_FILES})
+    notes = []
+    if migrations:
+        notes.append(
+            f"Database migrations ({len(migrations)}): back up first (`grunt db backup`)"
+            " - rolling back past this release needs a restore."
+        )
+    if migrations or doctypes:
+        notes.append("`grunt migrate --dry-run`, then `grunt migrate` on every site.")
+    if new_doctypes:
+        notes.append(f"New DocTypes ({', '.join(sorted(new_doctypes))}): restart the worker.")
+    if deps:
+        notes.append(f"Dependencies changed ({', '.join(deps)}): `grunt update` installs them.")
+    if not notes:
+        notes.append("No migrations: update the code and restart the services.")
+    return notes
+
+
 def prepend_changelog(path: Path, section: str) -> None:
     header = "# Changelog\n"
     old = path.read_text() if path.exists() else header
     body = old.removeprefix(header).lstrip("\n")
     path.write_text(f"{header}\n{section}" + (f"\n{body}" if body else ""))
+
+
+def changelog_version(text: str) -> Version | None:
+    """The newest version ``CHANGELOG.md`` has a section for."""
+    m = _CHANGELOG_HEADING.search(text)
+    return Version(m["version"]) if m else None
+
+
+@dataclass
+class ReleasePlan:
+    version: Version
+    section: str
+    notes: list[str]
+    warnings: list[str]
+
+
+def plan_release(repo: Path, ref: str, bump: str) -> ReleasePlan:
+    """What releasing ``ref`` gives: the changelog section and the deploy notes."""
+    tag = last_tag(repo, ref)
+    current = Version(tag[1:]) if tag else None
+    pending = _changelog_at(repo, ref)
+    if pending and (current is None or pending > current):
+        raise click.ClickException(
+            f"v{pending} is already in {CHANGELOG} but not tagged yet:"
+            f" merge its pull request into {RELEASE_BRANCH} first"
+        )
+    if not tag:
+        # The first release does not list the whole history.
+        version = next_version(None, "minor" if bump == "auto" else bump)
+        return ReleasePlan(version, changelog_section(version, ["Initial release"]), [], [])
+
+    subjects = _git(repo, "log", "--no-merges", "--format=%s", f"{tag}..{ref}").splitlines()
+    subjects = [s for s in subjects if not s.startswith("chore(release):")]
+    if not subjects:
+        raise click.ClickException(f"no commits since {tag}")
+    version = next_version(current, bump, subjects)
+    migrations = new_migrations(repo, tag, ref)
+    warnings = [
+        f'not a conventional commit, listed under "Other": {s}' for s in non_conventional(subjects)
+    ]
+    return ReleasePlan(
+        version,
+        changelog_section(version, subjects, migrations=migrations),
+        deploy_notes(_changed(repo, tag, ref), migrations),
+        warnings,
+    )
+
+
+def _changelog_at(repo: Path, ref: str) -> Version | None:
+    try:
+        return changelog_version(_git(repo, "show", f"{ref}:{CHANGELOG}"))
+    except subprocess.CalledProcessError:
+        return None
+
+
+def _base_branch(repo: Path) -> str:
+    """``develop`` when the repository has one, else the release branch itself."""
+    try:
+        _git(repo, "rev-parse", "--verify", "--quiet", "refs/remotes/origin/develop")
+        return "develop"
+    except subprocess.CalledProcessError:
+        return RELEASE_BRANCH
+
+
+@contextmanager
+def _worktree(repo: Path, ref: str) -> Iterator[Path]:
+    """A throwaway checkout of ``ref``: the repository's own tree (with its branch
+    and uncommitted work) stays untouched."""
+    path = Path(tempfile.mkdtemp(prefix="grunt-release-"))
+    _step(repo, "worktree", "add", "--quiet", "--detach", str(path), ref)
+    try:
+        yield path
+    finally:
+        _git(repo, "worktree", "remove", "--force", str(path))
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def pr_body(plan: ReleasePlan) -> str:
+    notes = "\n".join(f"- [ ] {n}" for n in plan.notes)
+    return (
+        f"{plan.section}\n## Deploy\n\n{notes}\n\n"
+        f"Merging tags the release commit `v{plan.version}` and publishes the GitHub release"
+        " (`.github/workflows/release.yml`).\n"
+    )
+
+
+def _gh(repo: Path, *args: str, stdin: str | None = None) -> str:
+    try:
+        return subprocess.run(
+            ["gh", *args], cwd=repo, input=stdin, capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except subprocess.CalledProcessError as exc:
+        raise click.ClickException(f"gh {args[0]} {args[1]}: {exc.stderr.strip()}") from None
+
+
+def open_release_pr(repo: Path, head: str, plan: ReleasePlan) -> str:
+    """The release pull request ``head`` -> master: opened, or updated if one is open."""
+    title = f"chore(release): v{plan.version}"
+    found = json.loads(
+        _gh(repo, "pr", "list", "--base", RELEASE_BRANCH, "--head", head, "--json", "url")
+    )
+    if found:
+        url = found[0]["url"]
+        _gh(repo, "pr", "edit", url, "--title", title, "--body-file", "-", stdin=pr_body(plan))
+        return url
+    return _gh(
+        repo,
+        "pr",
+        "create",
+        "--base",
+        RELEASE_BRANCH,
+        "--head",
+        head,
+        "--title",
+        title,
+        "--body-file",
+        "-",
+        stdin=pr_body(plan),
+    )
 
 
 @click.command("version")
@@ -124,39 +314,56 @@ def version() -> None:
 
 
 @click.command("release")
-@click.argument("bump", default="patch")
+@click.argument("bump", default="auto")
 @click.option("--app", "app_name", default="grunt", show_default=True, help="App to release")
-@click.option("--dry-run", is_flag=True, help="Only print the changelog section")
-def release(bump: str, app_name: str, dry_run: bool) -> None:
-    """Tag a release: CHANGELOG.md section + commit + annotated tag vX.Y.Z.
+@click.option("--dry-run", is_flag=True, help="Only show the changelog section and deploy notes")
+@click.option("--yes", "-y", is_flag=True, help="Do not ask for confirmation")
+def release(bump: str, app_name: str, dry_run: bool, yes: bool) -> None:
+    """Prepare a release: CHANGELOG.md section, commit and pull request into master.
 
-    BUMP is patch (default), minor, major or an explicit X.Y.Z. Nothing is
-    pushed - push with `git push --follow-tags` once the tag looks right.
+    BUMP is auto (default: minor for features and breaking changes before 1.0,
+    patch otherwise), patch, minor, major or an explicit X.Y.Z.
+
+    \b
+    Works on origin/develop (origin/master if there is no develop) in a
+    throwaway worktree - the app's own checkout is not touched:
+      1. commit `chore(release): vX.Y.Z` with the new CHANGELOG.md section;
+      2. push it to develop (or to a release/vX.Y.Z branch);
+      3. open the pull request into master with the deploy notes.
+    Merging the pull request tags the commit and publishes the GitHub release
+    (.github/workflows/release.yml).
     """
     repo = _apps_dir() / app_name
     if not (repo / ".git").exists():
         raise click.ClickException(f"{repo} is not a git repository")
-    if not dry_run and _git(repo, "status", "--porcelain"):
-        raise click.ClickException("the working tree has uncommitted changes")
 
-    tag = last_tag(repo)
-    target = next_version(Version(tag[1:]) if tag else None, bump)
-    # The first release does not list the whole history.
-    subjects = _git(repo, "log", "--no-merges", "--format=%s", f"{tag}..HEAD") if tag else ""
-    if tag and not subjects:
-        raise click.ClickException(f"no commits since {tag}")
+    _step(repo, "fetch", "--quiet", "--tags", "origin")
+    base = _base_branch(repo)
+    ref = f"origin/{base}"
+    plan = plan_release(repo, ref, bump)
 
-    section = changelog_section(
-        target,
-        subjects.splitlines() if tag else ["Initial release"],
-        migrations=new_migrations(repo, tag) if tag else None,
-    )
-    click.echo(section)
+    click.echo(f"Release of {ref} ({_git(repo, 'rev-parse', '--short', ref)})\n")
+    click.echo(plan.section)
+    if plan.notes:
+        click.echo("Deploy:")
+        for note in plan.notes:
+            click.echo(f"  - {note}")
+    for warning in plan.warnings:
+        click.secho(f"! {warning}", fg="yellow")
     if dry_run:
         return
+    if not yes:
+        click.confirm(f"\nCommit v{plan.version} and open the pull request?", abort=True)
 
-    prepend_changelog(repo / CHANGELOG, section)
-    _git(repo, "add", CHANGELOG)
-    _git(repo, "commit", "-m", f"chore(release): v{target}")
-    _git(repo, "tag", "-a", f"v{target}", "-m", section)
-    click.echo(f"Tagged v{target}. Push it: git -C {repo} push --follow-tags")
+    head = base if base != RELEASE_BRANCH else f"release/v{plan.version}"
+    with _worktree(repo, ref) as tree:
+        prepend_changelog(tree / CHANGELOG, plan.section)
+        _step(tree, "add", CHANGELOG)
+        _step(tree, "commit", "--quiet", "-m", f"chore(release): v{plan.version}")
+        _step(tree, "push", "--quiet", "origin", f"HEAD:refs/heads/{head}")
+    click.secho(f"Pushed chore(release): v{plan.version} to {head}", fg="green")
+
+    if not shutil.which("gh"):
+        click.echo(f"gh is not installed: open the pull request {head} -> {RELEASE_BRANCH} by hand")
+        return
+    click.secho(f"Pull request: {open_release_pr(repo, head, plan)}", fg="green")
