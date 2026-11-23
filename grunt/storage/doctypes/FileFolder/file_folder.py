@@ -156,7 +156,7 @@ async def get_home_folder() -> dict[str, Any]:
     doc = await documents.new_doc(
         "FileFolder", {"folder_name": title, "is_home": True, "space_user": user.email}
     )
-    return {"name": doc["name"], "folder_name": doc["folder_name"]}
+    return {"name": doc.name, "folder_name": doc.folder_name}
 
 
 @whitelist()
@@ -204,7 +204,7 @@ async def copy_items(
 async def _copy_file(row: dict[str, Any], target: str) -> None:
 
     taken = {
-        r["file_name"]
+        r.file_name
         for r in await _db.get_all(
             "File", filters={"folder": target}, fields=["file_name"], limit=_MANY
         )
@@ -221,7 +221,7 @@ async def _copy_file(row: dict[str, Any], target: str) -> None:
 
 async def _copy_folder(row: dict[str, Any], target: str) -> int:
     taken = {
-        r["folder_name"]
+        r.folder_name
         for r in await _db.get_all(
             "FileFolder", filters={"parent_folder": target}, fields=["folder_name"], limit=_MANY
         )
@@ -245,7 +245,7 @@ async def _copy_folder(row: dict[str, Any], target: str) -> int:
         ],
         limit=_MANY,
     ):
-        await _copy_file(file, copy["name"])
+        await _copy_file(file, copy.name)
         copied += 1
     for sub in await documents.get_list(
         "FileFolder",
@@ -253,7 +253,7 @@ async def _copy_folder(row: dict[str, Any], target: str) -> int:
         fields=["name", "folder_name"],
         limit=_MANY,
     ):
-        copied += await _copy_folder(sub, copy["name"])
+        copied += await _copy_folder(sub, copy.name)
     return copied
 
 
@@ -299,9 +299,9 @@ async def _delete_folder(name: str) -> int:
     for sub in await _db.get_all(
         "FileFolder", filters={"parent_folder": name}, fields=["name"], limit=_MANY
     ):
-        deleted += await _delete_folder(sub["name"])
+        deleted += await _delete_folder(sub.name)
     for file in await _db.get_all("File", filters={"folder": name}, fields=["name"], limit=_MANY):
-        await documents.delete_doc("File", file["name"])
+        await documents.delete_doc("File", file.name)
         deleted += 1
     await documents.delete_doc("FileFolder", name)
     return deleted + 1

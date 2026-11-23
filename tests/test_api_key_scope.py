@@ -45,8 +45,8 @@ async def test_key_acts_with_its_roles_only(ctx, db_session):
     key = await _key(ctx, user, roles=[{"role_name": "KeyAuditor"}])
     found = await authenticate_api_key(key, db_session)
     assert found is not None
-    assert found.data["roles"] == ["KeyAuditor"]
-    assert [r["role_name"] for r in found.data["role_rows"]] == ["KeyAuditor"]
+    assert found.roles == ["KeyAuditor"]
+    assert [r["role_name"] for r in found.role_rows] == ["KeyAuditor"]
 
     # Without roles on the key - all of the user's.
     plain = await _key(ctx, user)

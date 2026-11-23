@@ -25,6 +25,7 @@ from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
 from grunt.query.nodes import Cmp
 from grunt.query.query import Query
+from grunt.utils.attr_dict import AttrDict
 
 db = GruntDB()
 
@@ -167,33 +168,33 @@ class TestGruntAppDocs:
     @pytest.mark.asyncio
     async def test_get_doc(self, setup_context):
         """Test grunt.get_doc() retrieves a document."""
-        doc_data = {"name": "DOC-001"}
+        doc_data = AttrDict(name="DOC-001")
 
         with patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data):
             result = await grunt.get_doc("Invoice", "DOC-001")
 
-            assert result["name"] == "DOC-001"
+            assert result.name == "DOC-001"
 
     @pytest.mark.asyncio
     async def test_new_doc(self, setup_context):
         """Test grunt.new_doc() creates a new document."""
-        doc_data = {"name": "DOC-002"}
+        doc_data = AttrDict(name="DOC-002")
 
         with patch.object(grunt, "new_doc", new_callable=AsyncMock, return_value=doc_data):
             result = await grunt.new_doc("Invoice", {"name": "New Doc"})
 
-            assert result["name"] == "DOC-002"
+            assert result.name == "DOC-002"
 
     @pytest.mark.asyncio
     async def test_save_doc(self, setup_context):
         """Test grunt.save_doc() updates a document."""
         original = {"name": "DOC-001", "status": "Draft"}
-        updated = {**original, "status": "Active"}
+        updated = AttrDict({**original, "status": "Active"})
 
         with patch.object(grunt, "save_doc", new_callable=AsyncMock, return_value=updated):
             result = await grunt.save_doc("Invoice", "DOC-001", {"status": "Active"})
 
-            assert result["status"] == "Active"
+            assert result.status == "Active"
 
     @pytest.mark.asyncio
     async def test_delete_doc(self, setup_context):
@@ -546,8 +547,8 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_get_and_save_workflow(self, setup_context):
         """Test getting a document and saving it via grunt API."""
-        doc_data = {"name": "INV-001", "amount": 100, "status": "Draft"}
-        updated_data = {**doc_data, "status": "Active"}
+        doc_data = AttrDict(name="INV-001", amount=100, status="Draft")
+        updated_data = AttrDict({**doc_data, "status": "Active"})
 
         with (
             patch.object(grunt, "get_doc", new_callable=AsyncMock, return_value=doc_data),
@@ -555,11 +556,11 @@ class TestIntegration:
         ):
             # Get document
             doc = await grunt.get_doc("Invoice", "INV-001")
-            assert doc["amount"] == 100
+            assert doc.amount == 100
 
             # Save with updated status
             saved = await grunt.save_doc("Invoice", "INV-001", {"status": "Active"})
-            assert saved["status"] == "Active"
+            assert saved.status == "Active"
 
     @pytest.mark.asyncio
     async def test_permission_check_before_operation(self, setup_context, mock_user):

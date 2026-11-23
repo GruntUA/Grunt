@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -229,7 +230,7 @@ async def unreplied_recipients(account: dict, doctype: str, name: str) -> list[s
         fields=["assigned_to"],
         limit=None,
     )
-    people = sorted({r["assigned_to"] for r in rows if r.get("assigned_to")})
+    people = sorted({r.assigned_to for r in rows if r.assigned_to})
     if not people and account.get("unreplied_group"):
         people = sorted(set(await group_emails([account["unreplied_group"]])))
     return people
@@ -244,12 +245,12 @@ async def process_unreplied(session: AsyncSession, now: datetime | None = None) 
     accounts = await _db.get_all("EmailAccount", filters={"notify_if_unreplied": True}, limit=None)
     sent = 0
     for account in accounts:
-        due = now - timedelta(minutes=max(1, int(account.get("unreplied_minutes") or 30)))
+        due = now - timedelta(minutes=max(1, int(account.unreplied_minutes or 30)))
         rows = await _db.get_all(
             "EmailMessage",
             filters={
                 "direction": "Incoming",
-                "email_account": account["name"],
+                "email_account": account.name,
                 "unreplied_checked": False,
                 "ref_doctype__is": "set",
                 "created_at__lte": due,
@@ -261,11 +262,11 @@ async def process_unreplied(session: AsyncSession, now: datetime | None = None) 
             limit=500,
         )
         for row in rows:
-            doctype, name = str(row["ref_doctype"]), str(row["ref_name"] or "")
+            doctype, name = str(row.ref_doctype), str(row.ref_name or "")
             later = {
                 "ref_doctype": doctype,
                 "ref_name": name,
-                "created_at__gt": row["created_at"],
+                "created_at__gt": row.created_at,
             }
             newer = await _db.exists("EmailMessage", {**later, "direction": "Incoming"})
             answered = await _db.exists(
@@ -282,11 +283,11 @@ async def process_unreplied(session: AsyncSession, now: datetime | None = None) 
                         subject=_("No reply to a letter: %(doctype)s %(name)s")
                         % {"doctype": _(doctype), "name": name},
                         message=_("%(sender)s: %(subject)s")
-                        % {"sender": row.get("sender") or "", "subject": row.get("subject") or ""},
+                        % {"sender": row.sender or "", "subject": row.subject or ""},
                         email=True,
                     )
                     sent += 1
-            await _db.set_value("EmailMessage", row["name"], "unreplied_checked", True)
+            await _db.set_value("EmailMessage", row.name, "unreplied_checked", True)
     return sent
 
 
@@ -302,7 +303,9 @@ async def check_unreplied() -> None:
             log.info("email.unreplied_notified", count=sent)
 
 
-async def _render_digest(period: str, rows: list[dict], groups: dict[str, list]) -> tuple[str, str]:
+async def _render_digest(
+    period: str, rows: Sequence[dict], groups: dict[str, list]
+) -> tuple[str, str]:
     """Subject + HTML body of one digest, in the current (recipient's) language."""
     total = len(rows)
     if period == "daily":
@@ -359,9 +362,9 @@ async def send_notification_digest(period: str = "daily") -> None:
                 limit=10_000,
             )
             users = [
-                (r["email"], r.get("language"))
+                (r.email, r.language)
                 for r in user_rows
-                if r.get("email") and (r.get("notification_digest") or default) == wanted
+                if r.email and (r.notification_digest or default) == wanted
             ]
 
             for user_email, user_language in users:
@@ -385,7 +388,7 @@ async def send_notification_digest(period: str = "daily") -> None:
                 # Group by doctype
                 groups: dict[str, list] = {}
                 for n in rows:
-                    key = str(n.get("ref_doctype") or "")
+                    key = str(n.ref_doctype or "")
                     groups.setdefault(key, []).append(n)
 
                 with use_language(user_language):

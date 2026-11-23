@@ -10,11 +10,11 @@ class LetterHead(Document):
     """DocType controller for LetterHead."""
 
     async def validate(self) -> None:
-        if self.get("disabled"):
+        if self.disabled:
             self.is_default = False
 
     async def after_save(self) -> None:
-        if not self.get("is_default"):
+        if not self.is_default:
             return
         # Setting a new default clears the old one.
         await _db.bulk_update(

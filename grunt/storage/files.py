@@ -171,7 +171,7 @@ async def create_file(
             "original_size": original_size,
         },
     )
-    file_id = str(doc["name"])
+    file_id = str(doc.name)
     await ensure_thumbnail(key, content_type)
     values = {
         "file_url": CONTENT_URL.format(file_id),

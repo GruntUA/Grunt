@@ -16,14 +16,14 @@ class ConnectedApp(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     title: str  # Name
-    provider: str  # Provider
-    enabled: bool | None  # Enabled
-    tenant: str | None  # Tenant
+    provider: str | None = None  # Provider
+    enabled: bool | None = None  # Enabled
+    tenant: str | None = None  # Tenant
     client_id: str  # Client ID
     client_secret: str  # Client secret
-    authorization_url: str | None  # Authorization URL
-    token_url: str | None  # Token URL
-    scopes: str | None  # Extra scopes
+    authorization_url: str | None = None  # Authorization URL
+    token_url: str | None = None  # Token URL
+    scopes: str | None = None  # Extra scopes
 
     # end: auto-generated types
 
@@ -34,12 +34,12 @@ class ConnectedApp(Document):
                 if not value.startswith("https://"):
                     throw(_("The provider addresses must start with https://"))
                 self.data[field] = value
-        if self.provider == "Microsoft" and not (self.get("tenant") or "").strip():
-            self.data["tenant"] = "common"
+        if self.provider == "Microsoft" and not (self.tenant or "").strip():
+            self.tenant = "common"
 
     async def before_save(self) -> None:
-        secret = self.get("client_secret")
+        secret = self.client_secret
         if secret in (MASK, None, "") and self.name:
-            self.data["client_secret"] = await self.grunt.db.get_value(
+            self.client_secret = await self.grunt.db.get_value(
                 "ConnectedApp", self.name, "client_secret"
             )

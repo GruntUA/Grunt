@@ -8,6 +8,7 @@ refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 import re as _re
+from collections.abc import Sequence
 from datetime import UTC, date, datetime, time
 from typing import Any
 
@@ -68,42 +69,42 @@ class User(Document):
 
     last_name: str  # Last name
     first_name: str  # First name
-    middle_name: str | None  # Patronymic
-    full_name: str | None  # Full name
-    avatar: str | None  # Profile photo
+    middle_name: str | None = None  # Patronymic
+    full_name: str | None = None  # Full name
+    avatar: str | None = None  # Profile photo
     email: str  # Email
-    phone: str | None  # Phone
-    birth_date: date | None  # Date of birth
-    gender: str | None  # Gender
-    timezone: str | None  # Time zone
-    last_login: datetime | None  # Last login
-    bio: str | None  # Short bio
-    is_active: bool | None  # Active
-    signup_state: str | None  # Registration state
-    password: str | None  # Set password
-    hashed_password: str | None  # Password hash
-    password_changed_at: datetime | None  # Password changed
-    login_after: time | None  # Sign in from
-    login_before: time | None  # Sign in until
-    allowed_ips: str | None  # Allowed IP addresses
-    storage_quota_mb: int | None  # Personal space quota, MB
-    mfa_enabled: bool | None  # MFA enabled
-    mfa_secret: str | None  # MFA secret
-    mfa_backup_codes: dict | None  # Backup code hashes
-    mfa_backup_display: str | None  # Backup codes
-    login_attempts: int | None  # Failed login attempts
-    locked_until: datetime | None  # Account locked until
-    theme: str | None  # Theme
-    language: str | None  # Language
-    notification_digest: str | None  # Email digest
-    follow_created: bool | None  # Follow documents I create
-    follow_commented: bool | None  # Follow documents I comment on
-    follow_assigned: bool | None  # Follow documents assigned to me
-    follow_shared: bool | None  # Follow documents shared with me
-    reset_token: str | None  # Password reset token
-    reset_token_expires_at: datetime | None  # Reset token expiry
-    role_profiles: list[dict]  # Table: UserRoleProfile
-    roles: list[dict]  # Table: UserRole
+    phone: str | None = None  # Phone
+    birth_date: date | None = None  # Date of birth
+    gender: str | None = None  # Gender
+    timezone: str | None = None  # Time zone
+    last_login: datetime | None = None  # Last login
+    bio: str | None = None  # Short bio
+    is_active: bool | None = None  # Active
+    signup_state: str | None = None  # Registration state
+    password: str | None = None  # Set password
+    hashed_password: str | None = None  # Password hash
+    password_changed_at: datetime | None = None  # Password changed
+    login_after: time | None = None  # Sign in from
+    login_before: time | None = None  # Sign in until
+    allowed_ips: str | None = None  # Allowed IP addresses
+    storage_quota_mb: int | None = None  # Personal space quota, MB
+    mfa_enabled: bool | None = None  # MFA enabled
+    mfa_secret: str | None = None  # MFA secret
+    mfa_backup_codes: dict | None = None  # Backup code hashes
+    mfa_backup_display: str | None = None  # Backup codes
+    login_attempts: int | None = None  # Failed login attempts
+    locked_until: datetime | None = None  # Account locked until
+    theme: str | None = None  # Theme
+    language: str | None = None  # Language
+    notification_digest: str | None = None  # Email digest
+    follow_created: bool | None = None  # Follow documents I create
+    follow_commented: bool | None = None  # Follow documents I comment on
+    follow_assigned: bool | None = None  # Follow documents assigned to me
+    follow_shared: bool | None = None  # Follow documents shared with me
+    reset_token: str | None = None  # Password reset token
+    reset_token_expires_at: datetime | None = None  # Reset token expiry
+    role_profiles: list[dict] = []  # Table: UserRoleProfile
+    roles: list[dict] = []  # Table: UserRole
 
     # end: auto-generated types
 
@@ -117,9 +118,9 @@ class User(Document):
     def role_names(self) -> list[str]:
         """Role names, whether ``roles`` holds the loaded names (an authenticated
         user) or the UserRole child rows (a document being saved)."""
-        rows = self.data.get("role_rows")
+        rows = self.role_rows
         if rows is None:
-            rows = self.data.get("roles") or []
+            rows = self.roles or []
         return list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
 
     def has_role(self, *roles: str) -> bool:
@@ -134,7 +135,7 @@ class User(Document):
         if not self.last_name:
             raise ValueError(_("Last name is required"))
         if "roles" in self.data:
-            _validate_role_rows(self.data.get("roles") or [])
+            _validate_role_rows(self.roles or [])
         await self._enforce_self_edit_scope()
 
     async def _enforce_self_edit_scope(self) -> None:
@@ -169,12 +170,12 @@ class User(Document):
                 fields=[*ROLE_ROW_FIELDS, "role_profile"],
                 limit=500,
             )
-            submitted = [r for r in (self.data.get("roles") or []) if isinstance(r, dict)]
+            submitted = [r for r in (self.roles or []) if isinstance(r, dict)]
             if _assignments(submitted) != _assignments(stored):
                 throw(_("Not permitted to change roles"), "FORBIDDEN")
-        if "role_profiles" in self.data and set(
-            _profile_names(self.data.get("role_profiles"))
-        ) != set(await self._stored_profiles()):
+        if "role_profiles" in self.data and set(_profile_names(self.role_profiles)) != set(
+            await self._stored_profiles()
+        ):
             throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back - quietly restore
@@ -189,7 +190,7 @@ class User(Document):
             if field not in self.data:
                 continue
             if field == "password":
-                if self.data.get("password"):
+                if self.password:
                     throw(
                         _("Not permitted to set the password; use the Change password action"),
                         "FORBIDDEN",
@@ -215,11 +216,11 @@ class User(Document):
         if "roles" not in self.data and "role_profiles" not in self.data:
             return
         if "role_profiles" in self.data:
-            profiles = _profile_names(self.data.get("role_profiles"))
+            profiles = _profile_names(self.role_profiles)
         else:
             profiles = await self._stored_profiles()
         if "roles" in self.data:
-            roles = list(self.data.get("roles") or [])
+            roles = list(self.roles or [])
         elif self.name:
             roles = await _db.get_all(
                 "UserRole",
@@ -233,7 +234,7 @@ class User(Document):
             roles = []
         rebuilt = await with_profile_roles(roles, profiles)
         if "roles" in self.data or rebuilt != roles:
-            self.data["roles"] = rebuilt
+            self.roles = rebuilt
 
     async def _stored_profiles(self) -> list[str]:
         if not self.name:
@@ -254,7 +255,7 @@ class User(Document):
         anyone else's avatar (they cannot read another user's User row). Only
         the avatar file is published; other User attachments stay private.
         """
-        avatar = self.data.get("avatar")
+        avatar = self.avatar
         if not isinstance(avatar, str) or "get_content?file_id=" not in avatar:
             return
 
@@ -280,7 +281,7 @@ class User(Document):
 
     async def before_insert(self) -> None:
         # If a plain-text password was passed through the generic API, hash it.
-        raw = self.data.get("password")
+        raw = self.password
         if raw:
             if not await _is_internal_context():
                 # Interactive create (admin form / import) - hold it to policy.
@@ -288,7 +289,7 @@ class User(Document):
 
                 await enforce_password_policy(str(raw))
             self.hashed_password = await hash_password(str(raw))
-            self.data["password_changed_at"] = datetime.now(UTC)
+            self.password_changed_at = datetime.now(UTC)
             self.data.pop("password", None)
 
     async def check_password(self, plain: str) -> bool:
@@ -306,15 +307,15 @@ class UserPublic(Schema):
 # holding the "System Manager" role, same as any other user - no special-case
 # bypass for this identity.
 SYSTEM_USER = User(
-    doctype="User",
-    data={
-        "email": SYSTEM_USER_EMAIL,
-        "full_name": "System",
-        "roles": ["System Manager"],
-        "is_active": True,
-        "theme": "system",
-        "language": "uk",
-    },
+    email=SYSTEM_USER_EMAIL,
+    first_name="System",
+    last_name="",
+    full_name="System",
+    # In the auth context `roles` holds role names, not UserRole rows (grunt.auth.users).
+    roles=["System Manager"],  # pyright: ignore[reportArgumentType]
+    is_active=True,
+    theme="system",
+    language="uk",
 )
 use_system_user(SYSTEM_USER)
 
@@ -326,8 +327,12 @@ GUEST_USER = GUEST_USER_EMAIL
 
 def guest_user() -> User:
     return User(
-        doctype="User",
-        data={"email": GUEST_USER, "full_name": "Guest", "roles": ["Guest"], "is_active": True},
+        email=GUEST_USER,
+        first_name="Guest",
+        last_name="",
+        full_name="Guest",
+        roles=["Guest"],  # pyright: ignore[reportArgumentType] - role names, as above
+        is_active=True,
     )
 
 
@@ -337,7 +342,7 @@ def _profile_names(rows: Any) -> list[str]:
     return list(dict.fromkeys(n for n in names if n))
 
 
-def _assignments(rows: list[dict[str, Any]]) -> list[tuple[str, ...]]:
+def _assignments(rows: Sequence[dict[str, Any]]) -> list[tuple[str, ...]]:
     """Role assignment rows compared as a set (order and row ids don't matter),
     with the profile each came from."""
     return sorted(

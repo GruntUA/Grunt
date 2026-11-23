@@ -35,7 +35,7 @@ async def get_client_scripts(
         _session_ctx.reset(token)
 
     scripts: list[dict[str, Any]] = [
-        {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
+        {"name": str(r.name or ""), "script": str(r.script or "")} for r in rows
     ]
     log.debug("client_scripts.db_scripts", doctype=doctype, count=len(scripts))
 

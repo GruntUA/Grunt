@@ -50,9 +50,9 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
         )
 
     row = rows[0]
-    subject = _format(row["subject"], context)
-    body_text = _format(row["body"], context)
-    body_html = _format(row["body_html"], context) if row.get("body_html") else None
+    subject = _format(row.subject, context)
+    body_text = _format(row.body, context)
+    body_html = _format(row.body_html, context) if row.body_html else None
     return subject, body_text, body_html
 
 

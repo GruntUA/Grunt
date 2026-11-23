@@ -272,7 +272,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
 
     # Resolve display names/avatars for everyone referenced in the sidebar.
     emails: set[str] = set()
-    for value in (doc.get("owner"), doc.get("modified_by")):
+    for value in (doc.owner, doc.modified_by):
         if value:
             emails.add(value)
     for row in assignees:
@@ -289,7 +289,7 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
             email = u.email
             people[email] = {
                 "name": getattr(u, "full_name", None) or email,
-                "avatar": u.data.get("avatar") or None,
+                "avatar": u.avatar or None,
             }
 
     return {

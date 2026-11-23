@@ -19,7 +19,7 @@ from grunt.io.doctypes.DataImport.data_import import DataImport
 
 
 def _make_data_import(file_value: str) -> DataImport:
-    return DataImport("DataImport", {"name": "test-import", "file": file_value})
+    return DataImport(**{"name": "test-import", "file": file_value})
 
 
 @pytest.mark.asyncio

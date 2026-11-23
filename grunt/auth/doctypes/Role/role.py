@@ -14,13 +14,13 @@ class Role(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     role_name: str  # Name
-    description: str | None  # Description
-    disabled: bool | None  # Disabled
-    site_only: bool | None  # Site only
-    home_page: str | None  # Home page
-    permissions: list[str] | None  # Permissions
-    require_mfa: bool | None  # Require two-factor authentication
-    allowed_ips: str | None  # Allowed sign-in IPs
+    description: str | None = None  # Description
+    disabled: bool | None = None  # Disabled
+    site_only: bool | None = None  # Site only
+    home_page: str | None = None  # Home page
+    permissions: list[str] | None = None  # Permissions
+    require_mfa: bool | None = None  # Require two-factor authentication
+    allowed_ips: str | None = None  # Allowed sign-in IPs
 
     # end: auto-generated types
 
@@ -31,12 +31,12 @@ class Role(Document):
     permissions: list[str] | None
 
     async def validate(self) -> None:
-        if self.name in PROTECTED_ROLES and (self.get("disabled") or self.get("site_only")):
+        if self.name in PROTECTED_ROLES and (self.disabled or self.site_only):
             throw(
                 _("The role “%(role)s” can't be disabled or made site-only") % {"role": self.name},
                 "VALIDATION_ERROR",
             )
-        home = (self.get("home_page") or "").strip()
+        home = (self.home_page or "").strip()
         if home and (
             not home.startswith("/")
             or home.startswith("//")
@@ -71,7 +71,7 @@ class Role(Document):
     async def after_save(self) -> None:
         invalidate_roles(site_cache_key())
         before = self.doc_before_save or {}
-        if bool(before.get("disabled")) != bool(self.get("disabled")):
+        if bool(before.get("disabled")) != bool(self.disabled):
             # Signed-in users carry their roles in the cached User: drop it so
             # disabling (or enabling) takes effect on their next request.
             await documents.doc_cache.invalidate_doctype("User")

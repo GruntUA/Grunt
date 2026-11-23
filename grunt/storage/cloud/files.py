@@ -185,7 +185,7 @@ async def offload_candidates(remote: dict[str, Any], limit: int = MAX_BLOBS_PER_
         )
         by_key: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in rows:
-            by_key[row["content_hash"]].append(row)
+            by_key[row.content_hash].append(row)
         for key in chunk:
             if (
                 all(_qualifies(r, remote, cutoff) for r in by_key[key])
@@ -245,7 +245,7 @@ async def recall(remote: dict[str, Any], progress: Progress | None = None) -> di
         limit=None,
     )
     await session.commit()
-    sizes = {r["content_hash"]: int(r["file_size"] or 0) for r in rows if r["content_hash"]}
+    sizes = {r.content_hash: int(r.file_size or 0) for r in rows if r.content_hash}
     if not sizes:
         await _update_stats(remote)
         return {"files": 0, "bytes": 0}

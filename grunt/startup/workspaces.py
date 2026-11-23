@@ -67,7 +67,7 @@ async def _upsert_workspace(
         sidebar_same = _rows_match(_own(current, "sidebar_items"), sidebar_rows)
     else:
         ws = await documents.new_doc("AppMenu", {"name": ws_name, **create_fields})
-        ws_id = ws["name"]
+        ws_id = ws.name
         sidebar_same = False
         log.info("startup.workspace_created", workspace=ws_id)
 

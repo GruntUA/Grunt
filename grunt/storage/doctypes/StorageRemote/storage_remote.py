@@ -43,57 +43,49 @@ class StorageRemote(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    title: str | None  # Name
-    provider: str | None  # Storage type
-    enabled: bool | None  # Enabled
-    root_folder: str | None  # Root folder
-    oauth_account: str | None  # Connected account
-    oauth_connected_at: datetime | None  # Connected at
-    paste_token: None  # Paste a token from rclone
-    client_id: str | None  # Client ID
-    client_secret: str | None  # Client secret
-    authorize: None  # Sign in through the browser
-    oauth_token: str | None  # OAuth token
-    oauth_extra: str | None  # OAuth extra
-    s3_provider: str | None  # S3 provider
-    endpoint: str | None  # Address (URL)
-    region: str | None  # Region
-    webdav_vendor: str | None  # WebDAV server
-    host: str | None  # Host
-    port: int | None  # Port
-    domain: str | None  # Domain
-    access_key_id: str | None  # Access key ID
-    secret_access_key: str | None  # Secret access key
-    username: str | None  # User
-    password: str | None  # Password
-    ssh_private_key: str | None  # SSH private key
-    rclone_type: str | None  # rclone backend
-    rclone_options: str | None  # rclone options
-    encrypt: bool | None  # Encrypt before sending
-    encryption_password: str | None  # Encryption password
-    encryption_salt: str | None  # Second password (salt)
-    test_connection: None  # Test connection
-    show_config: None  # Show rclone config
-    last_status: str | None  # Status
-    last_check_at: datetime | None  # Last checked
-    quota: str | None  # Space
-    last_error: str | None  # Last error
-    use_for_backups: bool | None  # Upload backups here
-    backup_keep: int | None  # Copies to keep here
-    upload_latest: None  # Upload the latest backup now
-    browse_backups: None  # Backups in this storage
-    last_backup_at: datetime | None  # Last upload
-    last_backup_id: str | None  # Last uploaded set
-    use_for_files: bool | None  # Move old files here
-    offload_after_days: int | None  # Older than, days
-    offload_min_size_kb: int | None  # Larger than, KB
-    offload_public: bool | None  # Public files too
-    offload_doctypes: str | None  # Only files of
-    cache_size_mb: int | None  # Local cache, MB
-    offloaded_files: int | None  # Files in the storage
-    offloaded_size: str | None  # Their size
-    offload_now: None  # Move files now
-    recall_files: None  # Return all files to the server
+    title: str  # Name
+    provider: str | None = None  # Storage type
+    enabled: bool | None = None  # Enabled
+    root_folder: str | None = None  # Root folder
+    oauth_account: str | None = None  # Connected account
+    oauth_connected_at: datetime | None = None  # Connected at
+    client_id: str | None = None  # Client ID
+    client_secret: str | None = None  # Client secret
+    oauth_token: str | None = None  # OAuth token
+    oauth_extra: str | None = None  # OAuth extra
+    s3_provider: str | None = None  # S3 provider
+    endpoint: str | None = None  # Address (URL)
+    region: str | None = None  # Region
+    webdav_vendor: str | None = None  # WebDAV server
+    host: str | None = None  # Host
+    port: int | None = None  # Port
+    domain: str | None = None  # Domain
+    access_key_id: str | None = None  # Access key ID
+    secret_access_key: str | None = None  # Secret access key
+    username: str | None = None  # User
+    password: str | None = None  # Password
+    ssh_private_key: str | None = None  # SSH private key
+    rclone_type: str | None = None  # rclone backend
+    rclone_options: str | None = None  # rclone options
+    encrypt: bool | None = None  # Encrypt before sending
+    encryption_password: str | None = None  # Encryption password
+    encryption_salt: str | None = None  # Second password (salt)
+    last_status: str | None = None  # Status
+    last_check_at: datetime | None = None  # Last checked
+    quota: str | None = None  # Space
+    last_error: str | None = None  # Last error
+    use_for_backups: bool | None = None  # Upload backups here
+    backup_keep: int | None = None  # Copies to keep here
+    last_backup_at: datetime | None = None  # Last upload
+    last_backup_id: str | None = None  # Last uploaded set
+    use_for_files: bool | None = None  # Move old files here
+    offload_after_days: int | None = None  # Older than, days
+    offload_min_size_kb: int | None = None  # Larger than, KB
+    offload_public: bool | None = None  # Public files too
+    offload_doctypes: str | None = None  # Only files of
+    cache_size_mb: int | None = None  # Local cache, MB
+    offloaded_files: int | None = None  # Files in the storage
+    offloaded_size: str | None = None  # Their size
 
     # end: auto-generated types
 

@@ -36,8 +36,8 @@ async def _get_app_name_for_module(module: str) -> str | None:
     """Return the installed app name that owns *module*, or None."""
     rows = await _db.get_all("GruntInstalledApp", fields=["name", "modules"])
     for row in rows:
-        if module in (row.get("modules") or []):
-            return row["name"]
+        if module in (row.modules or []):
+            return row.name
     return None
 
 

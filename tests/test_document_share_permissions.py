@@ -89,7 +89,7 @@ async def test_owner_can_share_their_own_document(ctx, setup_secret_doctype, db_
                 "is_active": True,
             },
         )
-    assert share["token"]
+    assert share.token
 
 
 @pytest.mark.asyncio

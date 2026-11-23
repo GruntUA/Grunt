@@ -258,7 +258,7 @@ async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
         if rule_dt is not None and names
         else []
     )
-    patterns: list[str] = [r["autoname"] or "" for r in rules]
+    patterns: list[str] = [r.autoname or "" for r in rules]
     for dt in app_doctypes:
         autoname = (dt.autoname or "").strip().removeprefix("format:")
         patterns.extend(series_options(dt) if autoname == NAMING_SERIES else [autoname])
@@ -318,7 +318,7 @@ async def _shipped_records(name: str, app_dir: Path, skip: set[str]) -> list[tup
     found: list[tuple[str, str]] = []
     for doctype in sorted(doctypes):
         rows = await _db.get_all(doctype, filters={"app": name}, fields=["name"], limit=None)
-        found += [(doctype, str(r["name"])) for r in rows]
+        found += [(doctype, str(r.name)) for r in rows]
     if app_dir.is_dir():
         for module in read_manifest(app_dir)["modules"]:
             for fx_file in sorted((app_dir / module / "fixtures").glob("*.json")):

@@ -36,7 +36,7 @@ async def regular_user_ctx(ctx):
     }
     await ctx.new_doc("User", reg_user_data)
     await ctx.db._session().commit()
-    return User(doctype="User", data={"email": "regular@example.com", "roles": []})
+    return User(**{"email": "regular@example.com", "roles": []})
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────

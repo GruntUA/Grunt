@@ -127,7 +127,7 @@ class NotificationService:
         return [
             {
                 **row,
-                "created_at": row["created_at"].isoformat() if row.get("created_at") else None,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
             }
             for row in rows
         ]

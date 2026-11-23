@@ -9,12 +9,12 @@ class NotificationPreference(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     email: str  # Email
-    notification: str | None  # Notification
-    channel: str | None  # Channel
+    notification: str | None = None  # Notification
+    channel: str | None = None  # Channel
 
     # end: auto-generated types
 
     async def validate(self) -> None:
-        self.data["email"] = (self.get("email") or "").strip().lower()
-        self.data["notification"] = self.get("notification") or None
-        self.data["channel"] = self.get("channel") or None
+        self.email = (self.email or "").strip().lower()
+        self.notification = self.notification or None
+        self.channel = self.channel or None

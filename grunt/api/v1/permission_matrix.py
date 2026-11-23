@@ -42,10 +42,10 @@ async def _check_role(role: str) -> None:
 
 async def _role_rules(role: str, name: str) -> dict[str, Any]:
     doc = await documents.get_doc("DocType", name)
-    perms = doc.get("permissions") or []
+    perms = doc.permissions or []
     return {
         "doctype": name,
-        "is_child": bool(doc.get("is_child")),
+        "is_child": bool(doc.is_child),
         "rules": [_rule(i, p) for i, p in enumerate(perms) if p.get("role") == role],
     }
 
@@ -84,7 +84,7 @@ async def save_role_matrix(role: str, changes: list[dict[str, Any]]) -> list[dic
     for change in changes:
         name = str(change.get("doctype") or "")
         doc = await documents.get_doc("DocType", name)
-        perms = [dict(p) for p in doc.get("permissions") or []]
+        perms = [dict(p) for p in doc.permissions or []]
         had_rules = any(p.get("role") == role for p in perms)
         drop: set[int] = set()
         for edit in change.get("rules") or []:

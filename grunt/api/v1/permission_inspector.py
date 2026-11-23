@@ -40,7 +40,7 @@ async def explain_access(
         if doc is None:
             raise not_found(_("Document not found"))
     trace = await explain(found["email"], meta, action, doc)  # type: ignore[arg-type]
-    trace["user_name"] = found.get("full_name") or found["email"]
+    trace["user_name"] = found.full_name or found.email
     trace["titles"] = await _scope_titles(trace)
     return trace
 

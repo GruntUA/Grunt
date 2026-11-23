@@ -30,9 +30,9 @@ class SharedWith(Document):
     async def validate(self) -> None:
         # ``user`` is a field here, but ``self.user`` is the acting user.
         target = (self.data.get("user") or "").strip() or None
-        role = (self.data.get("role") or "").strip() or None
-        group = (self.data.get("user_group") or "").strip() or None
-        everyone = bool(self.data.get("everyone"))
+        role = (self.role or "").strip() or None
+        group = (self.user_group or "").strip() or None
+        everyone = bool(self.everyone)
         # "All" is every user, held implicitly - that's what "everyone" is;
         # a guest never gets a share (only a public link).
         if role == "All":
@@ -43,15 +43,15 @@ class SharedWith(Document):
             throw(_("Share with one of: a user, a role, a user group or everyone"))
         self.data.update(user=target, role=role, user_group=group, everyone=everyone)
         if self.permission not in ("Read", "Write"):
-            self.data["permission"] = "Read"
-        self.data["can_reshare"] = bool(self.data.get("can_reshare"))
+            self.permission = "Read"
+        self.can_reshare = bool(self.can_reshare)
         if target and not await self.grunt.db.exists("User", target):
             throw(_("User “%(user)s” not found") % {"user": target}, "NOT_FOUND")
         if role and not await self.grunt.db.exists("Role", role):
             throw(_("Role “%(role)s” not found") % {"role": role}, "NOT_FOUND")
         if group and not await self.grunt.db.exists("UserGroup", group):
             throw(_("User group “%(group)s” not found") % {"group": group}, "NOT_FOUND")
-        valid_to = _day(self.data.get("valid_to"))
+        valid_to = _day(self.valid_to)
         if valid_to is not None and valid_to < date.today():
             throw(_("The end date has already passed"))
         await self._require_share_on_reference(self.permission)
@@ -67,11 +67,11 @@ class SharedWith(Document):
         recipients: list[str] = []
         if self.data.get("user"):
             recipients = [self.data["user"]]
-        elif self.data.get("role"):
-            holders = await role_holders([self.data["role"]])
+        elif self.role:
+            holders = await role_holders([self.role])
             recipients = [h["email"] for h in holders if h.get("email")]
-        elif self.data.get("user_group"):
-            recipients = await group_emails([self.data["user_group"]])
+        elif self.user_group:
+            recipients = await group_emails([self.user_group])
         # "Everyone" tells nobody: a notification to every account is noise.
         recipients = [r for r in recipients if r != self.user]
         if not recipients:

@@ -191,7 +191,7 @@ async def _find_page(request: Request, path: str) -> tuple[Any, str | None] | No
             filters[dt.is_published_field] = True
         rows = await _db.get_all(dt.name, filters=filters, fields=["name"], limit=1)
         if rows:
-            return dt, rows[0]["name"]
+            return dt, rows[0].name
         if dt.is_published_field and (
             name := await find_unpublished(request, dt.name, {key: route})
         ):
@@ -320,5 +320,5 @@ async def sitemap_urls(
         extra = (ROUTE_FIELD, dt.is_published_field)
         fields = ["name", "modified_at", *[f for f in extra if f and _has_field(dt, f)]]
         rows = await _db.get_all(dt.name, filters=filters, fields=fields, limit=None)
-        urls.extend((url, row.get("modified_at")) for row in rows if (url := web_url(dt, row)))
+        urls.extend((url, row.modified_at) for row in rows if (url := web_url(dt, row)))
     return urls

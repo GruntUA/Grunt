@@ -35,7 +35,7 @@ class MilestoneTracker(Document):
                 "VALIDATION_ERROR",
             )
 
-        field = (self.get("track_field") or "").strip() or (dt.status_field or "")
+        field = (self.track_field or "").strip() or (dt.status_field or "")
         if not field:
             throw(
                 _("%(doctype)s has no status field - choose the field to track")
@@ -67,7 +67,7 @@ class MilestoneTracker(Document):
             was_disabled = bool(
                 await _db.get_value("MilestoneTracker", self.id, "disabled")
             ) or not await _db.exists("MilestoneTracker", self.id)
-        self._starts = was_disabled and not self.get("disabled")
+        self._starts = was_disabled and not self.disabled
 
     async def after_save(self) -> None:
         milestones.invalidate()

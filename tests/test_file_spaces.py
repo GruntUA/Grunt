@@ -137,7 +137,7 @@ async def test_read_share_opens_the_whole_subtree(ctx, people, storage, db_sessi
     await _share(ctx, work, "Read")
     async with grunt.context(db_session, engine, _as(BOB)):
         assert [f["file_name"] for f in await grunt.get_list("File")] == ["plan.txt"]
-        assert (await grunt.get_doc("FileFolder", drafts))["folder_name"] == "Drafts"
+        assert (await grunt.get_doc("FileFolder", drafts)).folder_name == "Drafts"
         # The shared folder surfaces as a root - its parent (Ann's home) stays hidden.
         roots = {n["name"] for n in await tree_api.get_tree_children("FileFolder")}
         assert work in roots and home not in roots
@@ -157,7 +157,7 @@ async def test_write_share_lets_colleague_file_into_the_owners_space(
     async with grunt.context(db_session, engine, _as(BOB)):
         up = await upload(_file("note.txt"), folder=drafts)
         sub = await grunt.new_doc("FileFolder", {"folder_name": "Bob's", "parent_folder": drafts})
-    assert sub["space_user"] == ANN
+    assert sub.space_user == ANN
     # The space owner manages everything in it - also what Bob put there.
     async with grunt.context(db_session, engine, _as(ANN)):
         await grunt.delete_doc("File", up["id"])

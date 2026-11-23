@@ -235,7 +235,7 @@ async def save_token(
         "connected_at": datetime.now(UTC),
     }
     doc = await documents.new_doc("OAuthToken", values)
-    return {**values, "name": doc["name"]}
+    return {**values, "name": doc.name}
 
 
 # Access tokens

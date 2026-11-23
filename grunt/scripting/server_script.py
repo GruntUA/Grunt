@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.log import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.db.api import GruntDB
 lazy from grunt.document.api import documents
 lazy from grunt.local import _session_ctx
@@ -152,7 +153,7 @@ class _DBProxy:
         limit: int = 20,
         order_by: str | None = None,
         order: str = "desc",
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
         """Fetch a list of documents as plain dicts."""
 
         return await self._run_with_session(
@@ -275,7 +276,7 @@ class ScriptContext:
 
         async def _action() -> dict[str, Any] | None:
             db = GruntDB()
-            rows: list[dict[str, Any]]
+            rows: list[AttrDict]
             if isinstance(filters_or_id, str):
                 rows = await db.get_all(doctype, filters={"name": filters_or_id}, limit=1)
             else:
@@ -290,7 +291,7 @@ class ScriptContext:
         filters: dict[str, Any] | None = None,
         fields: list[str] | None = None,
         limit: int = 20,
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
         """Fetch a list of documents.
 
         Usage::
@@ -307,7 +308,7 @@ class ScriptContext:
         filters: dict[str, Any] | None,
         fields: list[str] | None,
         limit: int,
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
 
         return await self._run_with_session(
             lambda: GruntDB().get_all(
@@ -466,7 +467,7 @@ class ServerScriptRunner:
             _session_ctx.reset(token)
 
         scripts: list[dict[str, Any]] = [
-            {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
+            {"name": str(r.name or ""), "script": str(r.script or "")} for r in rows
         ]
 
         # Append file-based scripts
@@ -501,9 +502,9 @@ class ServerScriptRunner:
         row = rows[0] if rows else None
         if row:
             return {
-                "name": row.get("name"),
-                "script": row.get("script"),
-                "allow_guest": row.get("allow_guest"),
+                "name": row.name,
+                "script": row.script,
+                "allow_guest": row.allow_guest,
             }
 
         # Check file-based scripts
@@ -530,9 +531,7 @@ class ServerScriptRunner:
         finally:
             _session_ctx.reset(token)
 
-        return [
-            {"name": r.get("name"), "script": r.get("script"), "cron": r.get("cron")} for r in rows
-        ]
+        return [{"name": r.name, "script": r.script, "cron": r.cron} for r in rows]
 
     async def execute(
         self,

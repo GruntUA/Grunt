@@ -244,7 +244,7 @@ async def get_timeline(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     emails = {i["user"] for i in items if i.get("user")}
     if emails:
         users = await get_users_by_emails(list(emails), fields=["email", "full_name", "avatar"])
-        people = {u.email: (getattr(u, "full_name", None), u.data.get("avatar")) for u in users}
+        people = {u.email: (getattr(u, "full_name", None), u.avatar) for u in users}
         for i in items:
             name, avatar = people.get(i.get("user") or "", (None, None))
             i["user_name"] = name or None

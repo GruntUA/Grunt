@@ -60,15 +60,15 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
         throw(_("DataImport not found"), "NOT_FOUND")
     # The task writes as SYSTEM_USER - whoever starts it needs `import` themselves.
     await doctype_guard(di.doctype_name, "import")
-    file = str(di.get("file") or "")
+    file = str(di.file or "")
     await record_access(
         "Import",
         di.doctype_name,
         file_format=file.rsplit(".", 1)[-1] if "." in file else None,
         filters={
             "data_import": data_import_id,
-            "import_type": di.get("import_type"),
-            "dry_run": bool(di.get("dry_run")),
+            "import_type": di.import_type,
+            "dry_run": bool(di.dry_run),
         },
     )
 

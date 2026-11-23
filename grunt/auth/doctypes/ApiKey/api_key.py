@@ -86,12 +86,12 @@ async def create_api_key(
     )
 
     return {
-        "name": doc["name"],
+        "name": doc.name,
         "key": full_key,
         "key_prefix": key_prefix,
-        "label": doc["label"],
-        "expires_at": doc.get("expires_at"),
-        "allowed_ips": doc.get("allowed_ips") or "",
+        "label": doc.label,
+        "expires_at": doc.expires_at,
+        "allowed_ips": doc.allowed_ips or "",
     }
 
 
@@ -154,12 +154,12 @@ async def update_api_key(
 
     doc = await documents.save_doc("ApiKey", key_id, updates)
     return {
-        "name": doc["name"],
-        "label": doc["label"],
-        "key_prefix": doc["key_prefix"],
-        "is_active": doc["is_active"],
-        "expires_at": doc.get("expires_at"),
-        "allowed_ips": doc.get("allowed_ips") or "",
+        "name": doc.name,
+        "label": doc.label,
+        "key_prefix": doc.key_prefix,
+        "is_active": doc.is_active,
+        "expires_at": doc.expires_at,
+        "allowed_ips": doc.allowed_ips or "",
     }
 
 

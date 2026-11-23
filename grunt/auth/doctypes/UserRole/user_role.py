@@ -26,11 +26,11 @@ class UserRole(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     role_name: str  # Role
-    scope_doctype: str | None  # Scope
-    scope_value: str | None  # Scope value
-    valid_from: date | None  # Valid from
-    valid_to: date | None  # Valid to
-    role_profile: str | None  # From profile
+    scope_doctype: str | None = None  # Scope
+    scope_value: str | None = None  # Scope value
+    valid_from: date | None = None  # Valid from
+    valid_to: date | None = None  # Valid to
+    role_profile: str | None = None  # From profile
 
     # end: auto-generated types
 

@@ -102,7 +102,7 @@ async def test_scope_narrows_list_and_document_with_subtree(ctx, units, db_sessi
         # HQ and its subtree; a letter with no unit lies outside every scope;
         # with two Links every filled one must be in scope.
         assert await _titles() == {"hq", "it", "copy-only-it"}
-        assert (await grunt.get_doc("SRTestLetter", units["it"]))["title"] == "it"
+        assert (await grunt.get_doc("SRTestLetter", units["it"])).title == "it"
         with pytest.raises(HTTPException) as exc:
             await grunt.get_doc("SRTestLetter", units["branch"])
         assert exc.value.status_code == 403
@@ -153,7 +153,7 @@ async def test_new_values_stay_in_scope(ctx, units, db_session, engine):
         with pytest.raises(HTTPException):
             await grunt.new_doc("SRTestLetter", {"title": "nowhere"})
         created = await grunt.new_doc("SRTestLetter", {"title": "in", "unit": "HQ-IT"})
-        assert created["unit"] == "HQ-IT"
+        assert created.unit == "HQ-IT"
 
 
 @pytest.mark.asyncio

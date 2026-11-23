@@ -979,10 +979,10 @@ async def test_lifecycle_hooks_see_submitted_multilink(ctx):
 
     class HookWatchItem(Document):
         async def validate(self) -> None:
-            seen.append(("validate", self.data.get("watchers")))
+            seen.append(("validate", self.watchers))
 
         async def after_save(self) -> None:
-            seen.append(("after_save", self.data.get("watchers")))
+            seen.append(("after_save", self.watchers))
 
     document_registry.register("HookWatchItem", HookWatchItem)
     try:

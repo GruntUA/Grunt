@@ -27,10 +27,8 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
         log.debug("i18n.refresh_languages_skipped", error=str(e))
         return
 
-    codes = {r["code"] for r in rows if r.get("code")}
+    codes = {r.code for r in rows if r.code}
     if codes:
         translation_service.set_supported(codes)
-    translation_service.set_language_names(
-        {r["code"]: r.get("native_name") or "" for r in rows if r.get("code")}
-    )
+    translation_service.set_language_names({r.code: r.native_name or "" for r in rows if r.code})
     translation_service.invalidate()

@@ -45,18 +45,18 @@ async def send_due_reminders() -> None:
             ],
             limit=5000,
         )
-        todos = [t for t in todos if (t.get("assigned_to") or "").strip()]
+        todos = [t for t in todos if (t.assigned_to or "").strip()]
         if not todos:
             log.info("todo_reminders.none_due")
             return
 
         titles = await resolve_reference_titles(
-            [(t.get("reference_doctype") or "", t.get("reference_id") or "") for t in todos]
+            [(t.reference_doctype or "", t.reference_id or "") for t in todos]
         )
 
         by_user: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for t in todos:
-            by_user[t["assigned_to"].strip()].append(t)
+            by_user[t.assigned_to.strip()].append(t)
 
         for user, items in by_user.items():
             overdue = sum(1 for t in items if _as_date(t.get("due_date")) < today)

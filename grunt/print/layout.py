@@ -318,7 +318,7 @@ async def _prefetch(
         rows = await GruntDB().get_all(
             "File", filters={"name__in": sorted(ids)}, fields=["name", "file_name"]
         )
-        ctx.file_names = {r["name"]: r["file_name"] for r in rows if r.get("file_name")}
+        ctx.file_names = {r.name: r.file_name for r in rows if r.file_name}
     for url in image_urls:
         if uri := await image_data_uri(url):
             ctx.images[url] = uri

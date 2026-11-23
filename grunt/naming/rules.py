@@ -75,14 +75,14 @@ async def _site_rules() -> dict[str, list[NamingRule]]:
             limit=None,
         )
         for r in rows:
-            if r.get("disabled") or not r.get("document_type") or not r.get("autoname"):
+            if r.disabled or not r.document_type or not r.autoname:
                 continue
-            loaded.setdefault(r["document_type"], []).append(
+            loaded.setdefault(r.document_type, []).append(
                 NamingRule(
-                    name=r["name"],
-                    priority=int(r.get("priority") or 0),
-                    condition=(r.get("condition") or "").strip(),
-                    autoname=str(r["autoname"]).strip(),
+                    name=r.name,
+                    priority=int(r.priority or 0),
+                    condition=(r.condition or "").strip(),
+                    autoname=str(r.autoname).strip(),
                 )
             )
         for rules in loaded.values():

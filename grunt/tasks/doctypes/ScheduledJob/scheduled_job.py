@@ -39,8 +39,8 @@ class ScheduledJobStore(VirtualStore):
             order="asc",
             limit=None,
         )
-        stats = await self._load_job_stats([row["name"] for row in scripts])
-        return [_build_job(row, stats.get(row["name"], {})) for row in scripts]
+        stats = await self._load_job_stats([row.name for row in scripts])
+        return [_build_job(row, stats.get(row.name, {})) for row in scripts]
 
     async def delete(self, name: str, *, before: dict[str, Any]) -> None:
         """Delete scheduled job by deleting the underlying ServerScript."""
@@ -61,11 +61,11 @@ class ScheduledJobStore(VirtualStore):
         except Exception:
             return {}
         return {
-            row["name"]: {
-                "status": row.get("last_status"),
-                "last_run_at": row.get("last_finished_at"),
-                "last_error": row.get("last_error") if row.get("last_status") == "Failed" else None,
-                "run_count": row.get("run_count") or 0,
+            row.name: {
+                "status": row.last_status,
+                "last_run_at": row.last_finished_at,
+                "last_error": row.last_error if row.last_status == "Failed" else None,
+                "run_count": row.run_count or 0,
             }
             for row in rows
         }

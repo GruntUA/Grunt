@@ -31,7 +31,7 @@ class Reminder(Document):
     """DocType controller for Reminder."""
 
     async def validate(self) -> None:
-        when = _aware(self.get("remind_at"))
+        when = _aware(self.remind_at)
         if when is None:
             throw(_("Choose when to remind"), "VALIDATION_ERROR")
 
@@ -44,7 +44,7 @@ class Reminder(Document):
                 throw(_("The reminder time is in the past"), "VALIDATION_ERROR")
             self.notified = False  # a new time means a new reminder
 
-        ref_dt, ref_name = self.get("reference_doctype"), self.get("reference_name")
+        ref_dt, ref_name = self.reference_doctype, self.reference_name
         if bool(ref_dt) != bool(ref_name):
             throw(_("Set both the document type and the document"), "VALIDATION_ERROR")
         if ref_dt and ref_name:

@@ -78,7 +78,7 @@ async def test_get_doc_denies_non_matching_row(ctx, setup_ticket_doctype, db_ses
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         # Own record: allowed.
         own = await grunt.get_doc("PermTestTicket", alice_id)
-        assert own["name"] == alice_id
+        assert own.name == alice_id
 
         # Someone else's record: denied, even though the role has read=True
         # on the DocType overall.
@@ -102,7 +102,7 @@ async def test_save_doc_denies_writing_non_matching_row(
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         # Own record: allowed.
         updated = await grunt.save_doc("PermTestTicket", alice_id, {"title": "Updated"})
-        assert updated["title"] == "Updated"
+        assert updated.title == "Updated"
 
         # Someone else's record: denied — even though "write" is True on the
         # matching role, the match condition ("owner == user") fails.

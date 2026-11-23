@@ -20,6 +20,7 @@ from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
@@ -55,7 +56,7 @@ async def muted(recipients: Iterable[str], notification: str | None, session: An
             fields=["email", "channel"],
             limit=None,
         )
-    return {(r["email"], r.get("channel") or None) for r in rows}
+    return {(r.email, r.channel or None) for r in rows}
 
 
 def is_off(off: Muted, email: str, channel: str) -> bool:
@@ -69,7 +70,7 @@ async def is_muted(email: str, notification: str | None, channel: str) -> bool:
     return is_off(await muted([email], notification), email, channel)
 
 
-async def _rows(email: str, notification: str | None) -> list[dict[str, Any]]:
+async def _rows(email: str, notification: str | None) -> list[AttrDict]:
     filters: dict[str, Any] = {"email": normal(email)}
     if notification:
         filters["notification"] = notification
@@ -94,8 +95,8 @@ async def set_enabled(
     if not address or not channel:
         return
     rows = await _rows(address, notification)
-    exact = [r for r in rows if r.get("channel") == channel]
-    every = [r for r in rows if not r.get("channel")]
+    exact = [r for r in rows if r.channel == channel]
+    every = [r for r in rows if not r.channel]
     if not enabled:
         if not exact and not every:
             await documents.new_doc(
@@ -106,11 +107,11 @@ async def set_enabled(
             log.info("notification.muted", notification=notification or "*", channel=channel)
         return
     for row in exact:
-        await _db.delete(DOCTYPE, row["name"])
+        await _db.delete(DOCTYPE, row.name)
     if every:
         for row in every:
-            await _db.delete(DOCTYPE, row["name"])
-        kept = {r.get("channel") for r in rows}
+            await _db.delete(DOCTYPE, row.name)
+        kept = {r.channel for r in rows}
         for other in channels:
             if other not in (channel, WEBHOOK) and other not in kept:
                 await documents.new_doc(
@@ -128,7 +129,7 @@ async def mute_everywhere(email: str, notification: str) -> None:
     if not address or not notification:
         return
     for row in await _rows(address, notification):
-        await _db.delete(DOCTYPE, row["name"])
+        await _db.delete(DOCTYPE, row.name)
     await documents.new_doc(
         DOCTYPE,
         {"email": address, "notification": notification, "channel": None},
@@ -175,17 +176,17 @@ async def overview(email: str, channels: list[dict[str, Any]]) -> dict[str, Any]
     )
     by_rule: dict[str, list[str]] = {}
     for row in channel_rows:
-        if row.get("channel") and row["channel"] != WEBHOOK:
-            names = by_rule.setdefault(row["parent_name"], [])
-            if row["channel"] not in names:
-                names.append(row["channel"])
+        if row.channel and row.channel != WEBHOOK:
+            names = by_rule.setdefault(row.parent_name, [])
+            if row.channel not in names:
+                names.append(row.channel)
     readable: dict[str, bool] = {}
     shown: list[dict[str, Any]] = []
     for rule in rules:
-        sends = by_rule.get(rule["name"])
+        sends = by_rule.get(rule.name)
         if not sends:
             continue
-        doctype = rule.get("ref_doctype")
+        doctype = rule.ref_doctype
         if doctype:
             if doctype not in readable:
                 readable[doctype] = await _readable(doctype)
@@ -193,18 +194,17 @@ async def overview(email: str, channels: list[dict[str, Any]]) -> dict[str, Any]
                 continue
         shown.append(
             {
-                "name": rule["name"],
-                "label": _(rule["name"]),
+                "name": rule.name,
+                "label": _(rule.name),
                 "ref_doctype": doctype or None,
                 "channels": sends,
-                "mandatory": bool(rule.get("is_mandatory")),
+                "mandatory": bool(rule.is_mandatory),
             }
         )
     return {
         "channels": [c for c in channels if c["value"] != WEBHOOK],
         "rules": shown,
         "off": [
-            {"notification": r.get("notification") or None, "channel": r.get("channel") or None}
-            for r in rows
+            {"notification": r.notification or None, "channel": r.channel or None} for r in rows
         ],
     }

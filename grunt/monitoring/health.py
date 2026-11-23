@@ -378,9 +378,9 @@ async def legacy_api_keys() -> list[str]:
         limit=None,
     )
     return [
-        f"{r.get('label') or '?'} ({r.get('key_prefix')})"
+        f"{r.label or '?'} ({r.key_prefix})"
         for r in rows
-        if not str(r.get("key_hash") or "").startswith("scrypt$")
+        if not str(r.key_hash or "").startswith("scrypt$")
     ]
 
 
@@ -613,11 +613,11 @@ async def check_cloud() -> list[Row]:
         )
     interval = int(await get_setting("backup_interval_hours", 24) or 24)
     for remote in remotes:
-        title = remote["title"] or remote["name"]
-        if remote.get("last_status") == "Error":
-            rows.append(row(cat, title, ERROR, _("error"), remote.get("last_error") or ""))
-        elif remote.get("last_status") == "OK":
-            rows.append(row(cat, title, OK, remote.get("quota") or _("works")))
+        title = remote.title or remote.name
+        if remote.last_status == "Error":
+            rows.append(row(cat, title, ERROR, _("error"), remote.last_error or ""))
+        elif remote.last_status == "OK":
+            rows.append(row(cat, title, OK, remote.quota or _("works")))
         else:
             rows.append(
                 row(
@@ -628,8 +628,8 @@ async def check_cloud() -> list[Row]:
                     _("Click Test connection in the storage."),
                 )
             )
-        if remote.get("use_for_backups"):
-            last = remote.get("last_backup_at")
+        if remote.use_for_backups:
+            last = remote.last_backup_at
             hours = (datetime.now(UTC) - last).total_seconds() / 3600 if last else None
             status = (
                 ERROR
@@ -651,13 +651,13 @@ async def check_cloud() -> list[Row]:
                     else _("Backups are not reaching this storage; see its status."),
                 )
             )
-        if remote.get("use_for_files"):
+        if remote.use_for_files:
             rows.append(
                 row(
                     cat,
                     _("Files in “%(name)s”") % {"name": title},
                     INFO,
-                    f"{remote.get('offloaded_files') or 0} · {remote.get('offloaded_size') or '0'}",
+                    f"{remote.offloaded_files or 0} · {remote.offloaded_size or '0'}",
                 )
             )
             cache = cache_root()

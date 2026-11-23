@@ -34,8 +34,8 @@ class ServiceLevel(Document):
         if int(self.target or 0) < 1:
             throw(_("Time allowed must be at least 1"), "VALIDATION_ERROR")
 
-        self.start_field = (self.get("start_field") or "").strip() or "created_at"
-        self.due_field = (self.get("due_field") or "").strip() or None
+        self.start_field = (self.start_field or "").strip() or "created_at"
+        self.due_field = (self.due_field or "").strip() or None
         for label, field in (
             (_("Count from field"), self.start_field),
             (_("Deadline field"), self.due_field),
@@ -52,10 +52,7 @@ class ServiceLevel(Document):
         if self.due_field in _SYSTEM_DATES:
             throw(_("The deadline field must be a field of the document"), "VALIDATION_ERROR")
 
-        if (
-            not (self.get("done_states") or "").strip()
-            and not (self.get("done_condition") or "").strip()
-        ):
+        if not (self.done_states or "").strip() and not (self.done_condition or "").strip():
             throw(
                 _("Set done statuses or a done condition - otherwise the clock never stops"),
                 "VALIDATION_ERROR",

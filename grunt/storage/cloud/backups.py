@@ -153,17 +153,17 @@ async def upload_to_remotes(
     for remote in remotes:
         if progress is not None:
             progress.set(
-                stage=_("Uploading to “%(name)s”") % {"name": remote["title"] or remote["name"]},
+                stage=_("Uploading to “%(name)s”") % {"name": remote.title or remote.name},
                 done=0,
                 total=backup.size(),
             )
         try:
             await upload_backup(site, backup, remote, progress)
         except RemoteError as exc:
-            outcome[remote["name"]] = str(exc)
+            outcome[remote.name] = str(exc)
             await record_status(remote, exc)
             continue
-        outcome[remote["name"]] = None
+        outcome[remote.name] = None
         await record_status(
             remote, None, last_backup_at=datetime.now(UTC), last_backup_id=backup.id
         )

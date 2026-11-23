@@ -24,6 +24,7 @@ from grunt.log import log
 from grunt.notification import delivery_log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
@@ -104,7 +105,7 @@ async def load_rows(rule: dict[str, Any]) -> dict[str, Any]:
     if isinstance(rule.get("recipients"), list) and isinstance(rule.get("channels"), list):
         return rule
     name = rule.get("name")
-    rows: dict[str, list[dict[str, Any]]] = {}
+    rows: dict[str, list[AttrDict]] = {}
     for field, doctype in (("recipients", RECIPIENT_DOCTYPE), ("channels", CHANNEL_DOCTYPE)):
         rows[field] = (
             await _db.get_all(
@@ -162,7 +163,7 @@ async def _assignees(doctype: str, doc_id: str) -> list[str]:
         fields=["assigned_to"],
         limit=None,
     )
-    return [r["assigned_to"] for r in rows if r.get("assigned_to")]
+    return [r.assigned_to for r in rows if r.assigned_to]
 
 
 async def _followers(doctype: str, doc_id: str) -> list[str]:
@@ -172,7 +173,7 @@ async def _followers(doctype: str, doc_id: str) -> list[str]:
         fields=["user"],
         limit=None,
     )
-    return [r["user"] for r in rows if r.get("user")]
+    return [r.user for r in rows if r.user]
 
 
 async def resolve_recipients(
@@ -237,7 +238,7 @@ async def _inactive(emails: set[str]) -> set[str]:
         fields=["email"],
         limit=None,
     )
-    return {r["email"] for r in rows}
+    return {r.email for r in rows}
 
 
 async def form_url(doctype: str, doc_id: str) -> str:
@@ -440,7 +441,7 @@ async def _attachments(
                 limit=50,
             )
             for row in rows:
-                if total + int(row.get("file_size") or 0) > MAX_ATTACH_BYTES:
+                if total + int(row.file_size or 0) > MAX_ATTACH_BYTES:
                     log.info("notification.attach_files_over_limit", rule=rule.get("name"))
                     break
                 try:
@@ -451,8 +452,8 @@ async def _attachments(
                 total += len(content)
                 files.append(
                     {
-                        "filename": row.get("file_name") or row["name"],
-                        "mimetype": row.get("content_type") or "application/octet-stream",
+                        "filename": row.file_name or row.name,
+                        "mimetype": row.content_type or "application/octet-stream",
                         "content": content,
                     }
                 )

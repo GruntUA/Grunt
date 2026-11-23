@@ -408,7 +408,7 @@ async def apply_report(report: dict[str, Any], session: AsyncSession | None = No
             log.info("email.report_unmatched", orig=orig, kind=report.get("kind"))
             return
 
-        cur = row.get("status")
+        cur = row.status
         now = datetime.now(UTC)
         updates: dict[str, Any] = {}
 
@@ -430,10 +430,10 @@ async def apply_report(report: dict[str, Any], session: AsyncSession | None = No
                 updates["delivery_detail"] = report["detail"]
 
         if updates:
-            await documents.save_doc("EmailMessage", row["name"], updates)
+            await documents.save_doc("EmailMessage", row.name, updates)
             log.info(
                 "email.report_applied",
-                name=row["name"],
+                name=row.name,
                 kind=report.get("kind"),
                 updates=list(updates),
             )

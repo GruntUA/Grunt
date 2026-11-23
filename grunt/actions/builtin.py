@@ -99,7 +99,7 @@ async def auto_repeat(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str,
     )
     return {
         "message": _("Auto repeat %(rule)s created, next copy on %(date)s")
-        % {"rule": rule["name"], "date": rule.get("next_schedule_date")},
+        % {"rule": rule.name, "date": rule.next_schedule_date},
         "refresh": False,
     }
 

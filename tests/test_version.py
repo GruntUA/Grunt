@@ -196,6 +196,31 @@ def test_changelog_cuts_a_subject_that_swallowed_its_body():
     assert "- short - kept as is" in section
 
 
+def test_release_after_a_squash_merged_release_lists_only_new_commits(repo: Path):
+    """v1.0.0 squash-merged into master, master merged back into develop: the
+    commits it released are not listed again."""
+    git(repo, "branch", "-M", "develop")
+    git(repo, "tag", "-a", "v0.9.0", "-m", "v0.9.0")
+    git(repo, "branch", "master")
+    for subject in ("feat: old one", "chore(release): v1.0.0"):
+        (repo / "a.txt").write_text(subject)
+        git(repo, "commit", "-qam", subject)
+    git(repo, "checkout", "-q", "master")
+    git(repo, "merge", "-q", "--squash", "develop")
+    git(repo, "commit", "-qm", "chore(release): v1.0.0 (#1)")
+    git(repo, "tag", "-a", "v1.0.0", "-m", "v1.0.0")
+    git(repo, "checkout", "-q", "develop")
+    git(repo, "merge", "-q", "--no-ff", "-m", "Merge master", "master")
+    (repo / "b.txt").write_text("new")
+    git(repo, "add", ".")
+    git(repo, "commit", "-qm", "fix: new one")
+
+    plan = rel.plan_release(repo, "HEAD", "auto")
+    assert plan.version == Version("1.0.1")
+    assert "new one" in plan.section
+    assert "old one" not in plan.section
+
+
 def test_prepend_changelog_keeps_newest_first(tmp_path: Path):
     path = tmp_path / "CHANGELOG.md"
     prepend_changelog(path, "## v0.1.0\n")

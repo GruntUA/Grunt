@@ -16,7 +16,7 @@ from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.store.base import SQL
 from grunt.store.lookup import store_for, supports
-from grunt.utils.attr_dict import AttrDict
+from grunt.utils.attr_dict import AttrDict, as_row, as_rows
 lazy from grunt.document.multi_link import MultiLinkService
 
 
@@ -208,7 +208,7 @@ class GruntDB:
         # Whole-document fetch (``"*"``) - always returns an attribute-dict.
         if fieldname == "*":
             row = await first(None)
-            return AttrDict(row) if row is not None else None
+            return as_row(row) if row is not None else None
 
         single = isinstance(fieldname, str)
         fields = [fieldname] if single else list(fieldname)
@@ -302,8 +302,8 @@ class GruntDB:
         offset: int = ...,
         order_by: str | None = ...,
         order: str = ...,
-    ) -> list[dict[str, Any]]:
-        """Without ``pluck``: the rows as dicts."""
+    ) -> list[AttrDict]:
+        """Without ``pluck``: the rows as :class:`AttrDict` (``row.subject``)."""
 
     async def get_all(
         self,
@@ -317,8 +317,8 @@ class GruntDB:
         offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
-    ) -> list[dict[str, Any]] | list[Any]:
-        """Fetch a list of documents as plain dicts.
+    ) -> list[AttrDict] | list[Any]:
+        """Fetch a list of documents as :class:`AttrDict` rows (``row.subject``).
 
         No permission checks - ``grunt.get_all`` is the permission-aware
         variant (:func:`grunt.permissions.reads.fetch`; this one is
@@ -340,14 +340,14 @@ class GruntDB:
         rows = await run.fetch(query, ignore_permissions=True, session=self._session())
         if pluck:
             return [row.get(pluck) for row in rows]
-        return rows
+        return as_rows(rows)
 
     async def get_values(
         self,
         doctype: str,
         filters: str | dict[str, Any],
         fieldnames: list[str],
-    ) -> dict[str, Any] | None:
+    ) -> AttrDict | None:
         """Return multiple field values from the first matching document."""
         dt = await self._meta(doctype)
         present = [f for f in fieldnames if f in dt.table.c]
@@ -357,7 +357,7 @@ class GruntDB:
             doctype, where=filter_expr(filters, dt.columns, dt), fields=tuple(present), limit=1
         )
         rows = await run.fetch(query, ignore_permissions=True, session=self._session())
-        return {f: rows[0].get(f) for f in present} if rows else None
+        return AttrDict({f: rows[0].get(f) for f in present}) if rows else None
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""
@@ -374,7 +374,7 @@ class GruntDB:
         row = result.first()
         return row[0] if row else None
 
-    async def get_doc(self, doctype: str, name: str) -> dict[str, Any] | None:
+    async def get_doc(self, doctype: str, name: str) -> AttrDict | None:
         """Return a single document by name, or ``None`` if not found.
 
         Low-level - no permission guards. Use ``grunt.get_doc`` for
@@ -383,12 +383,13 @@ class GruntDB:
         """
         dt = await self._meta(doctype)
         if not supports(dt, SQL):
-            return await store_for(dt, self._session()).get(name, expand=[])
+            doc = await store_for(dt, self._session()).get(name, expand=[])
+            return as_row(doc) if doc is not None else None
         table = dt.table
         stmt = select(table).where(table.c.name == name).limit(1)
         result = await self._session().execute(stmt)
         row = result.first()
-        return dict(row._mapping) if row else None
+        return AttrDict(row._mapping) if row else None
 
     async def count(
         self,

@@ -85,9 +85,9 @@ def test_fresh_controller_render_is_valid_python_with_one_field_per_line(tmp_pat
     }
     out = render_template("doctype/controller.py.jinja", ctx)
     ast.parse(out)
-    assert "    a: str | None  # Назва\n" in out
-    assert "    b: int | None  # Кількість\n" in out
-    assert "    rows: list[dict]  # Table: WidgetRow\n" in out
+    assert "    a: str | None = None  # Назва\n" in out
+    assert "    b: int | None = None  # Кількість\n" in out
+    assert "    rows: list[dict] = []  # Table: WidgetRow\n" in out
 
 
 def test_sync_adds_missing_datetime_import(tmp_path):
@@ -123,7 +123,7 @@ def test_fields_hidden_by_controller_attributes_are_not_annotated(tmp_path):
 
     sync_controller_types(py, "Widget", fields)
     src = py.read_text()
-    assert "    title: str | None\n" in src
+    assert "    title: str | None = None\n" in src
     assert "    user:" not in src
     assert "    delete:" not in src
     assert 'read it as self.data["user"]' in src

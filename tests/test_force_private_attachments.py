@@ -100,7 +100,7 @@ async def test_a_public_library_file_linked_from_the_document_goes_private(
         "File", mine["id"], ["is_public", "attached_to_doctype", "attached_to_id"]
     )
     assert not row["is_public"]
-    assert (row["attached_to_doctype"], row["attached_to_id"]) == ("SecretNote", doc["name"])
+    assert (row["attached_to_doctype"], row["attached_to_id"]) == ("SecretNote", doc.name)
 
 
 def test_doctype_cant_be_both_public_and_private():
@@ -155,7 +155,7 @@ async def test_website_content_linking_the_file_doesnt_publish_it(
     async with grunt.context(db_session, engine, make_user(ANN, roles=["All"])):
         note = await grunt.new_doc("SecretNote", {})
         scan = await upload(
-            _file("scan.txt"), attached_to_doctype="SecretNote", attached_to_id=note["name"]
+            _file("scan.txt"), attached_to_doctype="SecretNote", attached_to_id=note.name
         )
         await grunt.new_doc("OpenPage", {"content": f'<p><a href="{scan["url"]}">scan</a></p>'})
         await db_session.commit()

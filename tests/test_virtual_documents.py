@@ -251,7 +251,7 @@ async def test_row_level_match_filters_list_count_and_get(ctx, db_session, engin
             assert [r["name"] for r in rows] == ["a"]
             assert rows.meta["total"] == 1
             assert await grunt.count("VirtualOwnedNote", respect_permissions=True) == 1
-            assert (await grunt.get_doc("VirtualOwnedNote", "a"))["title"] == "Alice's"
+            assert (await grunt.get_doc("VirtualOwnedNote", "a")).title == "Alice's"
             with pytest.raises(HTTPException) as exc:
                 await grunt.get_doc("VirtualOwnedNote", "b")
             assert exc.value.status_code == 403

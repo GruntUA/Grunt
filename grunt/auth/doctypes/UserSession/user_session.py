@@ -130,9 +130,9 @@ async def deactivate_expired(user_id: str | None, ttl_minutes: int) -> int:
     )
     closed = 0
     for row in rows:
-        last = _as_utc(row.get("last_active_at"))
+        last = _as_utc(row.last_active_at)
         if last is None or last < cutoff:
-            await _db.set_value("UserSession", row["name"], "is_active", False)
+            await _db.set_value("UserSession", row.name, "is_active", False)
             closed += 1
     return closed
 
@@ -195,7 +195,7 @@ async def open_session(
         )
         return sid, refresh_token
 
-    sid = rows[0]["name"]
+    sid = rows[0].name
     keep = await get_setting("session_login_history", DEFAULT_LOGIN_HISTORY)
     doc = await documents.get_doc(UserSession, sid, ignore_permissions=True)
     logins = [{key: row.get(key) for key in login} for row in doc.logins or []]
@@ -241,7 +241,7 @@ async def rotate_session(
         return None
     row = rows[0]
 
-    last = _as_utc(row.get("last_active_at"))
+    last = _as_utc(row.last_active_at)
     if last is None or last + timedelta(minutes=await session_ttl_minutes()) < now:
         return None
 
@@ -249,7 +249,7 @@ async def rotate_session(
     if ip_address:
         values["ip_address"] = ip_address
     new_token: str | None = None
-    if row["refresh_token_hash"] == token_hash:
+    if row.refresh_token_hash == token_hash:
         new_token = secrets.token_hex(32)
         values.update(
             refresh_token_hash=_hash(new_token),
@@ -257,11 +257,11 @@ async def rotate_session(
             rotated_at=now,
         )
     else:
-        rotated = _as_utc(row.get("rotated_at"))
+        rotated = _as_utc(row.rotated_at)
         if rotated is None or rotated + timedelta(seconds=ROTATION_GRACE_SECONDS) < now:
             return None
-    await _db.set_value("UserSession", row["name"], values)
-    return row["name"], new_token, row["user"]
+    await _db.set_value("UserSession", row.name, values)
+    return row.name, new_token, row.user
 
 
 async def session_user(refresh_token: str) -> str | None:
@@ -276,10 +276,10 @@ async def session_user(refresh_token: str) -> str | None:
     )
     if not rows:
         return None
-    last = _as_utc(rows[0].get("last_active_at"))
+    last = _as_utc(rows[0].last_active_at)
     if last is None or last + timedelta(minutes=await session_ttl_minutes()) < datetime.now(UTC):
         return None
-    return rows[0]["user"]
+    return rows[0].user
 
 
 async def end_session(sid: str) -> None:
@@ -310,7 +310,7 @@ async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
         fields=["name"],
         limit=None,
     )
-    ended = [row["name"] for row in rows if row["name"] != keep_sid]
+    ended = [row.name for row in rows if row.name != keep_sid]
     for sid in ended:
         await _db.set_value("UserSession", sid, "is_active", False)
     return len(ended)
@@ -331,7 +331,7 @@ async def list_my_sessions() -> list[dict[str, Any]]:
         limit=None,
     )
     sid = current.data.get("_sid")
-    return [{**row, "current": row["name"] == sid} for row in rows]
+    return [{**row, "current": row.name == sid} for row in rows]
 
 
 @whitelist()

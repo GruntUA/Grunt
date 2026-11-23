@@ -25,7 +25,7 @@ class Comment(Document):
 
     async def _validate_parent(self) -> None:
         """Threads are one level deep: a reply to a reply joins the root's thread."""
-        parent_id = self.get("parent_comment")
+        parent_id = self.parent_comment
         if not parent_id:
             return
         if parent_id == self.id:
@@ -57,10 +57,10 @@ class Comment(Document):
         if not replies:
             return
         # The thread goes with its root - someone else's replies only by an admin.
-        if self.user and not is_admin and any(r["owner"] != self.user for r in replies):
+        if self.user and not is_admin and any(r.owner != self.user for r in replies):
             throw(_("Others replied to this comment - only an administrator can delete the thread"))
         for reply in replies:
-            await documents.delete_doc("Comment", reply["name"])
+            await documents.delete_doc("Comment", reply.name)
 
     # Helper Classmethods
 

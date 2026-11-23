@@ -96,7 +96,7 @@ async def test_author_may_share_own_documents(box, db_session, engine):
 
     author = make_user(BOB, roles=["Author"])
     async with grunt.context(db_session, engine, author):
-        own = (await grunt.new_doc("PermBox", {"title": "mine"}))["name"]
+        own = (await grunt.new_doc("PermBox", {"title": "mine"})).name
     perms = await _perms_as(author, own, db_session, engine)
     assert perms["share"] is True
     assert perms["print"] is False

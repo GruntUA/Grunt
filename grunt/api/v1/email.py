@@ -78,7 +78,7 @@ async def test_smtp_connection(
         else None
     )
     if stored and (not smtp_password or smtp_password == SMTP_PASSWORD_MASK):
-        smtp_password = stored["smtp_password"]
+        smtp_password = stored.smtp_password
     try:
         async with aiosmtplib.SMTP(
             timeout=10,
@@ -381,12 +381,12 @@ async def send_email(
             if len(rows) != len(set(files)):
                 raise unprocessable(_("Only the document's own files can be attached"))
             for row in rows:
-                data = await read_file(row["name"])
+                data = await read_file(row.name)
                 total += len(data)
                 attachments.append(
                     {
-                        "filename": row.get("file_name") or row["name"],
-                        "mimetype": row.get("content_type") or "application/octet-stream",
+                        "filename": row.file_name or row.name,
+                        "mimetype": row.content_type or "application/octet-stream",
                         "content": data,
                     }
                 )

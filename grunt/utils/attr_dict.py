@@ -1,15 +1,36 @@
 """``AttrDict`` - a dict whose keys are also accessible as attributes.
 
 ``d.key`` is equivalent to ``d.get("key")`` and returns ``None`` for missing
-keys (so optional fields read cleanly). Used as
-the ``as_dict`` return type of :meth:`grunt.db.api.GruntDB.get_value`.
+keys (so optional fields read cleanly); ``d.key = 1`` sets ``d["key"]``. It is
+still a ``dict``: ``d["key"]``, ``d.get("key")``, ``**d`` and JSON work as
+before.
+
+The documents and rows that ``grunt.get_doc`` / ``new_doc`` / ``save_doc`` /
+``get_list`` and ``grunt.db.get_all`` / ``get_doc`` / ``get_value(as_dict=True)``
+return are ``AttrDict`` - child-table rows too::
+
+    todo = await grunt.new_doc("ToDo", {"description": "Call"})
+    todo.status            # == todo["status"]
+
+A field named like a ``dict`` method (``items``, ``values``, ``keys``, ``get``,
+``update``, ``copy``, ``pop``, ...) reads as that method - use ``d["items"]``.
 """
 
-from typing import Any
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
+
+# `dict[str, Any]` for the type checker; a plain `dict` base at run time, so
+# static analysers (CodeQL) still see a container class.
+if TYPE_CHECKING:
+    _Base = dict[str, Any]
+else:
+    _Base = dict
 
 
-class AttrDict(dict):
+class AttrDict(_Base):
     """A ``dict`` with attribute-style access (``d.subject`` == ``d["subject"]``)."""
+
+    __slots__ = ()
 
     def __getattr__(self, key: str) -> Any:
         # Let dunder lookups (copy, pickle, etc.) fail normally instead of
@@ -18,8 +39,37 @@ class AttrDict(dict):
             raise AttributeError(key)
         return self.get(key)
 
-    __setattr__ = dict.__setitem__  # type: ignore[assignment]
-    __delattr__ = dict.__delitem__  # type: ignore[assignment]
+    def __setattr__(self, key: str, value: Any) -> None:
+        self[key] = value
+
+    def __delattr__(self, key: str) -> None:
+        try:
+            del self[key]
+        except KeyError:
+            raise AttributeError(key) from None
 
     def copy(self) -> AttrDict:
         return AttrDict(self)
+
+
+def as_row(value: Mapping[str, Any]) -> AttrDict:
+    """*value* as an :class:`AttrDict` - itself when it already is one, child rows included.
+
+    A list of dicts under a key (child-table rows) gets its dicts converted in
+    place, so ``doc["lines"][0].qty`` works too.
+    """
+    row = value if type(value) is AttrDict else AttrDict(value)
+    for v in row.values():
+        if type(v) is list:
+            for i, item in enumerate(v):
+                if isinstance(item, dict):
+                    v[i] = as_row(item)  # an AttrDict child is kept, its own children normalised
+    return row
+
+
+def as_rows[L: list[Any]](rows: L) -> L:
+    """Each dict of *rows* as an :class:`AttrDict`, in place; returns *rows*."""
+    for i, item in enumerate(rows):
+        if isinstance(item, dict):
+            rows[i] = as_row(item)
+    return rows
