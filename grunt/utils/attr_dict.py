@@ -17,10 +17,17 @@ A field named like a ``dict`` method (``items``, ``values``, ``keys``, ``get``,
 """
 
 from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+# `dict[str, Any]` for the type checker; a plain `dict` base at run time, so
+# static analysers (CodeQL) still see a container class.
+if TYPE_CHECKING:
+    _Base = dict[str, Any]
+else:
+    _Base = dict
 
 
-class AttrDict(dict[str, Any]):
+class AttrDict(_Base):
     """A ``dict`` with attribute-style access (``d.subject`` == ``d["subject"]``)."""
 
     __slots__ = ()

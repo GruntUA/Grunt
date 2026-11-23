@@ -15,7 +15,7 @@ import contextlib
 import copy
 import sys
 from collections.abc import Callable
-from typing import Any, ClassVar, cast, dataclass_transform
+from typing import Any, ClassVar, dataclass_transform
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -366,10 +366,11 @@ class Document(
 
         Checks the caller's ``create`` permission, as ``grunt.new_doc`` does.
         """
-        doc = cast(Document, cls(*args, **kwargs))
+        # Typed by the signature; no PEP 695 name in the body (CodeQL reads it as unbound).
+        doc: Any = cls(*args, **kwargs)
         await write_guard(doc.doctype, "create")
         await doc.insert()
-        return cast(T, doc)
+        return doc
 
     # Lifecycle hooks
 
