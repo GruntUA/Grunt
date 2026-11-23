@@ -14,7 +14,6 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
@@ -98,17 +97,17 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
             )
         payload.pop("name", None)
 
-    async with system_context(require_session()):
-        created = await documents.new_doc(target_dt, payload)
-        await documents.set_value(
-            "DeletedDocument",
-            name,
-            {
-                "restored": True,
-                "restored_at": datetime.now(UTC),
-                "restored_to": created["name"],
-            },
-        )
+    created = await documents.new_doc(target_dt, payload, ignore_permissions=True)
+    await documents.set_value(
+        "DeletedDocument",
+        name,
+        {
+            "restored": True,
+            "restored_at": datetime.now(UTC),
+            "restored_to": created["name"],
+        },
+        ignore_permissions=True,
+    )
 
     log.info("trash.restored", doctype=target_dt, from_snapshot=name, restored_to=created["name"])
     return created

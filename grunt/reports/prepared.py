@@ -108,8 +108,7 @@ async def prepare(
         "filters": filters or {},
         "filters_hash": filters_hash(filters),
     }
-    async with system_context(require_session()):
-        await _db.insert_one("PreparedReport", row)
+    await _db.insert_one("PreparedReport", row)
     enqueue(generate, site=site_manager.get_active_site(), prepared_id=row["name"])
     log.info("reports.prepared_queued", report=report.get("report_name"), user=user)
     return {k: row.get(k) for k in _FIELDS}

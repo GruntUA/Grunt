@@ -28,7 +28,7 @@ from sqlalchemy import select
 
 from grunt.config import settings
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
+from grunt.local import require_session
 from grunt.metadata.registry import doctype_registry
 from grunt.site.settings import get_setting
 lazy from grunt.auth.doctypes.User.user import User
@@ -103,8 +103,7 @@ async def password_expired(user: User) -> bool:
 
 async def mark_password_changed(user_id: str) -> None:
     """Stamp ``password_changed_at`` - every place that sets a password calls it."""
-    async with system_context(require_session()):
-        await _db.set_value("User", user_id, "password_changed_at", datetime.now(UTC))
+    await _db.set_value("User", user_id, "password_changed_at", datetime.now(UTC))
 
 
 async def password_login_allowed(user: User) -> bool:
@@ -121,19 +120,18 @@ async def enforce_session_limit(user_id: str, keep_sid: str) -> int:
     limit = int(await get_setting("max_sessions_per_user", 0) or 0)
     if limit <= 0:
         return 0
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserSession",
-            filters={"user": user_id, "is_active": True},
-            fields=["name"],
-            order_by="last_active_at",
-            order="desc",
-            limit=None,
-        )
-        others = [r["name"] for r in rows if r["name"] != keep_sid]
-        ended = others[max(0, limit - 1) :]
-        for sid in ended:
-            await _db.set_value("UserSession", sid, "is_active", False)
+    rows = await _db.get_all(
+        "UserSession",
+        filters={"user": user_id, "is_active": True},
+        fields=["name"],
+        order_by="last_active_at",
+        order="desc",
+        limit=None,
+    )
+    others = [r["name"] for r in rows if r["name"] != keep_sid]
+    ended = others[max(0, limit - 1) :]
+    for sid in ended:
+        await _db.set_value("UserSession", sid, "is_active", False)
     return len(ended)
 
 

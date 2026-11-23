@@ -34,7 +34,6 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
 from grunt.site.settings import get_setting
 lazy from grunt.document.api import documents
 
@@ -170,38 +169,40 @@ async def open_session(
         "method": method or "",
     }
 
-    async with system_context(require_session()):
-        await deactivate_expired(user_id, await session_ttl_minutes())
-        rows = []
-        if device_id:
-            rows = await _db.get_all(
-                "UserSession",
-                filters={"user": user_id, "device_id": device_id},
-                fields=["name"],
-                order_by="last_active_at",
-                order="desc",
-                limit=1,
-            )
-        if not rows:
-            sid = uuid.uuid4().hex
-            await documents.new_doc(
-                "UserSession",
-                {
-                    "name": sid,
-                    "user": user_id,
-                    "device_id": device_id or "",
-                    **values,
-                    "logins": [login],
-                },
-            )
-            return sid, refresh_token
+    await deactivate_expired(user_id, await session_ttl_minutes())
+    rows = []
+    if device_id:
+        rows = await _db.get_all(
+            "UserSession",
+            filters={"user": user_id, "device_id": device_id},
+            fields=["name"],
+            order_by="last_active_at",
+            order="desc",
+            limit=1,
+        )
+    if not rows:
+        sid = uuid.uuid4().hex
+        await documents.new_doc(
+            "UserSession",
+            {
+                "name": sid,
+                "user": user_id,
+                "device_id": device_id or "",
+                **values,
+                "logins": [login],
+            },
+            ignore_permissions=True,
+        )
+        return sid, refresh_token
 
-        sid = rows[0]["name"]
-        keep = await get_setting("session_login_history", DEFAULT_LOGIN_HISTORY)
-        doc = await documents.get_doc(UserSession, sid)
-        logins = [{key: row.get(key) for key in login} for row in doc.logins or []]
-        logins = [*logins, login][-max(int(keep or 1), 1) :]
-        await documents.save_doc("UserSession", sid, {**values, "logins": logins})
+    sid = rows[0]["name"]
+    keep = await get_setting("session_login_history", DEFAULT_LOGIN_HISTORY)
+    doc = await documents.get_doc(UserSession, sid, ignore_permissions=True)
+    logins = [{key: row.get(key) for key in login} for row in doc.logins or []]
+    logins = [*logins, login][-max(int(keep or 1), 1) :]
+    await documents.save_doc(
+        "UserSession", sid, {**values, "logins": logins}, ignore_permissions=True
+    )
     return sid, refresh_token
 
 
@@ -225,42 +226,41 @@ async def rotate_session(
     token_hash = _hash(refresh_token)
     fields = ["name", "user", "last_active_at", "refresh_token_hash", "rotated_at"]
     now = datetime.now(UTC)
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserSession",
-            filters={"refresh_token_hash": token_hash, "is_active": True},
-            fields=fields,
-            limit=1,
-        ) or await _db.get_all(
-            "UserSession",
-            filters={"previous_token_hash": token_hash, "is_active": True},
-            fields=fields,
-            limit=1,
+    rows = await _db.get_all(
+        "UserSession",
+        filters={"refresh_token_hash": token_hash, "is_active": True},
+        fields=fields,
+        limit=1,
+    ) or await _db.get_all(
+        "UserSession",
+        filters={"previous_token_hash": token_hash, "is_active": True},
+        fields=fields,
+        limit=1,
+    )
+    if not rows:
+        return None
+    row = rows[0]
+
+    last = _as_utc(row.get("last_active_at"))
+    if last is None or last + timedelta(minutes=await session_ttl_minutes()) < now:
+        return None
+
+    values: dict[str, Any] = {"last_active_at": now}
+    if ip_address:
+        values["ip_address"] = ip_address
+    new_token: str | None = None
+    if row["refresh_token_hash"] == token_hash:
+        new_token = secrets.token_hex(32)
+        values.update(
+            refresh_token_hash=_hash(new_token),
+            previous_token_hash=token_hash,
+            rotated_at=now,
         )
-        if not rows:
+    else:
+        rotated = _as_utc(row.get("rotated_at"))
+        if rotated is None or rotated + timedelta(seconds=ROTATION_GRACE_SECONDS) < now:
             return None
-        row = rows[0]
-
-        last = _as_utc(row.get("last_active_at"))
-        if last is None or last + timedelta(minutes=await session_ttl_minutes()) < now:
-            return None
-
-        values: dict[str, Any] = {"last_active_at": now}
-        if ip_address:
-            values["ip_address"] = ip_address
-        new_token: str | None = None
-        if row["refresh_token_hash"] == token_hash:
-            new_token = secrets.token_hex(32)
-            values.update(
-                refresh_token_hash=_hash(new_token),
-                previous_token_hash=token_hash,
-                rotated_at=now,
-            )
-        else:
-            rotated = _as_utc(row.get("rotated_at"))
-            if rotated is None or rotated + timedelta(seconds=ROTATION_GRACE_SECONDS) < now:
-                return None
-        await _db.set_value("UserSession", row["name"], values)
+    await _db.set_value("UserSession", row["name"], values)
     return row["name"], new_token, row["user"]
 
 
@@ -268,13 +268,12 @@ async def session_user(refresh_token: str) -> str | None:
     """The user of the active, not idle session holding *refresh_token* - read
     only, the token is not rotated."""
 
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserSession",
-            filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
-            fields=["user", "last_active_at"],
-            limit=1,
-        )
+    rows = await _db.get_all(
+        "UserSession",
+        filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
+        fields=["user", "last_active_at"],
+        limit=1,
+    )
     if not rows:
         return None
     last = _as_utc(rows[0].get("last_active_at"))
@@ -286,37 +285,34 @@ async def session_user(refresh_token: str) -> str | None:
 async def end_session(sid: str) -> None:
     """Revoke one session (its refresh token stops working)."""
 
-    async with system_context(require_session()):
-        await _db.set_value("UserSession", sid, "is_active", False)
+    await _db.set_value("UserSession", sid, "is_active", False)
 
 
 async def end_session_by_token(refresh_token: str) -> None:
     """Revoke the session holding *refresh_token* (sign-out by the session cookie)."""
 
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserSession",
-            filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
-            pluck="name",
-            limit=1,
-        )
-        for sid in rows:
-            await _db.set_value("UserSession", sid, "is_active", False)
+    rows = await _db.get_all(
+        "UserSession",
+        filters={"refresh_token_hash": _hash(refresh_token), "is_active": True},
+        pluck="name",
+        limit=1,
+    )
+    for sid in rows:
+        await _db.set_value("UserSession", sid, "is_active", False)
 
 
 async def end_all_sessions(user_id: str, keep_sid: str | None = None) -> int:
     """Revoke every active session of a user, optionally sparing ``keep_sid``."""
 
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserSession",
-            filters={"user": user_id, "is_active": True},
-            fields=["name"],
-            limit=None,
-        )
-        ended = [row["name"] for row in rows if row["name"] != keep_sid]
-        for sid in ended:
-            await _db.set_value("UserSession", sid, "is_active", False)
+    rows = await _db.get_all(
+        "UserSession",
+        filters={"user": user_id, "is_active": True},
+        fields=["name"],
+        limit=None,
+    )
+    ended = [row["name"] for row in rows if row["name"] != keep_sid]
+    for sid in ended:
+        await _db.set_value("UserSession", sid, "is_active", False)
     return len(ended)
 
 
@@ -325,16 +321,15 @@ async def list_my_sessions() -> list[dict[str, Any]]:
     """Active sessions of the current user; ``current`` marks this device."""
     current = acting_user()
     assert current.id is not None
-    async with system_context(require_session()):
-        await deactivate_expired(current.id, await session_ttl_minutes())
-        rows = await _db.get_all(
-            "UserSession",
-            filters={"user": current.id, "is_active": True},
-            fields=["name", "ip_address", "user_agent", "last_active_at", "created_at"],
-            order_by="last_active_at",
-            order="desc",
-            limit=None,
-        )
+    await deactivate_expired(current.id, await session_ttl_minutes())
+    rows = await _db.get_all(
+        "UserSession",
+        filters={"user": current.id, "is_active": True},
+        fields=["name", "ip_address", "user_agent", "last_active_at", "created_at"],
+        order_by="last_active_at",
+        order="desc",
+        limit=None,
+    )
     sid = current.data.get("_sid")
     return [{**row, "current": row["name"] == sid} for row in rows]
 
@@ -344,8 +339,7 @@ async def revoke_my_session(session_id: str) -> bool:
     """Sign out one of the current user's devices."""
 
     current = acting_user()
-    async with system_context(require_session()):
-        owner = await _db.get_value("UserSession", session_id, "user")
+    owner = await _db.get_value("UserSession", session_id, "user")
     if owner is None or owner != current.id:
         throw(_("Session not found"), "NOT_FOUND")
     await end_session(session_id)

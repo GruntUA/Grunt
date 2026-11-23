@@ -72,13 +72,13 @@ async def attach_user_names(entries: list[dict[str, Any]]) -> None:
     if not emails:
         return
 
-    async with system_context(require_session()):
-        rows = await documents.get_list(
-            "User",
-            filters={"name__in": list(emails)},
-            fields=["name", "full_name"],
-            limit=len(emails),
-        )
+    rows = await documents.get_list(
+        "User",
+        filters={"name__in": list(emails)},
+        fields=["name", "full_name"],
+        limit=len(emails),
+        ignore_permissions=True,
+    )
     names = {r["name"]: r["full_name"] for r in rows if r.get("full_name")}
 
     for e in entries:
@@ -117,17 +117,17 @@ async def record_activity(
     if not doctype or not await should_log_activity(doctype):
         return
     try:
-        async with system_context(require_session()):
-            doc = await documents.new_doc(
-                "ActivityLog",
-                {
-                    "ref_doctype": doctype,
-                    "doc_id": str(doc_id),
-                    "user": user_email,
-                    "action": action,
-                    "details": details,
-                },
-            )
+        doc = await documents.new_doc(
+            "ActivityLog",
+            {
+                "ref_doctype": doctype,
+                "doc_id": str(doc_id),
+                "user": user_email,
+                "action": action,
+                "details": details,
+            },
+            ignore_permissions=True,
+        )
     except Exception as e:
         log.warning("activity.log_failed", error=str(e), doctype=doctype, doc_id=doc_id)
         return
@@ -158,10 +158,13 @@ async def _broadcast_activity(
             # System context: the "All" role can only read its own User row
             # (match: name == user) - the broadcaster must resolve the
             # *acting* user's name regardless of who ends up viewing the feed.
-            async with system_context(require_session()):
-                rows = await documents.get_list(
-                    "User", filters={"name": user_email}, fields=["full_name"], limit=1
-                )
+            rows = await documents.get_list(
+                "User",
+                filters={"name": user_email},
+                fields=["full_name"],
+                limit=1,
+                ignore_permissions=True,
+            )
             if rows and rows[0].get("full_name"):
                 user_name = rows[0]["full_name"]
         except Exception:

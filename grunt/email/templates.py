@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt.db.api import GruntDB
 from grunt.email.service import email_service
 from grunt.i18n import _
-from grunt.local import require_session, system_context
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -38,13 +37,12 @@ async def render(name: str, context: dict[str, Any]) -> tuple[str, str, str | No
     including one acting as a synthetic Guest (e.g. a public CMS WebForm
     submission queuing its own confirmation e-mail).
     """
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "EmailTemplate",
-            filters={"name": name, "is_active": True},
-            fields=["subject", "body", "body_html"],
-            limit=1,
-        )
+    rows = await _db.get_all(
+        "EmailTemplate",
+        filters={"name": name, "is_active": True},
+        fields=["subject", "body", "body_html"],
+        limit=1,
+    )
 
     if not rows:
         raise EmailTemplateError(

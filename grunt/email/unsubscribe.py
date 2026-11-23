@@ -25,7 +25,7 @@ from grunt.api.context import whitelist
 from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.i18n import _
-from grunt.local import require_session, system_context
+from grunt.local import require_session
 lazy from grunt.notification import preferences
 lazy from grunt.site.manager import current_site
 
@@ -133,21 +133,18 @@ async def unsubscribe(
             _("The link is invalid"), f"<p>{escape(_('Open the link from the letter again.'))}</p>"
         )
     rule = notification or None
-    async with system_context(require_session()):
-        if rule and not await _db.exists("Notification", rule):
-            rule = None
-        if request is not None and request.method == "POST":
-            await add(address, rule)
-            await require_session().commit()
-            what = _("“%(name)s” letters") % {"name": _(rule)} if rule else _("notification emails")
-            return _page(
-                _("You are unsubscribed"),
-                "<p>"
-                + escape(
-                    _("%(email)s will no longer get %(what)s.") % {"email": address, "what": what}
-                )
-                + "</p>",
-            )
+    if rule and not await _db.exists("Notification", rule):
+        rule = None
+    if request is not None and request.method == "POST":
+        await add(address, rule)
+        await require_session().commit()
+        what = _("“%(name)s” letters") % {"name": _(rule)} if rule else _("notification emails")
+        return _page(
+            _("You are unsubscribed"),
+            "<p>"
+            + escape(_("%(email)s will no longer get %(what)s.") % {"email": address, "what": what})
+            + "</p>",
+        )
     buttons = ""
     if rule:
         buttons += _form(

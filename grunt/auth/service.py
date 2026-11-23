@@ -13,7 +13,6 @@ from grunt.auth.doctypes.UserSession.user_session import end_all_sessions, sessi
 from grunt.auth.passwords import hash_password
 from grunt.config import settings
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.auth.login_policy import mark_password_changed
 lazy from grunt.document.api import documents
@@ -165,26 +164,26 @@ async def _find_and_invalidate_token(
 
     now = datetime.now(UTC)
 
-    async with system_context(require_session()):
-        users = await documents.get_list(
-            "User",
-            filters={token_field: token},
-            fields=["name", expires_field],
-            limit=1,
-        )
-        if not users:
-            return None
+    users = await documents.get_list(
+        "User",
+        filters={token_field: token},
+        fields=["name", expires_field],
+        limit=1,
+        ignore_permissions=True,
+    )
+    if not users:
+        return None
 
-        user_data = users[0]
-        expires_at = user_data.get(expires_field)
-        if isinstance(expires_at, str):
-            expires_at = datetime.fromisoformat(expires_at)
+    user_data = users[0]
+    expires_at = user_data.get(expires_field)
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
 
-        if not expires_at or expires_at.replace(tzinfo=UTC) < now:
-            return None
+    if not expires_at or expires_at.replace(tzinfo=UTC) < now:
+        return None
 
-        await _db.set_value("User", user_data["name"], token_field, None)
-        await _db.set_value("User", user_data["name"], expires_field, None)
+    await _db.set_value("User", user_data["name"], token_field, None)
+    await _db.set_value("User", user_data["name"], expires_field, None)
 
     return user_data
 
@@ -195,9 +194,8 @@ async def create_password_reset_token(user_id: str) -> str:
     token = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char hex
     expires_at = datetime.now(UTC) + timedelta(hours=1)
 
-    async with system_context(require_session()):
-        await _db.set_value("User", user_id, "reset_token", token)
-        await _db.set_value("User", user_id, "reset_token_expires_at", expires_at)
+    await _db.set_value("User", user_id, "reset_token", token)
+    await _db.set_value("User", user_id, "reset_token_expires_at", expires_at)
 
     return token
 
@@ -208,13 +206,12 @@ async def consume_password_reset_token(token: str, new_password: str) -> bool:
     if user_data is None:
         return False
 
-    async with system_context(require_session()):
-        await _db.set_value(
-            "User",
-            user_data["name"],
-            "hashed_password",
-            await hash_password(new_password),
-        )
+    await _db.set_value(
+        "User",
+        user_data["name"],
+        "hashed_password",
+        await hash_password(new_password),
+    )
 
     await mark_password_changed(user_data["name"])
     # A password reset may be a response to a stolen account - sign out everywhere.

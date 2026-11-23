@@ -67,7 +67,7 @@ class ContextAPI:
     @contextlib.asynccontextmanager
     async def system_context(
         self,
-        session: AsyncSession,
+        session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
     ) -> AsyncGenerator[None]:
         """Shortcut for :meth:`context` that runs as the internal SYSTEM_USER.
@@ -77,8 +77,13 @@ class ContextAPI:
 
             async with grunt.system_context(session):
                 await grunt.new_doc("ActivityLog", {...})
+
+        Without a *session* - the one in context (a hook or a request).
+        ``grunt.db`` checks no rights, so it needs no system context.
         """
-        async with self.context(session, engine, SYSTEM_USER):
+        async with self.context(
+            session if session is not None else require_session(), engine, SYSTEM_USER
+        ):
             yield
 
     @contextlib.asynccontextmanager
