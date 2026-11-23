@@ -282,6 +282,8 @@ def pr_body(plan: ReleasePlan) -> str:
     notes = "\n".join(f"- [ ] {n}" for n in plan.notes)
     return (
         f"{plan.section}\n## Deploy\n\n{notes}\n\n"
+        "**Merge with a merge commit, not squash:** master then keeps develop's history"
+        " and the next release pull request lists only the new commits.\n\n"
         f"Merging tags the release commit `v{plan.version}` and publishes the GitHub release"
         " (`.github/workflows/release.yml`).\n"
     )

@@ -2,6 +2,7 @@
 # and opens the pull request into master. Once it is merged, this workflow tags that
 # commit (annotated, the message is the changelog section) and publishes the GitHub
 # release. CI already ran on the pull request, and test.yml runs again on the push.
+# A squash merge leaves `chore(release): vX.Y.Z (#N)` - that commit is tagged then.
 name: Release
 
 on:
@@ -42,7 +43,8 @@ jobs:
           fi
 
           commit=$(git log --format='%H%x09%s' HEAD |
-            awk -F '\t' -v s="chore(release): $tag" '$2 == s { print $1; exit }')
+            awk -F '\t' -v s="chore(release): $tag" \
+              '$2 == s || index($2, s " (#") == 1 { print $1; exit }')
           if [ -z "$commit" ]; then
             echo "::error::CHANGELOG.md has $tag but no 'chore(release): $tag' commit"
             exit 1
