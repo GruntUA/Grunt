@@ -400,3 +400,11 @@ def test_wait_for_ci_passes_only_once_the_runs_settle(monkeypatch, tmp_path: Pat
     monkeypatch.setattr(deps.subprocess, "run", fake_run)
     assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (True, [])
     assert len(polls) == 4
+
+
+def test_held_back_packages():
+    manifest = {
+        "dependencies": {"vue": "^3.5.0", "cn": "^0.5.2", "old": "~2.3.0"},
+        "devDependencies": {"pyright": "1.1.414", "vitest": ">=4"},
+    }
+    assert deps.held_back(manifest) == ["cn", "old", "pyright"]
