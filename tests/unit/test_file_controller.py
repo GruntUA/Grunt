@@ -162,7 +162,7 @@ async def test_upload_attachment_is_public_when_doctype_opts_in(ctx, monkeypatch
 
         async def get_meta(self, doctype: str):
             if doctype == "WebNews":
-                return SimpleNamespace(public_attachments=True)
+                return SimpleNamespace(public_attachments=True, force_private_attachments=False)
             return await real.get_meta(doctype)
 
     monkeypatch.setattr(file_module, "doctype_registry", _Registry())

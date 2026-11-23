@@ -1095,6 +1095,10 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Always private attachments"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
 msgstr ""
 
@@ -5502,6 +5506,13 @@ msgid ""
 "Return all files), then change where or how they are stored"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Files attached to these documents are always private, even if the upload "
+"asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals)"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
 "Files fetched back from the storage are kept on the server up to this size; "
@@ -5518,6 +5529,10 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "Files in “%(name)s”"
+msgstr ""
+
+#: grunt/grunt/storage/doctypes/File/file.py
+msgid "Files of %(doctype)s are always private"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json

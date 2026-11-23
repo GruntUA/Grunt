@@ -32,10 +32,10 @@
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ✔️ (`feat/email-queue`) |
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ✔️ (#240) |
 | 17 | Document Naming Rule (серія нумерації за умовою) | ✔️ (#241) |
-| 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ✅ (`feat/notification-preferences`) |
+| 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ✔️ (#242) |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
-| 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
+| 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ✅ (`feat/force-private-attachments`) |
 | 22 | Print Format Builder + параметри сторінки | ❓ |
 | 23 | Raw printing (ZPL / ESC-POS) для етикеток | ❓ |
 | 24 | OutgoingWebhook: тіло за шаблоном, метод, динамічний URL, повтори | ❓ |
@@ -280,10 +280,10 @@
 - **Рішення (2026-11-18):** робимо: строк дії пароля (`password_max_age_days`, `User.password_changed_at`; прострочений → крок `password_change_required` до MFA; без дати — відлік від першого входу), `max_sessions_per_user` (нова сесія витісняє найстаріші), `User.login_after`/`login_before` і `User.allowed_ips` (поверх ролі), «лише SSO» (`disable_password_login`, адміністратори — виняток); попутно — зміна пароля завершує інші сесії (діра). ⏸ zxcvbn (правила складності вже є); ❌ вхід за телефоном/логіном.
 
 ### 21. Вкладення
-**Статус:** ❓
+**Статус:** ✅ (`feat/force-private-attachments`)
 - **Frappe:** `DocType.max_attachments`, `protect_attached_files` (не можна видалити), `force_private_attachments`, `make_attachments_public`.
-- **Ґрунт зараз:** `public_attachments`.
-- **Рішення:** —
+- **Ґрунт зараз:** `public_attachments`; `File.before_delete` не дає видалити файл, прикріплений до наявного документа чи використаний у будь-якому полі.
+- **Рішення (2026-11-23):** `force_private_attachments` — робимо: новий файл документа завжди приватний (`upload(is_public=True)` тихо стає приватним, як у Frappe), зробити файл публічним потім — помилка; публічний файл із власної бібліотеки, прив'язаний до такого документа, стає приватним; файли, публічні до появи прапорця, не чіпаємо; разом із `public_attachments` — помилка моделі DocType. `protect_attached_files` — ✔️ вже є, суворіше (у нас немає проведення, захищено завжди). `max_attachments` — ⏸: у нас немає загальної панелі вкладень документа, ліміт нема до чого застосувати; панель + ліміт — IDEAS 6.32.
 
 ### 22. Print Format Builder
 **Статус:** ❓

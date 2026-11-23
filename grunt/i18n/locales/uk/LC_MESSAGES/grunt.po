@@ -1176,6 +1176,10 @@ msgstr ""
 "бути відносними (today, today-30)."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Always private attachments"
+msgstr "Вкладення завжди приватні"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
 msgstr "Поле типу Image або Attach для аватара документа"
 
@@ -5729,6 +5733,16 @@ msgstr ""
 " «Повернути всі файли на сервер»), потім змінюйте, де або як вони "
 "зберігаються"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"Files attached to these documents are always private, even if the upload "
+"asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals)"
+msgstr ""
+"Файли цих документів завжди приватні, навіть якщо при завантаженні просили "
+"публічний, і зробити їх публічними потім не можна (особові справи, звернення "
+"громадян)"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
 "Files fetched back from the storage are kept on the server up to this size; "
@@ -5748,6 +5762,10 @@ msgstr "Файлів у сховищі"
 #: grunt/grunt/monitoring/health.py
 msgid "Files in “%(name)s”"
 msgstr "Файли в «%(name)s»"
+
+#: grunt/grunt/storage/doctypes/File/file.py
+msgid "Files of %(doctype)s are always private"
+msgstr "Файли «%(doctype)s» завжди приватні"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Files sent with the message: [{filename, mimetype, content_b64}]."

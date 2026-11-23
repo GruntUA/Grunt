@@ -549,7 +549,15 @@
       "fieldname": "public_attachments",
       "label": "Public attachments",
       "fieldtype": "Check",
+      "depends_on": "eval:!doc.force_private_attachments",
       "description": "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
+    },
+    {
+      "fieldname": "force_private_attachments",
+      "label": "Always private attachments",
+      "fieldtype": "Check",
+      "description": "Files attached to these documents are always private, even if the upload asks for a public one, and can't be made public later (personnel files, citizens' appeals)",
+      "depends_on": "eval:!doc.public_attachments"
     },
     {
       "fieldname": "is_signable",

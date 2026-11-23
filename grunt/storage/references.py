@@ -19,6 +19,8 @@ it publishes the file - every referenced file the saving user can read becomes
 ``is_public``, so site visitors can download it by its plain URL (a file from
 someone's private folder included; it stays out of other people's lists).
 With ``is_published_field`` set, only a published document does that.
+A DocType with ``force_private_attachments`` is the opposite: a public file
+it claims (one picked from the user's library) is made private.
 
 When an edit drops a file from those fields (a replaced cover, an image cut
 from the text), the file stops being the document's: it is detached and stays
@@ -81,6 +83,21 @@ async def claim_referenced_files(**kwargs: Any) -> None:
     published = not meta.is_published_field or doc.get(meta.is_published_field)
     if meta.public_attachments and published:
         await _publish(ids, user)
+    if meta.force_private_attachments:
+        # The files about to become this document's (the two claims below):
+        # a public one picked from the user's library goes private with them.
+        for owner in ({"attached_to_doctype": doctype}, {"attached_to_doctype__is": "not set"}):
+            await _db.bulk_update(
+                "File",
+                {
+                    "name__in": sorted(ids),
+                    **owner,
+                    "attached_to_id__is": "not set",
+                    "uploaded_by": email,
+                    "is_public": True,
+                },
+                {"is_public": False},
+            )
     claimed = await _db.bulk_update(
         "File",
         {
