@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.19.0 - 2026-11-23
+
+### Features
+
+- **cli:** grunt codemod attr-access; doc["field"] -> doc.field in core (part 1)
+- **document:** controllers as typed constructors - Order(title=...), await Order.create(...)
+- **document:** documents and rows as AttrDict - doc.status instead of doc["status"]
+
+### Fixes
+
+- **release:** skip commits of a squash-merged release in the next changelog
+- **document:** review of #257 - registered controller with an explicit doctype, required tables, scaffold types, nested AttrDict
+- **codeql:** no PEP 695 name in Document.create's body; AttrDict on a plain dict base at run time
+- **assignment:** AssignmentLog.create -> record - Document.create is the typed constructor now
+- **release:** publish a tagged but unreleased version; strict squash suffix
+- **release:** tag a squash-merged release commit; ask for a merge commit
+
+### Other
+
+- doc["field"] -> doc.field in core (part 2)
+
 ## v0.18.0 - 2026-11-23
 
 ### Features
