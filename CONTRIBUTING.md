@@ -34,10 +34,11 @@
    окремо), push у `develop` і PR `develop → master` з нотатками розгортання (міграції,
    `grunt migrate`, перезапуск worker для нових DocType, змінені залежності).
    З `--deps` спершу оновлюються lock-файли в межах діапазонів `pyproject.toml` /
-   `package.json` (`uv lock --upgrade`, `npm update`) — окремим PR у `develop`
+   `package.json` (`uv lock --upgrade`, `npm update`), а npm-пакети з точною версією чи діапазоном
+   `^0.x` — до найновішої мінорної в `package.json`; усе це окремим PR у `develop`
    (`build(deps): …`, у `CHANGELOG.md` — розділ «Dependencies»), який `grunt release` зливає,
-   щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх оновлює
-   `grunt upgrade` окремим PR.
+   щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх пропонує
+   Dependabot (див. нижче).
 3. Після схвалення PR зливається merge-комітом. Workflow `release.yml` ставить анотований тег
    `vX.Y.Z` на коміт випуску і публікує GitHub release з розділу `CHANGELOG.md`.
 
@@ -46,6 +47,10 @@
 від нього. Поки PR випуску не злито й тег не поставлено, наступний `grunt release` відмовить.
 
 Репозиторій без `develop` (додатки): коміт випуску йде в гілку `release/vX.Y.Z`, PR — у `master`.
+
+Мажорні версії залежностей — щопонеділка PR від Dependabot у `develop` (`.github/dependabot.yml`;
+пакети `@tiptap/*` — одним PR). Зелений CI — зливаємо як звичайний PR; червоний — виправляємо в
+тій самій гілці або закриваємо, і Dependabot більше не пропонує цю версію.
 
 ### Версії
 
