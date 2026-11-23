@@ -82,7 +82,7 @@ async def role_ip_allowlist(user: User) -> set[str] | None:
     )
     entries: set[str] = set()
     for row in rows:
-        entries |= parse_ip_list(row.get("allowed_ips"))
+        entries |= parse_ip_list(row.allowed_ips)
     return entries or None
 
 

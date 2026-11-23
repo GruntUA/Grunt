@@ -88,7 +88,7 @@ async def test_get_doc_allows_own_denies_others(ctx, gear, db_session, engine):
 
     async with grunt.context(db_session, engine, _employee("alice@example.com")):
         own = await grunt.get_doc("PermTestGear", gear["alice_g"])
-        assert own["name"] == gear["alice_g"]
+        assert own.name == gear["alice_g"]
 
         with pytest.raises(HTTPException) as exc_info:
             await grunt.get_doc("PermTestGear", gear["bob_g"])

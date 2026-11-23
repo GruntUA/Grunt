@@ -151,7 +151,7 @@ async def mute_like(notification_id: str) -> str:
         fields=["notification"],
         limit=1,
     )
-    rule = rows[0].get("notification") if rows else None
+    rule = rows[0].notification if rows else None
     if not rule:
         throw(_("This notification has no rule to turn off"), "VALIDATION_ERROR")
     await _rule_for_preferences(rule)

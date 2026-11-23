@@ -134,10 +134,10 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
     rows = await _db.get_all("User", filters={"name": user.id}, fields=["mfa_secret"], limit=1)
-    if not rows or not rows[0].get("mfa_secret"):
+    if not rows or not rows[0].mfa_secret:
         raise HTTPException(422, detail=_("MFA is not set up. Run the setup first."))
 
-    secret = rows[0]["mfa_secret"]
+    secret = rows[0].mfa_secret
     if not verify_totp(secret, code):
         raise HTTPException(422, detail=_("Invalid TOTP code"))
 
@@ -195,12 +195,12 @@ async def check_mfa_code(user: User, code: str, session: AsyncSession | None = N
             fields=["mfa_secret", "mfa_backup_codes"],
             limit=1,
         )
-        if not rows or not rows[0].get("mfa_secret"):
+        if not rows or not rows[0].mfa_secret:
             raise HTTPException(401, detail=_("MFA is not set up"))
 
         row = rows[0]
-        secret = row["mfa_secret"]
-        backup_json = row.get("mfa_backup_codes")
+        secret = row.mfa_secret
+        backup_json = row.mfa_backup_codes
 
         # Try TOTP first
         if verify_totp(secret, code):

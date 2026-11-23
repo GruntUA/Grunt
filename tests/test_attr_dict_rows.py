@@ -39,7 +39,7 @@ def test_attribute_access_reads_and_writes_keys():
     assert d.a == 1
     assert d.missing is None
     d.b = 2
-    assert d["b"] == 2
+    assert d.b == 2
     del d.b
     assert "b" not in d
     with pytest.raises(AttributeError):
@@ -54,7 +54,7 @@ def test_still_a_plain_dict_for_json_copy_and_pickle():
     for clone in (copy.copy(d), copy.deepcopy(d), pickle.loads(pickle.dumps(d)), d.copy()):
         assert type(clone) is AttrDict
         assert clone == d
-    assert type(copy.deepcopy(d)["rows"][0]) is AttrDict
+    assert type(copy.deepcopy(d).rows[0]) is AttrDict
 
 
 def test_dict_methods_win_over_same_named_keys():

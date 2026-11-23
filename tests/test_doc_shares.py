@@ -77,7 +77,7 @@ async def test_read_share_grants_that_document_only(ctx, boxes, db_session, engi
     await _share(ctx, a, "Read")
 
     async with grunt.context(db_session, engine, _bob()):
-        assert (await grunt.get_doc("ShareBox", a))["title"] == "A"
+        assert (await grunt.get_doc("ShareBox", a)).title == "A"
         assert [r["name"] for r in await grunt.get_list("ShareBox")] == [a]
         with pytest.raises(HTTPException):
             await grunt.get_doc("ShareBox", b)
@@ -93,7 +93,7 @@ async def test_write_share_allows_edit_but_not_delete_or_other_docs(ctx, boxes, 
     await _share(ctx, a, "Write")
 
     async with grunt.context(db_session, engine, _bob()):
-        assert (await grunt.save_doc("ShareBox", a, {"title": "A2"}))["title"] == "A2"
+        assert (await grunt.save_doc("ShareBox", a, {"title": "A2"})).title == "A2"
         with pytest.raises(HTTPException):
             await grunt.save_doc("ShareBox", b, {"title": "B2"})
         with pytest.raises(HTTPException):
@@ -147,7 +147,7 @@ async def test_only_who_may_share_and_write_can_share(ctx, boxes, db_session, en
             "SharedWith",
             {"reference_doctype": "ShareBox", "reference_id": a, "user": "eve@example.com"},
         )
-    assert row["permission"] == "Read"
+    assert row.permission == "Read"
 
 
 @pytest.mark.asyncio
@@ -282,7 +282,7 @@ async def test_reshare_passes_on_at_most_own_level(ctx, boxes, db_session, engin
             "SharedWith",
             {"reference_doctype": "ShareBox", "reference_id": a, "user": "eve@example.com"},
         )
-        assert row["permission"] == "Read"
+        assert row.permission == "Read"
         with pytest.raises((ApplicationError, HTTPException)):
             await grunt.new_doc(
                 "SharedWith",

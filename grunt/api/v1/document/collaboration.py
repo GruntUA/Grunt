@@ -95,7 +95,7 @@ async def add_comment(
         await _comment_event("grunt.comment.mentioned", comment, sorted(mentions))
 
     # Reply: tell the author of the thread's root (unless already @mentioned).
-    root = comment.get("parent_comment")
+    root = comment.parent_comment
     if root:
         root_author = await _db.get_value("Comment", root, "owner")
         if root_author and root_author != user_email() and root_author not in mentions:
@@ -166,7 +166,7 @@ async def delete_comment(doctype: str, doc_id: str, comment_id: str) -> None:
 
     comment = await documents.get_doc("Comment", comment_id)
     user = acting_user()
-    if comment.get("owner") != user.email and not await has_perm("grunt.moderate_comments"):
+    if comment.owner != user.email and not await has_perm("grunt.moderate_comments"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=_("Not allowed"))
 
     await documents.delete_doc("Comment", comment_id)

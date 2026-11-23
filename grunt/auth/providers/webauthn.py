@@ -321,5 +321,5 @@ class WebAuthnProvider(AuthProvider):
             },
             ignore_permissions=True,
         )
-        log.info("webauthn.registered", user=user.email, credential=doc["name"])
-        return {"name": doc["name"], "label": label}
+        log.info("webauthn.registered", user=user.email, credential=doc.name)
+        return {"name": doc.name, "label": label}

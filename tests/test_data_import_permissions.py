@@ -64,7 +64,7 @@ async def _pending_import(db_session, engine) -> str:
                 "import_type": "Insert New",
             },
         )
-    return doc["name"]
+    return doc.name
 
 
 @pytest.mark.asyncio

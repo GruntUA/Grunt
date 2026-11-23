@@ -421,7 +421,7 @@ async def list_colleagues_api() -> list[dict[str, Any]]:
         order_by="full_name",
         limit=10_000,
     )
-    return [r for r in rows if r.get("email") != SYSTEM_USER.email]
+    return [r for r in rows if r.email != SYSTEM_USER.email]
 
 
 @whitelist(perm="grunt.manage_users")

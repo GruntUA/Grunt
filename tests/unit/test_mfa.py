@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from grunt.auth.doctypes.User.user import User
 from grunt.auth.mfa import check_mfa_code
 from grunt.auth.service import create_mfa_token, verify_mfa_token
+from grunt.utils.attr_dict import AttrDict
 
 
 @pytest.fixture
@@ -42,7 +43,7 @@ def test_verify_mfa_token_invalid():
 async def test_check_mfa_code_pyotp_available(mock_user):
     # This confirms pyotp is installed and 501 is not raised
     with patch("grunt.auth.mfa._db.get_all", new_callable=AsyncMock) as mock_get:
-        mock_get.return_value = [{"mfa_secret": "JBSWY3DPEHPK3PXP"}]  # Example secret
+        mock_get.return_value = [AttrDict(mfa_secret="JBSWY3DPEHPK3PXP")]  # Example secret
 
         # We don't need to verify the code logic itself here (handled by pyotp)
         # but we want to see that it doesn't raise 501

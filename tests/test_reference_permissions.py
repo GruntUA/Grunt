@@ -88,7 +88,7 @@ async def test_comment_on_readable_document_allowed(ctx, cases, db_session, engi
         row = await grunt.new_doc(
             "Comment", {"reference_doctype": "SecretCase", "reference_id": mine, "content": "ok"}
         )
-        assert (await grunt.get_doc("Comment", row["name"]))["content"] == "ok"
+        assert (await grunt.get_doc("Comment", row.name)).content == "ok"
 
 
 @pytest.mark.asyncio

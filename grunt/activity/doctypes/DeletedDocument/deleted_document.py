@@ -104,12 +104,12 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
         {
             "restored": True,
             "restored_at": datetime.now(UTC),
-            "restored_to": created["name"],
+            "restored_to": created.name,
         },
         ignore_permissions=True,
     )
 
-    log.info("trash.restored", doctype=target_dt, from_snapshot=name, restored_to=created["name"])
+    log.info("trash.restored", doctype=target_dt, from_snapshot=name, restored_to=created.name)
     return created
 
 
