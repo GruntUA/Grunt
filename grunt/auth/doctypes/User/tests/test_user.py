@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from grunt.auth.doctypes.User.user import User
@@ -7,13 +9,7 @@ from grunt.auth.doctypes.User.user import User
 async def test_user_controller_full_name_and_validation():
     """full_name is built from name parts; first/last name are required."""
     user = User(
-        doctype="User",
-        data={
-            "email": "test@example.com",
-            "first_name": "Іван",
-            "last_name": "Іванов",
-            "middle_name": "Іванович",
-        },
+        email="test@example.com", first_name="Іван", last_name="Іванов", middle_name="Іванович"
     )
 
     await user.before_save()
@@ -24,7 +20,8 @@ async def test_user_controller_full_name_and_validation():
     assert user.full_name == "Іванов Іван"
 
     # Required name fields are enforced by validate()
-    bare = User(doctype="User", data={"email": "test@example.com"})
+    row: dict[str, Any] = {"email": "test@example.com"}  # no names: validate() refuses it
+    bare = User(**row)
     with pytest.raises(ValueError, match="Ім'я є обов'язковим"):
         await bare.validate()
 

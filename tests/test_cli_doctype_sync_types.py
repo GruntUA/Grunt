@@ -63,4 +63,4 @@ def test_required_fields_are_not_optional(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     text = (dt_dir / "order.py").read_text()
     assert "code: str  # Code" in text
-    assert "note: str | None  # Note" in text
+    assert "note: str | None = None  # Note" in text

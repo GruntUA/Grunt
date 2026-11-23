@@ -29,7 +29,7 @@ def _as(email: str, admin: bool = False):
     from grunt.auth.doctypes.User.user import User
 
     roles = ["System Manager"] if admin else []
-    return User(doctype="User", data={"email": email, "name": email, "roles": roles})
+    return User(**{"email": email, "name": email, "roles": roles})
 
 
 # The dispatcher

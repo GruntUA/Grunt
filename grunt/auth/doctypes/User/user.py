@@ -69,42 +69,42 @@ class User(Document):
 
     last_name: str  # Last name
     first_name: str  # First name
-    middle_name: str | None  # Patronymic
-    full_name: str | None  # Full name
-    avatar: str | None  # Profile photo
+    middle_name: str | None = None  # Patronymic
+    full_name: str | None = None  # Full name
+    avatar: str | None = None  # Profile photo
     email: str  # Email
-    phone: str | None  # Phone
-    birth_date: date | None  # Date of birth
-    gender: str | None  # Gender
-    timezone: str | None  # Time zone
-    last_login: datetime | None  # Last login
-    bio: str | None  # Short bio
-    is_active: bool | None  # Active
-    signup_state: str | None  # Registration state
-    password: str | None  # Set password
-    hashed_password: str | None  # Password hash
-    password_changed_at: datetime | None  # Password changed
-    login_after: time | None  # Sign in from
-    login_before: time | None  # Sign in until
-    allowed_ips: str | None  # Allowed IP addresses
-    storage_quota_mb: int | None  # Personal space quota, MB
-    mfa_enabled: bool | None  # MFA enabled
-    mfa_secret: str | None  # MFA secret
-    mfa_backup_codes: dict | None  # Backup code hashes
-    mfa_backup_display: str | None  # Backup codes
-    login_attempts: int | None  # Failed login attempts
-    locked_until: datetime | None  # Account locked until
-    theme: str | None  # Theme
-    language: str | None  # Language
-    notification_digest: str | None  # Email digest
-    follow_created: bool | None  # Follow documents I create
-    follow_commented: bool | None  # Follow documents I comment on
-    follow_assigned: bool | None  # Follow documents assigned to me
-    follow_shared: bool | None  # Follow documents shared with me
-    reset_token: str | None  # Password reset token
-    reset_token_expires_at: datetime | None  # Reset token expiry
-    role_profiles: list[dict]  # Table: UserRoleProfile
-    roles: list[dict]  # Table: UserRole
+    phone: str | None = None  # Phone
+    birth_date: date | None = None  # Date of birth
+    gender: str | None = None  # Gender
+    timezone: str | None = None  # Time zone
+    last_login: datetime | None = None  # Last login
+    bio: str | None = None  # Short bio
+    is_active: bool | None = None  # Active
+    signup_state: str | None = None  # Registration state
+    password: str | None = None  # Set password
+    hashed_password: str | None = None  # Password hash
+    password_changed_at: datetime | None = None  # Password changed
+    login_after: time | None = None  # Sign in from
+    login_before: time | None = None  # Sign in until
+    allowed_ips: str | None = None  # Allowed IP addresses
+    storage_quota_mb: int | None = None  # Personal space quota, MB
+    mfa_enabled: bool | None = None  # MFA enabled
+    mfa_secret: str | None = None  # MFA secret
+    mfa_backup_codes: dict | None = None  # Backup code hashes
+    mfa_backup_display: str | None = None  # Backup codes
+    login_attempts: int | None = None  # Failed login attempts
+    locked_until: datetime | None = None  # Account locked until
+    theme: str | None = None  # Theme
+    language: str | None = None  # Language
+    notification_digest: str | None = None  # Email digest
+    follow_created: bool | None = None  # Follow documents I create
+    follow_commented: bool | None = None  # Follow documents I comment on
+    follow_assigned: bool | None = None  # Follow documents assigned to me
+    follow_shared: bool | None = None  # Follow documents shared with me
+    reset_token: str | None = None  # Password reset token
+    reset_token_expires_at: datetime | None = None  # Reset token expiry
+    role_profiles: list[dict] = []  # Table: UserRoleProfile
+    roles: list[dict] = []  # Table: UserRole
 
     # end: auto-generated types
 
@@ -307,15 +307,15 @@ class UserPublic(Schema):
 # holding the "System Manager" role, same as any other user - no special-case
 # bypass for this identity.
 SYSTEM_USER = User(
-    doctype="User",
-    data={
-        "email": SYSTEM_USER_EMAIL,
-        "full_name": "System",
-        "roles": ["System Manager"],
-        "is_active": True,
-        "theme": "system",
-        "language": "uk",
-    },
+    email=SYSTEM_USER_EMAIL,
+    first_name="System",
+    last_name="",
+    full_name="System",
+    # In the auth context `roles` holds role names, not UserRole rows (grunt.auth.users).
+    roles=["System Manager"],  # pyright: ignore[reportArgumentType]
+    is_active=True,
+    theme="system",
+    language="uk",
 )
 use_system_user(SYSTEM_USER)
 
@@ -327,8 +327,12 @@ GUEST_USER = GUEST_USER_EMAIL
 
 def guest_user() -> User:
     return User(
-        doctype="User",
-        data={"email": GUEST_USER, "full_name": "Guest", "roles": ["Guest"], "is_active": True},
+        email=GUEST_USER,
+        first_name="Guest",
+        last_name="",
+        full_name="Guest",
+        roles=["Guest"],  # pyright: ignore[reportArgumentType] - role names, as above
+        is_active=True,
     )
 
 

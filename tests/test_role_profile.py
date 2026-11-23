@@ -155,7 +155,7 @@ async def test_self_edit_cannot_take_a_role_off_its_profile(ctx, clerk):
 
     stored = (await ctx.get_doc("User", clerk))["roles"]
     await ctx.db._session().commit()
-    me = User(doctype="User", data={"email": clerk, "name": clerk, "roles": []})
+    me = User(**{"email": clerk, "name": clerk, "roles": []})
     async with ctx.context(ctx.db._session(), ctx.get_engine(), me):
         await ctx.save_doc(
             "User",

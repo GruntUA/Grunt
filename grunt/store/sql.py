@@ -232,7 +232,8 @@ class SqlStore(Store):
         if query.offset and query.after is None:
             stmt = stmt.offset(query.offset)
 
-        rows: list[dict[str, Any]] = [AttrDict(r._mapping) for r in await self.session.execute(stmt)]
+        result = await self.session.execute(stmt)
+        rows: list[dict[str, Any]] = [AttrDict(r._mapping) for r in result]
         if multilinks:
             await self._attach_multilinks(rows, multilinks, keep_name="name" in (fields or ()))
         return rows

@@ -19,9 +19,9 @@ class DocumentNamingRule(Document):
 
     document_type: str  # Document type
     autoname: str  # Naming pattern
-    priority: int | None  # Priority
-    disabled: bool | None  # Disabled
-    condition: str | None  # Condition
+    priority: int | None = None  # Priority
+    disabled: bool | None = None  # Disabled
+    condition: str | None = None  # Condition
 
     # end: auto-generated types
 

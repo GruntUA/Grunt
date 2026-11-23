@@ -16,7 +16,7 @@ async def test_after_delete_removes_only_apps_dir(tmp_path, monkeypatch):
     from grunt.document.api import documents
 
     monkeypatch.setattr(documents, "get_list", no_workspaces)
-    await GruntInstalledApp("GruntInstalledApp", {"name": "shop"}).after_delete()
+    await GruntInstalledApp(**{"name": "shop"}).after_delete()
 
     assert not (tmp_path / "apps" / "shop").exists()
     assert (tmp_path / "shop").exists()

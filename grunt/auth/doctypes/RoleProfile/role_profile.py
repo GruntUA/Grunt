@@ -30,8 +30,8 @@ class RoleProfile(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     profile_name: str  # Name
-    description: str | None  # Description
-    roles: list[dict]  # Table: RoleProfileRole
+    description: str | None = None  # Description
+    roles: list[dict] = []  # Table: RoleProfileRole
 
     # end: auto-generated types
 

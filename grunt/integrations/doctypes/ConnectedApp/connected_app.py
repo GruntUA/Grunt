@@ -16,14 +16,14 @@ class ConnectedApp(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     title: str  # Name
-    provider: str  # Provider
-    enabled: bool | None  # Enabled
-    tenant: str | None  # Tenant
+    provider: str | None = None  # Provider
+    enabled: bool | None = None  # Enabled
+    tenant: str | None = None  # Tenant
     client_id: str  # Client ID
     client_secret: str  # Client secret
-    authorization_url: str | None  # Authorization URL
-    token_url: str | None  # Token URL
-    scopes: str | None  # Extra scopes
+    authorization_url: str | None = None  # Authorization URL
+    token_url: str | None = None  # Token URL
+    scopes: str | None = None  # Extra scopes
 
     # end: auto-generated types
 

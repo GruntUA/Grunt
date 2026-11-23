@@ -20,9 +20,9 @@ class UserGroup(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     group_name: str  # Name
-    manager: str | None  # Manager
-    description: str | None  # Description
-    users: list[dict]  # Table: UserGroupMember
+    manager: str | None = None  # Manager
+    description: str | None = None  # Description
+    users: list[dict] = []  # Table: UserGroupMember
 
     # end: auto-generated types
 

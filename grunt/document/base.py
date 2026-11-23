@@ -10,10 +10,12 @@ Field values live in ``self.data``; ``__getattr__``/``__setattr__`` route
 there for IDEs and type checkers.
 """
 
+import annotationlib
 import contextlib
 import copy
 import sys
-from typing import Any, ClassVar
+from collections.abc import Callable
+from typing import Any, ClassVar, cast, dataclass_transform
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -28,6 +30,7 @@ from grunt.i18n import _
 from grunt.local import _user_ctx, bind, require_engine, require_session, session_user, unbind
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+from grunt.permissions.guards import write_guard
 from grunt.store.base import Store
 from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
@@ -68,6 +71,7 @@ class _ObjectsDescriptor:
         return QuerySet(owner)
 
 
+@dataclass_transform(kw_only_default=True)
 class Document(
     DocumentLifecycleMixin,
 ):
@@ -79,10 +83,24 @@ class Document(
         class Invoice(Document):
             amount: float
             customer: str
+            note: str | None = None
+            lines: list[dict] = []
 
             async def validate(self) -> None:
                 if self.amount <= 0:
                     throw("Сума повинна бути більше нуля")
+
+    The field annotations (``grunt doctype sync-types`` writes them) also
+    type the constructor, as for a dataclass - a field without ``= None`` /
+    ``= []`` must be given::
+
+        invoice = Invoice(amount=100, customer="CUST-1")   # unsaved
+        await invoice.insert()
+        invoice = await Invoice.create(amount=100, customer="CUST-1")  # saved
+        invoice = Invoice(**row)                    # a row already read
+
+    The defaults are for the type checker only: the class keeps none of them,
+    a field is always read from ``self.data``.
 
     A DocType whose documents aren't rows of its table names its store::
 
@@ -108,15 +126,45 @@ class Document(
     engine: Any
     _ml: Any
 
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # `note: str | None = None` / `lines: list[dict] = []` make a field
+        # optional in the constructor; as class attributes they would hide
+        # self.data (__getattr__ only runs when normal lookup fails).
+        own = cls.__dict__
+        for name in annotationlib.get_annotations(cls, format=annotationlib.Format.FORWARDREF):
+            if name[:1] != "_" and name in own and (own[name] is None or own[name] == []):
+                delattr(cls, name)
+
+    def __new__(cls, doctype: str | None = None, *args: Any, **kwargs: Any) -> Any:
+        target = cls
+        if doctype is None and cls is not Document:
+            # `Invoice(amount=...)`: the registered controller when it extends the
+            # class called (doctype_mixins / override_doctype_class of other apps),
+            # so their hooks run - as for a document grunt loads.
+            name: str = getattr(cls, "doctype", cls.__name__)
+            controller = document_registry.get(name)
+            if controller is not cls and issubclass(controller, cls):
+                target = controller
+            doc = super().__new__(target)
+            doc._doctype = name
+            return doc
+        return super().__new__(target)
+
     def __init__(
         self,
-        doctype: str,
-        data: dict[str, Any],
+        doctype: str | None = None,
+        data: dict[str, Any] | None = None,
         session: AsyncSession | None = None,
         engine: AsyncEngine | None = None,
+        **fields: Any,
     ) -> None:
-        self.doctype = doctype
-        self.data = data
+        called_as: str | None = self.__dict__.pop("_doctype", None)
+        self.doctype = doctype or called_as or type(self).__name__
+        if fields:
+            data = {**(data or {}), **fields}
+        # Kept as given: callers may still hold a reference to it.
+        self.data = data if data is not None else {}
         self.session = session
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
@@ -308,6 +356,20 @@ class Document(
     ) -> Document:
         """A new, unsaved instance of *doctype*'s registered controller holding *data*."""
         return await new_document(doctype, data, session=session, engine=engine)
+
+    @classmethod
+    async def create[**P, T](cls: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+        """A new document of this controller's DocType, saved - typed like the constructor::
+
+            todo = await ToDo.create(description="Call")
+            todo.name
+
+        Checks the caller's ``create`` permission, as ``grunt.new_doc`` does.
+        """
+        doc = cast(Document, cls(*args, **kwargs))
+        await write_guard(doc.doctype, "create")
+        await doc.insert()
+        return cast(T, doc)
 
     # Lifecycle hooks
 

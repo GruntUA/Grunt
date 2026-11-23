@@ -1,6 +1,7 @@
 """Tests for the Assignment Rules system (migrated to whitelisted methods)."""
 
 import datetime
+from typing import Any
 
 import pytest
 
@@ -11,7 +12,8 @@ from grunt.assignment.doctypes.AssignmentRule.assignment_rule import AssignmentR
 
 
 def _match(doc: dict, filters: dict) -> bool:
-    return AssignmentRule("AssignmentRule", {"filters": filters}).match(doc)
+    row: dict[str, Any] = {"filters": filters}
+    return AssignmentRule(**row).match(doc)
 
 
 class TestAssignmentFilters:

@@ -43,32 +43,32 @@ class EmailAccount(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    provider: str | None  # Mail service
+    provider: str | None = None  # Mail service
     email_address: str  # Email address
-    auth_method: str | None  # Sign-in
-    connected_app: str | None  # Connected app
-    oauth_account: str | None  # Connected account
-    smtp_user: str | None  # SMTP user
-    smtp_password: str | None  # SMTP password (app password)
-    enable_outgoing: bool | None  # Enable outgoing mail
-    smtp_server: str | None  # SMTP server
-    smtp_port: int | None  # SMTP port
-    use_tls: bool | None  # Use TLS
-    enable_incoming: bool | None  # Enable incoming mail
-    imap_server: str | None  # IMAP server
-    imap_port: int | None  # IMAP port
-    use_ssl: bool | None  # Use SSL
-    imap_folders: str | None  # IMAP folders
-    imap_state: dict | None  # IMAP position
-    append_to: str | None  # Create documents
-    auto_reply: bool | None  # Auto-reply
-    auto_reply_message: str | None  # Auto-reply text
-    notify_if_unreplied: bool | None  # Notify if not answered
-    unreplied_minutes: int | None  # Minutes without a reply
-    unreplied_group: str | None  # Notify group
-    signature: str | None  # Signature
-    reply_to: str | None  # Reply-To
-    always_bcc: str | None  # Always BCC
+    auth_method: str | None = None  # Sign-in
+    connected_app: str | None = None  # Connected app
+    oauth_account: str | None = None  # Connected account
+    smtp_user: str | None = None  # SMTP user
+    smtp_password: str | None = None  # SMTP password (app password)
+    enable_outgoing: bool | None = None  # Enable outgoing mail
+    smtp_server: str | None = None  # SMTP server
+    smtp_port: int | None = None  # SMTP port
+    use_tls: bool | None = None  # Use TLS
+    enable_incoming: bool | None = None  # Enable incoming mail
+    imap_server: str | None = None  # IMAP server
+    imap_port: int | None = None  # IMAP port
+    use_ssl: bool | None = None  # Use SSL
+    imap_folders: str | None = None  # IMAP folders
+    imap_state: dict | None = None  # IMAP position
+    append_to: str | None = None  # Create documents
+    auto_reply: bool | None = None  # Auto-reply
+    auto_reply_message: str | None = None  # Auto-reply text
+    notify_if_unreplied: bool | None = None  # Notify if not answered
+    unreplied_minutes: int | None = None  # Minutes without a reply
+    unreplied_group: str | None = None  # Notify group
+    signature: str | None = None  # Signature
+    reply_to: str | None = None  # Reply-To
+    always_bcc: str | None = None  # Always BCC
 
     # end: auto-generated types
 

@@ -141,7 +141,7 @@ async def test_self_edit_scope(ctx):
         await ctx.db._session().commit()
         uid = u.id
 
-    me = User(doctype="User", data={"email": uid, "name": uid, "roles": []})
+    me = User(**{"email": uid, "name": uid, "roles": []})
 
     async with ctx.context(ctx.db._session(), ctx.get_engine(), me):
         # profile field - allowed
@@ -496,8 +496,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
         ctx.db._session(),
         ctx.get_engine(),
         User(
-            doctype="User",
-            data={
+            **{
                 "email": "passwordless@grunt.example.com",
                 "name": "passwordless@grunt.example.com",
                 "roles": [],
@@ -511,8 +510,7 @@ async def test_set_password_first_time_for_passwordless_user(ctx, client: AsyncC
         ctx.db._session(),
         ctx.get_engine(),
         User(
-            doctype="User",
-            data={
+            **{
                 "email": "passwordless@grunt.example.com",
                 "name": "passwordless@grunt.example.com",
                 "roles": [],

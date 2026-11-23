@@ -164,7 +164,7 @@ async def test_list_users_requires_system_manager(ctx):
 
     # 2. Try to list users as regular user
     # We simulate this by changing the context user
-    reg_user_obj = User(doctype="User", data={"email": reg_user_doc["email"], "roles": []})
+    reg_user_obj = User(**{"email": reg_user_doc["email"], "roles": []})
 
     from grunt.errors import APIError
 
@@ -238,8 +238,7 @@ async def test_count_respects_permissions(ctx):
     assert raw_total >= 2
 
     me_ctx = User(
-        doctype="User",
-        data={"email": me.id, "name": me.id, "roles": []},
+        **{"email": me.id, "name": me.id, "roles": []},
     )
     async with ctx.context(ctx.db._session(), ctx.get_engine(), me_ctx):
         assert await grunt.count("User", respect_permissions=True) == 1

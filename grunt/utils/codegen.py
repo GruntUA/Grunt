@@ -78,10 +78,21 @@ def _is_typed(f: dict) -> bool:
     )
 
 
+def _is_required_on_create(f: dict) -> bool:
+    """A field the constructor must be given: required, and nothing else fills it."""
+    return bool(
+        f.get("required")
+        and f.get("default") in (None, "")
+        and not f.get("fetch_from")
+        and not f.get("read_only")
+        and f.get("fieldtype") != "Check"
+    )
+
+
 def _field_type(f: dict) -> str:
-    """Python type of a field; a required one is never None once saved."""
+    """Python type of a field; one the constructor must be given is never None."""
     py_type = get_python_type(f["fieldtype"])
-    if f.get("required") and py_type.endswith(" | None"):
+    if _is_required_on_create(f) and py_type.endswith(" | None"):
         py_type = py_type.removesuffix(" | None")
     return py_type
 
@@ -132,15 +143,18 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
             )
     physical = [f for f in physical if not is_shadowed_field(f["fieldname"])]
     table_fields = [f for f in table_fields if not is_shadowed_field(f["fieldname"])]
+    # Annotations type the constructor too (Document is a dataclass_transform):
+    # `= None` / `= []` - a field it may be called without.
     for f in physical:
         py_type = _field_type(f)
+        default = " = None" if py_type.endswith(" | None") else ""
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
-        field_lines.append(f"{indent}{f['fieldname']}: {py_type}{comment}")
+        field_lines.append(f"{indent}{f['fieldname']}: {py_type}{default}{comment}")
     for f in table_fields:
         table_opt = f.get("options", "?")
-        field_lines.append(f"{indent}{f['fieldname']}: list[dict]  # Table: {table_opt}")
+        field_lines.append(f"{indent}{f['fieldname']}: list[dict] = []  # Table: {table_opt}")
 
-    body = "\n".join(field_lines) if field_lines else f"{indent}name: str | None"
+    body = "\n".join(field_lines) if field_lines else f"{indent}pass"
 
     return (
         f"{indent}{_BEGIN_MARKER}\n"
