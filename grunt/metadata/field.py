@@ -370,6 +370,10 @@ class DocField(BaseModel):
     in_filter: bool = True
     in_preview: bool = False  # shown in the link hover card (DocType.show_preview_popup)
     bold: bool = False
+    # Left out of the standard print (grunt.print.layout). An empty value is
+    # never printed; ``print_hide_if_no_value`` also drops a zero / unchecked one.
+    print_hide: bool = False
+    print_hide_if_no_value: bool = False
     # Edit this column inline in the Report (spreadsheet) grid view. Ignored
     # for read-only / layout fields.
     editable_in_grid: bool = False

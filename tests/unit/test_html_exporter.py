@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from grunt.io.exporters.html import HtmlExporter, _Formatter
+from grunt.i18n.values import ValueFormatter as _Formatter
+from grunt.io.exporters.html import HtmlExporter
 from grunt.io.exporters.registry import ListExportContext
 from grunt.metadata.field import DocField
 
@@ -23,7 +24,7 @@ async def _render(rows, fields, ctx=None, settings=None) -> str:
             SimpleNamespace(get_meta=AsyncMock(return_value=None)),
         ),
         patch(
-            "grunt.io.exporters.html.get_system_settings",
+            "grunt.i18n.values.get_system_settings",
             AsyncMock(return_value=settings or {"date_format": "dd.mm.yyyy", "timezone": "UTC"}),
         ),
     ):
