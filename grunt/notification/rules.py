@@ -163,7 +163,7 @@ async def _assignees(doctype: str, doc_id: str) -> list[str]:
         fields=["assigned_to"],
         limit=None,
     )
-    return [r["assigned_to"] for r in rows if r.get("assigned_to")]
+    return [r.assigned_to for r in rows if r.assigned_to]
 
 
 async def _followers(doctype: str, doc_id: str) -> list[str]:
@@ -173,7 +173,7 @@ async def _followers(doctype: str, doc_id: str) -> list[str]:
         fields=["user"],
         limit=None,
     )
-    return [r["user"] for r in rows if r.get("user")]
+    return [r.user for r in rows if r.user]
 
 
 async def resolve_recipients(
@@ -238,7 +238,7 @@ async def _inactive(emails: set[str]) -> set[str]:
         fields=["email"],
         limit=None,
     )
-    return {r["email"] for r in rows}
+    return {r.email for r in rows}
 
 
 async def form_url(doctype: str, doc_id: str) -> str:
@@ -441,7 +441,7 @@ async def _attachments(
                 limit=50,
             )
             for row in rows:
-                if total + int(row.get("file_size") or 0) > MAX_ATTACH_BYTES:
+                if total + int(row.file_size or 0) > MAX_ATTACH_BYTES:
                     log.info("notification.attach_files_over_limit", rule=rule.get("name"))
                     break
                 try:
@@ -452,8 +452,8 @@ async def _attachments(
                 total += len(content)
                 files.append(
                     {
-                        "filename": row.get("file_name") or row["name"],
-                        "mimetype": row.get("content_type") or "application/octet-stream",
+                        "filename": row.file_name or row.name,
+                        "mimetype": row.content_type or "application/octet-stream",
                         "content": content,
                     }
                 )

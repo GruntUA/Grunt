@@ -63,7 +63,7 @@ async def policies_for(doctype: str) -> list[dict[str, Any]]:
         rows = await _db.get_all(POLICY, filters={"is_enabled": True}, limit=10_000)
         grouped: dict[str, list[dict[str, Any]]] = {}
         for row in rows:
-            grouped.setdefault(row["ref_doctype"], []).append(dict(row))
+            grouped.setdefault(row.ref_doctype, []).append(dict(row))
         hit = _policies[site] = (time.monotonic(), grouped)
     return hit[1].get(doctype, [])
 
@@ -207,21 +207,21 @@ async def _track(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> N
         await _fill_due_field(policy, doctype, doc, due)
         return
 
-    if row["status"] not in OPEN_STATES:
+    if row.status not in OPEN_STATES:
         return  # history: the clock already stopped
-    due = as_datetime(row["due_at"])
+    due = as_datetime(row.due_at)
     assert due is not None
     if done:
-        late = row["status"] == "Breached" or now > due
+        late = row.status == "Breached" or now > due
         status = "Met late" if late else "Met"
-        await _db.set_value(STATUS, row["name"], {"status": status, "met_at": now})
+        await _db.set_value(STATUS, row.name, {"status": status, "met_at": now})
         return
     # A deadline edited by hand on the document moves the clock.
     planned = as_datetime(doc.get(policy.get("due_field") or ""), end_of_day=True)
     if planned and planned != due:
         await _db.set_value(
             STATUS,
-            row["name"],
+            row.name,
             {
                 "due_at": planned,
                 "status": _status_for(planned, 0, now),
@@ -331,18 +331,18 @@ async def process_deadlines(now: datetime | None = None) -> dict[str, int]:
     )
     policies: dict[str, dict[str, Any] | None] = {}
     for row in rows:
-        name = row["service_level"]
+        name = row.service_level
         if name not in policies:
             policies[name] = await _db.get_doc(POLICY, name)
         policy = policies[name]
-        due = as_datetime(row["due_at"])
+        due = as_datetime(row.due_at)
         if policy is None or due is None:
             continue
         status = _status_for(due, int(policy.get("warn_before") or 0), now)
-        if status == row["status"]:
+        if status == row.status:
             continue
         stamp = "breached_at" if status == "Breached" else "warned_at"
-        await _db.set_value(STATUS, row["name"], {"status": status, stamp: now})
+        await _db.set_value(STATUS, row.name, {"status": status, stamp: now})
         try:
             await _notify(policy, row, breached=status == "Breached")
         except Exception:
@@ -385,27 +385,27 @@ async def sidebar_rows(doctype: str, doc_id: str, doc: Any) -> list[dict[str, An
     meta = await doctype_registry.get_meta(STATUS)
     indicators = {i.value: i for i in meta.doc.status_indicators} if meta else {}
     titles = {
-        r["name"]: r.get("title") or r["name"]
+        r.name: r.title or r.name
         for r in await _db.get_all(
             POLICY,
-            filters={"name__in": sorted({r["service_level"] for r in rows})},
+            filters={"name__in": sorted({r.service_level for r in rows})},
             fields=["name", "title"],
             limit=None,
         )
     }
     out: list[dict[str, Any]] = []
     for row in rows:
-        status = str(row.get("status") or "")
+        status = str(row.status or "")
         ind = indicators.get(status)
         label = (ind and ind.label) or status
         moment = row.get(_SIDEBAR_TIME.get(status, "due_at"))
         out.append(
             {
-                "label": titles.get(row["service_level"], row["service_level"]),
+                "label": titles.get(row.service_level, row.service_level),
                 "value": translation_service.pgettext(f"status:{STATUS}", label),
                 "indicator": (ind and ind.color) or "default",
                 "datetime": moment.isoformat() if isinstance(moment, datetime) else moment,
-                "link": f"/app/grunt/{STATUS}/{row['name']}",
+                "link": f"/app/grunt/{STATUS}/{row.name}",
             }
         )
     return out

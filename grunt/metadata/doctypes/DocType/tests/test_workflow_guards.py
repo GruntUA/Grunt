@@ -59,9 +59,9 @@ async def _memo_in_review(ctx, db_session, engine) -> str:
     await _create_workflow(ctx, WORKFLOW)
     async with grunt.context(db_session, engine, AUTHOR):
         doc = await grunt.new_doc("Memo", {"title": "Mine", "status": "Draft"})
-        await grunt.submit("Memo", doc["name"], "Send")
+        await grunt.submit("Memo", doc.name, "Send")
     await ctx.db._session().commit()
-    return doc["name"]
+    return doc.name
 
 
 async def _actions(db_session, engine, user, doc_id: str) -> dict[str, dict]:
@@ -219,10 +219,10 @@ async def test_a_hidden_owner_does_not_let_the_author_approve(ctx, db_session, e
     await _create_workflow(ctx, WORKFLOW)
     async with grunt.context(db_session, engine, AUTHOR):
         doc = await grunt.new_doc("Memo", {"title": "Mine", "status": "Draft"})
-        await grunt.submit("Memo", doc["name"], "Send")
-        seen = await grunt.get_doc("Memo", doc["name"])
+        await grunt.submit("Memo", doc.name, "Send")
+        seen = await grunt.get_doc("Memo", doc.name)
     await ctx.db._session().commit()
-    assert "owner" not in seen or not seen["owner"]  # the rule really masks it
+    assert "owner" not in seen or not seen.owner  # the rule really masks it
 
-    assert "Approve" not in await _actions(db_session, engine, AUTHOR, doc["name"])
-    assert "Approve" in await _actions(db_session, engine, OTHER, doc["name"])
+    assert "Approve" not in await _actions(db_session, engine, AUTHOR, doc.name)
+    assert "Approve" in await _actions(db_session, engine, OTHER, doc.name)

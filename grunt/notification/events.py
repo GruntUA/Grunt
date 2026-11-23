@@ -127,7 +127,7 @@ async def trigger(
 
     source = doctype or (_events[key].doctype if key in _events else None) or ""
     for rule in found:
-        if rule.get("ref_doctype") and rule["ref_doctype"] != source:
+        if rule.ref_doctype and rule.ref_doctype != source:
             continue
         try:
             async with session.begin_nested():

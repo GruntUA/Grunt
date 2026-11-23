@@ -124,9 +124,7 @@ async def send_scheduled_reports() -> None:
             limit=None,
         )
         for report in reports:
-            if report.get("disabled") or not is_due(
-                report["schedule_frequency"], report.get("last_sent_at"), today
-            ):
+            if report.disabled or not is_due(report.schedule_frequency, report.last_sent_at, today):
                 continue
             try:
                 await send_report(report, session)

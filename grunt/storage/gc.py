@@ -106,7 +106,7 @@ async def verify(rehash: bool = False) -> dict[str, list[str]]:
 
     # Blobs moved to cloud storage are checked against its listing.
     in_remote: dict[str, set[str]] = {}
-    for remote in {r["storage_remote"] for r in rows if r["storage_remote"]}:
+    for remote in {r.storage_remote for r in rows if r.storage_remote}:
         in_remote[remote] = await remote_listing(remote)
 
     def present(r) -> bool:
@@ -117,9 +117,9 @@ async def verify(rehash: bool = False) -> dict[str, list[str]]:
             return key in in_remote[r["storage_remote"]] or storage.path(key).exists()
         return storage.path(key).exists()
 
-    missing = [str(r["name"]) for r in rows if not present(r)]
+    missing = [str(r.name) for r in rows if not present(r)]
     on_disk = await asyncio.to_thread(lambda: [key for key, _ in storage.iter_keys()])
-    referenced = {r["content_hash"] for r in rows if r["content_hash"]}
+    referenced = {r.content_hash for r in rows if r.content_hash}
     unreferenced = sorted(set(on_disk) - referenced)
     corrupt: list[str] = []
     if rehash:

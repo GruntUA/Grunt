@@ -54,11 +54,11 @@ async def _progress(onboarding: dict[str, Any], user: str) -> tuple[dict[str, st
         fields=["step_id", "user", "status"],
         limit=None,
     )
-    hidden = any(r["status"] == "Hidden" and r["user"] == me for r in rows)
+    hidden = any(r.status == "Hidden" and r.user == me for r in rows)
     marks = {
-        r["step_id"]: r["status"]
+        r.step_id: r.status
         for r in rows
-        if r["step_id"] and r["status"] in _MARKS and r["user"] == _scope_user(onboarding, user)
+        if r.step_id and r.status in _MARKS and r.user == _scope_user(onboarding, user)
     }
     return marks, hidden
 
@@ -120,8 +120,7 @@ async def _visible(app: str | None, roles: list[str], manager: bool) -> list[dic
         "ModuleOnboarding", filters=filters, fields=["name"], order_by="name", limit=None
     )
     docs = [
-        await documents.get_doc("ModuleOnboarding", r["name"], ignore_permissions=True)
-        for r in rows
+        await documents.get_doc("ModuleOnboarding", r.name, ignore_permissions=True) for r in rows
     ]
     return [d for d in docs if page_visible({**d, "is_published": True}, roles, manager=manager)]
 
@@ -228,7 +227,7 @@ async def _tours(doctype: str, roles: list[str], view: str, manager: bool) -> li
     return [
         d
         for d in docs
-        if (d.get("view") or "Form") == view
+        if (d.view or "Form") == view
         and page_visible({**d, "is_published": True}, roles, manager=manager)
     ]
 

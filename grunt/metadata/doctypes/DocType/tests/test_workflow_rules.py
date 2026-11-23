@@ -103,12 +103,12 @@ def _as(email: str, *roles: str):
 
 async def _inbox(email: str) -> list[str]:
     rows = await grunt.db.get_all("NotificationLog", filters={"user": email}, fields=["subject"])
-    return sorted(r["subject"] for r in rows)
+    return sorted(r.subject for r in rows)
 
 
 async def _state(name: str) -> tuple[str, int]:
     row = await grunt.db.get_all("Article", filters={"name": name}, fields=["status", "published"])
-    return row[0]["status"], int(row[0]["published"] or 0)
+    return row[0].status, int(row[0].published or 0)
 
 
 async def _buttons(name: str) -> set[str]:
@@ -119,7 +119,7 @@ async def _buttons(name: str) -> set[str]:
 async def test_review_cycle(article, db_session, engine):
     async with grunt.context(db_session, engine, _as(AUTHOR, W)):
         doc = await grunt.new_doc("Article", {"title": "Report"})
-        name = doc["name"]
+        name = doc.name
         assert await _buttons(name) == {"Send"}  # no Publish, no on_edit "Edited"
         await grunt.submit("Article", name, "Send")
     assert await _state(name) == ("Review", 0)
@@ -138,14 +138,14 @@ async def test_review_cycle(article, db_session, engine):
     assert await _state(name) == ("Rework", 0)
     assert await _inbox(AUTHOR) == ["Return: Report"]
     bell = await grunt.db.get_all("NotificationLog", filters={"user": AUTHOR}, fields=["message"])
-    message = bell[0]["message"]
+    message = bell[0].message
     assert "Return" in message and "Review → Rework" in message
     assert "Add a table" in message and message.rstrip().endswith(f"/Article/{name}")
     comments = await grunt.db.get_all(
         "Comment", filters={"reference_id": name}, fields=["content", "owner"]
     )
-    assert len(comments) == 1 and "Add a table" in comments[0]["content"]
-    assert comments[0]["owner"] == REVIEWER
+    assert len(comments) == 1 and "Add a table" in comments[0].content
+    assert comments[0].owner == REVIEWER
 
     async with grunt.context(db_session, engine, _as(AUTHOR, W)):
         await grunt.save_doc("Article", name, {"title": "Report 2025"})
@@ -168,35 +168,35 @@ async def test_state_moves_only_by_transitions(article, db_session, engine):
         with pytest.raises(HTTPException):
             await grunt.new_doc("Article", {"title": "x", "status": "Published"})
         doc = await grunt.new_doc("Article", {"title": "y"})
-        assert doc["status"] == "Draft"
+        assert doc.status == "Draft"
         with pytest.raises(HTTPException):
-            await grunt.save_doc("Article", doc["name"], {"status": "Published"})
+            await grunt.save_doc("Article", doc.name, {"status": "Published"})
         with pytest.raises(HTTPException):
-            await grunt.submit("Article", doc["name"], "Publish")
+            await grunt.submit("Article", doc.name, "Publish")
         # Saving the unchanged state with other fields is a plain edit.
-        await grunt.save_doc("Article", doc["name"], {"status": "Draft", "title": "z"})
+        await grunt.save_doc("Article", doc.name, {"status": "Draft", "title": "z"})
     # The system user (imports, fixtures) is exempt.
-    await grunt.save_doc("Article", doc["name"], {"status": "Published"})
-    assert (await _state(doc["name"]))[0] == "Published"
+    await grunt.save_doc("Article", doc.name, {"status": "Published"})
+    assert (await _state(doc.name))[0] == "Published"
 
 
 @pytest.mark.asyncio
 async def test_edit_of_published_goes_back_to_review(article, db_session, engine):
     async with grunt.context(db_session, engine, _as(REVIEWER, E)):
         doc = await grunt.new_doc("Article", {"title": "Live"})
-        await grunt.submit("Article", doc["name"], "Publish")
-        await grunt.save_doc("Article", doc["name"], {"title": "Live, fixed"})  # editor: plain edit
-    assert await _state(doc["name"]) == ("Published", 1)
+        await grunt.submit("Article", doc.name, "Publish")
+        await grunt.save_doc("Article", doc.name, {"title": "Live, fixed"})  # editor: plain edit
+    assert await _state(doc.name) == ("Published", 1)
 
     async with grunt.context(db_session, engine, _as(AUTHOR, W)):
         # The form sends the whole document back - unchanged values don't count.
-        same = await grunt.get_doc("Article", doc["name"])
-        await grunt.save_doc("Article", doc["name"], {k: same[k] for k in ("title", "status")})
-        assert await _state(doc["name"]) == ("Published", 1)
+        same = await grunt.get_doc("Article", doc.name)
+        await grunt.save_doc("Article", doc.name, {k: same[k] for k in ("title", "status")})
+        assert await _state(doc.name) == ("Published", 1)
         with pytest.raises(HTTPException):  # edits go to review - so does removal
-            await grunt.delete_doc("Article", doc["name"])
-        await grunt.save_doc("Article", doc["name"], {"title": "Live, rewritten"})
-    assert await _state(doc["name"]) == ("Review", 0)
+            await grunt.delete_doc("Article", doc.name)
+        await grunt.save_doc("Article", doc.name, {"title": "Live, rewritten"})
+    assert await _state(doc.name) == ("Review", 0)
     assert await _inbox(REVIEWER) == ["Edited: Live, rewritten"]
 
 
@@ -204,17 +204,17 @@ async def test_edit_of_published_goes_back_to_review(article, db_session, engine
 async def test_copy_of_published_starts_as_draft(article, db_session, engine):
     async with grunt.context(db_session, engine, _as(REVIEWER, E)):
         doc = await grunt.new_doc("Article", {"title": "Live"})
-        await grunt.submit("Article", doc["name"], "Publish")
-        copy = await grunt.copy_doc("Article", doc["name"])
+        await grunt.submit("Article", doc.name, "Publish")
+        copy = await grunt.copy_doc("Article", doc.name)
     assert await _state(copy["name"]) == ("Draft", 0)
 
     # The form's Duplicate sends the original's fields, the state reset to the default.
     async with grunt.context(db_session, engine, _as(AUTHOR, W)):
-        same = await grunt.get_doc("Article", doc["name"])
+        same = await grunt.get_doc("Article", doc.name)
         dup = await grunt.new_doc(
-            "Article", {"title": same["title"], "status": "Draft", "published": same["published"]}
+            "Article", {"title": same.title, "status": "Draft", "published": same.published}
         )
-    assert await _state(dup["name"]) == ("Draft", 0)
+    assert await _state(dup.name) == ("Draft", 0)
 
 
 @pytest.mark.asyncio
@@ -229,7 +229,7 @@ async def test_controller_sees_current_transition(article, db_session, engine):
     try:
         async with grunt.context(db_session, engine, _as(AUTHOR, W)):
             doc = await grunt.new_doc("Article", {"title": "t"})
-            await grunt.submit("Article", doc["name"], "Send")
+            await grunt.submit("Article", doc.name, "Send")
     finally:
         from grunt.hooks import DOC_EVENT_REGISTRY
 

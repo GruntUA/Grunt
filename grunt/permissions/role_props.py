@@ -75,11 +75,11 @@ async def role_props() -> dict[str, RoleProps]:
         limit=None,
     )
     loaded = {
-        r["name"]: RoleProps(
-            permissions=frozenset(r.get("permissions") or []),
-            disabled=bool(r.get("disabled")),
-            site_only=bool(r.get("site_only")),
-            home_page=(r.get("home_page") or "").strip() or None,
+        r.name: RoleProps(
+            permissions=frozenset(r.permissions or []),
+            disabled=bool(r.disabled),
+            site_only=bool(r.site_only),
+            home_page=(r.home_page or "").strip() or None,
         )
         for r in rows
     }

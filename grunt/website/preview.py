@@ -50,7 +50,7 @@ async def find_unpublished(request: Request, doctype: str, filters: dict[str, An
     if not rows or not await permission_checker.check(dt, "read", rows[0], user=reader.email):
         return None
     request.state.preview_reader = reader.email
-    return rows[0]["name"]
+    return rows[0].name
 
 
 def preview_reader(request: Request) -> str | None:

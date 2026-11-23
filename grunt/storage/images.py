@@ -44,8 +44,8 @@ async def compress_existing(
     )
     by_blob: dict[tuple[str, str], list[dict]] = {}
     for row in rows:
-        if row["content_hash"] and not row["is_compressed"]:
-            by_blob.setdefault((row["content_hash"], row["content_type"]), []).append(row)
+        if row.content_hash and not row.is_compressed:
+            by_blob.setdefault((row.content_hash, row.content_type), []).append(row)
 
     # Minutes of image work ahead: don't hold the read transaction (on SQLite
     # it is the write lock) all along.
@@ -82,9 +82,9 @@ async def compress_existing(
             limit=None,
         )
         for row in group:
-            if row["is_compressed"]:
+            if row.is_compressed:
                 continue
-            file_id = str(row["name"])
+            file_id = str(row.name)
             await _db.set_value(
                 "File",
                 file_id,
@@ -92,10 +92,10 @@ async def compress_existing(
                     "content_hash": new_key,
                     "file_size": new_size,
                     "content_type": optimized.content_type,
-                    "file_name": renamed(row["file_name"], optimized.content_type),
+                    "file_name": renamed(row.file_name, optimized.content_type),
                     "storage_remote": None,  # the new blob is local
                     "is_compressed": True,
-                    "original_size": row["file_size"],
+                    "original_size": row.file_size,
                     "thumbnail_url": files.thumbnail_url(file_id, new_key, optimized.content_type),
                 },
             )

@@ -59,7 +59,7 @@ async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> s
         # Caller owns the transaction (e.g. the task middleware already holds a
         # system_context). Reuse it so the row commits with the caller's work.
         doc = await documents.new_doc("ErrorLog", payload)
-        return doc.get("name")
+        return doc.name
 
     # HTTP path: the request's own session is very likely in a failed
     # transaction by now, so open a fresh one bound to the active site.
@@ -70,7 +70,7 @@ async def _write_row(payload: dict[str, Any], session: AsyncSession | None) -> s
     async with maker() as fresh, system_context(fresh, eng):
         doc = await documents.new_doc("ErrorLog", payload)
         await fresh.commit()
-        return doc.get("name")
+        return doc.name
 
 
 async def record_error(

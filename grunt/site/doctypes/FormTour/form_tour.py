@@ -9,11 +9,11 @@ from grunt.metadata.compiler import STANDARD_COLUMNS
 
 class FormTour(Document):
     async def validate(self) -> None:
-        meta = await self.grunt.get_meta(self.get("reference_doctype") or "")
+        meta = await self.grunt.get_meta(self.reference_doctype or "")
         if meta is None:
-            throw(_("DocType “%(doctype)s” not found") % {"doctype": self.get("reference_doctype")})
-        columns = STANDARD_COLUMNS if self.get("view") == "List" else ()
-        for step in self.get("steps") or []:
+            throw(_("DocType “%(doctype)s” not found") % {"doctype": self.reference_doctype})
+        columns = STANDARD_COLUMNS if self.view == "List" else ()
+        for step in self.steps or []:
             fieldname = step.get("fieldname")
             if fieldname and not meta.has_field(fieldname) and fieldname not in columns:
                 throw(

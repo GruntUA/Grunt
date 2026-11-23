@@ -127,7 +127,7 @@ async def run_rule(rule: dict[str, Any], today: date) -> int:
             "NotificationDelivery",
             {
                 "notification": rule["name"],
-                "doc_id": str(doc["name"]),
+                "doc_id": str(doc.name),
                 "created_at__gte": since,
             },
         )
@@ -199,7 +199,7 @@ async def run_minute_rule(rule: dict[str, Any], now: datetime) -> int:
             "NotificationDelivery",
             {
                 "notification": rule["name"],
-                "doc_id": str(doc["name"]),
+                "doc_id": str(doc.name),
                 "created_at__gte": moment - 2 * MINUTE_WINDOW,
             },
         )

@@ -467,7 +467,7 @@ class ServerScriptRunner:
             _session_ctx.reset(token)
 
         scripts: list[dict[str, Any]] = [
-            {"name": str(r.get("name") or ""), "script": str(r.get("script") or "")} for r in rows
+            {"name": str(r.name or ""), "script": str(r.script or "")} for r in rows
         ]
 
         # Append file-based scripts
@@ -502,9 +502,9 @@ class ServerScriptRunner:
         row = rows[0] if rows else None
         if row:
             return {
-                "name": row.get("name"),
-                "script": row.get("script"),
-                "allow_guest": row.get("allow_guest"),
+                "name": row.name,
+                "script": row.script,
+                "allow_guest": row.allow_guest,
             }
 
         # Check file-based scripts
@@ -531,9 +531,7 @@ class ServerScriptRunner:
         finally:
             _session_ctx.reset(token)
 
-        return [
-            {"name": r.get("name"), "script": r.get("script"), "cron": r.get("cron")} for r in rows
-        ]
+        return [{"name": r.name, "script": r.script, "cron": r.cron} for r in rows]
 
     async def execute(
         self,

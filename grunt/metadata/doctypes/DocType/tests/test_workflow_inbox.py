@@ -86,9 +86,9 @@ async def _setup(ctx, db_session, engine) -> str:
         await grunt.new_doc("Request", {"title": "Still a draft", "status": "Draft"})
     await ctx.db._session().commit()
     async with grunt.context(db_session, engine, REQUESTER):
-        await grunt.submit("Request", doc["name"], "Send")
+        await grunt.submit("Request", doc.name, "Send")
     await ctx.db._session().commit()
-    return doc["name"]
+    return doc.name
 
 
 async def _awaiting(db_session, engine, user) -> list[dict]:

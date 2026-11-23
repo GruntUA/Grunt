@@ -193,12 +193,12 @@ async def sync_files(event: str, **kwargs: Any) -> None:
         return
 
     doc = await documents.get_doc(doctype, str(name), ignore_permissions=True)
-    if doc.get("is_standard") and not doc.get("app"):
+    if doc.is_standard and not doc.app:
         # Nowhere to write it - but that's no reason to delete the files it has
         # (a test saving a shipped record with app=None used to wipe them).
         log.warning("standard_records.no_app", doctype=doctype, name=name)
         return
-    folder = await export_record(meta, doc) if doc.get("is_standard") else None
+    folder = await export_record(meta, doc) if doc.is_standard else None
     remove_record(doctype, str(name), keep=folder)
     if folder is not None:
         log.info("standard_records.exported", doctype=doctype, name=name, path=str(folder))

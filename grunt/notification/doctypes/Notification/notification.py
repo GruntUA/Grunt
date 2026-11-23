@@ -35,9 +35,9 @@ class Notification(Document):
 
     async def _validate_set_field(self) -> None:
         """The "after sending" field must be a field of the document."""
-        field = (self.get("set_field") or "").strip()
+        field = (self.set_field or "").strip()
         self.set_field = field or None
-        if not field or not self.get("ref_doctype"):
+        if not field or not self.ref_doctype:
             return
         meta = await doctype_registry.get_meta(self.ref_doctype)
         if meta is None or meta.get_field(field) is None:
@@ -49,9 +49,9 @@ class Notification(Document):
 
     async def _validate_minutes(self) -> None:
         """A minutes-before/after rule counts from a date-and-time field."""
-        field = (self.get("date_field") or "").strip()
+        field = (self.date_field or "").strip()
         self.date_field = field
-        if int(self.get("minutes") or 0) < 0:
+        if int(self.minutes or 0) < 0:
             throw(_("Minutes cannot be negative"), "VALIDATION_ERROR")
         if not field:
             throw(_("Choose the date field to count from"), "VALIDATION_ERROR")
@@ -71,22 +71,22 @@ class Notification(Document):
         await self._validate_rows()
         await self._validate_set_field()
         if self.event == "code":
-            if get_event(self.get("event_key") or "") is None:
+            if get_event(self.event_key or "") is None:
                 throw(
-                    _("Unknown code event “%(event)s”") % {"event": self.get("event_key")},
+                    _("Unknown code event “%(event)s”") % {"event": self.event_key},
                     "VALIDATION_ERROR",
                 )
             return
-        if not self.get("ref_doctype"):
+        if not self.ref_doctype:
             throw(_("Choose the document type"), "VALIDATION_ERROR")
         if self.event in MINUTE_EVENTS:
             await self._validate_minutes()
             return
         if self.event not in DATE_EVENTS:
             return
-        field = (self.get("date_field") or "").strip()
+        field = (self.date_field or "").strip()
         self.date_field = field
-        if int(self.get("days") or 0) < 0:
+        if int(self.days or 0) < 0:
             throw(_("Days cannot be negative"), "VALIDATION_ERROR")
         if not field:
             throw(_("Choose the date field to count from"), "VALIDATION_ERROR")
@@ -105,11 +105,11 @@ class Notification(Document):
         """Recipients and channels present, channels known, templates and
         conditions well-formed - a typo is caught here, not when a document
         silently notifies nobody."""
-        if not self.get("recipients"):
+        if not self.recipients:
             throw(_("Add at least one recipient"), "VALIDATION_ERROR")
-        if not self.get("channels"):
+        if not self.channels:
             throw(_("Add at least one channel"), "VALIDATION_ERROR")
-        for row in self.get("recipients") or []:
+        for row in self.recipients or []:
             # ``mandatory_depends_on`` holds in the form only - a row without
             # its target would silently notify nobody.
             field = _RECIPIENT_TARGET.get(row.get("kind") or "")
@@ -118,15 +118,15 @@ class Notification(Document):
                     _("Recipient “%(kind)s”: choose whom it means") % {"kind": _(row["kind"])},
                     "VALIDATION_ERROR",
                 )
-        if self.get("event") != "code" and any(
-            row.get("kind") == "Event recipients" for row in self.get("recipients") or []
+        if self.event != "code" and any(
+            row.get("kind") == "Event recipients" for row in self.recipients or []
         ):
             # Only code names them - on a document event the row would reach nobody.
             throw(
                 _("“Event recipients” only work for a notification on a code event"),
                 "VALIDATION_ERROR",
             )
-        for row in self.get("channels") or []:
+        for row in self.channels or []:
             if get_channel(row.get("channel") or "") is None:
                 throw(
                     _("Unknown channel “%(channel)s”") % {"channel": row.get("channel")},
@@ -135,10 +135,10 @@ class Notification(Document):
             if row.get("channel") == "webhook" and not row.get("webhook"):
                 throw(_("Choose the webhook for the Webhook channel"), "VALIDATION_ERROR")
         templates = [
-            (_("Subject"), self.get("subject_template")),
-            (_("Message"), self.get("message_template")),
+            (_("Subject"), self.subject_template),
+            (_("Message"), self.message_template),
         ]
-        for row in self.get("channels") or []:
+        for row in self.channels or []:
             templates += [(_("Subject"), row.get("subject")), (_("Message"), row.get("message"))]
         for label, template in templates:
             if template and (error := await rules.check_template(template)):
@@ -146,9 +146,7 @@ class Notification(Document):
                     _("%(field)s: template error - %(error)s") % {"field": label, "error": error},
                     "VALIDATION_ERROR",
                 )
-        conditions = [self.get("condition")] + [
-            row.get("condition") for row in self.get("recipients") or []
-        ]
+        conditions = [self.condition] + [row.get("condition") for row in self.recipients or []]
         for condition in conditions:
             if condition and condition.strip():
                 try:

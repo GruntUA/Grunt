@@ -114,7 +114,7 @@ class DocTypeController(Document):
         say nothing. Only roles new to this DocType are checked: an old rule
         naming a role that's gone doesn't block other edits."""
         before = {_role(p) for p in (self.doc_before_save or {}).get("permissions") or []}
-        added = {_role(p) for p in self.data.get("permissions") or []} - before
+        added = {_role(p) for p in self.permissions or []} - before
         missing = await missing_roles(added)
         if missing:
             throw(
