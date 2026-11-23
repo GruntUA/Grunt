@@ -327,6 +327,10 @@ msgstr ""
 msgid "A folder must be inside another folder"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "A followed document notifies you about its changes and comments."
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name can't contain “]”"
 msgstr ""
@@ -872,13 +876,6 @@ msgid ""
 "role's own limit; empty - any"
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid ""
-"Addresses that turned off notification emails - all of them, or one "
-"notification. Made by the unsubscribe link in a letter; delete a row to send"
-" them again."
-msgstr ""
-
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Administrator sign-in"
 msgstr ""
@@ -972,6 +969,14 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgid "All good"
+msgstr ""
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications"
+msgstr ""
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications are off in this channel"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
@@ -2193,6 +2198,7 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Channel"
 msgstr ""
@@ -2436,6 +2442,12 @@ msgstr ""
 msgid "Choose which columns to show, how to group and sort the records"
 msgstr ""
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid ""
+"Choose which notifications you get, and through which channels. Mandatory "
+"ones can’t be turned off."
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Chromium (Playwright)"
 msgstr ""
@@ -2541,6 +2553,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
 msgstr ""
@@ -3138,6 +3151,10 @@ msgstr ""
 msgid "Could not load the list of apps"
 msgstr ""
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not load the notification settings"
+msgstr ""
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not open the report"
 msgstr ""
@@ -3165,6 +3182,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not save the report"
+msgstr ""
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not save the setting"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTags.vue
@@ -3445,6 +3467,8 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Daily"
 msgstr ""
 
@@ -3673,6 +3697,10 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Default colour"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default digest"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -4386,6 +4414,10 @@ msgstr ""
 msgid "Donut"
 msgstr ""
 
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Don’t send these"
+msgstr ""
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Download"
@@ -4559,11 +4591,11 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Email"
 msgstr ""
@@ -4588,10 +4620,6 @@ msgstr ""
 msgid "Email Template"
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Email Unsubscribe"
-msgstr ""
-
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Email address"
 msgstr ""
@@ -4602,6 +4630,11 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Email body"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Email digest"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py
@@ -4705,8 +4738,12 @@ msgid ""
 "Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Empty — all notification emails, including the digest."
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — all notifications (the digest too, for email)."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — every channel."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -5674,6 +5711,22 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Follow"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I comment on"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I create"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents assigned to me"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents shared with me"
 msgstr ""
 
 #: grunt/grunt/notification/events.py
@@ -7740,6 +7793,11 @@ msgstr ""
 msgid "Manager"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Mandatory"
+msgstr ""
+
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
 msgstr ""
@@ -8231,6 +8289,11 @@ msgstr ""
 
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.js
 msgid "Network error:"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Never"
 msgstr ""
 
 #: grunt/frontend/src/router/index.ts
@@ -8867,10 +8930,11 @@ msgstr ""
 msgid "Nothing to back up"
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 msgid "Notification"
 msgstr ""
 
@@ -8887,15 +8951,38 @@ msgstr ""
 msgid "Notification Log"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Notification Preference"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Notification Recipient"
 msgstr ""
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "Notification not found"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/User/User.js
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Notification settings"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 msgid "Notifications"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid ""
+"Notifications a person turned off - one rule or all of them, in one channel "
+"or in every one. Made in the profile (Preferences → Notifications), from the"
+" bell and by the unsubscribe link in a letter; delete a row to send them "
+"again. Mandatory notifications ignore it."
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -9688,6 +9775,12 @@ msgstr ""
 
 #: grunt/grunt/monitoring/health.py
 msgid "Pending migrations. Run `grunt migrate`."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"People can't turn it off - neither in their notification settings nor by the"
+" unsubscribe link (approvals, deadlines)."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
@@ -13510,6 +13603,10 @@ msgstr ""
 msgid "The password must %(requirements)s."
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "The person's email - a user's or any address a rule writes to."
+msgstr ""
+
 #: grunt/grunt/integrations/doctypes/ConnectedApp/connected_app.py
 msgid "The provider addresses must start with https://"
 msgstr ""
@@ -13529,10 +13626,6 @@ msgstr ""
 
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
-msgstr ""
-
-#: grunt/grunt/notification/channels.py
-msgid "The recipient unsubscribed from these emails"
 msgstr ""
 
 #: grunt/grunt/db/errors.py
@@ -13869,6 +13962,14 @@ msgstr ""
 msgid "This message is in HTML format."
 msgstr ""
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification can't be turned off"
+msgstr ""
+
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification has no rule to turn off"
+msgstr ""
+
 #: grunt/grunt/auth/providers/webauthn.py
 msgid "This passkey is already registered"
 msgstr ""
@@ -14180,6 +14281,10 @@ msgstr ""
 msgid "Turn into"
 msgstr ""
 
+#: grunt/grunt/notification/delivery.py
+msgid "Turned off in the recipient's settings"
+msgstr ""
+
 #: grunt/frontend/src/router/index.ts
 msgid "Two-factor authentication"
 msgstr ""
@@ -14319,7 +14424,7 @@ msgstr ""
 msgid "Unknown auth provider: %(name)s"
 msgstr ""
 
-#: grunt/grunt/notification/delivery.py
+#: grunt/grunt/notification/delivery.py grunt/grunt/api/v1/notifications.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Unknown channel “%(channel)s”"
 msgstr ""
@@ -14386,6 +14491,18 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Unmute notification sound"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Unread notifications by email for users who didn't choose in their profile: "
+"every morning at 08:00 or on Mondays."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Unread notifications by email: every morning or on Mondays. Empty = the site"
+" default."
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -15015,6 +15132,8 @@ msgid "Wednesday"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Weekly"
 msgstr ""
 
@@ -15147,6 +15266,12 @@ msgstr ""
 
 #: grunt/grunt/email/unsubscribe.py
 msgid "Which letters should %(email)s no longer get?"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Which notifications to get, and through which channels: the bell, browser "
+"push, email."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -16726,6 +16851,12 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 msgid "“{action}”: are you sure?"
+msgstr ""
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid ""
+"“{name}” notifications are off. Turn them back on in the notification "
+"settings."
 msgstr ""
 
 #: grunt/grunt/email/templates/notification_digest.html

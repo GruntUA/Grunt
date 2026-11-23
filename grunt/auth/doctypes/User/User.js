@@ -14,6 +14,11 @@ export function on_load(frm) {
   // manager on a saved record (your own profile).
   frm.set_df_property("passkeys_button", "hidden", frm.is_new);
 
+  // Notification settings are your own (saved for the signed-in user).
+  frm.set_df_property(
+    "notification_settings_button", "hidden", frm.is_new || frm.doc.name !== grunt.session.user,
+  );
+
   const saved = (f) => !f.is_new;
 
   frm.actions.add({
@@ -132,6 +137,11 @@ export async function on_change(frm, fieldname) {
 
   if (fieldname === "passkeys_button") {
     await manage_passkeys();
+    return;
+  }
+
+  if (fieldname === "notification_settings_button") {
+    await grunt.open_dialog("grunt/NotificationPreferences", { title: __("Notification settings"), size: "large" });
     return;
   }
 

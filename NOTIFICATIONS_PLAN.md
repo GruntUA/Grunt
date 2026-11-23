@@ -86,9 +86,9 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 `subject`, посилання на `NotificationLog` / `EmailQueue` / `EmailMessage`. Статус email оновлює воркер черги.
 `retention_days` — як в інших журналах. Відповідь на «хто, що, чому й чи дійшло» — тут.
 
-### Е. Налаштування користувача (⏸ другий етап)
+### Е. Налаштування користувача (етап 5, FRAPPE_GAP #18)
 
-Таблиця в профілі: правило/подія × канал — вимкнути для себе (крім `is_mandatory`). Дайджест — сюди ж.
+Таблиця в профілі: правило/подія × канал — вимкнути для себе (крім `is_mandatory`). Дайджест — сюди ж. Рішення й деталі — FRAPPE_GAP_PLAN.md, #18.
 
 ## Етапи
 
@@ -99,7 +99,7 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 | 2 | Форма правила: таблиці `NotificationRecipient` (Автор · Роль · Користувач · Поле документа · Email · Призначені · Стежать, умова на рядок; `notify_actor`) і `NotificationChannel` (канал з реєстру + власні тема/текст); Jinja (sandbox) з `doc`, `actor`, `url`, змінними переходу; перевірка форми; міграція 0023 | ✔️ #147 |
 | 3 | Події з коду: `grunt.notification.events` (реєстр + `notification_events` у hooks.py, `trigger()`), подія `code` + `event_key`, отримувачі «з події»; 11 стандартних правил ядра (ToDo, нагадування, стеження, згадки/відповіді, автоповтор, хмарне сховище); текст — мовою кожного отримувача; `is_customized` + «Скинути до стандарту» у `standard_records`; `docs/guide/notifications.md` | ✔️ #148 |
 | 4 | Workflow: правила `on_transition` (поле «Дії workflow», отримувачі «Попередній виконавець» / «Наступні виконавці», змінні `from_label`/`to_label`/`title`) замість `WorkflowTransition.notify/notify_email`; рушій запускає їх у транзакції переходу; міграція 0024 (детерміновані назви `<DocType> · <дія> / <дія>`); mlt_portal — стандартні записи `records/notification/` | ✅ гілки `feature/notification-workflow` (ядро), `feature/notifications-as-rules` (mlt_portal) |
-| 5 | Налаштування користувача (#18) | ⏸ |
+| 5 | Налаштування користувача (#18): `NotificationPreference` (замість `EmailUnsubscribe`, міграція 0029), перевірка в `deliver()`, `Notification.is_mandatory`, таблиця правило × канал у профілі й «Не надсилати такі» в дзвонику, дайджест на користувача, автостеження | ✅ `feat/notification-preferences` |
 | 6 | SMS-канал (#45), PDF у вкладенні, зміна поля після сповіщення (#10) | частково ✔️ `feat/notification-extras` (FRAPPE_GAP #10: PDF і файли, відправник, поле після, хвилини, канал «вебхук»); SMS-канал (#45) — ⏸ |
 
 ## Рішення користувача (2026-11-12)
@@ -112,5 +112,5 @@ Workflow: `WorkflowTransition.notify` / `notify_email` → прибираємо;
 
 - **Службові листи** (код входу, запрошення, скидання пароля) — не правила: їх не можна вимикати, текст — `EmailTemplate`/шаблони `email/templates`; вони йдуть через `EmailQueue` → `EmailMessage`, тож у журналі пошти є. Варіант на потім — пропускати їх через `deliver()` (лише журнал `NotificationDelivery`, без правил).
 - **SLA** — отримувачі й канал задаються в самій політиці `ServiceLevel`.
-- **Дайджест сповіщень** і **розсилка звітів** — налаштовуються в `SystemSettings` / `Report`.
+- **Дайджест сповіщень** — `User.notification_digest` (типове — `SystemSettings.default_notification_digest`); **розсилка звітів** — у `Report`.
 - **Workflow** — етап 4 ✅. **Листи додатків про нові звернення** (mlt_portal `appeals_notify_emails`, tsnap) — отримувачі в налаштуваннях додатка; перевести на події з коду — окремим кроком.

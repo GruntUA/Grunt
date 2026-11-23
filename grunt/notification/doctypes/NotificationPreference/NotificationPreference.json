@@ -1,0 +1,49 @@
+{
+  "name": "NotificationPreference",
+  "label": "Notification Preference",
+  "module": "notification",
+  "table_name": "grunt_notification_preference",
+  "icon": "bell-off",
+  "autoname": "hash",
+  "title_field": "email",
+  "track_activity": false,
+  "description": "Notifications a person turned off - one rule or all of them, in one channel or in every one. Made in the profile (Preferences → Notifications), from the bell and by the unsubscribe link in a letter; delete a row to send them again. Mandatory notifications ignore it.",
+  "indexes": [
+    [
+      "email",
+      "notification"
+    ]
+  ],
+  "fields": [
+    {
+      "fieldname": "email",
+      "label": "Email",
+      "fieldtype": "Data",
+      "required": true,
+      "in_list_view": true,
+      "description": "The person's email - a user's or any address a rule writes to."
+    },
+    {
+      "fieldname": "notification",
+      "label": "Notification",
+      "fieldtype": "Link",
+      "options": "Notification",
+      "in_list_view": true,
+      "description": "Empty — all notifications (the digest too, for email)."
+    },
+    {
+      "fieldname": "channel",
+      "label": "Channel",
+      "fieldtype": "Select",
+      "options_source": "grunt.notification.channel",
+      "in_list_view": true,
+      "description": "Empty — every channel."
+    }
+  ],
+  "permissions": [
+    {
+      "role": "System Manager",
+      "actions": ["read", "write", "create", "delete", "export", "import", "print", "share", "report"]
+    }
+  ]
+}

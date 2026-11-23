@@ -4,8 +4,9 @@ A letter a :class:`~grunt.notification.doctypes.Notification` rule sends by
 email (and the digest) carries ``List-Unsubscribe`` + ``List-Unsubscribe-Post``
 (one click, RFC 8058) and a link at the bottom. The link opens a page that asks
 "this kind of letter or all notification emails?"; a mail client's one-click
-POST unsubscribes from the rule at once. Either way an ``EmailUnsubscribe``
-row remembers it, and the email channel skips the address from then on.
+POST unsubscribes from the rule at once. Either way a ``NotificationPreference``
+row (channel ``email``) remembers it, and the dispatcher skips the address from
+then on. A mandatory rule's letter has no link.
 
 Only notifications: sign-in codes, password resets and letters written from a
 document are never unsubscribable. The link is signed with the site's secret
@@ -15,7 +16,6 @@ for the address - it can't be made for someone else's.
 import hashlib
 import hmac
 from html import escape
-from typing import Any
 from urllib.parse import urlencode
 
 from fastapi import Request
@@ -26,8 +26,7 @@ from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.local import require_session, system_context
-from grunt.log import log
-lazy from grunt.document.api import documents
+lazy from grunt.notification import preferences
 lazy from grunt.site.manager import current_site
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -68,30 +67,12 @@ def unsubscribe_url(email: str, notification: str | None = None) -> str:
 async def is_unsubscribed(email: str, notification: str | None = None) -> bool:
     """Whether *email* turned off *notification* letters (or all of them).
     ``notification=None`` asks about "all" only (the digest)."""
-    address = _normal(email)
-    if not address:
-        return False
-    either: dict[str, Any] = {"notification__isnull": True}
-    if notification:
-        either["notification"] = notification
-    rows = await _db.get_all(
-        "EmailUnsubscribe",
-        filters={"email": address},
-        or_filters=either,
-        fields=["name"],
-        limit=1,
-    )
-    return bool(rows)
+    return await preferences.is_muted(email, notification, "email")
 
 
 async def add(email: str, notification: str | None = None) -> None:
     """Remember that *email* does not want *notification* letters (None - any)."""
-    if await is_unsubscribed(email, notification):
-        return
-    await documents.new_doc(
-        "EmailUnsubscribe", {"email": _normal(email), "notification": notification or None}
-    )
-    log.info("email.unsubscribed", notification=notification or "*")
+    await preferences.set_enabled(email, notification, "email", False)
 
 
 def footer(url: str) -> tuple[str, str]:

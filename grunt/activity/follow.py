@@ -3,17 +3,24 @@
 Followers get a notification (bell + web-push) when a followed document is
 updated (with the changed fields) or commented on. The author of the change is
 never notified about their own action. Follows are dropped with the document.
+
+A user can follow automatically what they create, comment on, are assigned or
+get shared (``User.follow_*``, the profile's Preferences tab).
 """
 
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.db.api import GruntDB
 from grunt.document.titles import resolve_reference_titles
 from grunt.i18n import _
 from grunt.local import system_context
+from grunt.log import log
 from grunt.notification.events import trigger
+lazy from grunt.document.api import documents
+lazy from grunt.metadata.registry import doctype_registry
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -125,3 +132,106 @@ async def drop_follows(
         return
     async with system_context(session):
         await _db.delete("DocFollow", {"reference_doctype": doctype, "reference_id": str(ref)})
+
+
+# Auto-follow - the profile's "Follow documents I create / comment on / that are
+# assigned / shared to me" (User.follow_*).
+
+# Records about a document, not documents to follow (they have hooks of their own).
+_NOT_FOLLOWED = frozenset({"DocFollow", "Comment", "ToDo", "SharedWith"})
+
+
+async def _wants(user: str | None, flag: str) -> bool:
+    if not user:
+        return False
+    return bool(await _db.get_value("User", {"email": user, "is_active": True}, flag))
+
+
+async def _followable(doctype: str | None) -> bool:
+    if not doctype or doctype in _NOT_FOLLOWED:
+        return False
+    dt = await doctype_registry.get_meta(doctype)
+    return dt is not None and not (dt.is_child or dt.is_singleton or not dt.track_activity)
+
+
+async def follow(user: str, doctype: str, doc_id: str) -> bool:
+    """Make *user* follow the document unless they already do. Returns whether
+    a follow was added. Runs as the system (the caller's session)."""
+    if not user or not doc_id or not await _followable(doctype):
+        return False
+    filters = {"reference_doctype": doctype, "reference_id": str(doc_id), "user": user}
+    if await _db.exists("DocFollow", filters):
+        return False
+    await documents.new_doc("DocFollow", filters)
+    return True
+
+
+async def _auto_follow(session: Any, user: Any, flag: str, doctype: Any, doc_id: Any) -> None:
+    if session is None or not user or not doc_id or user == SYSTEM_USER_EMAIL:
+        return
+    try:
+        if not await _followable(doctype):
+            return
+        async with system_context(session):
+            if await _wants(str(user), flag):
+                await follow(str(user), str(doctype), str(doc_id))
+    except Exception:  # noqa: BLE001 - a follow is a nicety; never fail the save
+        log.warning("follow.auto_failed", doctype=doctype, flag=flag, exc_info=True)
+
+
+async def follow_created(
+    event: str = "",
+    *,
+    doctype: str | None = None,
+    doc: Any = None,
+    user: Any = None,
+    session: Any = None,
+    **kwargs: Any,
+) -> None:
+    """``*`` ``after_insert`` hook - the author follows what they created."""
+    if isinstance(doc, dict) and doctype not in _NOT_FOLLOWED:
+        await _auto_follow(session, user, "follow_created", doctype, doc.get("name"))
+
+
+async def follow_commented(
+    event: str = "", *, doc: Any = None, user: Any = None, session: Any = None, **kwargs: Any
+) -> None:
+    """``Comment`` ``after_insert`` hook - who commented follows the document."""
+    if isinstance(doc, dict):
+        await _auto_follow(
+            session,
+            user or doc.get("owner"),
+            "follow_commented",
+            doc.get("reference_doctype"),
+            doc.get("reference_id"),
+        )
+
+
+async def follow_assigned(
+    event: str = "", *, doc: Any = None, session: Any = None, **kwargs: Any
+) -> None:
+    """``ToDo`` ``after_insert`` / ``after_save`` hook - the assignee follows
+    the document the task is about."""
+    if isinstance(doc, dict) and doc.get("status") != "Cancelled":
+        await _auto_follow(
+            session,
+            (doc.get("assigned_to") or "").strip(),
+            "follow_assigned",
+            doc.get("reference_doctype"),
+            doc.get("reference_id"),
+        )
+
+
+async def follow_shared(
+    event: str = "", *, doc: Any = None, session: Any = None, **kwargs: Any
+) -> None:
+    """``SharedWith`` ``after_insert`` hook - the person it is shared with
+    follows it (not a role, group or everyone)."""
+    if isinstance(doc, dict):
+        await _auto_follow(
+            session,
+            doc.get("user"),
+            "follow_shared",
+            doc.get("reference_doctype"),
+            doc.get("reference_id"),
+        )

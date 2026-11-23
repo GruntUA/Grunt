@@ -31,8 +31,8 @@
 | 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ✔️ (`feat/email-oauth`) |
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ✔️ (`feat/email-queue`) |
 | 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ✔️ (#240) |
-| 17 | Document Naming Rule (серія нумерації за умовою) | ✅ (`feat/naming-rules`) |
-| 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
+| 17 | Document Naming Rule (серія нумерації за умовою) | ✔️ (#241) |
+| 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ✅ (`feat/notification-preferences`) |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
 | 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
@@ -241,7 +241,7 @@
   - Не робимо: `reference_report` (є `is_standard`/`app`).
 
 ### 17. Document Naming Rule
-**Статус:** ✅ — `feat/naming-rules`
+**Статус:** ✔️ — #241
 - **Frappe:** правило іменування з умовами та пріоритетом (різні серії для різних підрозділів/типів).
 - **Ґрунт зараз:** `autoname` + NamingSeries на DocType.
 - **Рішення (2026-11-21):** робимо все, одним PR (`feat/naming-rules`):
@@ -255,10 +255,17 @@
   - Не робимо: таблицю умов (field/condition/value), окремий DocType «Document Naming Settings», назву для поправок (amended_from, у ґрунті немає Submit).
 
 ### 18. Налаштування сповіщень користувача
-**Статус:** ❓
+**Статус:** ✅ — `feat/notification-preferences`
 - **Frappe:** Notification Settings / Notification Type Preference — увімкнути/вимкнути пошту та системні сповіщення за типом, дайджест, автостеження за створеними/коментованими/призначеними документами.
-- **Ґрунт зараз:** немає персональних налаштувань.
-- **Рішення:** —
+- **Ґрунт зараз:** немає персональних налаштувань; є `EmailUnsubscribe` (відписка від листів правила або всіх); дайджест щодня **і** щотижня — усім активним (у понеділок два листи); стеження лише вручну.
+- **Рішення (2026-11-21):** робимо одним PR (`feat/notification-preferences`):
+  - **`NotificationPreference`** замість `EmailUnsubscribe`: `email` (користувач або будь-яка адреса), `notification` (порожньо — усі), `channel` (порожньо — усі); рядок = вимкнено. Міграція переносить відписки як `channel=email`; посилання «відписатися» пише сюди. Перевірка — у `deliver()` (Skipped, «налаштування користувача»). Вимикати можна будь-який канал, і дзвоник теж.
+  - **`Notification.is_mandatory`** («Не можна вимкнути») — ігнорує налаштування й відписку.
+  - **Профіль → «Налаштування» → «Сповіщення»:** таблиця правило × канал (правила, які користувач міг би отримати; обов'язкові — заблоковані); у дзвонику — «Не надсилати такі».
+  - **Дайджест:** `User.notification_digest` (Ні / Щодня / Щотижня), типове — `SystemSettings`, за замовчуванням **Ні**; один дайджест на користувача.
+  - **Автостеження:** прапорці в профілі — документи, які я створюю / коментую / які мені призначили / поширили (за замовчуванням вимкнено).
+  - ⏸ тихі години пушів; ❌ окремий DocType Notification Settings, Energy Points.
+  - **Реалізація:** `grunt/notification/preferences.py` (`muted`/`is_off` — один запит на повідомлення в `deliver()`, `set_enabled` розбиває рядок «усі канали» при вмиканні одного, `mute_everywhere`, `overview`); API `grunt.api.v1.notifications.get_preferences/set_preference/mute_like`; діалог `frontend/src/components/desk/dialogs/NotificationPreferences.vue` (`grunt.open_dialog('grunt/NotificationPreferences')` — ядро тепер теж має діалоги в `appDialogs`); кнопка «Налаштування сповіщень» лише у власному профілі, шестерня в дзвонику. Міграція 0029: `rename_doctype(..., old_table=)` — EmailUnsubscribe жила на типовій таблиці `grunt_email_email_unsubscribe` без `table_name`, тож у `rename_doctype` додано параметр `old_table`. Автостеження — хуки в `core_hooks.py` (`*` after_insert, Comment, ToDo, SharedWith), лише DocType з `track_activity`, без дочірніх/single; `DocFollow` у системному контексті підписує вказаного користувача.
 
 ### 19. Workflow
 **Статус:** ✔️ — #217, #219

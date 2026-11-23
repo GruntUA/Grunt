@@ -252,9 +252,9 @@
     {
       "section": "Пошта та сповіщення",
       "type": "DocType",
-      "label": "Відписки від листів",
-      "link_to": "EmailUnsubscribe",
-      "icon": "mail-x",
+      "label": "Вимкнені сповіщення",
+      "link_to": "NotificationPreference",
+      "icon": "bell-off",
       "show_count": false
     },
     {
