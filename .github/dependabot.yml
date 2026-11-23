@@ -1,6 +1,45 @@
+# Weekly pull requests into develop for new MAJOR versions only: minor and patch
+# versions come with every release (`grunt release --deps`, lock files within the
+# ranges). Security updates are not limited by `ignore`.
+# The `build(deps)` prefix passes pr-title.yml and lands under "Dependencies" in
+# CHANGELOG.md.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    versioning-strategy: "increase"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps)"
+      prefix-development: "build(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+    groups:
+      # Exact peer dependencies on @tiptap/core: they move only all together.
+      tiptap:
+        patterns: ["@tiptap/*"]
+
+  - package-ecosystem: "uv"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    versioning-strategy: "increase"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps)"
+      prefix-development: "build(deps)"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
