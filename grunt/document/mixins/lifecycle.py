@@ -25,14 +25,14 @@ from grunt.document.formula import compute_formulas
 from grunt.document.guards import check_write
 from grunt.document.payload import update_values
 from grunt.document.relations import apply_field_values
-from grunt.document.serde import audit_fields
+from grunt.document.serde import audit_fields, same_instant
 from grunt.document.update_side_effects import (
     fire_delete_services,
     fire_update_services,
     record_update_changes,
 )
 from grunt.document.validation import _validate_data, refuse_set_once_changes, validate_child_rows
-from grunt.errors import ApplicationError, not_found
+from grunt.errors import ApplicationError, not_found, stale_document
 from grunt.events import fire
 from grunt.i18n import _
 from grunt.local import require_session_user
@@ -329,9 +329,12 @@ class DocumentLifecycleMixin:
         self._bind()
         user = require_session_user()
         data = strip_file_signatures(data)
-        # Optimistic-concurrency guard: the `modified_at` the client's edit was
-        # based on (sent by offline replays). A newer server copy -> 409.
-        base_modified_at = data.pop("__base_modified_at", None)
+        # Optimistic locking: the `modified_at` the edit was based on - sent
+        # explicitly by offline replays, otherwise the one the document carries
+        # (the form and ``doc.save()`` send the whole document). A newer stored
+        # copy -> 409. A partial payload without it is guarded only against a
+        # write between the load below and the UPDATE (SqlStore.update).
+        base_modified_at = data.pop("__base_modified_at", None) or data.get("modified_at")
         dt = self._dt = await self._resolve_dt(self.doctype)
 
         # A singleton's first save arrives here, not at ``insert`` - the form
@@ -365,15 +368,9 @@ class DocumentLifecycleMixin:
         if (
             base_modified_at
             and existing.get("modified_at") is not None
-            and not _same_instant(base_modified_at, existing.get("modified_at"))
+            and not same_instant(base_modified_at, existing.get("modified_at"))
         ):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=_(
-                    "The document was changed after you started editing. "
-                    "Open it again and repeat your changes."
-                ),
-            )
+            raise stale_document()
 
         # Workflow: the state moves only by transitions; an edit may itself be
         # an `on_edit` transition (then *data* carries the new state).
@@ -518,22 +515,3 @@ class DocumentLifecycleMixin:
             user=user,
             session=self.session,
         )
-
-
-def _same_instant(a: Any, b: Any) -> bool:
-    """Compare two timestamps given as datetimes or ISO strings (``Z`` / offset / naive-UTC)."""
-
-    def parse(v: Any) -> datetime | None:
-        if isinstance(v, datetime):
-            dt = v
-        elif isinstance(v, str) and v:
-            try:
-                dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
-            except ValueError:
-                return None
-        else:
-            return None
-        return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
-
-    pa, pb = parse(a), parse(b)
-    return pa is not None and pb is not None and pa == pb

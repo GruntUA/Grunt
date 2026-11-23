@@ -10584,6 +10584,10 @@ msgstr ""
 msgid "Related system logs"
 msgstr ""
 
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "Reload"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid ""
 "Reload the page; if that does not help, check that the server serves /sw.js."
@@ -13422,10 +13426,14 @@ msgstr ""
 msgid "The document type to show in links"
 msgstr ""
 
-#: grunt/grunt/document/mixins/lifecycle.py
+#: grunt/grunt/errors.py
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "The document was changed by someone else"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormDocWatcher.ts

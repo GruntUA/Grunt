@@ -11054,6 +11054,10 @@ msgstr ""
 msgid "Related system logs"
 msgstr "Пов’язані системні журнали"
 
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "Reload"
+msgstr "Перезавантажити"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid ""
 "Reload the page; if that does not help, check that the server serves /sw.js."
@@ -14000,13 +14004,17 @@ msgstr "Тип документів, які додаються на календ
 msgid "The document type to show in links"
 msgstr "Тип документів, які показувати у зв'язках"
 
-#: grunt/grunt/document/mixins/lifecycle.py
+#: grunt/grunt/errors.py
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
 msgstr ""
 "Документ змінено після того, як ви почали редагування. Відкрийте його знову "
 "та повторіть зміни."
+
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "The document was changed by someone else"
+msgstr "Документ змінив хтось інший"
 
 #: grunt/frontend/src/core/composables/useFormDocWatcher.ts
 msgid "The document was updated by another user"
