@@ -116,3 +116,43 @@ def test_generated_block_marks_optional_fields():
     assert "    status: str | None = None  # Status" in block
     assert "    code: str | None = None  # Code" in block
     assert "    lines: list[dict] = []  # Table: Line" in block
+
+
+def test_registered_controller_is_used_with_or_without_doctype():
+    from grunt.document.registry import document_registry
+
+    class ExtendedOrder(CtorOrder):
+        pass
+
+    document_registry.register("CtorOrder", ExtendedOrder)
+    try:
+        assert type(CtorOrder(title="x")) is ExtendedOrder
+        assert type(CtorOrder("CtorOrder", {"title": "x"})) is ExtendedOrder
+        assert type(CtorOrder(doctype="CtorOrder", data={})) is ExtendedOrder
+        assert type(Document("CtorOrder", {})) is Document
+    finally:
+        document_registry._forget("CtorOrder")
+
+
+def test_required_child_table_has_no_default():
+    block = _render_type_block(
+        [{"fieldname": "lines", "fieldtype": "Table", "options": "Line", "required": True}]
+    )
+    assert "    lines: list[dict]  # Table: Line" in block
+
+
+def test_scaffold_types_required_fields_like_sync_types():
+    from grunt.metadata.field import DocField
+    from grunt.metadata.scaffold import _build_scaffold_context
+
+    ctx = _build_scaffold_context(
+        "CtorOrder",
+        [
+            DocField(fieldname="title", fieldtype="Data", required=True),
+            DocField(fieldname="note", fieldtype="Data"),
+            DocField(fieldname="lines", fieldtype="Table", options="Line", required=True),
+        ],
+    )
+    types = {f["fieldname"]: f["py_type"] for f in ctx["physical_fields"]}
+    assert types == {"title": "str", "note": "str | None"}
+    assert ctx["table_fields"][0]["required"] is True

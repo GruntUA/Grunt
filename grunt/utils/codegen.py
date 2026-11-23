@@ -78,7 +78,7 @@ def _is_typed(f: dict) -> bool:
     )
 
 
-def _is_required_on_create(f: dict) -> bool:
+def is_required_on_create(f: dict) -> bool:
     """A field the constructor must be given: required, and nothing else fills it."""
     return bool(
         f.get("required")
@@ -89,10 +89,10 @@ def _is_required_on_create(f: dict) -> bool:
     )
 
 
-def _field_type(f: dict) -> str:
+def field_type(f: dict) -> str:
     """Python type of a field; one the constructor must be given is never None."""
     py_type = get_python_type(f["fieldtype"])
-    if _is_required_on_create(f) and py_type.endswith(" | None"):
+    if is_required_on_create(f) and py_type.endswith(" | None"):
         py_type = py_type.removesuffix(" | None")
     return py_type
 
@@ -114,7 +114,7 @@ def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
         enriched.append(
             {
                 **f,
-                "py_type": _field_type(f),
+                "py_type": field_type(f),
             }
         )
 
@@ -146,13 +146,14 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     # Annotations type the constructor too (Document is a dataclass_transform):
     # `= None` / `= []` - a field it may be called without.
     for f in physical:
-        py_type = _field_type(f)
+        py_type = field_type(f)
         default = " = None" if py_type.endswith(" | None") else ""
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
         field_lines.append(f"{indent}{f['fieldname']}: {py_type}{default}{comment}")
     for f in table_fields:
         table_opt = f.get("options", "?")
-        field_lines.append(f"{indent}{f['fieldname']}: list[dict] = []  # Table: {table_opt}")
+        default = "" if is_required_on_create(f) else " = []"
+        field_lines.append(f"{indent}{f['fieldname']}: list[dict]{default}  # Table: {table_opt}")
 
     body = "\n".join(field_lines) if field_lines else f"{indent}pass"
 

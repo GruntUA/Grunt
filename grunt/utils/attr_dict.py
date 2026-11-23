@@ -62,8 +62,8 @@ def as_row(value: Mapping[str, Any]) -> AttrDict:
     for v in row.values():
         if type(v) is list:
             for i, item in enumerate(v):
-                if isinstance(item, dict) and type(item) is not AttrDict:
-                    v[i] = as_row(item)
+                if isinstance(item, dict):
+                    v[i] = as_row(item)  # an AttrDict child is kept, its own children normalised
     return row
 
 

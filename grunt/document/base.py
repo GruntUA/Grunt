@@ -137,19 +137,20 @@ class Document(
                 delattr(cls, name)
 
     def __new__(cls, doctype: str | None = None, *args: Any, **kwargs: Any) -> Any:
+        # The registered controller when it extends the class called
+        # (doctype_mixins / override_doctype_class of other apps), so their
+        # hooks run - as for a document grunt loads. With or without an
+        # explicit doctype; `Document("X", ...)` itself stays a bare Document.
         target = cls
-        if doctype is None and cls is not Document:
-            # `Invoice(amount=...)`: the registered controller when it extends the
-            # class called (doctype_mixins / override_doctype_class of other apps),
-            # so their hooks run - as for a document grunt loads.
-            name: str = getattr(cls, "doctype", cls.__name__)
+        name: str = doctype or getattr(cls, "doctype", cls.__name__)
+        if cls is not Document:
             controller = document_registry.get(name)
             if controller is not cls and issubclass(controller, cls):
                 target = controller
-            doc = super().__new__(target)
+        doc = super().__new__(target)
+        if doctype is None:
             doc._doctype = name
-            return doc
-        return super().__new__(target)
+        return doc
 
     def __init__(
         self,

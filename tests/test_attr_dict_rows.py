@@ -128,3 +128,8 @@ async def test_db_api_returns_attrdicts(orders):
 
     whole = await grunt.db.get_value("AttrOrder", doc.name, "*")
     assert whole is not None and whole.title == "Second"
+
+
+def test_as_row_reaches_into_attrdict_children():
+    row = as_row({"lines": [AttrDict({"parts": [{"qty": 1}]})]})
+    assert row.lines[0].parts[0].qty == 1

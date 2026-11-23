@@ -35,7 +35,7 @@ class {{ name }}(Document):
     {{ field.fieldname }}: {{ field.py_type }}{{ " = None" if field.py_type.endswith(" | None") else "" }}{{ ("  # " ~ field.label) if (field.label and field.label != field.fieldname) else "" }}
 {% endfor %}
 {% for field in table_fields %}
-    {{ field.fieldname }}: list[dict] = []  # Table: {{ field.options or "?" }}
+    {{ field.fieldname }}: list[dict]{{ "" if field.required else " = []" }}  # Table: {{ field.options or "?" }}
 {% endfor %}
 {% if not physical_fields and not table_fields %}
     pass

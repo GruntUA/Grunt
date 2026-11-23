@@ -16,9 +16,14 @@ from typing import Any
 from grunt.config import settings
 from grunt.document.base import SYS_FIELDS, is_shadowed_field
 from grunt.log import log
-from grunt.metadata.field import DocField, get_python_type, has_trait, is_physical_fieldtype
+from grunt.metadata.field import DocField, has_trait, is_physical_fieldtype
 from grunt.site.manager import site_manager
-from grunt.utils.codegen import render_template, sync_controller_types
+from grunt.utils.codegen import (
+    field_type,
+    is_required_on_create,
+    render_template,
+    sync_controller_types,
+)
 from grunt.utils.strings import to_snake_case
 lazy from grunt.metadata import store
 lazy from grunt.metadata.doctype import DocType
@@ -47,12 +52,18 @@ def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
             continue
 
         if has_trait(fieldtype, "table"):
-            table_fields.append({"fieldname": fieldname, "options": options})
+            table_fields.append(
+                {
+                    "fieldname": fieldname,
+                    "options": options,
+                    "required": is_required_on_create(field.model_dump()),
+                }
+            )
         elif is_physical_fieldtype(fieldtype):
             physical_fields.append(
                 {
                     "fieldname": fieldname,
-                    "py_type": get_python_type(fieldtype),
+                    "py_type": field_type(field.model_dump()),
                     "label": label,
                     "fieldtype": fieldtype,
                 }
