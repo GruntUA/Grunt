@@ -5733,16 +5733,6 @@ msgstr ""
 " «Повернути всі файли на сервер»), потім змінюйте, де або як вони "
 "зберігаються"
 
-#: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid ""
-"Files attached to these documents are always private, even if the upload "
-"asks for a public one, and can't be made public later (personnel files, "
-"citizens' appeals)"
-msgstr ""
-"Файли цих документів завжди приватні, навіть якщо при завантаженні просили "
-"публічний, і зробити їх публічними потім не можна (особові справи, звернення "
-"громадян)"
-
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid ""
 "Files fetched back from the storage are kept on the server up to this size; "
@@ -8676,6 +8666,18 @@ msgstr "Новий ID"
 #: grunt/grunt/notification/records/notification/followed_document_commented/followed_document_commented.json
 msgid "New comment: “%(title)s”"
 msgstr "Новий коментар: «%(title)s»"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"New files attached to these documents are always private, even if the upload"
+" asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals). Files already public stay so - make them private "
+"separately"
+msgstr ""
+"Нові файли цих документів завжди приватні, навіть якщо при завантаженні "
+"просили публічний, і зробити їх публічними потім не можна (особові справи, "
+"звернення громадян). Файли, що вже публічні, такими й лишаються — зробіть їх "
+"приватними окремо"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "New folder"

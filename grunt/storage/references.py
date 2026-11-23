@@ -20,7 +20,8 @@ it publishes the file - every referenced file the saving user can read becomes
 someone's private folder included; it stays out of other people's lists).
 With ``is_published_field`` set, only a published document does that.
 A DocType with ``force_private_attachments`` is the opposite: a public file
-it claims (one picked from the user's library) is made private.
+it claims (one picked from the user's library) is made private, and its files
+are never published by website content that links them.
 
 When an edit drops a file from those fields (a replaced cover, an image cut
 from the text), the file stops being the document's: it is detached and stays
@@ -158,8 +159,19 @@ async def _publish(ids: set[str], user: str | None) -> None:
     readable = [
         r["name"]
         for r in rows
-        if not r.get("is_public") and await permission_checker.check(meta, "read", r, user=user)
+        if not r.get("is_public")
+        and not await _kept_private(r.get("attached_to_doctype"))
+        and await permission_checker.check(meta, "read", r, user=user)
     ]
     if readable:
         await _db.bulk_update("File", {"name__in": readable}, {"is_public": True})
         log.debug("storage.files_published", count=len(readable))
+
+
+async def _kept_private(doctype: str | None) -> bool:
+    """Whether files of *doctype* stay private (``force_private_attachments``):
+    linking one from website content must not publish it."""
+    if not doctype:
+        return False
+    meta = await doctype_registry.get_meta(doctype)
+    return bool(meta and meta.force_private_attachments)

@@ -117,3 +117,47 @@ def test_doctype_cant_be_both_public_and_private():
             force_private_attachments=True,
             fields=[{"fieldname": "content", "label": "Content", "fieldtype": "Data"}],
         )
+
+
+@pytest.mark.asyncio
+async def test_a_public_file_moved_onto_the_document_goes_private(ctx, secret_note, storage):
+    import grunt
+    from grunt.storage import files
+
+    loose = await files.store(b"loose", "loose.txt", "text/plain", is_public=True)
+
+    await grunt.save_doc(
+        "File", loose["name"], {"attached_to_doctype": "SecretNote", "attached_to_id": "N-1"}
+    )
+
+    assert not await ctx.db.get_value("File", loose["name"], "is_public")
+
+
+@pytest.mark.asyncio
+async def test_website_content_linking_the_file_doesnt_publish_it(
+    ctx, secret_note, storage, db_session, engine
+):
+    import grunt
+    from grunt.api.v1.meta import save_doctype
+    from grunt.storage.doctypes.File.file import upload
+
+    await save_doctype(
+        doctype_data={
+            "name": "OpenPage",
+            "label": "Open Page",
+            "module": "core",
+            "public_attachments": True,
+            "fields": [{"fieldname": "content", "label": "Content", "fieldtype": "RichText"}],
+            "permissions": [{"role": "All", "actions": ["read", "write", "create"]}],
+            "__is_new": True,
+        }
+    )
+    async with grunt.context(db_session, engine, make_user(ANN, roles=["All"])):
+        note = await grunt.new_doc("SecretNote", {})
+        scan = await upload(
+            _file("scan.txt"), attached_to_doctype="SecretNote", attached_to_id=note["name"]
+        )
+        await grunt.new_doc("OpenPage", {"content": f'<p><a href="{scan["url"]}">scan</a></p>'})
+        await db_session.commit()
+
+    assert not await ctx.db.get_value("File", scan["id"], "is_public")

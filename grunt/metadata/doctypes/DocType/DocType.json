@@ -556,7 +556,7 @@
       "fieldname": "force_private_attachments",
       "label": "Always private attachments",
       "fieldtype": "Check",
-      "description": "Files attached to these documents are always private, even if the upload asks for a public one, and can't be made public later (personnel files, citizens' appeals)",
+      "description": "New files attached to these documents are always private, even if the upload asks for a public one, and can't be made public later (personnel files, citizens' appeals). Files already public stay so - make them private separately",
       "depends_on": "eval:!doc.public_attachments"
     },
     {

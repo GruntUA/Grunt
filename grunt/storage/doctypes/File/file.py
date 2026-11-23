@@ -83,24 +83,30 @@ class File(Document):
         """A file of a DocType with ``force_private_attachments`` stays private.
 
         A new one is stored private whatever the upload asked for (as in
-        Frappe); turning an existing one public is refused - saying nothing
-        there would leave the user thinking it worked. A file that was public
-        before the DocType got the flag is left as it is: the flag guards new
-        files, it doesn't sweep old ones."""
+        Frappe), and so is a public one moved onto such a document (as
+        :func:`grunt.storage.references.claim_referenced_files` does); turning
+        a private one public is refused - saying nothing there would leave the
+        user thinking it worked. A file that was already the document's and
+        public before the DocType got the flag is left as it is: the flag
+        guards new files, it doesn't sweep old ones."""
         if not self.is_public or not self.attached_to_doctype:
             return
         meta = await doctype_registry.get_meta(self.attached_to_doctype)
         if meta is None or not meta.force_private_attachments:
             return
         before = self.doc_before_save
-        if before is not None:
-            if before.get("is_public"):
-                return
+        if before is not None and not before.get("is_public"):
             throw(
                 _("Files of %(doctype)s are always private")
                 % {"doctype": _(meta.label or meta.name)},
                 "VALIDATION_ERROR",
             )
+        if (
+            before is not None
+            and before.get("attached_to_doctype") == self.attached_to_doctype
+            and before.get("attached_to_id") == self.attached_to_id
+        ):
+            return
         self.is_public = False
 
     async def before_delete(self) -> None:
