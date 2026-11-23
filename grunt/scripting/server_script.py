@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.log import log
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.db.api import GruntDB
 lazy from grunt.document.api import documents
 lazy from grunt.local import _session_ctx
@@ -152,7 +153,7 @@ class _DBProxy:
         limit: int = 20,
         order_by: str | None = None,
         order: str = "desc",
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
         """Fetch a list of documents as plain dicts."""
 
         return await self._run_with_session(
@@ -275,7 +276,7 @@ class ScriptContext:
 
         async def _action() -> dict[str, Any] | None:
             db = GruntDB()
-            rows: list[dict[str, Any]]
+            rows: list[AttrDict]
             if isinstance(filters_or_id, str):
                 rows = await db.get_all(doctype, filters={"name": filters_or_id}, limit=1)
             else:
@@ -290,7 +291,7 @@ class ScriptContext:
         filters: dict[str, Any] | None = None,
         fields: list[str] | None = None,
         limit: int = 20,
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
         """Fetch a list of documents.
 
         Usage::
@@ -307,7 +308,7 @@ class ScriptContext:
         filters: dict[str, Any] | None,
         fields: list[str] | None,
         limit: int,
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
 
         return await self._run_with_session(
             lambda: GruntDB().get_all(

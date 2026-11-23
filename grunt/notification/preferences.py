@@ -20,6 +20,7 @@ from grunt.db.api import GruntDB
 from grunt.i18n import _
 from grunt.local import require_session, system_context
 from grunt.log import log
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
@@ -69,7 +70,7 @@ async def is_muted(email: str, notification: str | None, channel: str) -> bool:
     return is_off(await muted([email], notification), email, channel)
 
 
-async def _rows(email: str, notification: str | None) -> list[dict[str, Any]]:
+async def _rows(email: str, notification: str | None) -> list[AttrDict]:
     filters: dict[str, Any] = {"email": normal(email)}
     if notification:
         filters["notification"] = notification

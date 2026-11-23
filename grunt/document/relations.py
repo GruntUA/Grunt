@@ -14,6 +14,7 @@ from grunt.document.serde import audit_fields, serialize_datetimes
 from grunt.log import log
 from grunt.metadata.field import get_storage_class
 from grunt.metadata.registry import doctype_registry
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.metadata.doctype import DocType
 
 # Target-doctype fields auto-injected alongside a Link field's __label (as
@@ -348,7 +349,9 @@ async def _load_child_tables(
                 .where(child_table.c.parent_name == doc["name"])
                 .order_by(child_table.c.idx)
             )
-            rows = [{"doctype": child_dt.name, **r._mapping} for r in result.all()]
+            rows: list[dict[str, Any]] = [
+                AttrDict({"doctype": child_dt.name, **r._mapping}) for r in result.all()
+            ]
             for row in rows:
                 serialize_datetimes(row)
             await _resolve_link_labels(session, child_dt, rows)

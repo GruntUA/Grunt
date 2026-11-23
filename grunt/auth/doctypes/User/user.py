@@ -8,6 +8,7 @@ refresh tokens in ``grunt.auth.doctypes.UserSession``.
 """
 
 import re as _re
+from collections.abc import Sequence
 from datetime import UTC, date, datetime, time
 from typing import Any
 
@@ -337,7 +338,7 @@ def _profile_names(rows: Any) -> list[str]:
     return list(dict.fromkeys(n for n in names if n))
 
 
-def _assignments(rows: list[dict[str, Any]]) -> list[tuple[str, ...]]:
+def _assignments(rows: Sequence[dict[str, Any]]) -> list[tuple[str, ...]]:
     """Role assignment rows compared as a set (order and row ids don't matter),
     with the profile each came from."""
     return sorted(

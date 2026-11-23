@@ -28,6 +28,7 @@ from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.tasks.broker import retryable_task
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
 
@@ -88,7 +89,7 @@ def same_day_of_year(value: date, target: date) -> bool:
     )
 
 
-async def due_documents(rule: dict[str, Any], today: date) -> list[dict[str, Any]]:
+async def due_documents(rule: dict[str, Any], today: date) -> list[AttrDict]:
     """Documents of the rule's DocType whose date field matches today."""
     doctype, field = rule["ref_doctype"], rule["date_field"]
     meta = await doctype_registry.get_meta(doctype)

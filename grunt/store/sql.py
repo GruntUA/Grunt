@@ -35,6 +35,7 @@ from grunt.store.base import (
     UPDATE,
     Store,
 )
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.aggregate import compute_aggregations
 lazy from grunt.document.multi_link import MultiLinkService
 lazy from grunt.document.payload import PROTECTED_FIELDS, update_values
@@ -231,7 +232,7 @@ class SqlStore(Store):
         if query.offset and query.after is None:
             stmt = stmt.offset(query.offset)
 
-        rows = [dict(r._mapping) for r in await self.session.execute(stmt)]
+        rows: list[dict[str, Any]] = [AttrDict(r._mapping) for r in await self.session.execute(stmt)]
         if multilinks:
             await self._attach_multilinks(rows, multilinks, keep_name="name" in (fields or ()))
         return rows
@@ -283,7 +284,7 @@ class SqlStore(Store):
         row = (await self.session.execute(stmt)).first()
         if row is None:
             return None
-        doc = serialize_datetimes(dict(row._mapping))
+        doc = serialize_datetimes(AttrDict(row._mapping))
 
         dt = self.meta
         expand_set = {x for x in (expand or []) if x}
@@ -466,7 +467,7 @@ class SqlStore(Store):
             stmt = stmt.order_by(*self.dialect.sort(expr, descending=query.sort.descending))
         if query.limit is not None:
             stmt = stmt.limit(query.limit)
-        return [dict(r._mapping) for r in (await self.session.execute(stmt)).all()]
+        return [AttrDict(r._mapping) for r in (await self.session.execute(stmt)).all()]
 
 
 __all__ = ["SqlStore", "search_condition"]
