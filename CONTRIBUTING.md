@@ -34,7 +34,8 @@
    окремо), push у `develop` і PR `develop → master` з нотатками розгортання (міграції,
    `grunt migrate`, перезапуск worker для нових DocType, змінені залежності).
    З `--deps` спершу оновлюються lock-файли в межах діапазонів `pyproject.toml` /
-   `package.json` (`uv lock --upgrade`, `npm update`) — окремим PR у `develop`
+   `package.json` (`uv lock --upgrade`, `npm update`), а npm-пакети з точною версією чи діапазоном
+   `^0.x` — до найновішої мінорної в `package.json`; усе це окремим PR у `develop`
    (`build(deps): …`, у `CHANGELOG.md` — розділ «Dependencies»), який `grunt release` зливає,
    щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх пропонує
    Dependabot (див. нижче).
