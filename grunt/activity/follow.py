@@ -172,7 +172,8 @@ async def _auto_follow(session: Any, user: Any, flag: str, doctype: Any, doc_id:
     try:
         if not await _followable(doctype):
             return
-        async with system_context(session):
+        # A savepoint: a failed statement must not poison the saving document's transaction.
+        async with system_context(session), session.begin_nested():
             if await _wants(str(user), flag):
                 await follow(str(user), str(doctype), str(doc_id))
     except Exception:  # noqa: BLE001 - a follow is a nicety; never fail the save

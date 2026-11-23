@@ -43,7 +43,11 @@ async def deliver(
     names = list(dict.fromkeys(c for c in channels if c))
     people = list(dict.fromkeys(r for r in recipients if r))
     # What each recipient turned off (NotificationPreference) - not for a mandatory rule.
-    off = set() if message.mandatory else await preferences.muted(people, message.notification)
+    off = (
+        set()
+        if message.mandatory
+        else await preferences.muted(people, message.notification, session)
+    )
     for recipient in people:
         for name in names:
             delivery = delivery_log.new_id()

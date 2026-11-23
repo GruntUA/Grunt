@@ -257,6 +257,30 @@ async def test_auto_follow_created_and_commented(ctx):
     assert await _follows(ctx, OTHER) == []
 
 
+@pytest.mark.asyncio
+async def test_system_follow_needs_the_followers_read_access(ctx):
+    from grunt.activity.follow import follow
+    from grunt.errors import APIError
+
+    async with ctx.system_context(ctx.db._session(), ctx.get_engine()):
+        await _user(ctx, ME)  # no roles, nothing shared or assigned
+        # Role: System Manager only.
+        hidden = await ctx.new_doc("Role", {"role_name": "Закрита роль"})
+        with pytest.raises(APIError) as denied:
+            await follow(ME, "Role", hidden["name"])
+        assert denied.value.status_code == 403
+    assert await _follows(ctx) == []
+
+
+@pytest.mark.asyncio
+async def test_muted_reads_through_the_given_session(ctx):
+    session = ctx.db._session()
+    async with ctx.system_context(session, ctx.get_engine()):
+        await preferences.set_enabled(ME, RULE, "email", False)
+    # No session bound to the context - the dispatcher's own one is used.
+    assert await preferences.muted([ME], RULE, session) == {(ME, "email")}
+
+
 # Migration 0029
 
 
@@ -308,3 +332,40 @@ def test_migration_moves_unsubscribes_to_email_preferences():
     assert [tuple(r) for r in stored] == [
         ("NotificationPreference", "grunt_notification_preference")
     ]
+
+
+def test_migration_rerun_still_limits_old_rows_to_email():
+    """MySQL commits ADD COLUMN by itself: a rerun after a failed UPDATE finds
+    the column already there and must still fill it."""
+    import importlib
+
+    import sqlalchemy as sa
+    from alembic.migration import MigrationContext
+    from alembic.operations import Operations
+
+    migration = importlib.import_module("grunt.db.migrations.versions.0029_notification_preference")
+    engine = sa.create_engine("sqlite://")
+    with engine.begin() as conn:
+        conn.execute(
+            sa.text(
+                "CREATE TABLE grunt_metadata_doc_type (name TEXT, table_name TEXT, definition JSON)"
+            )
+        )
+        conn.execute(
+            sa.text(
+                "CREATE TABLE grunt_notification_preference "
+                "(name TEXT, email TEXT, notification TEXT, channel TEXT)"
+            )
+        )
+        conn.execute(
+            sa.text(
+                "INSERT INTO grunt_notification_preference VALUES "
+                "('a', 'me@x.com', NULL, NULL), ('b', 'me@x.com', NULL, 'in_app')"
+            )
+        )
+        migration.op = Operations(MigrationContext.configure(conn))
+        migration.upgrade()
+        rows = conn.execute(
+            sa.text("SELECT name, channel FROM grunt_notification_preference ORDER BY name")
+        ).all()
+    assert [tuple(r) for r in rows] == [("a", "email"), ("b", "in_app")]

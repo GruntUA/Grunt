@@ -39,8 +39,12 @@ def upgrade() -> None:
         return
     if "channel" not in {c["name"] for c in inspector.get_columns(_TABLE)}:
         op.add_column(_TABLE, sa.Column("channel", sa.String(255), nullable=True))
-        table = sa.table(_TABLE, sa.column("channel"))
-        conn.execute(sa.update(table).values(channel="email"))
+    # Not only right after ADD COLUMN: on MySQL it commits by itself, and a rerun
+    # after a failed UPDATE would find the column and leave the rows NULL - which
+    # reads as "every channel". Until 0029 is stamped a NULL here can only be an
+    # old unsubscribe, i.e. a letter.
+    table = sa.table(_TABLE, sa.column("channel"))
+    conn.execute(sa.update(table).where(table.c.channel.is_(None)).values(channel="email"))
 
 
 def downgrade() -> None:

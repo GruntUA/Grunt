@@ -37,16 +37,17 @@ def normal(email: str | None) -> str:
     return (email or "").strip().lower()
 
 
-async def muted(recipients: Iterable[str], notification: str | None) -> Muted:
+async def muted(recipients: Iterable[str], notification: str | None, session: Any = None) -> Muted:
     """What *recipients* turned off for *notification* (None - a notification
-    without a rule: only the "all notifications" rows count)."""
+    without a rule: only the "all notifications" rows count). Reads through
+    *session*, or the context's one when not given."""
     emails = sorted({normal(r) for r in recipients if r})
     if not emails:
         return set()
     either: dict[str, Any] = {"notification__isnull": True}
     if notification:
         either["notification"] = notification
-    async with system_context(require_session()):
+    async with system_context(session if session is not None else require_session()):
         rows = await _db.get_all(
             DOCTYPE,
             filters={"email__in": emails},

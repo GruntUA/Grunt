@@ -24,7 +24,10 @@ class DocFollow(Document):
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
-        if self.user and not system and not await permission_checker.check(dt, "read", doc):
+        # The system names someone else: they must be able to read it too, or
+        # the followers' notifications would show them what they cannot open.
+        reader = self.data["user"] if system else None
+        if self.user and not await permission_checker.check(dt, "read", doc, user=reader):
             throw(_("No access to the document"), "PERMISSION_DENIED")
 
     async def before_insert(self) -> None:
