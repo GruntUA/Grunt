@@ -35,8 +35,8 @@
 | 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ✔️ (#242) |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
-| 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ✅ (`feat/force-private-attachments`) |
-| 22 | Print Format Builder + параметри сторінки | ❓ |
+| 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ✔️ (#244) |
+| 22 | Print Format Builder + параметри сторінки | ✅ крок 1 (`feat/print-standard-layout`) |
 | 23 | Raw printing (ZPL / ESC-POS) для етикеток | ❓ |
 | 24 | OutgoingWebhook: тіло за шаблоном, метод, динамічний URL, повтори | ❓ |
 | 25 | ServerScript: rate limit для API, тип Permission Query | ❓ |
@@ -280,16 +280,16 @@
 - **Рішення (2026-11-18):** робимо: строк дії пароля (`password_max_age_days`, `User.password_changed_at`; прострочений → крок `password_change_required` до MFA; без дати — відлік від першого входу), `max_sessions_per_user` (нова сесія витісняє найстаріші), `User.login_after`/`login_before` і `User.allowed_ips` (поверх ролі), «лише SSO» (`disable_password_login`, адміністратори — виняток); попутно — зміна пароля завершує інші сесії (діра). ⏸ zxcvbn (правила складності вже є); ❌ вхід за телефоном/логіном.
 
 ### 21. Вкладення
-**Статус:** ✅ (`feat/force-private-attachments`)
+**Статус:** ✔️ (#244)
 - **Frappe:** `DocType.max_attachments`, `protect_attached_files` (не можна видалити), `force_private_attachments`, `make_attachments_public`.
 - **Ґрунт зараз:** `public_attachments`; `File.before_delete` не дає видалити файл, прикріплений до наявного документа чи використаний у будь-якому полі.
 - **Рішення (2026-11-23):** `force_private_attachments` — робимо: новий файл документа завжди приватний (`upload(is_public=True)` тихо стає приватним, як у Frappe), зробити файл публічним потім — помилка; публічний файл із власної бібліотеки, прив'язаний до такого документа, стає приватним; файли, публічні до появи прапорця, не чіпаємо; разом із `public_attachments` — помилка моделі DocType. `protect_attached_files` — ✔️ вже є, суворіше (у нас немає проведення, захищено завжди). `max_attachments` — ⏸: у нас немає загальної панелі вкладень документа, ліміт нема до чого застосувати; панель + ліміт — IDEAS 6.32.
 
 ### 22. Print Format Builder
-**Статус:** ❓
+**Статус:** ✅ крок 1 (`feat/print-standard-layout`)
 - **Frappe:** візуальний конструктор друкованої форми (поля, секції, таблиці), поля сторінки, розмір паперу, шрифт, мова друку, ролі, друковані форми для звітів; Print Settings, Print Style.
-- **Ґрунт зараз:** Jinja-шаблон + LetterHead.
-- **Рішення:** —
+- **Ґрунт зараз:** Jinja-шаблон + LetterHead; стандартний друк — суцільна таблиця «мітка → значення» без дочірніх таблиць і колонок, значення сирі (id замість назви Link, Select без перекладу, числа без `precision`).
+- **Рішення (2026-11-23):** крок 1 — розумний стандартний друк: макет DocType (вкладки/секції/колонки), дочірні таблиці з колонками `in_list_view`, значення форматує сервер (назва Link, переклад Select, `precision`, дати за мовою, санітизований RichText), порожні поля не друкуються, `DocField.print_hide` / `print_hide_if_no_value`. Конструктор друкованих форм (drag-and-drop, параметри сторінки, вибір форми в діалозі друку) — ⏸, ймовірно окремим додатком поверх кроку 1.
 
 ### 23. Raw printing
 **Статус:** ❓

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { YoutubeEmbed, canonicalUrl } from '../extensions/youtube'
@@ -7,8 +7,15 @@ const ID = 'spQHbqNN28A'
 const WATCH = `https://www.youtube.com/watch?v=${ID}`
 const EMBED = `https://www.youtube-nocookie.com/embed/${ID}`
 
+// Destroyed after each test: a live editor's DOM observer fires a timer that
+// outlives jsdom and fails the run with "document is not defined".
+const editors: Editor[] = []
+afterEach(() => editors.splice(0).forEach((e) => e.destroy()))
+
 function editor(content = '<p>x</p>'): Editor {
-  return new Editor({ extensions: [StarterKit, YoutubeEmbed], content })
+  const e = new Editor({ extensions: [StarterKit, YoutubeEmbed], content })
+  editors.push(e)
+  return e
 }
 
 describe('RichText YouTube embed', () => {

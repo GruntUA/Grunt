@@ -1764,7 +1764,7 @@ msgstr "Середнє, мс"
 msgid "Awaiting me"
 msgstr "Очікує мене"
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/bytes.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/bytes.ts
 #: grunt/frontend/src/components/fields/Int/Int.vue
 msgid "B"
 msgstr "Б"
@@ -6555,6 +6555,14 @@ msgstr "Сховати чеклист"
 msgid "Hide from global feed"
 msgstr "Приховати із загальної стрічки"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print"
+msgstr "Не друкувати"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print if empty"
+msgstr "Не друкувати нуль"
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
@@ -8676,8 +8684,8 @@ msgid ""
 msgstr ""
 "Нові файли цих документів завжди приватні, навіть якщо при завантаженні "
 "просили публічний, і зробити їх публічними потім не можна (особові справи, "
-"звернення громадян). Файли, що вже публічні, такими й лишаються — зробіть їх "
-"приватними окремо"
+"звернення громадян). Файли, що вже публічні, такими й лишаються — зробіть їх"
+" приватними окремо"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "New folder"
@@ -9247,6 +9255,14 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr "Немає доступу до полів: %(fields)s"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Not printed when the value is zero or unchecked (an empty value is never "
+"printed)"
+msgstr ""
+"Не друкується, коли значення нульове чи прапорець знято (порожнє значення не"
+" друкується ніколи)"
+
 #: grunt/grunt/document/sidebar.py
 msgid "Not published - open preview"
 msgstr "Не опубліковано — відкрити попередній перегляд"
@@ -9258,6 +9274,10 @@ msgstr "Не надіслано"
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not shown in the standard print format"
+msgstr "Не показується в стандартній друкованій формі"
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Not shown to this role, and not changed, filtered or searched by."
@@ -17405,7 +17425,7 @@ msgstr[0] "Ще {n} зміна"
 msgstr[1] "Ще {n} зміни"
 msgstr[2] "Ще {n} змін"
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} ms"
 msgstr "{n} мс"
 
@@ -17448,7 +17468,7 @@ msgstr[2] "{n} рядків потребують уваги"
 msgid "{n} rows"
 msgstr "{n} рядків"
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} s"
 msgstr "{n} с"
 

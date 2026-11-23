@@ -1656,7 +1656,7 @@ msgstr ""
 msgid "Awaiting me"
 msgstr ""
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/bytes.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/bytes.ts
 #: grunt/frontend/src/components/fields/Int/Int.vue
 msgid "B"
 msgstr ""
@@ -6299,6 +6299,14 @@ msgstr ""
 msgid "Hide from global feed"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print if empty"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
 msgid "High"
@@ -8878,6 +8886,12 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Not printed when the value is zero or unchecked (an empty value is never "
+"printed)"
+msgstr ""
+
 #: grunt/grunt/document/sidebar.py
 msgid "Not published - open preview"
 msgstr ""
@@ -8888,6 +8902,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not shown in the standard print format"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -16662,7 +16680,7 @@ msgid_plural "{n} more changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} ms"
 msgstr ""
 
@@ -16702,7 +16720,7 @@ msgstr[1] ""
 msgid "{n} rows"
 msgstr ""
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} s"
 msgstr ""
 
