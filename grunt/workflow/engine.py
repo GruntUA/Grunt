@@ -153,7 +153,7 @@ class WorkflowEngine:
 
         active = ActiveTransition(
             doctype=doctype.name,
-            doc_id=doc["name"],
+            doc_id=doc.name,
             from_state=doc.get(workflow.state_field),
             to_state=transition.to_state,
             action=action,

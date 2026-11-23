@@ -312,11 +312,11 @@ async def generate_missing_thumbnails(limit: int = 500) -> int:
     for row in rows:
         if made >= limit:
             break
-        key, ctype = row.get("content_hash"), row.get("content_type")
+        key, ctype = row.content_hash, row.content_type
         if not key or not can_thumbnail(ctype) or not await files.ensure_thumbnail(key, ctype):
             continue
-        url = files.thumbnail_url(str(row["name"]), key, ctype)
-        await _db.set_value("File", row["name"], {"thumbnail_url": url})
+        url = files.thumbnail_url(str(row.name), key, ctype)
+        await _db.set_value("File", row.name, {"thumbnail_url": url})
         made += 1
     return made
 
@@ -365,7 +365,7 @@ async def get_content(
 
     # A private file needs an authenticated user who may read it - which, for
     # an attachment, means reading the document it is attached to.
-    if not doc.get("is_public") and not verify(file_id, exp, sig):
+    if not doc.is_public and not verify(file_id, exp, sig):
         user = session_user()
         if user is None:
             raise HTTPException(401, _("Authentication required to access this file"))
@@ -374,18 +374,18 @@ async def get_content(
         if meta is None or not await permission_checker.check(meta, "read", doc, user=user):
             raise HTTPException(403, _("No access to the file"))
 
-    key = doc.get("content_hash") or ""
+    key = doc.content_hash or ""
     storage = get_storage_backend()
     # A sized preview for a page's srcset, made on first request. A width
     # outside WEB_WIDTHS or a file without previews (SVG) gets the original.
     width = None
-    if w in WEB_WIDTHS and await files.ensure_thumbnail(key, doc.get("content_type"), w):
+    if w in WEB_WIDTHS and await files.ensure_thumbnail(key, doc.content_type, w):
         width, thumb = (None if w == THUMB_WIDTH else w), True
     # A blob never changes (it is named by its hash) - let the browser keep
     # it and revalidate by ETag. A public file (website images) may sit in a
     # shared cache (CDN); anything else is per user.
     etag = f'"{key}-{width or "thumb"}"' if thumb else f'"{key}"'
-    scope = "public" if doc.get("is_public") else "private"
+    scope = "public" if doc.is_public else "private"
     headers = {"ETag": etag, "Cache-Control": f"{scope}, max-age=86400"}
     if isinstance(request, Request) and request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers=headers)
@@ -398,15 +398,15 @@ async def get_content(
         raise HTTPException(404, _("File not found on storage"))
     if thumb:
         return FileResponse(path, media_type=THUMB_MIMETYPE, headers=headers)
-    shown = inline and doc.get("content_type") in INLINE_TYPES
+    shown = inline and doc.content_type in INLINE_TYPES
     if shown:
         # A PDF previewed in an <iframe> of the site's own pages (RichText file embed).
         headers["X-Frame-Options"] = "SAMEORIGIN"
     # Streamed from disk, with Range support (video, large PDFs).
     return FileResponse(
         path,
-        media_type=doc.get("content_type"),
-        filename=doc.get("file_name") or "file",
+        media_type=doc.content_type,
+        filename=doc.file_name or "file",
         content_disposition_type="inline" if shown else "attachment",
         headers=headers,
     )
@@ -429,13 +429,13 @@ async def public_file(filename: str, request: Request | None = None) -> Response
     name = (doc or {}).get("file_name") or ""
     if (
         not doc
-        or not doc.get("is_public")
+        or not doc.is_public
         or not ext
         or "." not in name
         or name.rsplit(".", 1)[1].lower() != ext.lower()
     ):
         raise HTTPException(404, _("File not found"))
-    key = doc.get("content_hash") or ""
+    key = doc.content_hash or ""
     etag = f'"{key}"'
     headers = {
         "ETag": etag,
@@ -452,11 +452,9 @@ async def public_file(filename: str, request: Request | None = None) -> Response
         raise HTTPException(404, _("File not found on storage"))
     return FileResponse(
         path,
-        media_type=doc.get("content_type"),
+        media_type=doc.content_type,
         filename=name,
-        content_disposition_type=(
-            "inline" if doc.get("content_type") in INLINE_TYPES else "attachment"
-        ),
+        content_disposition_type=("inline" if doc.content_type in INLINE_TYPES else "attachment"),
         headers=headers,
     )
 

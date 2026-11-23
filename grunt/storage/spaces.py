@@ -48,7 +48,7 @@ async def assign_spaces(*, apply: bool, fallback_owner: str | None = None) -> di
                 doc = await documents.new_doc(
                     "FileFolder", {"folder_name": title, "is_home": True, "space_user": email}
                 )
-                name = doc["name"]
+                name = doc.name
             homes[email] = name or f"<home of {email}>"
         return homes[email]
 

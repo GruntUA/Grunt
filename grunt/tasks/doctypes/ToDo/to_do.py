@@ -55,9 +55,9 @@ class ToDo(Document):
 
     async def before_insert(self) -> None:
         self._inserting = True
-        if not self.get("assigned_by"):
+        if not self.assigned_by:
             self.assigned_by = self._actor_email() or None
-        if not self.get("assigned_on"):
+        if not self.assigned_on:
             self.assigned_on = datetime.now(UTC)
 
     async def before_save(self) -> None:
@@ -74,9 +74,9 @@ class ToDo(Document):
         was_done = (self._prev or {}).get("status") in _DONE_STATES
         is_done = self.status in _DONE_STATES
         if is_done and not was_done:
-            if not self.get("completed_on"):
+            if not self.completed_on:
                 self.completed_on = datetime.now(UTC)
-            if not self.get("completed_by"):
+            if not self.completed_by:
                 self.completed_by = self._actor_email() or None
         elif was_done and not is_done:
             # reopened - drop the stale completion stamp
@@ -104,18 +104,18 @@ class ToDo(Document):
         return self.user or ""
 
     def _target(self) -> str:
-        ref_dt = (self.get("reference_doctype") or "").strip()
-        ref_id = str(self.get("reference_id") or "").strip()
+        ref_dt = (self.reference_doctype or "").strip()
+        ref_id = str(self.reference_id or "").strip()
         return f"{ref_dt} {ref_id}".strip() or _("document")
 
     def _task_note(self) -> str:
-        note = (self.get("description") or "").strip()
+        note = (self.description or "").strip()
         return "" if is_placeholder_note(note) else note
 
     async def _trigger(self, key: str, recipient: str, **extra: Any) -> None:
         """Code event *key* (its standard ``Notification`` says what and how)."""
-        ref_dt = (self.get("reference_doctype") or "").strip()
-        ref_id = str(self.get("reference_id") or "").strip()
+        ref_dt = (self.reference_doctype or "").strip()
+        ref_id = str(self.reference_id or "").strip()
         await trigger(
             key,
             doc={**self.data, "name": self.id},
@@ -136,7 +136,7 @@ class ToDo(Document):
 
     async def _notify_completion(self) -> None:
         """Tell whoever created the assignment that it is done."""
-        recipient = (self.get("assigned_by") or self.get("owner") or "").strip()
+        recipient = (self.assigned_by or self.owner or "").strip()
         if not recipient or recipient == self._actor_email():
             return
         await self._trigger(

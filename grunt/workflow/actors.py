@@ -115,7 +115,7 @@ async def previous_actor(doctype: str, doc_id: str) -> str | None:
             order="desc",
             limit=1,
         )
-    return rows[0]["user"] if rows else None
+    return rows[0].user if rows else None
 
 
 async def state_label(doctype: str, state: str | None) -> str:

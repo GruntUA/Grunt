@@ -57,18 +57,18 @@ class AutoRepeat(Document):
             )
         replan = (
             not prev
-            or not self.get("next_schedule_date")
+            or not self.next_schedule_date
             or any(prev.get(f) != self.get(f) for f in _SCHEDULE_FIELDS)
         )
-        if replan and not self.get("disabled"):
+        if replan and not self.disabled:
             self.next_schedule_date = first_date(
-                as_date(self.get("start_date")) or date.today(),
+                as_date(self.start_date) or date.today(),
                 self.frequency,
                 anchor_day(self.data),
-                bool(self.get("repeat_on_last_day")),
+                bool(self.repeat_on_last_day),
                 not_before=date.today(),
             )
-        self.status = status_for(self.data, as_date(self.get("next_schedule_date")))
+        self.status = status_for(self.data, as_date(self.next_schedule_date))
 
     async def _validate_reference(self) -> None:
         meta = await doctype_registry.get_meta(self.reference_doctype)
@@ -93,7 +93,7 @@ class AutoRepeat(Document):
                 "PERMISSION_DENIED",
             )
 
-        date_field = (self.get("date_field") or "").strip()
+        date_field = (self.date_field or "").strip()
         self.date_field = date_field or None
         if date_field:
             field = meta.get_field(date_field)
@@ -107,12 +107,12 @@ class AutoRepeat(Document):
     def _validate_schedule(self) -> None:
         if self.frequency not in FREQUENCIES:
             throw(_("Unknown frequency: %(f)s") % {"f": self.frequency}, "VALIDATION_ERROR")
-        day = self.get("repeat_on_day")
+        day = self.repeat_on_day
         if day and not 1 <= int(day) <= 31:
             throw(_("Day of month must be between 1 and 31"), "VALIDATION_ERROR")
         if self.frequency not in MONTHS_BY_FREQUENCY:
             self.repeat_on_day = None
             self.repeat_on_last_day = False
-        start, end = as_date(self.get("start_date")), as_date(self.get("end_date"))
+        start, end = as_date(self.start_date), as_date(self.end_date)
         if start and end and end < start:
             throw(_("End date cannot be before the start date"), "VALIDATION_ERROR")

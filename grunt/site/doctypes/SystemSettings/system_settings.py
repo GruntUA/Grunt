@@ -15,4 +15,4 @@ class SystemSettings(Document):
     async def after_save(self) -> None:
         clear_settings_cache()
 
-        translation_service.set_default(self.get("language"))
+        translation_service.set_default(self.language)

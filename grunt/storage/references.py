@@ -157,10 +157,10 @@ async def _publish(ids: set[str], user: str | None) -> None:
         return
     rows = await _db.get_all("File", filters={"name__in": sorted(ids)}, fields=["*"], limit=None)
     readable = [
-        r["name"]
+        r.name
         for r in rows
-        if not r.get("is_public")
-        and not await _kept_private(r.get("attached_to_doctype"))
+        if not r.is_public
+        and not await _kept_private(r.attached_to_doctype)
         and await permission_checker.check(meta, "read", r, user=user)
     ]
     if readable:

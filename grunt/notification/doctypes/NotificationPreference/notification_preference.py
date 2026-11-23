@@ -15,6 +15,6 @@ class NotificationPreference(Document):
     # end: auto-generated types
 
     async def validate(self) -> None:
-        self.data["email"] = (self.get("email") or "").strip().lower()
-        self.data["notification"] = self.get("notification") or None
-        self.data["channel"] = self.get("channel") or None
+        self.email = (self.email or "").strip().lower()
+        self.notification = self.notification or None
+        self.channel = self.channel or None

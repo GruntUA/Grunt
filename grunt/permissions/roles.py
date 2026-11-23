@@ -121,11 +121,11 @@ async def role_holders(roles: Iterable[str], *, active_only: bool = True) -> lis
         filters["is_active"] = True
     users = await _db.get_all("User", filters=filters, fields=["name", "email"], limit=None)
     out: list[dict[str, Any]] = []
-    for u in sorted(users, key=lambda u: u["name"]):
-        assigned = by_user[u["name"]]
+    for u in sorted(users, key=lambda u: u.name):
+        assigned = by_user[u.name]
         scopes = role_scopes(assigned)
         held = {r["role_name"]: scopes.get(r["role_name"], frozenset()) for r in assigned}
-        out.append({"user": u["name"], "email": u.get("email"), "roles": held})
+        out.append({"user": u.name, "email": u.email, "roles": held})
     return out
 
 

@@ -130,8 +130,8 @@ async def _update_state(
     counts = await _db.get_value(
         "ScheduledJobState", job_name, ["run_count", "failure_count"], as_dict=True
     )
-    run_count = (counts.get("run_count") or 0) if counts else 0
-    failure_count = (counts.get("failure_count") or 0) if counts else 0
+    run_count = (counts.run_count or 0) if counts else 0
+    failure_count = (counts.failure_count or 0) if counts else 0
     values: dict = {
         "cron_expression": cron_expression,
         "last_status": "Success" if error is None else "Failed",

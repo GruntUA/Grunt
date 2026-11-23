@@ -133,7 +133,7 @@ async def get_print_format_template(
 
     if rows:
         row = rows[0]
-        return (str(row.get("template") or ""), str(row.get("template_type") or "html"))
+        return (str(row.template or ""), str(row.template_type or "html"))
     return None
 
 
@@ -220,7 +220,7 @@ async def render_print_html(
         fields=["template", "template_type", "letter_head", "no_letter_head"],
         limit=1,
     )
-    pf = dict(rows[0]) if rows and (rows[0].get("template_type") or "html") == "html" else None
+    pf = dict(rows[0]) if rows and (rows[0].template_type or "html") == "html" else None
 
     letter_head = None
     if not (pf and pf.get("no_letter_head")):

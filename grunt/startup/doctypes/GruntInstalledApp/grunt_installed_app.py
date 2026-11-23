@@ -16,14 +16,14 @@ class GruntInstalledApp(Document):
     """GruntInstalledApp DocType controller."""
 
     async def before_insert(self) -> None:
-        if not self.data.get("installed_at"):
-            self.data["installed_at"] = datetime.now(UTC)
-        if self.data.get("modules") is None:
-            self.data["modules"] = []
+        if not self.installed_at:
+            self.installed_at = datetime.now(UTC)
+        if self.modules is None:
+            self.modules = []
 
     async def after_delete(self) -> None:
         """Called automatically after the App document is deleted from the DB."""
-        name = self.get("name")
+        name = self.name
         if not name:
             return
 
@@ -93,7 +93,7 @@ async def register_app(
             "modules": modules or [],
         },
     )
-    return {"name": app.get("name"), "title": app.get("title")}
+    return {"name": app.name, "title": app.title}
 
 
 @whitelist()

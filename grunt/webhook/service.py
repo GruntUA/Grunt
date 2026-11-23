@@ -69,7 +69,7 @@ class WebhookService:
 
         for wh in webhooks:
             # Evaluate optional condition
-            if wh.get("condition"):
+            if wh.condition:
                 try:
                     from simpleeval import simple_eval
 
@@ -85,7 +85,7 @@ class WebhookService:
 
             await outbox.put(
                 deliver_webhook,
-                {"webhook": str(wh.get("name") or ""), "event": event, "body": payload_str},
+                {"webhook": str(wh.name or ""), "event": event, "body": payload_str},
                 session=session,
             )
 
@@ -213,7 +213,7 @@ async def deliver_webhook(message: dict[str, Any]) -> None:
     session = require_session()
     rows = await _db.get_all("OutgoingWebhook", filters={"name": message["webhook"]}, limit=1)
     wh = rows[0] if rows else None
-    if wh is None or not wh.get("is_enabled"):
+    if wh is None or not wh.is_enabled:
         return
     # No transaction open while the remote server answers.
     await session.commit()
@@ -221,11 +221,11 @@ async def deliver_webhook(message: dict[str, Any]) -> None:
         session=session,
         webhook_id=message["webhook"],
         event=message["event"],
-        url=str(wh["url"]),
+        url=str(wh.url),
         payload=message["body"],
-        secret=wh.get("secret") or "",
-        extra_headers=wh.get("headers") or "",
-        timeout=int(wh.get("timeout") or 10),
+        secret=wh.secret or "",
+        extra_headers=wh.headers or "",
+        timeout=int(wh.timeout or 10),
         is_test=False,
     )
     await session.commit()

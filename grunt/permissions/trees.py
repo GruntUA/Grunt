@@ -31,7 +31,7 @@ async def expand_tree_values(doctype: str, values: set[str]) -> set[str]:
             fields=["name"],
             limit=None,
         )
-        children = [r["name"] for r in rows if r["name"] not in out]
+        children = [r.name for r in rows if r.name not in out]
         out.update(children)
         frontier = children
     return out

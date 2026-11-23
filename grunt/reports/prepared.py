@@ -185,10 +185,10 @@ async def run_prepared(prepared_id: str) -> None:
         fields=["name", "report", "user", "status", "filters", "filters_hash", "created_at"],
         limit=1,
     )
-    if not rows or rows[0]["status"] != "Queued":
+    if not rows or rows[0].status != "Queued":
         return  # deleted meanwhile, or already picked up
     prepared = rows[0]
-    user = prepared["user"]
+    user = prepared.user
     await _db.set_value(
         "PreparedReport", prepared_id, {"status": "Started", "started_at": datetime.now(UTC)}
     )

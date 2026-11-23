@@ -31,7 +31,7 @@ async def group_members(groups: Iterable[str]) -> list[dict[str, Any]]:
         order_by="idx",
         order="asc",
     )
-    names = list(dict.fromkeys(r["user"] for g in wanted for r in rows if r["parent_name"] == g))
+    names = list(dict.fromkeys(r.user for g in wanted for r in rows if r.parent_name == g))
     if not names:
         return []
     users = await _db.get_all(
@@ -40,7 +40,7 @@ async def group_members(groups: Iterable[str]) -> list[dict[str, Any]]:
         fields=["name", "email"],
         limit=None,
     )
-    email = {u["name"]: u.get("email") for u in users}
+    email = {u.name: u.email for u in users}
     return [{"user": n, "email": email[n]} for n in names if email.get(n)]
 
 

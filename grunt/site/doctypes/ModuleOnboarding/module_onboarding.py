@@ -14,7 +14,7 @@ from grunt.utils.slug import slugify
 class ModuleOnboarding(Document):
     async def validate(self) -> None:
         taken: set[str] = set()
-        for step in self.get("steps") or []:
+        for step in self.steps or []:
             step_id = step.get("step_id") or slugify(step.get("title") or "")
             base, n = step_id, 2
             while step_id in taken:
