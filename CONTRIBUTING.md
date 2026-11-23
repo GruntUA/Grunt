@@ -36,8 +36,8 @@
    З `--deps` спершу оновлюються lock-файли в межах діапазонів `pyproject.toml` /
    `package.json` (`uv lock --upgrade`, `npm update`) — окремим PR у `develop`
    (`build(deps): …`, у `CHANGELOG.md` — розділ «Dependencies»), який `grunt release` зливає,
-   щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх оновлює
-   `grunt upgrade` окремим PR.
+   щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх пропонує
+   Dependabot (див. нижче).
 3. Після схвалення PR зливається merge-комітом. Workflow `release.yml` ставить анотований тег
    `vX.Y.Z` на коміт випуску і публікує GitHub release з розділу `CHANGELOG.md`.
 
