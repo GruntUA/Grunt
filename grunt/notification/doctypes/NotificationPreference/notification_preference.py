@@ -9,8 +9,8 @@ class NotificationPreference(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     email: str  # Email
-    notification: str | None  # Notification
-    channel: str | None  # Channel
+    notification: str | None = None  # Notification
+    channel: str | None = None  # Channel
 
     # end: auto-generated types
 

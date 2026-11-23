@@ -24,6 +24,7 @@ from grunt.log import log
 from grunt.notification import delivery_log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
@@ -104,7 +105,7 @@ async def load_rows(rule: dict[str, Any]) -> dict[str, Any]:
     if isinstance(rule.get("recipients"), list) and isinstance(rule.get("channels"), list):
         return rule
     name = rule.get("name")
-    rows: dict[str, list[dict[str, Any]]] = {}
+    rows: dict[str, list[AttrDict]] = {}
     for field, doctype in (("recipients", RECIPIENT_DOCTYPE), ("channels", CHANNEL_DOCTYPE)):
         rows[field] = (
             await _db.get_all(

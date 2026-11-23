@@ -135,7 +135,9 @@ async def get_auth_context_user(uid: str) -> User | None:
 
     cached = await documents.doc_cache.get("User", uid)
     if cached is not None:
-        return User(doctype="User", data=dict(cached), session=require_session())
+        user = User(**cached)
+        user.session = require_session()
+        return user
 
     user = await get_user_by_id(uid, fields=AUTH_CONTEXT_FIELDS)
     if user is not None:

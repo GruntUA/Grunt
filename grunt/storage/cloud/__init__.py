@@ -26,6 +26,7 @@ from grunt.local import require_session
 from grunt.monitoring.error_log import record_error as log_error
 from grunt.storage.cloud.providers import RemoteError
 from grunt.storage.cloud.rclone import Rclone
+from grunt.utils.attr_dict import AttrDict
 
 # Fired when a remote turns from OK to Error: doctype, doc_id, message, session.
 REMOTE_FAILED = "storage_remote_failed"
@@ -63,7 +64,7 @@ async def load_remote(name: str) -> dict[str, Any]:
     return dict(row)
 
 
-async def backup_remotes() -> list[dict[str, Any]]:
+async def backup_remotes() -> list[AttrDict]:
     """Enabled remotes that receive backups."""
     return await _db.get_all(
         "StorageRemote",

@@ -6,6 +6,7 @@ rows are rebuilt from the profiles - see :func:`with_profile_roles`; saving a
 profile rebuilds them for each of its users.
 """
 
+from collections.abc import Sequence
 from typing import Any
 
 from grunt.db.api import GruntDB
@@ -29,8 +30,8 @@ class RoleProfile(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     profile_name: str  # Name
-    description: str | None  # Description
-    roles: list[dict]  # Table: RoleProfileRole
+    description: str | None = None  # Description
+    roles: list[dict] = []  # Table: RoleProfileRole
 
     # end: auto-generated types
 
@@ -96,7 +97,7 @@ async def resync_users(profile: str) -> None:
 
 
 async def with_profile_roles(
-    roles: list[dict[str, Any]], profiles: list[str]
+    roles: Sequence[dict[str, Any]], profiles: list[str]
 ) -> list[dict[str, Any]]:
     """The user's role rows: those assigned by hand (no ``role_profile``) and
     then the roles of *profiles*, in order - a role the user already holds by

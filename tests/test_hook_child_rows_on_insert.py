@@ -30,6 +30,9 @@ _CHILD = {
 
 
 class HcReport(Document):
+    code: str
+    checks: list[dict] = []
+
     async def validate(self) -> None:
         self.checks = [{"check": "integrity"}, {"check": "signature"}]
 
@@ -45,7 +48,7 @@ async def report_doctype(ctx):
 
 @pytest.mark.asyncio
 async def test_rows_set_by_validate_are_stored(ctx, report_doctype):
-    doc = HcReport(doctype="HcReport", data={"code": "a"}, session=grunt.get_session())
+    doc = HcReport(code="a")
     await doc.insert()
 
     stored = await grunt.get_doc("HcReport", "a")

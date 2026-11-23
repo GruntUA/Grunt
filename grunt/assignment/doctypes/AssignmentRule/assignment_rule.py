@@ -24,22 +24,22 @@ class AssignmentRule(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    enabled: bool | None  # Enabled
+    enabled: bool | None = None  # Enabled
     doctype_target: str  # Target DocType
-    priority: int | None  # Priority
-    filters: str | None  # Filters (JSON)
-    days: list[str] | None  # Days of the week
-    unassign_condition: str | None  # Unassign when (JSON)
-    close_condition: str | None  # Close when (JSON)
-    rule: str | None  # Assign
-    field: str | None  # User field
-    assign_to_group: str | None  # Assign to group
-    assign_to_role: str | None  # Assign to Role
-    assign_to_user: str | None  # Assign to User
-    due_date_field: str | None  # Due date from
-    last_user: str | None  # Last assigned
-    description: str | None  # Description
-    users: list[dict]  # Table: AssignmentRuleUser
+    priority: int | None = None  # Priority
+    filters: str | None = None  # Filters (JSON)
+    days: list[str] | None = None  # Days of the week
+    unassign_condition: str | None = None  # Unassign when (JSON)
+    close_condition: str | None = None  # Close when (JSON)
+    rule: str | None = None  # Assign
+    field: str | None = None  # User field
+    assign_to_group: str | None = None  # Assign to group
+    assign_to_role: str | None = None  # Assign to Role
+    assign_to_user: str | None = None  # Assign to User
+    due_date_field: str | None = None  # Due date from
+    last_user: str | None = None  # Last assigned
+    description: str | None = None  # Description
+    users: list[dict] = []  # Table: AssignmentRuleUser
 
     # end: auto-generated types
 

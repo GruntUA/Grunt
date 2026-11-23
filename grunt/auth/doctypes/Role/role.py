@@ -14,13 +14,13 @@ class Role(Document):
     # This code is auto-generated. Do not modify anything in this block.
 
     role_name: str  # Name
-    description: str | None  # Description
-    disabled: bool | None  # Disabled
-    site_only: bool | None  # Site only
-    home_page: str | None  # Home page
-    permissions: list[str] | None  # Permissions
-    require_mfa: bool | None  # Require two-factor authentication
-    allowed_ips: str | None  # Allowed sign-in IPs
+    description: str | None = None  # Description
+    disabled: bool | None = None  # Disabled
+    site_only: bool | None = None  # Site only
+    home_page: str | None = None  # Home page
+    permissions: list[str] | None = None  # Permissions
+    require_mfa: bool | None = None  # Require two-factor authentication
+    allowed_ips: str | None = None  # Allowed sign-in IPs
 
     # end: auto-generated types
 

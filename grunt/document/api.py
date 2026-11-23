@@ -46,6 +46,7 @@ from grunt.permissions.guards import (
 from grunt.permissions.rbac import permission_checker
 from grunt.permissions.roles import get_roles
 from grunt.site.settings import get_system_settings
+from grunt.utils.attr_dict import AttrDict, as_row, as_rows
 from grunt.workflow.registry import get_active_workflow
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, load_document, new_document
@@ -166,8 +167,8 @@ class DocumentAPI:
         *,
         expand: list[str] | None = None,
         ignore_permissions: bool = False,
-    ) -> dict[str, Any]:
-        """By DocType name: the document as a dict."""
+    ) -> AttrDict:
+        """By DocType name: the document as an :class:`AttrDict` (``doc.status``)."""
 
     @overload
     async def get_doc[D: Document](
@@ -231,7 +232,7 @@ class DocumentAPI:
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
         doc = (await self._load(doctype, id_or_name, user, expand)).data
         await permission_checker.require(dt, "read", doc, user=user)
-        doc = apply_hidden_fields_to_doc(doc, hidden_fields)
+        doc = as_row(apply_hidden_fields_to_doc(doc, hidden_fields))
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
 
@@ -242,8 +243,8 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
-    ) -> dict[str, Any] | None:
-        """By DocType name: the dict, or ``None``."""
+    ) -> AttrDict | None:
+        """By DocType name: the :class:`AttrDict`, or ``None``."""
 
     @overload
     async def find_doc[D: Document](
@@ -283,8 +284,8 @@ class DocumentAPI:
         *,
         ignore_required: bool = False,
         ignore_permissions: bool = False,
-    ) -> dict[str, Any]:
-        """Create a new document and return it.
+    ) -> AttrDict:
+        """Create a new document and return it (an :class:`AttrDict`: ``doc.name``).
 
         Lifecycle hooks (notifications, assignment rules, backlink sync, activity
         log) fire inside the insert pipeline itself, so they run identically here
@@ -304,7 +305,7 @@ class DocumentAPI:
             # trust boundary here, and there is no read-permission rule to mask
             # fields against for a role that holds none.
             hidden_fields = frozenset()
-        return apply_hidden_fields_to_doc(created, hidden_fields)
+        return as_row(apply_hidden_fields_to_doc(created, hidden_fields))
 
     @_may_ignore_permissions
     async def save_doc(
@@ -315,8 +316,8 @@ class DocumentAPI:
         *,
         ignore_required: bool = False,
         ignore_permissions: bool = False,
-    ) -> dict[str, Any]:
-        """Update an existing document and return the updated version.
+    ) -> AttrDict:
+        """Update an existing document and return the updated version (an :class:`AttrDict`).
 
         See :meth:`new_doc` - lifecycle hooks fire inside the update pipeline.
         """
@@ -325,7 +326,7 @@ class DocumentAPI:
         updated = await doc._update(id_or_name, data, ignore_required=ignore_required)
         await self._invalidate_list_cache(doctype, id_or_name)
         _, _, hidden_fields = await read_guard(doctype)
-        return apply_hidden_fields_to_doc(updated, hidden_fields)
+        return as_row(apply_hidden_fields_to_doc(updated, hidden_fields))
 
     @_may_ignore_permissions
     async def delete_doc(
@@ -522,6 +523,7 @@ class DocumentAPI:
             result = copy.deepcopy(result)
 
         apply_hidden_fields_to_rows(result, hidden_fields)
+        as_rows(result)
         await fire("after_read", doctype=doctype, user=user, data=result)
         return result
 

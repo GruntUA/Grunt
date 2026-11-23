@@ -12,7 +12,7 @@ class AssignmentLog(Document):
     """AssignmentLog DocType controller."""
 
     @classmethod
-    async def create(
+    async def record(
         cls,
         *,
         rule_id: str | None,

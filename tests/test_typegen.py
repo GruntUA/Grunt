@@ -183,8 +183,8 @@ from grunt.document.base import Document
 class Ticket(Document):
     # begin: auto-generated types
     subject: str  # Subject
-    priority: int | None  # Priority
-    rows: list[dict]  # Table: TicketRow
+    priority: int | None = None  # Priority
+    rows: list[dict] = []  # Table: TicketRow
     # end: auto-generated types
 
 

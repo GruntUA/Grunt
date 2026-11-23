@@ -122,7 +122,7 @@ class AssignmentService:
         for email in emails:
             try:
                 await self._create_todo(doctype, doc, email, rule.get("name"), due)
-                await AssignmentLog.create(
+                await AssignmentLog.record(
                     rule_id=rule.get("name"),
                     doctype_affected=doctype,
                     document_id=str(doc.get("name") or ""),
@@ -254,7 +254,7 @@ class AssignmentService:
             await documents.save_doc(
                 "ToDo", todo["name"], {"status": status}, ignore_permissions=True
             )
-            await AssignmentLog.create(
+            await AssignmentLog.record(
                 rule_id=rule["name"],
                 doctype_affected=doctype,
                 document_id=doc_id,

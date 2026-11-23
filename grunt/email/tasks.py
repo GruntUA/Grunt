@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -302,7 +303,9 @@ async def check_unreplied() -> None:
             log.info("email.unreplied_notified", count=sent)
 
 
-async def _render_digest(period: str, rows: list[dict], groups: dict[str, list]) -> tuple[str, str]:
+async def _render_digest(
+    period: str, rows: Sequence[dict], groups: dict[str, list]
+) -> tuple[str, str]:
     """Subject + HTML body of one digest, in the current (recipient's) language."""
     total = len(rows)
     if period == "daily":
