@@ -285,30 +285,33 @@ def _gh(repo: Path, *args: str, stdin: str | None = None) -> str:
         raise click.ClickException(f"gh {args[0]} {args[1]}: {exc.stderr.strip()}") from None
 
 
-def open_release_pr(repo: Path, head: str, plan: ReleasePlan) -> str:
-    """The release pull request ``head`` -> master: opened, or updated if one is open."""
-    title = f"chore(release): v{plan.version}"
-    found = json.loads(
-        _gh(repo, "pr", "list", "--base", RELEASE_BRANCH, "--head", head, "--json", "url")
-    )
+def open_pr(repo: Path, base: str, head: str, title: str, body: str) -> str:
+    """The pull request ``head`` -> ``base``: opened, or updated if one is open
+    (a release or a dependency update run again)."""
+    found = json.loads(_gh(repo, "pr", "list", "--base", base, "--head", head, "--json", "url"))
     if found:
         url = found[0]["url"]
-        _gh(repo, "pr", "edit", url, "--title", title, "--body-file", "-", stdin=pr_body(plan))
+        _gh(repo, "pr", "edit", url, "--title", title, "--body-file", "-", stdin=body)
         return url
     return _gh(
         repo,
         "pr",
         "create",
         "--base",
-        RELEASE_BRANCH,
+        base,
         "--head",
         head,
         "--title",
         title,
         "--body-file",
         "-",
-        stdin=pr_body(plan),
+        stdin=body,
     )
+
+
+def open_release_pr(repo: Path, head: str, plan: ReleasePlan) -> str:
+    """The release pull request ``head`` -> master."""
+    return open_pr(repo, RELEASE_BRANCH, head, f"chore(release): v{plan.version}", pr_body(plan))
 
 
 @click.command("version")
@@ -434,20 +437,7 @@ def _merge_dependencies(repo: Path, tree: Path, base: str, changes: list[str]) -
     _step(tree, "commit", "--quiet", "-m", DEPS_TITLE)
     _step(tree, "push", "--quiet", "--force", "origin", f"HEAD:refs/heads/{branch}")
     sha = _git(tree, "rev-parse", "HEAD")
-    url = _gh(
-        repo,
-        "pr",
-        "create",
-        "--base",
-        base,
-        "--head",
-        branch,
-        "--title",
-        DEPS_TITLE,
-        "--body-file",
-        "-",
-        stdin=deps_pr_body(changes),
-    )
+    url = open_pr(repo, base, branch, DEPS_TITLE, deps_pr_body(changes))
     click.echo(f"Dependencies: {url} - waiting for CI...")
     passed, failed = wait_for_ci(repo, sha)
     if not passed:

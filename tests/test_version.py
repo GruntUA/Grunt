@@ -378,3 +378,25 @@ def test_wait_for_ci(monkeypatch, tmp_path: Path):
 
     monkeypatch.setattr(deps.subprocess, "run", fake_run)
     assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (False, ["CI"])
+
+
+def test_wait_for_ci_passes_only_once_the_runs_settle(monkeypatch, tmp_path: Path):
+    title = {"name": "PR title", "status": "completed", "conclusion": "success"}
+    ci = {"name": "CI", "status": "completed", "conclusion": "success"}
+    answers = iter(
+        [
+            [title],  # CI's run is not created yet
+            [title, {**ci, "status": "queued", "conclusion": ""}],
+            [title, ci],
+            [title, ci],
+        ]
+    )
+    polls = []
+
+    def fake_run(cmd, **kwargs):
+        polls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(next(answers)), "")
+
+    monkeypatch.setattr(deps.subprocess, "run", fake_run)
+    assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (True, [])
+    assert len(polls) == 4

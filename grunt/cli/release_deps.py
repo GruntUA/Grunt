@@ -108,9 +108,11 @@ def wait_for_ci(
 ) -> tuple[bool, list[str]]:
     """Wait for the workflow runs of ``sha``: ``(all passed, failed run names)``.
 
-    Runs show up a few seconds after the push, so one pass with every run finished
-    counts only after the first ``interval``."""
+    A failed run ends the wait at once. Success needs two polls in a row with the
+    same finished runs: GitHub creates the runs one by one, and a quick one (the PR
+    title check) must not pass for the whole CI before CI's own run shows up."""
     deadline = time.monotonic() + timeout
+    settled: list[str] | None = None
     while True:
         sleep(interval)
         result = subprocess.run(
@@ -121,8 +123,19 @@ def wait_for_ci(
             check=False,
         )
         runs = json.loads(result.stdout or "[]") if result.returncode == 0 else []
-        if runs and all(run["status"] == "completed" for run in runs):
-            failed = sorted(run["name"] for run in runs if run["conclusion"] not in _PASSING)
-            return not failed, failed
+        failed = sorted(
+            run["name"]
+            for run in runs
+            if run["status"] == "completed" and run["conclusion"] not in _PASSING
+        )
+        if failed:
+            return False, failed
+        finished = sorted(run["name"] for run in runs) if runs else None
+        if finished and all(run["status"] == "completed" for run in runs):
+            if finished == settled:
+                return True, []
+            settled = finished
+        else:
+            settled = None
         if time.monotonic() > deadline:
             return False, ["timed out waiting for CI"]
