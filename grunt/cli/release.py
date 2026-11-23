@@ -31,6 +31,9 @@ _SECTION_ORDER = ("Breaking changes", "Features", "Fixes", "Performance", "Depen
 _CHANGELOG_HEADING = re.compile(r"^## v(?P<version>\d+\.\d+\.\d+)\b", re.MULTILINE)
 _DOCTYPE_JSON = re.compile(r"(^|/)doctypes/[^/]+/[^/]+\.json$")
 _DEPENDENCY_FILES = ("uv.lock", "package-lock.json", "mise.toml")
+#: A subject longer than this swallowed its body (no blank line after the title,
+#: as a squash merge can leave it): the changelog keeps the part before " - ".
+_MAX_SUBJECT = 120
 
 
 def _apps_dir() -> Path:
@@ -119,6 +122,13 @@ def non_conventional(subjects: list[str]) -> list[str]:
     return [s for s in subjects if not _CONVENTIONAL.match(s)]
 
 
+def _headline(text: str) -> str:
+    """``text`` cut to its headline when the commit body leaked into the subject."""
+    if len(text) <= _MAX_SUBJECT:
+        return text
+    return text.split(" - ", 1)[0].rstrip()
+
+
 def changelog_section(
     version: Version,
     subjects: list[str],
@@ -133,14 +143,15 @@ def changelog_section(
     for subject in subjects:
         m = _CONVENTIONAL.match(subject)
         if not m:
-            groups["Other"].append(subject)
+            groups["Other"].append(_headline(subject))
             continue
         if m["type"] == "chore" and m["scope"] == "release":
             continue
         if m["scope"] == "deps" and not m["breaking"]:
-            groups["Dependencies"].append(m["text"])
+            groups["Dependencies"].append(_headline(m["text"]))
             continue
-        text = f"**{m['scope']}:** {m['text']}" if m["scope"] else m["text"]
+        headline = _headline(m["text"])
+        text = f"**{m['scope']}:** {headline}" if m["scope"] else headline
         section = "Breaking changes" if m["breaking"] else _SECTIONS.get(m["type"], "Other")
         groups[section].append(text)
     lines = [f"## v{version} - {(today or date.today()).isoformat()}"]

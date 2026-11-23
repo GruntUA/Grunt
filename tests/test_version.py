@@ -189,6 +189,13 @@ def test_changelog_lists_new_migrations(repo: Path):
     assert "Database migrations" not in changelog_section(Version("1.1.0"), ["feat: x"])
 
 
+def test_changelog_cuts_a_subject_that_swallowed_its_body():
+    leaked = "feat(print): standard print follows the layout - the body " + "x" * 120
+    section = changelog_section(Version("1.1.0"), [leaked, "fix: short - kept as is"])
+    assert "- **print:** standard print follows the layout\n" in section
+    assert "- short - kept as is" in section
+
+
 def test_prepend_changelog_keeps_newest_first(tmp_path: Path):
     path = tmp_path / "CHANGELOG.md"
     prepend_changelog(path, "## v0.1.0\n")
