@@ -27,14 +27,11 @@ a word, and an administrator could never grant it.
 from dataclasses import dataclass
 
 from grunt.auth.constants import SYSTEM_USER_EMAIL
-from grunt.db.api import GruntDB
 from grunt.i18n import N_, _
 from grunt.local import _session_ctx, session_user
 from grunt.metadata.dynamic_options import register_option_provider
 from grunt.permissions.role_props import role_props
 from grunt.permissions.roles import BUILT_IN_ROLES, get_roles
-
-_db = GruntDB()  # stateless: reads through the context's session
 
 #: Grants every permission.
 ALL = "*"
