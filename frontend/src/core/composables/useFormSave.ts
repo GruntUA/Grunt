@@ -18,6 +18,8 @@ interface UseFormSaveParams {
   form: Ref<Record<string, unknown>>
   validationErrors: Ref<Record<string, string>>
   save: () => Promise<unknown>
+  /** Load the stored document into the form again, dropping the edits. */
+  reload: () => Promise<void>
   runScriptEvent: (event: 'validate' | 'before_save' | 'after_save', changedField?: string) => Promise<boolean>
   validateForm: () => boolean
   focusFirstError: () => void
@@ -29,6 +31,7 @@ interface UseFormSaveParams {
   toast: {
     success: (message: string) => void
     error: (message: string) => void
+    warning: (message: string, summary?: string, opts?: Record<string, unknown>) => void
   }
 }
 
@@ -132,6 +135,7 @@ export function useFormSave(params: UseFormSaveParams) {
           data?: {
             detail?: string | string[]
             error?: {
+              code?: string
               message?: string
               details?: string[]
             }
@@ -141,6 +145,25 @@ export function useFormSave(params: UseFormSaveParams) {
       const status = err?.response?.status
       const apiMessage = err?.response?.data?.error?.message
       const detailMsg = err?.response?.data?.detail
+
+      // Someone saved the document after it was opened (optimistic locking):
+      // the edit was refused - offer to load the current version.
+      if (status === 409 && err?.response?.data?.error?.code === 'STALE_DOCUMENT') {
+        params.toast.warning(
+          typeof apiMessage === 'string' ? apiMessage : '',
+          t('The document was changed by someone else'),
+          {
+            duration: Infinity,
+            action: {
+              label: t('Reload'),
+              onClick: () => {
+                void params.reload()
+              },
+            },
+          },
+        )
+        return
+      }
 
       // Any 4xx with a structured error message -> show it directly
       if (status && status >= 400 && status < 500 && status !== 422 && (apiMessage || detailMsg)) {

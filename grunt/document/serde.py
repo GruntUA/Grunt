@@ -6,7 +6,7 @@ that object is enough to recreate it (``grunt.get_doc(data).insert()``).
 """
 
 import json
-from datetime import date, datetime, time
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
 from typing import Any
 
@@ -23,6 +23,26 @@ def json_default(value: Any) -> Any:
     if isinstance(value, Decimal):
         return float(value)
     return str(value)
+
+
+def same_instant(a: Any, b: Any) -> bool:
+    """Whether two timestamps - datetimes or ISO strings (``Z`` / offset /
+    naive-UTC, ``T`` or space) - are the same moment."""
+
+    def parse(v: Any) -> datetime | None:
+        if isinstance(v, datetime):
+            dt = v
+        elif isinstance(v, str) and v:
+            try:
+                dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
+            except ValueError:
+                return None
+        else:
+            return None
+        return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
+
+    pa, pb = parse(a), parse(b)
+    return pa is not None and pb is not None and pa == pb
 
 
 def to_json(data: Any, *, indent: int | None = None) -> str:

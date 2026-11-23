@@ -8,13 +8,15 @@ through :mod:`grunt.query.sql`, the order and keyset through the
 
 from datetime import UTC, datetime
 from itertools import islice
-from typing import Any
+from typing import Any, cast
 
-from sqlalchemy import Select, and_, func, literal, or_, select
+from sqlalchemy import CursorResult, Select, Text, and_, func, literal, or_, select
+from sqlalchemy import cast as sa_cast
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.db.dialects import Dialect, dialect_for
 from grunt.document.meta import Meta
+from grunt.errors import stale_document
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.query.aggregates import GROUP_FN_RE, parse_aggregation
@@ -41,7 +43,7 @@ lazy from grunt.document.relations import (
     _save_child_tables,
     attach_multi_link_values,
 )
-lazy from grunt.document.serde import serialize_datetimes, with_doctype
+lazy from grunt.document.serde import same_instant, serialize_datetimes, with_doctype
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 # "sum(amount)" / "count()" - see parse_aggregation.
@@ -348,7 +350,7 @@ class SqlStore(Store):
             if key in values:
                 values[key] = doc[key]
 
-        await self.session.execute(table.update().where(table.c.name == real_name).values(**values))
+        await self._guarded_update(real_name, before.get("modified_at"), values)
         await _save_child_tables(self.session, dt.doc, real_name, doc, user, datetime.now(UTC))
         await self._apply_aggregations(real_name, doc)
         await self._sync_multilinks(real_name, input, only_present=True)
@@ -357,6 +359,36 @@ class SqlStore(Store):
         result = serialize_datetimes(dict(doc))
         await _load_child_tables(self.session, dt.doc, result)
         return await self.output(result)
+
+    async def _guarded_update(self, name: str, loaded_at: Any, values: dict[str, Any]) -> None:
+        """UPDATE the row *name* only if it is still the one loaded - its
+        ``modified_at`` is *loaded_at* (optimistic locking); otherwise 409.
+
+        The stamp is compared in SQL, so a row stored in another format (an
+        imported ``...T...+00:00`` or one without microseconds) matches
+        nothing; then the stored value is read back and compared as a moment.
+        """
+        table = self.table
+        stmt = table.update().where(table.c.name == name)
+        if loaded_at is None or "modified_at" not in table.c:
+            await self.session.execute(stmt.values(**values))
+            return
+        result = await self.session.execute(
+            stmt.where(table.c.modified_at == loaded_at).values(**values)
+        )
+        if cast(CursorResult, result).rowcount:
+            return
+        # The stamp as stored (text) and as a moment: the retry is conditional
+        # on that very text, so a commit after this read is still refused.
+        raw = sa_cast(table.c.modified_at, Text)
+        stored = (
+            await self.session.execute(select(table.c.modified_at, raw).where(table.c.name == name))
+        ).first()
+        if stored is None or not same_instant(stored[0], loaded_at):
+            raise stale_document()
+        retried = await self.session.execute(stmt.where(raw == stored[1]).values(**values))
+        if not cast(CursorResult, retried).rowcount:
+            raise stale_document()
 
     async def delete(self, name: str, *, before: dict[str, Any]) -> None:
         """DELETE the row, its child rows and its MultiLink relations."""

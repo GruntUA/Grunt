@@ -115,6 +115,19 @@ def conflict(message: str, *, details: list[Any] | None = None) -> APIError:
     return APIError(409, "CONFLICT", message, details=details)
 
 
+def stale_document() -> APIError:
+    """409 ``STALE_DOCUMENT`` - a save based on an outdated copy of the document
+    (optimistic locking); the desk offers to reload it."""
+    return APIError(
+        409,
+        "STALE_DOCUMENT",
+        _(
+            "The document was changed after you started editing. "
+            "Open it again and repeat your changes."
+        ),
+    )
+
+
 def unprocessable(message: str, *, details: list[Any] | None = None) -> APIError:
     """422 - the request is well-formed but failed validation."""
     return APIError(422, "VALIDATION_ERROR", message, details=details)
