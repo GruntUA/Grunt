@@ -2,6 +2,7 @@
 # and opens the pull request into master. Once it is merged, this workflow tags that
 # commit (annotated, the message is the changelog section) and publishes the GitHub
 # release. CI already ran on the pull request, and test.yml runs again on the push.
+# A squash merge leaves `chore(release): vX.Y.Z (#N)` - that commit is tagged then.
 name: Release
 
 on:
@@ -37,12 +38,21 @@ jobs:
           fi
           tag="v$version"
           if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
-            echo "$tag is already tagged"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "$tag is already released"
+              exit 0
+            fi
+            # Tagged, but publishing failed last time.
+            git show "$tag:CHANGELOG.md" | awk '/^## v/ { n++ } n == 1' > "$RUNNER_TEMP/notes.md"
+            gh release create "$tag" --verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
             exit 0
           fi
 
           commit=$(git log --format='%H%x09%s' HEAD |
-            awk -F '\t' -v s="chore(release): $tag" '$2 == s { print $1; exit }')
+            awk -F '\t' -v s="chore(release): $tag" \
+              '$2 == s || (index($2, s " (#") == 1 && substr($2, length(s) + 4) ~ /^[0-9]+\)$/) {
+                print $1; exit
+              }')
           if [ -z "$commit" ]; then
             echo "::error::CHANGELOG.md has $tag but no 'chore(release): $tag' commit"
             exit 1
@@ -51,6 +61,6 @@ jobs:
           git show "$commit:CHANGELOG.md" | awk '/^## v/ { n++ } n == 1' > "$RUNNER_TEMP/notes.md"
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              tag -a "$tag" -F "$RUNNER_TEMP/notes.md" "$commit"
+              tag -a --cleanup=verbatim "$tag" -F "$RUNNER_TEMP/notes.md" "$commit"
           git push origin "refs/tags/$tag"
           gh release create "$tag" --verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
