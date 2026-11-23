@@ -62,6 +62,22 @@ def last_tag(repo: Path, ref: str = "HEAD") -> str | None:
         return None
 
 
+def _since(repo: Path, tag: str, ref: str) -> list[str]:
+    """The ``git log`` range of the commits released after ``tag``.
+
+    A release pull request merged with squash leaves the tag on a commit whose
+    history lacks the commits it released: ``tag..ref`` would list them again.
+    The release commit itself (``chore(release): <tag>``) is still in ``ref``,
+    so everything it reaches is left out too.
+    """
+    out = _git(repo, "log", "--format=%H %s", f"{tag}..{ref}")
+    for line in out.splitlines():
+        sha, _, subject = line.partition(" ")
+        if subject == f"chore(release): {tag}":
+            return [f"{tag}..{ref}", f"^{sha}"]
+    return [f"{tag}..{ref}"]
+
+
 def _changed(repo: Path, since: str, ref: str) -> list[tuple[str, str]]:
     """``(status, path)`` of the files changed between ``since`` and ``ref``."""
     out = _git(repo, "diff", "--name-status", "--no-renames", f"{since}..{ref}")
@@ -232,7 +248,7 @@ def plan_release(repo: Path, ref: str, bump: str) -> ReleasePlan:
         version = next_version(None, "minor" if bump == "auto" else bump)
         return ReleasePlan(version, changelog_section(version, ["Initial release"]), [], [])
 
-    subjects = _git(repo, "log", "--no-merges", "--format=%s", f"{tag}..{ref}").splitlines()
+    subjects = _git(repo, "log", "--no-merges", "--format=%s", *_since(repo, tag, ref)).splitlines()
     subjects = [s for s in subjects if not s.startswith("chore(release):")]
     if not subjects:
         raise click.ClickException(f"no commits since {tag}")
