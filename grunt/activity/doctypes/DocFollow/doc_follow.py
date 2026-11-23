@@ -1,5 +1,6 @@
 """DocFollow controller - you follow documents for yourself, and only ones you can read."""
 
+from grunt.auth.constants import SYSTEM_USER_EMAIL
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
@@ -11,8 +12,10 @@ class DocFollow(Document):
     reference_id: str
 
     async def validate(self) -> None:
-        # ``user`` is a field here, but ``self.user`` is the acting user.
-        if self.user:
+        # ``user`` is a field here, but ``self.user`` is the acting user. The
+        # system (auto-follow, grunt.activity.follow) follows for whom it names.
+        system = self.user == SYSTEM_USER_EMAIL
+        if self.user and not system:
             self.data["user"] = self.user
         if not self.data.get("user"):
             throw(_("Specify a user"))
@@ -21,7 +24,10 @@ class DocFollow(Document):
         doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
-        if self.user and not await permission_checker.check(dt, "read", doc):
+        # The system names someone else: they must be able to read it too, or
+        # the followers' notifications would show them what they cannot open.
+        reader = self.data["user"] if system else None
+        if self.user and not await permission_checker.check(dt, "read", doc, user=reader):
             throw(_("No access to the document"), "PERMISSION_DENIED")
 
     async def before_insert(self) -> None:

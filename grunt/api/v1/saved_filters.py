@@ -15,7 +15,7 @@ from grunt.api.context import whitelist
 from grunt.db.api import GruntDB
 from grunt.errors import unprocessable
 from grunt.i18n import _
-from grunt.local import require_session, require_session_user, system_context
+from grunt.local import require_session_user
 from grunt.permissions.guards import read_guard
 from grunt.permissions.roles import get_roles
 lazy from grunt.document.api import documents
@@ -46,15 +46,14 @@ async def list_saved_filters(doctype: str) -> list[dict[str, Any]]:
     await read_guard(doctype)
     user = require_session_user()
     roles = set(await get_roles(user))
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            _DOCTYPE,
-            filters={"ref_doctype": doctype},
-            fields=_FIELDS,
-            order_by="title",
-            order="asc",
-            limit=None,
-        )
+    rows = await _db.get_all(
+        _DOCTYPE,
+        filters={"ref_doctype": doctype},
+        fields=_FIELDS,
+        order_by="title",
+        order="asc",
+        limit=None,
+    )
     visible = [
         row
         for row in rows

@@ -86,8 +86,12 @@ def rename_doctype(
     *,
     new_table: str,
     fields: dict[str, str] | None = None,
+    old_table: str | None = None,
 ) -> None:
-    """Rename DocType *old* to *new* (table *new_table*); see the module docstring."""
+    """Rename DocType *old* to *new* (table *new_table*); see the module docstring.
+
+    *old_table* - the table when the stored definition doesn't name it (a
+    DocType on the default ``grunt_<module>_<name>`` table)."""
     fields = fields or {}
     inspector = sa.inspect(conn)
     tables = set(inspector.get_table_names())
@@ -109,7 +113,7 @@ def rename_doctype(
         raise RuntimeError(f"rename_doctype: DocType {new!r} already exists")
 
     data = _load(row.definition)
-    old_table = data.get("table_name") or row.table_name
+    old_table = data.get("table_name") or row.table_name or old_table
 
     # 1. The table.
     if old_table and old_table in tables and old_table != new_table:

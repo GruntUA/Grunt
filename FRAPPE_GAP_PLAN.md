@@ -30,13 +30,13 @@
 | 13 | Вхідна пошта → документ (`append_to`), автовідповідь, підпис, «без відповіді N хв» | ✔️ (`feat/inbound-email-to-doc`) |
 | 14 | OAuth для Gmail / Microsoft 365 в EmailAccount | ✔️ (`feat/email-oauth`) |
 | 15 | EmailQueue: відкладене надсилання, пріоритет, повтори, відписка | ✔️ (`feat/email-queue`) |
-| 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ❓ |
-| 17 | Document Naming Rule (серія нумерації за умовою) | ❓ |
-| 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ❓ |
+| 16 | Prepared Report + підсумковий рядок, ролі, тайм-аут у Report | ✔️ (#240) |
+| 17 | Document Naming Rule (серія нумерації за умовою) | ✔️ (#241) |
+| 18 | Налаштування сповіщень користувача (канали за типами, дайджест) | ✔️ (#242) |
 | 19 | Workflow: заборона самопогодження, дії при переході, вхідні «на погодження», кілька workflow | ✔️ (#217, #219) |
 | 20 | Політика входу: надійність/строк пароля, одна сесія, години входу, IP користувача, лише SSO | ✔️ (`feat/login-policy`) |
-| 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ❓ |
-| 22 | Print Format Builder + параметри сторінки | ❓ |
+| 21 | Вкладення: `max_attachments`, `protect_attached_files`, `force_private_attachments` | ✔️ (#244) |
+| 22 | Print Format Builder + параметри сторінки | ✅ крок 1 (`feat/print-standard-layout`) |
 | 23 | Raw printing (ZPL / ESC-POS) для етикеток | ❓ |
 | 24 | OutgoingWebhook: тіло за шаблоном, метод, динамічний URL, повтори | ❓ |
 | 25 | ServerScript: rate limit для API, тип Permission Query | ❓ |
@@ -229,22 +229,43 @@
   - Не робимо: `expose_recipients` / `show_as_cc`; позначку «заплановано на …» на стрічці документа (лист там «У черзі»).
 
 ### 16. Prepared Report та Report
-**Статус:** ❓
+**Статус:** ✔️ — #240
 - **Frappe:** Prepared Report — звіт рахується у фоні, користувач отримує збережений результат; Report `add_total_row`, `roles`, `disabled`, `timeout`, `reference_report`.
-- **Ґрунт зараз:** звіти рахуються синхронно.
-- **Рішення:** —
+- **Ґрунт зараз:** звіти рахуються синхронно; рядок «Разом» є для Query/Script (прапорець `total` у колонці); Report читають усі (роль All), і Query/Script-звіт без `ref_doctype` запускає будь-хто — діра.
+- **Рішення (2026-11-20):** робимо, одним PR (`feat/prepared-report`):
+  - **Prepared Report:** прапорець `Report.prepared_report` (вмикається вручну, без автоперемикання за тайм-аутом). «Запустити» ставить задачу у воркер; новий `PreparedReport` (звіт, фільтри + хеш, статус Queued/Started/Completed/Error, автор, рядки, час, помилка; результат — стиснутий JSON у File). Відкриття звіту показує останній готовий результат для тих самих фільтрів і кнопку «Перерахувати»; готовність — через realtime. Рахується від імені того, хто запустив. Старі результати прибирає `retention_days`.
+  - **Ролі:** `Report.roles` (Table MultiSelect) — задано: звіт бачать і запускають лише ці ролі (і право `report` на `ref_doctype`, якщо він є); порожнє без `ref_doctype` — лише System Manager.
+  - **`disabled`:** вимкнений звіт не запускається, не розсилається, не видно в меню.
+  - **`timeout`** (сек.): обрив SQL — PG `statement_timeout`, SQLite `progress_handler`, MySQL `max_execution_time`; дефолт із налаштувань.
+  - **Підсумок у List-звітах:** рядок «Разом» (`total` у колонці) — і в List-звітах, і в розсилці.
+  - Не робимо: `reference_report` (є `is_standard`/`app`).
 
 ### 17. Document Naming Rule
-**Статус:** ❓
+**Статус:** ✔️ — #241
 - **Frappe:** правило іменування з умовами та пріоритетом (різні серії для різних підрозділів/типів).
 - **Ґрунт зараз:** `autoname` + NamingSeries на DocType.
-- **Рішення:** —
+- **Рішення (2026-11-21):** робимо все, одним PR (`feat/naming-rules`):
+  - **Document Naming Rule** (`grunt/naming/doctypes/DocumentNamingRule`, кеш — `grunt/naming/rules.py`): DocType + `condition` + `priority` + `disabled` → шаблон назви. Умова — Python-вираз на simpleeval (`doc.department == 'ЦНАП'`), як у Notification/Workflow/Webhook, а не таблиця умов, як у Frappe; помилка = не збігається. Перше правило, умова якого справджується, перекриває `autoname` DocType і `autoname()` контролера.
+  - **Поля в шаблоні:** `{fieldname}` (свій лічильник на кожне значення; порожнє → помилка); токени в дужках `{YYYY}`/`{####}`, як у `format:` у Frappe.
+  - **Дата з документа:** `DocType.naming_date_field` («Дата для назви»).
+  - **`naming_series:`:** користувач обирає серію в Select-полі `naming_series`; значення поза варіантами відхиляється.
+  - **Лічильник в UI:** «Наступна назва» і кнопка «Лічильник серії…» у формах DocType і правила; API `grunt.api.v1.naming.preview/counter/set_counter` (`grunt.manage_doctypes`).
+  - **Зайняті назви** пропускаються (до 1000 поспіль), замість помилки унікального ключа.
+  - Попутно: дата в назві рахувалася в UTC — 1 січня до 02:00 за Києвом документ отримував минулий рік; тепер місцева дата (`settings.default_timezone`). Видалення додатка чистить лічильники `{field}`/`naming_series`/правил і самі правила.
+  - Не робимо: таблицю умов (field/condition/value), окремий DocType «Document Naming Settings», назву для поправок (amended_from, у ґрунті немає Submit).
 
 ### 18. Налаштування сповіщень користувача
-**Статус:** ❓
+**Статус:** ✅ — `feat/notification-preferences`
 - **Frappe:** Notification Settings / Notification Type Preference — увімкнути/вимкнути пошту та системні сповіщення за типом, дайджест, автостеження за створеними/коментованими/призначеними документами.
-- **Ґрунт зараз:** немає персональних налаштувань.
-- **Рішення:** —
+- **Ґрунт зараз:** немає персональних налаштувань; є `EmailUnsubscribe` (відписка від листів правила або всіх); дайджест щодня **і** щотижня — усім активним (у понеділок два листи); стеження лише вручну.
+- **Рішення (2026-11-21):** робимо одним PR (`feat/notification-preferences`):
+  - **`NotificationPreference`** замість `EmailUnsubscribe`: `email` (користувач або будь-яка адреса), `notification` (порожньо — усі), `channel` (порожньо — усі); рядок = вимкнено. Міграція переносить відписки як `channel=email`; посилання «відписатися» пише сюди. Перевірка — у `deliver()` (Skipped, «налаштування користувача»). Вимикати можна будь-який канал, і дзвоник теж.
+  - **`Notification.is_mandatory`** («Не можна вимкнути») — ігнорує налаштування й відписку.
+  - **Профіль → «Налаштування» → «Сповіщення»:** таблиця правило × канал (правила, які користувач міг би отримати; обов'язкові — заблоковані); у дзвонику — «Не надсилати такі».
+  - **Дайджест:** `User.notification_digest` (Ні / Щодня / Щотижня), типове — `SystemSettings`, за замовчуванням **Ні**; один дайджест на користувача.
+  - **Автостеження:** прапорці в профілі — документи, які я створюю / коментую / які мені призначили / поширили (за замовчуванням вимкнено).
+  - ⏸ тихі години пушів; ❌ окремий DocType Notification Settings, Energy Points.
+  - **Реалізація:** `grunt/notification/preferences.py` (`muted`/`is_off` — один запит на повідомлення в `deliver()`, `set_enabled` розбиває рядок «усі канали» при вмиканні одного, `mute_everywhere`, `overview`); API `grunt.api.v1.notifications.get_preferences/set_preference/mute_like`; діалог `frontend/src/components/desk/dialogs/NotificationPreferences.vue` (`grunt.open_dialog('grunt/NotificationPreferences')` — ядро тепер теж має діалоги в `appDialogs`); кнопка «Налаштування сповіщень» лише у власному профілі, шестерня в дзвонику. Міграція 0029: `rename_doctype(..., old_table=)` — EmailUnsubscribe жила на типовій таблиці `grunt_email_email_unsubscribe` без `table_name`, тож у `rename_doctype` додано параметр `old_table`. Автостеження — хуки в `core_hooks.py` (`*` after_insert, Comment, ToDo, SharedWith), лише DocType з `track_activity`, без дочірніх/single; `DocFollow` у системному контексті підписує вказаного користувача.
 
 ### 19. Workflow
 **Статус:** ✔️ — #217, #219
@@ -259,16 +280,16 @@
 - **Рішення (2026-11-18):** робимо: строк дії пароля (`password_max_age_days`, `User.password_changed_at`; прострочений → крок `password_change_required` до MFA; без дати — відлік від першого входу), `max_sessions_per_user` (нова сесія витісняє найстаріші), `User.login_after`/`login_before` і `User.allowed_ips` (поверх ролі), «лише SSO» (`disable_password_login`, адміністратори — виняток); попутно — зміна пароля завершує інші сесії (діра). ⏸ zxcvbn (правила складності вже є); ❌ вхід за телефоном/логіном.
 
 ### 21. Вкладення
-**Статус:** ❓
+**Статус:** ✔️ (#244)
 - **Frappe:** `DocType.max_attachments`, `protect_attached_files` (не можна видалити), `force_private_attachments`, `make_attachments_public`.
-- **Ґрунт зараз:** `public_attachments`.
-- **Рішення:** —
+- **Ґрунт зараз:** `public_attachments`; `File.before_delete` не дає видалити файл, прикріплений до наявного документа чи використаний у будь-якому полі.
+- **Рішення (2026-11-23):** `force_private_attachments` — робимо: новий файл документа завжди приватний (`upload(is_public=True)` тихо стає приватним, як у Frappe), зробити файл публічним потім — помилка; публічний файл із власної бібліотеки, прив'язаний до такого документа, стає приватним; файли, публічні до появи прапорця, не чіпаємо; разом із `public_attachments` — помилка моделі DocType. `protect_attached_files` — ✔️ вже є, суворіше (у нас немає проведення, захищено завжди). `max_attachments` — ⏸: у нас немає загальної панелі вкладень документа, ліміт нема до чого застосувати; панель + ліміт — IDEAS 6.32.
 
 ### 22. Print Format Builder
-**Статус:** ❓
+**Статус:** ✅ крок 1 (`feat/print-standard-layout`)
 - **Frappe:** візуальний конструктор друкованої форми (поля, секції, таблиці), поля сторінки, розмір паперу, шрифт, мова друку, ролі, друковані форми для звітів; Print Settings, Print Style.
-- **Ґрунт зараз:** Jinja-шаблон + LetterHead.
-- **Рішення:** —
+- **Ґрунт зараз:** Jinja-шаблон + LetterHead; стандартний друк — суцільна таблиця «мітка → значення» без дочірніх таблиць і колонок, значення сирі (id замість назви Link, Select без перекладу, числа без `precision`).
+- **Рішення (2026-11-23):** крок 1 — розумний стандартний друк: макет DocType (вкладки/секції/колонки), дочірні таблиці з колонками `in_list_view`, значення форматує сервер (назва Link, переклад Select, `precision`, дати за мовою, санітизований RichText), порожні поля не друкуються, `DocField.print_hide` / `print_hide_if_no_value`. Конструктор друкованих форм (drag-and-drop, параметри сторінки, вибір форми в діалозі друку) — ⏸, ймовірно окремим додатком поверх кроку 1.
 
 ### 23. Raw printing
 **Статус:** ❓

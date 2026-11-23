@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import shutil
 import subprocess
 from datetime import datetime
@@ -30,6 +31,8 @@ lazy from grunt.metadata.compiler import SA_METADATA, compile_doctype_to_table
 lazy from grunt.metadata.extensions import extensions_for_site, revert_properties
 lazy from grunt.metadata.field import is_physical_fieldtype
 lazy from grunt.metadata.registry import doctype_registry
+lazy from grunt.naming.rules import RULE_DOCTYPE
+lazy from grunt.naming.service import NAMING_SERIES, series_options
 lazy from grunt.site.manager import current_site, site_manager
 lazy from grunt.startup.app_install import sync_installed_apps
 lazy from grunt.startup.doctypes import load_core_doctypes
@@ -236,19 +239,38 @@ async def _run_before_uninstall_hook(session, target_site: str, name: str) -> No
 
 
 async def _delete_naming_series_counters(session, app_doctypes: list) -> None:
-    """Clear NamingSeries prefix counters derived from this app's autoname doctypes."""
+    """Clear NamingSeries prefix counters derived from this app's doctypes - their
+    autoname, ``naming_series`` options and Document Naming Rules - and the rules."""
 
     ns_dt = await doctype_registry.get_meta("NamingSeries")
     if ns_dt is None:
         raise SystemExit("Error: DocType 'NamingSeries' not found.")
     ns_table = ns_dt.table
+    rule_dt = await doctype_registry.get_meta(RULE_DOCTYPE)
+    names = [dt.name for dt in app_doctypes]
+    rules = (
+        await _db.get_all(
+            RULE_DOCTYPE,
+            filters={"document_type__in": names},
+            fields=["name", "autoname"],
+            limit=None,
+        )
+        if rule_dt is not None and names
+        else []
+    )
+    patterns: list[str] = [r["autoname"] or "" for r in rules]
     for dt in app_doctypes:
-        autoname = (dt.autoname or "").strip()
-        if not autoname or autoname.startswith("field:"):
+        autoname = (dt.autoname or "").strip().removeprefix("format:")
+        patterns.extend(series_options(dt) if autoname == NAMING_SERIES else [autoname])
+    for pattern in patterns:
+        if not pattern or pattern.startswith("field:") or pattern in ("hash", "prompt"):
             continue
-        head = autoname.removeprefix("format:").split(".", 1)[0]
+        # The literal head, up to the first token (.YYYY., .####, {field}).
+        head = re.split(r"[.{]", pattern.strip(), maxsplit=1)[0]
         if head:
             await session.execute(ns_table.delete().where(ns_table.c.prefix.like(f"{head}%")))
+    if rules:
+        await _db.delete(RULE_DOCTYPE, {"document_type__in": names})
 
 
 _MENU_CHILDREN = ("WorkspaceSidebarItem", "WorkspaceSection")

@@ -4,8 +4,10 @@ import re
 import shutil
 import sqlite3
 import tempfile
+import time
+from collections.abc import AsyncGenerator
 from compression import zstd
-from contextlib import closing, suppress
+from contextlib import asynccontextmanager, closing, suppress
 from pathlib import Path
 from typing import Any
 
@@ -72,6 +74,10 @@ def _affinity(declared: str) -> str:
     if any(k in t for k in ("REAL", "FLOA", "DOUB")):
         return "REAL"
     return "NUMERIC"
+
+
+#: VM steps between deadline checks of :meth:`SqliteDialect.statement_timeout`.
+_PROGRESS_STEPS = 10_000
 
 
 class SqliteDialect(Dialect):
@@ -319,6 +325,36 @@ class SqliteDialect(Dialect):
         if m := _SQLITE_CHECK_FAILED.search(message):
             return ConstraintViolation("check", constraint=m.group(1))
         return None
+
+    # ── Statement timeout ───────────────────────────────────────────────────
+
+    @asynccontextmanager
+    async def statement_timeout(self, session: Any, seconds: float | None) -> AsyncGenerator[None]:
+        if not seconds:
+            yield
+            return
+        # The progress handler runs on the driver's thread every N VM steps;
+        # a true return interrupts the statement ("interrupted"). The deadline
+        # restarts with every statement - a limit per statement, as PostgreSQL's.
+        conn = await session.connection()
+        raw = (await conn.get_raw_connection()).driver_connection
+        deadline = [time.monotonic() + seconds]
+
+        def restart(*_: Any) -> None:
+            deadline[0] = time.monotonic() + seconds
+
+        event.listen(conn.sync_connection, "before_cursor_execute", restart)
+        try:
+            # Inside the try: a cancellation during this await still removes it.
+            await raw.set_progress_handler(lambda: time.monotonic() > deadline[0], _PROGRESS_STEPS)
+            yield
+        finally:
+            event.remove(conn.sync_connection, "before_cursor_execute", restart)
+            await raw.set_progress_handler(None, _PROGRESS_STEPS)
+
+    def is_timeout(self, exc: BaseException) -> bool:
+        orig = getattr(exc, "orig", None) or exc
+        return isinstance(orig, sqlite3.OperationalError) and "interrupted" in str(orig)
 
     # ── Maintenance ─────────────────────────────────────────────────────────
 

@@ -40,7 +40,7 @@ from grunt.db.api import GruntDB
 from grunt.email.service import PRIORITY_HIGH, email_service
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
+from grunt.local import require_session
 from grunt.log import log
 from grunt.utils.templates import render as render_template_text
 lazy from grunt.document.api import documents
@@ -147,19 +147,19 @@ class EmailLoginProvider(AuthProvider):
 
     async def _new_token(self, email: str, code_hash: str, ip: str | None) -> str:
         now = datetime.now(UTC)
-        async with system_context(require_session()):
-            # One live token per address, and opportunistically sweep expired rows.
-            await _db.delete(_TOKEN_DT, {"email": email})
-            await _db.delete(_TOKEN_DT, {"expires_at__lt": now})
-            doc = await documents.new_doc(
-                _TOKEN_DT,
-                {
-                    "email": email,
-                    "code_hash": code_hash,
-                    "expires_at": now + timedelta(minutes=_TTL_MINUTES),
-                    "ip_address": ip or None,
-                },
-            )
+        # One live token per address, and opportunistically sweep expired rows.
+        await _db.delete(_TOKEN_DT, {"email": email})
+        await _db.delete(_TOKEN_DT, {"expires_at__lt": now})
+        doc = await documents.new_doc(
+            _TOKEN_DT,
+            {
+                "email": email,
+                "code_hash": code_hash,
+                "expires_at": now + timedelta(minutes=_TTL_MINUTES),
+                "ip_address": ip or None,
+            },
+            ignore_permissions=True,
+        )
         return doc["name"]
 
     async def _load_active(self, tid: str) -> dict | None:
@@ -167,13 +167,13 @@ class EmailLoginProvider(AuthProvider):
         if not tid:
             return None
 
-        async with system_context(require_session()):
-            rows = await documents.get_list(
-                _TOKEN_DT,
-                filters={"name": tid},
-                fields=["name", "code_hash", "expires_at", "consumed_at"],
-                limit=1,
-            )
+        rows = await documents.get_list(
+            _TOKEN_DT,
+            filters={"name": tid},
+            fields=["name", "code_hash", "expires_at", "consumed_at"],
+            limit=1,
+            ignore_permissions=True,
+        )
         if not rows:
             return None
         row = rows[0]
@@ -187,8 +187,7 @@ class EmailLoginProvider(AuthProvider):
         return row
 
     async def _mark_consumed(self, tid: str) -> None:
-        async with system_context(require_session()):
-            await _db.set_value(_TOKEN_DT, tid, {"consumed_at": datetime.now(UTC)})
+        await _db.set_value(_TOKEN_DT, tid, {"consumed_at": datetime.now(UTC)})
 
     async def _consume(self, tid: str, error: str) -> None:
         """Load-and-burn in one step (magic-link path, no extra factor)."""

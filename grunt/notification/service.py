@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
+from grunt.local import system_context
 from grunt.log import log
 from grunt.notification import rules
 from grunt.notification.channels import Message
@@ -106,24 +106,23 @@ class NotificationService:
         if unread_only:
             filters["is_read"] = False
 
-        async with system_context(require_session()):
-            rows = await _db.get_all(
-                "NotificationLog",
-                filters=filters,
-                fields=[
-                    "name",
-                    "subject",
-                    "message",
-                    "ref_doctype",
-                    "doc_id",
-                    "is_read",
-                    "created_at",
-                ],
-                limit=limit,
-                offset=offset,
-                order_by="created_at",
-                order="desc",
-            )
+        rows = await _db.get_all(
+            "NotificationLog",
+            filters=filters,
+            fields=[
+                "name",
+                "subject",
+                "message",
+                "ref_doctype",
+                "doc_id",
+                "is_read",
+                "created_at",
+            ],
+            limit=limit,
+            offset=offset,
+            order_by="created_at",
+            order="desc",
+        )
 
         return [
             {
@@ -136,18 +135,16 @@ class NotificationService:
     async def mark_read(self, notification_id: str) -> None:
         """Mark a single notification as read."""
 
-        async with system_context(require_session()):
-            await _db.set_value("NotificationLog", notification_id, "is_read", True)
+        await _db.set_value("NotificationLog", notification_id, "is_read", True)
 
     async def mark_all_read(self, user: str) -> int:
         """Mark all notifications as read for a user. Returns count of affected."""
 
-        async with system_context(require_session()):
-            return await documents.bulk_update(
-                "NotificationLog",
-                {"user": user, "is_read": False},
-                {"is_read": True},
-            )
+        return await documents.bulk_update(
+            "NotificationLog",
+            {"user": user, "is_read": False},
+            {"is_read": True},
+        )
 
     async def notify(
         self,

@@ -82,6 +82,7 @@ const PICKERS = {
     calendar_title_field: 'all',
     is_published_field: 'check',
     retention_date_field: 'date',
+    naming_date_field: 'date',
     sender_field: 'text',
     subject_field: 'text',
 }
@@ -182,6 +183,43 @@ function _add_app_rules_actions(frm) {
     })
 }
 
+const NAMING = 'grunt.api.v1.naming'
+
+// The next name a new document would get (grunt.naming.service.preview).
+async function _show_next_name(frm) {
+    if (frm.is_new || frm.doc.is_child || frm.doc.is_singleton) return
+    try {
+        const p = await grunt.call(`${NAMING}.preview`, { doctype: frm.doc.name })
+        if (p && p.next) frm.dashboard.add_indicator(`${__('Next name')}: ${p.next}`, 'blue')
+    } catch (e) {
+        // A hint, not a requirement - the form works without it.
+    }
+}
+
+// «Series counter…»: the last number given out under the series' prefix.
+async function _edit_counter(frm) {
+    const p = await grunt.call(`${NAMING}.preview`, { doctype: frm.doc.name })
+    let prefix = p && p.prefix
+    if (!prefix) {
+        prefix = await grunt.prompt({
+            title: __('Series counter'),
+            label: __('Series prefix — the name up to the number, e.g. ВХ-2026-'),
+        })
+        if (!prefix) return
+    }
+    const now = prefix === (p && p.prefix) ? p.current : await grunt.call(`${NAMING}.counter`, { prefix })
+    const value = await grunt.prompt({
+        title: __('Series counter'),
+        label: __('Last number given out in “{prefix}” (now {current}). The next document gets the one after it.')
+            .replace('{prefix}', prefix)
+            .replace('{current}', String(now ?? 0)),
+        fieldtype: 'Int',
+    })
+    if (value === null || value === undefined || String(value).trim() === '') return
+    await grunt.call(`${NAMING}.set_counter`, { prefix, current: Number(value) })
+    grunt.show_alert(__('Counter updated'), 'success')
+}
+
 function _escape(text) {
     return String(text).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
@@ -189,6 +227,7 @@ function _escape(text) {
 export async function on_load(frm) {
     _refresh_field_selects(frm)
     _show_permission_warnings(frm)
+    _show_next_name(frm)
 
     let apps
     try {
@@ -216,6 +255,7 @@ export async function on_load(frm) {
 export async function on_change(frm, fieldname) {
     if (fieldname === 'fields' || fieldname === 'is_tree') return _refresh_field_selects(frm)
     if (fieldname === 'status_field') return _seed_status_indicators(frm)
+    if (fieldname === 'naming_counter') return _edit_counter(frm)
     if (fieldname !== 'app') return
 
     const selected = frm.get_value('app')

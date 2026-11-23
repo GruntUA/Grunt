@@ -25,20 +25,19 @@ from grunt.document.formula import compute_formulas
 from grunt.document.guards import check_write
 from grunt.document.payload import update_values
 from grunt.document.relations import apply_field_values
-from grunt.document.serde import audit_fields
+from grunt.document.serde import audit_fields, same_instant
 from grunt.document.update_side_effects import (
     fire_delete_services,
     fire_update_services,
     record_update_changes,
 )
 from grunt.document.validation import _validate_data, refuse_set_once_changes, validate_child_rows
-from grunt.errors import ApplicationError, not_found
+from grunt.errors import ApplicationError, not_found, stale_document
 from grunt.events import fire
 from grunt.i18n import _
-from grunt.local import require_session_user
+from grunt.local import require_session_user, stamp_user
 from grunt.log import log
 from grunt.monitoring import perf
-from grunt.naming.patterns import has_counter, parse_pattern
 from grunt.naming.service import naming_service
 from grunt.permissions import audit
 from grunt.permissions.query import reference_readable
@@ -214,25 +213,17 @@ class DocumentLifecycleMixin:
     ) -> dict[str, Any]:
         """The new document: name, audit fields, coerced values and workflow state."""
         user = require_session_user()
-        # An explicit caller-supplied name wins over autoname for fixtures and
-        # imports, which rely on stable names regardless of the DocType's
-        # naming scheme - but NOT for counter-based series (e.g.
-        # "ВХ-.YYYY.-.####"), where the counter is the source of truth and
-        # must always be consulted. Otherwise any caller (a frontend bug, a
-        # crafted API request) could pass an arbitrary `name` and silently
-        # hijack the series - the counter would never advance and a later,
-        # properly-generated name could collide with it.
-        pattern = (dt.autoname or "").removeprefix("format:")
-        if data.get("name") and not has_counter(parse_pattern(pattern)):
-            doc_name = str(data["name"])
-        else:
-            custom_autoname: Callable[..., Awaitable[str]] | None = getattr(
-                type(self), "autoname", None
-            )
-            if custom_autoname is not None and callable(custom_autoname):
-                doc_name = await custom_autoname(data, self.session)
-            else:
-                doc_name = await naming_service.generate(dt.autoname or "", data, self.session)
+        # Rule -> caller's name (not for a counter series) -> controller's
+        # autoname() -> the DocType's autoname: grunt.naming.service.new_name.
+        custom_autoname: Callable[..., Awaitable[str]] | None = getattr(
+            type(self), "autoname", None
+        )
+        doc_name = await naming_service.new_name(
+            dt,
+            data,
+            self.session,
+            controller_autoname=custom_autoname if callable(custom_autoname) else None,
+        )
 
         columns = self._store.columns
         row: dict[str, Any] = (
@@ -240,7 +231,7 @@ class DocumentLifecycleMixin:
             if columns is not None
             else {k: v for k, v in data.items() if k[:2] != "__" and k != "doctype"}
         )
-        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user, now)}
+        standard: dict[str, Any] = {"name": doc_name, **audit_fields(stamp_user(user), now)}
         for k, v in standard.items():
             if columns is None or k in columns:
                 row[k] = v
@@ -309,10 +300,15 @@ class DocumentLifecycleMixin:
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
             await permission_checker.require_in_scope(dt, "create", self.data, user=user)
             await self._before_store(dt)
-            self.data = await store.insert(self.data, input=data, user=user)
+            self.data = await store.insert(self.data, input=data, user=stamp_user(user))
             log.info("document.created", doctype=self.doctype, id=self.data.get("name"))
             await audit.record(
-                self.session, self.doctype, str(self.data.get("name")), None, self.data, user
+                self.session,
+                self.doctype,
+                str(self.data.get("name")),
+                None,
+                self.data,
+                stamp_user(user),
             )
             await self._run_lifecycle_hooks("after_insert", "after_save")
             await search_index_service.index_document(self.session, self.doctype, dt.doc, self.data)
@@ -338,9 +334,12 @@ class DocumentLifecycleMixin:
         self._bind()
         user = require_session_user()
         data = strip_file_signatures(data)
-        # Optimistic-concurrency guard: the `modified_at` the client's edit was
-        # based on (sent by offline replays). A newer server copy -> 409.
-        base_modified_at = data.pop("__base_modified_at", None)
+        # Optimistic locking: the `modified_at` the edit was based on - sent
+        # explicitly by offline replays, otherwise the one the document carries
+        # (the form and ``doc.save()`` send the whole document). A newer stored
+        # copy -> 409. A partial payload without it is guarded only against a
+        # write between the load below and the UPDATE (SqlStore.update).
+        base_modified_at = data.pop("__base_modified_at", None) or data.get("modified_at")
         dt = self._dt = await self._resolve_dt(self.doctype)
 
         # A singleton's first save arrives here, not at ``insert`` - the form
@@ -374,15 +373,9 @@ class DocumentLifecycleMixin:
         if (
             base_modified_at
             and existing.get("modified_at") is not None
-            and not _same_instant(base_modified_at, existing.get("modified_at"))
+            and not same_instant(base_modified_at, existing.get("modified_at"))
         ):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=_(
-                    "The document was changed after you started editing. "
-                    "Open it again and repeat your changes."
-                ),
-            )
+            raise stale_document()
 
         # Workflow: the state moves only by transitions; an edit may itself be
         # an `on_edit` transition (then *data* carries the new state).
@@ -397,7 +390,7 @@ class DocumentLifecycleMixin:
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
-        update_data = update_values(dt, data, store.columns, user)
+        update_data = update_values(dt, data, store.columns, stamp_user(user))
         real_id = existing["name"]
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
@@ -438,10 +431,12 @@ class DocumentLifecycleMixin:
         # The stored row was checked before the change; the new one must stay in scope.
         await permission_checker.require_in_scope(dt, "write", self.data, user=user)
         await self._before_store(dt)
-        result = await store.update(real_id, self.data, before=existing, input=data, user=user)
+        result = await store.update(
+            real_id, self.data, before=existing, input=data, user=stamp_user(user)
+        )
         log.info("document.updated", doctype=self.doctype, id=real_id)
         # Access changes are logged whatever the store keeps of history.
-        await audit.record(self.session, self.doctype, real_id, existing, result, user)
+        await audit.record(self.session, self.doctype, real_id, existing, result, stamp_user(user))
 
         if store.can(HISTORY):
             await record_update_changes(
@@ -452,7 +447,7 @@ class DocumentLifecycleMixin:
                 dt=dt,
                 existing=existing,
                 result=result,
-                user=user,
+                user=stamp_user(user),
             )
         await release_dropped_files(self.doctype, existing, result)
 
@@ -511,7 +506,7 @@ class DocumentLifecycleMixin:
         try:
             await self._run_lifecycle_hooks("before_delete")
             await store.delete(real_id, before=existing)
-            await audit.record(self.session, self.doctype, real_id, stored, None, user)
+            await audit.record(self.session, self.doctype, real_id, stored, None, stamp_user(user))
             await fire_delete_services(
                 session=self.session, doctype_name=self.doctype, real_id=real_id, existing=existing
             )
@@ -527,22 +522,3 @@ class DocumentLifecycleMixin:
             user=user,
             session=self.session,
         )
-
-
-def _same_instant(a: Any, b: Any) -> bool:
-    """Compare two timestamps given as datetimes or ISO strings (``Z`` / offset / naive-UTC)."""
-
-    def parse(v: Any) -> datetime | None:
-        if isinstance(v, datetime):
-            dt = v
-        elif isinstance(v, str) and v:
-            try:
-                dt = datetime.fromisoformat(v.replace("Z", "+00:00"))
-            except ValueError:
-                return None
-        else:
-            return None
-        return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
-
-    pa, pb = parse(a), parse(b)
-    return pa is not None and pb is not None and pa == pb

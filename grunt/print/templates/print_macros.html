@@ -1,0 +1,202 @@
+{#
+  The standard print layout (grunt.print.layout) as HTML. A PrintFormat
+  template can reuse it - `layout` is in its context once the template
+  mentions it:
+
+    {% from "print_macros.html" import print_styles, render_layout %}
+    <style>{{ print_styles() }}</style>
+    ... {{ render_layout(layout) }} ...
+
+  Values are already safe HTML - formatted and escaped on the server.
+#}
+
+{% macro print_styles() -%}
+.print-tab {
+  font-size: 13pt;
+  color: #2D6A4F;
+  margin: 20px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #2D6A4F;
+  break-after: avoid;
+}
+
+.print-section {
+  margin-top: 14px;
+}
+
+.print-section-heading {
+  background: #2D6A4F;
+  color: white;
+  padding: 5px 10px;
+  font-size: 10.5pt;
+  font-weight: 600;
+  margin-bottom: 6px;
+  break-after: avoid;
+}
+
+.print-columns {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  column-gap: 20px;
+}
+
+.print-fields {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.print-fields th {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px 5px 0;
+  width: 40%;
+  font-weight: 600;
+  color: #555;
+  font-size: 9.5pt;
+  border-bottom: 1px solid #eee;
+}
+
+.print-fields td {
+  vertical-align: top;
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+  overflow-wrap: anywhere;
+}
+
+.print-wide {
+  margin: 8px 0;
+}
+
+.print-wide-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 9.5pt;
+  margin-bottom: 3px;
+}
+
+.print-wide-value {
+  overflow-wrap: anywhere;
+}
+
+.print-wide-value p {
+  margin: 0 0 6px;
+}
+
+.print-wide-value pre {
+  white-space: pre-wrap;
+  font-size: 9pt;
+}
+
+.print-table-label {
+  font-weight: 600;
+  color: #555;
+  font-size: 9.5pt;
+  margin: 10px 0 4px;
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+}
+
+.print-table th,
+.print-table td {
+  border: 1px solid #ddd;
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.print-table th {
+  background: #f5f7f5;
+  font-weight: 600;
+  color: #555;
+}
+
+.print-table thead {
+  display: table-header-group;
+}
+
+.print-table tr {
+  break-inside: avoid;
+}
+
+.print-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.print-table .idx {
+  width: 1%;
+  color: #999;
+  text-align: right;
+}
+
+.print-image {
+  max-width: 100%;
+  max-height: 6cm;
+}
+{%- endmacro %}
+
+{% macro render_table(item) -%}
+{% if item.label %}<div class="print-table-label">{{ item.label }}</div>{% endif %}
+<table class="print-table">
+  <thead>
+    <tr>
+      <th class="idx">#</th>
+      {% for label, numeric in item.columns %}
+      <th{% if numeric %} class="num"{% endif %}>{{ label }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in item.rows %}
+    <tr>
+      <td class="idx">{{ loop.index }}</td>
+      {% for cell in row %}
+      <td{% if item.columns[loop.index0][1] %} class="num"{% endif %}>{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{%- endmacro %}
+
+{% macro render_column(items) -%}
+{% set ns = namespace(open=false) %}
+{% for item in items %}
+{% if item.rows is defined or item.wide %}
+{% if ns.open %}</table>{% set ns.open = false %}{% endif %}
+{% if item.rows is defined %}
+{{ render_table(item) }}
+{% else %}
+<div class="print-wide">
+  <div class="print-wide-label">{{ item.label }}</div>
+  <div class="print-wide-value">{{ item.value }}</div>
+</div>
+{% endif %}
+{% else %}
+{% if not ns.open %}<table class="print-fields">{% set ns.open = true %}{% endif %}
+<tr>
+  <th>{{ item.label }}</th>
+  <td>{{ item.value }}</td>
+</tr>
+{% endif %}
+{% endfor %}
+{% if ns.open %}</table>{% endif %}
+{%- endmacro %}
+
+{% macro render_layout(layout) -%}
+{% for section in layout %}
+{% if section.tab_label %}<h2 class="print-tab">{{ section.tab_label }}</h2>{% endif %}
+<div class="print-section">
+  {% if section.label %}<div class="print-section-heading">{{ section.label }}</div>{% endif %}
+  <div class="print-columns" style="--cols: {{ section.columns | length }}">
+    {% for column in section.columns %}
+    <div class="print-column">{{ render_column(column) }}</div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{%- endmacro %}

@@ -51,8 +51,7 @@ async def next_actors(doctype: str, doc: dict[str, Any]) -> list[str]:
         return []
     owner = await stored_owner(doctype, doc, transitions)
     result: list[str] = []
-    async with system_context(require_session()):
-        holders = await role_holders(roles)
+    holders = await role_holders(roles)
     for holder in holders:
         email = holder.get("email")
         if email and await may_act(meta, email, holder["roles"], transitions, doc, owner=owner):
@@ -101,8 +100,7 @@ async def stored_owner(doctype: str, doc: dict[str, Any], transitions: list[Any]
         return None
     if not doc.get("name"):
         return doc.get("owner")
-    async with system_context(require_session()):
-        return await _db.get_value(doctype, doc["name"], "owner")
+    return await _db.get_value(doctype, doc["name"], "owner")
 
 
 async def previous_actor(doctype: str, doc_id: str) -> str | None:

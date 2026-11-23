@@ -7,6 +7,8 @@ PostgreSQL-like behaviour several backends share: ``lower()`` for sorting,
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, ClassVar, Literal, NamedTuple
 
@@ -271,6 +273,20 @@ class Dialect(ABC):
     def drop_inline_unique(self, connection: Any, table_name: str, names: list[str]) -> int:
         """Drop unique constraints declared inside CREATE TABLE (rebuild-only backends)."""
         return 0
+
+    # ── Statement timeout ───────────────────────────────────────────────────
+
+    @asynccontextmanager
+    async def statement_timeout(self, session: Any, seconds: float | None) -> AsyncGenerator[None]:
+        """Abort a statement *session* runs inside the block once it has taken
+        *seconds* (``None`` / ``0`` - no limit); :meth:`is_timeout` tells the
+        error. For reads: a write interrupted this way may take the transaction
+        with it."""
+        yield  # a backend that can't: no limit
+
+    def is_timeout(self, exc: BaseException) -> bool:
+        """*exc* is a statement aborted by :meth:`statement_timeout`."""
+        return False
 
     # ── Errors ──────────────────────────────────────────────────────────────
 

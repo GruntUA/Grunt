@@ -29,7 +29,6 @@ from typing import Any
 
 from grunt.assignment.conditions import EVERYONE, matches
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
 lazy from grunt.document.api import documents
@@ -158,8 +157,7 @@ class AssignmentService:
         if method == "Round Robin":
             chosen = await self._next_in_turn(rule, candidates)
             if persist:
-                async with system_context(require_session()):
-                    await _db.set_value("AssignmentRule", rule["name"], "last_user", chosen)
+                await _db.set_value("AssignmentRule", rule["name"], "last_user", chosen)
                 rule["last_user"] = chosen
             return [chosen]
         if method == "Load Balancing":
@@ -182,11 +180,10 @@ class AssignmentService:
         if rule.get("assign_to_group"):
             return [(email, 1) for email in await group_emails([str(rule["assign_to_group"])])]
         if rule.get("assign_to_role"):
-            async with system_context(require_session()):
-                meta = await doctype_registry.get_meta(doctype)
-                emails = await holders_for(
-                    [str(rule["assign_to_role"])], meta, doc if meta is not None else None
-                )
+            meta = await doctype_registry.get_meta(doctype)
+            emails = await holders_for(
+                [str(rule["assign_to_role"])], meta, doc if meta is not None else None
+            )
             return [(email, 1) for email in emails]
         if rule.get("assign_to_user"):
             return [(str(rule["assign_to_user"]), 1)]
@@ -202,15 +199,14 @@ class AssignmentService:
         i = emails.index(last)
         weight = max(1, candidates[i][1])
         if weight > 1:
-            async with system_context(require_session()):
-                recent = await _db.get_all(
-                    "AssignmentLog",
-                    filters={"rule_id": rule["name"], "assignment_method": "Round Robin"},
-                    pluck="assigned_to",
-                    order_by="created_at",
-                    order="desc",
-                    limit=weight,
-                )
+            recent = await _db.get_all(
+                "AssignmentLog",
+                filters={"rule_id": rule["name"], "assignment_method": "Round Robin"},
+                pluck="assigned_to",
+                order_by="created_at",
+                order="desc",
+                limit=weight,
+            )
             streak = next((n for n, email in enumerate(recent) if email != last), len(recent))
             if streak < weight:
                 return last
@@ -218,13 +214,12 @@ class AssignmentService:
 
     async def _open_counts(self, emails: list[str]) -> dict[str, int]:
         """Open assignments of each of *emails* (across all documents)."""
-        async with system_context(require_session()):
-            rows = await _db.get_all(
-                "ToDo",
-                filters={"assigned_to__in": emails, "status__in": list(OPEN)},
-                fields=["assigned_to"],
-                limit=None,
-            )
+        rows = await _db.get_all(
+            "ToDo",
+            filters={"assigned_to__in": emails, "status__in": list(OPEN)},
+            fields=["assigned_to"],
+            limit=None,
+        )
         counts: dict[str, int] = {}
         for row in rows:
             counts[row["assigned_to"]] = counts.get(row["assigned_to"], 0) + 1
@@ -235,18 +230,17 @@ class AssignmentService:
     ) -> bool:
         """Close or cancel *rule*'s open assignments of the document by its
         conditions; True when some stay open."""
-        async with system_context(require_session()):
-            open_todos = await _db.get_all(
-                "ToDo",
-                filters={
-                    "reference_doctype": doctype,
-                    "reference_id": doc_id,
-                    "assignment_rule": rule["name"],
-                    "status__in": list(OPEN),
-                },
-                fields=["name", "assigned_to"],
-                limit=None,
-            )
+        open_todos = await _db.get_all(
+            "ToDo",
+            filters={
+                "reference_doctype": doctype,
+                "reference_id": doc_id,
+                "assignment_rule": rule["name"],
+                "status__in": list(OPEN),
+            },
+            fields=["name", "assigned_to"],
+            limit=None,
+        )
         if not open_todos:
             return False
         close = _json(rule.get("close_condition"), {})
@@ -256,40 +250,40 @@ class AssignmentService:
             status = "Cancel"
         if status is None:
             return True
-        async with system_context(require_session()):
-            for todo in open_todos:
-                await documents.save_doc("ToDo", todo["name"], {"status": status})
-                await AssignmentLog.create(
-                    rule_id=rule["name"],
-                    doctype_affected=doctype,
-                    document_id=doc_id,
-                    assigned_to=todo["assigned_to"],
-                    assignment_method="Closed" if status == "Closed" else "Unassigned",
-                    status="Success",
-                )
+        for todo in open_todos:
+            await documents.save_doc(
+                "ToDo", todo["name"], {"status": status}, ignore_permissions=True
+            )
+            await AssignmentLog.create(
+                rule_id=rule["name"],
+                doctype_affected=doctype,
+                document_id=doc_id,
+                assigned_to=todo["assigned_to"],
+                assignment_method="Closed" if status == "Closed" else "Unassigned",
+                status="Success",
+            )
         return False
 
     async def _get_enabled_rules(self, doctype: str) -> list[dict]:
         """The DocType's enabled rules, highest priority first, with their users."""
         try:
-            async with system_context(require_session()):
-                rows = await _db.get_all(
-                    "AssignmentRule",
-                    filters={"doctype_target": doctype, "enabled": True},
-                    fields=_RULE_FIELDS,
-                    limit=100,
-                )
-                users = await _db.get_all(
-                    "AssignmentRuleUser",
-                    filters={
-                        "parent_doctype": "AssignmentRule",
-                        "parent_name__in": [r["name"] for r in rows] or [""],
-                    },
-                    fields=["parent_name", "user", "weight", "idx"],
-                    order_by="idx",
-                    order="asc",
-                    limit=None,
-                )
+            rows = await _db.get_all(
+                "AssignmentRule",
+                filters={"doctype_target": doctype, "enabled": True},
+                fields=_RULE_FIELDS,
+                limit=100,
+            )
+            users = await _db.get_all(
+                "AssignmentRuleUser",
+                filters={
+                    "parent_doctype": "AssignmentRule",
+                    "parent_name__in": [r["name"] for r in rows] or [""],
+                },
+                fields=["parent_name", "user", "weight", "idx"],
+                order_by="idx",
+                order="asc",
+                limit=None,
+            )
         except Exception as exc:
             log.exception("assignment.load_rules_error", doctype=doctype, exc_info=exc)
             return []
@@ -317,30 +311,30 @@ class AssignmentService:
         ``after_insert`` hook fires and the assignee gets notified.
         """
         ref_id = doc.get("name") or doc.get("id")
-        async with system_context(require_session()):
-            already = await _db.exists(
-                "ToDo",
-                {
-                    "reference_doctype": doctype,
-                    "reference_id": ref_id,
-                    "assigned_to": owner_email,
-                    "status": "Open",
-                },
-            )
-            if already:
-                return
-            await documents.new_doc(
-                "ToDo",
-                {
-                    "description": auto_assign_note(doctype, ref_id),
-                    "reference_doctype": doctype,
-                    "reference_id": ref_id,
-                    "assigned_to": owner_email,
-                    "status": "Open",
-                    "assignment_rule": rule_id,
-                    **({"due_date": due_date} if due_date else {}),
-                },
-            )
+        already = await _db.exists(
+            "ToDo",
+            {
+                "reference_doctype": doctype,
+                "reference_id": ref_id,
+                "assigned_to": owner_email,
+                "status": "Open",
+            },
+        )
+        if already:
+            return
+        await documents.new_doc(
+            "ToDo",
+            {
+                "description": auto_assign_note(doctype, ref_id),
+                "reference_doctype": doctype,
+                "reference_id": ref_id,
+                "assigned_to": owner_email,
+                "status": "Open",
+                "assignment_rule": rule_id,
+                **({"due_date": due_date} if due_date else {}),
+            },
+            ignore_permissions=True,
+        )
 
 
 assignment_service = AssignmentService()

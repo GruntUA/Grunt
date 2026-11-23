@@ -315,6 +315,13 @@ msgstr "Не можна підставити підлеглий елемент �
 msgid "A digit"
 msgstr "Цифра"
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"A disabled report can't be run or sent on schedule and is hidden from menus."
+msgstr ""
+"Вимкнений звіт не запускається, не розсилається за розкладом і не "
+"показується в меню."
+
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
 "A disabled role stays assigned to its users but gives them nothing: no "
@@ -347,6 +354,11 @@ msgstr "Теку не можна скопіювати саму в себе"
 msgid "A folder must be inside another folder"
 msgstr "Тека має бути всередині іншої теки"
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "A followed document notifies you about its changes and comments."
+msgstr ""
+"Про зміни й коментарі в документі, за яким ви стежите, приходять сповіщення."
+
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name can't contain “]”"
 msgstr "Назва групи не може містити «]»"
@@ -358,6 +370,10 @@ msgstr "Назва групи не може починатися чи закін
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name is at most %(count)d characters"
 msgstr "Назва групи — щонайбільше %(count)d символів"
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "A heavy report is calculated in the background and saved."
+msgstr "Важкий звіт рахується у фоні й зберігається."
 
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
 msgid "A home folder can't be deleted"
@@ -442,6 +458,14 @@ msgstr ""
 "Відповідь на лист, надісланий з документа, потрапляє в цей документ. Новий "
 "лист створює документ вибраного типу"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid ""
+"A report result calculated in the background - for the user who asked, with "
+"their permissions."
+msgstr ""
+"Результат звіту, розрахований у фоні, — для користувача, що його запросив, з"
+" його правами."
+
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
 msgstr "Обов'язкове поле порожнє."
@@ -449,6 +473,10 @@ msgstr "Обов'язкове поле порожнє."
 #: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
 msgid "A role an API key acts with - one its user holds."
 msgstr "Роль, з якою діє API-ключ, — одна з ролей його користувача."
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "A rule needs a naming pattern, e.g. ВХ-.YYYY.-.####"
+msgstr "Правилу потрібен шаблон назви, напр. ВХ-.YYYY.-.####"
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/integrations/doctypes/ConnectedApp/ConnectedApp.json
@@ -619,6 +647,10 @@ msgstr "Про документ"
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Access"
 msgstr "Доступ"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Access & execution"
+msgstr "Доступ і виконання"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 msgid "Access Log"
@@ -917,15 +949,6 @@ msgstr ""
 "Адреси або мережі CIDR через кому чи з нового рядка — додатково до обмеження"
 " ролі; порожньо — будь-які"
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid ""
-"Addresses that turned off notification emails - all of them, or one "
-"notification. Made by the unsubscribe link in a letter; delete a row to send"
-" them again."
-msgstr ""
-"Адреси, які вимкнули листи-сповіщення — усі або одне сповіщення. Створюються"
-" посиланням «Відписатися» в листі; видаліть рядок, щоб знову надсилати."
-
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Administrator sign-in"
 msgstr "Вхід адміністратора"
@@ -1020,6 +1043,14 @@ msgstr "Усі придатні поля вже додано"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgid "All good"
 msgstr "Усе гаразд"
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications"
+msgstr "Усі сповіщення"
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications are off in this channel"
+msgstr "У цьому каналі вимкнено всі сповіщення"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "All results →"
@@ -1145,6 +1176,10 @@ msgstr ""
 "бути відносними (today, today-30)."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Always private attachments"
+msgstr "Вкладення завжди приватні"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
 msgstr "Поле типу Image або Attach для аватара документа"
 
@@ -1199,6 +1234,18 @@ msgstr ""
 #: grunt/grunt/backups/__init__.py
 msgid "Another backup is being made right now"
 msgstr "Інша резервна копія вже створюється"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Another naming series for documents that meet a condition: a separate count "
+"for a department, a document type, a year. The first enabled rule (highest "
+"priority first) whose condition holds names the new document instead of the "
+"DocType's autoname."
+msgstr ""
+"Інша серія нумерації для документів, що відповідають умові: окремий лік для "
+"підрозділу, виду документа, року. Перше ввімкнене правило (спершу з вищим "
+"пріоритетом), умова якого справджується, дає назву новому документу замість "
+"autoname DocType."
 
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Another sign-in method"
@@ -1717,7 +1764,7 @@ msgstr "Середнє, мс"
 msgid "Awaiting me"
 msgstr "Очікує мене"
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/bytes.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/bytes.ts
 #: grunt/frontend/src/components/fields/Int/Int.vue
 msgid "B"
 msgstr "Б"
@@ -2066,9 +2113,25 @@ msgstr "Кеш"
 msgid "Cache Storage"
 msgstr "Cache Storage"
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculate"
+msgstr "Розрахувати"
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Calculate for all"
 msgstr "Порахувати за всіма"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Calculated in the background: the report shows the last saved result for the"
+" chosen filters and a “Recalculate” button. For heavy reports."
+msgstr ""
+"Рахується у фоні: звіт показує останній збережений результат для вибраних "
+"фільтрів і кнопку «Перерахувати». Для важких звітів."
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculated {date}"
+msgstr "Розраховано {date}"
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
 msgid "Calculator"
@@ -2264,6 +2327,7 @@ msgstr "Якщо змінити його пізніше, усе вже вива�
 
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Channel"
 msgstr "Канал"
@@ -2394,6 +2458,10 @@ msgstr "Поле дочірнього DocType"
 msgid "Child DocType whose rows hold the link field"
 msgstr "Child DocType, у рядках якого лежить поле-посилання"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "Child tables and singletons are not named by series"
+msgstr "Дочірні таблиці й одиночні DocType не нумеруються серіями"
+
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgid "Chinese"
 msgstr "Китайська"
@@ -2505,6 +2573,14 @@ msgstr "Оберіть, коли нагадати"
 msgid "Choose which columns to show, how to group and sort the records"
 msgstr "Оберіть, які стовпці показувати, як групувати та сортувати записи"
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid ""
+"Choose which notifications you get, and through which channels. Mandatory "
+"ones can’t be turned off."
+msgstr ""
+"Оберіть, які сповіщення отримувати й якими каналами. Обов’язкові вимкнути не"
+" можна."
+
 #: grunt/grunt/monitoring/health.py
 msgid "Chromium (Playwright)"
 msgstr "Chromium (Playwright)"
@@ -2610,6 +2686,7 @@ msgstr "Буфер обміну недоступний:"
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
 msgstr "Закрити"
@@ -2822,6 +2899,7 @@ msgstr ""
 "стало повільнішим, а що швидшим. Зміна показується, лише коли в обох "
 "періодах щонайменше 10 викликів."
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Completed"
 msgstr "Завершено"
@@ -2856,6 +2934,7 @@ msgid ""
 msgstr ""
 "Обчислюється при кожному збереженні. Доступні всі поля документа як змінні."
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -3217,6 +3296,10 @@ msgstr "Не вдалося завантажити поля обраного Doc
 msgid "Could not load the list of apps"
 msgstr "Не вдалося завантажити список додатків"
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not load the notification settings"
+msgstr "Не вдалося завантажити налаштування сповіщень"
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not open the report"
 msgstr "Не вдалося відкрити звіт"
@@ -3245,6 +3328,11 @@ msgstr "Не вдалося зберегти фільтр"
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not save the report"
 msgstr "Не вдалося зберегти звіт"
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not save the setting"
+msgstr "Не вдалося зберегти налаштування"
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTags.vue
 msgid "Could not save the tag"
@@ -3314,6 +3402,11 @@ msgstr "Відлік від поля"
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Count page views"
 msgstr "Рахувати перегляди сторінок"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Counter updated"
+msgstr "Лічильник оновлено"
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
 #: grunt/grunt/geo/doctypes/Region/Region.json
@@ -3525,6 +3618,8 @@ msgid ""
 msgstr "Шаблон DOCX не знайдено. Створіть PrintFormat з template_type='docx'."
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Daily"
 msgstr "Щодня"
 
@@ -3608,6 +3703,10 @@ msgstr "Поле дати"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Date field that enables the date picker in the tree panel"
 msgstr "Date-поле, що вмикає вибір дати в панелі дерева"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Date for the name"
+msgstr "Дата для назви"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Date format"
@@ -3761,6 +3860,10 @@ msgstr "Обліковий запис за замовчуванням"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Default colour"
 msgstr "Колір за замовчуванням"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default digest"
+msgstr "Дайджест за замовчуванням"
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Default language"
@@ -4117,6 +4220,8 @@ msgstr "Вимкнути MFA"
 msgid "Disable the action but keep the row"
 msgstr "Вимкнути дію, зберігши рядок"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
@@ -4292,6 +4397,10 @@ msgstr "ID документа"
 msgid "Document Link"
 msgstr "Зв'язок документа"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Document Naming Rule"
+msgstr "Правило нумерації документів"
+
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgid "Document Tag"
 msgstr "Тег документа"
@@ -4357,6 +4466,7 @@ msgstr "Документ перейменовано"
 msgid "Document shared"
 msgstr "Документ поширено"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -4487,6 +4597,10 @@ msgstr "Завершено, коли"
 msgid "Donut"
 msgstr "Кільцева"
 
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Don’t send these"
+msgstr "Не надсилати такі"
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Download"
@@ -4610,6 +4724,10 @@ msgstr "Кожне повідомлення приходить кілька ра
 msgid "Each profile adds its roles to the user's roles below."
 msgstr "Кожен профіль додає свої ролі до ролей користувача нижче."
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+msgid "Each value of {fields} has its own count"
+msgstr "Для кожного значення {fields} — свій лік"
+
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
@@ -4661,11 +4779,11 @@ msgstr "Підвищення прав"
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Email"
 msgstr "Електронна пошта"
@@ -4690,10 +4808,6 @@ msgstr "Черга листів"
 msgid "Email Template"
 msgstr "Шаблон листа"
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Email Unsubscribe"
-msgstr "Відписка від листів"
-
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Email address"
 msgstr "Email адреса"
@@ -4705,6 +4819,11 @@ msgstr "Email-адреси через кому або кожна з нового
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Email body"
 msgstr "Текст листа"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Email digest"
+msgstr "Дайджест поштою"
 
 #: grunt/grunt/auth/doctypes/User/user.py
 msgid "Email is required"
@@ -4815,9 +4934,13 @@ msgstr ""
 "Порожньо — CAPTCHA вимкнено для всього сайту, навіть на формах, які її "
 "вимагають."
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Empty — all notification emails, including the digest."
-msgstr "Порожньо — усі листи-сповіщення, зокрема дайджест."
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — all notifications (the digest too, for email)."
+msgstr "Порожньо — усі сповіщення (для пошти — і дайджест)."
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — every channel."
+msgstr "Порожньо — усі канали."
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 msgid "Empty — not connected yet. Connect with one of the buttons below."
@@ -4978,6 +5101,10 @@ msgstr "Введіть код або перейдіть за посилання�
 msgid "Enter the rclone backend type"
 msgstr "Вкажіть тип бекенда rclone"
 
+#: grunt/grunt/api/v1/naming.py
+msgid "Enter the series prefix"
+msgstr "Вкажіть префікс серії"
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Enter the verification code"
 msgstr "Введіть код підтвердження"
@@ -5008,6 +5135,7 @@ msgstr "Дорівнює"
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/document/doctypes/Comment/Comment.json
@@ -5625,6 +5753,10 @@ msgstr "Файлів у сховищі"
 msgid "Files in “%(name)s”"
 msgstr "Файли в «%(name)s»"
 
+#: grunt/grunt/storage/doctypes/File/file.py
+msgid "Files of %(doctype)s are always private"
+msgstr "Файли «%(doctype)s» завжди приватні"
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Files sent with the message: [{filename, mimetype, content_b64}]."
 msgstr ""
@@ -5665,6 +5797,10 @@ msgstr "Заповніть обов'язкові поля"
 msgid "Fill in the required fields: {fields}"
 msgstr "Заповніть обов'язкові поля: {fields}"
 
+#: grunt/grunt/naming/service.py
+msgid "Fill in “%(field)s”: the document's name is built from it"
+msgstr "Заповніть «%(field)s»: з нього будується назва документа"
+
 #: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue
 msgid ""
 "Fill the value automatically from another document when a Link field is "
@@ -5702,6 +5838,7 @@ msgstr "Фільтр:"
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
@@ -5716,6 +5853,10 @@ msgstr "Фільтри (JSON)"
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Filters Matched"
 msgstr "Збіглися фільтри"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Filters hash"
+msgstr "Хеш фільтрів"
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid "Final"
@@ -5732,6 +5873,10 @@ msgstr "Завершити"
 #: grunt/frontend/src/core/composables/useTaskTracker.ts
 msgid "Finished - see notifications"
 msgstr "Завершено — підсумок у сповіщеннях"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Finished at"
+msgstr "Завершено о"
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
 msgid "First choose a DocType and upload a file"
@@ -5815,6 +5960,22 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Follow"
 msgstr "Стежити"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I comment on"
+msgstr "Стежити за документами, які я коментую"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I create"
+msgstr "Стежити за документами, які я створюю"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents assigned to me"
+msgstr "Стежити за документами, призначеними мені"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents shared with me"
+msgstr "Стежити за документами, якими зі мною поділилися"
 
 #: grunt/grunt/notification/events.py
 msgid "Followed document changed"
@@ -6393,6 +6554,14 @@ msgstr "Сховати чеклист"
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Hide from global feed"
 msgstr "Приховати із загальної стрічки"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print"
+msgstr "Не друкувати"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print if empty"
+msgstr "Не друкувати нуль"
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -7154,6 +7323,13 @@ msgstr "Це дерево (Is Tree)"
 msgid "Issues"
 msgstr "Зауваження"
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid ""
+"It runs in the background - you can leave the page; the result will appear "
+"here."
+msgstr ""
+"Розрахунок іде у фоні — сторінку можна закрити, результат з’явиться тут."
+
 #: grunt/grunt/monitoring/health.py
 msgid "It will be downloaded automatically on first use."
 msgstr "Буде завантажено автоматично при першому використанні."
@@ -7448,6 +7624,15 @@ msgstr "Прізвище є обов'язковим"
 msgid "Last name, First name, Patronymic"
 msgstr "Прізвище, Ім'я, По-батькові"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid ""
+"Last number given out in “{prefix}” (now {current}). The next document gets "
+"the one after it."
+msgstr ""
+"Останній виданий номер у «{prefix}» (зараз {current}). Наступний документ "
+"отримає номер після нього."
+
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Last page"
 msgstr "Остання сторінка"
@@ -7577,6 +7762,16 @@ msgstr "Світла"
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Like"
 msgstr "Подобається"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Like the DocType's autoname: .YYYY. .YY. .MM. .DD., counter .####., a "
+"field's value in braces {department}. Everything before the counter has its "
+"own count."
+msgstr ""
+"Як autoname DocType: .YYYY. .YY. .MM. .DD., лічильник .####., значення поля "
+"у фігурних дужках {department}. Для всього, що перед лічильником, — свій "
+"лік."
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Limit of {n} records reached — totals cover only these."
@@ -7941,6 +8136,11 @@ msgstr "Керування робочими просторами й сторін
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 msgid "Manager"
 msgstr "Відповідальний"
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Mandatory"
+msgstr "Обов’язкове"
 
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
 msgid "Mandatory Depends On"
@@ -8412,6 +8612,14 @@ msgstr "Серія нумерації"
 msgid "Naming and display"
 msgstr "Іменування і відображення"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Naming pattern"
+msgstr "Шаблон назви"
+
+#: grunt/grunt/naming/service.py
+msgid "Naming series “%(series)s” is not one of the allowed ones"
+msgstr "Серії «%(series)s» немає серед дозволених"
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "National domain (.ua, .us)"
 msgstr "Національний домен (.ua, .us)"
@@ -8441,6 +8649,11 @@ msgstr "Мережа"
 msgid "Network error:"
 msgstr "Помилка мережі:"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Never"
+msgstr "Ніколи"
+
 #: grunt/frontend/src/router/index.ts
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue
@@ -8461,6 +8674,18 @@ msgstr "Новий ID"
 #: grunt/grunt/notification/records/notification/followed_document_commented/followed_document_commented.json
 msgid "New comment: “%(title)s”"
 msgstr "Новий коментар: «%(title)s»"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"New files attached to these documents are always private, even if the upload"
+" asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals). Files already public stay so - make them private "
+"separately"
+msgstr ""
+"Нові файли цих документів завжди приватні, навіть якщо при завантаженні "
+"просили публічний, і зробити їх публічними потім не можна (особові справи, "
+"звернення громадян). Файли, що вже публічні, такими й лишаються — зробіть їх"
+" приватними окремо"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "New folder"
@@ -8515,6 +8740,11 @@ msgstr "Далі"
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Next actors"
 msgstr "Наступні виконавці"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Next name"
+msgstr "Наступна назва"
 
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Next page"
@@ -8927,6 +9157,10 @@ msgstr "Не автором документа"
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr "Не збережено, напр.: {files}. Перезавантажте сторінку з мережею."
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Not calculated for these filters yet"
+msgstr "Для цих фільтрів звіт ще не розраховано"
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Not carried over when the document is duplicated"
 msgstr "Не переноситься при дублюванні документа"
@@ -9021,6 +9255,14 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr "Немає доступу до полів: %(fields)s"
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Not printed when the value is zero or unchecked (an empty value is never "
+"printed)"
+msgstr ""
+"Не друкується, коли значення нульове чи прапорець знято (порожнє значення не"
+" друкується ніколи)"
+
 #: grunt/grunt/document/sidebar.py
 msgid "Not published - open preview"
 msgstr "Не опубліковано — відкрити попередній перегляд"
@@ -9032,6 +9274,10 @@ msgstr "Не надіслано"
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
 msgstr "Ні з ким не поширено"
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not shown in the standard print format"
+msgstr "Не показується в стандартній друкованій формі"
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid "Not shown to this role, and not changed, filtered or searched by."
@@ -9089,10 +9335,11 @@ msgstr "Нічого не знайдено за запитом «{query}»"
 msgid "Nothing to back up"
 msgstr "Немає що зберігати в резервній копії"
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 msgid "Notification"
 msgstr "Сповіщення"
 
@@ -9109,16 +9356,43 @@ msgstr "Доставка сповіщень"
 msgid "Notification Log"
 msgstr "Журнал сповіщень"
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Notification Preference"
+msgstr "Вимкнене сповіщення"
+
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Notification Recipient"
 msgstr "Отримувач сповіщення"
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "Notification not found"
+msgstr "Сповіщення не знайдено"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/User/User.js
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Notification settings"
+msgstr "Налаштування сповіщень"
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 msgid "Notifications"
 msgstr "Сповіщення"
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid ""
+"Notifications a person turned off - one rule or all of them, in one channel "
+"or in every one. Made in the profile (Preferences → Notifications), from the"
+" bell and by the unsubscribe link in a letter; delete a row to send them "
+"again. Mandatory notifications ignore it."
+msgstr ""
+"Сповіщення, які людина вимкнула: одне правило чи всі, в одному каналі чи в "
+"усіх. Створюються в профілі («Налаштування» → «Сповіщення»), із дзвоника та "
+"за посиланням «Відписатися» в листі; видаліть рядок, щоб надсилати знову. На"
+" обов’язкові сповіщення не впливає."
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "Notifications and document updates will not arrive live."
@@ -9397,6 +9671,16 @@ msgid ""
 msgstr ""
 "Лише ці ролі користувача (з його областями); порожньо — усі. Ключ ніколи не "
 "отримує більше, ніж має його користувач."
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Only these roles may open and run the report (and, on a DocType, only with "
+"the “Report” permission on it). Empty — whoever may report on the DocType; a"
+" report without a DocType — System Manager only."
+msgstr ""
+"Відкривати й запускати звіт можуть лише ці ролі (а для звіту за DocType — "
+"лише з правом «Звіт» на нього). Порожньо — усі, хто має право «Звіт» на "
+"DocType; звіт без DocType — лише System Manager."
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 msgid ""
@@ -9955,6 +10239,14 @@ msgstr "Очікує"
 msgid "Pending migrations. Run `grunt migrate`."
 msgstr "Є невиконані міграції. Запустіть `grunt migrate`."
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"People can't turn it off - neither in their notification settings nor by the"
+" unsubscribe link (approvals, deadlines)."
+msgstr ""
+"Люди не можуть його вимкнути — ні в налаштуваннях сповіщень, ні посиланням "
+"«Відписатися» (погодження, строки)."
+
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 msgid ""
 "People to notify, assign or share with together - a department, a "
@@ -10128,6 +10420,14 @@ msgstr "Налаштування"
 msgid "Prefix"
 msgstr "Префікс"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Prepared Report"
+msgstr "Підготовлений звіт"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Prepared report"
+msgstr "Підготовлений звіт"
+
 #: grunt/grunt/backups/__init__.py
 msgid "Preparing"
 msgstr "Підготовка"
@@ -10214,6 +10514,7 @@ msgstr ""
 " apps/grunt; на новому сервері ще й `playwright install-deps chromium` від "
 "root."
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -10376,6 +10677,14 @@ msgid ""
 msgstr ""
 "Вираз Python над doc і user, напр. doc.status == 'Open'. Порожньо — завжди"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Python expression on the new document, e.g. doc.department == 'ЦНАП'. Empty:"
+" every document. An expression that fails counts as false."
+msgstr ""
+"Вираз Python над новим документом, напр. doc.department == 'ЦНАП'. Порожньо "
+"— будь-який документ. Вираз, що падає з помилкою, вважається хибним."
+
 #: grunt/grunt/monitoring/updates.py
 msgid "Python packages"
 msgstr "Python пакети"
@@ -10396,6 +10705,7 @@ msgstr "Черга"
 msgid "Queue Workers"
 msgstr "Воркери черги"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
@@ -10548,6 +10858,7 @@ msgid "Rebuild index"
 msgstr "Перебудувати індекс"
 
 #: grunt/grunt/actions/builtin.py
+#: grunt/frontend/src/pages/reports/ReportView.vue
 msgid "Recalculate"
 msgstr "Перерахувати"
 
@@ -10743,6 +11054,10 @@ msgstr ""
 msgid "Related system logs"
 msgstr "Пов’язані системні журнали"
 
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "Reload"
+msgstr "Перезавантажити"
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid ""
 "Reload the page; if that does not help, check that the server serves /sw.js."
@@ -10903,6 +11218,7 @@ msgid "Reply-To"
 msgstr "Адреса для відповіді (Reply-To)"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
@@ -10947,6 +11263,10 @@ msgstr "Звіт поставлено в чергу для %(count)s отрим�
 msgid "Report saved"
 msgstr "Звіт збережено"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Report timeout, sec"
+msgstr "Тайм-аут звіту, с"
+
 #: grunt/grunt/reports/engine.py
 msgid "Report type “%(type)s” is not supported"
 msgstr "Тип звіту «%(type)s» не підтримується"
@@ -10960,14 +11280,31 @@ msgid "Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached
 msgstr ""
 "Звіт «%(name)s» станом на %(date)s: %(rows)s рядків. Файл у вкладенні."
 
+#: grunt/grunt/reports/access.py
+msgid "Report “%(name)s” is disabled"
+msgstr "Звіт «%(name)s» вимкнено"
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "Report “%(name)s” is not a prepared report"
+msgstr "Звіт «%(name)s» не є підготовленим"
+
 #: grunt/grunt/reports/engine.py grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s” not found"
 msgstr "Звіт «%(name)s» не знайдено"
+
+#: grunt/grunt/reports/engine.py
+msgid ""
+"Report “%(name)s” ran longer than %(seconds)s s and was stopped. Narrow the "
+"filters or make it a prepared report."
+msgstr ""
+"Звіт «%(name)s» виконувався довше за %(seconds)s с і був зупинений. Звузьте "
+"фільтри або зробіть його підготовленим."
 
 #: grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s”, %(date)s"
 msgstr "Звіт «%(name)s» — %(date)s"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue
@@ -11148,6 +11485,7 @@ msgid "Result column to sort by."
 msgstr "Колонка результату для сортування."
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 msgid "Result file"
 msgstr "Файл результату"
 
@@ -11236,6 +11574,7 @@ msgstr "Роль «%(role)s»: «Діє до» раніше за «Діє з»"
 msgid "Role, everyone, end date…"
 msgstr "Роль, усі, строк…"
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
@@ -11322,6 +11661,7 @@ msgid "Row/bar label (default: title field)"
 msgstr "Підпис рядка/смуги (default: поле заголовка)"
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
@@ -11355,6 +11695,10 @@ msgstr ""
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Rules that grant this action"
 msgstr "Правила, що дають цю дію"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Rules with a higher priority are tried first"
+msgstr "Правила з вищим пріоритетом перевіряються першими"
 
 #: grunt/grunt/monitoring/health.py
 msgid "Run `grunt app deps`. Missing:"
@@ -12107,8 +12451,29 @@ msgid "September"
 msgstr "Вересень"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
-msgstr "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"
+msgid ""
+"Series (CONTR-.YYYY.-.####, a field in braces: {department}), "
+"naming_series:, field:fieldname, prompt or hash. Document Naming Rules can "
+"pick another series by condition."
+msgstr ""
+"Серія (CONTR-.YYYY.-.####, поле у фігурних дужках: {department}), "
+"naming_series:, field:fieldname, prompt або hash. Правила нумерації "
+"документів можуть обрати іншу серію за умовою."
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series counter"
+msgstr "Лічильник серії"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Series counter…"
+msgstr "Лічильник серії…"
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series prefix — the name up to the number, e.g. ВХ-2026-"
+msgstr "Префікс серії — назва до номера, напр. ВХ-2026-"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid ""
@@ -12834,9 +13199,14 @@ msgstr "Поле початку"
 msgid "Start recording"
 msgstr "Почати запис"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Started"
 msgstr "Розпочато"
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Started at"
+msgstr "Розпочато о"
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
 msgid "Starting…"
@@ -12874,6 +13244,7 @@ msgstr "Стани і переходи"
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -13504,6 +13875,10 @@ msgstr "Браузер більше не приймає цю підписку (H
 msgid "The browser will not delete offline data"
 msgstr "Браузер не видалятиме офлайн-дані"
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The calculation failed"
+msgstr "Розрахунок не вдався"
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid ""
@@ -13538,6 +13913,10 @@ msgstr "Коментар, на який це відповідь (гілки ма
 msgid "The comment you reply to no longer exists"
 msgstr "Коментар, на який ви відповідаєте, уже видалено"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "The condition is not a valid expression: %(error)s"
+msgstr "Умова не є коректним виразом: %(error)s"
+
 #: grunt/grunt/integrations/oauth.py
 msgid "The connected app is disabled"
 msgstr "Підключений застосунок вимкнено"
@@ -13557,6 +13936,14 @@ msgid ""
 msgstr ""
 "Вміст перенесено з диска сервера в це сховище; на запит він завантажується "
 "назад (grunt.storage.cloud.files)."
+
+#: grunt/grunt/naming/service.py
+msgid "The counter can't be negative"
+msgstr "Лічильник не може бути від’ємним"
+
+#: grunt/grunt/api/v1/naming.py
+msgid "The counter must be a whole number"
+msgstr "Лічильник має бути цілим числом"
 
 #: grunt/grunt/auth/user_api.py
 msgid "The current password is incorrect"
@@ -13617,13 +14004,17 @@ msgstr "Тип документів, які додаються на календ
 msgid "The document type to show in links"
 msgstr "Тип документів, які показувати у зв'язках"
 
-#: grunt/grunt/document/mixins/lifecycle.py
+#: grunt/grunt/errors.py
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
 msgstr ""
 "Документ змінено після того, як ви почали редагування. Відкрийте його знову "
 "та повторіть зміни."
+
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "The document was changed by someone else"
+msgstr "Документ змінив хтось інший"
 
 #: grunt/frontend/src/core/composables/useFormDocWatcher.ts
 msgid "The document was updated by another user"
@@ -13766,6 +14157,22 @@ msgstr "Посилання не знайдено або деактивовано
 msgid "The list is limited by your access rights"
 msgstr "Список обмежено вашими правами доступу"
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"The longest a report's SQL may run when opened on screen; 0 — no limit. A "
+"report can set its own; prepared reports have none unless they do."
+msgstr ""
+"Найдовший час виконання SQL звіту, відкритого на екрані; 0 — без обмеження. "
+"Звіт може задати власний; підготовлені звіти без власного не обмежуються."
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"The longest a report's SQL may run. Empty — the site default (System "
+"Settings) when run on screen, no limit for a prepared report."
+msgstr ""
+"Найдовший час виконання SQL звіту. Порожньо — типовий для сайту "
+"(Налаштування системи) на екрані, без обмеження для підготовленого звіту."
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid ""
 "The mailbox will stop sending and receiving mail until it is connected "
@@ -13797,6 +14204,14 @@ msgstr ""
 "Новий тип зберігає значення інакше (окрема колонка або дочірня таблиця). "
 "Наявні дані цього поля не переносяться автоматично — вивантажте їх до "
 "міграції."
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"The next %(count)s names of series “%(prefix)s” are all taken: set its "
+"counter"
+msgstr ""
+"Наступні %(count)s назв серії «%(prefix)s» уже зайняті: встановіть її "
+"лічильник"
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "The oldest versions past this number are deleted. 0 - keep all"
@@ -13835,6 +14250,10 @@ msgstr "Сторінку відкрито до встановлення service 
 msgid "The password must %(requirements)s."
 msgstr "Пароль повинен %(requirements)s."
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "The person's email - a user's or any address a rule writes to."
+msgstr "Email людини — користувача або будь-яка адреса, на яку пише правило."
+
 #: grunt/grunt/integrations/doctypes/ConnectedApp/connected_app.py
 msgid "The provider addresses must start with https://"
 msgstr "Адреси провайдера мають починатися з https://"
@@ -13859,10 +14278,6 @@ msgstr ""
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
 msgstr "Пакет pywebpush не встановлено"
-
-#: grunt/grunt/notification/channels.py
-msgid "The recipient unsubscribed from these emails"
-msgstr "Отримувач відписався від цих листів"
 
 #: grunt/grunt/db/errors.py
 msgid ""
@@ -13891,6 +14306,14 @@ msgstr "Заміна не може бути одним із записів, що
 #: grunt/grunt/document/collection.py
 msgid "The replacement cannot be the document being deleted"
 msgstr "Заміна не може збігатися з документом, що видаляється"
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "The report hasn't been calculated for these filters yet"
+msgstr "Для цих фільтрів звіт ще не розраховано"
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The report is being calculated…"
+msgstr "Звіт розраховується…"
 
 #: grunt/frontend/src/core/browserHealth.ts
 msgid "The response came from the offline cache."
@@ -14220,6 +14643,14 @@ msgstr ""
 msgid "This message is in HTML format."
 msgstr "Це повідомлення у форматі HTML."
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification can't be turned off"
+msgstr "Це сповіщення не можна вимкнути"
+
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification has no rule to turn off"
+msgstr "У цього сповіщення немає правила, яке можна вимкнути"
+
 #: grunt/grunt/auth/providers/webauthn.py
 msgid "This passkey is already registered"
 msgstr "Цей ключ доступу вже зареєстровано"
@@ -14325,6 +14756,10 @@ msgstr ""
 msgid "Time zone"
 msgstr "Часовий пояс"
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Time, ms"
+msgstr "Час, мс"
+
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Timeline"
 msgstr "Хронологія"
@@ -14332,6 +14767,10 @@ msgstr "Хронологія"
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgid "Timeout (sec)"
 msgstr "Тайм-аут (сек)"
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Timeout, sec"
+msgstr "Тайм-аут, с"
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Timestamp"
@@ -14533,6 +14972,10 @@ msgstr "Вівторок"
 msgid "Turn into"
 msgstr "Перетворити на"
 
+#: grunt/grunt/notification/delivery.py
+msgid "Turned off in the recipient's settings"
+msgstr "Вимкнено в налаштуваннях отримувача"
+
 #: grunt/frontend/src/router/index.ts
 msgid "Two-factor authentication"
 msgstr "Двофакторна автентифікація"
@@ -14678,7 +15121,7 @@ msgstr "Невідома дія «%(action)s»"
 msgid "Unknown auth provider: %(name)s"
 msgstr "Невідомий провайдер автентифікації: %(name)s"
 
-#: grunt/grunt/notification/delivery.py
+#: grunt/grunt/notification/delivery.py grunt/grunt/api/v1/notifications.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Unknown channel “%(channel)s”"
 msgstr "Невідомий канал «%(channel)s»"
@@ -14746,6 +15189,22 @@ msgstr "Більше не подобається"
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Unmute notification sound"
 msgstr "Увімкнути звук сповіщень"
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Unread notifications by email for users who didn't choose in their profile: "
+"every morning at 08:00 or on Mondays."
+msgstr ""
+"Непрочитані сповіщення поштою для користувачів, які не обрали в профілі: "
+"щоранку о 08:00 або щопонеділка."
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Unread notifications by email: every morning or on Mondays. Empty = the site"
+" default."
+msgstr ""
+"Непрочитані сповіщення поштою: щоранку або щопонеділка. Порожньо — як на "
+"сайті."
 
 #: grunt/grunt/monitoring/health.py
 msgid "Unregistered jobs"
@@ -14951,6 +15410,7 @@ msgstr "Використовується для відображення дат 
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
@@ -15396,6 +15856,8 @@ msgid "Wednesday"
 msgstr "Середа"
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Weekly"
 msgstr "Щотижня"
 
@@ -15550,6 +16012,13 @@ msgstr "Яке поле показувати як підпис вузла (defau
 #: grunt/grunt/email/unsubscribe.py
 msgid "Which letters should %(email)s no longer get?"
 msgstr "Які листи більше не надсилати на %(email)s?"
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Which notifications to get, and through which channels: the bell, browser "
+"push, email."
+msgstr ""
+"Які сповіщення отримувати й якими каналами: дзвоник, пуш у браузері, пошта."
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
 msgid ""
@@ -15735,6 +16204,12 @@ msgstr ""
 msgid "Write an email"
 msgstr "Написати лист"
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"YYYY, MM and DD in the name come from this field instead of today's date"
+msgstr ""
+"YYYY, MM і DD у назві беруться з цього поля замість сьогоднішньої дати"
+
 #: grunt/frontend/src/core/datetime.ts
 msgid "YYYY-MM-DD"
 msgstr "РРРР-ММ-ДД"
@@ -15785,6 +16260,10 @@ msgstr "Ви вже стежите за цим документом"
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
 msgstr "Ви не можете створювати документи «%(doctype)s»"
+
+#: grunt/grunt/reports/access.py
+msgid "You are not allowed to run report “%(name)s”"
+msgstr "Вам не дозволено запускати звіт «%(name)s»"
 
 #: grunt/grunt/email/unsubscribe.py
 msgid "You are unsubscribed"
@@ -16954,7 +17433,7 @@ msgstr[0] "Ще {n} зміна"
 msgstr[1] "Ще {n} зміни"
 msgstr[2] "Ще {n} змін"
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} ms"
 msgstr "{n} мс"
 
@@ -16997,7 +17476,7 @@ msgstr[2] "{n} рядків потребують уваги"
 msgid "{n} rows"
 msgstr "{n} рядків"
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} s"
 msgstr "{n} с"
 
@@ -17049,6 +17528,10 @@ msgstr "{words} сл. · {chars} симв."
 msgid "~{n} min"
 msgstr "~{n} хв"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "ВХ-ЦНАП-.YYYY.-.####"
+msgstr "ВХ-ЦНАП-.YYYY.-.####"
+
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue
 msgid "— All —"
 msgstr "— Усі —"
@@ -17094,6 +17577,10 @@ msgstr ""
 "«%(doctype)s» не приймає вхідну пошту: спершу увімкніть «Створювати з "
 "вхідної пошти» в його налаштуваннях"
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "“%(doctype)s” has no fields %(fields)s"
+msgstr "У «%(doctype)s» немає полів %(fields)s"
+
 #: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr "«%(doctype)s» не має таблиці для агрегації"
@@ -17112,6 +17599,14 @@ msgid ""
 msgstr ""
 "«%(doctype)s» не має таблиці: grunt.db.%(action)s працює лише з рядками "
 "таблиці"
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"“%(doctype)s” is named by series but has no “naming_series” field with "
+"options"
+msgstr ""
+"«%(doctype)s» нумерується за серією, але не має поля «naming_series» з "
+"варіантами"
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
@@ -17138,6 +17633,10 @@ msgstr "«%(fields)s» не можна змінити після встанов�
 msgid "“%(name)s” letters"
 msgstr "листи «%(name)s»"
 
+#: grunt/grunt/naming/service.py
+msgid "“%(value)s” is not a date the name can be built from"
+msgstr "«%(value)s» — не дата, з якої можна побудувати назву"
+
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 msgid "“*” - not tied to a DocType (recent documents)"
 msgstr "«*» — не прив’язано до DocType (недавні документи)"
@@ -17149,6 +17648,14 @@ msgstr "«Отримувачі з події» працюють лише в сп
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 msgid "“{action}”: are you sure?"
 msgstr "«{action}»: ви впевнені?"
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid ""
+"“{name}” notifications are off. Turn them back on in the notification "
+"settings."
+msgstr ""
+"Сповіщення «{name}» вимкнено. Увімкнути знову можна в налаштуваннях "
+"сповіщень."
 
 #: grunt/grunt/email/templates/notification_digest.html
 msgid "… and %(count)s more"
@@ -17623,6 +18130,14 @@ msgstr "Відкрито"
 #~ msgid "Access restrictions (User Permissions)"
 #~ msgstr "Обмеження доступу (User Permissions)"
 
+#~ msgid ""
+#~ "Addresses that turned off notification emails - all of them, or one "
+#~ "notification. Made by the unsubscribe link in a letter; delete a row to send"
+#~ " them again."
+#~ msgstr ""
+#~ "Адреси, які вимкнули листи-сповіщення — усі або одне сповіщення. Створюються"
+#~ " посиланням «Відписатися» в листі; видаліть рядок, щоб знову надсилати."
+
 #~ msgid "Also by email"
 #~ msgstr "Також на email"
 
@@ -17640,6 +18155,12 @@ msgstr "Відкрито"
 
 #~ msgid "Document type to restrict access by (e.g. «Company»)."
 #~ msgstr "Тип документа, за яким обмежуємо доступ (напр. «Компанія»)."
+
+#~ msgid "Email Unsubscribe"
+#~ msgstr "Відписка від листів"
+
+#~ msgid "Empty — all notification emails, including the digest."
+#~ msgstr "Порожньо — усі листи-сповіщення, зокрема дайджест."
 
 #~ msgid ""
 #~ "Every signed-in user holds it - a rule for All applies to everyone. Not "
@@ -17743,6 +18264,9 @@ msgstr "Відкрито"
 #~ msgid "Scheduled job “%(name)s” not found"
 #~ msgstr "Заплановану задачу «%(name)s» не знайдено"
 
+#~ msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+#~ msgstr "Серія (CONTR-.YYYY.-.####), field:fieldname, prompt або hash"
+
 #~ msgid "Set “Only for document” or enable “Apply to all documents”"
 #~ msgstr ""
 #~ "Вкажіть «Лише для документа» або увімкніть «Застосувати до всіх документів»"
@@ -17783,6 +18307,9 @@ msgstr "Відкрито"
 
 #~ msgid "The form field to point at; its tab opens by itself"
 #~ msgstr "Поле форми, на яке вказує крок; його вкладка відкривається сама"
+
+#~ msgid "The recipient unsubscribed from these emails"
+#~ msgstr "Отримувач відписався від цих листів"
 
 #~ msgid ""
 #~ "The restriction applies to any DocType with a Link field to «Restrict by»."

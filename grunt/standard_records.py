@@ -192,8 +192,7 @@ async def sync_files(event: str, **kwargs: Any) -> None:
     if not name:
         return
 
-    async with system_context(require_session()):
-        doc = await documents.get_doc(doctype, str(name))
+    doc = await documents.get_doc(doctype, str(name), ignore_permissions=True)
     if doc.get("is_standard") and not doc.get("app"):
         # Nowhere to write it - but that's no reason to delete the files it has
         # (a test saving a shipped record with app=None used to wipe them).

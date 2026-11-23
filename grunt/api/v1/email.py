@@ -199,30 +199,28 @@ async def _thread_anchor(doctype: str, doc_id: str, reply_to: str | None) -> dic
     filters: dict[str, Any] = {"ref_doctype": doctype, "ref_name": doc_id}
     if reply_to:
         filters["name"] = reply_to
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "EmailMessage",
-            filters=filters,
-            fields=fields,
-            order_by="created_at",
-            order="desc",
-            limit=1,
-        )
+    rows = await _db.get_all(
+        "EmailMessage",
+        filters=filters,
+        fields=fields,
+        order_by="created_at",
+        order="desc",
+        limit=1,
+    )
     if reply_to and not rows:
         raise not_found(_("The letter is not on this document"))
     return dict(rows[0]) if rows else None
 
 
 async def _outgoing_accounts() -> list[dict[str, Any]]:
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "EmailAccount",
-            filters={"enable_outgoing": True},
-            fields=["name", "email_address", "signature"],
-            order_by="email_address",
-            order="asc",
-            limit=None,
-        )
+    rows = await _db.get_all(
+        "EmailAccount",
+        filters={"enable_outgoing": True},
+        fields=["name", "email_address", "signature"],
+        order_by="email_address",
+        order="asc",
+        limit=None,
+    )
     return [dict(r) for r in rows]
 
 
@@ -235,8 +233,7 @@ async def compose_context(doctype: str, doc_id: str, reply_to: str | None = None
     meta = await doctype_registry.get_meta(doctype)
     accounts = await _outgoing_accounts()
     anchor = await _thread_anchor(doctype, doc_id, reply_to)
-    async with system_context(require_session()):
-        default = (anchor or {}).get("email_account") or await account_for(doctype, doc_id)
+    default = (anchor or {}).get("email_account") or await account_for(doctype, doc_id)
     names = {a["name"] for a in accounts}
     if default not in names:
         default = accounts[0]["name"] if accounts else None
@@ -258,23 +255,22 @@ async def compose_context(doctype: str, doc_id: str, reply_to: str | None = None
         if anchor:
             subject = reply_subject(anchor.get("subject") or subject)
 
-    async with system_context(require_session()):
-        files = await _db.get_all(
-            "File",
-            filters={"attached_to_doctype": doctype, "attached_to_id": doc_id},
-            fields=["name", "file_name", "file_size"],
-            order_by="created_at",
-            order="asc",
-            limit=50,
-        )
-        templates = await _db.get_all(
-            "EmailTemplate",
-            filters={"is_active": True},
-            fields=["name", "label"],
-            order_by="label",
-            order="asc",
-            limit=200,
-        )
+    files = await _db.get_all(
+        "File",
+        filters={"attached_to_doctype": doctype, "attached_to_id": doc_id},
+        fields=["name", "file_name", "file_size"],
+        order_by="created_at",
+        order="asc",
+        limit=50,
+    )
+    templates = await _db.get_all(
+        "EmailTemplate",
+        filters={"is_active": True},
+        fields=["name", "label"],
+        order_by="label",
+        order="asc",
+        limit=200,
+    )
     return {
         "accounts": [{"name": a["name"], "email_address": a["email_address"]} for a in accounts],
         "signatures": {a["name"]: a.get("signature") or "" for a in accounts},

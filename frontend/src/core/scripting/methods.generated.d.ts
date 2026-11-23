@@ -175,6 +175,14 @@ interface GruntMethods {
   "grunt.api.v1.meta.sync_doctype": { args: { name: string }; result: Record<string, any> }
   /** Return physical storage info for a DocType's backing table. Admin only. Permission: grunt.manage_doctypes. */
   "grunt.api.v1.meta.table_info": { args: { name: string }; result: Record<string, any> }
+  /** The last number given out under *prefix* (0 - none yet). Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.naming.counter": { args: { prefix: string }; result: number }
+  /** ``{pattern, prefix, current, next, fields}`` for *pattern* (the DocType's ``autoname`` when omitted) - nothing is counted. *doc* - field values for ``{field}`` tokens and ``naming_date_field``; the fields still missing are listed in ``fields``. Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.naming.preview": { args: { doctype: string; pattern?: string | null; doc?: Record<string, any> | null }; result: Record<string, any> }
+  /** Set the last number given out under *prefix*; the next document gets +1. A number already taken is skipped when it comes up. Permission: grunt.manage_doctypes. */
+  "grunt.api.v1.naming.set_counter": { args: { prefix: string; current: number }; result: number }
+  /** The current user's notification settings: the channels, the rules they could get (with each rule's channels) and what they turned off. */
+  "grunt.api.v1.notifications.get_preferences": { args: {}; result: Record<string, any> }
   /** Get the count of unread notifications for the current user. */
   "grunt.api.v1.notifications.get_unread_count": { args: {}; result: number }
   /** Return the VAPID public key needed to subscribe to Web Push. */
@@ -185,6 +193,10 @@ interface GruntMethods {
   "grunt.api.v1.notifications.mark_all_as_read": { args: {}; result: Record<string, any> }
   /** Mark a notification as read - only if it belongs to the current user. */
   "grunt.api.v1.notifications.mark_as_read": { args: { notification_id: string }; result: boolean }
+  /** The bell's "Don't send these": turn off, in every channel, the rule that sent the current user's *notification_id*. Returns the rule's name. */
+  "grunt.api.v1.notifications.mute_like": { args: { notification_id: string }; result: string }
+  /** Turn *notification* (empty - all notifications) on or off in *channel* for the current user; returns the settings as :func:`get_preferences`. */
+  "grunt.api.v1.notifications.set_preference": { args: { channel: string; enabled: boolean; notification?: string }; result: Record<string, any> }
   /** Save a browser push subscription for the current user. */
   "grunt.api.v1.notifications.subscribe_push": { args: { endpoint: string; p256dh: string; auth: string; user_agent?: string }; result: boolean }
   /** Remove a browser push subscription for the current user. */
@@ -370,10 +382,12 @@ interface GruntMethods {
   "grunt.progress.cancel_job": { args: { job_id: string }; result: boolean }
   /** Ask the current user's running *task_id* to stop; False if there is no such task. */
   "grunt.progress.cancel_task": { args: { task_id: string }; result: boolean }
-  /** Run a report and return the result as an xlsx file download. */
+  /** Run a report and return the result as an xlsx file download - a prepared report's latest result for these filters. */
   "grunt.reports.doctypes.Report.report.export_xlsx": { args: { name: string; filters?: Record<string, any> | null; token?: string | null }; result: unknown }
   /** The fields the report builder may offer for *doctype* - those a report can read for the current user (:func:`grunt.reports.joins.report_fields`). */
   "grunt.reports.doctypes.Report.report.fields": { args: { doctype: string }; result: Record<string, any>[] }
+  /** Queue a background calculation of the prepared report *name* for these *filters*; the user gets a ``prepared_report`` realtime event when it is done. */
+  "grunt.reports.doctypes.Report.report.prepare": { args: { name: string; filters?: Record<string, any> | null }; result: Record<string, any> }
   /** Execute an ad-hoc List report configuration (the builder's preview). */
   "grunt.reports.doctypes.Report.report.preview": { args: { doctype: string; columns?: Record<string, any>[] | null; filters?: Record<string, any> | null; conditions?: Record<string, any>[] | null; sort_by?: string | null; sort_order?: string | null; row_limit?: number | null }; result: Record<string, any> }
   /** Execute a report and return results. */

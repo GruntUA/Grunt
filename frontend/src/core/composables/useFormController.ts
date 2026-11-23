@@ -80,7 +80,7 @@ export function useFormController(
   const dt = ref<DocType | null>(null)
 
   // Document data + CRUD primitives
-  const { document, form, isLoading, isError, isDirty, isSaving, save, remove, rename, markClean } =
+  const { document, form, isLoading, isError, isDirty, isSaving, save, reload: reloadDocument, remove, rename, markClean } =
     useDocument(doctype, id)
 
   // Form tours (FormTour): started from ?tour=, automatically, or the form's menu
@@ -315,6 +315,7 @@ export function useFormController(
     form,
     validationErrors,
     save,
+    reload: reloadDocument,
     runScriptEvent,
     validateForm,
     focusFirstError,

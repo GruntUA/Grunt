@@ -53,17 +53,16 @@ async def get_list_badges(doctype: str, ids: list[str]) -> dict[str, dict[str, A
         return {}
 
     me = user_email()
-    async with system_context(require_session()):
-        comments = await _counts("Comment", doctype, ids, comment_type="Comment")
-        likes = await _counts("DocLike", doctype, ids)
-        mine = set(
-            await _db.get_all(
-                "DocLike",
-                filters={"reference_doctype": doctype, "reference_id__in": ids, "user": me},
-                pluck="reference_id",
-                limit=None,
-            )
+    comments = await _counts("Comment", doctype, ids, comment_type="Comment")
+    likes = await _counts("DocLike", doctype, ids)
+    mine = set(
+        await _db.get_all(
+            "DocLike",
+            filters={"reference_doctype": doctype, "reference_id__in": ids, "user": me},
+            pluck="reference_id",
+            limit=None,
         )
+    )
     return {
         i: {"comments": comments.get(i, 0), "likes": likes.get(i, 0), "liked": i in mine}
         for i in ids
@@ -76,14 +75,12 @@ async def toggle_like(doctype: str, doc_id: str) -> dict[str, Any]:
     await doc_guard(doctype, doc_id)
     me = user_email()
     ref = {"reference_doctype": doctype, "reference_id": str(doc_id)}
-    async with system_context(require_session()):
-        existing = await _db.get_all("DocLike", filters={**ref, "user": me}, pluck="name", limit=1)
+    existing = await _db.get_all("DocLike", filters={**ref, "user": me}, pluck="name", limit=1)
     if existing:
         await documents.delete_doc("DocLike", str(existing[0]))
     else:
         await documents.new_doc("DocLike", ref)
-    async with system_context(require_session()):
-        likes = await _db.count("DocLike", ref)
+    likes = await _db.count("DocLike", ref)
     return {"liked": not existing, "likes": likes}
 
 

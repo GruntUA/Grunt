@@ -294,6 +294,11 @@ msgstr ""
 msgid "A digit"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"A disabled report can't be run or sent on schedule and is hidden from menus."
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/Role/Role.json
 msgid ""
 "A disabled role stays assigned to its users but gives them nothing: no "
@@ -322,6 +327,10 @@ msgstr ""
 msgid "A folder must be inside another folder"
 msgstr ""
 
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "A followed document notifies you about its changes and comments."
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name can't contain “]”"
 msgstr ""
@@ -332,6 +341,10 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserGroup/user_group.py
 msgid "A group name is at most %(count)d characters"
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "A heavy report is calculated in the background and saved."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/FileFolder/file_folder.py
@@ -402,12 +415,22 @@ msgid ""
 "letter creates a document of the chosen type"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid ""
+"A report result calculated in the background - for the user who asked, with "
+"their permissions."
+msgstr ""
+
 #: grunt/grunt/db/errors.py
 msgid "A required field is empty."
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/ApiKeyRole/ApiKeyRole.json
 msgid "A role an API key acts with - one its user holds."
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "A rule needs a naming pattern, e.g. ВХ-.YYYY.-.####"
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -557,6 +580,10 @@ msgstr ""
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Access"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Access & execution"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
@@ -849,13 +876,6 @@ msgid ""
 "role's own limit; empty - any"
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid ""
-"Addresses that turned off notification emails - all of them, or one "
-"notification. Made by the unsubscribe link in a letter; delete a row to send"
-" them again."
-msgstr ""
-
 #: grunt/frontend/src/pages/auth/Login.vue
 msgid "Administrator sign-in"
 msgstr ""
@@ -949,6 +969,14 @@ msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.json
 msgid "All good"
+msgstr ""
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications"
+msgstr ""
+
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "All notifications are off in this channel"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
@@ -1067,6 +1095,10 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Always private attachments"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
 msgstr ""
 
@@ -1109,6 +1141,14 @@ msgstr ""
 
 #: grunt/grunt/backups/__init__.py
 msgid "Another backup is being made right now"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Another naming series for documents that meet a condition: a separate count "
+"for a department, a document type, a year. The first enabled rule (highest "
+"priority first) whose condition holds names the new document instead of the "
+"DocType's autoname."
 msgstr ""
 
 #: grunt/frontend/src/pages/auth/Login.vue
@@ -1616,7 +1656,7 @@ msgstr ""
 msgid "Awaiting me"
 msgstr ""
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/bytes.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/bytes.ts
 #: grunt/frontend/src/components/fields/Int/Int.vue
 msgid "B"
 msgstr ""
@@ -1954,8 +1994,22 @@ msgstr ""
 msgid "Cache Storage"
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculate"
+msgstr ""
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Calculate for all"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Calculated in the background: the report shows the last saved result for the"
+" chosen filters and a “Recalculate” button. For heavy reports."
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Calculated {date}"
 msgstr ""
 
 #: grunt/frontend/src/components/layout/CommandPalette.vue
@@ -2148,6 +2202,7 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationChannel/NotificationChannel.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 msgid "Channel"
 msgstr ""
@@ -2277,6 +2332,10 @@ msgstr ""
 msgid "Child DocType whose rows hold the link field"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "Child tables and singletons are not named by series"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Language/Language.json
 msgid "Chinese"
 msgstr ""
@@ -2387,6 +2446,12 @@ msgstr ""
 msgid "Choose which columns to show, how to group and sort the records"
 msgstr ""
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid ""
+"Choose which notifications you get, and through which channels. Mandatory "
+"ones can’t be turned off."
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "Chromium (Playwright)"
 msgstr ""
@@ -2492,6 +2557,7 @@ msgstr ""
 #: grunt/frontend/src/components/desk/GruntDialog.vue
 #: grunt/frontend/src/components/views/form/FormTour.vue
 #: grunt/frontend/src/components/common/tree-select/TreeSelect.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 #: grunt/frontend/src/components/fields/Table/TableRowSheet.vue
 msgid "Close"
 msgstr ""
@@ -2698,6 +2764,7 @@ msgid ""
 "have at least 10 calls."
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 msgid "Completed"
 msgstr ""
@@ -2731,6 +2798,7 @@ msgid ""
 "Computed on every save. All document fields are available as variables."
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
@@ -3087,6 +3155,10 @@ msgstr ""
 msgid "Could not load the list of apps"
 msgstr ""
 
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not load the notification settings"
+msgstr ""
+
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not open the report"
 msgstr ""
@@ -3114,6 +3186,11 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 msgid "Could not save the report"
+msgstr ""
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Could not save the setting"
 msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarTags.vue
@@ -3183,6 +3260,11 @@ msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 msgid "Count page views"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Counter updated"
 msgstr ""
 
 #: grunt/grunt/geo/doctypes/Address/Address.json
@@ -3389,6 +3471,8 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Daily"
 msgstr ""
 
@@ -3468,6 +3552,10 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Date field that enables the date picker in the tree panel"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Date for the name"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -3613,6 +3701,10 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Default colour"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Default digest"
 msgstr ""
 
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
@@ -3956,6 +4048,8 @@ msgstr ""
 msgid "Disable the action but keep the row"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/tasks/doctypes/AutoRepeat/AutoRepeat.json
 #: grunt/grunt/auth/doctypes/Role/Role.json
 #: grunt/grunt/activity/doctypes/MilestoneTracker/MilestoneTracker.json
@@ -4128,6 +4222,10 @@ msgstr ""
 msgid "Document Link"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Document Naming Rule"
+msgstr ""
+
 #: grunt/grunt/document/doctypes/DocTag/DocTag.json
 msgid "Document Tag"
 msgstr ""
@@ -4191,6 +4289,7 @@ msgstr ""
 msgid "Document shared"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/permissions/doctypes/PermissionLog/PermissionLog.json
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
@@ -4319,6 +4418,10 @@ msgstr ""
 msgid "Donut"
 msgstr ""
 
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Don’t send these"
+msgstr ""
+
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "Download"
@@ -4437,6 +4540,10 @@ msgstr ""
 msgid "Each profile adds its roles to the user's roles below."
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+msgid "Each value of {fields} has its own count"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/global_list.js
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 #: grunt/frontend/src/components/views/sidebar/SidebarShareDialog.vue
@@ -4488,11 +4595,11 @@ msgstr ""
 #: grunt/grunt/monitoring/doctypes/SystemHealthReport/SystemHealthReport.js
 #: grunt/grunt/auth/doctypes/User/user.py
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/grunt/auth/doctypes/EmailLoginToken/EmailLoginToken.json
 #: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Email"
 msgstr ""
@@ -4517,10 +4624,6 @@ msgstr ""
 msgid "Email Template"
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Email Unsubscribe"
-msgstr ""
-
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.json
 msgid "Email address"
 msgstr ""
@@ -4531,6 +4634,11 @@ msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 msgid "Email body"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Email digest"
 msgstr ""
 
 #: grunt/grunt/auth/doctypes/User/user.py
@@ -4634,8 +4742,12 @@ msgid ""
 "Empty — CAPTCHA is off for the whole site, even on forms that ask for it."
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
-msgid "Empty — all notification emails, including the digest."
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — all notifications (the digest too, for email)."
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Empty — every channel."
 msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
@@ -4795,6 +4907,10 @@ msgstr ""
 msgid "Enter the rclone backend type"
 msgstr ""
 
+#: grunt/grunt/api/v1/naming.py
+msgid "Enter the series prefix"
+msgstr ""
+
 #: grunt/grunt/auth/providers/email_link.py
 msgid "Enter the verification code"
 msgstr ""
@@ -4825,6 +4941,7 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
 #: grunt/grunt/webhook/doctypes/WebhookLog/WebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/document/doctypes/Comment/Comment.json
@@ -5407,6 +5524,10 @@ msgstr ""
 msgid "Files in “%(name)s”"
 msgstr ""
 
+#: grunt/grunt/storage/doctypes/File/file.py
+msgid "Files of %(doctype)s are always private"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Files sent with the message: [{filename, mimetype, content_b64}]."
 msgstr ""
@@ -5440,6 +5561,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormValidation.ts
 msgid "Fill in the required fields: {fields}"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "Fill in “%(field)s”: the document's name is built from it"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/FetchFromSection.vue
@@ -5477,6 +5602,7 @@ msgstr ""
 #: grunt/frontend/src/components/dashboard/sections/FiltersSection.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
@@ -5490,6 +5616,10 @@ msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
 msgid "Filters Matched"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Filters hash"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
@@ -5506,6 +5636,10 @@ msgstr ""
 
 #: grunt/frontend/src/core/composables/useTaskTracker.ts
 msgid "Finished - see notifications"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Finished at"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/ColumnMapping/ColumnMapping.vue
@@ -5585,6 +5719,22 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/DocSidebarBody.vue
 msgid "Follow"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I comment on"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents I create"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents assigned to me"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Follow documents shared with me"
 msgstr ""
 
 #: grunt/grunt/notification/events.py
@@ -6147,6 +6297,14 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Hide from global feed"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Hide in print if empty"
 msgstr ""
 
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
@@ -6870,6 +7028,12 @@ msgstr ""
 msgid "Issues"
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid ""
+"It runs in the background - you can leave the page; the result will appear "
+"here."
+msgstr ""
+
 #: grunt/grunt/monitoring/health.py
 msgid "It will be downloaded automatically on first use."
 msgstr ""
@@ -7150,6 +7314,13 @@ msgstr ""
 msgid "Last name, First name, Patronymic"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid ""
+"Last number given out in “{prefix}” (now {current}). The next document gets "
+"the one after it."
+msgstr ""
+
 #: grunt/frontend/src/components/views/ListPagination.vue
 msgid "Last page"
 msgstr ""
@@ -7276,6 +7447,13 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/list/ListRowMeta.vue
 msgid "Like"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Like the DocType's autoname: .YYYY. .YY. .MM. .DD., counter .####., a "
+"field's value in braces {department}. Everything before the counter has its "
+"own count."
 msgstr ""
 
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
@@ -7629,6 +7807,11 @@ msgstr ""
 
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 msgid "Manager"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
+msgid "Mandatory"
 msgstr ""
 
 #: grunt/frontend/src/pages/studio/builder/sections/TextSection.vue
@@ -8089,6 +8272,14 @@ msgstr ""
 msgid "Naming and display"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Naming pattern"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "Naming series “%(series)s” is not one of the allowed ones"
+msgstr ""
+
 #: grunt/grunt/geo/doctypes/Country/Country.json
 msgid "National domain (.ua, .us)"
 msgstr ""
@@ -8116,6 +8307,11 @@ msgstr ""
 msgid "Network error:"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid "Never"
+msgstr ""
+
 #: grunt/frontend/src/router/index.ts
 #: grunt/frontend/src/components/app/AppBreadcrumb.vue
 #: grunt/frontend/src/components/dashboard/sections/TilesSection.vue
@@ -8135,6 +8331,14 @@ msgstr ""
 
 #: grunt/grunt/notification/records/notification/followed_document_commented/followed_document_commented.json
 msgid "New comment: “%(title)s”"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"New files attached to these documents are always private, even if the upload"
+" asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals). Files already public stay so - make them private "
+"separately"
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
@@ -8189,6 +8393,11 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Next actors"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Next name"
 msgstr ""
 
 #: grunt/frontend/src/components/views/ListPagination.vue
@@ -8586,6 +8795,10 @@ msgstr ""
 msgid "Not cached, e.g.: {files}. Reload the page while online."
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "Not calculated for these filters yet"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocField/DocField.json
 msgid "Not carried over when the document is duplicated"
 msgstr ""
@@ -8673,6 +8886,12 @@ msgstr ""
 msgid "Not permitted to use fields: %(fields)s"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid ""
+"Not printed when the value is zero or unchecked (an empty value is never "
+"printed)"
+msgstr ""
+
 #: grunt/grunt/document/sidebar.py
 msgid "Not published - open preview"
 msgstr ""
@@ -8683,6 +8902,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/views/sidebar/SidebarPeople.vue
 msgid "Not shared with anyone"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocField/DocField.json
+msgid "Not shown in the standard print format"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -8741,10 +8964,11 @@ msgstr ""
 msgid "Nothing to back up"
 msgstr ""
 
-#: grunt/grunt/email/doctypes/EmailUnsubscribe/EmailUnsubscribe.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
 #: grunt/grunt/notification/doctypes/NotificationLog/NotificationLog.json
+#: grunt/frontend/src/components/desk/dialogs/NotificationPreferences.vue
 msgid "Notification"
 msgstr ""
 
@@ -8761,15 +8985,38 @@ msgstr ""
 msgid "Notification Log"
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "Notification Preference"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/NotificationRecipient/NotificationRecipient.json
 msgid "Notification Recipient"
 msgstr ""
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "Notification not found"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+#: grunt/grunt/auth/doctypes/User/User.js
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid "Notification settings"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/notification/doctypes/ServiceLevel/ServiceLevel.json
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 #: grunt/frontend/src/components/dashboard/MyWorkPanel.vue
 msgid "Notifications"
+msgstr ""
+
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid ""
+"Notifications a person turned off - one rule or all of them, in one channel "
+"or in every one. Made in the profile (Preferences → Notifications), from the"
+" bell and by the unsubscribe link in a letter; delete a row to send them "
+"again. Mandatory notifications ignore it."
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -9032,6 +9279,13 @@ msgstr ""
 msgid ""
 "Only these of the user's roles (with the user's scopes); empty - all of "
 "them. The key never gets more than its user has."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"Only these roles may open and run the report (and, on a DocType, only with "
+"the “Report” permission on it). Empty — whoever may report on the DocType; a"
+" report without a DocType — System Manager only."
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
@@ -9557,6 +9811,12 @@ msgstr ""
 msgid "Pending migrations. Run `grunt migrate`."
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/Notification/Notification.json
+msgid ""
+"People can't turn it off - neither in their notification settings nor by the"
+" unsubscribe link (approvals, deadlines)."
+msgstr ""
+
 #: grunt/grunt/auth/doctypes/UserGroup/UserGroup.json
 msgid ""
 "People to notify, assign or share with together - a department, a "
@@ -9723,6 +9983,14 @@ msgstr ""
 msgid "Prefix"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Prepared Report"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Prepared report"
+msgstr ""
+
 #: grunt/grunt/backups/__init__.py
 msgid "Preparing"
 msgstr ""
@@ -9803,6 +10071,7 @@ msgid ""
 "apps/grunt; on a new server also `playwright install-deps chromium` as root."
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/assignment/doctypes/AssignmentRule/AssignmentRule.json
 #: grunt/grunt/tasks/doctypes/ToDo/ToDo.json
@@ -9955,6 +10224,12 @@ msgid ""
 "Python expression on doc and user, e.g. doc.status == 'Open'. Empty: always"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid ""
+"Python expression on the new document, e.g. doc.department == 'ЦНАП'. Empty:"
+" every document. An expression that fails counts as false."
+msgstr ""
+
 #: grunt/grunt/monitoring/updates.py
 msgid "Python packages"
 msgstr ""
@@ -9975,6 +10250,7 @@ msgstr ""
 msgid "Queue Workers"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/notification/doctypes/NotificationDelivery/NotificationDelivery.json
 #: grunt/frontend/src/components/views/sidebar/SidebarTimeline.vue
@@ -10119,6 +10395,7 @@ msgid "Rebuild index"
 msgstr ""
 
 #: grunt/grunt/actions/builtin.py
+#: grunt/frontend/src/pages/reports/ReportView.vue
 msgid "Recalculate"
 msgstr ""
 
@@ -10307,6 +10584,10 @@ msgstr ""
 msgid "Related system logs"
 msgstr ""
 
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "Reload"
+msgstr ""
+
 #: grunt/frontend/src/core/browserHealth.ts
 msgid ""
 "Reload the page; if that does not help, check that the server serves /sw.js."
@@ -10459,6 +10740,7 @@ msgid "Reply-To"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/OnboardingStep/OnboardingStep.json
 #: grunt/grunt/site/doctypes/WorkspaceSidebarItem/WorkspaceSidebarItem.json
@@ -10503,6 +10785,10 @@ msgstr ""
 msgid "Report saved"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid "Report timeout, sec"
+msgstr ""
+
 #: grunt/grunt/reports/engine.py
 msgid "Report type “%(type)s” is not supported"
 msgstr ""
@@ -10515,14 +10801,29 @@ msgstr ""
 msgid "Report “%(name)s” as of %(date)s: %(rows)s rows. The file is attached."
 msgstr ""
 
+#: grunt/grunt/reports/access.py
+msgid "Report “%(name)s” is disabled"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "Report “%(name)s” is not a prepared report"
+msgstr ""
+
 #: grunt/grunt/reports/engine.py grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s” not found"
+msgstr ""
+
+#: grunt/grunt/reports/engine.py
+msgid ""
+"Report “%(name)s” ran longer than %(seconds)s s and was stopped. Narrow the "
+"filters or make it a prepared report."
 msgstr ""
 
 #: grunt/grunt/reports/delivery.py
 msgid "Report “%(name)s”, %(date)s"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
 #: grunt/frontend/src/components/views/report/ReportGridView.vue
 #: grunt/frontend/src/pages/reports/QueryReportBuilder.vue
 #: grunt/frontend/src/pages/desk/reports/ReportView.vue
@@ -10700,6 +11001,7 @@ msgid "Result column to sort by."
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 msgid "Result file"
 msgstr ""
 
@@ -10788,6 +11090,7 @@ msgstr ""
 msgid "Role, everyone, end date…"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/Report/Report.json
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/auth/doctypes/User/User.json
 #: grunt/grunt/auth/doctypes/RoleProfile/RoleProfile.json
@@ -10871,6 +11174,7 @@ msgid "Row/bar label (default: title field)"
 msgstr ""
 
 #: grunt/grunt/permissions/doctypes/AccessLog/AccessLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/site/doctypes/PageWidget/PageWidget.json
 #: grunt/frontend/src/components/dashboard/sections/AggregationSection.vue
 #: grunt/frontend/src/components/views/form/FormHeader.vue
@@ -10901,6 +11205,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/permissions/AccessInspectorDialog.vue
 msgid "Rules that grant this action"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "Rules with a higher priority are tried first"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -11620,7 +11928,25 @@ msgid "September"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
-msgid "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+msgid ""
+"Series (CONTR-.YYYY.-.####, a field in braces: {department}), "
+"naming_series:, field:fieldname, prompt or hash. Document Naming Rules can "
+"pick another series by condition."
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series counter"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Series counter…"
+msgstr ""
+
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.js
+#: grunt/grunt/metadata/doctypes/DocType/DocType.js
+msgid "Series prefix — the name up to the number, e.g. ВХ-2026-"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -12323,8 +12649,13 @@ msgstr ""
 msgid "Start recording"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Started"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Started at"
 msgstr ""
 
 #: grunt/grunt/io/doctypes/DataImport/DataImport.js
@@ -12361,6 +12692,7 @@ msgstr ""
 #: grunt/grunt/io/doctypes/DataImport/DataImport.json
 #: grunt/grunt/io/doctypes/DataExport/DataExport.json
 #: grunt/grunt/webhook/doctypes/IncomingWebhookLog/IncomingWebhookLog.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 #: grunt/grunt/email/doctypes/EmailMessage/EmailMessage.json
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -12972,6 +13304,10 @@ msgstr ""
 msgid "The browser will not delete offline data"
 msgstr ""
 
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The calculation failed"
+msgstr ""
+
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.js
 #: grunt/grunt/backups/doctypes/Backup/Backup.js
 msgid ""
@@ -13004,6 +13340,10 @@ msgstr ""
 msgid "The comment you reply to no longer exists"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "The condition is not a valid expression: %(error)s"
+msgstr ""
+
 #: grunt/grunt/integrations/oauth.py
 msgid "The connected app is disabled"
 msgstr ""
@@ -13020,6 +13360,14 @@ msgstr ""
 msgid ""
 "The contents were moved off the server disk into this storage; they are "
 "fetched back on request (grunt.storage.cloud.files)."
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid "The counter can't be negative"
+msgstr ""
+
+#: grunt/grunt/api/v1/naming.py
+msgid "The counter must be a whole number"
 msgstr ""
 
 #: grunt/grunt/auth/user_api.py
@@ -13078,10 +13426,14 @@ msgstr ""
 msgid "The document type to show in links"
 msgstr ""
 
-#: grunt/grunt/document/mixins/lifecycle.py
+#: grunt/grunt/errors.py
 msgid ""
 "The document was changed after you started editing. Open it again and repeat"
 " your changes."
+msgstr ""
+
+#: grunt/frontend/src/core/composables/useFormSave.ts
+msgid "The document was changed by someone else"
 msgstr ""
 
 #: grunt/frontend/src/core/composables/useFormDocWatcher.ts
@@ -13216,6 +13568,18 @@ msgstr ""
 msgid "The list is limited by your access rights"
 msgstr ""
 
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"The longest a report's SQL may run when opened on screen; 0 — no limit. A "
+"report can set its own; prepared reports have none unless they do."
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid ""
+"The longest a report's SQL may run. Empty — the site default (System "
+"Settings) when run on screen, no limit for a prepared report."
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailAccount/EmailAccount.js
 msgid ""
 "The mailbox will stop sending and receiving mail until it is connected "
@@ -13238,6 +13602,12 @@ msgid ""
 "The new type stores values differently (a separate column or a child table)."
 " Existing data of this field is not moved automatically — export it before "
 "migrating."
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"The next %(count)s names of series “%(prefix)s” are all taken: set its "
+"counter"
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
@@ -13275,6 +13645,10 @@ msgstr ""
 msgid "The password must %(requirements)s."
 msgstr ""
 
+#: grunt/grunt/notification/doctypes/NotificationPreference/NotificationPreference.json
+msgid "The person's email - a user's or any address a rule writes to."
+msgstr ""
+
 #: grunt/grunt/integrations/doctypes/ConnectedApp/connected_app.py
 msgid "The provider addresses must start with https://"
 msgstr ""
@@ -13294,10 +13668,6 @@ msgstr ""
 
 #: grunt/grunt/webpush/service.py
 msgid "The pywebpush package is not installed"
-msgstr ""
-
-#: grunt/grunt/notification/channels.py
-msgid "The recipient unsubscribed from these emails"
 msgstr ""
 
 #: grunt/grunt/db/errors.py
@@ -13324,6 +13694,14 @@ msgstr ""
 
 #: grunt/grunt/document/collection.py
 msgid "The replacement cannot be the document being deleted"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/report.py
+msgid "The report hasn't been calculated for these filters yet"
+msgstr ""
+
+#: grunt/frontend/src/pages/reports/ReportView.vue
+msgid "The report is being calculated…"
 msgstr ""
 
 #: grunt/frontend/src/core/browserHealth.ts
@@ -13626,6 +14004,14 @@ msgstr ""
 msgid "This message is in HTML format."
 msgstr ""
 
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification can't be turned off"
+msgstr ""
+
+#: grunt/grunt/api/v1/notifications.py
+msgid "This notification has no rule to turn off"
+msgstr ""
+
 #: grunt/grunt/auth/providers/webauthn.py
 msgid "This passkey is already registered"
 msgstr ""
@@ -13729,12 +14115,20 @@ msgstr ""
 msgid "Time zone"
 msgstr ""
 
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
+msgid "Time, ms"
+msgstr ""
+
 #: grunt/grunt/notification/doctypes/ServiceLevelStatus/ServiceLevelStatus.json
 msgid "Timeline"
 msgstr ""
 
 #: grunt/grunt/webhook/doctypes/OutgoingWebhook/OutgoingWebhook.json
 msgid "Timeout (sec)"
+msgstr ""
+
+#: grunt/grunt/reports/doctypes/Report/Report.json
+msgid "Timeout, sec"
 msgstr ""
 
 #: grunt/grunt/assignment/doctypes/AssignmentLog/AssignmentLog.json
@@ -13929,6 +14323,10 @@ msgstr ""
 msgid "Turn into"
 msgstr ""
 
+#: grunt/grunt/notification/delivery.py
+msgid "Turned off in the recipient's settings"
+msgstr ""
+
 #: grunt/frontend/src/router/index.ts
 msgid "Two-factor authentication"
 msgstr ""
@@ -14068,7 +14466,7 @@ msgstr ""
 msgid "Unknown auth provider: %(name)s"
 msgstr ""
 
-#: grunt/grunt/notification/delivery.py
+#: grunt/grunt/notification/delivery.py grunt/grunt/api/v1/notifications.py
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Unknown channel “%(channel)s”"
 msgstr ""
@@ -14135,6 +14533,18 @@ msgstr ""
 
 #: grunt/frontend/src/components/layout/NotificationsPopover.vue
 msgid "Unmute notification sound"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+msgid ""
+"Unread notifications by email for users who didn't choose in their profile: "
+"every morning at 08:00 or on Mondays."
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Unread notifications by email: every morning or on Mondays. Empty = the site"
+" default."
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py
@@ -14339,6 +14749,7 @@ msgstr ""
 
 #: grunt/grunt/storage/doctypes/StorageRemote/StorageRemote.json
 #: grunt/grunt/permissions/doctypes/SharedWith/SharedWith.json
+#: grunt/grunt/reports/doctypes/PreparedReport/PreparedReport.json
 #: grunt/grunt/assignment/doctypes/AssignmentRuleUser/AssignmentRuleUser.json
 #: grunt/grunt/document/doctypes/DocVersion/DocVersion.json
 #: grunt/grunt/site/doctypes/OnboardingProgress/OnboardingProgress.json
@@ -14763,6 +15174,8 @@ msgid "Wednesday"
 msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
+#: grunt/grunt/site/doctypes/SystemSettings/SystemSettings.json
+#: grunt/grunt/auth/doctypes/User/User.json
 msgid "Weekly"
 msgstr ""
 
@@ -14895,6 +15308,12 @@ msgstr ""
 
 #: grunt/grunt/email/unsubscribe.py
 msgid "Which letters should %(email)s no longer get?"
+msgstr ""
+
+#: grunt/grunt/auth/doctypes/User/User.json
+msgid ""
+"Which notifications to get, and through which channels: the bell, browser "
+"push, email."
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocPermission/DocPermission.json
@@ -15063,6 +15482,11 @@ msgstr ""
 msgid "Write an email"
 msgstr ""
 
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"YYYY, MM and DD in the name come from this field instead of today's date"
+msgstr ""
+
 #: grunt/frontend/src/core/datetime.ts
 msgid "YYYY-MM-DD"
 msgstr ""
@@ -15112,6 +15536,10 @@ msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
 msgid "You are not allowed to create “%(doctype)s” documents"
+msgstr ""
+
+#: grunt/grunt/reports/access.py
+msgid "You are not allowed to run report “%(name)s”"
 msgstr ""
 
 #: grunt/grunt/email/unsubscribe.py
@@ -16260,7 +16688,7 @@ msgid_plural "{n} more changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} ms"
 msgstr ""
 
@@ -16300,7 +16728,7 @@ msgstr[1] ""
 msgid "{n} rows"
 msgstr ""
 
-#: grunt/grunt/io/exporters/html.py grunt/frontend/src/core/duration.ts
+#: grunt/grunt/i18n/values.py grunt/frontend/src/core/duration.ts
 msgid "{n} s"
 msgstr ""
 
@@ -16352,6 +16780,10 @@ msgstr ""
 msgid "~{n} min"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/DocumentNamingRule.json
+msgid "ВХ-ЦНАП-.YYYY.-.####"
+msgstr ""
+
 #: grunt/frontend/src/components/dashboard/sections/ActivityFilterSection.vue
 msgid "— All —"
 msgstr ""
@@ -16395,6 +16827,10 @@ msgid ""
 "mail” in its settings first"
 msgstr ""
 
+#: grunt/grunt/naming/doctypes/DocumentNamingRule/document_naming_rule.py
+msgid "“%(doctype)s” has no fields %(fields)s"
+msgstr ""
+
 #: grunt/grunt/store/base.py grunt/grunt/document/api.py
 msgid "“%(doctype)s” has no table to aggregate"
 msgstr ""
@@ -16410,6 +16846,12 @@ msgstr ""
 #: grunt/grunt/db/api.py
 msgid ""
 "“%(doctype)s” has no table: grunt.db.%(action)s works on table rows only"
+msgstr ""
+
+#: grunt/grunt/naming/service.py
+msgid ""
+"“%(doctype)s” is named by series but has no “naming_series” field with "
+"options"
 msgstr ""
 
 #: grunt/grunt/tasks/doctypes/AutoRepeat/auto_repeat.py
@@ -16437,6 +16879,10 @@ msgstr ""
 msgid "“%(name)s” letters"
 msgstr ""
 
+#: grunt/grunt/naming/service.py
+msgid "“%(value)s” is not a date the name can be built from"
+msgstr ""
+
 #: grunt/grunt/site/doctypes/UserViewSettings/UserViewSettings.json
 msgid "“*” - not tied to a DocType (recent documents)"
 msgstr ""
@@ -16447,6 +16893,12 @@ msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/global_form.js
 msgid "“{action}”: are you sure?"
+msgstr ""
+
+#: grunt/frontend/src/components/layout/NotificationsPopover.vue
+msgid ""
+"“{name}” notifications are off. Turn them back on in the notification "
+"settings."
 msgstr ""
 
 #: grunt/grunt/email/templates/notification_digest.html

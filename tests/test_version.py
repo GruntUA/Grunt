@@ -1,5 +1,7 @@
 """Versions from git tags, required_grunt, `grunt release` and `grunt test --changed`."""
 
+import importlib
+import json
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -10,8 +12,20 @@ from packaging.version import Version
 
 from grunt import version as versions
 from grunt.cli.changed_tests import select
-from grunt.cli.release import changelog_section, new_migrations, next_version, prepend_changelog
+from grunt.cli.release import (
+    auto_bump,
+    changelog_section,
+    changelog_version,
+    deploy_notes,
+    new_migrations,
+    next_version,
+    prepend_changelog,
+)
 from grunt.testkit import write_app_manifest
+
+# `grunt.cli.release` is shadowed by the click command of the same name.
+rel = importlib.import_module("grunt.cli.release")
+deps = importlib.import_module("grunt.cli.release_deps")
 
 
 def git(repo: Path, *args: str) -> None:
@@ -90,6 +104,49 @@ def test_next_version():
     assert next_version(Version("1.2.3"), "1.5.0") == Version("1.5.0")
     with pytest.raises(click.BadParameter):
         next_version(Version("1.2.3"), "1.0.0")
+    assert next_version(Version("0.4.2"), "auto", ["fix: x", "feat: y"]) == Version("0.5.0")
+
+
+@pytest.mark.parametrize(
+    ("current", "subjects", "bump"),
+    [
+        ("0.4.2", ["fix: a", "docs: b"], "patch"),
+        ("0.4.2", ["fix: a", "feat(x): b"], "minor"),
+        ("0.4.2", ["fix!: a"], "minor"),
+        ("1.4.2", ["refactor(db)!: a", "feat: b"], "major"),
+        ("1.4.2", ["tidy up"], "patch"),
+    ],
+)
+def test_auto_bump(current: str, subjects: list[str], bump: str):
+    assert auto_bump(Version(current), subjects) == bump
+
+
+def test_deploy_notes():
+    notes = deploy_notes(
+        [
+            ("A", "grunt/x/doctypes/Thing/Thing.json"),
+            ("M", "grunt/y/doctypes/Other/Other.json"),
+            ("M", "uv.lock"),
+            ("M", "grunt/a.py"),
+        ],
+        ["0030_x"],
+    )
+    text = "\n".join(notes)
+    assert "back up" in text
+    assert "grunt migrate" in text
+    assert "New DocTypes (Thing)" in text
+    assert "uv.lock" in text
+
+    only_doctype = deploy_notes([("M", "grunt/y/doctypes/Other/Other.json")], [])
+    assert only_doctype == ["`grunt migrate --dry-run`, then `grunt migrate` on every site."]
+    assert deploy_notes([("M", "grunt/a.py")], []) == [
+        "No migrations: update the code and restart the services."
+    ]
+
+
+def test_changelog_version():
+    assert changelog_version("# Changelog\n\n## v0.3.1 - x\n\n## v0.3.0 - y\n") == Version("0.3.1")
+    assert changelog_version("# Changelog\n") is None
 
 
 def test_changelog_groups_conventional_commits():
@@ -111,6 +168,9 @@ def test_changelog_groups_conventional_commits():
     assert "### Other\n\n- tidy imports" in section
     assert "v1.0.0" not in section
 
+    deps = changelog_section(Version("1.1.1"), ["build(deps): update packages", "fix: x"])
+    assert "### Dependencies\n\n- update packages" in deps
+
 
 def test_changelog_lists_new_migrations(repo: Path):
     git(repo, "tag", "-a", "v1.0.0", "-m", "v1.0.0")
@@ -129,11 +189,95 @@ def test_changelog_lists_new_migrations(repo: Path):
     assert "Database migrations" not in changelog_section(Version("1.1.0"), ["feat: x"])
 
 
+def test_changelog_cuts_a_subject_that_swallowed_its_body():
+    leaked = "feat(print): standard print follows the layout - the body " + "x" * 120
+    section = changelog_section(Version("1.1.0"), [leaked, "fix: short - kept as is"])
+    assert "- **print:** standard print follows the layout\n" in section
+    assert "- short - kept as is" in section
+
+
 def test_prepend_changelog_keeps_newest_first(tmp_path: Path):
     path = tmp_path / "CHANGELOG.md"
     prepend_changelog(path, "## v0.1.0\n")
     prepend_changelog(path, "## v0.2.0\n")
     assert path.read_text() == "# Changelog\n\n## v0.2.0\n\n## v0.1.0\n"
+
+
+@pytest.fixture
+def released(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
+    """An app checkout whose origin has master (tagged v0.1.0) and develop."""
+    origin = tmp_path / "origin.git"
+    seed = tmp_path / "seed"
+    seed.mkdir()
+    git(tmp_path, "init", "-q", "--bare", str(origin))
+    git(seed, "init", "-q", "-b", "master")
+    (seed / "a.txt").write_text("1")
+    git(seed, "add", ".")
+    git(seed, "commit", "-qm", "first")
+    git(seed, "tag", "-a", "v0.1.0", "-m", "v0.1.0")
+    git(seed, "checkout", "-qb", "develop")
+    (seed / "grunt" / "db" / "migrations" / "versions").mkdir(parents=True)
+    (seed / "grunt" / "db" / "migrations" / "versions" / "0002_b.py").write_text("")
+    git(seed, "add", ".")
+    git(seed, "commit", "-qm", "feat(db): new table")
+    git(seed, "remote", "add", "origin", str(origin))
+    git(seed, "push", "-q", "--follow-tags", "origin", "master", "develop")
+
+    apps = tmp_path / "apps"
+    apps.mkdir()
+    app = apps / "grunt"
+    git(tmp_path, "clone", "-q", str(origin), str(app))
+    git(app, "config", "user.name", "t")
+    git(app, "config", "user.email", "t@t")
+    (app / "local.txt").write_text("uncommitted work stays")
+    monkeypatch.setattr(rel, "_apps_dir", lambda: apps)
+    monkeypatch.setattr(rel.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(rel, "open_release_pr", lambda repo, head, plan: f"PR {head}")
+    return app, origin
+
+
+def test_release_pushes_the_release_commit_to_develop(released):
+    app, origin = released
+    from click.testing import CliRunner
+
+    dry = CliRunner().invoke(rel.release, ["--dry-run"])
+    assert dry.exit_code == 0, dry.output
+    assert "## v0.2.0" in dry.output and "0002_b" in dry.output and "back up" in dry.output
+
+    result = CliRunner().invoke(rel.release, ["--yes"])
+    assert result.exit_code == 0, result.output
+    assert "PR develop" in result.output
+    log = subprocess.run(
+        ["git", "-C", str(origin), "log", "-1", "--format=%s", "develop"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    assert log == "chore(release): v0.2.0"
+    changelog = subprocess.run(
+        ["git", "-C", str(origin), "show", "develop:CHANGELOG.md"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert changelog.startswith("# Changelog\n\n## v0.2.0")
+    # The checkout is untouched and no worktree is left behind.
+    assert (app / "local.txt").exists() and not (app / "CHANGELOG.md").exists()
+    assert (
+        len(
+            subprocess.run(
+                ["git", "-C", str(app), "worktree", "list"],
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.splitlines()
+        )
+        == 1
+    )
+
+    # Until the pull request is merged and tagged, another release is refused.
+    again = CliRunner().invoke(rel.release, ["--dry-run"])
+    assert again.exit_code != 0 and "not tagged yet" in again.output
 
 
 def _tree(root: Path, files: dict[str, str]) -> None:
@@ -190,3 +334,84 @@ def test_changed_tests_selection(tmp_path: Path):
 
     assert select(tmp_path, [tmp_path / "conftest.py"]).full == "conftest.py"
     assert select(tmp_path, [tmp_path / "pyproject.toml"]).full is None
+
+
+def test_locked_versions_and_changes(tmp_path: Path):
+    (tmp_path / "uv.lock").write_text(
+        'version = 1\n\n[[package]]\nname = "httpx"\nversion = "0.28.1"\n\n'
+        '[[package]]\nname = "grunt"\nsource = { editable = "." }\n'
+    )
+    (tmp_path / "package-lock.json").write_text(
+        json.dumps(
+            {
+                "packages": {
+                    "": {"name": "grunt"},
+                    "node_modules/vue": {"version": "3.5.0"},
+                    "node_modules/@tiptap/core": {"version": "3.1.0"},
+                    "node_modules/a/node_modules/vue": {"version": "2.7.0"},
+                }
+            }
+        )
+    )
+    before = deps.locked_versions(tmp_path)
+    assert before == {
+        "httpx (python)": "0.28.1",
+        "vue (npm)": "3.5.0",
+        "@tiptap/core (npm)": "3.1.0",
+    }
+    after = {**before, "vue (npm)": "3.5.2", "new (npm)": "1.0.0"}
+    del after["httpx (python)"]
+    assert deps.version_changes(before, after) == [
+        "httpx (python) 0.28.1 -> (removed)",
+        "new (npm) (new) -> 1.0.0",
+        "vue (npm) 3.5.0 -> 3.5.2",
+    ]
+
+
+def test_wait_for_ci(monkeypatch, tmp_path: Path):
+    answers = iter(
+        [
+            [],  # runs not created yet
+            [{"name": "CI", "status": "in_progress", "conclusion": ""}],
+            [
+                {"name": "CI", "status": "completed", "conclusion": "failure"},
+                {"name": "CodeQL", "status": "completed", "conclusion": "success"},
+            ],
+        ]
+    )
+
+    def fake_run(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(next(answers)), "")
+
+    monkeypatch.setattr(deps.subprocess, "run", fake_run)
+    assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (False, ["CI"])
+
+
+def test_wait_for_ci_passes_only_once_the_runs_settle(monkeypatch, tmp_path: Path):
+    title = {"name": "PR title", "status": "completed", "conclusion": "success"}
+    ci = {"name": "CI", "status": "completed", "conclusion": "success"}
+    answers = iter(
+        [
+            [title],  # CI's run is not created yet
+            [title, {**ci, "status": "queued", "conclusion": ""}],
+            [title, ci],
+            [title, ci],
+        ]
+    )
+    polls = []
+
+    def fake_run(cmd, **kwargs):
+        polls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(next(answers)), "")
+
+    monkeypatch.setattr(deps.subprocess, "run", fake_run)
+    assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (True, [])
+    assert len(polls) == 4
+
+
+def test_held_back_packages():
+    manifest = {
+        "dependencies": {"vue": "^3.5.0", "cn": "^0.5.2", "old": "~2.3.0"},
+        "devDependencies": {"pyright": "1.1.414", "vitest": ">=4"},
+    }
+    assert deps.held_back(manifest) == ["cn", "old", "pyright"]

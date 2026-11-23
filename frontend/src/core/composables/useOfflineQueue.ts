@@ -186,8 +186,12 @@ export async function retry(id: number): Promise<number> {
   const change = queue.value.find((c) => c.id === id)
   if (!change) return 0
   const data = { ...change.data }
-  // Retrying a conflict means "apply mine anyway" - drop the stale base.
-  if (change.status === 'conflict') delete data.__base_modified_at
+  // Retrying a conflict means "apply mine anyway" - drop the stale base
+  // (the server takes the document's own `modified_at` as the base otherwise).
+  if (change.status === 'conflict') {
+    delete data.__base_modified_at
+    delete data.modified_at
+  }
   await put({ ...change, data, status: 'pending', error: undefined })
   return flush()
 }

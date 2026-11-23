@@ -40,8 +40,8 @@ jobs:
         with:
           node-version: "26"
 
-      - name: pyright
-        run: npx -y pyright@1.1.414 grunt
+      - name: pyright # the version pinned in package.json
+        run: npx -y pyright@"$(node -p 'require("./package.json").devDependencies.pyright')" grunt
 
   backend:
     name: pytest (${{ matrix.db }})

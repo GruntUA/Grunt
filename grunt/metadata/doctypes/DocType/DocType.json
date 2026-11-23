@@ -128,7 +128,19 @@
       "fieldname": "autoname",
       "label": "Autoname",
       "fieldtype": "Data",
-      "description": "Series (CONTR-.YYYY.-.####), field:fieldname, prompt or hash"
+      "description": "Series (CONTR-.YYYY.-.####, a field in braces: {department}), naming_series:, field:fieldname, prompt or hash. Document Naming Rules can pick another series by condition."
+    },
+    {
+      "fieldname": "naming_date_field",
+      "label": "Date for the name",
+      "fieldtype": "Select",
+      "description": "YYYY, MM and DD in the name come from this field instead of today's date"
+    },
+    {
+      "fieldname": "naming_counter",
+      "label": "Series counter…",
+      "fieldtype": "Button",
+      "depends_on": "eval:!doc.__islocal"
     },
     {
       "fieldname": "title_field",
@@ -537,7 +549,15 @@
       "fieldname": "public_attachments",
       "label": "Public attachments",
       "fieldtype": "Check",
+      "depends_on": "eval:!doc.force_private_attachments",
       "description": "Files uploaded to these documents are public by default (website content: news covers, page images). Otherwise attachments are private and readable only with the document"
+    },
+    {
+      "fieldname": "force_private_attachments",
+      "label": "Always private attachments",
+      "fieldtype": "Check",
+      "description": "New files attached to these documents are always private, even if the upload asks for a public one, and can't be made public later (personnel files, citizens' appeals). Files already public stay so - make them private separately",
+      "depends_on": "eval:!doc.public_attachments"
     },
     {
       "fieldname": "is_signable",

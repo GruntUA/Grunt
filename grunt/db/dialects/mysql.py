@@ -1,6 +1,8 @@
 """MySQL / MariaDB."""
 
 import re
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from sqlalchemy import String, Table, cast, func, literal, text
@@ -118,6 +120,26 @@ class MysqlDialect(Dialect):
             "reclaim_scope": "table",
             "size_supported": True,
         }
+
+    # ── Statement timeout ───────────────────────────────────────────────────
+
+    @asynccontextmanager
+    async def statement_timeout(self, session: Any, seconds: float | None) -> AsyncGenerator[None]:
+        if not seconds:
+            yield
+            return
+        # MySQL's max_execution_time limits SELECT only - what reports run.
+        await session.execute(
+            text(f"SET SESSION max_execution_time = {max(1, int(seconds * 1000))}")
+        )
+        try:
+            yield
+        finally:
+            await session.execute(text("SET SESSION max_execution_time = DEFAULT"))
+
+    def is_timeout(self, exc: BaseException) -> bool:
+        args = getattr(getattr(exc, "orig", None) or exc, "args", ())
+        return bool(args) and args[0] == 3024  # ER_QUERY_TIMEOUT
 
     # ── Errors ──────────────────────────────────────────────────────────────
 

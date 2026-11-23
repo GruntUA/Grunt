@@ -10,7 +10,7 @@ from typing import Any
 
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
-from grunt.local import active_role_rows, require_session, system_context
+from grunt.local import active_role_rows
 from grunt.permissions.role_props import without_disabled
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -49,16 +49,15 @@ async def get_user_role_rows(user_id: str) -> list[dict[str, Any]]:
     """Every role assignment of a user, in force or not (see
     :func:`grunt.local.active_role_rows`), but for disabled roles. Caller must
     have an active context."""
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserRole",
-            filters={"parent_name": user_id, "parent_doctype": "User"},
-            fields=ROLE_ROW_FIELDS,
-            limit=500,
-            order_by="idx",
-            order="asc",
-        )
-        rows = await without_disabled(rows)
+    rows = await _db.get_all(
+        "UserRole",
+        filters={"parent_name": user_id, "parent_doctype": "User"},
+        fields=ROLE_ROW_FIELDS,
+        limit=500,
+        order_by="idx",
+        order="asc",
+    )
+    rows = await without_disabled(rows)
     return [plain_role_row(r) for r in rows]
 
 

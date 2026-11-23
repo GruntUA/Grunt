@@ -9,6 +9,15 @@ export interface NotificationItem {
   doc_id?: string | null
   is_read: boolean
   created_at: string
+  /** The rule that sent it - empty for a notification sent from code. */
+  notification?: string | null
+}
+
+export interface NotificationPreferences {
+  channels: { value: string; label: string }[]
+  rules: { name: string; label: string; ref_doctype: string | null; channels: string[]; mandatory: boolean }[]
+  /** What is off: `notification` null - all notifications, `channel` null - every channel. */
+  off: { notification: string | null; channel: string | null }[]
 }
 
 export const notificationsApi = {
@@ -39,5 +48,23 @@ export const notificationsApi = {
   markAllRead: async (): Promise<number> => {
     const res = await client.post('/api/v1/method/grunt.api.v1.notifications.mark_all_as_read')
     return res.data.data.count
-  }
+  },
+
+  preferences: async (): Promise<NotificationPreferences> => {
+    const res = await client.get('/api/v1/method/grunt.api.v1.notifications.get_preferences')
+    return res.data.data
+  },
+
+  setPreference: async (channel: string, enabled: boolean, notification?: string | null): Promise<NotificationPreferences> => {
+    const res = await client.post('/api/v1/method/grunt.api.v1.notifications.set_preference', {
+      channel, enabled, notification: notification ?? '',
+    })
+    return res.data.data
+  },
+
+  /** The bell's "Don't send these": turns the item's rule off in every channel. */
+  muteLike: async (id: string): Promise<string> => {
+    const res = await client.post('/api/v1/method/grunt.api.v1.notifications.mute_like', { notification_id: id })
+    return res.data.data
+  },
 }

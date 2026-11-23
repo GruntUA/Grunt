@@ -95,6 +95,11 @@ class User(Document):
     locked_until: datetime | None  # Account locked until
     theme: str | None  # Theme
     language: str | None  # Language
+    notification_digest: str | None  # Email digest
+    follow_created: bool | None  # Follow documents I create
+    follow_commented: bool | None  # Follow documents I comment on
+    follow_assigned: bool | None  # Follow documents assigned to me
+    follow_shared: bool | None  # Follow documents shared with me
     reset_token: str | None  # Password reset token
     reset_token_expires_at: datetime | None  # Reset token expiry
     role_profiles: list[dict]  # Table: UserRoleProfile

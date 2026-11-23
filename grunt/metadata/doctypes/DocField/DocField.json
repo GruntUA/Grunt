@@ -102,6 +102,18 @@
       "fieldtype": "Check"
     },
     {
+      "fieldname": "print_hide",
+      "label": "Hide in print",
+      "fieldtype": "Check",
+      "description": "Not shown in the standard print format"
+    },
+    {
+      "fieldname": "print_hide_if_no_value",
+      "label": "Hide in print if empty",
+      "fieldtype": "Check",
+      "description": "Not printed when the value is zero or unchecked (an empty value is never printed)"
+    },
+    {
       "fieldname": "sec_details",
       "label": "Advanced",
       "fieldtype": "Section",

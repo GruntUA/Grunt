@@ -243,8 +243,7 @@ class IncomingWebhookService:
             else:
                 doc_data[field] = _resolve_path(payload_dict, str(path))
 
-        async with system_context(require_session()):
-            doc = await documents.new_doc(target_doctype, doc_data)
+        doc = await documents.new_doc(target_doctype, doc_data, ignore_permissions=True)
 
         return f"create_document:{target_doctype}:{doc.get('id', '')}", ""
 
@@ -254,12 +253,11 @@ class IncomingWebhookService:
         if await doctype_registry.get_or_none("IncomingWebhook") is None:
             return None
 
-        async with system_context(require_session()):
-            rows = await _db.get_all(
-                "IncomingWebhook",
-                filters={"slug": slug},
-                limit=1,
-            )
+        rows = await _db.get_all(
+            "IncomingWebhook",
+            filters={"slug": slug},
+            limit=1,
+        )
 
         return rows[0] if rows else None
 
@@ -297,8 +295,7 @@ class IncomingWebhookService:
             log_data["webhook"] = webhook_id
 
         try:
-            async with system_context(require_session()):
-                await documents.new_doc("IncomingWebhookLog", log_data)
+            await documents.new_doc("IncomingWebhookLog", log_data, ignore_permissions=True)
         except Exception:
             log.warning("incoming_webhook_log.write_failed", slug=slug)
 

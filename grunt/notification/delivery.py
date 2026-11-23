@@ -2,7 +2,8 @@
 
 For each recipient × channel it asks the channel to send and writes the
 outcome to the ``NotificationDelivery`` log: who was told what, through which
-channel, why not (no such channel, channel failed) - and, for queued channels,
+channel, why not (no such channel, the recipient turned it off, channel
+failed) - and, for queued channels,
 whether it finally arrived (the email queue / the push sender settle the row).
 """
 
@@ -13,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.i18n import _
 from grunt.log import log
-from grunt.notification import delivery_log
+from grunt.notification import delivery_log, preferences
 from grunt.notification.channels import Message, Outcome, get_channel
 
 
@@ -40,11 +41,20 @@ async def deliver(
     """Send *message* to every recipient (user email) through every channel."""
     report = Report()
     names = list(dict.fromkeys(c for c in channels if c))
-    for recipient in dict.fromkeys(r for r in recipients if r):
+    people = list(dict.fromkeys(r for r in recipients if r))
+    # What each recipient turned off (NotificationPreference) - not for a mandatory rule.
+    off = (
+        set()
+        if message.mandatory
+        else await preferences.muted(people, message.notification, session)
+    )
+    for recipient in people:
         for name in names:
             delivery = delivery_log.new_id()
             channel = get_channel(name)
-            if channel is None:
+            if off and preferences.is_off(off, recipient, name):
+                outcome = Outcome("Skipped", reason=_("Turned off in the recipient's settings"))
+            elif channel is None:
                 outcome = Outcome(
                     "Skipped", reason=_("Unknown channel “%(channel)s”") % {"channel": name}
                 )

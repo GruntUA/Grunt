@@ -145,6 +145,20 @@
       "description": "Hourly timings of requests, RPC methods, document saves and background tasks go to Performance Stat (compare periods in Performance Trend). Kept as long as other logs."
     },
     {
+      "fieldname": "sec_reports",
+      "label": "Reports",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "report_timeout",
+      "label": "Report timeout, sec",
+      "fieldtype": "Int",
+      "default": 120,
+      "min_value": 0,
+      "columns": 6,
+      "description": "The longest a report's SQL may run when opened on screen; 0 — no limit. A report can set its own; prepared reports have none unless they do."
+    },
+    {
       "fieldname": "sec_files",
       "label": "Files",
       "fieldtype": "Section"
@@ -476,6 +490,21 @@
       "label": "Notifications",
       "fieldtype": "Tab",
       "icon": "bell"
+    },
+    {
+      "fieldname": "sec_digest",
+      "label": "Email digest",
+      "fieldtype": "Section"
+    },
+    {
+      "fieldname": "default_notification_digest",
+      "label": "Default digest",
+      "fieldtype": "Select",
+      "options": "Never\nDaily\nWeekly",
+      "translatable": true,
+      "default": "Never",
+      "columns": 12,
+      "description": "Unread notifications by email for users who didn't choose in their profile: every morning at 08:00 or on Mondays."
     },
     {
       "fieldname": "sec_webpush",

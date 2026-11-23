@@ -18,7 +18,7 @@ from grunt.api.context import whitelist
 from grunt.auth.current import acting_user
 from grunt.db.api import GruntDB
 from grunt.i18n import _
-from grunt.local import require_session, system_context, user_email
+from grunt.local import user_email
 from grunt.notification.events import trigger
 from grunt.permissions.groups import MAX_GROUP_NAME, group_emails
 from grunt.permissions.guards import doc_guard
@@ -97,8 +97,7 @@ async def add_comment(
     # Reply: tell the author of the thread's root (unless already @mentioned).
     root = comment.get("parent_comment")
     if root:
-        async with system_context(require_session()):
-            root_author = await _db.get_value("Comment", root, "owner")
+        root_author = await _db.get_value("Comment", root, "owner")
         if root_author and root_author != user_email() and root_author not in mentions:
             await _comment_event("grunt.comment.replied", comment, [root_author])
 
@@ -113,24 +112,23 @@ async def assign_to_group(
     as if assigned one by one (needs creating ToDos); members it is already
     openly assigned to are skipped. Returns ``{"assigned": [emails]}``."""
     await doc_guard(doctype, doc_id)
-    async with system_context(require_session()):
-        if not await _db.exists("UserGroup", group):
-            raise HTTPException(
-                status.HTTP_404_NOT_FOUND,
-                detail=_("User group “%(group)s” not found") % {"group": group},
-            )
-        taken = set(
-            await _db.get_all(
-                "ToDo",
-                filters={
-                    "reference_doctype": doctype,
-                    "reference_id": doc_id,
-                    "status__in": ["Open", "In Progress"],
-                },
-                pluck="assigned_to",
-                limit=None,
-            )
+    if not await _db.exists("UserGroup", group):
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=_("User group “%(group)s” not found") % {"group": group},
         )
+    taken = set(
+        await _db.get_all(
+            "ToDo",
+            filters={
+                "reference_doctype": doctype,
+                "reference_id": doc_id,
+                "status__in": ["Open", "In Progress"],
+            },
+            pluck="assigned_to",
+            limit=None,
+        )
+    )
     assigned: list[str] = []
     for email in await group_emails([group]):
         if email in taken:

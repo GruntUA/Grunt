@@ -21,7 +21,6 @@ from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.i18n.meta import translate_record
-from grunt.local import require_session, system_context
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
 lazy from grunt.document.api import documents
@@ -120,7 +119,10 @@ async def _visible(app: str | None, roles: list[str], manager: bool) -> list[dic
     rows = await _db.get_all(
         "ModuleOnboarding", filters=filters, fields=["name"], order_by="name", limit=None
     )
-    docs = [await documents.get_doc("ModuleOnboarding", r["name"]) for r in rows]
+    docs = [
+        await documents.get_doc("ModuleOnboarding", r["name"], ignore_permissions=True)
+        for r in rows
+    ]
     return [d for d in docs if page_visible({**d, "is_published": True}, roles, manager=manager)]
 
 
@@ -164,29 +166,27 @@ async def get_onboardings(app: str | None = None) -> list[dict[str, Any]]:
     """Checklists the user sees (all, or *app*'s), with each step's status."""
     user = acting_user()
     manager = await has_perm("grunt.manage_desk")  # before the system context
-    async with system_context(require_session()):
-        out = [
-            await _summary(o, user.email)
-            for o in await _visible(app or None, user.role_names, manager)
-        ]
+    out = [
+        await _summary(o, user.email) for o in await _visible(app or None, user.role_names, manager)
+    ]
     return [o for o in out if o and o["total"]]
 
 
 async def _require(onboarding: str, roles: list[str]) -> dict[str, Any]:
     manager = await has_perm("grunt.manage_desk")  # before the system context
-    async with system_context(require_session()):
-        for o in await _visible(None, roles, manager):
-            if o["name"] == onboarding:
-                return o
+    for o in await _visible(None, roles, manager):
+        if o["name"] == onboarding:
+            return o
     throw(_("Onboarding not found"), "NOT_FOUND")
 
 
 async def _set(key: dict[str, str], status: str | None) -> None:
-    async with system_context(require_session()):
-        for name in await _db.get_all("OnboardingProgress", filters=key, pluck="name"):
-            await documents.delete_doc("OnboardingProgress", name)
-        if status:
-            await documents.new_doc("OnboardingProgress", {**key, "status": status})
+    for name in await _db.get_all("OnboardingProgress", filters=key, pluck="name"):
+        await documents.delete_doc("OnboardingProgress", name, ignore_permissions=True)
+    if status:
+        await documents.new_doc(
+            "OnboardingProgress", {**key, "status": status}, ignore_permissions=True
+        )
 
 
 @whitelist()
@@ -200,8 +200,7 @@ async def mark_step(onboarding: str, step_id: str, status: str = "Completed") ->
         throw(_("Unknown step status"))
     key = {"onboarding": onboarding, "step_id": step_id, "user": _scope_user(o, user.email)}
     await _set(key, None if status == "Pending" else status)
-    async with system_context(require_session()):
-        summary = await _summary(o, user.email)
+    summary = await _summary(o, user.email)
     return summary or {}
 
 
@@ -225,7 +224,7 @@ async def _tours(doctype: str, roles: list[str], view: str, manager: bool) -> li
         order_by="name",
         limit=None,
     )
-    docs = [await documents.get_doc("FormTour", n) for n in names]
+    docs = [await documents.get_doc("FormTour", n, ignore_permissions=True) for n in names]
     return [
         d
         for d in docs
@@ -242,19 +241,18 @@ async def get_form_tours(doctype: str, view: str = "Form") -> list[dict[str, Any
         throw(_("Unknown view: %(view)s") % {"view": view})
     user = acting_user()
     manager = await has_perm("grunt.manage_desk")  # before the system context
-    async with system_context(require_session()):
-        tours = await _tours(doctype, user.role_names, view, manager)
-        taken = set(
-            await _db.get_all(
-                "OnboardingProgress",
-                filters={"user": user.email, "form_tour__in": [t["name"] for t in tours]},
-                pluck="form_tour",
-                limit=None,
-            )
-            if tours
-            else []
+    tours = await _tours(doctype, user.role_names, view, manager)
+    taken = set(
+        await _db.get_all(
+            "OnboardingProgress",
+            filters={"user": user.email, "form_tour__in": [t["name"] for t in tours]},
+            pluck="form_tour",
+            limit=None,
         )
-        tours = [await translate_record(copy.deepcopy(t)) for t in tours]
+        if tours
+        else []
+    )
+    tours = [await translate_record(copy.deepcopy(t)) for t in tours]
     return [
         {
             "name": t["name"],
@@ -281,13 +279,12 @@ async def complete_form_tour(tour: str) -> None:
     """Note that the user has taken *tour* (finished or closed it)."""
     user = acting_user()
     manager = await has_perm("grunt.manage_desk")  # before the system context
-    async with system_context(require_session()):
-        row = await _db.get_value("FormTour", tour, ["reference_doctype", "view"], as_dict=True)
-        doctype = (row or {}).get("reference_doctype")
-        view = (row or {}).get("view") or "Form"
-        visible = bool(doctype) and any(
-            t["name"] == tour for t in await _tours(doctype, user.role_names, view, manager)
-        )
+    row = await _db.get_value("FormTour", tour, ["reference_doctype", "view"], as_dict=True)
+    doctype = (row or {}).get("reference_doctype")
+    view = (row or {}).get("view") or "Form"
+    visible = bool(doctype) and any(
+        t["name"] == tour for t in await _tours(doctype, user.role_names, view, manager)
+    )
     if not visible:
         throw(_("Form tour not found"), "NOT_FOUND")
     await _set({"form_tour": tour, "step_id": "", "user": user.email}, "Completed")

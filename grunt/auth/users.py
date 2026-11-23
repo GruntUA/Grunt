@@ -240,8 +240,7 @@ async def clear_failed_attempts(user: User) -> None:
     """Reset the failed-sign-in counter and any lock after a success."""
 
     assert user.name
-    async with system_context(require_session()):
-        await _db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
+    await _db.set_value("User", user.name, {"login_attempts": 0, "locked_until": None})
 
 
 async def authenticate(email: str, password: str) -> User | None:
@@ -259,8 +258,7 @@ async def authenticate(email: str, password: str) -> User | None:
     if await is_account_locked(user):
         raise ValueError("locked")
 
-    async with system_context(require_session()):
-        valid = bool(user.hashed_password) and await verify_password(password, user.hashed_password)
+    valid = bool(user.hashed_password) and await verify_password(password, user.hashed_password)
 
     if not valid:
         await register_failed_attempt(user)
@@ -321,29 +319,28 @@ async def _assign_default_role(user_id: str | None) -> None:
     if not (role or profile) or not user_id:
         return
 
-    async with system_context(require_session()):
-        changes: dict[str, Any] = {}
-        if role and await _db.exists("Role", {"role_name": role}):
-            current = await _db.get_all(
-                "UserRole",
-                filters={"parent_name": user_id, "parent_doctype": "User"},
-                fields=["role_name"],
-                limit=100,
-            )
-            names = {r["role_name"] for r in current}
-            if role not in names:
-                changes["roles"] = [{"role_name": n} for n in names] + [{"role_name": role}]
-        if profile and await _db.exists("RoleProfile", profile):
-            held = await _db.get_all(
-                "UserRoleProfile",
-                filters={"parent_name": user_id, "parent_doctype": "User"},
-                pluck="role_profile",
-                limit=None,
-            )
-            if profile not in held:
-                changes["role_profiles"] = [{"role_profile": p} for p in [*held, profile]]
-        if changes:
-            await documents.save_doc("User", user_id, changes)
+    changes: dict[str, Any] = {}
+    if role and await _db.exists("Role", {"role_name": role}):
+        current = await _db.get_all(
+            "UserRole",
+            filters={"parent_name": user_id, "parent_doctype": "User"},
+            fields=["role_name"],
+            limit=100,
+        )
+        names = {r["role_name"] for r in current}
+        if role not in names:
+            changes["roles"] = [{"role_name": n} for n in names] + [{"role_name": role}]
+    if profile and await _db.exists("RoleProfile", profile):
+        held = await _db.get_all(
+            "UserRoleProfile",
+            filters={"parent_name": user_id, "parent_doctype": "User"},
+            pluck="role_profile",
+            limit=None,
+        )
+        if profile not in held:
+            changes["role_profiles"] = [{"role_profile": p} for p in [*held, profile]]
+    if changes:
+        await documents.save_doc("User", user_id, changes, ignore_permissions=True)
 
 
 async def _apply_signup_approval(user: User) -> bool:
@@ -360,8 +357,7 @@ async def _apply_signup_approval(user: User) -> bool:
         return False
 
     assert user.id is not None
-    async with system_context(require_session()):
-        await _db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
+    await _db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
     user.data["signup_state"] = "pending"
     user.data["is_active"] = False
     log.info("user.pending_approval", email=user.email)

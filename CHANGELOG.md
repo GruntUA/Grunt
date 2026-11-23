@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.18.0 - 2026-11-23
+
+### Features
+
+- **document:** optimistic locking on save - a stale copy gets 409 instead of overwriting
+- **release:** --deps - lock files within ranges, merged once CI is green
+- **print:** standard print follows the form layout, values formatted on the server
+- **release:** automate releases - commit, PR and tag from CI
+- **storage:** DocType.force_private_attachments - files of a DocType always private
+- **notifications:** user notification preferences, digest and auto-follow
+- **naming:** Document Naming Rule, field tokens, naming_series and series counter
+- Implement prepared reports functionality
+
+### Fixes
+
+- **release:** cut a commit subject that swallowed its body; drop unused _db
+- **document:** ignore_permissions wrapper without PEP 695 names inside - CodeQL reads them as unbound
+- **document:** keep the guard on the format fallback retry; Reload resets the form
+- **release:** --deps raises exact pins and 0.x ranges to the newest minor
+- **release:** --deps waits for settled CI and reuses an open PR
+- **storage:** review fixes for force_private_attachments
+- **notifications:** review fixes for notification preferences
+- **richtext:** embed YouTube links that mention youtu.be
+- **reports:** review fixes for prepared reports and the SQL timeout
+
+### Dependencies
+
+- weekly Dependabot PRs for major versions
+
+### Other
+
+- **permissions:** ignore_permissions on documents.*, fewer system_context blocks
+- --deps also raises exact pins and 0.x ranges
+- major versions come from Dependabot
+- **richtext:** destroy editors in youtube spec
+- **naming:** import grunt.naming.service one way (CodeQL py/import-and-import-from)
+
+### Database migrations
+
+- `0029_notification_preference`
+
 ## v0.17.0 - 2026-11-20
 
 ### Features

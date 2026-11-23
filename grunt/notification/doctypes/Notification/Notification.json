@@ -201,6 +201,13 @@
       "in_filter": true
     },
     {
+      "fieldname": "is_mandatory",
+      "label": "Mandatory",
+      "fieldtype": "Check",
+      "default": false,
+      "description": "People can't turn it off - neither in their notification settings nor by the unsubscribe link (approvals, deadlines)."
+    },
+    {
       "fieldname": "col_meta",
       "fieldtype": "Column"
     },

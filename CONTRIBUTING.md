@@ -26,16 +26,31 @@
 
 ## Випуск
 
-1. Коли в `develop` зібраний завершений набір змін — PR `develop → master` зі списком змін і
-   нотатками розгортання.
-2. Після схвалення — злиття (merge-коміт, історія `develop` зберігається).
-3. На `master`: `grunt release <patch|minor|major|X.Y.Z>` — розділ у `CHANGELOG.md` (нові міграції
-   бази перелічуються окремо), коміт `chore(release): vX.Y.Z` і анотований тег. Спершу —
-   `grunt release <bump> --dry-run`.
-4. `git push --follow-tags` — workflow `release.yml` проганяє CI і публікує GitHub release.
-5. `develop` синхронізується з `master` **merge-комітом**, не squash-ем: тоді тег випуску лишається
-   в історії `develop`, і версія між тегами (`grunt version`, перевірка сумісності додатків)
-   рахується від нього, а коміт із `CHANGELOG.md` є й у `develop`.
+1. `grunt release --dry-run` — розділ `CHANGELOG.md` і нотатки розгортання для `origin/develop`.
+   Версію визначають коміти (`auto`): є `feat` або зламаний API (`!`) — **minor**, лише
+   виправлення — **patch**; явно — `grunt release <patch|minor|major|X.Y.Z>`.
+2. `grunt release` — у тимчасовому worktree (власна копія `apps/grunt` не змінюється): коміт
+   `chore(release): vX.Y.Z` з новим розділом `CHANGELOG.md` (нові міграції бази перелічуються
+   окремо), push у `develop` і PR `develop → master` з нотатками розгортання (міграції,
+   `grunt migrate`, перезапуск worker для нових DocType, змінені залежності).
+   З `--deps` спершу оновлюються lock-файли в межах діапазонів `pyproject.toml` /
+   `package.json` (`uv lock --upgrade`, `npm update`), а npm-пакети з точною версією чи діапазоном
+   `^0.x` — до найновішої мінорної в `package.json`; усе це окремим PR у `develop`
+   (`build(deps): …`, у `CHANGELOG.md` — розділ «Dependencies»), який `grunt release` зливає,
+   щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх пропонує
+   Dependabot (див. нижче).
+3. Після схвалення PR зливається merge-комітом. Workflow `release.yml` ставить анотований тег
+   `vX.Y.Z` на коміт випуску і публікує GitHub release з розділу `CHANGELOG.md`.
+
+Коміт випуску вже є в `develop`, тож синхронізувати `develop` з `master` не потрібно: тег лишається
+в історії `develop`, і версія між тегами (`grunt version`, перевірка сумісності додатків) рахується
+від нього. Поки PR випуску не злито й тег не поставлено, наступний `grunt release` відмовить.
+
+Репозиторій без `develop` (додатки): коміт випуску йде в гілку `release/vX.Y.Z`, PR — у `master`.
+
+Мажорні версії залежностей — щопонеділка PR від Dependabot у `develop` (`.github/dependabot.yml`;
+пакети `@tiptap/*` — одним PR). Зелений CI — зливаємо як звичайний PR; червоний — виправляємо в
+тій самій гілці або закриваємо, і Dependabot більше не пропонує цю версію.
 
 ### Версії
 

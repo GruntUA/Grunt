@@ -4,6 +4,8 @@ export interface ReportColumn {
   fieldname: string
   label: string
   fieldtype?: string
+  /** Summed in the "Total" row. */
+  total?: boolean
 }
 
 export type ReportChartType = 'bar' | 'line' | 'area' | 'pie' | 'donut'
@@ -39,10 +41,30 @@ export interface ReportDetail extends ReportSummary {
   sort_by?: string | null
   sort_order?: 'asc' | 'desc' | null
   row_limit?: number | null
+  disabled?: boolean | number | null
+  roles?: string[] | null
+  /** Calculated in the background; the view shows the last saved result. */
+  prepared_report?: boolean | number | null
+  timeout?: number | null
+}
+
+export type PreparedStatus = 'Queued' | 'Started' | 'Completed' | 'Error'
+
+/** State of a prepared report's latest result for the current filters. */
+export interface PreparedState {
+  status: PreparedStatus | null
+  name?: string
+  created_at?: string | null
+  finished_at?: string | null
+  rows?: number | null
+  time_ms?: number | null
+  error?: string | null
 }
 
 export interface ReportResult {
   columns: ReportColumn[]
   data: Record<string, unknown>[]
   meta: { rows: number; time_ms: number }
+  /** Set for a prepared report. */
+  prepared?: PreparedState
 }

@@ -295,10 +295,9 @@ async def get_access_token(doctype: str, name: str) -> str:
 async def disconnect_reference(doctype: str, name: str) -> None:
     """Forget the token of *doctype* / *name* (the provider's grant stays -
     revoke it in the account's security settings)."""
-    async with system_context(require_session()):
-        row = await find_token(doctype, name)
-        if row:
-            await documents.delete_doc("OAuthToken", row["name"])
+    row = await find_token(doctype, name)
+    if row:
+        await documents.delete_doc("OAuthToken", row["name"], ignore_permissions=True)
 
 
 async def _controller_hook(doctype: str, name: str, method: str, *args: Any) -> Any:
@@ -331,7 +330,7 @@ async def authorize(
 ) -> AuthorizeLink:
     """The provider's consent page that connects *doctype* / *name* through *connected_app*."""
     await doc_guard(doctype, name, "write")
-    async with system_context(require_session()):
+    async with system_context():
         try:
             app = await load_app(connected_app)
         except OAuthError as exc:
@@ -386,7 +385,7 @@ async def callback(
         return await _back_to_form(
             doctype, name, "error", error_description or error or _("No code returned")
         )
-    async with system_context(require_session()):
+    async with system_context():
         try:
             app = await load_app(app_name)
             data = await _token_request(
@@ -414,8 +413,7 @@ async def callback(
 async def status(doctype: str, name: str) -> ConnectionStatus:
     """Whether *doctype* / *name* holds a token - for the form, no secrets."""
     await doc_guard(doctype, name, "read")
-    async with system_context(require_session()):
-        row = await find_token(doctype, name)
+    row = await find_token(doctype, name)
     if not row:
         return {
             "connected": False,
@@ -438,7 +436,7 @@ async def status(doctype: str, name: str) -> ConnectionStatus:
 async def disconnect(doctype: str, name: str) -> bool:
     """Forget the token of *doctype* / *name*."""
     await doc_guard(doctype, name, "write")
-    async with system_context(require_session()):
+    async with system_context():
         await disconnect_reference(doctype, name)
         await _controller_hook(doctype, name, "on_oauth_connected", "")
     return True

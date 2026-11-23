@@ -2,13 +2,16 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Bell, BellDot, Check, CheckCheck, BellOff, BellRing, Volume2, VolumeOff } from '@lucide/vue'
+import { Bell, BellDot, Check, CheckCheck, BellOff, BellRing, Settings2, Volume2, VolumeOff } from '@lucide/vue'
 import { formatIntl } from '@/core/datetime'
 import { useWebPush } from '@/core/composables/useWebPush'
 
 const { isSupported: pushSupported, isSubscribed: pushSubscribed, isLoading: pushLoading, permissionState: pushPermission, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = useWebPush()
 
 import { useNotifications } from '@/core/composables/useNotifications'
+import { notificationsApi } from '@/core/api/notifications'
+import { useDialog } from '@/core/composables/useDialog'
+import { toast } from '@/core/composables/useToast'
 import type { GruntNotification } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,6 +45,27 @@ function handleNotificationClick(n: GruntNotification) {
     if (n.ref_doctype && n.doc_id) {
         isOpen.value = false
         router.push(docUrl(n.ref_doctype, n.doc_id, props.workspace))
+    }
+}
+
+const dialog = useDialog()
+
+function openSettings() {
+    isOpen.value = false
+    void dialog.component({
+        title: t('Notification settings'),
+        size: 'large',
+        component: () => import('@/components/desk/dialogs/NotificationPreferences.vue'),
+    })
+}
+
+/** "Don't send these": turn the item's rule off in every channel. */
+async function muteLike(n: GruntNotification) {
+    try {
+        const rule = await notificationsApi.muteLike(n.id)
+        toast.success(t('“{name}” notifications are off. Turn them back on in the notification settings.', { name: t(rule) }))
+    } catch (e: any) {
+        toast.error(e?.response?.data?.error?.message || e?.message || t('Could not save the setting'))
     }
 }
 
@@ -91,6 +115,11 @@ function toggle(event: Event) {
                                 :title="t('Mark all as read')" :aria-label="t('Mark all as read')">
                                 <CheckCheck class="size-4" />
                             </Button>
+                            <Button variant="ghost" size="icon" class="size-7 text-muted-foreground"
+                                :title="t('Notification settings')" :aria-label="t('Notification settings')"
+                                @click="openSettings">
+                                <Settings2 class="size-4" />
+                            </Button>
                         </div>
                     </div>
 
@@ -130,6 +159,12 @@ function toggle(event: Event) {
                                     :title="t('Mark as read')" :aria-label="t('Mark as read')"
                                     @click.stop="markAsRead(n.id)">
                                     <Check />
+                                </Button>
+                                <Button v-if="n.notification" variant="ghost" size="icon-xs"
+                                    class="text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                                    :title="t('Don’t send these')" :aria-label="t('Don’t send these')"
+                                    @click.stop="muteLike(n)">
+                                    <BellOff />
                                 </Button>
                             </div>
                         </div>

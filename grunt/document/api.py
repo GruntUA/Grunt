@@ -7,6 +7,8 @@ One instance, :data:`documents`, with the query and document caches: the
 """
 
 import copy
+import functools
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Any, overload
 
@@ -24,7 +26,12 @@ from grunt.document.validation import refuse_set_once_changes
 from grunt.errors import forbidden, not_found, unprocessable
 from grunt.events import fire
 from grunt.i18n import _
-from grunt.local import require_engine, require_session, require_session_user
+from grunt.local import (
+    ignoring_permissions,
+    require_engine,
+    require_session,
+    require_session_user,
+)
 from grunt.log import log
 from grunt.metadata.compiler import STANDARD_COLUMNS
 from grunt.metadata.registry import doctype_registry
@@ -53,6 +60,23 @@ lazy from grunt.query.query import Query
 lazy from grunt.query.sql import filter_expr
 lazy from grunt.store.base import AGGREGATE, SQL
 lazy from grunt.store.lookup import supports
+
+
+def _may_ignore_permissions[**P, R](method: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
+    """``ignore_permissions=True`` runs the call past the permission checks,
+    as the system, while what it writes keeps the caller's name
+    (:func:`grunt.local.ignoring_permissions`) - Frappe's ``ignore_permissions``.
+    For service code that writes or reads on the user's behalf (an activity
+    log, a session, a token); the bypass stays visible at the call."""
+
+    @functools.wraps(method)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:  # typed by the signature above
+        if kwargs.get("ignore_permissions"):
+            with ignoring_permissions():
+                return await method(*args, **kwargs)
+        return await method(*args, **kwargs)
+
+    return wrapper
 
 
 class DocumentAPI:
@@ -141,6 +165,7 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
+        ignore_permissions: bool = False,
     ) -> dict[str, Any]:
         """By DocType name: the document as a dict."""
 
@@ -151,6 +176,7 @@ class DocumentAPI:
         id_or_name: str | None = None,
         *,
         expand: list[str] | None = None,
+        ignore_permissions: bool = False,
     ) -> D:
         """By controller class: the document as that class."""
 
@@ -158,8 +184,9 @@ class DocumentAPI:
     async def get_doc(self, doctype: dict[str, Any]) -> Document:
         """From a document dict: a new, unsaved :class:`Document`."""
 
+    @_may_ignore_permissions
     @profile("grunt.get_doc")
-    async def get_doc(self, doctype, id_or_name=None, *, expand=None):
+    async def get_doc(self, doctype, id_or_name=None, *, expand=None, ignore_permissions=False):
         """Fetch a single document by id or name.
 
         Pass a doctype name for the untyped dict result, or a ``Document``
@@ -248,12 +275,14 @@ class DocumentAPI:
         doc.data = apply_hidden_fields_to_doc(doc.data, hidden_fields)
         return doc
 
+    @_may_ignore_permissions
     async def new_doc(
         self,
         doctype: str,
         data: dict[str, Any],
         *,
         ignore_required: bool = False,
+        ignore_permissions: bool = False,
     ) -> dict[str, Any]:
         """Create a new document and return it.
 
@@ -277,6 +306,7 @@ class DocumentAPI:
             hidden_fields = frozenset()
         return apply_hidden_fields_to_doc(created, hidden_fields)
 
+    @_may_ignore_permissions
     async def save_doc(
         self,
         doctype: str,
@@ -284,6 +314,7 @@ class DocumentAPI:
         data: dict[str, Any],
         *,
         ignore_required: bool = False,
+        ignore_permissions: bool = False,
     ) -> dict[str, Any]:
         """Update an existing document and return the updated version.
 
@@ -296,8 +327,14 @@ class DocumentAPI:
         _, _, hidden_fields = await read_guard(doctype)
         return apply_hidden_fields_to_doc(updated, hidden_fields)
 
+    @_may_ignore_permissions
     async def delete_doc(
-        self, doctype: str, id_or_name: str, replace_with: str | None = None
+        self,
+        doctype: str,
+        id_or_name: str,
+        replace_with: str | None = None,
+        *,
+        ignore_permissions: bool = False,
     ) -> None:
         """Delete a document.
 
@@ -391,6 +428,7 @@ class DocumentAPI:
         return deleted, errors
 
     @profile("grunt.get_list")
+    @_may_ignore_permissions
     async def get_list(
         self,
         doctype: str,
@@ -404,6 +442,7 @@ class DocumentAPI:
         search: str | None = None,
         cursor: str | None = None,
         include_total: bool = True,
+        ignore_permissions: bool = False,
     ) -> DocumentList:
         """Fetch a guarded, field-masked page of documents (with pagination meta).
 
@@ -565,7 +604,7 @@ class DocumentAPI:
         names: list[str] = []
 
         for rec in records:
-            doc_name = await naming_service.generate(dt.autoname or "", rec, session)
+            doc_name = await naming_service.new_name(dt, rec, session, honor_explicit=False)
             names.append(doc_name)
             row = {k: v for k, v in rec.items() if k in table.c}
             standard = {
@@ -802,12 +841,15 @@ class DocumentAPI:
             value = apply_hidden_fields_to_doc(value, hidden)
         return value
 
+    @_may_ignore_permissions
     async def set_value(
         self,
         doctype: str,
         id_or_name: str,
         fieldname: str | dict[str, Any],
         value: Any = None,
+        *,
+        ignore_permissions: bool = False,
     ) -> None:
         """Update one or more fields directly - lightweight, no lifecycle hooks.
 

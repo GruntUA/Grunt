@@ -17,7 +17,6 @@ from typing import Any
 
 from grunt.cache.bus import fanout
 from grunt.db.api import GruntDB
-from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.site.manager import current_site
 lazy from grunt.document.api import documents
@@ -46,13 +45,12 @@ async def tracked_fields(doctype: str) -> list[str]:
     site = current_site.get()
     hit = _trackers.get(site)
     if hit is None or time.monotonic() - hit[0] > _CACHE_TTL:
-        async with system_context(require_session()):
-            rows = await _db.get_all(
-                TRACKER,
-                filters={"disabled": False},
-                fields=["ref_doctype", "track_field"],
-                limit=10_000,
-            )
+        rows = await _db.get_all(
+            TRACKER,
+            filters={"disabled": False},
+            fields=["ref_doctype", "track_field"],
+            limit=10_000,
+        )
         grouped: dict[str, list[str]] = {}
         for row in rows:
             grouped.setdefault(row["ref_doctype"], []).append(row["track_field"])
@@ -122,6 +120,7 @@ async def record(
             "entered_by": user,
             "approximate": approximate,
         },
+        ignore_permissions=True,
     )
     return True
 
@@ -136,12 +135,11 @@ async def on_document_saved(**kwargs: Any) -> None:
     if not fields:
         return
     user = kwargs.get("user")  # lifecycle events carry the email
-    async with system_context(require_session()):
-        for field in fields:
-            try:
-                await record(doctype, doc, field, user=user)
-            except Exception:
-                log.exception("milestone.record_failed", doctype=doctype, doc=doc.get("name"))
+    for field in fields:
+        try:
+            await record(doctype, doc, field, user=user)
+        except Exception:
+            log.exception("milestone.record_failed", doctype=doctype, doc=doc.get("name"))
 
 
 async def on_document_deleted(**kwargs: Any) -> None:
@@ -151,8 +149,7 @@ async def on_document_deleted(**kwargs: Any) -> None:
     name = doc.get("name") if isinstance(doc, dict) else kwargs.get("doc_id")
     if not doctype or not name or not await tracked_fields(doctype):
         return
-    async with system_context(require_session()):
-        await _db.delete(MILESTONE, {"ref_doctype": doctype, "ref_name": name})
+    await _db.delete(MILESTONE, {"ref_doctype": doctype, "ref_name": name})
 
 
 async def seed(doctype: str, field: str) -> int:

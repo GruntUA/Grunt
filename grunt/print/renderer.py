@@ -6,7 +6,6 @@ Supports:
 - Output formats: HTML, PDF (headless Chromium via Playwright), DOCX (docxtpl), XLSX (openpyxl)
 """
 
-import base64
 import io
 import re
 from datetime import UTC, datetime
@@ -21,14 +20,15 @@ lazy from jinja2.sandbox import SandboxedEnvironment
 
 from grunt.db.api import GruntDB
 from grunt.i18n.jinja import install as install_i18n
+from grunt.i18n.meta import translate_doctype_meta
+from grunt.i18n.service import translation_service
 from grunt.local import _session_ctx
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.print.filters import JINJA_FILTERS
+from grunt.print.layout import PrintField, PrintSection, build_print_layout, image_data_uri
 from grunt.site.manager import site_manager
 lazy from grunt.config import settings
-lazy from grunt.storage import files
-lazy from grunt.storage.references import file_ids_in
 
 # Core templates directory
 _CORE_TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -74,21 +74,24 @@ def render_template(template_name: str, doc: dict[str, Any]) -> str:
 
 def render_standard(
     doctype_label: str,
-    fields: list[Any],
+    layout: list[PrintSection],
     doc: dict[str, Any],
+    title: str | None = None,
 ) -> str:
-    """Render the standard print template for any DocType."""
+    """Render the standard print template: *layout* from :func:`build_print_layout`."""
     env = _get_jinja_env()
     try:
         template = env.get_template("standard.html")
     except TemplateNotFound:
         # Fallback: inline minimal template
-        return _render_fallback(doctype_label, fields, doc)
+        return _render_fallback(doctype_label, layout, doc)
 
     return template.render(
         doctype_label=doctype_label,
-        fields=fields,
+        title=title,
+        layout=layout,
         doc=doc,
+        lang=translation_service.get_lang(),
         now=datetime.now(UTC),
     )
 
@@ -141,25 +144,6 @@ _BODY_OPEN = re.compile(r"<body\b[^>]*>", re.IGNORECASE)
 _BODY_CLOSE = re.compile(r"</body\s*>", re.IGNORECASE)
 
 
-async def _image_data_uri(url: str | None) -> str | None:
-    """An uploaded image (``get_content?file_id=`` URL) as a ``data:`` URI.
-
-    Print HTML must be self-contained - the PDF engine loads no URLs.
-    """
-
-    ids = file_ids_in(url or "")
-    if not ids:
-        return url or None
-    file_id = next(iter(ids))
-    try:
-        content = await files.read(file_id)
-        mime = await GruntDB().get_value("File", file_id, "content_type") or "image/png"
-    except Exception:
-        log.warning("print.letter_head_logo_missing", file_id=file_id)
-        return None
-    return f"data:{mime};base64,{base64.b64encode(content).decode()}"
-
-
 async def load_letter_head(name: str | None = None) -> dict[str, Any] | None:
     """The named letterhead, else the default one; ``None`` if none / disabled."""
     filters: dict[str, Any] = {"name": name} if name else {"is_default": True}
@@ -172,7 +156,7 @@ async def load_letter_head(name: str | None = None) -> dict[str, Any] | None:
     if not rows:
         return None
     row = dict(rows[0])
-    row["logo"] = await _image_data_uri(row.get("logo"))
+    row["logo"] = await image_data_uri(row.get("logo"))
     return row
 
 
@@ -244,6 +228,10 @@ async def render_print_html(
         if loaded is not None:
             letter_head = render_letter_head(loaded, doc)
 
+    doctype_label = translate_doctype_meta({"name": doctype, "label": meta.doc.label})["label"]
+    title_field = meta.get_title_field()
+    title = str(doc.get(title_field) or "") if title_field != "name" else ""
+
     html = None
     template = str(pf.get("template") or "") if pf else ""
     if template:
@@ -251,8 +239,11 @@ async def render_print_html(
             html = render_from_string(
                 template,
                 doc,
-                doctype_label=meta.doc.label,
+                doctype_label=doctype_label,
+                title=title,
                 fields=meta.doc.fields,
+                # Built only for a template that uses it - it formats every value.
+                layout=await build_print_layout(doctype, doc) if "layout" in template else [],
                 letter_head=letter_head,
             )
         except Exception:
@@ -261,7 +252,8 @@ async def render_print_html(
             )
     if html is None:
         template = ""
-        html = render_standard(meta.doc.label, meta.doc.fields, doc)
+        layout = await build_print_layout(doctype, doc)
+        html = render_standard(doctype_label, layout, doc, title=title)
 
     if letter_head and "letter_head" not in template:
         html = apply_letter_head(html, letter_head)
@@ -287,25 +279,19 @@ def render_docx(template_path: str, doc: dict[str, Any]) -> bytes:
     return buf.getvalue()
 
 
-def _render_fallback(doctype_label: str, fields: list[Any], doc: dict[str, Any]) -> str:
+def _render_fallback(doctype_label: str, layout: list[PrintSection], doc: dict[str, Any]) -> str:
     """Minimal HTML fallback when no template file exists.
 
     Built by hand (not through Jinja, which autoescapes) because there's no
-    template to render - every interpolated value is therefore document data
-    or a label and MUST be escaped explicitly, or a field value containing
-    HTML/script becomes a stored XSS in the print/HTML view every viewer of
-    that document opens.
+    template to render - labels and the document name are escaped explicitly
+    here; the values in *layout* are already safe HTML (:mod:`grunt.print.layout`).
     """
     rows = ""
-    for field in fields:
-        if field.is_layout or field.has_trait("table"):
-            continue
-        if field.hidden:
-            continue
-        val = doc.get(field.fieldname, "")
-        if val is None:
-            val = ""
-        rows += f"<tr><th>{escape(field.label)}</th><td>{escape(str(val))}</td></tr>\n"
+    for section in layout:
+        for column in section.columns:
+            for item in column:
+                if isinstance(item, PrintField):
+                    rows += f"<tr><th>{escape(item.label)}</th><td>{item.value}</td></tr>\n"
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8">

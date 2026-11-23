@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { formatValue } from '@/core/formatValue'
 import { useI18n } from 'vue-i18n'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { reportsApi } from '@/core/api/reports'
 import { addUrlFilters, periodRange } from './drilldown'
 import { metaApi } from '@/core/api/meta'
 import { useDocTypeAllows } from '@/core/composables/useDocTypeAllows'
-import type { ActiveFilter, DocField, ReportChartConfig } from '@/types'
-import { Download, RefreshCw, Settings2, FileBarChart2, FileX, ImageDown } from '@lucide/vue'
+import type { ActiveFilter, DocField, PreparedState, ReportChartConfig } from '@/types'
+import { Download, RefreshCw, Settings2, FileBarChart2, FileX, ImageDown, Play, CircleAlert, Clock } from '@lucide/vue'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Spinner } from '@/components/ui/spinner'
+import { useNotifications } from '@/core/composables/useNotifications'
+import { formatDateTime } from '@/core/datetime'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -40,6 +44,35 @@ const meta = ref<any>(null)
 const filters = ref<Record<string, any>>({})
 const filterFields = ref<DocField[]>([])
 let filterFieldsLoaded = false
+
+// Prepared report: the result comes from a background run - its state here.
+const prepared = ref<PreparedState | null>(null)
+const preparing = ref(false)
+const isPrepared = computed(() => !!report.value?.prepared_report)
+const pending = computed(() => prepared.value?.status === 'Queued' || prepared.value?.status === 'Started')
+
+// Each request for the report's state takes a number; a response that is no
+// longer the latest (the filters or the report changed meanwhile) is dropped.
+let generation = 0
+
+async function prepare() {
+    const mine = ++generation
+    preparing.value = true
+    try {
+        const state = await reportsApi.prepare(props.reportName, filters.value)
+        if (mine === generation) prepared.value = state
+    } finally {
+        preparing.value = false
+    }
+}
+
+// The worker pings the user when their run is done (or failed).
+const { onUserEvent, offUserEvent } = useNotifications()
+function onPrepared(d: Record<string, unknown>) {
+    if (d.report === props.reportName) fetchReport()
+}
+onUserEvent('prepared_report', onPrepared)
+onUnmounted(() => offUserEvent('prepared_report', onPrepared))
 
 const chartConfig = computed<ReportChartConfig | null>(() => {
     const c = report.value?.chart_config
@@ -88,6 +121,7 @@ function onFiltersChange(active: ActiveFilter[]) {
 }
 
 async function fetchReport() {
+    const mine = ++generation
     loading.value = true
     try {
         // 1. Fetch metadata
@@ -97,11 +131,13 @@ async function fetchReport() {
 
         // 2. Run report
         const runRes = await reportsApi.run(props.reportName, filters.value)
+        if (mine !== generation) return
         data.value = runRes.data
         columns.value = runRes.columns
         meta.value = runRes.meta
+        prepared.value = runRes.prepared ?? null
     } finally {
-        loading.value = false
+        if (mine === generation) loading.value = false
     }
 }
 
@@ -199,7 +235,8 @@ function openBuilder() {
                     <RefreshCw :class="{ 'animate-spin': loading }" />
                     {{ t('Refresh') }}
                 </Button>
-                <Button variant="outline" size="sm" as="a" :href="reportsApi.exportXlsxUrl(reportName)" download>
+                <Button v-if="!isPrepared || prepared?.status === 'Completed'" variant="outline" size="sm" as="a"
+                    :href="reportsApi.exportXlsxUrl(reportName, filters)" download>
                     <Download class="size-4 mr-2" />
                     XLSX
                 </Button>
@@ -218,6 +255,30 @@ function openBuilder() {
                 @change="onFiltersChange"
             />
         </div>
+
+        <!-- Prepared report: the state of its last background run -->
+        <Alert v-if="isPrepared && prepared" :variant="prepared.status === 'Error' ? 'destructive' : 'default'">
+            <Spinner v-if="pending" />
+            <CircleAlert v-else-if="prepared.status === 'Error'" />
+            <Clock v-else />
+            <AlertTitle>
+                <template v-if="pending">{{ t('The report is being calculated…') }}</template>
+                <template v-else-if="prepared.status === 'Completed'">
+                    {{ t('Calculated {date}', { date: formatDateTime(prepared.finished_at) }) }}
+                </template>
+                <template v-else-if="prepared.status === 'Error'">{{ t('The calculation failed') }}</template>
+                <template v-else>{{ t('Not calculated for these filters yet') }}</template>
+            </AlertTitle>
+            <AlertDescription class="flex flex-wrap items-center justify-between gap-2">
+                <span v-if="prepared.status === 'Error'" class="whitespace-pre-wrap">{{ prepared.error }}</span>
+                <span v-else-if="pending">{{ t('It runs in the background - you can leave the page; the result will appear here.') }}</span>
+                <span v-else>{{ t('A heavy report is calculated in the background and saved.') }}</span>
+                <Button v-if="!pending" size="sm" :disabled="preparing" @click="prepare">
+                    <Play />
+                    {{ prepared.status ? t('Recalculate') : t('Calculate') }}
+                </Button>
+            </AlertDescription>
+        </Alert>
 
         <!-- Chart -->
         <div v-if="chartConfig && viewMode !== 'table'" class="border rounded-lg shadow-sm bg-card p-4">

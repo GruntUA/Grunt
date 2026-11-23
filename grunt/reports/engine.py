@@ -13,7 +13,7 @@ from grunt.auth.current import user_context
 from grunt.db.dialects import dialect_for
 from grunt.db.session import get_engine as _engine_factory
 from grunt.document.query import expand_child_of_filters
-from grunt.errors import not_found
+from grunt.errors import ApplicationError, not_found
 from grunt.i18n import _
 from grunt.io.exporters.sanitize import escape_formula
 from grunt.log import log
@@ -23,55 +23,103 @@ from grunt.permissions.rbac import permission_checker
 from grunt.query.aggregates import DATE_BUCKETS
 from grunt.query.parse import split_key
 from grunt.query.sql import filter_expr, where
+from grunt.reports.access import ACCESS_FIELDS, require_runnable
 from grunt.reports.joins import report_source
 from grunt.reports.list_options import compile_conditions
 from grunt.scripting.safe_globals import build_safe_globals, compile_script
 from grunt.store.base import SQL
 from grunt.store.lookup import supports
 lazy from grunt.document.api import documents
+lazy from grunt.site.settings import get_setting
+
+#: Fields of a ``Report`` the engine runs it by (plus :data:`ACCESS_FIELDS`).
+REPORT_FIELDS = [
+    "name",
+    "report_type",
+    "query",
+    "script",
+    "columns",
+    "conditions",
+    "sort_by",
+    "sort_order",
+    "row_limit",
+    "prepared_report",
+    "timeout",
+    *ACCESS_FIELDS,
+]
+
+#: ``SystemSettings.report_timeout`` when unset, seconds.
+DEFAULT_REPORT_TIMEOUT = 120
 
 
 class ReportEngine:
+    async def load(self, report_name: str, user: str, session: AsyncSession) -> dict[str, Any]:
+        """The ``Report`` *report_name* (:data:`REPORT_FIELDS`) - if *user* may run it."""
+        async with user_context(session, None, user):
+            rows = await documents.get_list(
+                "Report", filters={"report_name": report_name}, fields=REPORT_FIELDS, limit=1
+            )
+            if not rows:
+                raise HTTPException(
+                    status_code=404,
+                    detail=_("Report “%(name)s” not found") % {"name": report_name},
+                )
+            report = rows[0]
+            if report.get("ref_doctype") and not await doctype_registry.get_meta(
+                report["ref_doctype"]
+            ):
+                raise not_found(
+                    _("DocType “%(doctype)s” not found") % {"doctype": report["ref_doctype"]}
+                )
+            await require_runnable(report, user)
+        return report
+
     async def run(
         self,
         report_name: str,
         filters: dict,
         user: str,
         session: AsyncSession,
+        *,
+        background: bool = False,
     ) -> dict[str, Any]:
-        async with user_context(session, None, user):
-            rows = await documents.get_list(
-                "Report",
-                filters={"report_name": report_name},
-                fields=[
-                    "report_name",
-                    "report_type",
-                    "query",
-                    "script",
-                    "columns",
-                    "ref_doctype",
-                    "conditions",
-                    "sort_by",
-                    "sort_order",
-                    "row_limit",
-                ],
-                limit=1,
-            )
-            report = rows[0] if rows else None
-            if not report:
-                raise HTTPException(
-                    status_code=404,
-                    detail=_("Report “%(name)s” not found") % {"name": report_name},
-                )
-            # A report on a DocType takes its data out in bulk: `report` on it.
-            if report.get("ref_doctype"):
-                ref = await doctype_registry.get_meta(report["ref_doctype"])
-                if ref is None:
-                    raise not_found(
-                        _("DocType “%(doctype)s” not found") % {"doctype": report["ref_doctype"]}
-                    )
-                await permission_checker.require(ref, "report", user=user)
+        """Run the report *report_name* as *user*. *background* - not on screen
+        (a prepared report, a scheduled email): no site-wide time limit."""
+        report = await self.load(report_name, user, session)
+        return await self.execute(report, filters, user, session, background=background)
 
+    async def execute(
+        self,
+        report: dict[str, Any],
+        filters: dict,
+        user: str,
+        session: AsyncSession,
+        *,
+        background: bool = False,
+    ) -> dict[str, Any]:
+        """Run *report* (a row :meth:`load` returned) within its time limit."""
+        timeout = report.get("timeout") or None
+        if timeout is None and not background:
+            timeout = await get_setting("report_timeout", DEFAULT_REPORT_TIMEOUT) or None
+        dialect = dialect_for(session.get_bind())
+        try:
+            async with dialect.statement_timeout(session, timeout):
+                return await self._dispatch(report, filters, user, session)
+        except Exception as exc:
+            if timeout and dialect.is_timeout(exc):
+                raise ApplicationError(
+                    _(
+                        "Report “%(name)s” ran longer than %(seconds)s s and was stopped. "
+                        "Narrow the filters or make it a prepared report."
+                    )
+                    % {"name": report.get("report_name"), "seconds": timeout},
+                    code="REPORT_TIMEOUT",
+                ) from exc
+            raise
+
+    async def _dispatch(
+        self, report: dict[str, Any], filters: dict, user: str, session: AsyncSession
+    ) -> dict[str, Any]:
         report_type = report["report_type"]
         if report_type == "Query":
             return await self._run_query_report({"query": report["query"] or ""}, filters, session)
@@ -349,7 +397,10 @@ class ReportEngine:
                 expr = sa_col
                 select_cols.append(sa_col.label(fn))
             order_exprs[fn] = expr
-            result_columns.append({"fieldname": fn, "label": label, "fieldtype": fieldtype})
+            column = {"fieldname": fn, "label": label, "fieldtype": fieldtype}
+            if col_def.get("total") and fn not in group_fields:
+                column["total"] = True  # the "Total" row sums it (screen and XLSX)
+            result_columns.append(column)
 
         if not select_cols:
             return {"columns": [], "data": [], "meta": {"rows": 0, "time_ms": 0}}

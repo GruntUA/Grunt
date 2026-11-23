@@ -299,6 +299,10 @@ class DocType(BaseModel):
     # True -> files uploaded to these documents default to is_public (public
     # website content); otherwise an attachment is private to its document.
     public_attachments: bool = False
+    # True -> a file attached to these documents is always private: an upload
+    # asking for is_public is stored private, and it can't be made public later
+    # (sensitive records: personnel files, citizens' appeals). Excludes public_attachments.
+    force_private_attachments: bool = False
     # True -> documents can carry qualified electronic signatures (КЕП). The
     # framework only declares it; an e-signature app (esign) adds the «Sign»
     # action, stores the signatures and guards signed documents.
@@ -408,6 +412,8 @@ class DocType(BaseModel):
 
     # Naming / display
     autoname: str | None = None  # "CONTR-.YYYY.-.####" or "field:title"
+    # Date/Datetime field whose value gives the YYYY/MM/DD of the name (default: today)
+    naming_date_field: str | None = None
     title_field: str = "name"  # field used as document title
     image_field: str | None = None  # field (Image/Attach) used as document avatar
 
@@ -503,6 +509,15 @@ class DocType(BaseModel):
         if any(f.fieldname == "doctype" for f in self.fields):
             raise ValueError(
                 f"DocType '{self.name}': 'doctype' is reserved, name the field 'ref_doctype'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _attachments_public_or_private(self) -> DocType:
+        """``public_attachments`` and ``force_private_attachments`` contradict each other."""
+        if self.public_attachments and self.force_private_attachments:
+            raise ValueError(
+                f"DocType '{self.name}': attachments can't be both public and always private"
             )
         return self
 

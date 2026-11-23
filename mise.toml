@@ -94,7 +94,8 @@ run = "uv run python -m grunt.cli.main lint --fix"
 description = "grunt lint --fix for this app: ruff + pyright + vue-tsc"
 
 [tasks.typecheck]
-run = "npx -y pyright@1.1.414 grunt && npm run typecheck"
+# pyright: the version pinned in package.json (CI runs the same one).
+run = "npx -y pyright@$(node -p 'require(\"./package.json\").devDependencies.pyright') grunt && npm run typecheck"
 description = "Run type checks for Python and TypeScript"
 
 [tasks.build]

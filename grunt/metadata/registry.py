@@ -55,6 +55,7 @@ _CORE_SYNCED_DOCTYPE_ATTRS = frozenset(
         "track_activity",
         "hide_from_activity_feed",
         "public_attachments",
+        "force_private_attachments",
         "is_signable",
         "standard_records",
         "access_from",

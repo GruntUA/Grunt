@@ -1,4 +1,5 @@
-"""Report RPC methods - grunt.reports.doctypes.Report.report.{run,fields,preview,export_xlsx}
+"""Report RPC methods - grunt.reports.doctypes.Report.report.{run, prepare,
+fields, preview, export_xlsx}
 
 Plain CRUD on the ``Report`` doctype (list/get/create/update/delete) goes
 through the generic ``/api/v1/docs/Report`` REST endpoints - ``Report`` is a
@@ -23,12 +24,13 @@ from fastapi.responses import Response
 from grunt.api.context import whitelist
 from grunt.auth.current import acting_user
 from grunt.document.base import Document
-from grunt.errors import not_found
+from grunt.errors import not_found, throw
 from grunt.i18n import _
 from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.access_log import record_access
 from grunt.permissions.rbac import permission_checker
+from grunt.reports import prepared
 from grunt.reports.engine import report_engine
 from grunt.reports.joins import report_fields
 
@@ -54,13 +56,52 @@ class Report(Document):
     schedule_recipients: str | None
     schedule_filters: dict | None
     last_sent_at: datetime | None
+    disabled: bool | None
+    roles: list[str] | None
+    prepared_report: bool | None
+    timeout: int | None
 
 
 @whitelist()
 async def run(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Execute a report and return results."""
-    result = await report_engine.run(name, filters or {}, user_email(), require_session())
+    """Execute a report and return results.
+
+    A prepared report isn't run here: the result is the latest one calculated
+    for these filters (empty until then), and ``prepared`` tells its state -
+    :func:`prepare` queues a new calculation.
+    """
+    user, session = user_email(), require_session()
+    report = await report_engine.load(name, user, session)
+    if not report.get("prepared_report"):
+        return await report_engine.execute(report, filters or {}, user, session)
+    return await _prepared_result(report, filters or {}, user)
+
+
+async def _prepared_result(report: dict[str, Any], filters: dict[str, Any], user: str) -> dict:
+    current = await prepared.latest(report["name"], user, filters)
+    result = (await prepared.load_result(current) if current else None) or {
+        "columns": [],
+        "data": [],
+        "meta": {"rows": 0, "time_ms": 0},
+    }
+    result["prepared"] = _prepared_state(current)
     return result
+
+
+def _prepared_state(row: dict[str, Any] | None) -> dict[str, Any]:
+    keys = ("name", "status", "created_at", "finished_at", "rows", "time_ms", "error")
+    return {k: row.get(k) for k in keys} if row else {"status": None}
+
+
+@whitelist()
+async def prepare(name: str, filters: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Queue a background calculation of the prepared report *name* for these
+    *filters*; the user gets a ``prepared_report`` realtime event when it is done."""
+    user, session = user_email(), require_session()
+    report = await report_engine.load(name, user, session)
+    if not report.get("prepared_report"):
+        throw(_("Report “%(name)s” is not a prepared report") % {"name": name})
+    return _prepared_state(await prepared.prepare(report, filters or {}, user))
 
 
 @whitelist()
@@ -108,8 +149,16 @@ async def export_xlsx(
     filters: dict[str, Any] | None = None,
     token: str | None = None,  # unused: absorbs ?token= query param consumed by auth, not by us
 ) -> Response:
-    """Run a report and return the result as an xlsx file download."""
-    result = await report_engine.run(name, filters or {}, user_email(), require_session())
+    """Run a report and return the result as an xlsx file download - a prepared
+    report's latest result for these filters."""
+    user, session = user_email(), require_session()
+    report = await report_engine.load(name, user, session)
+    if report.get("prepared_report"):
+        result = await _prepared_result(report, filters or {}, user)
+        if result["prepared"].get("status") != "Completed":
+            throw(_("The report hasn't been calculated for these filters yet"))
+    else:
+        result = await report_engine.execute(report, filters or {}, user, session)
     xlsx_bytes = await report_engine.export_excel(result, name)
     await record_access(
         "Report",

@@ -36,6 +36,10 @@ export interface DocField {
   precision?: number
   /** Not carried over by "Duplicate" / grunt.copy_doc. */
   no_copy?: boolean
+  /** Left out of the standard print. */
+  print_hide?: boolean
+  /** Not printed when zero / unchecked (an empty value never is). */
+  print_hide_if_no_value?: boolean
   /** Read-only once saved with a value (the server refuses a change too). */
   set_only_once?: boolean
   read_only?: boolean
