@@ -8,7 +8,6 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
 from grunt.metadata.registry import doctype_registry
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -74,5 +73,4 @@ class MilestoneTracker(Document):
         milestones.invalidate()
         if self._starts:
             # Existing documents get their current value as an (approximate) start.
-            async with system_context(require_session()):
-                await milestones.seed(self.ref_doctype, self.track_field)
+            await milestones.seed(self.ref_doctype, self.track_field)

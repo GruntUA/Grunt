@@ -93,29 +93,32 @@ async def set_enabled(
     address = normal(email)
     if not address or not channel:
         return
-    async with system_context(require_session()):
-        rows = await _rows(address, notification)
-        exact = [r for r in rows if r.get("channel") == channel]
-        every = [r for r in rows if not r.get("channel")]
-        if not enabled:
-            if not exact and not every:
-                await documents.new_doc(
-                    DOCTYPE, {"email": address, "notification": notification, "channel": channel}
-                )
-                log.info("notification.muted", notification=notification or "*", channel=channel)
-            return
-        for row in exact:
+    rows = await _rows(address, notification)
+    exact = [r for r in rows if r.get("channel") == channel]
+    every = [r for r in rows if not r.get("channel")]
+    if not enabled:
+        if not exact and not every:
+            await documents.new_doc(
+                DOCTYPE,
+                {"email": address, "notification": notification, "channel": channel},
+                ignore_permissions=True,
+            )
+            log.info("notification.muted", notification=notification or "*", channel=channel)
+        return
+    for row in exact:
+        await _db.delete(DOCTYPE, row["name"])
+    if every:
+        for row in every:
             await _db.delete(DOCTYPE, row["name"])
-        if every:
-            for row in every:
-                await _db.delete(DOCTYPE, row["name"])
-            kept = {r.get("channel") for r in rows}
-            for other in channels:
-                if other not in (channel, WEBHOOK) and other not in kept:
-                    await documents.new_doc(
-                        DOCTYPE, {"email": address, "notification": notification, "channel": other}
-                    )
-        log.info("notification.unmuted", notification=notification or "*", channel=channel)
+        kept = {r.get("channel") for r in rows}
+        for other in channels:
+            if other not in (channel, WEBHOOK) and other not in kept:
+                await documents.new_doc(
+                    DOCTYPE,
+                    {"email": address, "notification": notification, "channel": other},
+                    ignore_permissions=True,
+                )
+    log.info("notification.unmuted", notification=notification or "*", channel=channel)
 
 
 async def mute_everywhere(email: str, notification: str) -> None:
@@ -124,12 +127,13 @@ async def mute_everywhere(email: str, notification: str) -> None:
     address = normal(email)
     if not address or not notification:
         return
-    async with system_context(require_session()):
-        for row in await _rows(address, notification):
-            await _db.delete(DOCTYPE, row["name"])
-        await documents.new_doc(
-            DOCTYPE, {"email": address, "notification": notification, "channel": None}
-        )
+    for row in await _rows(address, notification):
+        await _db.delete(DOCTYPE, row["name"])
+    await documents.new_doc(
+        DOCTYPE,
+        {"email": address, "notification": notification, "channel": None},
+        ignore_permissions=True,
+    )
     log.info("notification.muted", notification=notification, channel="*")
 
 
@@ -149,27 +153,26 @@ async def overview(email: str, channels: list[dict[str, Any]]) -> dict[str, Any]
     A rule shows when it is enabled, sends to a person (not only a webhook) and
     is about a DocType the current user can read (or about none - an event
     from code)."""
-    async with system_context(require_session()):
-        rules = await _db.get_all(
-            "Notification",
-            filters={"is_enabled": True},
-            fields=["name", "ref_doctype", "is_mandatory"],
-            order_by="name",
-            order="asc",
-            limit=None,
-        )
-        channel_rows = await _db.get_all(
-            "NotificationChannel",
-            filters={"parent_doctype": "Notification"},
-            fields=["parent_name", "channel"],
-            limit=None,
-        )
-        rows = await _db.get_all(
-            DOCTYPE,
-            filters={"email": normal(email)},
-            fields=["notification", "channel"],
-            limit=None,
-        )
+    rules = await _db.get_all(
+        "Notification",
+        filters={"is_enabled": True},
+        fields=["name", "ref_doctype", "is_mandatory"],
+        order_by="name",
+        order="asc",
+        limit=None,
+    )
+    channel_rows = await _db.get_all(
+        "NotificationChannel",
+        filters={"parent_doctype": "Notification"},
+        fields=["parent_name", "channel"],
+        limit=None,
+    )
+    rows = await _db.get_all(
+        DOCTYPE,
+        filters={"email": normal(email)},
+        fields=["notification", "channel"],
+        limit=None,
+    )
     by_rule: dict[str, list[str]] = {}
     for row in channel_rows:
         if row.get("channel") and row["channel"] != WEBHOOK:

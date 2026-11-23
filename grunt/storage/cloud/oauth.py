@@ -227,7 +227,7 @@ async def callback(
         raise HTTPException(400, _("The sign-in link is invalid or expired")) from exc
     if error or not code:
         return _back_to_form(name, "error", error_description or error or _("No code returned"))
-    async with system_context(require_session()):
+    async with system_context():
         remote = await load_remote(name)
         endpoints = get_provider(remote.get("provider")).oauth
         if endpoints is None:

@@ -65,8 +65,7 @@ async def settle(
         **{k: v for k, v in links.items() if v},
     }
     try:
-        async with system_context(require_session()):
-            return await _db.bulk_update(DOCTYPE, filters, values)
+        return await _db.bulk_update(DOCTYPE, filters, values)
     except Exception:
         log.exception("notification.delivery_settle_failed", filters=filters)
         return 0

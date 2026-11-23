@@ -60,8 +60,7 @@ async def policies_for(doctype: str) -> list[dict[str, Any]]:
     site = current_site.get()
     hit = _policies.get(site)
     if hit is None or time.monotonic() - hit[0] > _CACHE_TTL:
-        async with system_context(require_session()):
-            rows = await _db.get_all(POLICY, filters={"is_enabled": True}, limit=10_000)
+        rows = await _db.get_all(POLICY, filters={"is_enabled": True}, limit=10_000)
         grouped: dict[str, list[dict[str, Any]]] = {}
         for row in rows:
             grouped.setdefault(row["ref_doctype"], []).append(dict(row))
@@ -171,12 +170,11 @@ async def on_document_saved(**kwargs: Any) -> None:
     policies = await policies_for(doctype)
     if not policies:
         return
-    async with system_context(require_session()):
-        for policy in policies:
-            try:
-                await _track(policy, doctype, doc)
-            except Exception:
-                log.exception("sla.track_failed", policy=policy["name"], doc=doc.get("name"))
+    for policy in policies:
+        try:
+            await _track(policy, doctype, doc)
+        except Exception:
+            log.exception("sla.track_failed", policy=policy["name"], doc=doc.get("name"))
 
 
 async def _track(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> None:
@@ -204,6 +202,7 @@ async def _track(policy: dict[str, Any], doctype: str, doc: dict[str, Any]) -> N
                 "due_at": due,
                 "status": _status_for(due, 0, now),
             },
+            ignore_permissions=True,
         )
         await _fill_due_field(policy, doctype, doc, due)
         return
@@ -254,8 +253,7 @@ async def on_document_deleted(**kwargs: Any) -> None:
     name = doc.get("name") if isinstance(doc, dict) else kwargs.get("doc_id")
     if not doctype or not name or not await policies_for(doctype):
         return
-    async with system_context(require_session()):
-        await _db.delete(STATUS, {"ref_doctype": doctype, "ref_name": name})
+    await _db.delete(STATUS, {"ref_doctype": doctype, "ref_name": name})
 
 
 # Scheduler

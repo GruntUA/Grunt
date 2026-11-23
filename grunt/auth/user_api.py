@@ -68,7 +68,7 @@ from grunt.auth.users import (
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _, translation_service
-from grunt.local import require_session, system_context
+from grunt.local import require_session
 from grunt.log import log
 from grunt.permissions.perms import has_perm, user_landing, user_perms
 from grunt.utils.http import public_base_url
@@ -173,8 +173,7 @@ async def change_expired_password_api(
     await enforce_password_policy(new_password)
     if user.hashed_password and await user.check_password(new_password):
         throw(_("Choose a password different from the old one"), "VALIDATION_ERROR")
-    async with system_context(require_session()):
-        await _db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
+    await _db.set_value("User", user.id, "hashed_password", await hash_password(new_password))
     await mark_password_changed(user.id)
     await end_all_sessions(user.id)
     user = await get_user_by_id(user.id)

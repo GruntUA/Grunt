@@ -12,7 +12,6 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -68,31 +67,32 @@ class RoleProfile(Document):
 
 async def profile_users(profile: str) -> list[str]:
     """Names of the users holding *profile*."""
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "UserRoleProfile",
-            filters={"role_profile": profile, "parent_doctype": "User"},
-            pluck="parent_name",
-            limit=None,
-        )
+    rows = await _db.get_all(
+        "UserRoleProfile",
+        filters={"role_profile": profile, "parent_doctype": "User"},
+        pluck="parent_name",
+        limit=None,
+    )
     return sorted(set(rows))
 
 
 async def resync_users(profile: str) -> None:
     """Rebuild the profile's roles for every user holding it."""
     for user in await profile_users(profile):
-        async with system_context(require_session()):
-            held = await _db.get_all(
-                "UserRoleProfile",
-                filters={"parent_name": user, "parent_doctype": "User"},
-                pluck="role_profile",
-                limit=None,
-                order_by="idx",
-                order="asc",
-            )
-            await documents.save_doc(
-                "User", user, {"role_profiles": [{"role_profile": p} for p in held]}
-            )
+        held = await _db.get_all(
+            "UserRoleProfile",
+            filters={"parent_name": user, "parent_doctype": "User"},
+            pluck="role_profile",
+            limit=None,
+            order_by="idx",
+            order="asc",
+        )
+        await documents.save_doc(
+            "User",
+            user,
+            {"role_profiles": [{"role_profile": p} for p in held]},
+            ignore_permissions=True,
+        )
 
 
 async def with_profile_roles(
@@ -108,15 +108,14 @@ async def with_profile_roles(
     out = list(manual)
     if not profiles:
         return out
-    async with system_context(require_session()):
-        rows = await _db.get_all(
-            "RoleProfileRole",
-            filters={"parent_name__in": profiles, "parent_doctype": "RoleProfile"},
-            fields=["parent_name", *_KEY_FIELDS],
-            limit=None,
-            order_by="idx",
-            order="asc",
-        )
+    rows = await _db.get_all(
+        "RoleProfileRole",
+        filters={"parent_name__in": profiles, "parent_doctype": "RoleProfile"},
+        fields=["parent_name", *_KEY_FIELDS],
+        limit=None,
+        order_by="idx",
+        order="asc",
+    )
     for profile in profiles:
         for row in rows:
             if row["parent_name"] != profile or _key(row) in held:

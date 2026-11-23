@@ -35,7 +35,7 @@ from grunt.document.validation import _validate_data, refuse_set_once_changes, v
 from grunt.errors import ApplicationError, not_found, stale_document
 from grunt.events import fire
 from grunt.i18n import _
-from grunt.local import require_session_user
+from grunt.local import require_session_user, stamp_user
 from grunt.log import log
 from grunt.monitoring import perf
 from grunt.naming.service import naming_service
@@ -231,7 +231,7 @@ class DocumentLifecycleMixin:
             if columns is not None
             else {k: v for k, v in data.items() if k[:2] != "__" and k != "doctype"}
         )
-        standard: dict[str, Any] = {"name": doc_name, **audit_fields(user, now)}
+        standard: dict[str, Any] = {"name": doc_name, **audit_fields(stamp_user(user), now)}
         for k, v in standard.items():
             if columns is None or k in columns:
                 row[k] = v
@@ -300,10 +300,15 @@ class DocumentLifecycleMixin:
             await self._run_lifecycle_hooks("validate", "before_insert", "before_save")
             await permission_checker.require_in_scope(dt, "create", self.data, user=user)
             await self._before_store(dt)
-            self.data = await store.insert(self.data, input=data, user=user)
+            self.data = await store.insert(self.data, input=data, user=stamp_user(user))
             log.info("document.created", doctype=self.doctype, id=self.data.get("name"))
             await audit.record(
-                self.session, self.doctype, str(self.data.get("name")), None, self.data, user
+                self.session,
+                self.doctype,
+                str(self.data.get("name")),
+                None,
+                self.data,
+                stamp_user(user),
             )
             await self._run_lifecycle_hooks("after_insert", "after_save")
             await search_index_service.index_document(self.session, self.doctype, dt.doc, self.data)
@@ -385,7 +390,7 @@ class DocumentLifecycleMixin:
         if errors:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=errors)
 
-        update_data = update_values(dt, data, store.columns, user)
+        update_data = update_values(dt, data, store.columns, stamp_user(user))
         real_id = existing["name"]
         merged = {**existing, **update_data}
         # Inject submitted child-table rows into merged so lifecycle hooks see the
@@ -426,10 +431,12 @@ class DocumentLifecycleMixin:
         # The stored row was checked before the change; the new one must stay in scope.
         await permission_checker.require_in_scope(dt, "write", self.data, user=user)
         await self._before_store(dt)
-        result = await store.update(real_id, self.data, before=existing, input=data, user=user)
+        result = await store.update(
+            real_id, self.data, before=existing, input=data, user=stamp_user(user)
+        )
         log.info("document.updated", doctype=self.doctype, id=real_id)
         # Access changes are logged whatever the store keeps of history.
-        await audit.record(self.session, self.doctype, real_id, existing, result, user)
+        await audit.record(self.session, self.doctype, real_id, existing, result, stamp_user(user))
 
         if store.can(HISTORY):
             await record_update_changes(
@@ -440,7 +447,7 @@ class DocumentLifecycleMixin:
                 dt=dt,
                 existing=existing,
                 result=result,
-                user=user,
+                user=stamp_user(user),
             )
         await release_dropped_files(self.doctype, existing, result)
 
@@ -499,7 +506,7 @@ class DocumentLifecycleMixin:
         try:
             await self._run_lifecycle_hooks("before_delete")
             await store.delete(real_id, before=existing)
-            await audit.record(self.session, self.doctype, real_id, stored, None, user)
+            await audit.record(self.session, self.doctype, real_id, stored, None, stamp_user(user))
             await fire_delete_services(
                 session=self.session, doctype_name=self.doctype, real_id=real_id, existing=existing
             )

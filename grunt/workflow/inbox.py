@@ -76,8 +76,7 @@ async def _awaiting_in(doctype: str, email: str) -> list[dict[str, Any]]:
     roles = {r for t in buttons for r in t.allowed_roles}
     if not roles:
         return []
-    async with system_context(require_session()):
-        mine = next((h for h in await role_holders(roles) if h.get("email") == email), None)
+    mine = next((h for h in await role_holders(roles) if h.get("email") == email), None)
     if mine is None:
         return []
     held = set(mine["roles"])

@@ -3,7 +3,6 @@
 from datetime import datetime
 
 from grunt.document.base import Document
-from grunt.local import require_session, system_context
 lazy from grunt.document.api import documents
 
 
@@ -24,5 +23,4 @@ class PreparedReport(Document):
     async def after_delete(self) -> None:
         if self.result_file:
             # The file is the system's, not the viewer's to delete.
-            async with system_context(require_session()):
-                await documents.delete_doc("File", self.result_file)
+            await documents.delete_doc("File", self.result_file, ignore_permissions=True)

@@ -12,6 +12,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
+from grunt.auth.constants import GUEST_USER_EMAIL
 from grunt.errors import ApplicationError
 from grunt.i18n import _
 lazy from grunt.site.manager import site_manager
@@ -186,14 +187,16 @@ def use_system_user(user: Any) -> None:
 
 
 @contextmanager
-def as_system(session: AsyncSession, engine: AsyncEngine | None = None) -> Iterator[None]:
+def as_system(
+    session: AsyncSession | None = None, engine: AsyncEngine | None = None
+) -> Iterator[None]:
     """Run the block as the internal system identity - ``grunt.system_context``
-    for the layers below the facade. Refuses to run without it registered
-    rather than run as nobody."""
+    for the layers below the facade; without a *session* - the one in context.
+    Refuses to run without the identity registered rather than run as nobody."""
     if _system_user is None:
         raise RuntimeError("grunt: the system user is not registered (grunt.auth not loaded)")
     tokens = (
-        _session_ctx.set(session),
+        _session_ctx.set(session if session is not None else require_session()),
         _engine_ctx.set(engine if engine is not None else _engine_ctx.get()),
         _user_ctx.set(_system_user),
     )
@@ -207,12 +210,49 @@ def as_system(session: AsyncSession, engine: AsyncEngine | None = None) -> Itera
 
 @asynccontextmanager
 async def system_context(
-    session: AsyncSession, engine: AsyncEngine | None = None
+    session: AsyncSession | None = None, engine: AsyncEngine | None = None
 ) -> AsyncIterator[None]:
     """``async with`` form of :func:`as_system` - ``grunt.system_context`` for the
-    layers below the facade."""
+    layers below the facade. Without a *session* - the one in context: a block
+    that steps past ``documents.*`` guards inside a request or hook is just
+    ``async with system_context():``. Only ``documents.*`` (and what calls it)
+    checks rights - ``grunt.db`` never does, so it needs no system context."""
     with as_system(session, engine):
         yield
+
+
+# Who a permission-free call (``ignore_permissions=True``) acts for: rights are
+# checked as the system, but what it writes is stamped with this user.
+_actor_ctx: ContextVar[str | None] = ContextVar("grunt_actor", default=None)
+
+
+@contextmanager
+def ignoring_permissions() -> Iterator[None]:
+    """Run the block past the permission checks (as the system) while writes
+    keep the name of the user it runs for - ``owner``, ``modified_by`` and the
+    version author (:func:`stamp_user`). Without a real user in context
+    (login, a public form, a background task) they stay the system's.
+
+    ``documents.new_doc(..., ignore_permissions=True)`` and the like - so the
+    bypass is spelled out at the call that needs it, as in Frappe."""
+    actor = _actor_ctx.get() or session_user()
+    if actor in (None, GUEST_USER_EMAIL) or actor == getattr(_system_user, "email", None):
+        actor = None
+    token = _actor_ctx.set(actor)
+    try:
+        with as_system():
+            yield
+    finally:
+        _actor_ctx.reset(token)
+
+
+def stamp_user(user: str) -> str:
+    """The user a write by *user* is stamped with: under
+    :func:`ignoring_permissions` the system acts for someone - them."""
+    actor = _actor_ctx.get()
+    if actor and user == getattr(_system_user, "email", None):
+        return actor
+    return user
 
 
 def user_email() -> str:

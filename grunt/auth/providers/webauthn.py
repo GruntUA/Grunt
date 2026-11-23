@@ -30,7 +30,6 @@ from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
-from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.document.api import documents
 lazy from grunt.utils.http import public_base_url
@@ -95,23 +94,23 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
 
 
 async def _credentials_for_user(user_id: str) -> list[dict]:
-    async with system_context(require_session()):
-        return await documents.get_list(
-            _CRED,
-            filters={"user": user_id},
-            fields=["name", "credential_id", "public_key", "sign_count", "transports"],
-            limit=100,
-        )
+    return await documents.get_list(
+        _CRED,
+        filters={"user": user_id},
+        fields=["name", "credential_id", "public_key", "sign_count", "transports"],
+        limit=100,
+        ignore_permissions=True,
+    )
 
 
 async def _credential_by_id(credential_id: str) -> dict | None:
-    async with system_context(require_session()):
-        rows = await documents.get_list(
-            _CRED,
-            filters={"credential_id": credential_id},
-            fields=["name", "user", "public_key", "sign_count"],
-            limit=1,
-        )
+    rows = await documents.get_list(
+        _CRED,
+        filters={"credential_id": credential_id},
+        fields=["name", "user", "public_key", "sign_count"],
+        limit=1,
+        ignore_permissions=True,
+    )
     return rows[0] if rows else None
 
 
@@ -213,16 +212,15 @@ class WebAuthnProvider(AuthProvider):
             log.warning("webauthn.verify_failed", error=str(exc))
             throw(_("Passkey verification failed"), "UNAUTHORIZED")
 
-        async with system_context(require_session()):
-            await _db.set_value(
-                _CRED,
-                cred["name"],
-                {
-                    "sign_count": verification.new_sign_count,
-                    "backed_up": bool(verification.credential_backed_up),
-                    "last_used_at": datetime.now(UTC),
-                },
-            )
+        await _db.set_value(
+            _CRED,
+            cred["name"],
+            {
+                "sign_count": verification.new_sign_count,
+                "backed_up": bool(verification.credential_backed_up),
+                "last_used_at": datetime.now(UTC),
+            },
+        )
 
         user = await get_user_by_id(cred["user"])
         if user is None or not user.is_active:
@@ -308,20 +306,20 @@ class WebAuthnProvider(AuthProvider):
             throw(_("This passkey is already registered"), "CONFLICT")
 
         transports = ",".join((response.get("response") or {}).get("transports") or [])
-        async with system_context(require_session()):
-            doc = await documents.new_doc(
-                _CRED,
-                {
-                    "user": user.id,
-                    "label": label,
-                    "credential_id": credential_id,
-                    "public_key": webauthn.helpers.bytes_to_base64url(reg.credential_public_key),
-                    "sign_count": reg.sign_count,
-                    "aaguid": str(reg.aaguid or ""),
-                    "transports": transports,
-                    "backed_up": bool(reg.credential_backed_up),
-                    "last_used_at": datetime.now(UTC),
-                },
-            )
+        doc = await documents.new_doc(
+            _CRED,
+            {
+                "user": user.id,
+                "label": label,
+                "credential_id": credential_id,
+                "public_key": webauthn.helpers.bytes_to_base64url(reg.credential_public_key),
+                "sign_count": reg.sign_count,
+                "aaguid": str(reg.aaguid or ""),
+                "transports": transports,
+                "backed_up": bool(reg.credential_backed_up),
+                "last_used_at": datetime.now(UTC),
+            },
+            ignore_permissions=True,
+        )
         log.info("webauthn.registered", user=user.email, credential=doc["name"])
         return {"name": doc["name"], "label": label}

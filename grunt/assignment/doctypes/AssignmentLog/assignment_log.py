@@ -4,7 +4,6 @@ from typing import Any
 
 from grunt.api.context import whitelist
 from grunt.document.base import Document
-from grunt.local import require_session, system_context
 from grunt.log import log
 lazy from grunt.document.api import documents
 
@@ -52,8 +51,7 @@ class AssignmentLog(Document):
         }
 
         try:
-            async with system_context(require_session()):
-                await documents.bulk_insert("AssignmentLog", [log_doc])
+            await documents.bulk_insert("AssignmentLog", [log_doc])
         except Exception as exc:
             log.exception("assignment.log_error", exc_info=exc)
 
