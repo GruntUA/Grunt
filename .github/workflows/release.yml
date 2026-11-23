@@ -1,20 +1,23 @@
-# `grunt release` makes the annotated tag vX.Y.Z (its message is the changelog
-# section); pushing it runs the full CI and publishes a GitHub release.
+# `grunt release` commits `chore(release): vX.Y.Z` (the new CHANGELOG.md section)
+# and opens the pull request into master. Once it is merged, this workflow tags that
+# commit (annotated, the message is the changelog section) and publishes the GitHub
+# release. CI already ran on the pull request, and test.yml runs again on the push.
 name: Release
 
 on:
   push:
-    tags: ["v*.*.*"]
+    branches: [master]
+  workflow_dispatch:
 
 permissions:
-  contents: read # publish raises it to write for the release
+  contents: read # publish raises it to write for the tag and the release
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  ci:
-    uses: ./.github/workflows/test.yml
-
   publish:
-    needs: ci
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -23,7 +26,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: GitHub release
+      - name: Tag and publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --notes-from-tag --title "$GITHUB_REF_NAME"
+        run: |
+          version=$(sed -n 's/^## v\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/p' CHANGELOG.md | head -n1)
+          if [ -z "$version" ]; then
+            echo "No release section in CHANGELOG.md"
+            exit 0
+          fi
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "$tag is already tagged"
+            exit 0
+          fi
+
+          commit=$(git log --format='%H%x09%s' HEAD |
+            awk -F '\t' -v s="chore(release): $tag" '$2 == s { print $1; exit }')
+          if [ -z "$commit" ]; then
+            echo "::error::CHANGELOG.md has $tag but no 'chore(release): $tag' commit"
+            exit 1
+          fi
+
+          git show "$commit:CHANGELOG.md" | awk '/^## v/ { n++ } n == 1' > "$RUNNER_TEMP/notes.md"
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              tag -a "$tag" -F "$RUNNER_TEMP/notes.md" "$commit"
+          git push origin "refs/tags/$tag"
+          gh release create "$tag" --verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
