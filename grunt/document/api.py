@@ -70,7 +70,7 @@ def _may_ignore_permissions[**P, R](method: Callable[P, Awaitable[R]]) -> Callab
     log, a session, a token); the bypass stays visible at the call."""
 
     @functools.wraps(method)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:  # typed by the signature above
         if kwargs.get("ignore_permissions"):
             with ignoring_permissions():
                 return await method(*args, **kwargs)
