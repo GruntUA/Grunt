@@ -1176,6 +1176,10 @@ msgstr ""
 "бути відносними (today, today-30)."
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Always private attachments"
+msgstr "Вкладення завжди приватні"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
 msgstr "Поле типу Image або Attach для аватара документа"
 
@@ -5749,6 +5753,10 @@ msgstr "Файлів у сховищі"
 msgid "Files in “%(name)s”"
 msgstr "Файли в «%(name)s»"
 
+#: grunt/grunt/storage/doctypes/File/file.py
+msgid "Files of %(doctype)s are always private"
+msgstr "Файли «%(doctype)s» завжди приватні"
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Files sent with the message: [{filename, mimetype, content_b64}]."
 msgstr ""
@@ -8658,6 +8666,18 @@ msgstr "Новий ID"
 #: grunt/grunt/notification/records/notification/followed_document_commented/followed_document_commented.json
 msgid "New comment: “%(title)s”"
 msgstr "Новий коментар: «%(title)s»"
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"New files attached to these documents are always private, even if the upload"
+" asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals). Files already public stay so - make them private "
+"separately"
+msgstr ""
+"Нові файли цих документів завжди приватні, навіть якщо при завантаженні "
+"просили публічний, і зробити їх публічними потім не можна (особові справи, "
+"звернення громадян). Файли, що вже публічні, такими й лишаються — зробіть їх "
+"приватними окремо"
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
 msgid "New folder"

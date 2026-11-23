@@ -1103,6 +1103,10 @@ msgid ""
 msgstr ""
 
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid "Always private attachments"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "An Image or Attach field for the document avatar"
 msgstr ""
 
@@ -5528,6 +5532,10 @@ msgstr ""
 msgid "Files in “%(name)s”"
 msgstr ""
 
+#: grunt/grunt/storage/doctypes/File/file.py
+msgid "Files of %(doctype)s are always private"
+msgstr ""
+
 #: grunt/grunt/email/doctypes/EmailQueue/EmailQueue.json
 msgid "Files sent with the message: [{filename, mimetype, content_b64}]."
 msgstr ""
@@ -8326,6 +8334,14 @@ msgstr ""
 
 #: grunt/grunt/notification/records/notification/followed_document_commented/followed_document_commented.json
 msgid "New comment: “%(title)s”"
+msgstr ""
+
+#: grunt/grunt/metadata/doctypes/DocType/DocType.json
+msgid ""
+"New files attached to these documents are always private, even if the upload"
+" asks for a public one, and can't be made public later (personnel files, "
+"citizens' appeals). Files already public stay so - make them private "
+"separately"
 msgstr ""
 
 #: grunt/frontend/src/components/files/FileExplorer.vue
