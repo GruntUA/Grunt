@@ -86,8 +86,8 @@ async def _attach_roles(user: User) -> None:
     scope and period, so the roles in force are decided on each request even
     from a cached user (:func:`grunt.local.session_role_rows`)."""
     rows = await get_user_role_rows(user.name) if user.name else []
-    user.data["role_rows"] = rows
-    user.data["roles"] = list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
+    user.role_rows = rows
+    user.roles = list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
 
 
 async def get_user_by_email(email: str, *, fields: list[str] | None = None) -> User | None:
@@ -329,7 +329,7 @@ async def _assign_default_role(user_id: str | None) -> None:
             fields=["role_name"],
             limit=100,
         )
-        names = {r["role_name"] for r in current}
+        names = {r.role_name for r in current}
         if role not in names:
             changes["roles"] = [{"role_name": n} for n in names] + [{"role_name": role}]
     if profile and await _db.exists("RoleProfile", profile):
@@ -360,7 +360,7 @@ async def _apply_signup_approval(user: User) -> bool:
 
     assert user.id is not None
     await _db.set_value("User", user.id, {"signup_state": "pending", "is_active": False})
-    user.data["signup_state"] = "pending"
-    user.data["is_active"] = False
+    user.signup_state = "pending"
+    user.is_active = False
     log.info("user.pending_approval", email=user.email)
     return True

@@ -118,9 +118,9 @@ class User(Document):
     def role_names(self) -> list[str]:
         """Role names, whether ``roles`` holds the loaded names (an authenticated
         user) or the UserRole child rows (a document being saved)."""
-        rows = self.data.get("role_rows")
+        rows = self.role_rows
         if rows is None:
-            rows = self.data.get("roles") or []
+            rows = self.roles or []
         return list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
 
     def has_role(self, *roles: str) -> bool:
@@ -135,7 +135,7 @@ class User(Document):
         if not self.last_name:
             raise ValueError(_("Last name is required"))
         if "roles" in self.data:
-            _validate_role_rows(self.data.get("roles") or [])
+            _validate_role_rows(self.roles or [])
         await self._enforce_self_edit_scope()
 
     async def _enforce_self_edit_scope(self) -> None:
@@ -170,12 +170,12 @@ class User(Document):
                 fields=[*ROLE_ROW_FIELDS, "role_profile"],
                 limit=500,
             )
-            submitted = [r for r in (self.data.get("roles") or []) if isinstance(r, dict)]
+            submitted = [r for r in (self.roles or []) if isinstance(r, dict)]
             if _assignments(submitted) != _assignments(stored):
                 throw(_("Not permitted to change roles"), "FORBIDDEN")
-        if "role_profiles" in self.data and set(
-            _profile_names(self.data.get("role_profiles"))
-        ) != set(await self._stored_profiles()):
+        if "role_profiles" in self.data and set(_profile_names(self.role_profiles)) != set(
+            await self._stored_profiles()
+        ):
             throw(_("Not permitted to change roles"), "FORBIDDEN")
 
         # Framework-managed fields the form only echoes back - quietly restore
@@ -190,7 +190,7 @@ class User(Document):
             if field not in self.data:
                 continue
             if field == "password":
-                if self.data.get("password"):
+                if self.password:
                     throw(
                         _("Not permitted to set the password; use the Change password action"),
                         "FORBIDDEN",
@@ -216,11 +216,11 @@ class User(Document):
         if "roles" not in self.data and "role_profiles" not in self.data:
             return
         if "role_profiles" in self.data:
-            profiles = _profile_names(self.data.get("role_profiles"))
+            profiles = _profile_names(self.role_profiles)
         else:
             profiles = await self._stored_profiles()
         if "roles" in self.data:
-            roles = list(self.data.get("roles") or [])
+            roles = list(self.roles or [])
         elif self.name:
             roles = await _db.get_all(
                 "UserRole",
@@ -234,7 +234,7 @@ class User(Document):
             roles = []
         rebuilt = await with_profile_roles(roles, profiles)
         if "roles" in self.data or rebuilt != roles:
-            self.data["roles"] = rebuilt
+            self.roles = rebuilt
 
     async def _stored_profiles(self) -> list[str]:
         if not self.name:
@@ -255,7 +255,7 @@ class User(Document):
         anyone else's avatar (they cannot read another user's User row). Only
         the avatar file is published; other User attachments stay private.
         """
-        avatar = self.data.get("avatar")
+        avatar = self.avatar
         if not isinstance(avatar, str) or "get_content?file_id=" not in avatar:
             return
 
@@ -281,7 +281,7 @@ class User(Document):
 
     async def before_insert(self) -> None:
         # If a plain-text password was passed through the generic API, hash it.
-        raw = self.data.get("password")
+        raw = self.password
         if raw:
             if not await _is_internal_context():
                 # Interactive create (admin form / import) - hold it to policy.
@@ -289,7 +289,7 @@ class User(Document):
 
                 await enforce_password_policy(str(raw))
             self.hashed_password = await hash_password(str(raw))
-            self.data["password_changed_at"] = datetime.now(UTC)
+            self.password_changed_at = datetime.now(UTC)
             self.data.pop("password", None)
 
     async def check_password(self, plain: str) -> bool:

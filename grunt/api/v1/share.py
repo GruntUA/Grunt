@@ -31,7 +31,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
     share = shares[0]
 
     # Check expiry
-    expires_at = share.get("expires_at")
+    expires_at = share.expires_at
     if expires_at:
         if isinstance(expires_at, str):
             try:
@@ -43,8 +43,8 @@ async def get_shared_document(token: str) -> dict[str, Any]:
             if exp < datetime.now(UTC):
                 throw(_("The link has expired"), "GONE")
 
-    doctype_name = share["doctype_name"]
-    doc_id = share["doc_id"]
+    doctype_name = share.doctype_name
+    doc_id = share.doc_id
 
     # Fetch without permission guards - this is a guest-accessible share link
     dt = await doctype_registry.get_meta(doctype_name)
@@ -81,7 +81,7 @@ async def get_shared_document(token: str) -> dict[str, Any]:
             "doctype": doctype_name,
             "doctype_label": dt.label,
             "doc_id": doc_id,
-            "expires_at": share.get("expires_at"),
+            "expires_at": share.expires_at,
             "doc": doc_out,
             "fields": visible_fields,
         }
@@ -133,4 +133,4 @@ async def create_share(
         },
     )
 
-    return {"name": doc["name"], "token": doc["token"]}
+    return {"name": doc.name, "token": doc.token}

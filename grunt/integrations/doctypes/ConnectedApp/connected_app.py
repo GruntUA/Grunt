@@ -34,12 +34,12 @@ class ConnectedApp(Document):
                 if not value.startswith("https://"):
                     throw(_("The provider addresses must start with https://"))
                 self.data[field] = value
-        if self.provider == "Microsoft" and not (self.get("tenant") or "").strip():
-            self.data["tenant"] = "common"
+        if self.provider == "Microsoft" and not (self.tenant or "").strip():
+            self.tenant = "common"
 
     async def before_save(self) -> None:
-        secret = self.get("client_secret")
+        secret = self.client_secret
         if secret in (MASK, None, "") and self.name:
-            self.data["client_secret"] = await self.grunt.db.get_value(
+            self.client_secret = await self.grunt.db.get_value(
                 "ConnectedApp", self.name, "client_secret"
             )

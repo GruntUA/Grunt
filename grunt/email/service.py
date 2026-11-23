@@ -422,7 +422,7 @@ class EmailService:
                 fields=["name"],
                 limit=1,
             )
-            return str(accounts[0]["name"]) if accounts else None
+            return str(accounts[0].name) if accounts else None
 
     @staticmethod
     async def queue_email(

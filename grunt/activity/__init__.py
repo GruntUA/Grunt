@@ -336,6 +336,6 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
             limit=100000,
         )
         out["views"] = len(rows)
-        out["viewers"] = len({r["viewed_by"] for r in rows})
+        out["viewers"] = len({r.viewed_by for r in rows})
 
     return out

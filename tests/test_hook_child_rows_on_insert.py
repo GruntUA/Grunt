@@ -52,4 +52,4 @@ async def test_rows_set_by_validate_are_stored(ctx, report_doctype):
     await doc.insert()
 
     stored = await grunt.get_doc("HcReport", "a")
-    assert [r["check"] for r in stored["checks"]] == ["integrity", "signature"]
+    assert [r["check"] for r in stored.checks] == ["integrity", "signature"]

@@ -67,7 +67,7 @@ async def current_user(
             )
 
         _user_ctx.set(user)
-        apply_user_language(request, user.data.get("language"))
+        apply_user_language(request, user.language)
         return user
 
     # 2. JWT Bearer / query param
@@ -106,7 +106,7 @@ async def current_user(
         }
 
     _user_ctx.set(user)
-    apply_user_language(request, user.data.get("language"))
+    apply_user_language(request, user.language)
     return user
 
 

@@ -53,14 +53,14 @@ async def reactions_for(comment_ids: list[str]) -> dict[str, list[dict[str, Any]
     order = {e: i for i, e in enumerate(await reaction_choices())}
     grouped: dict[str, dict[str, dict[str, Any]]] = {}
     for r in rows:
-        chip = grouped.setdefault(str(r["comment"]), {}).setdefault(
-            r["emoji"], {"emoji": r["emoji"], "count": 0, "mine": False, "users": []}
+        chip = grouped.setdefault(str(r.comment), {}).setdefault(
+            r.emoji, {"emoji": r.emoji, "count": 0, "mine": False, "users": []}
         )
         chip["count"] += 1
-        chip["mine"] = chip["mine"] or r["user"] == me
-        chip["users"].append(r["user"])
+        chip["mine"] = chip["mine"] or r.user == me
+        chip["users"].append(r.user)
     if rows:
-        emails = list({r["user"] for r in rows})
+        emails = list({r.user for r in rows})
         users = await get_users_by_emails(emails, fields=["email", "full_name"])
         names = {u.email: getattr(u, "full_name", None) for u in users}
         for chips in grouped.values():

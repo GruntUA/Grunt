@@ -60,7 +60,7 @@ def _as_time(value: Any) -> time | None:
 async def within_login_hours(user: User) -> bool:
     """Whether now (site time) is inside the user's ``login_after`` -
     ``login_before``; an open end is no limit."""
-    start, end = _as_time(user.data.get("login_after")), _as_time(user.data.get("login_before"))
+    start, end = _as_time(user.login_after), _as_time(user.login_before)
     if start is None and end is None:
         return True
     now = (await _site_now()).time().replace(tzinfo=None)
@@ -79,7 +79,7 @@ def login_hours(user: User) -> tuple[str, str]:
 
 def user_ip_allowed(user: User, client_ip: str | None) -> bool:
     """``User.allowed_ips`` - none set is no limit; the role's limit is separate."""
-    allowed = parse_ip_list(user.data.get("allowed_ips"))
+    allowed = parse_ip_list(user.allowed_ips)
     return not allowed or ip_allowed(client_ip, allowed)
 
 
@@ -88,9 +88,9 @@ async def password_expired(user: User) -> bool:
     without ``password_changed_at`` gets it set now (the clock starts) and
     isn't expired; a user without a password (SSO, email link) never is."""
     max_age = int(await get_setting("password_max_age_days", 0) or 0)
-    if max_age <= 0 or not user.data.get("hashed_password"):
+    if max_age <= 0 or not user.hashed_password:
         return False
-    changed = user.data.get("password_changed_at")
+    changed = user.password_changed_at
     if not changed:
         await mark_password_changed(str(user.id))
         return False
@@ -128,7 +128,7 @@ async def enforce_session_limit(user_id: str, keep_sid: str) -> int:
         order="desc",
         limit=None,
     )
-    others = [r["name"] for r in rows if r["name"] != keep_sid]
+    others = [r.name for r in rows if r.name != keep_sid]
     ended = others[max(0, limit - 1) :]
     for sid in ended:
         await _db.set_value("UserSession", sid, "is_active", False)
@@ -140,7 +140,7 @@ def credential_version(user: User) -> str:
     last set. Every password change stamps a new one (:func:`mark_password_changed`),
     so a challenge issued before any later change - by the user, an admin or a
     reset - no longer works, and one already used can't be used again."""
-    return str(user.data.get("password_changed_at") or "")
+    return str(user.password_changed_at or "")
 
 
 async def lock_user(user_id: str) -> None:

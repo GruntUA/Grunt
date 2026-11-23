@@ -160,7 +160,7 @@ class EmailLoginProvider(AuthProvider):
             },
             ignore_permissions=True,
         )
-        return doc["name"]
+        return doc.name
 
     async def _load_active(self, tid: str) -> dict | None:
         """The row for *tid* if it exists, is unconsumed and unexpired."""

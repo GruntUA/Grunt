@@ -53,7 +53,7 @@ async def tracked_fields(doctype: str) -> list[str]:
         )
         grouped: dict[str, list[str]] = {}
         for row in rows:
-            grouped.setdefault(row["ref_doctype"], []).append(row["track_field"])
+            grouped.setdefault(row.ref_doctype, []).append(row.track_field)
         hit = _trackers[site] = (time.monotonic(), grouped)
     return hit[1].get(doctype, [])
 
@@ -161,9 +161,9 @@ async def seed(doctype: str, field: str) -> int:
     created = 0
     rows = await _db.get_all(doctype, fields=["name", field, "modified_at"], limit=MAX_SEED)
     for row in rows:
-        if await _open_row(doctype, str(row["name"]), field) is not None:
+        if await _open_row(doctype, str(row.name), field) is not None:
             continue
-        at = row.get("modified_at") or datetime.now(UTC)
+        at = row.modified_at or datetime.now(UTC)
         if isinstance(at, str):
             at = datetime.fromisoformat(at)
         if at.tzinfo is None:

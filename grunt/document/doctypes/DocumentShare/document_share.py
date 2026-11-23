@@ -26,8 +26,8 @@ class DocumentShare(Document):
         read themselves. Raises 403/404 via the same guard get_doc() uses
         everywhere else - and the ``share`` permission (with ``write``) on it.
         """
-        target_doctype = self.data.get("doctype_name")
-        target_id = self.data.get("doc_id")
+        target_doctype = self.doctype_name
+        target_id = self.doc_id
         if target_doctype and target_id:
             doc = await documents.get_doc(target_doctype, target_id)
             dt = await doctype_registry.get_meta(target_doctype)
@@ -35,5 +35,5 @@ class DocumentShare(Document):
                 raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": target_doctype})
             await permission_checker.require_share(dt, doc)
 
-        if not self.data.get("token"):
-            self.data["token"] = secrets.token_urlsafe(32)
+        if not self.token:
+            self.token = secrets.token_urlsafe(32)

@@ -79,7 +79,7 @@ async def account_for(doctype: str, name: str) -> str | None:
         limit=1,
     )
     if last:
-        return str(last[0]["email_account"])
+        return str(last[0].email_account)
     own = await _db.get_all(
         "EmailAccount",
         filters={"append_to": doctype, "enable_outgoing": True},
@@ -87,7 +87,7 @@ async def account_for(doctype: str, name: str) -> str | None:
         limit=1,
     )
     if own:
-        return str(own[0]["name"])
+        return str(own[0].name)
     return await EmailService.resolve_outgoing_account_id(require_session())
 
 

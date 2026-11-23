@@ -145,8 +145,8 @@ async def test_delete_and_permissions(ctx, cases, db_session, engine):
 
     async with grunt.context(db_session, engine, make_user(clerk, roles=["Clerk"])):
         visible = await grunt.get_list("Milestone", filters={"ref_doctype": "MsCase"}, limit=50)
-        assert {r["ref_name"] for r in visible} == {own["name"]}
-        sidebar = await meta_api.get_sidebar(doctype="MsCase", doc_id=own["name"])
+        assert {r["ref_name"] for r in visible} == {own.name}
+        sidebar = await meta_api.get_sidebar(doctype="MsCase", doc_id=own.name)
         assert [m["value"] for m in sidebar["milestones"]] == ["New"]
 
     await ctx.delete_doc("MsCase", other["name"])

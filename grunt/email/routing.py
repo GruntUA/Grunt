@@ -53,7 +53,7 @@ async def thread_document(email_data: dict[str, Any]) -> tuple[str, str] | None:
         limit=len(ids),
     )
     for row in rows:
-        doctype, name = str(row["ref_doctype"]), str(row["ref_name"])
+        doctype, name = str(row.ref_doctype), str(row.ref_name)
         if await doctype_registry.get_meta(doctype) and await _db.exists(doctype, name):
             return doctype, name
     return None
@@ -83,7 +83,7 @@ async def create_document(
     except Exception:  # noqa: BLE001 - a required field we can't fill: keep the letter
         log.exception("email.append_to_failed", doctype=doctype)
         return None
-    return str(doc.get("name"))
+    return str(doc.name)
 
 
 async def _store_attachments(

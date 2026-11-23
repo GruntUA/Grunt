@@ -38,7 +38,7 @@ class RoleProfile(Document):
     async def validate(self) -> None:
         seen: set[tuple[str, ...]] = set()
         rows: list[dict[str, Any]] = []
-        for row in self.get("roles") or []:
+        for row in self.roles or []:
             if not isinstance(row, dict) or not row.get("role_name"):
                 continue
             if bool(row.get("scope_doctype")) != bool(row.get("scope_value")):
@@ -119,14 +119,14 @@ async def with_profile_roles(
     )
     for profile in profiles:
         for row in rows:
-            if row["parent_name"] != profile or _key(row) in held:
+            if row.parent_name != profile or _key(row) in held:
                 continue
             held.add(_key(row))
             out.append(
                 {
-                    "role_name": row["role_name"],
-                    "scope_doctype": row.get("scope_doctype") or None,
-                    "scope_value": row.get("scope_value") or None,
+                    "role_name": row.role_name,
+                    "scope_doctype": row.scope_doctype or None,
+                    "scope_value": row.scope_value or None,
                     "role_profile": profile,
                 }
             )

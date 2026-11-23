@@ -136,7 +136,7 @@ async def authenticate_api_key(
     # Find matching key (there should only be one per prefix, but check all)
     matched_row = None
     for row in rows:
-        stored_hash = row.get("key_hash") or ""
+        stored_hash = row.key_hash or ""
         if await verify_key_async(full_key, stored_hash):
             matched_row = row
             break
@@ -146,7 +146,7 @@ async def authenticate_api_key(
         return None
 
     # Check expiry
-    expires_at = matched_row.get("expires_at")
+    expires_at = matched_row.expires_at
     if expires_at:
         exp = (
             expires_at
@@ -161,14 +161,14 @@ async def authenticate_api_key(
 
     # Check IP allowlist. Fail closed: a key restricted to certain IPs must not
     # authenticate a request whose source IP could not be determined.
-    allowed = parse_ip_list(matched_row.get("allowed_ips"))
+    allowed = parse_ip_list(matched_row.allowed_ips)
     if allowed and not ip_allowed(client_ip, allowed):
         log.warning("api_key.ip_rejected", prefix=key_prefix, ip=client_ip)
         return None
 
     # Load user
     async with user_context(session):
-        user = await get_user_by_id(matched_row["user_id"])
+        user = await get_user_by_id(matched_row.user_id)
     if user is None or not user.is_active:
         return None
 
@@ -197,9 +197,9 @@ async def _limit_to_key(user: User, key: dict, session: AsyncSession) -> None:
         return
     user.data = dict(user.data)
     if roles:
-        rows = [r for r in user.data.get("role_rows") or [] if r.get("role_name") in roles]
-        user.data["role_rows"] = rows
-        user.data["roles"] = [r for r in user.data.get("roles") or [] if r in roles]
+        rows = [r for r in user.role_rows or [] if r.get("role_name") in roles]
+        user.role_rows = rows
+        user.roles = [r for r in user.roles or [] if r in roles]
     if read_only:
         user.data[READ_ONLY_KEY] = True
 

@@ -57,9 +57,9 @@ async def list_saved_filters(doctype: str) -> list[dict[str, Any]]:
     visible = [
         row
         for row in rows
-        if row.get("owner") == user
-        or row.get("shared_with") == "Everyone"
-        or (row.get("shared_with") == "Roles" and roles.intersection(row.get("roles") or []))
+        if row.owner == user
+        or row.shared_with == "Everyone"
+        or (row.shared_with == "Roles" and roles.intersection(row.roles or []))
     ]
     return [_shape(row, user) for row in visible]
 
@@ -106,7 +106,7 @@ async def save_saved_filter(
         row = await documents.save_doc(_DOCTYPE, name, values)
     else:
         row = await documents.new_doc(_DOCTYPE, values)
-    return _shape({**row, "owner": row.get("owner") or user}, user)
+    return _shape({**row, "owner": row.owner or user}, user)
 
 
 @whitelist()

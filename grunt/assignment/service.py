@@ -222,7 +222,7 @@ class AssignmentService:
         )
         counts: dict[str, int] = {}
         for row in rows:
-            counts[row["assigned_to"]] = counts.get(row["assigned_to"], 0) + 1
+            counts[row.assigned_to] = counts.get(row.assigned_to, 0) + 1
         return counts
 
     async def _settle_open(
@@ -251,14 +251,12 @@ class AssignmentService:
         if status is None:
             return True
         for todo in open_todos:
-            await documents.save_doc(
-                "ToDo", todo["name"], {"status": status}, ignore_permissions=True
-            )
+            await documents.save_doc("ToDo", todo.name, {"status": status}, ignore_permissions=True)
             await AssignmentLog.record(
                 rule_id=rule["name"],
                 doctype_affected=doctype,
                 document_id=doc_id,
-                assigned_to=todo["assigned_to"],
+                assigned_to=todo.assigned_to,
                 assignment_method="Closed" if status == "Closed" else "Unassigned",
                 status="Success",
             )
@@ -289,9 +287,9 @@ class AssignmentService:
             return []
         by_rule: dict[str, list[dict[str, Any]]] = {}
         for u in users:
-            by_rule.setdefault(u["parent_name"], []).append(u)
+            by_rule.setdefault(u.parent_name, []).append(u)
         rules = [
-            {**row, "filters": _json(row.get("filters"), {}), "users": by_rule.get(row["name"], [])}
+            {**row, "filters": _json(row.filters, {}), "users": by_rule.get(row.name, [])}
             for row in rows
         ]
         rules.sort(key=lambda r: (-(r.get("priority") or 0), r["name"]))
