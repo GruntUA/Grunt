@@ -1,6 +1,7 @@
 """Versions from git tags, required_grunt, `grunt release` and `grunt test --changed`."""
 
 import importlib
+import json
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -24,6 +25,7 @@ from grunt.testkit import write_app_manifest
 
 # `grunt.cli.release` is shadowed by the click command of the same name.
 rel = importlib.import_module("grunt.cli.release")
+deps = importlib.import_module("grunt.cli.release_deps")
 
 
 def git(repo: Path, *args: str) -> None:
@@ -166,6 +168,9 @@ def test_changelog_groups_conventional_commits():
     assert "### Other\n\n- tidy imports" in section
     assert "v1.0.0" not in section
 
+    deps = changelog_section(Version("1.1.1"), ["build(deps): update packages", "fix: x"])
+    assert "### Dependencies\n\n- update packages" in deps
+
 
 def test_changelog_lists_new_migrations(repo: Path):
     git(repo, "tag", "-a", "v1.0.0", "-m", "v1.0.0")
@@ -219,7 +224,8 @@ def released(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
     git(app, "config", "user.email", "t@t")
     (app / "local.txt").write_text("uncommitted work stays")
     monkeypatch.setattr(rel, "_apps_dir", lambda: apps)
-    monkeypatch.setattr(rel.shutil, "which", lambda name: None)  # no gh
+    monkeypatch.setattr(rel.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(rel, "open_release_pr", lambda repo, head, plan: f"PR {head}")
     return app, origin
 
 
@@ -233,6 +239,7 @@ def test_release_pushes_the_release_commit_to_develop(released):
 
     result = CliRunner().invoke(rel.release, ["--yes"])
     assert result.exit_code == 0, result.output
+    assert "PR develop" in result.output
     log = subprocess.run(
         ["git", "-C", str(origin), "log", "-1", "--format=%s", "develop"],
         capture_output=True,
@@ -320,3 +327,54 @@ def test_changed_tests_selection(tmp_path: Path):
 
     assert select(tmp_path, [tmp_path / "conftest.py"]).full == "conftest.py"
     assert select(tmp_path, [tmp_path / "pyproject.toml"]).full is None
+
+
+def test_locked_versions_and_changes(tmp_path: Path):
+    (tmp_path / "uv.lock").write_text(
+        'version = 1\n\n[[package]]\nname = "httpx"\nversion = "0.28.1"\n\n'
+        '[[package]]\nname = "grunt"\nsource = { editable = "." }\n'
+    )
+    (tmp_path / "package-lock.json").write_text(
+        json.dumps(
+            {
+                "packages": {
+                    "": {"name": "grunt"},
+                    "node_modules/vue": {"version": "3.5.0"},
+                    "node_modules/@tiptap/core": {"version": "3.1.0"},
+                    "node_modules/a/node_modules/vue": {"version": "2.7.0"},
+                }
+            }
+        )
+    )
+    before = deps.locked_versions(tmp_path)
+    assert before == {
+        "httpx (python)": "0.28.1",
+        "vue (npm)": "3.5.0",
+        "@tiptap/core (npm)": "3.1.0",
+    }
+    after = {**before, "vue (npm)": "3.5.2", "new (npm)": "1.0.0"}
+    del after["httpx (python)"]
+    assert deps.version_changes(before, after) == [
+        "httpx (python) 0.28.1 -> (removed)",
+        "new (npm) (new) -> 1.0.0",
+        "vue (npm) 3.5.0 -> 3.5.2",
+    ]
+
+
+def test_wait_for_ci(monkeypatch, tmp_path: Path):
+    answers = iter(
+        [
+            [],  # runs not created yet
+            [{"name": "CI", "status": "in_progress", "conclusion": ""}],
+            [
+                {"name": "CI", "status": "completed", "conclusion": "failure"},
+                {"name": "CodeQL", "status": "completed", "conclusion": "success"},
+            ],
+        ]
+    )
+
+    def fake_run(cmd, **kwargs):
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(next(answers)), "")
+
+    monkeypatch.setattr(deps.subprocess, "run", fake_run)
+    assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (False, ["CI"])
