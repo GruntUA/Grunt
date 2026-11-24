@@ -16,7 +16,7 @@ class ErrorLog(Document):
     context: str | None
     app: str | None
     method: str | None
-    # "user" field: read it as self.data["user"] - self.user is taken by the controller.
+    user: str | None
     http_status: int | None
     request_method: str | None
     request_path: str | None

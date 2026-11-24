@@ -6,7 +6,7 @@ from grunt.document.base import Document
 class NotificationLog(Document):
     """DocType controller for NotificationLog."""
 
-    # "user" field: read it as self.data["user"] - self.user is the session user.
+    user: str
     subject: str | None
     message: str | None
     ref_doctype: str | None

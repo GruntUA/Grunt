@@ -16,6 +16,7 @@ from typing import Any
 
 from grunt.document.base import Document
 from grunt.i18n import _
+from grunt.local import session_user
 from grunt.notification.events import trigger
 
 _DONE_STATES = ("Closed", "Cancelled")
@@ -101,7 +102,7 @@ class ToDo(Document):
     # helpers
 
     def _actor_email(self) -> str:
-        return self.user or ""
+        return session_user() or ""
 
     def _target(self) -> str:
         ref_dt = (self.reference_doctype or "").strip()

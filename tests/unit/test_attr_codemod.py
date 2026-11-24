@@ -104,5 +104,5 @@ def test_accepts_by_receiver_type():
     assert accepts(_cand("get", "note"), "Self@Order", classes, attrs)
     assert not accepts(_cand("get", "total"), "Order", classes, attrs)  # class attribute
     assert not accepts(_cand("get", "recalc"), "Order", classes, attrs)  # method
-    assert not accepts(_cand("get", "user"), "Order", classes, attrs)  # Document.user
+    assert accepts(_cand("get", "user"), "Order", classes, attrs)  # a field like any other
     assert accepts(_cand("get", "name"), "Order", classes, attrs)  # same value, read only

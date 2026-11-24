@@ -4,6 +4,7 @@ from grunt.activity.reactions import reaction_choices
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
+from grunt.local import session_user
 from grunt.permissions.rbac import permission_checker
 
 
@@ -13,8 +14,8 @@ class CommentReaction(Document):
 
     async def validate(self) -> None:
         # ``user`` is a field here, but ``self.user`` is the acting user.
-        if self.user:
-            self.data["user"] = self.user
+        if session_user():
+            self.data["user"] = session_user()
         if not self.data.get("user"):
             throw(_("Specify a user"))
 
@@ -30,7 +31,7 @@ class CommentReaction(Document):
         doc = await self.grunt.db.get_doc(ref.reference_doctype, ref.reference_id)
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
-        if self.user and not await permission_checker.check(dt, "read", doc):
+        if session_user() and not await permission_checker.check(dt, "read", doc):
             throw(_("No access to the document"), "PERMISSION_DENIED")
 
     async def before_insert(self) -> None:

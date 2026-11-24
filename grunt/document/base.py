@@ -26,7 +26,7 @@ from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import _user_ctx, bind, require_engine, require_session, session_user, unbind
+from grunt.local import _user_ctx, bind, require_engine, require_session, unbind
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import write_guard
@@ -35,9 +35,7 @@ from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
-_RESERVED = frozenset(
-    {"doctype", "data", "user", "session", "engine", "input_data", "doc_before_save"}
-)
+_RESERVED = frozenset({"doctype", "data", "session", "engine", "input_data", "doc_before_save"})
 
 # Read-only on the controller. Set them through self.data if you really must.
 SYS_FIELDS: frozenset[str] = frozenset(
@@ -232,12 +230,6 @@ class Document(
                 state["_hidden"] = hidden
             docs.append(doc)
         return docs
-
-    @property
-    def user(self) -> str | None:
-        """Email of the user the context runs as. A document acts as the session
-        user (as in Frappe) - it carries no user of its own."""
-        return session_user()
 
     # Attribute routing
 

@@ -111,8 +111,9 @@ def test_sync_adds_missing_datetime_import(tmp_path):
 
 
 def test_fields_hidden_by_controller_attributes_are_not_annotated(tmp_path):
-    """``doc.user`` is the session user and ``doc.delete`` a method: annotating
-    such fields would tell the type checker the opposite of what happens."""
+    """``doc.delete`` is a method: annotating such a field would tell the type
+    checker the opposite of what happens. ``user`` is a plain field (the session
+    user is ``grunt.session_user()``, not an attribute of the document)."""
     py = tmp_path / "widget.py"
     py.write_text(_CONTROLLER)
     fields = [
@@ -124,7 +125,6 @@ def test_fields_hidden_by_controller_attributes_are_not_annotated(tmp_path):
     sync_controller_types(py, "Widget", fields)
     src = py.read_text()
     assert "    title: str | None = None\n" in src
-    assert "    user:" not in src
+    assert "    user: str | None = None" in src
     assert "    delete:" not in src
-    assert 'read it as self.data["user"]' in src
     assert 'read it as self.data["delete"]' in src

@@ -61,7 +61,7 @@ ROTATION_GRACE_SECONDS = 30
 class UserSession(Document):
     """DocType controller for UserSession."""
 
-    # "user" field: read it as self.data["user"] - self.user is the session user.
+    user: str
     refresh_token_hash: str | None
     previous_token_hash: str | None
     rotated_at: datetime | None
