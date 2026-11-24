@@ -261,47 +261,55 @@ class Document(
 
     # System fields (read-only)
 
+    def _system(self, fieldname: str, default: Any = None) -> Any:
+        data = self.data
+        if fieldname in data:
+            return data[fieldname]
+        if self._partial:  # not read - as for any other field (__getattr__)
+            raise AttributeError(fieldname)
+        return default
+
     @property
     def id(self) -> str | None:
         """Same as ``name``."""
-        return self.data.get("name")
+        return self._system("name")
 
     @property
     def name(self) -> str | None:
-        return self.data.get("name")
+        return self._system("name")
 
     @property
     def owner(self) -> str | None:
-        return self.data.get("owner")
+        return self._system("owner")
 
     @property
     def idx(self) -> int:
         """Row position in the parent's child table."""
-        return self.data.get("idx", 0)
+        return self._system("idx", 0)
 
     @property
     def created_at(self) -> Any:
-        return self.data.get("created_at")
+        return self._system("created_at")
 
     @property
     def modified_at(self) -> Any:
-        return self.data.get("modified_at")
+        return self._system("modified_at")
 
     @property
     def modified_by(self) -> str | None:
-        return self.data.get("modified_by")
+        return self._system("modified_by")
 
     @property
     def parent(self) -> str | None:
-        return self.data.get("parent")
+        return self._system("parent")
 
     @property
     def parentfield(self) -> str | None:
-        return self.data.get("parentfield")
+        return self._system("parentfield")
 
     @property
     def parenttype(self) -> str | None:
-        return self.data.get("parenttype")
+        return self._system("parenttype")
 
     @property
     def grunt(self) -> Any:
@@ -380,9 +388,9 @@ class Document(
 
     async def save(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full update pipeline on this document and return the saved row."""
+        self._require_whole("save")
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
-        self._require_whole("save")
         original = self.data
         result = await self._update(self.id, dict(original), ignore_required=ignore_required)
         self._keep(original, result)

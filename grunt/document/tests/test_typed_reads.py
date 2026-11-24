@@ -87,6 +87,17 @@ def test_rows_of_a_list_are_partial():
         _ = row.status
 
 
+def test_system_fields_of_a_partial_row():
+    row = TrTask._from_rows([{"name": "A", "title": "x"}], partial=True)[0]
+    assert row.name == "A" and row.id == "A"
+    with pytest.raises(AttributeError, match="TrTask.owner was not read"):
+        _ = row.owner
+    with pytest.raises(AttributeError):
+        _ = row.idx
+    whole = TrTask(title="x")
+    assert whole.owner is None and whole.idx == 0
+
+
 def test_a_whole_document_reads_a_missing_field_as_none():
     doc = TrTask(title="x")
     assert doc.status is None
