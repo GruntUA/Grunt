@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.20.0 - 2026-11-24
+
+### Breaking changes
+
+- **cli:** drop ui update, release --deps and app deps --upgrade
+
+### Dependencies
+
+- tool versions for a repository without mise.toml (#263)
+- pin actions, fail on a failed uv lock, keep bounds satisfiable
+
+### Other
+
+- weekly dependency update workflow
+
 ## v0.19.0 - 2026-11-23
 
 ### Features
