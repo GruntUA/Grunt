@@ -4,7 +4,8 @@ What runs here next to the newest release of it: the framework and every app
 (git: a newer release tag, or new commits on the branch), Python, Node.js,
 rclone, uv and mise, and the Python / npm packages. ``grunt update`` installs
 all of it; packages beyond the committed lock files arrive with the next
-framework release (in development ``grunt upgrade`` updates the lock files).
+framework release (the weekly pull request of .github/workflows/deps.yml
+updates the lock files).
 
 Answers come from the network (git remotes, endoflife.date, PyPI, npm), so
 every one is cached for a few hours per process, and a source that can't be
@@ -540,7 +541,7 @@ async def package_rows(cat: str) -> list[Row]:
             )
         )
     hint = (
-        _("Run `grunt upgrade` - it updates the lock files; then commit them.")
+        _("The weekly dependency pull request (.github/workflows/deps.yml) brings them.")
         if settings.debug
         else _("Newer versions arrive with the next framework release.")
     )

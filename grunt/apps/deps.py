@@ -82,20 +82,16 @@ def install_command(targets: list[Path], upgrade: list[str] | None = None) -> li
     return [sys.executable, "-m", "pip", "install", *editable, *(flags if upgrade else [])]
 
 
-def install_app_packages(
-    apps_dir: Path, names: list[str] | None = None, upgrade: bool = False
-) -> list[str]:
+def install_app_packages(apps_dir: Path, names: list[str] | None = None) -> list[str]:
     """Install the apps (editable) with their dependencies into this environment.
 
-    Idempotent and quick when nothing changed. *upgrade* also moves the
-    packages only apps depend on to their newest versions (the framework's
-    own stay at uv.lock). Returns the installed app names.
+    Idempotent and quick when nothing changed; a dependency whose installed
+    version is below the app's raised lower bound is upgraded. Returns the
+    installed app names.
     """
     targets = app_packages(apps_dir, names)
     if targets:
-        lock = apps_dir / "grunt" / "uv.lock"
-        extra = app_only_requirements(targets, lock) if upgrade else None
-        subprocess.run(install_command(targets, extra), check=True)
+        subprocess.run(install_command(targets), check=True)
     return [d.name for d in targets]
 
 
@@ -127,8 +123,8 @@ _PLAN = re.compile(r"^ ([-+]) ([A-Za-z0-9_.-]+)==(\S+)$", re.M)
 
 
 def app_updates(apps_dir: Path) -> list[str]:
-    """``name old → new`` for what ``install_app_packages(upgrade=True)``
-    would move (a dry run of the same install)."""
+    """``name old → new`` for the packages only apps depend on that have a
+    newer version (a dry run of the install with them upgraded)."""
     targets = app_packages(apps_dir)
     names = app_only_requirements(targets, apps_dir / "grunt" / "uv.lock")
     cmd = install_command(targets, names)

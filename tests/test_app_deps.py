@@ -29,21 +29,6 @@ def test_install_runs_one_editable_install(tmp_path, monkeypatch):
     assert "--upgrade-package" not in cmd
 
 
-def test_upgrade_moves_only_app_only_packages(tmp_path, monkeypatch):
-    apps = _bench(tmp_path)
-    (apps / "grunt").mkdir(exist_ok=True)
-    (apps / "grunt" / "uv.lock").write_text('[[package]]\nname = "httpx2"\nversion = "1"\n')
-    (apps / "hrm" / "pyproject.toml").write_text(
-        '[project]\nname = "hrm"\ndependencies = ["httpx2", "ijson>=3.3"]\n'
-    )
-    calls = []
-    monkeypatch.setattr(deps, "uv_binary", lambda: "/bin/uv")
-    monkeypatch.setattr(deps.subprocess, "run", lambda cmd, check: calls.append(cmd))
-    deps.install_app_packages(apps, upgrade=True)
-    [cmd] = calls
-    assert cmd[cmd.index("--upgrade-package") : cmd.index("-e")] == ["--upgrade-package", "ijson"]
-
-
 def test_nothing_to_install(tmp_path, monkeypatch):
     (tmp_path / "letter").mkdir()
 

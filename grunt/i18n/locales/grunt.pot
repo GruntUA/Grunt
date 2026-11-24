@@ -11220,7 +11220,7 @@ msgid "Run `grunt update`."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
-msgid "Run `grunt upgrade` - it updates the lock files; then commit them."
+msgid "The weekly dependency pull request (.github/workflows/deps.yml) brings them."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py

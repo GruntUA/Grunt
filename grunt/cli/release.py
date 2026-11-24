@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 from collections.abc import Iterator
-from contextlib import ExitStack, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -16,7 +16,6 @@ import click
 from packaging.version import InvalidVersion, Version
 
 lazy from grunt.apps.manifest import is_app
-lazy from grunt.cli.release_deps import DEPS_TITLE, deps_pr_body, update_locks, wait_for_ci
 lazy from grunt.site.manager import site_manager
 lazy from grunt.version import app_version, compatibility_error, framework_version
 
@@ -316,7 +315,7 @@ def _gh(repo: Path, *args: str, stdin: str | None = None) -> str:
 
 def open_pr(repo: Path, base: str, head: str, title: str, body: str) -> str:
     """The pull request ``head`` -> ``base``: opened, or updated if one is open
-    (a release or a dependency update run again)."""
+    (the release run again)."""
     found = json.loads(_gh(repo, "pr", "list", "--base", base, "--head", head, "--json", "url"))
     if found:
         url = found[0]["url"]
@@ -359,14 +358,9 @@ def version() -> None:
 @click.command("release")
 @click.argument("bump", default="auto")
 @click.option("--app", "app_name", default="grunt", show_default=True, help="App to release")
-@click.option(
-    "--deps",
-    is_flag=True,
-    help="First update the lock files within the declared ranges (own PR, merged once CI is green)",
-)
 @click.option("--dry-run", is_flag=True, help="Only show the changelog section and deploy notes")
 @click.option("--yes", "-y", is_flag=True, help="Do not ask for confirmation")
-def release(bump: str, app_name: str, deps: bool, dry_run: bool, yes: bool) -> None:
+def release(bump: str, app_name: str, dry_run: bool, yes: bool) -> None:
     """Prepare a release: CHANGELOG.md section, commit and pull request into master.
 
     BUMP is auto (default: minor for features and breaking changes before 1.0,
@@ -375,58 +369,28 @@ def release(bump: str, app_name: str, deps: bool, dry_run: bool, yes: bool) -> N
     \b
     Works on origin/develop (origin/master if there is no develop) in a
     throwaway worktree - the app's own checkout is not touched:
-      0. with --deps: `uv lock --upgrade` and `npm update` (lock files only),
-         a pull request into develop, merged once its CI is green;
       1. commit `chore(release): vX.Y.Z` with the new CHANGELOG.md section;
       2. push it to develop (or to a release/vX.Y.Z branch);
       3. open the pull request into master with the deploy notes.
     Merging the pull request tags the commit and publishes the GitHub release
-    (.github/workflows/release.yml).
+    (.github/workflows/release.yml). Dependencies are not touched: the weekly
+    pull request of .github/workflows/deps.yml updates them.
     """
     repo = _apps_dir() / app_name
     if not (repo / ".git").exists():
         raise click.ClickException(f"{repo} is not a git repository")
-    if (deps or not dry_run) and not shutil.which("gh"):
+    if not dry_run and not shutil.which("gh"):
         raise click.ClickException("gh is not installed (https://cli.github.com)")
 
     _step(repo, "fetch", "--quiet", "--tags", "origin")
     base = _base_branch(repo)
     ref = f"origin/{base}"
-    ensure_released(repo, ref)
-
-    with ExitStack() as stack:
-        changes: list[str] = []
-        deps_tree: Path | None = None
-        if deps:
-            click.echo("Updating the lock files within the declared ranges...")
-            deps_tree = stack.enter_context(_worktree(repo, ref))
-            changes = update_locks(deps_tree, repo)
-            if changes:
-                click.echo(f"Dependencies ({len(changes)}), a pull request into {base} first:")
-                for line in changes[:15]:
-                    click.echo(f"  {line}")
-                if len(changes) > 15:
-                    click.echo(f"  ... and {len(changes) - 15} more (all in the pull request)")
-            else:
-                click.echo("Dependencies: already the newest the ranges allow")
-            click.echo()
-
-        plan = _show_plan(repo, ref, bump, allow_empty=bool(changes))
-        if dry_run:
-            return
-        what = "update the dependencies, then commit" if changes else "Commit"
-        if not yes:
-            click.confirm(
-                f"\n{what.capitalize()} the release and open the pull request?", abort=True
-            )
-
-        if changes and deps_tree:
-            ref = _merge_dependencies(repo, deps_tree, base, changes)
-            plan = plan_release(repo, ref, bump)
-            click.echo(f"\nRelease v{plan.version} now includes the dependencies")
-
-    if plan is None:  # only reachable without dependency changes - already refused
+    plan = _show_plan(repo, ref, bump)
+    if dry_run:
         return
+    if not yes:
+        click.confirm(f"\nCommit v{plan.version} and open the pull request?", abort=True)
+
     head = base if base != RELEASE_BRANCH else f"release/v{plan.version}"
     with _worktree(repo, ref) as tree:
         prepend_changelog(tree / CHANGELOG, plan.section)
@@ -437,17 +401,10 @@ def release(bump: str, app_name: str, deps: bool, dry_run: bool, yes: bool) -> N
     click.secho(f"Pull request: {open_release_pr(repo, head, plan)}", fg="green")
 
 
-def _show_plan(repo: Path, ref: str, bump: str, *, allow_empty: bool) -> ReleasePlan | None:
-    """Print what the release will contain. ``allow_empty`` - nothing but the
-    dependency update is new: the section is known once it is merged."""
+def _show_plan(repo: Path, ref: str, bump: str) -> ReleasePlan:
+    """Print what the release will contain."""
     click.echo(f"Release of {ref} ({_git(repo, 'rev-parse', '--short', ref)})\n")
-    try:
-        plan = plan_release(repo, ref, bump)
-    except click.ClickException as exc:
-        if allow_empty and exc.message.startswith("no commits since"):
-            click.echo("Only the dependency update is new since the last release.")
-            return None
-        raise
+    plan = plan_release(repo, ref, bump)
     click.echo(plan.section)
     if plan.notes:
         click.echo("Deploy:")
@@ -456,25 +413,3 @@ def _show_plan(repo: Path, ref: str, bump: str, *, allow_empty: bool) -> Release
     for warning in plan.warnings:
         click.secho(f"! {warning}", fg="yellow")
     return plan
-
-
-def _merge_dependencies(repo: Path, tree: Path, base: str, changes: list[str]) -> str:
-    """Push the lock files as their own pull request into ``base``, wait for its CI
-    and squash-merge it. The ref to release from."""
-    branch = f"deps/{date.today():%Y-%m-%d}"
-    _step(tree, "add", "-A")
-    _step(tree, "commit", "--quiet", "-m", DEPS_TITLE)
-    _step(tree, "push", "--quiet", "--force", "origin", f"HEAD:refs/heads/{branch}")
-    sha = _git(tree, "rev-parse", "HEAD")
-    url = open_pr(repo, base, branch, DEPS_TITLE, deps_pr_body(changes))
-    click.echo(f"Dependencies: {url} - waiting for CI...")
-    passed, failed = wait_for_ci(repo, sha)
-    if not passed:
-        raise click.ClickException(
-            f"CI failed on the dependency update ({', '.join(failed)}): {url}\n"
-            "Fix it there, or release without --deps."
-        )
-    _gh(repo, "pr", "merge", url, "--squash", "--delete-branch")
-    click.secho("Dependencies merged", fg="green")
-    _step(repo, "fetch", "--quiet", "--tags", "origin")
-    return f"origin/{base}"

@@ -1,7 +1,6 @@
 """Versions from git tags, required_grunt, `grunt release` and `grunt test --changed`."""
 
 import importlib
-import json
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -25,7 +24,6 @@ from grunt.testkit import write_app_manifest
 
 # `grunt.cli.release` is shadowed by the click command of the same name.
 rel = importlib.import_module("grunt.cli.release")
-deps = importlib.import_module("grunt.cli.release_deps")
 
 
 def git(repo: Path, *args: str) -> None:
@@ -359,84 +357,3 @@ def test_changed_tests_selection(tmp_path: Path):
 
     assert select(tmp_path, [tmp_path / "conftest.py"]).full == "conftest.py"
     assert select(tmp_path, [tmp_path / "pyproject.toml"]).full is None
-
-
-def test_locked_versions_and_changes(tmp_path: Path):
-    (tmp_path / "uv.lock").write_text(
-        'version = 1\n\n[[package]]\nname = "httpx"\nversion = "0.28.1"\n\n'
-        '[[package]]\nname = "grunt"\nsource = { editable = "." }\n'
-    )
-    (tmp_path / "package-lock.json").write_text(
-        json.dumps(
-            {
-                "packages": {
-                    "": {"name": "grunt"},
-                    "node_modules/vue": {"version": "3.5.0"},
-                    "node_modules/@tiptap/core": {"version": "3.1.0"},
-                    "node_modules/a/node_modules/vue": {"version": "2.7.0"},
-                }
-            }
-        )
-    )
-    before = deps.locked_versions(tmp_path)
-    assert before == {
-        "httpx (python)": "0.28.1",
-        "vue (npm)": "3.5.0",
-        "@tiptap/core (npm)": "3.1.0",
-    }
-    after = {**before, "vue (npm)": "3.5.2", "new (npm)": "1.0.0"}
-    del after["httpx (python)"]
-    assert deps.version_changes(before, after) == [
-        "httpx (python) 0.28.1 -> (removed)",
-        "new (npm) (new) -> 1.0.0",
-        "vue (npm) 3.5.0 -> 3.5.2",
-    ]
-
-
-def test_wait_for_ci(monkeypatch, tmp_path: Path):
-    answers = iter(
-        [
-            [],  # runs not created yet
-            [{"name": "CI", "status": "in_progress", "conclusion": ""}],
-            [
-                {"name": "CI", "status": "completed", "conclusion": "failure"},
-                {"name": "CodeQL", "status": "completed", "conclusion": "success"},
-            ],
-        ]
-    )
-
-    def fake_run(cmd, **kwargs):
-        return subprocess.CompletedProcess(cmd, 0, json.dumps(next(answers)), "")
-
-    monkeypatch.setattr(deps.subprocess, "run", fake_run)
-    assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (False, ["CI"])
-
-
-def test_wait_for_ci_passes_only_once_the_runs_settle(monkeypatch, tmp_path: Path):
-    title = {"name": "PR title", "status": "completed", "conclusion": "success"}
-    ci = {"name": "CI", "status": "completed", "conclusion": "success"}
-    answers = iter(
-        [
-            [title],  # CI's run is not created yet
-            [title, {**ci, "status": "queued", "conclusion": ""}],
-            [title, ci],
-            [title, ci],
-        ]
-    )
-    polls = []
-
-    def fake_run(cmd, **kwargs):
-        polls.append(cmd)
-        return subprocess.CompletedProcess(cmd, 0, json.dumps(next(answers)), "")
-
-    monkeypatch.setattr(deps.subprocess, "run", fake_run)
-    assert deps.wait_for_ci(tmp_path, "abc", sleep=lambda s: None) == (True, [])
-    assert len(polls) == 4
-
-
-def test_held_back_packages():
-    manifest = {
-        "dependencies": {"vue": "^3.5.0", "cn": "^0.5.2", "old": "~2.3.0"},
-        "devDependencies": {"pyright": "1.1.414", "vitest": ">=4"},
-    }
-    assert deps.held_back(manifest) == ["cn", "old", "pyright"]
