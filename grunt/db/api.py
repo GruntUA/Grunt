@@ -422,10 +422,12 @@ class GruntDB:
         return row[0] if row else None
 
     @overload
-    async def get_doc[D: DocumentClass](self, doctype: type[D], name: str) -> D | None: ...
+    async def get_doc[D: DocumentClass](self, doctype: type[D], name: str) -> D | None:
+        """By controller class: the row as that class."""
 
     @overload
-    async def get_doc(self, doctype: str, name: str) -> AttrDict | None: ...
+    async def get_doc(self, doctype: str, name: str) -> AttrDict | None:
+        """By DocType name: the row as an :class:`AttrDict`."""
 
     async def get_doc(self, doctype: str | type[DocumentClass], name: str) -> Any:
         """Return a single document's row by name, or ``None`` if not found -

@@ -199,7 +199,7 @@ def test_json_of_a_document():
 
 def test_jinja_sees_unread_fields_as_undefined():
     row = TrTask._from_rows([{"name": "A", "title": "x"}], partial=True)[0]
-    tpl = jinja2.Environment().from_string(
+    tpl = jinja2.Environment(autoescape=True).from_string(
         "{{ r.title }}|{{ r.status is defined }}|{{ r.status | default('-') }}"
     )
     assert tpl.render(r=row) == "x|False|-"

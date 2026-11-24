@@ -93,4 +93,6 @@ class DocumentClass(Protocol):
         doctype: str | None = None,
         partial: bool = False,
         hidden: frozenset[str] = frozenset(),
-    ) -> list[Self]: ...
+    ) -> list[Self]:
+        """The rows as documents of the class (``Document._from_rows``)."""
+        raise NotImplementedError
