@@ -1,0 +1,213 @@
+# Weekly: every dependency to its newest version (majors too) and the shadcn-vue
+# components from their registry - one pull request into develop (`base`).
+#   npm:    npm-check-updates raises package.json (--peer: a major that a peer range
+#           does not allow yet waits), npm install
+#           and npm update bring package-lock.json along;
+#   python: uv lock --upgrade, then every `>=` lower bound in pyproject.toml is
+#           raised to the locked version (no uv.lock: to the newest on PyPI);
+#   ui:     `shadcn-vue add <every component in ui/> --overwrite`.
+#   node:   the newest stable major in mise.toml and package.json engines (test.yml
+#           reads mise.toml: GITHUB_TOKEN may not push workflow files). Python's
+#           minor version is a decision, not a weekly update.
+# The tools are the ones mise.toml names. Locally `grunt update` installs what is
+# committed.
+#
+# Opened with GITHUB_TOKEN, the pull request starts no workflows (GitHub's rule
+# against loops): close and reopen it - CI, CodeQL and the title check then run.
+#
+# An app repository runs the same steps with
+#   jobs:
+#     deps:
+#       uses: GruntUA/Grunt/.github/workflows/deps.yml@develop
+#       permissions: { contents: write, pull-requests: write }
+#       with: { base: master } # a repository without develop
+name: Dependencies
+
+on:
+  schedule:
+    - cron: "0 4 * * 1" # Monday
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      base:
+        description: The branch to update and open the pull request into
+        type: string
+        default: develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deps-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.base || 'develop' }}
+
+      - name: Node.js
+        if: hashFiles('mise.toml') != ''
+        # The newest stable release's major (not the vX.0.0-alpha ones) into mise.toml
+        # and package.json engines; test.yml reads mise.toml.
+        run: |
+          python3 - <<'EOF'
+          import json, os, re, urllib.request
+          from pathlib import Path
+
+          with urllib.request.urlopen("https://nodejs.org/dist/index.json", timeout=30) as r:
+              versions = [v["version"] for v in json.load(r)]
+          major = next(m[1] for v in versions if (m := re.fullmatch(r"v(\d+)\.\d+\.\d+", v)))
+          mise = Path("mise.toml")
+          line = re.compile(r'^node\s*=\s*"(\d+)"', re.MULTILINE)
+          found = line.search(mise.read_text())
+          if found and found[1] != major:
+              mise.write_text(line.sub(f'node = "{major}"', mise.read_text(), count=1))
+              pkg = Path("package.json")
+              if pkg.is_file():
+                  text = pkg.read_text()
+                  text = re.sub(r'("engines":\s*\{[^}]*"node":\s*")[^"]*"', rf'\g<1>>={major}.0.0"', text)
+                  pkg.write_text(text)
+              with open(Path(os.environ["RUNNER_TEMP"]) / "body.md", "a") as body:
+                  body.write(f"### Node.js\n{found[1]} -> {major}\n")
+          EOF
+
+      - uses: jdx/mise-action@v3
+        with:
+          install_args: node uv
+
+      - name: npm packages
+        if: hashFiles('package-lock.json') != ''
+        run: |
+          npx -y npm-check-updates --upgrade --peer --jsonUpgraded > "$RUNNER_TEMP/npm.json"
+          # The old lock entries of the raised packages hold them back (ERESOLVE: the
+          # @tiptap/* extensions have exact peers on @tiptap/core and move only all
+          # together) - drop them, a scoped package with its whole scope.
+          node - "$RUNNER_TEMP/npm.json" <<'EOF'
+          const fs = require("fs")
+          const raised = Object.keys(JSON.parse(fs.readFileSync(process.argv[2], "utf8")))
+          const groups = raised.map(n => (n.startsWith("@") ? n.split("/")[0] + "/" : n))
+          const lock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"))
+          for (const key of Object.keys(lock.packages)) {
+            const name = key.includes("node_modules/") ? key.split("node_modules/").pop() : ""
+            if (groups.some(g => name === g || (g.endsWith("/") && name.startsWith(g))))
+              delete lock.packages[key]
+          }
+          fs.writeFileSync("package-lock.json", JSON.stringify(lock, null, 2) + "\n")
+          EOF
+          npm install --no-audit --no-fund --ignore-scripts
+          npm update --no-audit --no-fund --ignore-scripts
+          # What --peer held back: a newer version some peer range does not allow yet.
+          npx -y npm-check-updates --jsonUpgraded > "$RUNNER_TEMP/npm-waiting.json"
+          list='const l = Object.entries(require(process.argv[1])).sort().map(([n, v]) => `${n} ${v}`); l.join("\n")'
+          {
+            echo '### npm'
+            echo '```'
+            node -p "$list || 'All ranges are the newest.'" "$RUNNER_TEMP/npm.json"
+            echo '```'
+            waiting=$(node -p "$list" "$RUNNER_TEMP/npm-waiting.json")
+            if [ -n "$waiting" ]; then
+              echo 'Waiting for their dependents to allow them (peer ranges):'
+              echo '```'
+              echo "$waiting"
+              echo '```'
+            fi
+          } >> "$RUNNER_TEMP/body.md"
+
+      - name: Python packages
+        if: hashFiles('pyproject.toml') != ''
+        run: |
+          echo '### Python' >> "$RUNNER_TEMP/body.md"
+          if [ -f uv.lock ]; then
+            {
+              echo '```'
+              uv lock --upgrade 2>&1 | grep -E '^(Updated|Added|Removed) ' || echo 'All locked versions are the newest.'
+              echo '```'
+            } >> "$RUNNER_TEMP/body.md"
+          fi
+          # Every `>=` lower bound in pyproject.toml follows uv.lock; without a lock (an
+          # app installed into the framework's environment) - the newest on PyPI, which
+          # `grunt update` (grunt app deps) then installs.
+          uv run --no-project python - <<'EOF'
+          import json, os, re, subprocess, tomllib, urllib.error, urllib.request
+          from pathlib import Path
+
+          canon = lambda name: re.sub(r"[-_.]+", "-", name).lower()
+          lock = Path("uv.lock")
+          locked = {
+              canon(p["name"]): p["version"]
+              for p in (tomllib.loads(lock.read_text())["package"] if lock.is_file() else [])
+              if "version" in p
+          }
+
+          def newest(name):
+              if lock.is_file():
+                  return locked.get(canon(name))
+              try:
+                  with urllib.request.urlopen(f"https://pypi.org/pypi/{name}/json", timeout=30) as r:
+                      return json.load(r)["info"]["version"]
+              except urllib.error.HTTPError:
+                  return None  # not on PyPI
+
+          spec = re.compile(r"""(["'])([A-Za-z0-9_.\-]+)(\[[^\]]+\])?>=([^"',;\s]+)""")
+          files = subprocess.run(
+              ["git", "ls-files", "pyproject.toml", "*/pyproject.toml"],
+              capture_output=True, text=True, check=True,
+          ).stdout.split()
+          raised = []
+
+          def raise_bound(m):
+              version = newest(m[2]) or m[4]
+              if version != m[4]:
+                  raised.append(f"{m[2]} >={m[4]} -> >={version}")
+              return f"{m[1]}{m[2]}{m[3] or ''}>={version}"
+
+          for name in files:
+              path = Path(name)
+              text = path.read_text()
+              new = spec.sub(raise_bound, text)
+              if new != text:
+                  path.write_text(new)
+          if not lock.is_file():
+              with open(Path(os.environ["RUNNER_TEMP"]) / "body.md", "a") as body:
+                  lines = "\n".join(raised) or "All lower bounds are the newest."
+                  body.write(f"```\n{lines}\n```\n")
+          EOF
+          if [ -f uv.lock ]; then uv lock; fi
+
+      - name: shadcn-vue components
+        if: hashFiles('components.json') != ''
+        run: |
+          ui=frontend/src/components/ui
+          components=$(find "$ui" -mindepth 2 -maxdepth 2 -name index.ts -printf '%h\n' | xargs -rn1 basename | sort)
+          if [ -n "$components" ]; then
+            # shellcheck disable=SC2086 # one argument per component
+            npx shadcn-vue add $components --overwrite --yes
+            { echo '### shadcn-vue'; echo "Reinstalled from the registry: $(echo $components)."; } >> "$RUNNER_TEMP/body.md"
+          fi
+
+      - name: Pull request body
+        run: |
+          {
+            echo 'Weekly update by `.github/workflows/deps.yml`: every dependency to its newest version, shadcn-vue components from the registry.'
+            echo
+            echo '**Close and reopen this pull request to run CI** - one opened with `GITHUB_TOKEN` starts no workflows.'
+            echo
+            cat "$RUNNER_TEMP/body.md"
+          } > "$RUNNER_TEMP/pr.md"
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: deps/weekly
+          base: ${{ inputs.base || 'develop' }}
+          delete-branch: true
+          commit-message: "build(deps): update dependencies"
+          title: "build(deps): update dependencies"
+          body-path: ${{ runner.temp }}/pr.md
+          author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
