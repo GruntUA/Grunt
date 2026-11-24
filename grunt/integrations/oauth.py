@@ -144,7 +144,7 @@ def read_state(state: str) -> tuple[str, str, str, str]:
 
 async def load_app(name: str) -> dict[str, Any]:
     """The ``ConnectedApp`` row with its real secret."""
-    row = await _db.get_value("ConnectedApp", name, "*")
+    row = await _db.get_doc("ConnectedApp", name)
     if not row:
         raise OAuthError(_("Connected app “%(name)s” not found") % {"name": name})
     return dict(row)

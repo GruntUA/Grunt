@@ -200,9 +200,6 @@ class GruntDB:
             task = await grunt.db.get_value(Task, "TASK00002", ["subject"], as_dict=True)
             task.subject
 
-            # whole document
-            task = await grunt.db.get_value("Task", "TASK00002", "*")
-
             # first record matching filters
             subject, desc = await grunt.db.get_value(
                 "Task", {"status": "Open"}, ["subject", "description"]
@@ -224,10 +221,10 @@ class GruntDB:
             rows = await run.fetch(query, ignore_permissions=True, session=self._session())
             return rows[0] if rows else None
 
-        # Whole-document fetch (``"*"``) - always returns an attribute-dict.
         if fieldname == "*":
-            row = await first(None)
-            return as_row(row) if row is not None else None
+            raise ValueError(
+                "grunt.db.get_value(..., '*') is gone - read the row with grunt.db.get_doc()"
+            )
 
         single = isinstance(fieldname, str)
         fields = [fieldname] if single else list(fieldname)
@@ -388,23 +385,6 @@ class GruntDB:
         if cls is not None:
             return cls._from_rows(rows, doctype=doctype, partial=True)
         return as_rows(rows)
-
-    async def get_values(
-        self,
-        doctype: str,
-        filters: str | dict[str, Any],
-        fieldnames: list[str],
-    ) -> AttrDict | None:
-        """Return multiple field values from the first matching document."""
-        dt = await self._meta(doctype)
-        present = [f for f in fieldnames if f in dt.table.c]
-        if not present:
-            return None
-        query = Query(
-            doctype, where=filter_expr(filters, dt.columns, dt), fields=tuple(present), limit=1
-        )
-        rows = await run.fetch(query, ignore_permissions=True, session=self._session())
-        return AttrDict({f: rows[0].get(f) for f in present}) if rows else None
 
     async def get_single_value(self, doctype: str, fieldname: str) -> Any:
         """Return a field value from a Singleton DocType (e.g. SystemSettings)."""

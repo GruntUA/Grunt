@@ -97,7 +97,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             and not field.has_trait("sensitive")
             and await permission_checker.check(meta, "read")
         )
-        resolved[key] = await documents.get_single(doctype, fieldname) if allowed else None
+        resolved[key] = await documents.db.get_single_value(doctype, fieldname) if allowed else None
         if resolved[key] is None:
             log.info("dashboard.filter_token_unresolved", token=value)
             resolved[key] = _NO_MATCH

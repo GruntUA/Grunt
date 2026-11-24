@@ -36,7 +36,7 @@ async def test_trace_names_a_reason_exactly_when_allowed(ctx, db_session, engine
         meta = await doctype_registry.get_meta(doctype)
         async with grunt.context(db_session, engine, user):
             for name in names:
-                doc = await grunt.db.get_value(doctype, name, "*", as_dict=True)
+                doc = await grunt.db.get_doc(doctype, name)
                 trace = await explain(email, meta, "read", doc)
                 assert trace["allowed"] == await permission_checker.check(
                     meta, "read", doc, user=email
@@ -56,7 +56,7 @@ async def test_trace_shows_rules_scopes_and_shares(ctx, db_session, engine):
     )
     meta = await doctype_registry.get_meta("CpTask")
     async with grunt.context(db_session, engine, erin):
-        doc = await grunt.db.get_value("CpTask", "K1", "*", as_dict=True)
+        doc = await grunt.db.get_doc("CpTask", "K1")
         trace = await explain("erin@x.com", meta, "read", doc)
     assert trace["allowed"] is True
     own = next(r for r in trace["rules"] if r["role"] == "Own")

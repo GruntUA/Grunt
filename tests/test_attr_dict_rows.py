@@ -125,10 +125,10 @@ async def test_db_api_returns_attrdicts(orders):
     row = await grunt.db.get_doc("AttrOrder", doc.name)
     assert row is not None and row.title == "Second"
 
-    values = await grunt.db.get_values("AttrOrder", doc.name, ["title"])
+    values = await grunt.db.get_value("AttrOrder", doc.name, ["title"], as_dict=True)
     assert values is not None and values.title == "Second"
 
-    whole = await grunt.db.get_value("AttrOrder", doc.name, "*")
+    whole = await grunt.db.get_doc("AttrOrder", doc.name)
     assert whole is not None and whole.title == "Second"
 
 

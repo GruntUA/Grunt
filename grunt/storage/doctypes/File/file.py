@@ -67,7 +67,7 @@ class File(Document):
         if self.folder == self._prev_folder:
             return
 
-        folder = await _db.get_value("FileFolder", self.folder, "*")
+        folder = await _db.get_doc("FileFolder", self.folder)
         if folder is None:
             throw(_("Folder “%(folder)s” not found") % {"folder": self.folder})
         await require_folder_write(folder)
@@ -213,7 +213,7 @@ async def upload(
     if folder:
         # Fail before streaming the body; File.before_save re-checks with the size.
 
-        row = await _db.get_value("FileFolder", folder, "*")
+        row = await _db.get_doc("FileFolder", folder)
         if row is None:
             raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
         await require_folder_write(row)
@@ -274,7 +274,7 @@ async def upload_from_url(url: str, folder: str | None = None) -> dict[str, Any]
     (see :mod:`grunt.storage.remote` for what links are allowed)."""
 
     if folder:
-        row = await _db.get_value("FileFolder", folder, "*")
+        row = await _db.get_doc("FileFolder", folder)
         if row is None:
             raise HTTPException(404, _("Folder “%(folder)s” not found") % {"folder": folder})
         await require_folder_write(row)
@@ -349,7 +349,7 @@ async def get_content(
     to every file URL the API hands out) or a user allowed to read it.
     """
     # Use grunt.db directly to avoid permission checks that require an active user.
-    doc = await _db.get_values(
+    doc = await _db.get_value(
         "File",
         file_id,
         [
@@ -362,6 +362,7 @@ async def get_content(
             "attached_to_doctype",
             "attached_to_id",
         ],
+        as_dict=True,
     )
     if not doc:
         raise HTTPException(404, _("File not found"))
@@ -426,8 +427,8 @@ async def public_file(filename: str, request: Request | None = None) -> Response
     the file's own, so one id has one address.
     """
     fid, _dot, ext = filename.partition(".")
-    doc = await _db.get_values(
-        "File", fid, ["content_hash", "content_type", "file_name", "is_public"]
+    doc = await _db.get_value(
+        "File", fid, ["content_hash", "content_type", "file_name", "is_public"], as_dict=True
     )
     name = (doc or {}).get("file_name") or ""
     if (

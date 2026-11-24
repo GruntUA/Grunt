@@ -211,7 +211,7 @@ async def test_get_value(ctx, people, db_session, engine):
         return await ctx.get_value("FaPerson", "P2", "full_name")
 
     async def whole_row():
-        return await ctx.get_value("FaPerson", "P1", "*")
+        return await ctx.get_doc("FaPerson", "P1")
 
     assert await _forbidden(ctx, db_session, engine, CLERK, salary)
     assert await _as(ctx, db_session, engine, PAYROLL, salary) == 5000

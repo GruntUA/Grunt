@@ -27,7 +27,7 @@ class CommentReaction(Document):
         if ref is None:
             throw(_("Comment not found"), "NOT_FOUND")
         dt = await self.grunt.get_meta(ref.reference_doctype)
-        doc = await self.grunt.db.get_value(ref.reference_doctype, ref.reference_id, "*")
+        doc = await self.grunt.db.get_doc(ref.reference_doctype, ref.reference_id)
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
         if self.user and not await permission_checker.check(dt, "read", doc):

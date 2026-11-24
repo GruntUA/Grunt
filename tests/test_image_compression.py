@@ -187,7 +187,7 @@ async def test_compress_existing_moves_every_row_of_a_blob(ctx, storage, options
 
     await images.compress_existing(apply=True)
     for row in (a, b):
-        new = await grunt.db.get_value("File", str(row["name"]), "*")
+        new = await grunt.db.get_doc("File", str(row["name"]))
         assert new["content_type"] == "image/webp"
         assert new["file_name"].endswith(".webp")
         assert new["file_size"] < len(original)

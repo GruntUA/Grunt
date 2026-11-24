@@ -831,8 +831,6 @@ class DocumentAPI:
             data={"fieldname": fieldname, "value": value},
             method="get_value",
         )
-        if isinstance(value, dict):  # fieldname "*" - the whole row
-            value = apply_hidden_fields_to_doc(value, hidden)
         return value
 
     @_may_ignore_permissions
@@ -878,16 +876,6 @@ class DocumentAPI:
         await permission_checker.require_in_scope(dt, "write", {**row, **changes}, user=user)
         await self.db.set_value(doctype, id_or_name, fieldname, value)
         await self._invalidate_list_cache(doctype, id_or_name)
-
-    async def get_single(self, doctype: str, fieldname: str) -> Any:
-        """Fetch a field value from a Single DocType (singleton document).
-
-        Single DocTypes hold global settings and have no id - they are stored
-        as key/value rows rather than regular documents::
-
-            currency = await grunt.get_single("SystemSettings", "default_currency")
-        """
-        return await self.db.get_single_value(doctype, fieldname)
 
     async def copy_data(self, doctype: str, id_or_name: str) -> dict[str, Any]:
         """The values a copy of a document starts with - what "Duplicate" and
