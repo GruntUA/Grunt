@@ -51,7 +51,6 @@ from grunt.workflow.registry import get_active_workflow
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, load_document, new_document
 lazy from grunt.document.document_list import DocumentList
-lazy from grunt.document.registry import document_registry
 lazy from grunt.permissions import reads
 lazy from grunt.permissions.query import read_predicate
 lazy from grunt.query.aggregates import group_field, parse_aggregation
@@ -215,7 +214,7 @@ class DocumentAPI:
             return await self._new(target, copy.deepcopy(doctype), user)
 
         if isinstance(doctype, type):
-            name: str = getattr(doctype, "doctype", doctype.__name__)
+            name: str = doctype.__doctype__
             dt, user, hidden_fields = await read_guard(name)
             await fire("before_read", doctype=name, user=user, doc_id=id_or_name)
             data = (await self._load(name, id_or_name, user, expand)).data
@@ -224,9 +223,9 @@ class DocumentAPI:
             await fire("after_read", doctype=name, user=user, doc=data)
             # The registered controller, when it extends the class asked for
             # (doctype_mixins / override_doctype_class of other apps).
-            controller = document_registry.get(name)
-            cls = controller if issubclass(controller, doctype) else doctype
-            return cls(doctype=name, data=data, session=require_session())
+            doc = doctype._from_rows([data], doctype=name, hidden=hidden_fields)[0]
+            doc.session = require_session()
+            return doc
 
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
@@ -428,8 +427,25 @@ class DocumentAPI:
         await self._invalidate_list_cache(doctype, ids)
         return deleted, errors
 
-    @profile("grunt.get_list")
-    @_may_ignore_permissions
+    @overload
+    async def get_list[D: Document](
+        self,
+        doctype: type[D],
+        *,
+        filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int = 20,
+        page: int = 1,
+        order_by: str = "modified_at",
+        order: str = "desc",
+        search: str | None = None,
+        cursor: str | None = None,
+        include_total: bool = True,
+        ignore_permissions: bool = False,
+    ) -> DocumentList[D]:
+        """By controller class: rows of that class."""
+
+    @overload
     async def get_list(
         self,
         doctype: str,
@@ -444,16 +460,41 @@ class DocumentAPI:
         cursor: str | None = None,
         include_total: bool = True,
         ignore_permissions: bool = False,
-    ) -> DocumentList:
+    ) -> DocumentList[AttrDict]:
+        """By DocType name: :class:`AttrDict` rows."""
+
+    @profile("grunt.get_list")
+    @_may_ignore_permissions
+    async def get_list(
+        self,
+        doctype,
+        *,
+        filters=None,
+        fields=None,
+        limit=20,
+        page=1,
+        order_by="modified_at",
+        order="desc",
+        search=None,
+        cursor=None,
+        include_total=True,
+        ignore_permissions=False,
+    ):
         """Fetch a guarded, field-masked page of documents (with pagination meta).
 
         The single read entry point: applies read_guard, before/after_read hooks
-        and hidden-field masking. Returns a :class:`DocumentList` whose
-        ``to_dict()`` carries pagination metadata.
+        and hidden-field masking. Returns a :class:`DocumentList` (``.meta``,
+        ``to_dict()`` - pagination). By controller class the rows are of that
+        class (only the fields asked for, no child tables - read the document to
+        save it), by DocType name :class:`AttrDict`::
+
+            open_orders = await grunt.get_list(Order, filters={"status": "Open"})
 
         ``include_total=False`` skips the pagination ``COUNT(*)`` query for
         call sites that never read ``meta.total`` (e.g. sidebar widgets).
         """
+        cls: type[Document] | None = None if isinstance(doctype, str) else doctype
+        doctype = doctype if cls is None else cls.__doctype__
         dt, user, hidden_fields = await read_guard(doctype)
         await fire(
             "before_read",
@@ -525,6 +566,9 @@ class DocumentAPI:
         apply_hidden_fields_to_rows(result, hidden_fields)
         as_rows(result)
         await fire("after_read", doctype=doctype, user=user, data=result)
+        if cls is not None:
+            rows = cls._from_rows(result, doctype=doctype, partial=True, hidden=hidden_fields)
+            return DocumentList(rows, meta=result.meta)
         return result
 
     @profile("grunt.get_all")
@@ -547,7 +591,7 @@ class DocumentAPI:
             users = await grunt.get_all(User, filters={"active": True})
         """
 
-        doctype: str = getattr(model_class, "doctype", model_class.__name__)
+        doctype: str = getattr(model_class, "__doctype__", model_class.__name__)
         dt, user, hidden_fields = await read_guard(doctype)
 
         offset = max(page - 1, 0) * limit

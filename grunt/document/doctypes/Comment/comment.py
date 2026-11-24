@@ -7,6 +7,7 @@ from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.permissions.perms import has_perm
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -87,7 +88,7 @@ class Comment(Document):
         )
 
     @classmethod
-    async def get_all(cls, doctype: str, doc_id: str) -> list[dict[str, Any]]:
+    async def get_all(cls, doctype: str, doc_id: str) -> list[AttrDict]:
         """Get all comments on a document."""
         return await documents.get_list(
             "Comment",

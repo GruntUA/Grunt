@@ -5,6 +5,7 @@ from typing import Any
 from grunt.api.context import whitelist
 from grunt.errors import throw
 from grunt.i18n import _
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
 
 _PAGE_FIELDS = [
@@ -30,7 +31,7 @@ _PAGE_UPDATABLE = {
 
 
 @whitelist()
-async def list_pages() -> list[dict[str, Any]]:
+async def list_pages() -> list[AttrDict]:
     """List all registered custom pages."""
     return await documents.get_list(
         "Page", limit=1000, order_by="sidebar_order", order="asc", fields=_PAGE_FIELDS

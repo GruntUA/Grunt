@@ -1,6 +1,7 @@
 """XLSX exporter - produces a styled Excel workbook."""
 
 import io
+from collections.abc import Sequence
 from datetime import date, datetime
 from typing import Any
 
@@ -45,7 +46,7 @@ class XlsxExporter(Exporter):
     async def export(
         self,
         doctype: str,
-        rows: list[dict[str, Any]],
+        rows: Sequence[dict[str, Any]],
         fields: list[DocField],
     ) -> bytes:
         exportable = [f for f in fields if f.is_physical]

@@ -110,17 +110,31 @@ draft = await grunt.copy_doc("Invoice", original_id, overrides={"status": "Draft
 Fetch a list of documents.
 
 Enforces `read` permission and triggers read hooks (`before_read`, `after_read`).
+Returns a `DocumentList` - a list with the pagination in `.meta` (`to_dict()` gives
+`{"data": ..., "meta": ...}`).
+
+Pass the controller class to get rows of that class - the IDE knows their fields:
 
 ```python
 open_orders = await grunt.get_list(
-    "Order",
+    Order,
     filters={"status": "Open", "amount__gte": "1000"},
-    fields=["id", "name", "customer", "amount"],
+    fields=["name", "customer", "amount"],
     limit=50,
     order_by="created_at",
     order="desc",
 )
+open_orders[0].customer   # typed - DocumentList[Order]
+open_orders.meta["total"]
 ```
+
+A row of a list holds only the fields asked for and no child tables: reading a
+field it lacks raises `AttributeError`, and `save()` refuses it - read the
+document (`grunt.get_doc(Order, name)`) to change it. A field hidden from the
+reader by permissions reads as `None`.
+
+By DocType name (`grunt.get_list("Order", ...)`) the rows are `AttrDict` - for
+code that only learns the DocType at run time.
 
 `order_by` is one field, optionally with its direction: `"created_at"`,
 `"created_at asc"`, `"created_at desc"` (a direction in the string wins over
@@ -249,9 +263,17 @@ if await grunt.db.exists("Customer", {"email": "a@b.com"}):
 
 ### `grunt.db.get_all(doctype, *, filters, fields, limit, order_by, order)`
 
-Fetch a list of documents as plain dicts (lower-level than `get_list`).
+Fetch a list of rows (lower-level than `get_list`): by controller class rows of
+that class, as `get_list` gives them; by DocType name `AttrDict` rows.
+
+```python
+for order in await grunt.db.get_all(Order, filters={"status": "Open"}, fields=["name", "amount"]):
+    total += order.amount
+```
 
 Low-level direct DB access: no permission checks and no lifecycle/read hooks.
+`grunt.db.get_doc(Order, name)` and `grunt.db.get_value(Order, name, [...], as_dict=True)`
+take the class the same way (a bare row - no child tables).
 
 ---
 

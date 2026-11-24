@@ -8,6 +8,7 @@ rather than server state, so the flow stays stateless.
 """
 
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any, ClassVar
 from urllib.parse import urlparse
@@ -31,6 +32,7 @@ from grunt.db.api import GruntDB
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.log import log
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
 lazy from grunt.utils.http import public_base_url
 
@@ -93,7 +95,7 @@ def _resolve_rp(request: Any) -> tuple[str, str]:
 # DB helpers
 
 
-async def _credentials_for_user(user_id: str) -> list[dict]:
+async def _credentials_for_user(user_id: str) -> list[AttrDict]:
     return await documents.get_list(
         _CRED,
         filters={"user": user_id},
@@ -114,7 +116,7 @@ async def _credential_by_id(credential_id: str) -> dict | None:
     return rows[0] if rows else None
 
 
-def _descriptors(rows: list[dict]) -> list[Any]:
+def _descriptors(rows: Sequence[dict]) -> list[Any]:
 
     def _transports(raw: str | None) -> list[Any] | None:
         out: list[Any] = []

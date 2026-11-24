@@ -347,7 +347,7 @@ class TestGruntAppLayerPermissions:
         current user - row-level permissions are applied there."""
 
         class InvoiceModel:
-            doctype = "Invoice"
+            __doctype__ = "Invoice"
 
             def __init__(self, doctype, data, session):
                 self.doctype = doctype

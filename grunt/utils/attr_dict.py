@@ -16,8 +16,8 @@ A field named like a ``dict`` method (``items``, ``values``, ``keys``, ``get``,
 ``update``, ``copy``, ``pop``, ...) reads as that method - use ``d["items"]``.
 """
 
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Any, ClassVar, Protocol, Self
 
 # `dict[str, Any]` for the type checker; a plain `dict` base at run time, so
 # static analysers (CodeQL) still see a container class.
@@ -73,3 +73,26 @@ def as_rows[L: list[Any]](rows: L) -> L:
         if isinstance(item, dict):
             rows[i] = as_row(item)
     return rows
+
+
+class DocumentClass(Protocol):
+    """What the read API needs of a controller class
+    (:class:`grunt.document.base.Document`) - here, so the layers below the
+    document one can take a class without importing it::
+
+        rows = await grunt.db.get_all(Invoice, fields=["name", "total"])  # list[Invoice]
+    """
+
+    __doctype__: ClassVar[str]
+
+    @classmethod
+    def _from_rows(
+        cls,
+        rows: Iterable[dict[str, Any]],
+        *,
+        doctype: str | None = None,
+        partial: bool = False,
+        hidden: frozenset[str] = frozenset(),
+    ) -> list[Self]:
+        """The rows as documents of the class (``Document._from_rows``)."""
+        raise NotImplementedError
