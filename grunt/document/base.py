@@ -35,7 +35,9 @@ from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
-_RESERVED = frozenset({"doctype", "data", "user", "session", "engine", "doc_before_save"})
+_RESERVED = frozenset(
+    {"doctype", "data", "user", "session", "engine", "input_data", "doc_before_save"}
+)
 
 # Read-only on the controller. Set them through self.data if you really must.
 SYS_FIELDS: frozenset[str] = frozenset(
@@ -190,6 +192,7 @@ class Document(
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
         self._dt = None
+        self.input_data = {}  # what an insert / update was given - the lifecycle sets it
         self.doc_before_save = None
 
     @classmethod
