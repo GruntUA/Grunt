@@ -107,7 +107,10 @@ def ui_group() -> None:
     "--overwrite", is_flag=True, default=True, show_default=True, help="Overwrite existing files"
 )
 def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
-    """Add one or more shadcn-vue components.
+    """Add one or more shadcn-vue components (an installed one is reinstalled).
+
+    The installed ones are updated from the registry by the weekly pull request
+    of .github/workflows/deps.yml.
 
     \b
     Examples:
@@ -122,39 +125,6 @@ def ui_add(components: tuple[str, ...], overwrite: bool) -> None:
     if code != 0:
         raise click.ClickException(f"shadcn-vue exited with code {code}")
     click.echo(click.style("✔ Done", fg="green"))
-
-
-@ui_group.command("update")
-@click.argument("components", nargs=-1, required=False)
-def ui_update(components: tuple[str, ...]) -> None:
-    """Reinstall shadcn-vue components from the registry (--overwrite).
-
-    Without arguments, updates every installed component.
-    With arguments, only the given ones.
-
-    Uses the project's shadcn-vue devDependency, the same version whose
-    tailwind.css main.css imports; `npm update shadcn-vue` moves both.
-
-    \b
-    Examples:
-      grunt ui update                   # update everything
-      grunt ui update button badge      # only button and badge
-    """
-    app_dir = _app_dir()
-    ui_dir = app_dir / "frontend" / "src" / "components" / "ui"
-
-    targets = list(components) if components else _installed_components(ui_dir)
-
-    if not targets:
-        click.echo(click.style(f"  No components found in {ui_dir}", fg="yellow"))
-        return
-
-    click.echo(f"── Updating {len(targets)} component(s): {', '.join(targets)}")
-    code = _shadcn(app_dir, ["add", *targets, "--overwrite", "--yes"])
-    if code != 0:
-        raise click.ClickException(f"shadcn-vue exited with code {code}")
-
-    click.echo(click.style("\n✔ Update complete", fg="green"))
 
 
 @ui_group.command("style")
