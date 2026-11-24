@@ -36,9 +36,12 @@ jobs:
       - name: ruff
         run: uv run ruff check grunt tests
 
+      - id: node # the version mise.toml names (deps.yml raises it)
+        run: echo "version=$(sed -n 's/^node *= *"\(.*\)"/\1/p' mise.toml)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v7
         with:
-          node-version: "26"
+          node-version: ${{ steps.node.outputs.version }}
 
       - name: pyright # the version pinned in package.json
         run: npx -y pyright@"$(node -p 'require("./package.json").devDependencies.pyright')" grunt
@@ -105,9 +108,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - id: node # the version mise.toml names (deps.yml raises it)
+        run: echo "version=$(sed -n 's/^node *= *"\(.*\)"/\1/p' mise.toml)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v7
         with:
-          node-version: "26"
+          node-version: ${{ steps.node.outputs.version }}
           cache: npm
 
       - run: npm ci --no-audit --no-fund

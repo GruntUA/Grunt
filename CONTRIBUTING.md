@@ -33,12 +33,6 @@
    `chore(release): vX.Y.Z` з новим розділом `CHANGELOG.md` (нові міграції бази перелічуються
    окремо), push у `develop` і PR `develop → master` з нотатками розгортання (міграції,
    `grunt migrate`, перезапуск worker для нових DocType, змінені залежності).
-   З `--deps` спершу оновлюються lock-файли в межах діапазонів `pyproject.toml` /
-   `package.json` (`uv lock --upgrade`, `npm update`), а npm-пакети з точною версією чи діапазоном
-   `^0.x` — до найновішої мінорної в `package.json`; усе це окремим PR у `develop`
-   (`build(deps): …`, у `CHANGELOG.md` — розділ «Dependencies»), який `grunt release` зливає,
-   щойно його CI зелений; червоний CI зупиняє випуск. Мажорні версії так не приходять — їх пропонує
-   Dependabot (див. нижче).
 3. Після схвалення PR зливається merge-комітом. Workflow `release.yml` ставить анотований тег
    `vX.Y.Z` на коміт випуску і публікує GitHub release з розділу `CHANGELOG.md`.
 
@@ -48,9 +42,21 @@
 
 Репозиторій без `develop` (додатки): коміт випуску йде в гілку `release/vX.Y.Z`, PR — у `master`.
 
-Мажорні версії залежностей — щопонеділка PR від Dependabot у `develop` (`.github/dependabot.yml`;
-пакети `@tiptap/*` — одним PR). Зелений CI — зливаємо як звичайний PR; червоний — виправляємо в
-тій самій гілці або закриваємо, і Dependabot більше не пропонує цю версію.
+### Залежності
+
+Щопонеділка workflow `.github/workflows/deps.yml` відкриває (або оновлює) PR
+`build(deps): update dependencies` з гілки `deps/weekly` у `develop`: усі npm- і Python-пакети до
+найновіших версій, мажорні теж (`npm-check-updates --peer`, `uv lock --upgrade` з підняттям нижніх
+меж у `pyproject.toml`), компоненти shadcn-vue з `ui/`, перевстановлені з реєстру, і мажорну версію Node.js у
+`mise.toml` та `engines` (CI бере її з `mise.toml`). Мінорну версію Python міняємо свідомо, вручну. В описі PR —
+що оновилось і які мажорні версії ще чекають, поки їх дозволять peer-залежності. Запустити
+позачергово — Actions → Dependencies → Run workflow.
+
+PR відкриває `GITHUB_TOKEN`, тож CI сам не стартує: **закрити й одразу знову відкрити PR** — тоді
+запускаються CI, CodeQL і перевірка заголовка. Зелений — зливаємо squash (у `CHANGELOG.md` —
+розділ «Dependencies»); червоний — виправляємо в тій самій гілці. Наступного понеділка workflow
+перебудує гілку з `develop`, тож виправлення має потрапити в `develop` до того. Локально
+`grunt update` ставить закомічені версії. Dependabot лишився лише для GitHub Actions.
 
 ### Версії
 
