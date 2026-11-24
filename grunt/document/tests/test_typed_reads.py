@@ -130,7 +130,7 @@ def test_a_controller_without_annotations_knows_no_fields():
 
 
 def test_attrdict_missing_key_in_jinja():
-    tpl = jinja2.Environment().from_string(
+    tpl = jinja2.Environment(autoescape=True).from_string(
         "{{ r.a }}|{{ r.b is defined }}|{{ r.b | default('-') }}"
     )
     assert tpl.render(r=AttrDict(a=1)) == "1|False|-"

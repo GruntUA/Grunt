@@ -7,7 +7,7 @@ from jinja2.sandbox import SandboxedEnvironment
 from grunt.utils.attr_dict import AttrDict
 from grunt.utils.undefined import RowUndefined
 
-env = SandboxedEnvironment(undefined=RowUndefined)
+env = SandboxedEnvironment(undefined=RowUndefined, autoescape=True)
 
 
 def test_a_missing_key_is_undefined_and_chains():
