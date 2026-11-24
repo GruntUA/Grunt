@@ -455,7 +455,7 @@ class TestPermissions:
 
         with (
             _registry_returning(dt),
-            patch.object(GruntDB, "get_value", new_callable=AsyncMock, return_value=doc),
+            patch.object(GruntDB, "get_doc", new_callable=AsyncMock, return_value=doc),
             # Shares and other lookups find nothing for either user.
             patch.object(GruntDB, "get_all", new_callable=AsyncMock, return_value=[]),
         ):

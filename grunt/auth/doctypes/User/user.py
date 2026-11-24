@@ -264,7 +264,7 @@ class User(Document):
             return
         file_id = m.group(1)
         try:
-            row = await _db.get_values("File", file_id, ["owner", "is_public"])
+            row = await _db.get_value("File", file_id, ["owner", "is_public"], as_dict=True)
             if not row:
                 return
             # SECURITY: publish ONLY a file the saving user owns. Without this an

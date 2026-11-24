@@ -82,7 +82,7 @@ async def test_home_folder_is_created_once_and_named_after_the_user(
         again = await get_home_folder()
     assert first["name"] == again["name"]
     assert first["folder_name"] == "Test Ann"
-    row = await ctx.db.get_value("FileFolder", first["name"], "*")
+    row = await ctx.db.get_doc("FileFolder", first["name"])
     assert row["space_user"] == ANN and row["is_home"]
 
 

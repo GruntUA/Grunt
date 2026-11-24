@@ -58,7 +58,7 @@ SECRET_FIELDS = (
 
 async def load_remote(name: str) -> dict[str, Any]:
     """The ``StorageRemote`` row with its real secrets; RemoteError when there is none."""
-    row = await _db.get_value("StorageRemote", name, "*")
+    row = await _db.get_doc("StorageRemote", name)
     if not row:
         raise RemoteError(_("Storage “%(name)s” not found") % {"name": name})
     return dict(row)

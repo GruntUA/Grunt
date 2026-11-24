@@ -50,7 +50,7 @@ class FileFolder(Document):
         if prev and prev.get("parent_folder") == self.parent_folder:
             self.space_user = prev.get("space_user")
             return
-        parent = await _db.get_value("FileFolder", self.parent_folder, "*")
+        parent = await _db.get_doc("FileFolder", self.parent_folder)
         if parent is None:
             throw(_("Folder “%(folder)s” not found") % {"folder": self.parent_folder})
         await require_folder_write(parent)
@@ -186,7 +186,7 @@ async def copy_items(
     but it counts against the target space's quota. Names already taken in
     *target* get « (копія)», « (копія 2)»…
     """
-    folder = await _db.get_value("FileFolder", target, "*")
+    folder = await _db.get_doc("FileFolder", target)
     if folder is None:
         throw(_("Folder “%(folder)s” not found") % {"folder": target})
     await require_folder_write(folder)

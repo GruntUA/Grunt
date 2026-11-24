@@ -59,7 +59,6 @@ aggregate = _app.documents.aggregate
 exists = _app.documents.exists
 get_value = _app.documents.get_value
 set_value = _app.documents.set_value
-get_single = _app.documents.get_single
 bulk_insert = _app.documents.bulk_insert
 bulk_update = _app.documents.bulk_update
 bulk_delete_docs = _app.documents.bulk_delete_docs
@@ -99,7 +98,6 @@ __all__ = [
     "get_list",
     "get_meta",
     "get_session",
-    "get_single",
     "get_user",
     "get_value",
     "has_perm",

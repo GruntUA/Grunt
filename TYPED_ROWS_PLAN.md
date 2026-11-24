@@ -236,7 +236,7 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 
 1. ✅ PR #265 **`feat(document)!: typed reads by controller class`** — R1, R2, R3, R6, R7. Тести: типи (`reveal_type` через pyright у тесті), часткові рядки, JSON, Jinja, нащадок з реєстру, 1000+ рядків. ~15 файлів.
 2. ✅ PR #266 **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
-3. 🔄 PR #267 **`refactor(core)!: one way per action`** (3a — читання класом, QuerySet, get_all, get_doc_instance з фасаду, load/new; 3b — get_values, get_value("*"), get_single) — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
+3. 🔄 PR #267 ✅ (3a), 3b — гілка `refactor/one-way-values` **`refactor(core)!: one way per action`** (3a — читання класом, QuerySet, get_all, get_doc_instance з фасаду, load/new; 3b — get_values, get_value("*"), get_single) — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
 4. **`refactor(document)!: drop Document.user`** — R5, якщо власник погодиться (Q2).
 5. **`chore(doctypes): type blocks for core controllers`** — `sync-types` для ~51 контролера без блоку і мінімальні контролери для DocType без класу, які читаються за назвою. 2 PR.
 6. **`feat(codemod): typed-rows`** — новий `grunt codemod typed-rows` (поруч з `attr-access`, спільна pyright-обв'язка):
@@ -295,6 +295,21 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 - **Q5.** Типізовані діти — у цьому плані чи пізніше?
 
 ## Журнал
+
+- 2026-11-24 — регресія #265: `Document.input_data` прибрано як «невикористаний», а його
+  ставить життєвий цикл (`self.input_data = data`) і читає hromada_it (IndexValue.validate) →
+  гілка `fix/input-data` (знову зарезервований, тест). Застосунки (worktree-и
+  `/home/grunt/worktrees/apps/<app>`, гілки `refactor/typed-reads`): класова форма → `Cls.get_doc`,
+  get_values/get_single/"*" (108 замін, AST-codemod) + борг v0.19 (list[dict]→list[AttrDict] /
+  Sequence/Mapping, `User(doctype=, data=)`→`User(**…)`); `required_grunt>=0.21`; pyright 0 у
+  hrm, inventory, letter, esign, crystal_finance, hromada_it, translate, tsnap, opendata; тести
+  зелені (letter, translate — без тестів). mlt_portal — після коміту власника на його гілці.
+
+- 2026-11-24 — крок 3b (гілка `refactor/one-way-values`): прибрано `grunt.db.get_values` (→
+  `get_value(..., [..], as_dict=True)`), форму `get_value(..., "*")` (→ `db.get_doc`; тепер
+  ValueError з підказкою) і `grunt.get_single` (→ `grunt.db.get_single_value`, він і раніше не
+  перевіряв прав). Заміни — одноразовий AST-codemod (scratchpad `tools/values_codemod.py`, він
+  же переписує класову форму `grunt.get_doc(Cls, …)` → `Cls.get_doc(…)` для застосунків).
 
 - 2026-11-24 — крок 3a (гілка `refactor/one-way-reads`, worktree `/home/grunt/worktrees/one-way`):
   `Document.get_doc/find_doc/get_list` (classmethod, `Self`) поверх `DocumentAPI.doc_of /

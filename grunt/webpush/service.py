@@ -73,7 +73,7 @@ class WebPushService:
     async def get_vapid_public_key(self) -> str | None:
         """Return the VAPID public key stored in SystemSettings, or None."""
         try:
-            return await documents.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
+            return await documents.db.get_single_value("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
         except Exception:
             return None
 
@@ -84,7 +84,9 @@ class WebPushService:
             return None
 
         try:
-            public_key = await documents.get_single("SystemSettings", _VAPID_PUBLIC_KEY_FIELD)
+            public_key = await documents.db.get_single_value(
+                "SystemSettings", _VAPID_PUBLIC_KEY_FIELD
+            )
             if public_key:
                 return public_key
 
@@ -144,7 +146,7 @@ class WebPushService:
         """
 
         try:
-            key = await documents.get_single("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
+            key = await documents.db.get_single_value("SystemSettings", _VAPID_PRIVATE_KEY_FIELD)
         except Exception:
             return None
         if not key:

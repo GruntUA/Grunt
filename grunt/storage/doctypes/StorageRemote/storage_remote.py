@@ -90,7 +90,7 @@ class StorageRemote(Document):
     # end: auto-generated types
 
     async def before_save(self) -> None:
-        stored = await _db.get_value("StorageRemote", self.name, "*") if self.name else None
+        stored = await _db.get_doc("StorageRemote", self.name) if self.name else None
         self._keep_masked_secrets(stored)
         if stored:
             await self._guard_location(stored)

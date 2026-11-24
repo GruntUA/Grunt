@@ -96,8 +96,8 @@ async def test_a_public_library_file_linked_from_the_document_goes_private(
         doc = await grunt.new_doc("SecretNote", {"scan": mine["url"]})
         await db_session.commit()
 
-    row = await ctx.db.get_values(
-        "File", mine["id"], ["is_public", "attached_to_doctype", "attached_to_id"]
+    row = await ctx.db.get_value(
+        "File", mine["id"], ["is_public", "attached_to_doctype", "attached_to_id"], as_dict=True
     )
     assert not row["is_public"]
     assert (row["attached_to_doctype"], row["attached_to_id"]) == ("SecretNote", doc.name)

@@ -21,7 +21,7 @@ class DocFollow(Document):
             throw(_("Specify a user"))
 
         dt = await self.grunt.get_meta(self.reference_doctype)
-        doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
+        doc = await self.grunt.db.get_doc(self.reference_doctype, self.reference_id)
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
         # The system names someone else: they must be able to read it too, or
