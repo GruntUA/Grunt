@@ -134,7 +134,7 @@ async def update_api_key(
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
     user = user or acting_user()
-    key_doc = await documents.get_doc(ApiKey, key_id)
+    key_doc = await ApiKey.get_doc(key_id)
     await _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
@@ -168,7 +168,7 @@ async def update_api_key(
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or acting_user()
-    key_doc = await documents.get_doc(ApiKey, key_id)
+    key_doc = await ApiKey.get_doc(key_id)
     await _require_key_owner(key_doc, user)
     await documents.delete_doc("ApiKey", key_id)
     return True

@@ -107,7 +107,7 @@ class DocTypeController(Document):
     __doctype__ = "DocType"
 
     # The class can't be named DocType (that's the metadata model imported
-    # above), so documents.get_doc(DocTypeController, ...) takes the name from here.
+    # above), so DocTypeController.get_doc(...) takes the name from here.
     doctype = "DocType"
     store_class = DocTypeStore
 

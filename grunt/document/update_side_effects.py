@@ -204,9 +204,9 @@ async def bulk_delete_one_by_one(
     errors: list[str] = []
     for doc_id in ids:
         try:
-            doc = await document_registry.base.new(
-                doctype_name, {"name": doc_id}, session=session, engine=engine
-            )
+            controller = document_registry.get(doctype_name)
+            doc = controller(doctype_name, {"name": doc_id}, session=session, engine=engine)
+            doc._bind()
             await doc.delete()
             deleted += 1
         except Exception as e:

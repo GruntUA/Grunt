@@ -26,7 +26,7 @@ async def get_import_preview(data_import_id: str) -> dict[str, Any]:
 @whitelist()
 async def get_import_status(data_import_id: str) -> dict[str, Any]:
     """Return the current status and progress of a DataImport record."""
-    doc = await documents.find_doc(DataImport, data_import_id)
+    doc = await DataImport.find_doc(data_import_id)
     if not doc:
         throw(_("DataImport not found"), "NOT_FOUND")
     return {
@@ -55,7 +55,7 @@ async def run_import_job(data_import_id: str) -> dict[str, Any]:
     """
 
     await write_guard("DataImport", "write")
-    di = await documents.find_doc(DataImport, data_import_id)
+    di = await DataImport.find_doc(data_import_id)
     if not di:
         throw(_("DataImport not found"), "NOT_FOUND")
     # The task writes as SYSTEM_USER - whoever starts it needs `import` themselves.

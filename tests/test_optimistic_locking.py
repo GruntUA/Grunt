@@ -10,6 +10,8 @@ import pytest
 from fastapi import HTTPException
 from sqlalchemy import text
 
+from grunt.auth.doctypes.Role.role import Role
+
 DOCS = "/api/v1/docs/Role"
 
 
@@ -56,8 +58,8 @@ async def test_partial_update_without_stamp_is_not_checked(client, auth_headers)
 @pytest.mark.asyncio
 async def test_stale_document_instance_save_is_a_conflict(ctx, db_session):
     await ctx.new_doc("Role", {"role_name": "Lock Instance Clerk"})
-    mine = await ctx.get_doc_instance("Role", "Lock Instance Clerk")
-    theirs = await ctx.get_doc_instance("Role", "Lock Instance Clerk")
+    mine = await Role.get_doc("Lock Instance Clerk")
+    theirs = await Role.get_doc("Lock Instance Clerk")
 
     theirs.data["description"] = "theirs"
     await theirs.save()
@@ -87,7 +89,7 @@ async def test_write_between_load_and_update_is_a_conflict(ctx, db_session):
     assert loaded is not None
 
     # A concurrent save lands after the load.
-    other = await ctx.get_doc_instance("Role", "Lock Race Clerk")
+    other = await Role.get_doc("Lock Race Clerk")
     other.data["description"] = "theirs"
     await other.save()
 
@@ -119,7 +121,7 @@ async def test_stamp_stored_in_another_format_still_saves(ctx, db_session):
         {"v": "2026-01-02T03:04:05+00:00", "n": "Lock Format Clerk"},
     )
 
-    doc = await ctx.get_doc_instance("Role", "Lock Format Clerk")
+    doc = await Role.get_doc("Lock Format Clerk")
     doc.data["description"] = "saved"
     await doc.save()
     assert (await ctx.get_doc("Role", "Lock Format Clerk"))["description"] == "saved"
@@ -141,7 +143,7 @@ async def test_format_fallback_retry_is_still_guarded(ctx, db_session, monkeypat
         text(f'UPDATE "{table}" SET modified_at = :v WHERE name = :n'),
         {"v": "2026-01-02T03:04:05+00:00", "n": "Lock Fallback Clerk"},
     )
-    doc = await ctx.get_doc_instance("Role", "Lock Fallback Clerk")
+    doc = await Role.get_doc("Lock Fallback Clerk")
 
     read_back = False
 

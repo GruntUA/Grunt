@@ -69,7 +69,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
     """
     await _require_restore_perm()
 
-    snap = await documents.get_doc(DeletedDocument, name)
+    snap = await DeletedDocument.get_doc(name)
     if snap.restored:
         throw(
             _("Already restored as “%(name)s”") % {"name": snap.restored_to or "?"},

@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from fastapi import HTTPException
 
-from grunt.document.base import Document
+from grunt.document.base import Document, load_document
 from grunt.events import subscribe, unsubscribe
 from grunt.query.query import Query
 from grunt.store.base import DELETE, INSERT, UPDATE
@@ -149,7 +149,7 @@ async def test_create_update_delete_go_to_the_store(ctx, notes, events):
 
 @pytest.mark.asyncio
 async def test_document_instance_methods_work_for_virtual(ctx, notes):
-    doc = await Document.load(DOCTYPE, "a")
+    doc = await load_document(DOCTYPE, "a")
     assert isinstance(doc, _Notes)
     assert doc.title == "Alpha"
 

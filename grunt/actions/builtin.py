@@ -259,7 +259,7 @@ _PUSH_DIALOG_FIELDS = [
 async def webpush_test(doc: dict[str, Any], *, args: dict[str, Any]) -> dict[str, Any]:
     """Push a test message to this one browser subscription and report the outcome."""
 
-    sub = await documents.get_doc(PushSubscription, doc["name"])
+    sub = await PushSubscription.get_doc(doc["name"])
     result = await webpush_service.send_test(
         sub.data,
         title=args.get("title") or _("Test notification"),

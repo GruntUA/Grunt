@@ -46,7 +46,6 @@ reset_context = _app.reset_context
 
 get_doc = _app.documents.get_doc
 find_doc = _app.documents.find_doc
-get_doc_instance = _app.documents.get_doc_instance
 new_doc = _app.documents.new_doc
 save_doc = _app.documents.save_doc
 delete_doc = _app.documents.delete_doc
@@ -55,7 +54,6 @@ copy_doc = _app.documents.copy_doc
 copy_data = _app.documents.copy_data
 submit = _app.submit
 get_list = _app.documents.get_list
-get_all = _app.documents.get_all
 count = _app.documents.count
 aggregate = _app.documents.aggregate
 exists = _app.documents.exists
@@ -96,9 +94,7 @@ __all__ = [
     "enqueue_doc",
     "exists",
     "find_doc",
-    "get_all",
     "get_doc",
-    "get_doc_instance",
     "get_engine",
     "get_list",
     "get_meta",

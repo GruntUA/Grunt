@@ -7,6 +7,7 @@ document. Single-document CRUD lives on
 """
 
 import base64
+import copy
 import json
 import math
 from typing import Any
@@ -583,10 +584,9 @@ async def rename_document(
     """Update the primary ID of a document and cascade changes to all references."""
 
     async def _load(doc_id: str) -> dict[str, Any]:
-        doc = await document_registry.base.load(
-            doctype_name, doc_id, session=session, engine=engine
-        )
-        return doc.as_dict()
+        controller = document_registry.get(doctype_name)
+        doc = controller(doctype_name, {}, session=session, engine=engine)
+        return copy.deepcopy(await doc._load_existing(doc_id))  # names its doctype
 
     if old_id == new_id:
         return await _load(old_id)

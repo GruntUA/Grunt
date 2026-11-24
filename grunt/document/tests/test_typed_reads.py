@@ -1,9 +1,10 @@
-"""Reads by controller class: ``grunt.get_list(Cls)``, ``grunt.db.get_all(Cls)``...
+"""Reads by controller class: ``Cls.get_list()``, ``grunt.db.get_all(Cls)``...
 return documents of that class - typed for the IDE (``assert_type`` below is
 checked by pyright in CI) and honest at run time (a row of a list holds only the
 fields asked for and can't be saved)."""
 
 import json
+from datetime import datetime
 from typing import Any, assert_type
 
 import jinja2
@@ -157,10 +158,16 @@ async def test_db_get_doc_and_get_value_by_class():
 
 @pytest.mark.usefixtures("tasks")
 async def test_get_list_by_class():
-    page = await grunt.get_list(TrTask, fields=["name", "title", "cost"], limit=2)
-    assert_type(page, DocumentList[TrTask])
+    page = await TrTask.get_list(fields=["name", "title", "modified_at"], limit=2)
+    assert_type(page, list[TrTask])
     assert len(page) == 2 and all(isinstance(r, TrTask) for r in page)
-    assert page.meta["total"] == 3
+    assert isinstance(page[0].modified_at, datetime)  # stored values, not the API's strings
+    with pytest.raises(ValueError, match="row of a list"):
+        await page[0].save()
+
+    found = await TrTask.find_doc("missing")
+    assert_type(found, TrTask | None)
+    assert found is None
 
     by_name = await grunt.get_list("TrTask", fields=["name"])
     assert_type(by_name, DocumentList[AttrDict])
@@ -171,7 +178,7 @@ async def test_get_list_by_class():
 async def test_get_list_by_class_masks_hidden_fields():
     viewer = make_user("viewer@x.com", roles=["Viewer"])
     with acting_as(viewer):
-        rows = await grunt.get_list(TrTask, fields=["name", "title", "cost"])
+        rows = await TrTask.get_list(fields=["name", "title", "cost"])
     assert rows and all(r.cost is None for r in rows)
     assert all("cost" not in r.data for r in rows)
 
@@ -180,7 +187,7 @@ async def test_get_list_by_class_masks_hidden_fields():
 async def test_get_doc_by_class_saves():
     name = (await grunt.db.get_all(TrTask, fields=["name"], limit=1))[0].name
     assert name is not None
-    doc = await grunt.get_doc(TrTask, name)
+    doc = await TrTask.get_doc(name)
     assert_type(doc, TrTask)
     doc.status = "Closed"
     await doc.save()

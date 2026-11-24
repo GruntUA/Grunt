@@ -294,7 +294,7 @@ async def delete_items(
 
 
 async def _delete_folder(name: str) -> int:
-    await documents.get_doc(FileFolder, name)  # 403 / 404 before touching anything inside
+    await FileFolder.get_doc(name)  # 403 / 404 before touching anything inside
     deleted = 0
     for sub in await _db.get_all(
         "FileFolder", filters={"parent_folder": name}, fields=["name"], limit=_MANY

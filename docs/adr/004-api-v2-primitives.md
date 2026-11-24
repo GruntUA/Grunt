@@ -57,6 +57,9 @@ order = await grunt.get_doc("Order", order_id)  # -> dict, як і раніше
 
 ## Рішення 2: `Document.objects` — query builder
 
+> **Скасовано (2026-11-24, TYPED_ROWS_PLAN.md крок 3):** `Document.objects`/`QuerySet` і
+> `grunt.get_all` прибрано — їх покриває `grunt.get_list(Cls, …)` (типізовані рядки класу).
+
 Тонка fluent-обгортка над тим, що вже існувало (`grunt.get_all`/`grunt.count`/
 `grunt.new_doc`, `db.build_clauses` із Django-стилем `__gt/__in/...`) — не нова SQL-логіка:
 

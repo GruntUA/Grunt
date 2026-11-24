@@ -9,6 +9,8 @@ import json
 
 import pytest
 
+from grunt.document.api import documents
+
 _PARENT = {
     "name": "JsDoc",
     "label": "Js Doc",
@@ -72,7 +74,7 @@ async def test_get_doc_from_json_builds_an_unsaved_controller(ctx, js_doctype):
 @pytest.mark.asyncio
 async def test_document_json_round_trips(ctx, js_doctype):
     await ctx.new_doc("JsDoc", {"code": "c", "title": "Original", "rows": [{"label": "z"}]})
-    controller = await ctx.get_doc_instance("JsDoc", "c")
+    controller = await documents.get_doc_instance("JsDoc", "c")
 
     data = json.loads(controller.as_json())
     assert data["doctype"] == "JsDoc"

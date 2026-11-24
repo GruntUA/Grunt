@@ -3,7 +3,7 @@
 Run with: pytest tests/unit/test_api.py -v
 """
 
-from unittest.mock import ANY, AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -23,8 +23,6 @@ from grunt.errors import ApplicationError, throw
 from grunt.local import _user_ctx, clear_context
 from grunt.metadata.doctype import DocType
 from grunt.metadata.permission import DocPermission
-from grunt.query.nodes import Cmp
-from grunt.query.query import Query
 from grunt.utils.attr_dict import AttrDict
 
 db = GruntDB()
@@ -340,74 +338,6 @@ class TestGruntAppLayerPermissions:
             mock_guard.assert_awaited_once_with("Invoice")
             assert mock_fetch.await_args.kwargs["user"] is user
             mock_db_exists.assert_not_awaited()
-
-    @pytest.mark.asyncio
-    async def test_get_all_runs_query_as_user_with_hooks(self, setup_context):
-        """grunt.get_all runs the hooks and the query through ``run.fetch`` as the
-        current user - row-level permissions are applied there."""
-
-        class InvoiceModel:
-            __doctype__ = "Invoice"
-
-            def __init__(self, doctype, data, session):
-                self.doctype = doctype
-                self.data = data
-                self.session = session
-
-        dt = Mock()
-        dt.name = "Invoice"
-        dt.permissions = []
-        dt.fields = []
-        rows = [{"name": "INV-001", "status": "Draft"}]
-        query = Query("Invoice", where=Cmp("status", "eq", "Draft"))
-
-        with (
-            patch("grunt.app.doctype_registry.get", new_callable=AsyncMock, return_value=dt),
-            patch(
-                "grunt.permissions.rbac.permission_checker.require",
-                new_callable=AsyncMock,
-            ) as mock_require,
-            patch("grunt.document.api.list_query", return_value=query) as mock_list_query,
-            patch(
-                "grunt.permissions.reads.fetch", new_callable=AsyncMock, return_value=rows
-            ) as mock_fetch,
-            patch("grunt.document.api.fire", new_callable=AsyncMock) as mock_fire,
-        ):
-            result = await grunt.get_all(
-                InvoiceModel,
-                filters={"status": "Draft"},
-                fields=["name", "status"],
-                limit=10,
-                page=2,
-                order_by="modified_at",
-                order="desc",
-            )
-
-            assert len(result) == 1
-            assert result[0].doctype == "Invoice"
-            assert mock_require.await_count == 1
-            mock_list_query.assert_called_once_with(
-                ANY,
-                filters={"status": "Draft"},
-                fields=["name", "status"],
-                limit=10,
-                offset=10,
-                order_by="modified_at",
-                order="desc",
-            )
-            mock_fetch.assert_awaited_once_with(query, user=ANY)
-            assert mock_fetch.await_args is not None
-            assert mock_fetch.await_args.kwargs["user"] is not None
-            assert mock_fire.await_count == 2
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# TESTS: Messages
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-class TestMessages:
-    """Test message functions."""
 
     def test_msgprint(self):
         """Test msgprint() doesn't raise."""

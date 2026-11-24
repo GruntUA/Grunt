@@ -240,16 +240,19 @@ async def upload(
     # re-upload of the same name + bytes by the same user for the same target
     # reuses its File row instead of listing a second one. A different name -
     # or the same bytes for a *different* document - gets its own row.
-    existing = await File.objects.filter(
-        file_name=blob.filename,
-        content_hash=blob.key,
-        uploaded_by=user_email(),
-        attached_to_doctype=attached_to_doctype or None,
-        attached_to_id=attached_to_id or None,
-        folder=folder or None,
-    ).first()
-    if existing is not None:
-        return _upload_payload(existing.as_dict(), deduped=True)
+    same = await File.get_list(
+        filters={
+            "file_name": blob.filename,
+            "content_hash": blob.key,
+            "uploaded_by": user_email(),
+            "attached_to_doctype": attached_to_doctype or None,
+            "attached_to_id": attached_to_id or None,
+            "folder": folder or None,
+        },
+        limit=1,
+    )
+    if same:
+        return _upload_payload(same[0].as_dict(), deduped=True)
 
     doc = await files.create_file(
         blob.key,
@@ -477,11 +480,11 @@ async def get_list(
     all_filters = dict(filters or {})
     if search.strip():
         all_filters["file_name__ilike"] = search.strip()
-    query = File.objects.filter(**all_filters)
-    query = query.order_by(f"-{order_by}" if order == "desc" else order_by)
-    records = await query.limit(limit).page(page).all()
-    # ``records`` is row-level filtered (grunt.get_all), so the total must be
-    # too - a raw count would reveal how many files the user may NOT see.
+    records = await File.get_list(
+        filters=all_filters or None, order_by=order_by, order=order, limit=limit, page=page
+    )
+    # ``records`` is row-level filtered, so the total must be too - a raw count
+    # would reveal how many files the user may NOT see.
     total = await documents.count("File", filters=all_filters or None, respect_permissions=True)
 
     return {
