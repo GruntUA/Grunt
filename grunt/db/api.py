@@ -16,8 +16,13 @@ from grunt.query.query import Query, Sort
 from grunt.query.sql import filter_expr, where
 from grunt.store.base import SQL
 from grunt.store.lookup import store_for, supports
-from grunt.utils.attr_dict import AttrDict, as_row, as_rows
+from grunt.utils.attr_dict import AttrDict, DocumentClass, as_row, as_rows
 lazy from grunt.document.multi_link import MultiLinkService
+
+
+def _name(doctype: str | type[DocumentClass]) -> str:
+    """The DocType a read names - by its name or its controller class."""
+    return doctype if isinstance(doctype, str) else doctype.__doctype__
 
 
 def sort_spec(order_by: str, order: str, known: Collection[str] | None = None) -> Sort:
@@ -136,6 +141,17 @@ class GruntDB:
         """Several fields: their values as a list."""
 
     @overload
+    async def get_value[D: DocumentClass](
+        self,
+        doctype: type[D],
+        filters: str | dict[str, Any],
+        fieldname: str | list[str],
+        *,
+        as_dict: Literal[True],
+    ) -> D | None:
+        """``as_dict=True`` by controller class: those fields as a row of that class."""
+
+    @overload
     async def get_value(
         self,
         doctype: str,
@@ -159,7 +175,7 @@ class GruntDB:
 
     async def get_value(
         self,
-        doctype: str,
+        doctype: str | type[DocumentClass],
         filters: str | dict[str, Any],
         fieldname: str | list[str] = "name",
         *,
@@ -177,10 +193,11 @@ class GruntDB:
                 "Task", "TASK00002", ["subject", "description"]
             )
 
-            # as attribute-dict
+            # as attribute-dict; by controller class - a row of that class
             task = await grunt.db.get_value(
                 "Task", "TASK00002", ["subject", "description"], as_dict=True
             )
+            task = await grunt.db.get_value(Task, "TASK00002", ["subject"], as_dict=True)
             task.subject
 
             # whole document
@@ -193,6 +210,8 @@ class GruntDB:
 
         Returns ``None`` when no document matches (or no requested field exists).
         """
+        cls = None if isinstance(doctype, str) else doctype
+        doctype = _name(doctype)
         dt = await self._meta(doctype)
 
         async def first(fields: list[str] | None) -> dict[str, Any] | None:
@@ -220,7 +239,8 @@ class GruntDB:
         if values is None:
             return None
         if as_dict:
-            return AttrDict({f: values.get(f) for f in fields})
+            row = AttrDict({f: values.get(f) for f in fields})
+            return row if cls is None else cls._from_rows([row], doctype=doctype, partial=True)[0]
         if single:
             return values.get(fields[0])
         return [values.get(f) for f in fields]
@@ -276,7 +296,7 @@ class GruntDB:
     @overload
     async def get_all(
         self,
-        doctype: str,
+        doctype: str | type[DocumentClass],
         *,
         filters: dict[str, Any] | None = ...,
         or_filters: dict[str, Any] | None = ...,
@@ -288,6 +308,22 @@ class GruntDB:
         order: str = ...,
     ) -> list[Any]:
         """With ``pluck``: that field's values."""
+
+    @overload
+    async def get_all[D: DocumentClass](
+        self,
+        doctype: type[D],
+        *,
+        filters: dict[str, Any] | None = ...,
+        or_filters: dict[str, Any] | None = ...,
+        fields: list[str] | None = ...,
+        pluck: None = ...,
+        limit: int | None = ...,
+        offset: int = ...,
+        order_by: str | None = ...,
+        order: str = ...,
+    ) -> list[D]:
+        """By controller class: rows of that class (``row.subject`` typed)."""
 
     @overload
     async def get_all(
@@ -307,7 +343,7 @@ class GruntDB:
 
     async def get_all(
         self,
-        doctype: str,
+        doctype: str | type[DocumentClass],
         *,
         filters: dict[str, Any] | None = None,
         or_filters: dict[str, Any] | None = None,
@@ -317,8 +353,15 @@ class GruntDB:
         offset: int = 0,
         order_by: str | None = None,
         order: str = "desc",
-    ) -> list[AttrDict] | list[Any]:
-        """Fetch a list of documents as :class:`AttrDict` rows (``row.subject``).
+    ) -> list[Any]:
+        """Fetch a list of documents: by controller class - rows of that class,
+        by DocType name - :class:`AttrDict` rows (``row.subject`` either way)::
+
+            invoices = await grunt.db.get_all(Invoice, fields=["name", "total"])
+
+        A row of the class holds only the fields asked for and no child tables:
+        a field it lacks raises ``AttributeError``, and it can't be saved
+        (read the document for that).
 
         No permission checks - ``grunt.get_all`` is the permission-aware
         variant (:func:`grunt.permissions.reads.fetch`; this one is
@@ -326,6 +369,8 @@ class GruntDB:
         field in ``fields`` comes back as a list of linked names (one extra
         query for the whole page).
         """
+        cls = None if isinstance(doctype, str) else doctype
+        doctype = _name(doctype)
         dt = await self._meta(doctype)
         query = list_query(
             dt,
@@ -340,6 +385,8 @@ class GruntDB:
         rows = await run.fetch(query, ignore_permissions=True, session=self._session())
         if pluck:
             return [row.get(pluck) for row in rows]
+        if cls is not None:
+            return cls._from_rows(rows, doctype=doctype, partial=True)
         return as_rows(rows)
 
     async def get_values(
@@ -374,22 +421,36 @@ class GruntDB:
         row = result.first()
         return row[0] if row else None
 
-    async def get_doc(self, doctype: str, name: str) -> AttrDict | None:
-        """Return a single document by name, or ``None`` if not found.
+    @overload
+    async def get_doc[D: DocumentClass](self, doctype: type[D], name: str) -> D | None: ...
 
-        Low-level - no permission guards. Use ``grunt.get_doc`` for
-        authenticated reads with RBAC enforcement. A document outside SQL comes
-        from its store.
+    @overload
+    async def get_doc(self, doctype: str, name: str) -> AttrDict | None: ...
+
+    async def get_doc(self, doctype: str | type[DocumentClass], name: str) -> Any:
+        """Return a single document's row by name, or ``None`` if not found -
+        by controller class a row of that class, by DocType name an :class:`AttrDict`.
+
+        Low-level - no permission guards, no child tables. Use ``grunt.get_doc``
+        for authenticated reads of the whole document. A document outside SQL
+        comes from its store.
         """
+        cls = None if isinstance(doctype, str) else doctype
+        doctype = _name(doctype)
         dt = await self._meta(doctype)
+        found: AttrDict | None
         if not supports(dt, SQL):
             doc = await store_for(dt, self._session()).get(name, expand=[])
-            return as_row(doc) if doc is not None else None
-        table = dt.table
-        stmt = select(table).where(table.c.name == name).limit(1)
-        result = await self._session().execute(stmt)
-        row = result.first()
-        return AttrDict(row._mapping) if row else None
+            found = as_row(doc) if doc is not None else None
+        else:
+            table = dt.table
+            stmt = select(table).where(table.c.name == name).limit(1)
+            result = await self._session().execute(stmt)
+            row = result.first()
+            found = AttrDict(row._mapping) if row else None
+        if found is None or cls is None:
+            return found
+        return cls._from_rows([found], doctype=doctype, partial=True)[0]
 
     async def count(
         self,

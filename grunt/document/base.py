@@ -14,8 +14,8 @@ import annotationlib
 import contextlib
 import copy
 import sys
-from collections.abc import Callable
-from typing import Any, ClassVar, dataclass_transform
+from collections.abc import Callable, Iterable
+from typing import Any, ClassVar, Self, dataclass_transform
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
@@ -36,9 +36,7 @@ from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
-_RESERVED = frozenset(
-    {"doctype", "data", "user", "session", "engine", "input_data", "doc_before_save"}
-)
+_RESERVED = frozenset({"doctype", "data", "user", "session", "engine", "doc_before_save"})
 
 # Read-only on the controller. Set them through self.data if you really must.
 SYS_FIELDS: frozenset[str] = frozenset(
@@ -118,16 +116,31 @@ class Document(
 
     objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
 
+    #: The DocType this controller is for: the class name, a controller's
+    #: subclass keeps its parent's, the registry sets it on what it registers.
+    #: Read lists and documents by the class: ``grunt.get_list(Invoice)``.
+    __doctype__: ClassVar[str] = "Document"
+
     doctype: str
     data: dict[str, Any]
     # The mixins assume these are bound, but outside a grunt context _bind()
-    # can leave them None, so they are left untyped here.
-    session: Any
-    engine: Any
-    _ml: Any
+    # can leave them None, so they are left untyped here. The class defaults
+    # serve the documents :meth:`_from_rows` builds without ``__init__``.
+    session: Any = None
+    engine: Any = None
+    _ml: Any = None
+    _dt: Any = None
+    doc_before_save: dict[str, Any] | None = None
+    # A row of a list read: only the columns asked for, no child tables.
+    _partial: bool = False
+    # Fields the reader may not see (removed from ``data``): they read as None.
+    _hidden: frozenset[str] = frozenset()
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
+        if "__doctype__" not in cls.__dict__:
+            parents = (b for b in cls.__mro__[1:] if b is not Document and issubclass(b, Document))
+            cls.__doctype__ = next((b.__doctype__ for b in parents), cls.__name__)
         # `note: str | None = None` / `lines: list[dict] = []` make a field
         # optional in the constructor; as class attributes they would hide
         # self.data (__getattr__ only runs when normal lookup fails).
@@ -142,7 +155,7 @@ class Document(
         # hooks run - as for a document grunt loads. With or without an
         # explicit doctype; `Document("X", ...)` itself stays a bare Document.
         target = cls
-        name: str = doctype or getattr(cls, "doctype", cls.__name__)
+        name: str = doctype or cls.__doctype__
         if cls is not Document:
             controller = document_registry.get(name)
             if controller is not cls and issubclass(controller, cls):
@@ -161,7 +174,7 @@ class Document(
         **fields: Any,
     ) -> None:
         called_as: str | None = self.__dict__.pop("_doctype", None)
-        self.doctype = doctype or called_as or type(self).__name__
+        self.doctype = doctype or called_as or type(self).__doctype__
         if fields:
             data = {**(data or {}), **fields}
         # Kept as given: callers may still hold a reference to it.
@@ -170,8 +183,45 @@ class Document(
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
         self._dt = None
-        self.input_data = {}
         self.doc_before_save = None
+
+    @classmethod
+    def _from_rows(
+        cls,
+        rows: Iterable[dict[str, Any]],
+        *,
+        doctype: str | None = None,
+        partial: bool = False,
+        hidden: frozenset[str] = frozenset(),
+    ) -> list[Self]:
+        """Rows read from the store as documents of this class - cheaply, without
+        ``__init__`` (a list of thousands of rows). Each row becomes the document's
+        ``data`` as is, not copied.
+
+        The registered controller is used when it extends this class (app
+        mixins / overrides), as for a document grunt loads. *partial* - a row of
+        a list read (only the columns asked for, no child tables): a field it
+        lacks raises instead of reading as None, and it can't be saved.
+        """
+        name = doctype or cls.__doctype__
+        target: type[Self] = cls
+        if cls is not Document:
+            controller = document_registry.get(name)
+            if controller is not cls and issubclass(controller, cls):
+                target = controller
+        new = object.__new__
+        docs: list[Self] = []
+        for row in rows:
+            doc = new(target)
+            state = doc.__dict__
+            state["doctype"] = name
+            state["data"] = row
+            if partial:
+                state["_partial"] = True
+            if hidden:
+                state["_hidden"] = hidden
+            docs.append(doc)
+        return docs
 
     @property
     def user(self) -> str | None:
@@ -186,7 +236,17 @@ class Document(
         # names land here before __init__ has set them (copy, pickle).
         if name.startswith("_") or name in _RESERVED:
             raise AttributeError(name)
-        return self.data.get(name)
+        data = self.data
+        if name in data:
+            return data[name]
+        if name in self._hidden:
+            return None
+        if self._partial:
+            raise AttributeError(
+                f"{self.doctype}.{name} was not read: a row of a list holds only the "
+                f"fields asked for (fields=[...]) and no child tables"
+            )
+        return None
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in _RESERVED or name.startswith("_"):
@@ -303,8 +363,16 @@ class Document(
             original.update(result)
         self.data = original
 
+    def _require_whole(self, action: str) -> None:
+        if self._partial:
+            raise ValueError(
+                f"Cannot {action} {self.doctype} {self.data.get('name')!r}: it is a row of a "
+                f"list (only some fields) - read the document with grunt.get_doc() first"
+            )
+
     async def insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full create pipeline on this document and return the saved row."""
+        self._require_whole("insert")
         original = self.data
         result = await self._insert(ignore_required=ignore_required)
         self._keep(original, result)
@@ -314,6 +382,7 @@ class Document(
         """Run the full update pipeline on this document and return the saved row."""
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
+        self._require_whole("save")
         original = self.data
         result = await self._update(self.id, dict(original), ignore_required=ignore_required)
         self._keep(original, result)

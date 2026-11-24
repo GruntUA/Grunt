@@ -1,6 +1,7 @@
 """Exporter registry - pluggable document export formats."""
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -53,7 +54,7 @@ class Exporter(ABC):
     async def export(
         self,
         doctype: str,
-        rows: list[dict[str, Any]],
+        rows: Sequence[dict[str, Any]],
         fields: list[DocField],
     ) -> bytes:
         """Serialize *rows* into bytes.
@@ -70,7 +71,7 @@ class Exporter(ABC):
     async def export_list(
         self,
         doctype: str,
-        rows: list[dict[str, Any]],
+        rows: Sequence[dict[str, Any]],
         fields: list[DocField],
         ctx: ListExportContext,
     ) -> bytes:

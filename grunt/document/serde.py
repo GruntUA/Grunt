@@ -17,12 +17,18 @@ def with_doctype(doctype: str, data: dict[str, Any]) -> dict[str, Any]:
 
 
 def json_default(value: Any) -> Any:
-    """``json.dumps`` fallback for the values a document holds."""
+    """``json.dumps`` fallback for the values a document holds - and for a
+    document (a controller: its JSON, ``doc.as_dict()``). Anything else raises
+    ``TypeError``, as ``json.dumps`` does: a ``str()`` of it would ship
+    ``"<Invoice id='INV-1'>"`` instead of the data."""
     if isinstance(value, datetime | date | time):
         return value.isoformat()
     if isinstance(value, Decimal):
         return float(value)
-    return str(value)
+    as_dict = getattr(value, "as_dict", None)
+    if callable(as_dict):
+        return as_dict()
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
 def same_instant(a: Any, b: Any) -> bool:

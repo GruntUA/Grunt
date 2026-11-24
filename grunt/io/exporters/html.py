@@ -8,6 +8,7 @@ frontend), see :mod:`grunt.i18n.values`.
 
 import functools
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -55,7 +56,7 @@ def _env() -> Environment:
     return install_i18n(env)
 
 
-def _group(rows: list[dict[str, Any]], field: str) -> list[dict[str, Any]]:
+def _group(rows: Sequence[dict[str, Any]], field: str) -> list[dict[str, Any]]:
     """Rows sharing a value of *field*, groups in first-seen order."""
     groups: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
@@ -73,7 +74,7 @@ class HtmlExporter(Exporter):
     async def export(
         self,
         doctype: str,
-        rows: list[dict[str, Any]],
+        rows: Sequence[dict[str, Any]],
         fields: list[DocField],
     ) -> bytes:
         return await self.export_list(doctype, rows, fields, ListExportContext(total=len(rows)))
@@ -81,7 +82,7 @@ class HtmlExporter(Exporter):
     async def export_list(
         self,
         doctype: str,
-        rows: list[dict[str, Any]],
+        rows: Sequence[dict[str, Any]],
         fields: list[DocField],
         ctx: ListExportContext,
     ) -> bytes:

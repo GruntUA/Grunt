@@ -104,6 +104,8 @@ class DocTypeStore(SqlStore):
 class DocTypeController(Document):
     """The controller of DocType definitions - stored by :class:`DocTypeStore`."""
 
+    __doctype__ = "DocType"
+
     # The class can't be named DocType (that's the metadata model imported
     # above), so documents.get_doc(DocTypeController, ...) takes the name from here.
     doctype = "DocType"

@@ -140,7 +140,7 @@ async def test_secrets_are_masked_and_kept(ctx, mailbox):
     assert token and token["access_token"] == "AT"  # the server itself reads them
     row = await ctx.get_doc("OAuthToken", token["name"])
     assert row.get("access_token") in (MASK, None) and row.get("refresh_token") in (MASK, None)
-    listed = (await ctx.get_list("OAuthToken", fields=["*"]))["data"]
+    listed = await ctx.get_list("OAuthToken", fields=["*"])
     assert all(r.get("access_token") in (MASK, None) for r in listed)
 
 

@@ -71,6 +71,7 @@ from grunt.i18n import _, translation_service
 from grunt.local import require_session
 from grunt.log import log
 from grunt.permissions.perms import has_perm, user_landing, user_perms
+from grunt.utils.attr_dict import AttrDict
 from grunt.utils.http import public_base_url
 from grunt.utils.templates import render as render_template_text
 lazy from grunt.auth.doctypes.User.user import SYSTEM_USER, User, UserPublic
@@ -446,7 +447,7 @@ async def list_users_detailed_api() -> list[dict[str, Any]]:
 
 
 @whitelist(perm="grunt.manage_users")
-async def list_pending_users_api() -> list[dict[str, Any]]:
+async def list_pending_users_api() -> list[AttrDict]:
     """Self-registered users awaiting approval. System Manager only."""
     rows = await documents.get_list(
         "User",

@@ -96,7 +96,7 @@ async def _awaiting_in(doctype: str, email: str) -> list[dict[str, Any]]:
     state_info = {s.state: s for s in workflow.states}
     out: list[dict[str, Any]] = []
     for doc in docs:
-        state = doc.get(workflow.state_field)
+        state = doc.get(workflow.state_field) or ""
         # Transitions out of this state on a role the user holds; may_act then
         # checks the role's scope, self-approval and read access per document.
         here = [t for t in buttons if t.from_state == state and held.intersection(t.allowed_roles)]

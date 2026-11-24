@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -41,7 +42,7 @@ async def feed_hidden_doctypes() -> list[str]:
     return [dt.name for dt in await doctype_registry.list_all() if _feed_hidden(dt)]
 
 
-async def attach_titles(entries: list[dict[str, Any]]) -> None:
+async def attach_titles(entries: Sequence[dict[str, Any]]) -> None:
     """Resolve a human-readable ``title`` for each entry's referenced document.
 
     Falls back to the raw ``doc_id`` for deleted docs or doctypes without a
@@ -58,7 +59,7 @@ async def attach_titles(entries: list[dict[str, Any]]) -> None:
         e["title"] = titles.get((dt_name, doc_ref)) or doc_ref
 
 
-async def attach_user_names(entries: list[dict[str, Any]]) -> None:
+async def attach_user_names(entries: Sequence[dict[str, Any]]) -> None:
     """Resolve each entry's ``user`` (an email) to the account's ``full_name``.
 
     Mutates ``entries`` in place, adding a ``user_name`` key. Falls back to the

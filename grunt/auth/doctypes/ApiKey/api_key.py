@@ -11,6 +11,7 @@ from grunt.errors import forbidden, throw
 from grunt.i18n import _
 from grunt.permissions.perms import has_perm
 from grunt.permissions.roles import get_roles
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.api import documents
 
@@ -96,7 +97,7 @@ async def create_api_key(
 
 
 @whitelist()
-async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
+async def list_api_keys(user: User | None = None) -> list[AttrDict]:
     """List API keys (secrets are never returned)."""
     user = user or acting_user()
 
