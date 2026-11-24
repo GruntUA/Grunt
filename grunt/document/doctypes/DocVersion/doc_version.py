@@ -9,5 +9,5 @@ class DocVersion(Document):
     ref_doctype: str | None
     doc_id: str | None
     version: int | None
-    # "user" field: read it as self.data["user"] - self.user is the session user.
+    user: str
     changes: dict | None

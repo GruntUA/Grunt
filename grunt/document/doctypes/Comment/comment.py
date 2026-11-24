@@ -6,6 +6,7 @@ from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
+from grunt.local import session_user
 from grunt.permissions.perms import has_perm
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
@@ -48,8 +49,8 @@ class Comment(Document):
             self.parent_comment = parent.parent_comment
 
     async def before_delete(self) -> None:
-        is_admin = bool(self.user) and await has_perm("grunt.moderate_comments")
-        if self.user and not is_admin and self.owner != self.user:
+        is_admin = bool(session_user()) and await has_perm("grunt.moderate_comments")
+        if session_user() and not is_admin and self.owner != session_user():
             throw(_("Only the author or an administrator can delete a comment"))
 
         replies = await _db.get_all(
@@ -58,7 +59,7 @@ class Comment(Document):
         if not replies:
             return
         # The thread goes with its root - someone else's replies only by an admin.
-        if self.user and not is_admin and any(r.owner != self.user for r in replies):
+        if session_user() and not is_admin and any(r.owner != session_user() for r in replies):
             throw(_("Others replied to this comment - only an administrator can delete the thread"))
         for reply in replies:
             await documents.delete_doc("Comment", reply.name)

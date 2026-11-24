@@ -6,7 +6,7 @@ from grunt.document.base import Document
 class PushSubscription(Document):
     """DocType controller for PushSubscription."""
 
-    # "user" field: read it as self.data["user"] - self.user is the session user.
+    user: str
     endpoint: str | None
     p256dh: str | None
     auth: str | None

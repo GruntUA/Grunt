@@ -9,5 +9,5 @@ class OnboardingProgress(Document):
     onboarding: str | None
     form_tour: str | None
     step_id: str | None
-    # "user" field: read it as self.data["user"] - self.user is the session user.
+    user: str | None
     status: str | None

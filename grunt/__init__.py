@@ -27,6 +27,7 @@ from grunt.api.messages import msgprint
 from grunt.errors import throw
 from grunt.monitoring.error_log import record_error as log_error
 from grunt.version import framework_version
+from grunt.local import session_user
 
 from grunt.app import grunt as _app  # after the helpers above - see the module docstring
 # isort: on
@@ -99,6 +100,7 @@ __all__ = [
     "get_meta",
     "get_session",
     "get_user",
+    "session_user",
     "get_value",
     "has_perm",
     "has_permission",

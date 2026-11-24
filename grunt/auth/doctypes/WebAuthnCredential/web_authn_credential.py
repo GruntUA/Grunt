@@ -29,7 +29,7 @@ class WebAuthnCredential(Document):
     do here beyond what the metadata enforces.
     """
 
-    # "user" field: read it as self.data["user"] - self.user is taken by the controller.
+    user: str
     label: str | None
     credential_id: str
     public_key: str
