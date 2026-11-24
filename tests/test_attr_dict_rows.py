@@ -37,7 +37,9 @@ LINE = {
 def test_attribute_access_reads_and_writes_keys():
     d = AttrDict({"a": 1})
     assert d.a == 1
-    assert d.missing is None
+    with pytest.raises(AttributeError):
+        _ = d.missing
+    assert d.get("missing") is None
     d.b = 2
     assert d.b == 2
     del d.b

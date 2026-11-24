@@ -225,8 +225,8 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 
 ### Ядро
 
-1. 🔄 **`feat(document)!: typed reads by controller class`** — R1, R2, R3, R6, R7. Тести: типи (`reveal_type` через pyright у тесті), часткові рядки, JSON, Jinja, нащадок з реєстру, 1000+ рядків. ~15 файлів.
-2. **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
+1. ✅ PR #265 **`feat(document)!: typed reads by controller class`** — R1, R2, R3, R6, R7. Тести: типи (`reveal_type` через pyright у тесті), часткові рядки, JSON, Jinja, нащадок з реєстру, 1000+ рядків. ~15 файлів.
+2. 🔄 **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
 3. **`refactor(core)!: one way per action`** — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
 4. **`refactor(document)!: drop Document.user`** — R5, якщо власник погодиться (Q2).
 5. **`chore(doctypes): type blocks for core controllers`** — `sync-types` для ~51 контролера без блоку і мінімальні контролери для DocType без класу, які читаються за назвою. 2 PR.
@@ -295,5 +295,15 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
   `as_dict()`, невідомий тип → TypeError; прибрано `DocumentList["data"/"meta"]` і
   `Document.input_data` (не використовувався). Тест `grunt/document/tests/test_typed_reads.py`
   з `assert_type` (його бачить CI-pyright). pyright 0, sqlite 2723 passed, postgres 2722 passed.
+  PR #265; після рев'ю: тіла overload-ів — docstring (CodeQL py/ineffectual-statement),
+  системні властивості часткового рядка теж строгі (CodeRabbit). Поле `user` (CodeRabbit,
+  Major) — крок 4, до випуску.
+- 2026-11-24 — крок 2 (гілка `refactor/strict-attr` поверх #265, не закомічено):
+  `AttrDict.__getattr__` → `AttributeError`; `Document.__getattr__`: поле DocType (з `_dt`, якщо
+  є, інакше з анотацій класу) → None, інше ім'я → `AttributeError`, клас без анотацій — як раніше.
+  `User.role_names` читав службове `role_rows` атрибутом — тепер `data.get`. Jinja-середовища
+  сайту, друку, сповіщень і `utils/templates` — `RowUndefined` (ланцюжок на відсутньому ключі
+  порожній, як раніше; відмова пісочниці й далі `SecurityError`). Ядро sqlite 2729 / postgres
+  2728, застосунки (mlt_portal, cms, tsnap, hrm, inventory) зелені проти цього коду.
 
 - 2026-11-24 — аналіз, заміри, план. Тест-зонд у `tests/` видалено; ядро не змінено.

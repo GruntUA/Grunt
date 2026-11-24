@@ -103,6 +103,39 @@ def test_a_whole_document_reads_a_missing_field_as_none():
     assert doc.status is None
 
 
+def test_a_name_that_is_no_field_raises():
+    doc = TrTask(title="x")
+    with pytest.raises(AttributeError, match="TrTask has no field 'titel'"):
+        _ = doc.titel
+
+
+def test_the_doctype_decides_once_the_document_has_it():
+    class Meta:
+        @staticmethod
+        def has_field(name: str) -> bool:
+            return name == "custom_note"  # e.g. a field another app adds
+
+    doc = TrTask(title="x")
+    doc._dt = Meta()
+    assert doc.custom_note is None
+    with pytest.raises(AttributeError):
+        _ = doc.status  # not in this (made-up) DocType
+
+
+def test_a_controller_without_annotations_knows_no_fields():
+    class Bare(Document):
+        pass
+
+    assert Bare().anything is None
+
+
+def test_attrdict_missing_key_in_jinja():
+    tpl = jinja2.Environment().from_string(
+        "{{ r.a }}|{{ r.b is defined }}|{{ r.b | default('-') }}"
+    )
+    assert tpl.render(r=AttrDict(a=1)) == "1|False|-"
+
+
 def test_hidden_fields_read_as_none():
     row = TrTask._from_rows([{"name": "A"}], partial=True, hidden=frozenset({"cost"}))[0]
     assert row.cost is None

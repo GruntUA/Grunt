@@ -17,6 +17,7 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, select_autoescap
 
 from grunt.local import system_context
 from grunt.log import log
+from grunt.utils.undefined import RowUndefined
 from grunt.website.host import current_web_app
 lazy from grunt.config import settings
 lazy from grunt.db.session import get_session
@@ -142,6 +143,7 @@ class WebsiteRegistry:
             loader=ChoiceLoader(loaders),
             autoescape=select_autoescape(["html"]),
             enable_async=True,
+            undefined=RowUndefined,
         )
 
         install_i18n(env)

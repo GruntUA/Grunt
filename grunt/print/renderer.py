@@ -28,6 +28,7 @@ from grunt.metadata.registry import doctype_registry
 from grunt.print.filters import JINJA_FILTERS
 from grunt.print.layout import PrintField, PrintSection, build_print_layout, image_data_uri
 from grunt.site.manager import site_manager
+from grunt.utils.undefined import RowUndefined
 lazy from grunt.config import settings
 
 # Core templates directory
@@ -59,6 +60,7 @@ def _get_jinja_env() -> Environment:
     env = SandboxedEnvironment(
         loader=FileSystemLoader(dirs) if dirs else BaseLoader(),
         autoescape=select_autoescape(["html"]),
+        undefined=RowUndefined,
     )
     env.filters.update(JINJA_FILTERS)
 
