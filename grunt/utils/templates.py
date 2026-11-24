@@ -9,6 +9,7 @@ lazy from jinja2.sandbox import SandboxedEnvironment
 from grunt.i18n.jinja import install as install_i18n
 from grunt.local import _user_ctx
 from grunt.utils.app_helpers import _collect_template_dirs
+from grunt.utils.undefined import RowUndefined
 
 
 async def render_template(
@@ -35,6 +36,7 @@ async def render_template(
         else DictLoader({"_": template}),
         autoescape=select_autoescape(["html", "xml"]) if autoescape else False,
         enable_async=True,
+        undefined=RowUndefined,
     )
 
     # Globals available in every grunt template.
