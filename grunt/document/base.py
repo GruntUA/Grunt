@@ -253,7 +253,22 @@ class Document(
                 f"{self.doctype}.{name} was not read: a row of a list holds only the "
                 f"fields asked for (fields=[...]) and no child tables"
             )
-        return None
+        # A field not set yet (a new document, an optional field) reads as None;
+        # a name that is no field at all is a typo.
+        if self._is_field(name):
+            return None
+        raise AttributeError(f"{self.doctype} has no field {name!r}")
+
+    def _is_field(self, name: str) -> bool:
+        """Whether *name* is a field of the DocType: the DocType itself once the
+        document has it (fields of other apps and custom fields too), else the
+        controller's annotations (its generated type block and mixins). A
+        controller without annotations knows no fields - anything goes."""
+        dt = self._dt
+        if dt is not None:
+            return dt.has_field(name)
+        known = _annotated_fields(type(self))
+        return not known or name in known
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in _RESERVED or name.startswith("_"):
@@ -620,6 +635,25 @@ class Document(
 
 
 document_registry.use_base(Document)
+
+
+_DOCUMENT_MRO = frozenset(Document.__mro__)
+
+
+def _annotated_fields(cls: type) -> frozenset[str]:
+    """Names annotated on *cls* and its bases up to :class:`Document` (cached)."""
+    cached = cls.__dict__.get("_annotated_fields_cache")
+    if cached is not None:
+        return cached
+    names: set[str] = set()
+    for klass in cls.__mro__:
+        if klass in _DOCUMENT_MRO:  # Document itself and its framework mixins
+            continue
+        ann = annotationlib.get_annotations(klass, format=annotationlib.Format.FORWARDREF)
+        names.update(n for n in ann if n[:1] != "_")
+    known = frozenset(names)
+    type.__setattr__(cls, "_annotated_fields_cache", known)
+    return known
 
 
 def controller_class(dt: Any) -> type[Document]:

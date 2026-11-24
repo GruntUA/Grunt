@@ -25,6 +25,7 @@ from grunt.notification import delivery_log
 from grunt.notification.channels import Message, desk_url
 from grunt.notification.delivery import deliver
 from grunt.utils.attr_dict import AttrDict
+from grunt.utils.undefined import RowUndefined
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
@@ -53,7 +54,10 @@ def _jinja() -> SandboxedEnvironment:
     if _env is None:
         # An empty field prints nothing, not "None".
         _env = SandboxedEnvironment(
-            autoescape=False, enable_async=True, finalize=lambda v: "" if v is None else v
+            autoescape=False,
+            enable_async=True,
+            finalize=lambda v: "" if v is None else v,
+            undefined=RowUndefined,
         )
         install_i18n(_env)
     return _env
