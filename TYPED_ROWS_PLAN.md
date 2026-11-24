@@ -8,7 +8,16 @@ worktree `/home/grunt/worktrees/typed-reads` — основне дерево н�
 
 **Рішення власника (2026-11-24):** Q1 — варіант (б); Q2 — прибрати `Document.user` (як
 рекомендовано); Q3 — часткові рядки строгі; Q4 — QuerySet/`.objects` прибрати, якщо не
-потрібен (не потрібен: усе покриває `get_list(Cls)`); Q5 — типізовані діти входять у цей план. Зворотну сумісність не зберігаємо, але кожне ламання позначаємо `!` у
+потрібен (не потрібен: усе покриває `get_list(Cls)`); Q5 — типізовані діти входять у цей план.
+
+**Рішення власника (2026-11-24, крок 3):** типізоване читання — класові методи контролера в
+базовому `Document`: `await Order.get_doc(name)`, `Order.find_doc(name)`,
+`Order.get_list(filters=…, fields=…)`, `Order.create(…)`. Фасад `grunt.get_doc/find_doc/get_list`
+— лише назва-рядок (AttrDict); класова форма `grunt.get_list(Cls)` з #265 прибрана (не
+випущена). `grunt.db.*(Cls)` лишається — шар без прав і хуків. Знахідка: `grunt.get_list`
+віддає рядки у формі API (дати — ISO-рядки, підписи Link), тож `get_list(Cls)` з #265
+обманював тип `datetime`; `Order.get_list` іде шляхом колишнього `grunt.get_all` (права,
+хуки, маскування, збережені значення). Зворотну сумісність не зберігаємо, але кожне ламання позначаємо `!` у
 conventional-заголовку PR, щоб воно потрапило в CHANGELOG.
 
 Ціль: для відомого DocType на `rows[0].` IDE показує поля DocType. pyright 0 у ядрі й
@@ -226,8 +235,8 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 ### Ядро
 
 1. ✅ PR #265 **`feat(document)!: typed reads by controller class`** — R1, R2, R3, R6, R7. Тести: типи (`reveal_type` через pyright у тесті), часткові рядки, JSON, Jinja, нащадок з реєстру, 1000+ рядків. ~15 файлів.
-2. 🔄 **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
-3. **`refactor(core)!: one way per action`** — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
+2. ✅ PR #266 **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
+3. 🔄 PR #267 **`refactor(core)!: one way per action`** (3a — читання класом, QuerySet, get_all, get_doc_instance з фасаду, load/new; 3b — get_values, get_value("*"), get_single) — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
 4. **`refactor(document)!: drop Document.user`** — R5, якщо власник погодиться (Q2).
 5. **`chore(doctypes): type blocks for core controllers`** — `sync-types` для ~51 контролера без блоку і мінімальні контролери для DocType без класу, які читаються за назвою. 2 PR.
 6. **`feat(codemod): typed-rows`** — новий `grunt codemod typed-rows` (поруч з `attr-access`, спільна pyright-обв'язка):
@@ -286,6 +295,14 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 - **Q5.** Типізовані діти — у цьому плані чи пізніше?
 
 ## Журнал
+
+- 2026-11-24 — крок 3a (гілка `refactor/one-way-reads`, worktree `/home/grunt/worktrees/one-way`):
+  `Document.get_doc/find_doc/get_list` (classmethod, `Self`) поверх `DocumentAPI.doc_of /
+  find_doc_of / list_of`; прибрано QuerySet і `Document.objects`, `grunt.get_all`,
+  `Document.load/new`, класові overload-и `grunt.get_doc/find_doc/get_list`, `get_doc_instance` з
+  фасаду (у ядрі лишається `documents.get_doc_instance` — динамічна назва з правами). Знахідки:
+  `get_users_by_emails` різав до 20 (ліміт QuerySet); `lifecycle._load_existing` і
+  `collection.rename_document` викликали `load` через `self`/`registry.base`. Ядро 2716 passed.
 
 - 2026-11-24 — крок 1 у worktree `feat/typed-reads` (не закомічено, чекає рев'ю): `__doctype__`
   на класі (реєстр проставляє; `DocTypeController` = "DocType"), `Document._from_rows` (швидка

@@ -104,7 +104,7 @@ async def add_module(name: str, module: str) -> dict[str, Any]:
         throw(_("App “%(app)s” not found") % {"app": name}, "NOT_FOUND")
 
     app_id = apps[0]["name"]
-    app = await documents.get_doc(GruntInstalledApp, app_id)
+    app = await GruntInstalledApp.get_doc(app_id)
 
     module_name = (module or "").strip()
     if not module_name:

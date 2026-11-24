@@ -22,7 +22,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
-from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
@@ -55,18 +54,28 @@ SYS_FIELDS: frozenset[str] = frozenset(
 )
 
 
+# The document API (grunt.document.api.documents) behind Cls.get_doc / find_doc /
+# get_list - it registers itself (:func:`use_document_api`): it imports this module.
+_documents: Any = None
+
+
+def use_document_api(api: Any) -> None:
+    """Register the document API the class reads (``Invoice.get_list()``) go through."""
+    global _documents
+    _documents = api
+
+
+def _api() -> Any:
+    if _documents is None:
+        raise RuntimeError("grunt.document.api is not loaded yet")
+    return _documents
+
+
 async def _meta(doctype: str) -> Any:
     dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     return dt
-
-
-class _ObjectsDescriptor:
-    """``Document.objects`` - returns a QuerySet for the controller class."""
-
-    def __get__(self, instance: Any, owner: type[Document]) -> Any:
-        return QuerySet(owner)
 
 
 @dataclass_transform(kw_only_default=True)
@@ -114,11 +123,9 @@ class Document(
     #: all for a virtual DocType).
     store_class: ClassVar[type[Store] | None] = None
 
-    objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
-
     #: The DocType this controller is for: the class name, a controller's
     #: subclass keeps its parent's, the registry sets it on what it registers.
-    #: Read lists and documents by the class: ``grunt.get_list(Invoice)``.
+    #: Read lists and documents by the class: ``Invoice.get_list()``.
     __doctype__: ClassVar[str] = "Document"
 
     doctype: str
@@ -425,30 +432,71 @@ class Document(
         finally:
             self.data = original
 
+    # Reads by class - typed: the IDE knows the fields of what comes back
+
     @classmethod
-    async def load(
+    async def get_doc(
         cls,
-        doctype: str,
         name: str | None = None,
         *,
         expand: list[str] | None = None,
-        session: AsyncSession | None = None,
-        engine: AsyncEngine | None = None,
-    ) -> Document:
-        """Load a document as an instance of its registered controller."""
-        return await load_document(doctype, name, expand=expand, session=session, engine=engine)
+        ignore_permissions: bool = False,
+    ) -> Self:
+        """The document *name* (a singleton needs none) - checks the user's read
+        permission, hides the fields they may not see, raises 404 if missing::
+
+            order = await Order.get_doc(order_id)
+            order.status = "Closed"
+            await order.save()
+        """
+        return await _api().doc_of(cls, name, expand=expand, ignore_permissions=ignore_permissions)
 
     @classmethod
-    async def new(
+    async def find_doc(
+        cls, name: str | None = None, *, expand: list[str] | None = None
+    ) -> Self | None:
+        """Like :meth:`get_doc`, but ``None`` instead of raising 404."""
+        return await _api().find_doc_of(cls, name, expand=expand)
+
+    @classmethod
+    async def get_list(
         cls,
-        doctype: str,
-        data: dict[str, Any],
         *,
-        session: AsyncSession | None = None,
-        engine: AsyncEngine | None = None,
-    ) -> Document:
-        """A new, unsaved instance of *doctype*'s registered controller holding *data*."""
-        return await new_document(doctype, data, session=session, engine=engine)
+        filters: dict[str, Any] | None = None,
+        or_filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int | None = 20,
+        page: int = 1,
+        order_by: str = "modified_at",
+        order: str = "desc",
+        ignore_permissions: bool = False,
+    ) -> list[Self]:
+        """Documents the user may read, as rows of this class - permission rules,
+        hidden fields and read hooks apply, values as stored::
+
+            for order in await Order.get_list(filters={"status": "Open"}, fields=["name", "total"]):
+                order.total
+
+        A row holds only the fields asked for and no child tables: a field it
+        lacks raises ``AttributeError``, and it can't be saved - read it with
+        :meth:`get_doc` for that. ``grunt.db.get_all(Order, ...)`` reads without
+        permissions or hooks.
+        """
+        return await _api().list_of(
+            cls,
+            filters=filters,
+            or_filters=or_filters,
+            fields=fields,
+            limit=limit,
+            page=page,
+            order_by=order_by,
+            order=order,
+            ignore_permissions=ignore_permissions,
+        )
+
+    async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
+        doc = await load_document(self.doctype, doc_id, session=self.session, engine=self.engine)
+        return doc.data
 
     @classmethod
     async def create[**P, T](cls: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:

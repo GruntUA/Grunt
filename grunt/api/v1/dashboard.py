@@ -226,7 +226,7 @@ async def _load_widgets(
     date_to: str | None,
 ) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
     """A visible Page's widgets (in row order) and the parsed global date range."""
-    doc = await documents.find_doc(Page, name)
+    doc = await Page.find_doc(name)
     if doc is None:
         throw(_("Page not found"), "NOT_FOUND")
     page = dict(doc.data)

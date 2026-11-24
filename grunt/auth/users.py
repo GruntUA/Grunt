@@ -71,12 +71,10 @@ async def _get_user_by(fields: list[str] | None = None, **filter_kwargs: str) ->
     """
     session = require_session()
     async with system_context(session):
-        query = User.objects.filter(**filter_kwargs)
-        if fields is not None:
-            query = query.only(*fields)
-        user = await query.first()
-        if user is None:
+        found = await User.get_list(filters=filter_kwargs, fields=fields, limit=1)
+        if not found:
             return None
+        user = found[0]
         await _attach_roles(user)
         return user
 
@@ -107,10 +105,7 @@ async def get_users_by_emails(emails: list[str], *, fields: list[str] | None = N
 
     session = require_session()
     async with system_context(session):
-        query = User.objects.filter(email__in=emails)
-        if fields is not None:
-            query = query.only(*fields)
-        return await query.all()
+        return await User.get_list(filters={"email__in": emails}, fields=fields, limit=len(emails))
 
 
 async def get_user_by_id(user_id: str, *, fields: list[str] | None = None) -> User | None:
@@ -151,7 +146,7 @@ async def list_users() -> list[User]:
     session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with system_context(session, engine):
-        users = await User.objects.limit(10_000).all()
+        users = await User.get_list(limit=10_000)
         for user in users:
             await _attach_roles(user)
         return users
@@ -168,8 +163,8 @@ async def create_user(
     session = require_session()
     engine = site_manager.get_engine(site_manager.get_active_site())
     async with system_context(session, engine):
-        is_first_user = await User.objects.count() == 0
-        await User.objects.create(
+        is_first_user = await documents.count("User") == 0
+        await User.create(
             email=email,
             first_name=first_name,
             last_name=last_name,
@@ -190,7 +185,7 @@ async def _grant_system_manager(user_id: str) -> None:
     """Ensure the "System Manager" role exists and assign it to *user_id* -
     used to make the first user on a site an administrator."""
     if not await _db.exists("Role", {"role_name": "System Manager"}):
-        await Role.objects.create(role_name="System Manager", permissions=["*"])
+        await Role.create(role_name="System Manager", permissions=["*"])
     await documents.save_doc("User", user_id, {"roles": [{"role_name": "System Manager"}]})
 
 

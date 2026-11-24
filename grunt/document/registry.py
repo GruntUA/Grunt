@@ -129,7 +129,7 @@ class DocumentRegistry:
 
     def _named(self, doctype: str, controller: type[Any]) -> type[Any]:
         """*controller* knowing its DocType (``Document.__doctype__``) - what a class
-        passed to ``grunt.get_list(Cls)`` is read as. The base class stays unnamed."""
+        passed to ``Cls.get_list()`` is read as. The base class stays unnamed."""
         if controller is not _base and controller.__dict__.get("__doctype__") != doctype:
             controller.__doctype__ = doctype
         return controller

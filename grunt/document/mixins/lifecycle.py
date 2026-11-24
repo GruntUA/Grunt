@@ -203,10 +203,9 @@ class DocumentLifecycleMixin:
             await fire(event, doctype=self.doctype, doc=doc, user=self.user, session=self.session)
 
     async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
-        """The stored document *doc_id*, read like ``grunt.get_doc`` reads it."""
-
-        doc = await self.load(self.doctype, doc_id, session=self.session, engine=self.engine)
-        return doc.data
+        """The stored document *doc_id*, read like ``grunt.get_doc`` reads it
+        (``Document`` implements it - this mixin can't import the loader)."""
+        raise NotImplementedError
 
     async def _build_initial_row(
         self, dt: Any, data: dict[str, Any], now: datetime

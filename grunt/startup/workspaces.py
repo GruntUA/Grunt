@@ -53,7 +53,7 @@ async def _upsert_workspace(
 
     if existing:
         ws_id = existing[0]["name"]
-        current = await documents.get_doc(AppMenu, ws_id)
+        current = await AppMenu.get_doc(ws_id)
         clean_update = {
             k: v
             for k, v in update_fields.items()
@@ -291,7 +291,7 @@ async def _apply_menu_contribution(rec: dict[str, Any], app_name: str) -> bool:
     if await documents.exists("AppMenu", {"name": target}) is None:
         log.warning("startup.menu_contribution_target_missing", app=app_name, target=target)
         return False
-    current = await documents.get_doc(AppMenu, target)
+    current = await AppMenu.get_doc(target)
 
     item_rows = [
         {**row, "source_app": app_name, **_anchors(item)}

@@ -97,7 +97,7 @@ class WebhookService:
     ) -> dict[str, Any]:
         """Send a test payload for the given webhook and return the log entry."""
         async with system_context(session):
-            wh_data = await documents.find_doc(OutgoingWebhook, webhook_id)
+            wh_data = await OutgoingWebhook.find_doc(webhook_id)
 
         if not wh_data:
             return {"success": False, "error": _("Webhook not found")}

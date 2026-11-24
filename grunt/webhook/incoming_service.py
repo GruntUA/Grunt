@@ -196,7 +196,7 @@ class IncomingWebhookService:
 
         session = require_session()
         async with system_context(session):
-            script_doc = await documents.find_doc(ServerScript, script_id)
+            script_doc = await ServerScript.find_doc(script_id)
 
         if not script_doc:
             return "run_server_script", f"ServerScript '{script_id}' not found"

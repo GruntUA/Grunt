@@ -9,7 +9,6 @@ from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 lazy from grunt.assignment.service import assignment_service
-lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
 lazy from grunt.permissions.rbac import permission_checker
 
@@ -127,7 +126,7 @@ class AssignmentRule(Document):
 async def test_rule(rule_id: str, test_doc: dict[str, Any]) -> dict[str, Any]:
     """Test an assignment rule against a sample document - for who may edit the
     rule: the answer names the users it would assign."""
-    rule = await documents.get_doc(AssignmentRule, rule_id)
+    rule = await AssignmentRule.get_doc(rule_id)
     meta = await doctype_registry.get_meta("AssignmentRule")
     if meta is not None:
         await permission_checker.require(meta, "write", rule.data)
