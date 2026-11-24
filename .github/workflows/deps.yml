@@ -82,6 +82,12 @@ jobs:
         with:
           install_args: node uv
 
+      # An app repository without mise.toml: the shims need versions to resolve -
+      # the runner's global config, outside the repository (not committed).
+      - name: Tools without mise.toml
+        if: hashFiles('mise.toml') == ''
+        run: mise use -g node@lts uv@latest
+
       - name: npm packages
         if: hashFiles('package-lock.json') != ''
         run: |
