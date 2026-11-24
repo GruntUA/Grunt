@@ -137,6 +137,11 @@ def test_attrdict_missing_key_in_jinja():
     assert tpl.render(r=AttrDict(a=1)) == "1|False|-"
 
 
+def test_a_whole_document_from_rows_has_its_own_input_data():
+    a, b = TrTask._from_rows([{"name": "A", "title": "x"}, {"name": "B", "title": "y"}])
+    assert a.input_data == {} and a.input_data is not b.input_data
+
+
 def test_hidden_fields_read_as_none():
     row = TrTask._from_rows([{"name": "A"}], partial=True, hidden=frozenset({"cost"}))[0]
     assert row.cost is None
