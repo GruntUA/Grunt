@@ -254,3 +254,29 @@ def test_jinja_sees_unread_fields_as_undefined():
         "{{ r.title }}|{{ r.status is defined }}|{{ r.status | default('-') }}"
     )
     assert tpl.render(r=row) == "x|False|-"
+
+
+# The submitted values (input_data) - the lifecycle sets them for the hooks
+
+
+class TrInput(Document):
+    title: str
+    status: str | None = None
+
+    async def validate(self) -> None:
+        self.status = "seen:" + ",".join(sorted(self.input_data))
+
+
+@pytest.mark.usefixtures("tasks")
+async def test_hooks_see_the_submitted_values():
+    previous = document_registry._controllers.get("TrTask")
+    document_registry.register("TrTask", TrInput)
+    try:
+        doc = await grunt.new_doc("TrTask", {"title": "a"})
+        assert doc.status == "seen:title"
+        assert "input_data" not in doc
+        saved = await grunt.save_doc("TrTask", doc.name, {"cost": 1.0})
+        assert saved.status == "seen:cost"
+    finally:
+        if previous is not None:
+            document_registry.register("TrTask", previous)
