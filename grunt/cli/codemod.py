@@ -77,7 +77,14 @@ def attr_access(apps: tuple[str, ...], dry_run: bool) -> None:
     help="Only the files under this path (repeatable) - pyright still checks the whole app",
 )
 @click.option("--dry-run", is_flag=True, help="Only count what would change")
-def typed_rows(apps: tuple[str, ...], paths: tuple[Path, ...], dry_run: bool) -> None:
+@click.option(
+    "--keep-errors",
+    is_flag=True,
+    help="Keep files rewritten where pyright then fails; list the errors to fix by hand",
+)
+def typed_rows(
+    apps: tuple[str, ...], paths: tuple[Path, ...], dry_run: bool, keep_errors: bool
+) -> None:
     """grunt.get_doc("Order", n) -> Order.get_doc(n), grunt.db.get_all("Order") ->
     grunt.db.get_all(Order)... - a DocType named in the code, read by its class.
 
@@ -99,7 +106,9 @@ def typed_rows(apps: tuple[str, ...], paths: tuple[Path, ...], dry_run: bool) ->
         class_roots = list(dict.fromkeys([root, _GRUNT_ROOT]))
         result = typed_rows_codemod.Result()
         for only in [p.resolve() for p in paths] or [None]:
-            part = typed_rows_codemod.run(root, class_roots, pyright, only=only)
+            part = typed_rows_codemod.run(
+                root, class_roots, pyright, only=only, keep_errors=keep_errors
+            )
             result.merge(part)
             if not dry_run:
                 for path, text in part.files.items():
@@ -117,4 +126,8 @@ def typed_rows(apps: tuple[str, ...], paths: tuple[Path, ...], dry_run: bool) ->
         for path, errors in result.reverted.items():
             click.echo(f"  put back (pyright): {path}")
             for e in errors[:3]:
+                click.echo(f"    {e}")
+        for path, errors in result.to_fix.items():
+            click.echo(f"  to fix by hand (pyright): {path}")
+            for e in errors:
                 click.echo(f"    {e}")

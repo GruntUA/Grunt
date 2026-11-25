@@ -11,8 +11,11 @@ from grunt.utils.attr_codemod import _Classes, _document_attrs
 from grunt.utils.typed_rows_codemod import (
     Result,
     Rewriter,
+    _Controller,
     _Controllers,
+    _dependency_roots,
     _Fixer,
+    _row_type_to,
     find_sites,
 )
 
@@ -199,6 +202,23 @@ def test_import_cycle_is_reported_not_rewritten(app: Path):
     assert result.cycles and result.cycles[0].endswith("Order")
 
 
+def test_dependency_apps_are_searched_transitively(tmp_path: Path):
+    def app(name: str, *deps: str) -> Path:
+        root = tmp_path / name
+        root.mkdir()
+        listed = ", ".join(f'"{d}"' for d in deps)
+        (root / "pyproject.toml").write_text(
+            f"[project]\nname = '{name}'\n\n[tool.grunt]\ndepends_on = [{listed}]\n"
+        )
+        return root
+
+    portal = app("portal", "cms", "grunt", "absent")
+    cms = app("cms", "media")
+    media = app("media", "portal")  # a loop back stays harmless
+    app("hrm")
+    assert _dependency_roots(portal) == [cms.resolve(), media.resolve()]
+
+
 def _diag(source: str, needle: str, rule: str, message: str) -> dict:
     line = next(i for i, ln in enumerate(source.splitlines()) if needle in ln)
     col = source.splitlines()[line].index(needle)
@@ -278,3 +298,95 @@ def test_fixer_turns_item_access_on_a_controller_into_attributes():
     assert fixer.fix(_diag(source, 'x["total"]', "reportIndexIssue", msg))
     assert not fixer.fix(_diag(source, 'lines[0]["close"]', "reportIndexIssue", msg))
     assert "[x.total for x in lines]" in fixer.result()
+
+
+def test_row_type_to_replaces_the_row_inside_its_container():
+    assert _row_type_to("dict[str, Any] | None", "Order") == "Order | None"
+    assert _row_type_to("Sequence[dict[str, list[str]]]", "Order") == "Sequence[Order]"
+    assert _row_type_to("list[AttrDict]", "Order") == "list[Order]"
+    assert _row_type_to("str", "Order") is None
+
+
+def test_fixer_retypes_the_parameter_a_row_is_passed_to():
+    source = """\
+from typing import Any
+
+
+def label(row: dict[str, Any]) -> str:
+    return row["status"]
+
+
+class Report:
+    def lines(self, rows: Sequence[AttrDict]) -> None: ...
+
+    async def run(self, order) -> None:
+        label(order)
+        self.lines([order])
+        print(order)
+"""
+    fixer = _fixer(source)
+    arg = 'Argument of type "{}" cannot be assigned to parameter "{}" of type "x" in function "{}"'
+    assert fixer.fix(
+        _diag(source, "label(order)", "reportArgumentType", arg.format("Order", "row", "label"))
+    )
+    rows = arg.format("list[Order]", "rows", "lines")
+    assert fixer.fix(_diag(source, "self.lines", "reportArgumentType", rows))
+    assert not fixer.fix(  # not a function of this file
+        _diag(source, "print(order)", "reportArgumentType", arg.format("Order", "x", "print"))
+    )
+    out = fixer.result()
+    assert "def label(row: Order) -> str:" in out
+    assert "def lines(self, rows: Sequence[Order])" in out
+
+
+def test_fixer_imports_a_class_the_new_type_names():
+    source = "import grunt\n\n\nasync def f() -> list[AttrDict]:\n    return await g()\n"
+    classes = _Classes()
+    classes.add(ORDER)
+    msg = 'Type "list[Order]" is not assignable to return type "list[AttrDict]"'
+    diag = _diag(source, "return", "reportReturnType", msg)
+    cyclic = _Fixer(source, {"AttrDict"}, classes, _document_attrs(), importer=lambda n: None)
+    assert not cyclic.fix(diag)
+    fixer = _Fixer(
+        source, {"AttrDict"}, classes, _document_attrs(), importer=lambda n: "shop.order"
+    )
+    assert fixer.fix(diag)
+    out = fixer.result()
+    assert "from shop.order import Order\n" in out and "-> list[Order]:" in out
+
+
+def test_fixer_refuses_two_classes_for_one_parameter():
+    source = (
+        "def label(row: dict[str, Any]) -> str: ...\n\n\ndef f(o, i):\n    label(o)\n    label(i)\n"
+    )
+    classes = _Classes()
+    classes.add(ORDER)
+    classes.add(ORDER.replace("class Order", "class Invoice"))
+    fixer = _Fixer(source, {"Order", "Invoice", "Any"}, classes, _document_attrs())
+    arg = (
+        'Argument of type "{}" cannot be assigned to parameter "row" of type "x"'
+        ' in function "label"'
+    )
+    assert fixer.fix(_diag(source, "label(o)", "reportArgumentType", arg.format("Order")))
+    assert fixer.fix(_diag(source, "label(o)", "reportArgumentType", arg.format("Order")))  # same
+    assert not fixer.fix(_diag(source, "label(i)", "reportArgumentType", arg.format("Invoice")))
+    assert "def label(row: Order) -> str:" in fixer.result()
+
+
+def test_a_dependency_app_importing_this_one_back_is_a_cycle(tmp_path: Path):
+    cms = tmp_path / "cms"
+    (cms / "doctypes" / "Page").mkdir(parents=True)
+    (cms / "__init__.py").write_text("")
+    page = cms / "doctypes" / "Page" / "page.py"
+    page.write_text("class Page: ...\n")
+    ctrl = _Controller("Page", "cms.doctypes.Page.page", page, cms, {})
+    reader = tmp_path / "portal" / "reader.py"
+    assert not Rewriter._cycle(reader, "portal.reader", ctrl)
+    assert Rewriter._cycle(tmp_path / "grunt" / "x.py", "grunt.x", ctrl)  # the core never
+    hooks = tmp_path / "cms2"
+    (hooks / "doctypes" / "Page").mkdir(parents=True)
+    (hooks / "__init__.py").write_text("")
+    back = hooks / "doctypes" / "Page" / "page.py"
+    back.write_text("lazy from portal.reader import read\n\n\nclass Page: ...\n")
+    ctrl2 = _Controller("Page", "cms2.doctypes.Page.page", back, hooks, {})
+    assert Rewriter._cycle(reader, "portal.reader", ctrl2)
