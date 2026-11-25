@@ -6,8 +6,13 @@ from grunt.document.base import Document
 class PushSubscription(Document):
     """DocType controller for PushSubscription."""
 
-    user: str
-    endpoint: str | None
-    p256dh: str | None
-    auth: str | None
-    user_agent: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    user: str  # User
+    endpoint: str  # Endpoint
+    p256dh: str  # p256dh key
+    auth: str  # Auth key
+    user_agent: str | None = None  # User Agent
+
+    # end: auto-generated types

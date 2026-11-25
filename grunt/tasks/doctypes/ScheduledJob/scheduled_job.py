@@ -72,6 +72,22 @@ class ScheduledJobStore(VirtualStore):
 
 
 class ScheduledJob(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    job_id: str | None = None  # Job ID
+    enabled: bool | None = None  # Enabled
+    cron_expression: str | None = None  # Cron expression
+    next_run_at: datetime | None = None  # Next run
+    last_run_at: datetime | None = None  # Last run
+    status: str | None = None  # Status
+    last_error: str | None = None  # Last error
+    run_count: int | None = None  # Run count
+    executor: str | None = None  # Assignee
+    params: Any | None = None  # Parameters
+
+    # end: auto-generated types
+
     store_class = ScheduledJobStore
 
 

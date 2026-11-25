@@ -27,10 +27,15 @@ class FileFolder(Document):
     space - who owns it, whose quota it fills - is one column, not a tree walk.
     """
 
-    folder_name: str
-    parent_folder: str | None
-    space_user: str | None
-    is_home: bool
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    folder_name: str  # Folder name
+    parent_folder: str | None = None  # Parent folder
+    space_user: str | None = None  # Space owner
+    is_home: bool | None = None  # Home folder
+
+    # end: auto-generated types
 
     _prev: dict[str, Any] | None = None
 

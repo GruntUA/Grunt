@@ -4,7 +4,7 @@ The copying itself lives in :mod:`grunt.tasks.auto_repeat` (daily job), the
 schedule arithmetic in :mod:`grunt.tasks.repeat_schedule`.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from grunt.db.api import GruntDB
@@ -41,9 +41,27 @@ _SCHEDULE_FIELDS = (
 class AutoRepeat(Document):
     """DocType controller for AutoRepeat."""
 
-    reference_doctype: str
-    reference_document: str
-    frequency: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    reference_doctype: str  # Document type
+    reference_document: str  # Template document
+    status: str | None = None  # Status
+    disabled: bool | None = None  # Disabled
+    frequency: str | None = None  # Frequency
+    repeat_on_day: int | None = None  # Day of month
+    repeat_on_last_day: bool | None = None  # Last day of month
+    start_date: date | None = None  # Start date
+    end_date: date | None = None  # End date
+    next_schedule_date: date | None = None  # Next run
+    date_field: str | None = None  # Date field
+    notify: bool | None = None  # Notify me
+    last_document: str | None = None  # Last copy
+    created_count: int | None = None  # Copies created
+    last_run_at: datetime | None = None  # Last run
+    last_error: str | None = None  # Last error
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         await self._validate_reference()
@@ -63,7 +81,7 @@ class AutoRepeat(Document):
         if replan and not self.disabled:
             self.next_schedule_date = first_date(
                 as_date(self.start_date) or date.today(),
-                self.frequency,
+                self.frequency or "Monthly",  # the field default
                 anchor_day(self.data),
                 bool(self.repeat_on_last_day),
                 not_before=date.today(),

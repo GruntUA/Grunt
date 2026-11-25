@@ -12,6 +12,22 @@ from grunt.utils.slug import slugify
 
 
 class ModuleOnboarding(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    subtitle: str | None = None  # Subtitle
+    app: str | None = None  # App
+    is_published: bool | None = None  # Published
+    roles: str | None = None  # Roles (comma-separated)
+    progress_scope: str | None = None  # Progress
+    success_message: str | None = None  # Success message
+    documentation_url: str | None = None  # Documentation URL
+    is_standard: bool | None = None  # Standard
+    steps: list[dict] = []  # Table: OnboardingStep
+
+    # end: auto-generated types
+
     async def validate(self) -> None:
         taken: set[str] = set()
         for step in self.steps or []:

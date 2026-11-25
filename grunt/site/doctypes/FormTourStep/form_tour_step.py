@@ -6,7 +6,12 @@ from grunt.document.base import Document
 class FormTourStep(Document):
     """DocType controller for FormTourStep."""
 
-    title: str | None
-    description: str | None
-    fieldname: str | None
-    element: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    description: str | None = None  # Description
+    fieldname: str | None = None  # Field
+    element: str | None = None  # Element
+
+    # end: auto-generated types

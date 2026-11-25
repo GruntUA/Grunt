@@ -11,7 +11,7 @@ note in ``description``.
                      ``owner``); reopening clears the stamp
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from grunt.document.base import Document
@@ -42,12 +42,25 @@ def auto_assign_note(doctype: str, ref_id: str | None) -> str:
 class ToDo(Document):
     """DocType controller for ToDo (assignment)."""
 
-    description: str
-    reference_doctype: str | None
-    reference_id: str | None
-    assigned_to: str | None
-    assigned_by: str | None
-    status: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    description: str  # Description
+    reference_doctype: str | None = None  # Document type
+    reference_id: str | None = None  # Document ID
+    assigned_to: str | None = None  # Assignee
+    assigned_by: str | None = None  # Assigned by
+    assignment_rule: str | None = None  # Assignment rule
+    assigned_on: datetime | None = None  # Assigned to
+    status: str | None = None  # Status
+    priority: str | None = None  # Priority
+    due_date: date | None = None  # Due date
+    is_overdue: bool | None = None  # Overdue
+    color: str | None = None  # Color
+    completed_on: datetime | None = None  # Done
+    completed_by: str | None = None  # Run by
+
+    # end: auto-generated types
 
     _inserting: bool = False
     _prev: dict[str, Any] | None = None
