@@ -1,6 +1,7 @@
 """DocumentShare DocType controller."""
 
 import secrets
+from datetime import datetime
 
 from grunt.document.base import Document
 from grunt.errors import not_found
@@ -11,10 +12,18 @@ lazy from grunt.document.api import documents
 
 
 class DocumentShare(Document):
-    doctype_name: str
-    doc_id: str
-    token: str
-    is_active: bool
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    doctype_name: str  # Document type
+    doc_id: str  # Document ID
+    token: str | None = None  # Token
+    expires_at: datetime | None = None  # Valid until
+    is_active: bool | None = None  # Active
+    view_count: int | None = None  # Views
+    note: str | None = None  # Note
+
+    # end: auto-generated types
 
     async def before_insert(self) -> None:
         """Creating a share token grants guest-level read access to the

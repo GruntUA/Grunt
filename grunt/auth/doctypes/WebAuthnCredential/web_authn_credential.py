@@ -29,15 +29,20 @@ class WebAuthnCredential(Document):
     do here beyond what the metadata enforces.
     """
 
-    user: str
-    label: str | None
-    credential_id: str
-    public_key: str
-    sign_count: int
-    aaguid: str | None
-    transports: str | None
-    backed_up: bool
-    last_used_at: datetime | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    user: str  # User
+    label: str | None = None  # Name
+    last_used_at: datetime | None = None  # Last used
+    backed_up: bool | None = None  # Synced
+    credential_id: str | None = None  # Credential ID
+    public_key: str | None = None  # Public key
+    sign_count: int | None = None  # Signature counter
+    aaguid: str | None = None  # AAGUID
+    transports: str | None = None  # Transports
+
+    # end: auto-generated types
 
 
 def _row_view(row: dict[str, Any]) -> dict[str, Any]:

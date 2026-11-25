@@ -11,7 +11,7 @@ controller no longer parsed (`IndentationError`).
 import ast
 import textwrap
 
-from grunt.utils.codegen import render_template, sync_controller_types
+from grunt.utils.codegen import build_controller_context, render_template, sync_controller_types
 
 _CONTROLLER = textwrap.dedent(
     '''\
@@ -75,19 +75,23 @@ def test_sync_normalises_an_already_crept_block(tmp_path):
 
 
 def test_fresh_controller_render_is_valid_python_with_one_field_per_line(tmp_path):
-    ctx = {
-        "name": "Widget",
-        "physical_fields": [
-            {"fieldname": "a", "py_type": "str | None", "label": "Назва", "fieldtype": "Data"},
-            {"fieldname": "b", "py_type": "int | None", "label": "Кількість", "fieldtype": "Int"},
+    ctx = build_controller_context(
+        "Widget",
+        [
+            {"fieldname": "a", "fieldtype": "Data", "label": "Назва"},
+            {"fieldname": "b", "fieldtype": "Int", "label": "Кількість"},
+            {"fieldname": "rows", "fieldtype": "Table", "options": "WidgetRow"},
+            {"fieldname": "extra", "fieldtype": "JSON", "label": "Extra"},
+            {"fieldname": "due", "fieldtype": "Date"},
         ],
-        "table_fields": [{"fieldname": "rows", "options": "WidgetRow"}],
-    }
+    )
     out = render_template("doctype/controller.py.jinja", ctx)
     ast.parse(out)
     assert "    a: str | None = None  # Назва\n" in out
     assert "    b: int | None = None  # Кількість\n" in out
     assert "    rows: list[dict] = []  # Table: WidgetRow\n" in out
+    assert "    extra: Any | None = None  # Extra\n" in out
+    assert "from datetime import date\nfrom typing import Any\n" in out
 
 
 def test_sync_adds_missing_datetime_import(tmp_path):

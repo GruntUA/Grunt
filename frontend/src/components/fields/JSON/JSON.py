@@ -5,7 +5,7 @@ class JSONField(FieldType):
     name = "JSON"
     column_spec = ("JSON",)
     searchable = False
-    python_type = "dict | None"
+    python_type = "Any | None"
 
 
 def register():

@@ -59,7 +59,7 @@ class EmailAccount(Document):
     imap_port: int | None = None  # IMAP port
     use_ssl: bool | None = None  # Use SSL
     imap_folders: str | None = None  # IMAP folders
-    imap_state: dict | None = None  # IMAP position
+    imap_state: Any | None = None  # IMAP position
     append_to: str | None = None  # Create documents
     auto_reply: bool | None = None  # Auto-reply
     auto_reply_message: str | None = None  # Auto-reply text

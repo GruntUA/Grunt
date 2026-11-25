@@ -16,8 +16,14 @@ _db = GruntDB()  # stateless: reads through the context's session
 class MilestoneTracker(Document):
     """DocType controller for MilestoneTracker."""
 
-    ref_doctype: str
-    track_field: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    ref_doctype: str  # Document type
+    track_field: str | None = None  # Field
+    disabled: bool | None = None  # Disabled
+
+    # end: auto-generated types
 
     _starts: bool = False
 
@@ -71,6 +77,6 @@ class MilestoneTracker(Document):
 
     async def after_save(self) -> None:
         milestones.invalidate()
-        if self._starts:
+        if self._starts and self.track_field:  # validate() always sets it
             # Existing documents get their current value as an (approximate) start.
             await milestones.seed(self.ref_doctype, self.track_field)

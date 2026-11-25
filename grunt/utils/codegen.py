@@ -7,6 +7,7 @@ Provides:
 """
 
 import ast
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -105,23 +106,13 @@ def _import_key(name: str) -> tuple[int, str]:
 
 def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
     """Prepare the template context for doctype/controller.py.jinja."""
-    physical = [f for f in fields if _is_typed(f)]
-
-    needs_datetime = any("datetime" in get_python_type(f["fieldtype"]) for f in physical)
-
-    enriched = []
-    for f in physical:
-        enriched.append(
-            {
-                **f,
-                "py_type": field_type(f),
-            }
-        )
-
     return {
         "name": name,
-        "physical_fields": enriched,
-        "needs_datetime": needs_datetime,
+        "imports": [
+            f"from {module} import {', '.join(names)}"
+            for module, names in sorted(block_imports(fields).items())
+        ],
+        "type_block": _render_type_block(fields),
     }
 
 
@@ -167,12 +158,29 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     )
 
 
-def _ensure_datetime_import(source: str, fields: list[dict]) -> str:
-    """Make sure `from datetime import ...` covers the date types the block annotates."""
-    used = {get_python_type(f["fieldtype"]).split(" ", 1)[0] for f in fields if _is_typed(f)}
-    needed = [n for n in _DATETIME_NAMES if n in used]
-    if not needed:
-        return source
+def block_imports(fields: list[dict]) -> dict[str, list[str]]:
+    """``module -> names`` the types block of *fields* needs imported."""
+    used = {
+        name
+        for f in fields
+        if _is_typed(f) and f.get("fieldtype") != "Table"
+        for name in re.findall(r"[A-Za-z_]\w*", field_type(f))
+    }
+    imports = {"datetime": [n for n in _DATETIME_NAMES if n in used]}
+    if "Any" in used:
+        imports["typing"] = ["Any"]
+    return {module: names for module, names in imports.items() if names}
+
+
+def _ensure_block_imports(source: str, fields: list[dict]) -> str:
+    """Make sure the module imports the names the types block annotates with."""
+    for module, needed in block_imports(fields).items():
+        source = _ensure_import(source, module, needed)
+    return source
+
+
+def _ensure_import(source: str, module: str, needed: list[str]) -> str:
+    """Make sure `from <module> import ...` covers *needed*."""
 
     try:
         tree = ast.parse(source)
@@ -181,17 +189,17 @@ def _ensure_datetime_import(source: str, fields: list[dict]) -> str:
     lines = source.splitlines(keepends=True)
 
     for node in tree.body:
-        if isinstance(node, ast.ImportFrom) and node.module == "datetime" and not node.level:
+        if isinstance(node, ast.ImportFrom) and node.module == module and not node.level:
             have = [a.name for a in node.names]
             if all(n in have for n in needed):
                 return source
             if node.end_lineno != node.lineno or any(a.asname for a in node.names):
                 return source
             merged = sorted({*have, *needed}, key=_import_key)
-            lines[node.lineno - 1] = f"from datetime import {', '.join(merged)}\n"
+            lines[node.lineno - 1] = f"from {module} import {', '.join(merged)}\n"
             return "".join(lines)
 
-    stmt = f"from datetime import {', '.join(needed)}\n"
+    stmt = f"from {module} import {', '.join(needed)}\n"
     for node in tree.body:
         if (
             isinstance(node, ast.Import | ast.ImportFrom)
@@ -273,7 +281,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     else:
         new_source = _insert_block_into_class(source, new_block)
 
-    new_source = _ensure_datetime_import(new_source, fields)
+    new_source = _ensure_block_imports(new_source, fields)
 
     if new_source == source:
         return False

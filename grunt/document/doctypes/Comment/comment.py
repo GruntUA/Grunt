@@ -15,10 +15,16 @@ _db = GruntDB()  # stateless: reads through the context's session
 
 
 class Comment(Document):
-    reference_doctype: str
-    reference_id: str
-    content: str
-    comment_type: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    reference_doctype: str  # Document type
+    reference_id: str  # Document ID
+    content: str  # Content
+    comment_type: str | None = None  # Type
+    parent_comment: str | None = None  # Reply to
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         if not (self.content or "").strip():
