@@ -1,6 +1,7 @@
 import type { Ref } from 'vue'
 
 import type { DocType } from '@/types'
+import { resolveDefault } from '@/core/datetime'
 import i18n from '@/plugins/i18n'
 
 const t = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params)
@@ -49,11 +50,7 @@ export function useFormInitialization(params: FormInitializationParams) {
       // Apply field defaults (lowest priority - can be overridden by duplicate/query params)
       for (const field of params.dt.value?.fields ?? []) {
         if (field.default != null && params.form.value[field.fieldname] == null) {
-          let val: unknown = field.default
-          if (val === 'Today') {
-            val = new Date().toISOString().split('T')[0]
-          }
-          params.form.value[field.fieldname] = val
+          params.form.value[field.fieldname] = resolveDefault(field.fieldtype, field.default)
         }
       }
 

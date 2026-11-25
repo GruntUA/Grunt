@@ -47,6 +47,31 @@ function toDate(value: DateInput): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
+/**
+ * `YYYY-MM-DD` of *now* (default: this moment) in the site/user time zone - what a
+ * Date field's `"Today"` default means. `toISOString()` would give the UTC day,
+ * which in Kyiv is still yesterday until 02:00-03:00.
+ */
+export function todayISO(now: Date = new Date()): string {
+  const p = partsOf(now, { year: 'numeric', month: '2-digit', day: '2-digit' })
+  return `${p.year}-${p.month}-${p.day}`
+}
+
+/** Date/Datetime defaults meaning "at creation" (the server resolves the same). */
+const DATE_DEFAULT_TOKENS = new Set(['today', 'now'])
+
+/**
+ * A field default as a new form gets it: `"Today"` / `"Now"` on a Date field ->
+ * today (`YYYY-MM-DD`), on a Datetime field -> this moment (ISO, UTC); anything
+ * else unchanged.
+ */
+export function resolveDefault(fieldtype: string, value: unknown): unknown {
+  if (typeof value !== 'string' || !DATE_DEFAULT_TOKENS.has(value.trim().toLowerCase())) return value
+  if (fieldtype === 'Date') return todayISO()
+  if (fieldtype === 'Datetime') return new Date().toISOString()
+  return value
+}
+
 /** BCP-47 tag for `Intl` - the active UI language (`uk`, `en`, …). */
 export function localeTag(): string {
   return i18n.global.locale.value || siteConfigState().language || 'uk'

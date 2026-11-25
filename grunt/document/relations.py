@@ -321,7 +321,7 @@ def apply_field_values(
         if field.fieldname in data:
             row[field.fieldname] = field.coerce(data[field.fieldname])
         elif field.default is not None:
-            row[field.fieldname] = field.coerce(field.default)
+            row[field.fieldname] = field.default_value()
         elif field.fieldtype == "Check":
             row[field.fieldname] = False
         elif fill_empty:

@@ -3,9 +3,11 @@
 import functools
 import importlib.util
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, ClassVar, Literal
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, model_validator
 from sqlalchemy import JSON as SAJSON
@@ -13,6 +15,7 @@ from sqlalchemy import Column, Double, Integer, Numeric, String, Text, Time
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import TypeEngine
 
+from grunt.config import settings
 from grunt.db.types import CheckBool, IsoDate, UtcDateTime
 from grunt.log import log
 
@@ -184,6 +187,10 @@ _SA_TYPE_STORAGE_CLASS: dict[str, str] = {
     "Time": "time",
     "JSON": "json",
 }
+
+
+# Date/Datetime defaults meaning "at creation" (see DocField.default_value).
+DATE_DEFAULT_TOKENS = frozenset({"today", "now"})
 
 
 @functools.cache
@@ -486,6 +493,22 @@ class DocField(BaseModel):
     def coerce(self, value: Any) -> Any:
         """Convert a raw value to the appropriate Python type for this field."""
         return get_field_type_class(self.fieldtype).coerce_field(self, value)
+
+    def default_value(self) -> Any:
+        """The field's default for a new document, coerced (None without one).
+
+        A Date/Datetime default may be the token ``"Today"`` (or ``"Now"``):
+        "at creation", resolved here as the form resolves it - today in the
+        site's time zone for a Date, the current moment for a Datetime.
+        """
+        if self.default is None:
+            return None
+        storage = get_storage_class(self.fieldtype)
+        token = self.default.strip().lower() if isinstance(self.default, str) else None
+        if storage in ("date", "datetime") and token in DATE_DEFAULT_TOKENS:
+            now = datetime.now(ZoneInfo(settings.default_timezone))
+            return now.date() if storage == "date" else now.astimezone(UTC)
+        return self.coerce(self.default)
 
     def has_trait(self, trait: str) -> bool:
         """Return True if this field's type declares *trait* (see :data:`TRAITS`)."""
