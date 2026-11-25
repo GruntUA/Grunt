@@ -11,7 +11,12 @@ controller no longer parsed (`IndentationError`).
 import ast
 import textwrap
 
-from grunt.utils.codegen import build_controller_context, render_template, sync_controller_types
+from grunt.utils.codegen import (
+    _ensure_import,
+    build_controller_context,
+    render_template,
+    sync_controller_types,
+)
 
 _CONTROLLER = textwrap.dedent(
     '''\
@@ -267,3 +272,14 @@ def test_an_aliased_or_local_child_import_does_not_count(tmp_path):
     assert (
         "\nif TYPE_CHECKING:\n    from shop.doctypes.OrderLine.order_line import OrderLine\n"
     ) in src
+
+
+def test_a_name_merged_into_a_lazy_import_stays_lazy():
+    lazy = "import grunt\nlazy from grunt.auth.users import GUEST\n"
+    assert "lazy from grunt.auth.users import GUEST, User\n" in _ensure_import(
+        lazy, "grunt.auth.users", ["User"]
+    )
+    both = "lazy from grunt.auth.users import GUEST\nfrom grunt.auth.users import ROLE\n"
+    out = _ensure_import(both, "grunt.auth.users", ["User"])
+    assert "from grunt.auth.users import ROLE, User\n" in out  # the eager one first
+    assert "lazy from grunt.auth.users import GUEST\n" in out

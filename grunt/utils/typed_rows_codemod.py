@@ -1,7 +1,7 @@
 """Codemod: a DocType the code names -> its controller class (TYPED_ROWS_PLAN §10).
 
 Rewrites, where the DocType is a string literal or a module-level string
-constant and has a controller::
+constant and has a controller - in the app, the apps it ``depends_on`` or the core::
 
     await grunt.get_doc("Order", n)            -> await Order.get_doc(n)
     await grunt.find_doc("Order", n)           -> await Order.find_doc(n)
@@ -31,8 +31,12 @@ module already reaches this one) - those sites are reported, not rewritten.
 
 Then pyright runs over the app: a declared type the new value no longer fits
 (``AttrDict``/``dict`` in an annotation, reportAssignmentType/ReturnType) is
-retyped to the class, ``x["k"]`` on a controller becomes ``x.k``; a file with any
-other new error is put back as it was.
+retyped to the class - and so is the parameter of a function of the same file
+the row is passed to (reportArgumentType: ``Sequence[dict]`` -> ``Sequence[Order]``);
+a class the new type names is imported when that closes no cycle. ``x["k"]`` on a
+controller becomes ``x.k``. A file with any other new error is put back as it
+was - or, with ``keep_errors``, kept and its errors listed to fix by hand (mostly
+``str | None`` fields the code took for filled).
 
 Tests are left out: they often test the facade itself.
 """
@@ -44,10 +48,11 @@ import json
 import re
 import subprocess
 from collections import Counter, defaultdict
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from grunt.apps.required import dependencies
 from grunt.utils import codegen
 from grunt.utils.attr_codemod import _DICT_ATTRS, _READABLE_SYS, _Classes, _document_attrs
 
@@ -128,6 +133,8 @@ class Result:
     left: list[str] = field(default_factory=list)  # "reason file:line" of each site left
     cycles: list[str] = field(default_factory=list)  # "file:line Cls" not imported
     reverted: dict[str, list[str]] = field(default_factory=dict)  # file -> pyright errors
+    # keep_errors: rewritten all the same - file -> pyright errors to fix by hand
+    to_fix: dict[str, list[str]] = field(default_factory=dict)
 
     def merge(self, other: Result) -> None:
         self.files.update(other.files)
@@ -137,6 +144,7 @@ class Result:
         self.left += other.left
         self.cycles += other.cycles
         self.reverted.update(other.reverted)
+        self.to_fix.update(other.to_fix)
 
 
 def _module_constants(tree: ast.Module) -> dict[str, str]:
@@ -652,6 +660,34 @@ def _new_errors(before: list[dict], after: list[dict]) -> list[dict]:
 
 _RECEIVED = re.compile(r'Type "([^"]*)" is not assignable to (?:declared|return) type "([^"]*)"')
 _NO_ITEM = re.compile(r'"__(?:get|set)item__" method not defined on type "(\w+)"')
+_ARGUMENT = re.compile(
+    r'Argument of type "([^"]*)" cannot be assigned to parameter "(\w+)" of type "[^"]*"'
+    r' in function "(\w+)"'
+)
+_ROW_TYPE = re.compile(r"\b(AttrDict|dict|Mapping)\b")
+
+
+def _row_type_to(annotation: str, cls: str) -> str | None:
+    """*annotation* with each row type in it (``AttrDict``, ``dict[…]``,
+    ``Mapping[…]``) replaced by *cls* - ``list[dict[str, Any]] | None`` ->
+    ``list[Order] | None``; ``None`` when it has none."""
+    out, pos, found = [], 0, False
+    for m in _ROW_TYPE.finditer(annotation):
+        if m.start() < pos:
+            continue  # inside the brackets of one already replaced
+        end = m.end()
+        if annotation[end : end + 1] == "[":
+            depth = 0
+            for i in range(end, len(annotation)):
+                depth += {"[": 1, "]": -1}.get(annotation[i], 0)
+                if depth == 0:
+                    end = i + 1
+                    break
+            else:
+                return None
+        out += [annotation[pos : m.start()], cls]
+        pos, found = end, True
+    return "".join([*out, annotation[pos:]]) if found else None
 
 
 _BUILTIN_TYPES = {"list", "dict", "tuple", "set", "str", "int", "float", "bool", "None"}
@@ -660,7 +696,16 @@ _BUILTIN_TYPES = {"list", "dict", "tuple", "set", "str", "int", "float", "bool",
 class _Fixer:
     """One round of pyright fixes for one file."""
 
-    def __init__(self, source: str, bound: set[str], classes: _Classes, doc_attrs: frozenset[str]):
+    def __init__(
+        self,
+        source: str,
+        bound: set[str],
+        classes: _Classes,
+        doc_attrs: frozenset[str],
+        importer: Callable[[str], str | None] | None = None,
+    ):
+        """*importer*: a controller class -> the module to import it from here
+        (``None``: it can't be, e.g. an import cycle)."""
         self.source = source
         self.text = _Text(source)
         self.tree = ast.parse(source)
@@ -669,6 +714,22 @@ class _Fixer:
         self.classes = classes
         self.doc_attrs = doc_attrs
         self.edits: list[tuple[int, int, str]] = []
+        self.importer = importer
+        self.imports: dict[str, set[str]] = defaultdict(set)
+
+    def _bind(self, names: set[str]) -> bool:
+        """Whether each of *names* is bound here - importing the controller
+        classes that are not yet, when they can be."""
+        todo: dict[str, str] = {}
+        for n in names - self.bound - _BUILTIN_TYPES:
+            module = self.importer(n) if self.importer and self.classes.is_controller(n) else None
+            if module is None:
+                return False
+            todo[n] = module
+        for n, module in todo.items():
+            self.imports[module].add(n)
+            self.bound.add(n)
+        return True
 
     def _offset(self, pos: dict) -> int:
         line = pos["line"] + 1
@@ -686,6 +747,16 @@ class _Fixer:
         ]
 
     def fix(self, d: dict) -> bool:
+        """Fix the pyright error *d*; ``False`` (nothing recorded): it can't be."""
+        edits, bound = len(self.edits), set(self.bound)
+        imports = {m: set(n) for m, n in self.imports.items()}
+        if self._fix(d):
+            return True
+        del self.edits[edits:]
+        self.bound, self.imports = bound, defaultdict(set, imports)
+        return False
+
+    def _fix(self, d: dict) -> bool:
         rule, msg = d.get("rule"), d["message"]
         m = _RECEIVED.search(msg)
         if m and rule in ("reportAssignmentType", "reportReturnType"):
@@ -693,8 +764,8 @@ class _Fixer:
             names = set(re.findall(r"[A-Za-z_]\w*", received))
             if (
                 not any(self.classes.is_controller(n) for n in names)
-                or not names <= (self.bound | _BUILTIN_TYPES)
                 or names & {"dict", "AttrDict", "Any"}
+                or not self._bind(names)
             ):
                 return False  # not the class alone: a row mixed with a dict
             if rule == "reportReturnType":
@@ -732,7 +803,65 @@ class _Fixer:
                 return False
             self.edits.append((self.text.end(sub.value), self.text.end(sub), f".{key}"))  # type: ignore[attr-defined]
             return True
+        m = _ARGUMENT.search(msg)
+        if m and rule == "reportArgumentType":
+            return self._retype_parameter(d, m[1], m[2], m[3])
         return False
+
+    def _retype_parameter(self, d: dict, received: str, param: str, fn_name: str) -> bool:
+        """A row passed to a function of this file whose parameter still says
+        ``dict``/``AttrDict``: the parameter takes the class (``Sequence[dict]``
+        -> ``Sequence[Order]``). Other callers that pass dicts then fail
+        pyright, and the file is put back."""
+        names = set(re.findall(r"[A-Za-z_]\w*", received))
+        ctrls = {n for n in names if self.classes.is_controller(n)}
+        if len(ctrls) != 1 or names & {"dict", "AttrDict", "Any"} or not self._bind(names):
+            return False
+        cls = ctrls.pop()
+        calls = [
+            c
+            for c in self._at(d, ast.Call)
+            if isinstance(c, ast.Call)
+            and getattr(c.func, "id", getattr(c.func, "attr", None)) == fn_name
+        ]
+        if not calls:
+            return False
+        fn = self._callee(min(calls, key=lambda c: self.text.end(c) - self.text.start(c)))
+        if fn is None:
+            return False
+        a = fn.args
+        arg = next((x for x in [*a.posonlyargs, *a.args, *a.kwonlyargs] if x.arg == param), None)
+        if arg is None or arg.annotation is None:
+            return False
+        ann = arg.annotation
+        new = _row_type_to(self.text.seg(self.text.start(ann), self.text.end(ann)), cls)
+        if new is None:
+            return False
+        self.edits.append((self.text.start(ann), self.text.end(ann), new))
+        return True
+
+    def _callee(self, call: ast.Call) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+        """The function of this file *call* calls: ``f(…)`` - module level,
+        ``self.f(…)`` / ``cls.f(…)`` - a method of the enclosing class."""
+        func = call.func
+        if isinstance(func, ast.Name):
+            body: list[ast.stmt] = self.tree.body
+            name = func.id
+        elif isinstance(func, ast.Attribute) and getattr(func.value, "id", None) in ("self", "cls"):
+            node: ast.AST | None = call
+            while node is not None and not isinstance(node, ast.ClassDef):
+                node = self.parents.get(node)
+            if node is None:
+                return None
+            body, name = node.body, func.attr
+        else:
+            return None
+        defs = [
+            n
+            for n in body
+            if isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef) and n.name == name
+        ]
+        return defs[0] if len(defs) == 1 else None
 
     def _innermost(self, d: dict, kind: type | tuple[type, ...]) -> ast.AST | None:
         found = self._at(d, kind)
@@ -759,7 +888,10 @@ class _Fixer:
         return decl[0].annotation if len(decl) == 1 else None
 
     def result(self) -> str:
-        out = _apply(self.text.raw, self.edits)
+        # One parameter or annotation fixed from several errors: one edit.
+        out = _apply(self.text.raw, list(dict.fromkeys(self.edits)))
+        for module, names in self.imports.items():
+            out = codegen._ensure_import(out, module, sorted(names))
         return _drop_unused(out, "AttrDict")
 
 
@@ -813,10 +945,14 @@ def run(
     class_roots: list[Path],
     pyright: list[str],
     only: Path | None = None,
+    keep_errors: bool = False,
 ) -> Result:
     """Work out the rewrites of *app_root* (or of the files under *only*), checked
     by pyright over the whole app. Nothing is left written: the files are
-    restored before this returns, whatever happens."""
+    restored before this returns, whatever happens.
+
+    *keep_errors*: a file pyright then fails on is kept rewritten (the errors
+    that can be fixed are), the rest go to ``Result.to_fix`` - to finish by hand."""
     result = Result()
     app_root = app_root.resolve()
     sources: dict[Path, str] = {}
@@ -833,10 +969,11 @@ def run(
             sources[p], trees[p], sites[p] = text, tree, found
             result.candidates += len(found)
 
-    tops = list(dict.fromkeys([*_tops(app_root), codegen._CORE_PACKAGE]))
-    controllers = _Controllers(tops)
+    deps = _dependency_roots(app_root)
+    tops = list(dict.fromkeys([*_tops(app_root), *(t for d in deps for t in _tops(d))]))
+    controllers = _Controllers([*tops, codegen._CORE_PACKAGE])
     classes = _Classes()
-    for root in class_roots:
+    for root in dict.fromkeys([*class_roots, *deps]):
         for p in python_files_all(root):
             try:
                 classes.add(p.read_text())
@@ -897,7 +1034,14 @@ def run(
                     set(_bound_names(ast.parse(current))) | classes_in.get(f, set()),
                     classes,
                     doc_attrs,
+                    importer=_importer(f, controllers),
                 )
+                if keep_errors:
+                    if [d for d in errs if fixer.fix(d)]:
+                        write(f, fixer.result())
+                        new[f] = fixer.result()
+                        changed = True
+                    continue
                 if all(fixer.fix(d) for d in errs):
                     write(f, fixer.result())
                     new[f] = fixer.result()
@@ -913,7 +1057,7 @@ def run(
             if not changed:
                 break
         else:
-            fresh = _new_errors(before, _errors(_pyright(pyright, app_root)))
+            fresh = [] if keep_errors else _new_errors(before, _errors(_pyright(pyright, app_root)))
             for d in fresh:
                 f = Path(d["file"]).resolve()
                 for c in [f] if f in new else _culprits(f, new):
@@ -922,6 +1066,11 @@ def run(
                             _describe(d)
                         )
                         del new[c]
+        if keep_errors:
+            for d in _new_errors(before, _errors(_pyright(pyright, app_root))):
+                f = Path(d["file"]).resolve()
+                rel = str(f.relative_to(app_root)) if f.is_relative_to(app_root) else str(f)
+                result.to_fix.setdefault(rel, []).append(_describe(d))
         result.files = {p: t for p, t in new.items() if t != all_sources.get(p, sources.get(p))}
         result.rewrites = sum(counts.get(p, 0) for p in result.files)
         result.cycles = [c.removeprefix(f"{app_root}/") for c in result.cycles]
@@ -929,6 +1078,19 @@ def run(
         for p in written:
             p.write_text(all_sources[p])
     return result
+
+
+def _importer(path: Path, controllers: _Controllers) -> Callable[[str], str | None]:
+    """Controller class -> the module *path* may import it from (no cycle)."""
+    module = _module_of(path)
+
+    def find(name: str) -> str | None:
+        ctrl = controllers.get(name)
+        if ctrl is None or ctrl.path.resolve() == path or Rewriter._cycle(path, module, ctrl):
+            return None
+        return ctrl.module
+
+    return find
 
 
 def _describe(d: dict) -> str:
@@ -944,6 +1106,20 @@ def _culprits(path: Path, new: dict[Path, str]) -> list[Path]:
         return list(new)
     found = [p for p in new if _module_of(p) in imported]
     return found or list(new)
+
+
+def _dependency_roots(root: Path) -> list[Path]:
+    """The apps *root* ``depends_on``, transitively (sibling folders that exist):
+    their DocTypes are read by class too - an app may import the apps it needs."""
+    out: list[Path] = []
+    queue = [root]
+    while queue:
+        for dep in dependencies(queue.pop()):
+            path = (root.parent / dep.name).resolve()
+            if path != root and path not in out and (path / "pyproject.toml").exists():
+                out.append(path)
+                queue.append(path)
+    return out
 
 
 def _tops(root: Path) -> list[Path]:
