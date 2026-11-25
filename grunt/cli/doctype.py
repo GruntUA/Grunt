@@ -307,7 +307,9 @@ def _write_controller(json_file: Path, name: str) -> Path:
     fields = json.loads(json_file.read_text(encoding="utf-8")).get("fields", [])
     py_file = _controller_file(json_file) or json_file.parent / f"{name}.py"
     py_file.write_text(
-        render_template("doctype/controller.py.jinja", build_controller_context(name, fields))
+        render_template(
+            "doctype/controller.py.jinja", build_controller_context(name, fields, py_file)
+        )
     )
     return py_file
 

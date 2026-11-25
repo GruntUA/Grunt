@@ -28,9 +28,11 @@ lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import export_extensions, without_extensions
 
 
-def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
+def _build_scaffold_context(
+    doctype_name: str, fields: list[DocField], py_path: Path | None = None
+) -> dict:
     """Jinja context for a new DocType controller - the same types block ``sync-types`` writes."""
-    return build_controller_context(doctype_name, [f.model_dump() for f in fields])
+    return build_controller_context(doctype_name, [f.model_dump() for f in fields], py_path)
 
 
 # Helpers
@@ -146,7 +148,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     if py_file.exists():
         sync_controller_types(py_file, dt.name, [f.model_dump() for f in dt.fields])
     else:
-        context = _build_scaffold_context(dt.name, dt.fields)
+        context = _build_scaffold_context(dt.name, dt.fields, py_file)
         py_file.write_text(
             render_template("doctype/controller.py.jinja", context),
         )

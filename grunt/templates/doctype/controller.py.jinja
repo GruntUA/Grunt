@@ -24,7 +24,9 @@ Access fields:
 {% if imports %}
 
 {% endif %}
-from grunt.document.base import Document
+{% for line in first_party_imports %}
+{{ line }}
+{% endfor %}
 
 
 class {{ name }}(Document):
