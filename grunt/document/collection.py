@@ -79,7 +79,7 @@ async def _resolve_list_filter_extra(
     return q.TRUE if clause is None else q.Raw(clause)
 
 
-async def _list_where(session: AsyncSession, dt: Any, filters: dict[str, Any] | None) -> q.Expr:
+async def list_where(session: AsyncSession, dt: Any, filters: dict[str, Any] | None) -> q.Expr:
     """The filters of a list (``__child_of`` expanded) and the controller's
     ``list_filter_extra`` - one predicate for the page and its total."""
     extra = await _resolve_list_filter_extra(session, dt, filters)
@@ -162,7 +162,7 @@ async def list_documents(
         raise unprocessable(str(e)) from None
     query = Query(
         doctype_name,
-        where=await _list_where(session, dt, filters),
+        where=await list_where(session, dt, filters),
         # name/modified_at always - list views and the cursor rely on them.
         fields=tuple(dict.fromkeys(["name", "modified_at", *fields])) if fields else None,
         sort=sort,
@@ -217,7 +217,7 @@ async def count_documents(
     badge or a headline stat never reports rows the list itself hides.
     """
     dt = await _require_meta(doctype_name)
-    query = Query(dt.name, where=await _list_where(session, dt, filters), search=search or None)
+    query = Query(dt.name, where=await list_where(session, dt, filters), search=search or None)
     try:
         return await reads.count(query, user=user, session=session)
     except Unavailable:

@@ -222,6 +222,22 @@ async def test_get_list_by_class_masks_hidden_fields():
 
 
 @pytest.mark.usefixtures("tasks")
+async def test_get_list_by_class_applies_list_filter_extra():
+    """The controller's list_filter_extra hides rows from a class read as from
+    grunt.get_list - once Cls.get_list showed them."""
+
+    class OpenOnly(TrTask):
+        @classmethod
+        async def list_filter_extra(cls, session, filters, table):
+            return table.c.cost > 0
+
+    document_registry.register("TrTask", OpenOnly)
+    by_class = {r.title for r in await OpenOnly.get_list(fields=["name", "title"])}
+    by_name = {r.title for r in await grunt.get_list("TrTask", fields=["name", "title"])}
+    assert by_class == by_name == {"T1", "T2"}
+
+
+@pytest.mark.usefixtures("tasks")
 async def test_get_doc_by_class_saves():
     name = (await grunt.db.get_all(TrTask, fields=["name"], limit=1))[0].name
     assert name is not None
