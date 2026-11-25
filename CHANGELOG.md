@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.23.0 - 2026-11-25
+
+### Features
+
+- **cli:** grunt codemod typed-rows
+
+### Fixes
+
+- **codemod:** review - conflicting retypes, cross-package cycles, round limit
+- **codemod:** typed-rows for apps
+- **document:** class list reads apply list rules
+
+### Other
+
+- core reads by class (codemod typed-rows)
+- **typed-rows:** step 6 - codemod typed-rows
+- **release:** reusable release workflow for app repositories
+
 ## v0.22.0 - 2026-11-25
 
 ### Breaking changes
