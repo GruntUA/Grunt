@@ -18,6 +18,7 @@ While a DocType has an active workflow:
   controller which transition is being applied:
 
   ```python
+  import grunt
   from grunt.workflow.transition import current_transition
 
 

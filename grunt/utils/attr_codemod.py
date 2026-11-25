@@ -10,9 +10,12 @@ restored, and only the confirmed sites are rewritten.
 Left alone on purpose:
 
 * a key that is not an identifier, starts with ``_``, or is a keyword;
-* on an ``AttrDict`` - a key named like a ``dict`` attribute (``items``, ``get``...);
-* on a controller - a key taken by a controller attribute (``user``, a method,
-  a property...), except reading ``name``/``owner``/... (same value);
+* on an ``AttrDict`` - a key named like a ``dict`` attribute (``items``, ``get``...),
+  and ``x.get("k")`` at all: ``x.k`` raises for a missing key, ``get`` gives ``None``;
+* on a controller - a key taken by a controller attribute (a method, a
+  property...), except reading ``name``/``owner``/... (same value); and
+  ``x.get("k")`` / ``x.data.get("k")`` unless ``k`` is a declared field (an
+  annotation of the class or its bases) - any other name raises on a controller;
 * ``del x["k"]``, a site inside ``try`` that catches ``KeyError`` (``x.k`` gives
   ``None`` instead of raising), a getter named like the key (``def name(self):
   return self.data.get("name")`` would recurse), and multi-line expressions;
@@ -205,15 +208,25 @@ class _Classes:
     """Class name -> (base names, attribute names) for the trees searched."""
 
     info: dict[str, tuple[list[str], set[str]]] = field(default_factory=dict)
+    #: Class name -> its declared fields (annotations that are no class attribute).
+    declared: dict[str, set[str]] = field(default_factory=dict)
 
     def add(self, source: str) -> None:
         for n in ast.walk(ast.parse(source)):
             if isinstance(n, ast.ClassDef):
                 bases = [getattr(b, "id", getattr(b, "attr", "")) for b in n.bases]
                 members = {m for b in n.body for m in _members(b)}
+                annotated = {
+                    b.target.id
+                    for b in n.body
+                    if isinstance(b, ast.AnnAssign) and isinstance(b.target, ast.Name)
+                }
                 old_bases, old_members = self.info.get(n.name, ([], set()))
                 # Two classes of one name: merged - a stricter check, never a looser one.
                 self.info[n.name] = (old_bases + bases, old_members | members)
+                old_fields = self.declared.get(n.name)
+                own = annotated - members
+                self.declared[n.name] = own if old_fields is None else old_fields & own
 
     def is_controller(self, name: str, seen: tuple[str, ...] = ()) -> bool:
         if name == "Document":
@@ -221,6 +234,12 @@ class _Classes:
         if name in seen or name not in self.info:
             return False
         return any(self.is_controller(b, (*seen, name)) for b in self.info[name][0])
+
+    def fields(self, name: str, seen: tuple[str, ...] = ()) -> set[str]:
+        if name in seen or name not in self.info:
+            return set()
+        own = self.declared.get(name, set())
+        return own.union(*(self.fields(b, (*seen, name)) for b in self.info[name][0]))
 
     def members(self, name: str, seen: tuple[str, ...] = ()) -> set[str]:
         if name in seen or name not in self.info:
@@ -256,11 +275,13 @@ def accepts(c: Candidate, receiver: str, classes: _Classes, doc_attrs: frozenset
     """Whether the site is safe to rewrite, the receiver's type being *receiver*."""
     receiver = receiver.removeprefix("Self@")
     if receiver == "AttrDict":
-        return c.kind in ("sub", "get") and c.key not in _DICT_ATTRS
+        # x["k"] and x.k both raise for a missing key; x.get("k") gives None.
+        return c.kind == "sub" and c.key not in _DICT_ATTRS
     if classes.is_controller(receiver) and c.kind in ("get", "datasub", "dataget"):
         if c.key in doc_attrs | classes.members(receiver):
             return not c.store and c.key in _READABLE_SYS
-        return True
+        # .get() reads None for anything; x.k only for a declared field.
+        return c.kind == "datasub" or c.key in classes.fields(receiver)
     return False
 
 

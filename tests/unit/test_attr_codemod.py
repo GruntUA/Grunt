@@ -79,7 +79,12 @@ def test_rewrite_keeps_parentheses_and_drops_data():
 
 
 def _cand(kind, key):
-    source = f'x = doc["{key}"]' if kind == "sub" else f'x = doc.get("{key}")'
+    source = {
+        "sub": f'x = doc["{key}"]',
+        "get": f'x = doc.get("{key}")',
+        "datasub": f'x = doc.data["{key}"]',
+        "dataget": f'x = doc.data.get("{key}")',
+    }[kind]
     return find_candidates(source)[0]
 
 
@@ -90,12 +95,14 @@ def test_accepts_by_receiver_type():
         "class Order(Document):\n"
         "    title: str\n"
         "    note: str | None = None\n"
+        "    user: str | None = None\n"
         "    total = 0\n"
         "    def recalc(self): ...\n"
     )
     attrs = _document_attrs()
 
     assert accepts(_cand("sub", "status"), "AttrDict", classes, attrs)
+    assert not accepts(_cand("get", "status"), "AttrDict", classes, attrs)  # may be absent
     assert not accepts(_cand("sub", "items"), "AttrDict", classes, attrs)  # dict method
     assert not accepts(_cand("sub", "status"), "dict[str, Any]", classes, attrs)
     assert not accepts(_cand("sub", "status"), "Any", classes, attrs)
@@ -105,4 +112,7 @@ def test_accepts_by_receiver_type():
     assert not accepts(_cand("get", "total"), "Order", classes, attrs)  # class attribute
     assert not accepts(_cand("get", "recalc"), "Order", classes, attrs)  # method
     assert accepts(_cand("get", "user"), "Order", classes, attrs)  # a field like any other
+    assert not accepts(_cand("get", "status"), "Order", classes, attrs)  # not declared
+    assert accepts(_cand("datasub", "status"), "Order", classes, attrs)  # raises either way
+    assert not accepts(_cand("dataget", "status"), "Order", classes, attrs)  # not declared
     assert accepts(_cand("get", "name"), "Order", classes, attrs)  # same value, read only

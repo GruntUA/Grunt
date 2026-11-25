@@ -226,6 +226,8 @@ class Document(
             state["data"] = row
             if partial:
                 state["_partial"] = True
+            else:  # a whole document may be saved: its own input_data, as __init__ gives
+                state["input_data"] = {}
             if hidden:
                 state["_hidden"] = hidden
             docs.append(doc)

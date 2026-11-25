@@ -436,7 +436,7 @@ async def whoami() -> dict:
 
 @grunt.whitelist(perm="grunt.manage_users")
 async def list_users_api() -> list[dict]:
-    return UserPublic.dump_many(await grunt.get_list(User, limit=1000))
+    return UserPublic.dump_many(await User.get_list(limit=1000))
 ```
 
 `Schema` is a straight identity mapping (output key == field name) — it
@@ -503,7 +503,7 @@ user.has_role("Manager", "Accountant")  # bool
 ## Context outside a request
 
 Inside a controller method, hook, or whitelisted call, `grunt.get_doc` /
-`grunt.db` / `grunt.get_list(User)` / etc. already know which session, engine, and
+`grunt.db` / `User.get_list()` / etc. already know which session, engine, and
 user to use — it's set up for you before your code ever runs. Writing a CLI
 command or a background task means setting that context up yourself first:
 
@@ -539,7 +539,7 @@ method) shouldn't take `session` as its own parameter at all. Read it via
 ```python
 async def get_user_by_email(email: str) -> User | None:
     async with grunt.system_context(grunt.get_session()):
-        found = await grunt.get_list(User, filters={"email": email}, limit=1)
+        found = await User.get_list(filters={"email": email}, limit=1)
         return found[0] if found else None
 ```
 
