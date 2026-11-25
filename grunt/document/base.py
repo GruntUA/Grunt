@@ -11,8 +11,10 @@ there for IDEs and type checkers.
 """
 
 import annotationlib
+import builtins
 import contextlib
 import copy
+import re
 import sys
 import typing
 from collections.abc import Callable, Iterable
@@ -401,6 +403,7 @@ class Document(
 
     def update(self, values: dict[str, Any]) -> None:
         self.data.update(values)
+        self._wrap_children()
 
     def get(self, fieldname: str, default: Any = None) -> Any:
         return self.data.get(fieldname, default)
@@ -456,7 +459,11 @@ class Document(
         """Run the full create pipeline on this document and return the saved row."""
         self._require_whole("insert")
         original = self.data
-        result = await self._insert(ignore_required=ignore_required)
+        try:
+            result = await self._insert(ignore_required=ignore_required)
+        except BaseException:
+            self.data = original  # as it was, its children too: fix one and retry
+            raise
         self._keep(original, result)
         self._wrap_children()
         return result
@@ -467,7 +474,11 @@ class Document(
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
         original = self.data
-        result = await self._update(self.id, plain(original), ignore_required=ignore_required)
+        try:
+            result = await self._update(self.id, plain(original), ignore_required=ignore_required)
+        except BaseException:
+            self.data = original  # as it was, its children too: fix one and retry
+            raise
         self._keep(original, result)
         self._wrap_children()
         return result
@@ -710,6 +721,24 @@ def _annotated_fields(cls: type) -> frozenset[str]:
     return known
 
 
+_LIST_OF = re.compile(r"\s*list\[\s*['\"]?([A-Za-z_]\w*)['\"]?\s*\]\s*")
+
+
+def _child_named(hint: str, klass: type) -> Any:
+    """The child controller of a string annotation ``"list[Child]"``: the class
+    the module binds to that name, else its name for the registry; ``None`` for
+    anything else (``"list[dict]"``, ``"str | None"``)."""
+    match = _LIST_OF.fullmatch(hint)
+    if match is None:
+        return None
+    name = match.group(1)
+    module = sys.modules.get(klass.__module__)
+    found = getattr(module, name, None) if module is not None else None
+    if isinstance(found, type):
+        return found if issubclass(found, Document) else None
+    return None if hasattr(builtins, name) else name
+
+
 def _child_tables(cls: type) -> dict[str, Any]:
     """``fieldname -> child controller`` (or its DocType name, when the class is
     only named - ``list["Child"]``, an import under TYPE_CHECKING) for each field
@@ -723,7 +752,14 @@ def _child_tables(cls: type) -> dict[str, Any]:
             continue
         ann = annotationlib.get_annotations(klass, format=annotationlib.Format.FORWARDREF)
         for name, hint in ann.items():
-            if name[:1] == "_" or typing.get_origin(hint) is not list:
+            if name[:1] == "_":
+                continue
+            if isinstance(hint, str):  # `from __future__ import annotations`
+                child = _child_named(hint, klass)
+                if child is not None:
+                    tables[name] = child
+                continue
+            if typing.get_origin(hint) is not list:
                 continue
             (arg,) = typing.get_args(hint) or (None,)
             if isinstance(arg, type) and issubclass(arg, Document):

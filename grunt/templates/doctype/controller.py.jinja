@@ -27,6 +27,13 @@ Access fields:
 {% for line in first_party_imports %}
 {{ line }}
 {% endfor %}
+{% if type_checking_imports %}
+
+if TYPE_CHECKING:
+{% for line in type_checking_imports %}
+    {{ line }}
+{% endfor %}
+{% endif %}
 
 
 class {{ name }}(Document):

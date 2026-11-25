@@ -129,12 +129,17 @@ def build_controller_context(
     stdlib = {m: n for m, n in imports.items() if _is_stdlib(m)}
     first_party = {m: n for m, n in imports.items() if not _is_stdlib(m)}
     first_party.setdefault("grunt.document.base", []).append("Document")
+    guarded = sorted((c.module, c.name) for c in children.values() if c.type_checking)
+    if guarded:
+        stdlib.setdefault("typing", []).append("TYPE_CHECKING")
     return {
         "name": name,
-        "imports": [_from_import(m, n) for m, n in sorted(stdlib.items())],
+        "imports": [_from_import(m, sorted(n, key=_import_key)) for m, n in sorted(stdlib.items())],
         "first_party_imports": [
             _from_import(m, sorted(n, key=_import_key)) for m, n in sorted(first_party.items())
         ],
+        # Children that import this controller: imported for the type checker only.
+        "type_checking_imports": [_from_import(m, [n]).replace("\n", "\n    ") for m, n in guarded],
         "type_block": _render_type_block(fields, children=children),
     }
 
@@ -337,6 +342,26 @@ def _ensure_block_imports(
     return source
 
 
+def _binds(tree: ast.Module, module: str, name: str) -> bool:
+    """Whether the module binds *name* from *module* - unaliased, at module level
+    or in a module-level ``if TYPE_CHECKING:`` block (not in a function)."""
+    scopes = [tree.body]
+    for node in tree.body:
+        if isinstance(node, ast.If) and (
+            (isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING")
+            or (isinstance(node.test, ast.Attribute) and node.test.attr == "TYPE_CHECKING")
+        ):
+            scopes.append(node.body)
+    return any(
+        isinstance(n, ast.ImportFrom)
+        and n.module == module
+        and not n.level
+        and any(a.name == name and a.asname in (None, name) for a in n.names)
+        for body in scopes
+        for n in body
+    )
+
+
 def _ensure_type_checking_import(source: str, module: str, name: str) -> str:
     """``from <module> import <name>`` under ``if TYPE_CHECKING:``, unless the
     module imports it already."""
@@ -344,12 +369,7 @@ def _ensure_type_checking_import(source: str, module: str, name: str) -> str:
         tree = ast.parse(source)
     except SyntaxError:
         return source
-    if any(
-        isinstance(n, ast.ImportFrom)
-        and n.module == module
-        and any(a.name == name for a in n.names)
-        for n in ast.walk(tree)
-    ):
+    if _binds(tree, module, name):
         return source
     source = _ensure_import(source, "typing", ["TYPE_CHECKING"])
     tree = ast.parse(source)

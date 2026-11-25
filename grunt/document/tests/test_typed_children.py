@@ -8,11 +8,13 @@ import json
 from typing import Any, assert_type
 
 import pytest
+from fastapi import HTTPException
 
 import grunt
 from grunt.api.v1.meta import save_doctype
 from grunt.document.base import Document
 from grunt.document.registry import document_registry
+from grunt.errors import throw
 from grunt.events import subscribe, unsubscribe
 from grunt.utils.attr_dict import AttrDict
 
@@ -63,6 +65,8 @@ class TcOrder(Document):
 
     async def validate(self) -> None:
         seen.append([type(r) for r in self.lines or []])
+        if any((r.qty or 0) < 0 for r in self.lines or []):
+            throw("A negative quantity")
         for row in self.lines or []:
             if row.item == "double":
                 row.qty = (row.qty or 0) * 2
@@ -220,3 +224,31 @@ async def test_save_doc_with_child_documents(orders):
     await grunt.save_doc("TcOrder", "a", {"lines": order.lines})
     stored = await TcOrder.get_doc("a")
     assert [(r.item, r.qty) for r in stored.lines] == [("x", 7)]
+
+
+def test_string_annotations_type_children_too():
+    from grunt.document.tests.typed_children_future import FutLine, FutOrder
+
+    doc = FutOrder(lines=[{"qty": 1}], named=[{"qty": 2}], notes=[{"qty": 3}])  # pyright: ignore[reportArgumentType]
+    assert isinstance(doc.lines[0], FutLine)
+    assert isinstance(doc.named[0], Document) and doc.named[0].doctype == "FutNamed"
+    assert type(doc.notes[0]) is dict
+
+
+def test_update_wraps_child_rows():
+    order = TcOrder(code="a")
+    order.update({"lines": [{"item": "x"}]})
+    assert isinstance(order.lines[0], TcLine)
+
+
+@pytest.mark.asyncio
+async def test_a_rejected_save_keeps_child_documents(orders):
+    await TcOrder(code="a", lines=[TcLine(item="x", qty=1)]).insert()
+    order = await TcOrder.get_doc("a")
+    order.lines[0].qty = -1  # the validate hook refuses it
+    with pytest.raises(HTTPException):
+        await order.save()
+    assert isinstance(order.lines[0], TcLine)
+    order.lines[0].qty = 9
+    await order.save()
+    assert [(r.item, r.qty) for r in (await TcOrder.get_doc("a")).lines] == [("x", 9)]

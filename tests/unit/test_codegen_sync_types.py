@@ -228,3 +228,42 @@ def test_fresh_controller_imports_its_child_class(tmp_path):
         "from shop.doctypes.OrderLine.order_line import OrderLine\n"
     ) in out
     assert "    lines: list[OrderLine] = []  # Lines\n" in out
+
+
+def test_fresh_controller_imports_a_cyclic_child_under_type_checking(tmp_path):
+    parent = _app(
+        tmp_path,
+        "from grunt.document.base import Document\nfrom shop.doctypes.Order.order import Order\n",
+    )
+    out = render_template(
+        "doctype/controller.py.jinja", build_controller_context("Order", _TABLE, parent)
+    )
+    ast.parse(out)
+    assert "from typing import TYPE_CHECKING\n" in out
+    assert (
+        "\nif TYPE_CHECKING:\n    from shop.doctypes.OrderLine.order_line import OrderLine\n"
+    ) in out
+    assert "    lines: list[OrderLine] = []  # Lines\n" in out
+
+
+def test_an_aliased_or_local_child_import_does_not_count(tmp_path):
+    parent = _app(
+        tmp_path,
+        "from grunt.document.base import Document\nfrom shop.doctypes.Order.order import Order\n",
+    )
+    parent.write_text(
+        "from grunt.document.base import Document\n"
+        "from shop.doctypes.OrderLine.order_line import OrderLine as OL\n\n\n"
+        "def helper():\n"
+        "    from shop.doctypes.OrderLine.order_line import OrderLine\n\n\n"
+        "class Order(Document):\n"
+        "    # begin: auto-generated types\n"
+        "    pass\n"
+        "    # end: auto-generated types\n"
+    )
+    sync_controller_types(parent, "Order", _TABLE)
+    src = parent.read_text()
+    ast.parse(src)
+    assert (
+        "\nif TYPE_CHECKING:\n    from shop.doctypes.OrderLine.order_line import OrderLine\n"
+    ) in src
