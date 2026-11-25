@@ -152,3 +152,14 @@ async def test_days_and_due_date(ctx, setup):
         "ToDo", filters={"reference_id": ticket}, fields=["due_date"], limit=None
     )
     assert len(todo) == 1 and str(todo[0]["due_date"]) == "2026-12-01"
+
+
+@pytest.mark.asyncio
+async def test_preview_names_the_users_of_a_rule_read_by_class(ctx, setup):
+    from grunt.assignment.doctypes.AssignmentRule.assignment_rule import test_rule
+
+    a, b, _ = USERS
+    rule = await _rule(ctx, rule="Everyone", users=_users((a, 1), (b, 1)))
+    result = await test_rule(rule["name"], {"subject": "x", "status": "Open"})
+    assert result["matched"] is True
+    assert sorted(result["will_assign_to"]) == [a, b]

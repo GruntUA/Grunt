@@ -150,3 +150,120 @@ def test_fields_hidden_by_controller_attributes_are_not_annotated(tmp_path):
     assert "    user: str | None = None" in src
     assert "    delete:" not in src
     assert 'read it as self.data["delete"]' in src
+
+
+# Child tables: list[ChildCls]
+
+
+def _app(tmp_path, child_source: str = "from grunt.document.base import Document\n"):
+    """A package ``shop`` (``pyproject.toml`` next to it) with a child DocType
+    ``OrderLine`` and a parent ``Order`` - DocType folders without ``__init__``."""
+    (tmp_path / "pyproject.toml").write_text("[project]\nname = 'shop'\n")
+    pkg = tmp_path / "shop"
+    (pkg / "doctypes" / "OrderLine").mkdir(parents=True)
+    (pkg / "doctypes" / "Order").mkdir(parents=True)
+    (pkg / "__init__.py").write_text("")
+    (pkg / "doctypes" / "__init__.py").write_text("")
+    (pkg / "doctypes" / "OrderLine" / "order_line.py").write_text(
+        child_source + "\n\nclass OrderLine(Document):\n    pass\n"
+    )
+    parent = pkg / "doctypes" / "Order" / "order.py"
+    parent.write_text(
+        "from grunt.document.base import Document\n"
+        "from shop.utils import helper\n\n\n"
+        "class Order(Document):\n"
+        "    # begin: auto-generated types\n"
+        "    pass\n"
+        "    # end: auto-generated types\n"
+    )
+    (pkg / "utils.py").write_text("def helper(): ...\n")
+    return parent
+
+
+_TABLE = [
+    {"fieldname": "lines", "fieldtype": "Table", "options": "OrderLine", "label": "Lines"},
+    {"fieldname": "other", "fieldtype": "Table", "options": "NoController"},
+]
+
+
+def test_sync_types_a_child_table_with_its_controller(tmp_path):
+    parent = _app(tmp_path)
+    sync_controller_types(parent, "Order", _TABLE)
+    src = parent.read_text()
+    ast.parse(src)
+    assert "    lines: list[OrderLine] = []  # Lines\n" in src
+    assert "    other: list[dict] = []  # Table: NoController\n" in src
+    # In order among the imports of its package.
+    assert (
+        "from grunt.document.base import Document\n"
+        "from shop.doctypes.OrderLine.order_line import OrderLine\n"
+        "from shop.utils import helper\n"
+    ) in src
+    assert sync_controller_types(parent, "Order", _TABLE) is False  # idempotent
+
+
+def test_a_child_importing_the_parent_is_imported_under_type_checking(tmp_path):
+    parent = _app(
+        tmp_path,
+        "from grunt.document.base import Document\nfrom shop.doctypes.Order.order import Order\n",
+    )
+    sync_controller_types(parent, "Order", _TABLE)
+    src = parent.read_text()
+    ast.parse(src)
+    assert "    lines: list[OrderLine] = []  # Lines\n" in src
+    assert "from typing import TYPE_CHECKING\n" in src
+    assert (
+        "\nif TYPE_CHECKING:\n    from shop.doctypes.OrderLine.order_line import OrderLine\n"
+    ) in src
+    assert "\nfrom shop.doctypes.OrderLine" not in src
+
+
+def test_fresh_controller_imports_its_child_class(tmp_path):
+    parent = _app(tmp_path)
+    ctx = build_controller_context("Order", _TABLE, parent)
+    out = render_template("doctype/controller.py.jinja", ctx)
+    ast.parse(out)
+    assert (
+        "from grunt.document.base import Document\n"
+        "from shop.doctypes.OrderLine.order_line import OrderLine\n"
+    ) in out
+    assert "    lines: list[OrderLine] = []  # Lines\n" in out
+
+
+def test_fresh_controller_imports_a_cyclic_child_under_type_checking(tmp_path):
+    parent = _app(
+        tmp_path,
+        "from grunt.document.base import Document\nfrom shop.doctypes.Order.order import Order\n",
+    )
+    out = render_template(
+        "doctype/controller.py.jinja", build_controller_context("Order", _TABLE, parent)
+    )
+    ast.parse(out)
+    assert "from typing import TYPE_CHECKING\n" in out
+    assert (
+        "\nif TYPE_CHECKING:\n    from shop.doctypes.OrderLine.order_line import OrderLine\n"
+    ) in out
+    assert "    lines: list[OrderLine] = []  # Lines\n" in out
+
+
+def test_an_aliased_or_local_child_import_does_not_count(tmp_path):
+    parent = _app(
+        tmp_path,
+        "from grunt.document.base import Document\nfrom shop.doctypes.Order.order import Order\n",
+    )
+    parent.write_text(
+        "from grunt.document.base import Document\n"
+        "from shop.doctypes.OrderLine.order_line import OrderLine as OL\n\n\n"
+        "def helper():\n"
+        "    from shop.doctypes.OrderLine.order_line import OrderLine\n\n\n"
+        "class Order(Document):\n"
+        "    # begin: auto-generated types\n"
+        "    pass\n"
+        "    # end: auto-generated types\n"
+    )
+    sync_controller_types(parent, "Order", _TABLE)
+    src = parent.read_text()
+    ast.parse(src)
+    assert (
+        "\nif TYPE_CHECKING:\n    from shop.doctypes.OrderLine.order_line import OrderLine\n"
+    ) in src

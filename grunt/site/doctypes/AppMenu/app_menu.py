@@ -11,6 +11,8 @@ from typing import Any
 from grunt.document.base import Document
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
+from grunt.site.doctypes.WorkspaceSection.workspace_section import WorkspaceSection
+from grunt.site.doctypes.WorkspaceSidebarItem.workspace_sidebar_item import WorkspaceSidebarItem
 lazy from grunt.document.api import documents
 
 
@@ -121,8 +123,8 @@ class AppMenu(Document):
     app: str | None = None  # App
     home_page: str | None = None  # Home page
     sidebar_style: str | None = None  # Sidebar style
-    sections: list[dict] = []  # Table: WorkspaceSection
-    sidebar_items: list[dict] = []  # Table: WorkspaceSidebarItem
+    sections: list[WorkspaceSection] = []  # Sections
+    sidebar_items: list[WorkspaceSidebarItem] = []  # Sidebar items
 
     # end: auto-generated types
 
@@ -139,8 +141,8 @@ class AppMenu(Document):
             self.color = default_color(self.name or self.label or "")
 
     async def on_load(self) -> None:
-        for item in self.get("sidebar_items", []):
-            item["link_doctype"] = self._LINK_DOCTYPE.get(item.get("type", ""), "")
+        for item in self.sidebar_items or []:
+            item.link_doctype = self._LINK_DOCTYPE.get(item.type or "", "")
 
     async def get_counts(
         self, visible: Callable[[dict[str, Any]], bool] | None = None
@@ -154,23 +156,23 @@ class AppMenu(Document):
         """
         items = [
             item
-            for item in self.get("sidebar_items", [])
-            if item.get("show_count")
-            and item.get("type") == "DocType"
-            and item.get("link_to")
-            and (visible is None or visible(item))
+            for item in self.sidebar_items or []
+            if item.show_count
+            and item.type == "DocType"
+            and item.link_to
+            and (visible is None or visible(item.data))
         ]
         if not items:
             return {}
 
         counts: dict[str, int] = {}
         for item in items:
-            link_to = item["link_to"]
+            link_to = item.link_to or ""
             dt = await doctype_registry.get_meta(link_to)
             if dt is None:
                 continue
 
-            filters = self._parse_filters(item)
+            filters = self._parse_filters(item.data)
             key = self._generate_count_key(link_to, filters)
 
             try:

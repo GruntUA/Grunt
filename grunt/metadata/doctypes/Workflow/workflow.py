@@ -3,6 +3,8 @@
 from typing import Any
 
 from grunt.document.base import Document
+from grunt.metadata.doctypes.WorkflowState.workflow_state import WorkflowState
+from grunt.metadata.doctypes.WorkflowTransition.workflow_transition import WorkflowTransition
 
 
 class Workflow(Document):
@@ -17,7 +19,7 @@ class Workflow(Document):
     positions: Any | None = None  # Node positions
     is_standard: bool | None = None  # Standard
     app: str | None = None  # App
-    states: list[dict] = []  # Table: WorkflowState
-    transitions: list[dict] = []  # Table: WorkflowTransition
+    states: list[WorkflowState] = []  # States
+    transitions: list[WorkflowTransition] = []  # Transitions
 
     # end: auto-generated types

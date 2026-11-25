@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from grunt.document.base import Document
+from grunt.email.doctypes.EmailAttachment.email_attachment import EmailAttachment
 
 
 class EmailMessage(Document):
@@ -35,6 +36,6 @@ class EmailMessage(Document):
     unreplied_checked: bool | None = None  # Checked for a reply
     is_auto_reply: bool | None = None  # Auto-reply
     is_read: bool | None = None  # Read
-    attachments: list[dict] = []  # Table: EmailAttachment
+    attachments: list[EmailAttachment] = []  # Attachments
 
     # end: auto-generated types

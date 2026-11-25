@@ -106,6 +106,22 @@ async def test_menu_api_orders_contributed_rows(ctx):
     assert [s["section"] for s in data["sections"]] == ["Assets", "Agents", "Crystal", "Settings"]
 
 
+@pytest.mark.asyncio
+async def test_menu_read_by_class_orders_contributed_rows(ctx):
+    """``list_workspaces`` / ``get_workspace`` read the menu by its class: the
+    sidebar rows are documents there."""
+    from grunt.api.v1.workspace import _visible, _workspace_to_dict
+    from grunt.site.doctypes.AppMenu.app_menu import AppMenu
+
+    await _apply_workspace_fixture(BASE, "inv", {})
+    await _apply_workspace_fixture(CONTRIBUTION, "crystal", {})
+
+    menu = await AppMenu.get_doc("inv")
+    data = await _workspace_to_dict(menu, await _visible([menu]))
+    assert [i["label"] for i in data["items"]][-1] == "Crystal settings"
+    assert [s["section"] for s in data["sections"]] == ["Assets", "Agents", "Crystal", "Settings"]
+
+
 def _item(label, section, idx, source_app="", after="", before=""):
     return {
         "label": label,

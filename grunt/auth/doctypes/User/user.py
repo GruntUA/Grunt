@@ -14,7 +14,8 @@ from typing import Any
 
 from grunt.auth.constants import GUEST_USER_EMAIL, SYSTEM_USER_EMAIL
 from grunt.auth.doctypes.RoleProfile.role_profile import with_profile_roles
-from grunt.auth.doctypes.UserRole.user_role import ROLE_ROW_FIELDS, plain_role_row
+from grunt.auth.doctypes.UserRole.user_role import ROLE_ROW_FIELDS, UserRole, plain_role_row
+from grunt.auth.doctypes.UserRoleProfile.user_role_profile import UserRoleProfile
 from grunt.auth.password_policy import enforce_password_policy
 from grunt.auth.passwords import hash_password, verify_password
 from grunt.db.api import GruntDB
@@ -25,6 +26,7 @@ from grunt.i18n import N_, _
 from grunt.local import _user_ctx, active_role_rows, use_system_user
 from grunt.log import log
 from grunt.permissions.perms import has_perm
+from grunt.utils.attr_dict import AttrDict
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -103,8 +105,8 @@ class User(Document):
     follow_shared: bool | None = None  # Follow documents shared with me
     reset_token: str | None = None  # Password reset token
     reset_token_expires_at: datetime | None = None  # Reset token expiry
-    role_profiles: list[dict] = []  # Table: UserRoleProfile
-    roles: list[dict] = []  # Table: UserRole
+    role_profiles: list[UserRoleProfile] = []  # Role profiles
+    roles: list[UserRole] = []  # Roles
 
     # end: auto-generated types
 
@@ -121,7 +123,7 @@ class User(Document):
         rows = self.data.get("role_rows")  # set by grunt.auth.users, not a field
         if rows is None:
             rows = self.roles or []
-        return list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
+        return list(dict.fromkeys(str(r.get("role_name")) for r in active_role_rows(rows)))
 
     def has_role(self, *roles: str) -> bool:
         """True if the user holds any of *roles*."""
@@ -170,10 +172,9 @@ class User(Document):
                 fields=[*ROLE_ROW_FIELDS, "role_profile"],
                 limit=500,
             )
-            submitted = [r for r in (self.roles or []) if isinstance(r, dict)]
-            if _assignments(submitted) != _assignments(stored):
+            if _assignments(self.roles or []) != _assignments(stored):
                 throw(_("Not permitted to change roles"), "FORBIDDEN")
-        if "role_profiles" in self.data and set(_profile_names(self.role_profiles)) != set(
+        if "role_profiles" in self.data and set(_profile_names(self.role_profiles or [])) != set(
             await self._stored_profiles()
         ):
             throw(_("Not permitted to change roles"), "FORBIDDEN")
@@ -216,9 +217,10 @@ class User(Document):
         if "roles" not in self.data and "role_profiles" not in self.data:
             return
         if "role_profiles" in self.data:
-            profiles = _profile_names(self.role_profiles)
+            profiles = _profile_names(self.role_profiles or [])
         else:
             profiles = await self._stored_profiles()
+        roles: list[UserRole] | list[AttrDict]
         if "roles" in self.data:
             roles = list(self.roles or [])
         elif self.name:
@@ -233,7 +235,7 @@ class User(Document):
         else:
             roles = []
         rebuilt = await with_profile_roles(roles, profiles)
-        if "roles" in self.data or rebuilt != roles:
+        if "roles" in self.data or _role_rows(rebuilt) != _role_rows(roles):
             self.roles = rebuilt
 
     async def _stored_profiles(self) -> list[str]:
@@ -336,26 +338,27 @@ def guest_user() -> User:
     )
 
 
-def _profile_names(rows: Any) -> list[str]:
+def _profile_names(rows: Sequence[UserRoleProfile]) -> list[str]:
     """Profile names of ``role_profiles`` rows, in order, each once."""
-    names = [r.get("role_profile") for r in rows or [] if isinstance(r, dict)]
-    return list(dict.fromkeys(n for n in names if n))
+    return list(dict.fromkeys(r.role_profile for r in rows if r.role_profile))
 
 
-def _assignments(rows: Sequence[dict[str, Any]]) -> list[tuple[str, ...]]:
-    """Role assignment rows compared as a set (order and row ids don't matter),
-    with the profile each came from."""
-    return sorted(
+def _role_rows(rows: Sequence[UserRole | dict[str, Any]]) -> list[tuple[str, ...]]:
+    """Role assignment rows as comparable values, with the profile each came from."""
+    return [
         (*(str(v or "") for v in plain_role_row(r).values()), str(r.get("role_profile") or ""))
         for r in rows
-    )
+    ]
 
 
-def _validate_role_rows(rows: list[Any]) -> None:
+def _assignments(rows: Sequence[UserRole | dict[str, Any]]) -> list[tuple[str, ...]]:
+    """Role assignment rows compared as a set (order and row ids don't matter)."""
+    return sorted(_role_rows(rows))
+
+
+def _validate_role_rows(rows: Sequence[UserRole]) -> None:
     """A scope names both the DocType and the record; a period ends after it starts."""
     for row in rows:
-        if not isinstance(row, dict):
-            continue
         role = row.get("role_name") or ""
         if bool(row.get("scope_doctype")) != bool(row.get("scope_value")):
             throw(

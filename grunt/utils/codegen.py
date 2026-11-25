@@ -9,6 +9,8 @@ Provides:
 import ast
 import re
 import sys
+from collections import deque
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +18,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from grunt.document.base import SYS_FIELDS, is_shadowed_field
 from grunt.metadata.field import get_python_type, is_physical_fieldtype
+from grunt.utils import import_graph
 from grunt.utils.strings import to_snake_case
 
 # Constants
@@ -98,29 +101,171 @@ def field_type(f: dict) -> str:
     return py_type
 
 
+def _from_import(module: str, names: list[str]) -> str:
+    """``from <module> import <names>`` - wrapped as ruff format does past 100 columns."""
+    line = f"from {module} import {', '.join(names)}"
+    if len(line) <= 100:
+        return line
+    body = "".join(f"    {n},\n" for n in names)
+    return f"from {module} import (\n{body})"
+
+
 def _import_key(name: str) -> tuple[int, str]:
     """isort/ruff order-by-type: CONSTANTS, then Classes, then the rest."""
     kind = 0 if name.isupper() and len(name) > 1 else 1 if name[0].isupper() else 2
     return kind, name.lower()
 
 
-def build_controller_context(name: str, fields: list[dict]) -> dict[str, Any]:
-    """Prepare the template context for doctype/controller.py.jinja."""
+def build_controller_context(
+    name: str, fields: list[dict], py_path: Path | None = None
+) -> dict[str, Any]:
+    """Prepare the template context for doctype/controller.py.jinja.
+
+    *py_path* - where the controller is written: a child table is typed with
+    its controller's class when one is found from there (``list[OrderItem]``).
+    """
+    children = child_classes(fields, py_path)
+    imports = block_imports(fields, children=children)
+    stdlib = {m: n for m, n in imports.items() if _is_stdlib(m)}
+    first_party = {m: n for m, n in imports.items() if not _is_stdlib(m)}
+    first_party.setdefault("grunt.document.base", []).append("Document")
+    guarded = sorted((c.module, c.name) for c in children.values() if c.type_checking)
+    if guarded:
+        stdlib.setdefault("typing", []).append("TYPE_CHECKING")
     return {
         "name": name,
-        "imports": [
-            f"from {module} import {', '.join(names)}"
-            for module, names in sorted(block_imports(fields).items())
+        "imports": [_from_import(m, sorted(n, key=_import_key)) for m, n in sorted(stdlib.items())],
+        "first_party_imports": [
+            _from_import(m, sorted(n, key=_import_key)) for m, n in sorted(first_party.items())
         ],
-        "type_block": _render_type_block(fields),
+        # Children that import this controller: imported for the type checker only.
+        "type_checking_imports": [_from_import(m, [n]).replace("\n", "\n    ") for m, n in guarded],
+        "type_block": _render_type_block(fields, children=children),
     }
+
+
+# Child tables: list[ChildCls]
+
+_CORE_PACKAGE = Path(__file__).resolve().parent.parent  # grunt/
+
+
+@dataclass(frozen=True)
+class ChildClass:
+    """The controller class a child table's rows are typed with."""
+
+    module: str
+    name: str
+    #: Imported under ``if TYPE_CHECKING:`` - a plain import would close an import cycle.
+    type_checking: bool = False
+
+
+def _is_stdlib(module: str) -> bool:
+    return module.split(".")[0] in sys.stdlib_module_names
+
+
+def _package_top(path: Path) -> Path | None:
+    """The top package directory *path* is in (``grunt/``, ``apps/hrm/hrm/``) -
+    the folder under the project's ``pyproject.toml`` (a DocType folder may be a
+    namespace package, without ``__init__.py``)."""
+    path = path.resolve()
+    for d in path.parents:
+        if (d / "pyproject.toml").exists():
+            top = d / path.relative_to(d).parts[0]
+            return top if (top / "__init__.py").exists() else None
+    return None
+
+
+def _module_name(path: Path, top: Path) -> str:
+    parts = list(path.resolve().relative_to(top.parent).with_suffix("").parts)
+    if parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+def _find_controller(doctype: str, tops: list[Path]) -> Path | None:
+    """The controller file of *doctype* (``…/doctypes/<DocType>/*.py`` defining
+    ``class <DocType>``) in the first of *tops* that has one."""
+    for top in tops:
+        for folder in sorted(top.glob(f"**/doctypes/{doctype}")):
+            for py in sorted(folder.glob("*.py")):
+                if py.name == "__init__.py":
+                    continue
+                try:
+                    tree = ast.parse(py.read_text(encoding="utf-8"))
+                except OSError, SyntaxError:
+                    continue
+                if any(isinstance(n, ast.ClassDef) and n.name == doctype for n in tree.body):
+                    return py
+    return None
+
+
+_graphs: dict[Path, tuple[float, import_graph.ImportGraph]] = {}
+
+
+def _graph(top: Path) -> import_graph.ImportGraph:
+    """The import graph of the package *top* - rebuilt once a file of it changes."""
+    newest = max((p.stat().st_mtime for p in top.rglob("*.py")), default=0.0)
+    cached = _graphs.get(top)
+    if cached is None or cached[0] != newest:
+        cached = (newest, import_graph.build(top.parent, top.name, skip=("/tests/",)))
+        _graphs[top] = cached
+    return cached[1]
+
+
+def _imports_reach(top: Path, start: str, target: str) -> bool:
+    """Whether *start* already imports *target*, directly or through other modules."""
+    edges = _graph(top).edges
+    seen, queue = {start}, deque([start])
+    while queue:
+        for nxt in edges.get(queue.popleft(), {}):
+            if nxt == target:
+                return True
+            if nxt not in seen:
+                seen.add(nxt)
+                queue.append(nxt)
+    return False
+
+
+def child_classes(fields: list[dict], py_path: Path | None) -> dict[str, ChildClass]:
+    """``fieldname -> ChildClass`` for the child tables of the controller at
+    *py_path* whose child DocType has a controller - looked up in the
+    controller's own package, then in the core. Imported plainly unless the
+    child already imports the parent (an import cycle): then under TYPE_CHECKING."""
+    tables = [
+        f for f in fields if _is_typed(f) and f.get("fieldtype") == "Table" and f.get("options")
+    ]
+    if not tables or py_path is None:
+        return {}
+    top = _package_top(py_path)
+    if top is None:
+        return {}
+    parent = _module_name(py_path, top)
+    found: dict[str, ChildClass] = {}
+    for f in tables:
+        doctype = f["options"]
+        child_py = _find_controller(doctype, list(dict.fromkeys([top, _CORE_PACKAGE])))
+        if child_py is None or child_py.resolve() == py_path.resolve():
+            continue
+        child_top = _package_top(child_py)
+        if child_top is None:
+            continue
+        module = _module_name(child_py, child_top)
+        try:
+            cycle = child_top == top and _imports_reach(top, module, parent)
+        except SyntaxError:  # a file of the package doesn't parse: no import at run time
+            cycle = True
+        found[f["fieldname"]] = ChildClass(module, doctype, type_checking=cycle)
+    return found
 
 
 # Smart controller sync
 
 
-def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
+def _render_type_block(
+    fields: list[dict], indent: str = "    ", children: dict[str, ChildClass] | None = None
+) -> str:
     """Render only the auto-generated types block for insertion inside class body."""
+    children = children or {}
     physical = [f for f in fields if _is_typed(f) and f.get("fieldtype") != "Table"]
     table_fields = [f for f in fields if _is_typed(f) and f.get("fieldtype") == "Table"]
 
@@ -142,9 +287,16 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
         comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
         field_lines.append(f"{indent}{f['fieldname']}: {py_type}{default}{comment}")
     for f in table_fields:
-        table_opt = f.get("options", "?")
         default = "" if is_required_on_create(f) else " = []"
-        field_lines.append(f"{indent}{f['fieldname']}: list[dict]{default}  # Table: {table_opt}")
+        child = children.get(f["fieldname"])
+        if child is not None:
+            comment = f"  # {f['label']}" if f.get("label") and f["label"] != f["fieldname"] else ""
+            field_lines.append(f"{indent}{f['fieldname']}: list[{child.name}]{default}{comment}")
+        else:
+            table_opt = f.get("options", "?")
+            field_lines.append(
+                f"{indent}{f['fieldname']}: list[dict]{default}  # Table: {table_opt}"
+            )
 
     body = "\n".join(field_lines) if field_lines else f"{indent}pass"
 
@@ -158,8 +310,11 @@ def _render_type_block(fields: list[dict], indent: str = "    ") -> str:
     )
 
 
-def block_imports(fields: list[dict]) -> dict[str, list[str]]:
-    """``module -> names`` the types block of *fields* needs imported."""
+def block_imports(
+    fields: list[dict], *, children: dict[str, ChildClass] | None = None
+) -> dict[str, list[str]]:
+    """``module -> names`` the types block of *fields* needs imported (a child
+    controller imported under TYPE_CHECKING is left out)."""
     used = {
         name
         for f in fields
@@ -169,14 +324,61 @@ def block_imports(fields: list[dict]) -> dict[str, list[str]]:
     imports = {"datetime": [n for n in _DATETIME_NAMES if n in used]}
     if "Any" in used:
         imports["typing"] = ["Any"]
+    for child in (children or {}).values():
+        if not child.type_checking:
+            imports.setdefault(child.module, []).append(child.name)
     return {module: names for module, names in imports.items() if names}
 
 
-def _ensure_block_imports(source: str, fields: list[dict]) -> str:
+def _ensure_block_imports(
+    source: str, fields: list[dict], children: dict[str, ChildClass] | None = None
+) -> str:
     """Make sure the module imports the names the types block annotates with."""
-    for module, needed in block_imports(fields).items():
+    for module, needed in block_imports(fields, children=children).items():
         source = _ensure_import(source, module, needed)
+    for child in (children or {}).values():
+        if child.type_checking:
+            source = _ensure_type_checking_import(source, child.module, child.name)
     return source
+
+
+def _binds(tree: ast.Module, module: str, name: str) -> bool:
+    """Whether the module binds *name* from *module* - unaliased, at module level
+    or in a module-level ``if TYPE_CHECKING:`` block (not in a function)."""
+    scopes = [tree.body]
+    for node in tree.body:
+        if isinstance(node, ast.If) and (
+            (isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING")
+            or (isinstance(node.test, ast.Attribute) and node.test.attr == "TYPE_CHECKING")
+        ):
+            scopes.append(node.body)
+    return any(
+        isinstance(n, ast.ImportFrom)
+        and n.module == module
+        and not n.level
+        and any(a.name == name and a.asname in (None, name) for a in n.names)
+        for body in scopes
+        for n in body
+    )
+
+
+def _ensure_type_checking_import(source: str, module: str, name: str) -> str:
+    """``from <module> import <name>`` under ``if TYPE_CHECKING:``, unless the
+    module imports it already."""
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return source
+    if _binds(tree, module, name):
+        return source
+    source = _ensure_import(source, "typing", ["TYPE_CHECKING"])
+    tree = ast.parse(source)
+    lines = source.splitlines(keepends=True)
+    imports = [n for n in tree.body if isinstance(n, ast.Import | ast.ImportFrom)]
+    end = max((n.end_lineno or n.lineno) for n in imports) if imports else 0
+    stmt = _from_import(module, [name]).replace("\n", "\n    ")
+    lines.insert(end, f"\nif TYPE_CHECKING:\n    {stmt}\n")
+    return "".join(lines)
 
 
 def _ensure_import(source: str, module: str, needed: list[str]) -> str:
@@ -197,17 +399,36 @@ def _ensure_import(source: str, module: str, needed: list[str]) -> str:
     if not missing:
         return source
 
-    stmt = f"from {module} import {', '.join(missing)}\n"
+    stmt = _from_import(module, missing) + "\n"
     for node in imports:
         if node.end_lineno == node.lineno and not any(a.asname for a in node.names):
             merged = sorted({*(a.name for a in node.names), *missing}, key=_import_key)
-            lines[node.lineno - 1] = f"from {module} import {', '.join(merged)}\n"
+            lines[node.lineno - 1] = _from_import(module, merged) + "\n"
             return "".join(lines)
     if imports:
         # Multi-line or aliased: leave it as it is, add the names on a line of their own.
         end = imports[-1].end_lineno or imports[-1].lineno
         lines.insert(end, stmt)
         return "".join(lines)
+
+    if not _is_stdlib(module):
+        # In order among the module-level `from` imports of the same package.
+        package = module.split(".")[0]
+        section = [
+            n
+            for n in tree.body
+            if isinstance(n, ast.ImportFrom)
+            and not n.level
+            and not getattr(n, "is_lazy", False)
+            and (n.module or "").split(".")[0] == package
+        ]
+        later = next((n for n in section if (n.module or "") > module), None)
+        if later is not None:
+            lines.insert(later.lineno - 1, stmt)
+            return "".join(lines)
+        if section:
+            lines.insert(section[-1].end_lineno or section[-1].lineno, stmt)
+            return "".join(lines)
 
     for node in tree.body:
         if (
@@ -233,7 +454,8 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     Returns True if the file was modified, False if already up-to-date.
     """
     source = py_path.read_text()
-    new_block = _render_type_block(fields, indent="    ")
+    children = child_classes(fields, py_path)
+    new_block = _render_type_block(fields, indent="    ", children=children)
 
     def _find_class_insert_offset(text: str) -> int | None:
         lines = text.splitlines(keepends=True)
@@ -290,7 +512,7 @@ def sync_controller_types(py_path: Path, name: str, fields: list[dict]) -> bool:
     else:
         new_source = _insert_block_into_class(source, new_block)
 
-    new_source = _ensure_block_imports(new_source, fields)
+    new_source = _ensure_block_imports(new_source, fields, children)
 
     if new_source == source:
         return False
