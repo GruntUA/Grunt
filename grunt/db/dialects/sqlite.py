@@ -457,8 +457,11 @@ class SqliteDialect(Dialect):
                     progress.set(done=base + (total - remaining) * page_size)
 
                 progress.set(stage=_("Copying the database"))
-                # consistent snapshot, readers/writers keep working between the steps
-                src.backup(dst, pages=4096, progress=copied)
+                # One step: a write from another connection between steps restarts
+                # the copy from scratch, so on a busy site a stepped backup never
+                # ends. Under WAL a single step is one read transaction - writers
+                # keep working and the snapshot is consistent.
+                src.backup(dst, progress=copied)
                 progress.set(stage=_("Checking the database copy"))
                 result = dst.execute("PRAGMA quick_check").fetchone()[0]
             if result != "ok":

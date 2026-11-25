@@ -5,6 +5,7 @@ import shutil
 import sqlite3
 import subprocess
 from compression import zstd
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -116,6 +117,51 @@ def test_sqlite_failed_swap_puts_the_live_database_back(tmp_path, monkeypatch):
     assert db.exists() and not (aside / "grunt.db").exists()
     with sqlite3.connect(db) as conn:
         assert conn.execute("SELECT v FROM t").fetchone() == ("live",)
+
+
+class _WritingProgress:
+    """Writes to the live database on every copy step, like a busy site does."""
+
+    def __init__(self, db: Path):
+        self.db = db
+        self.done = 0
+        self.steps = 0
+
+    def set(self, *, done: int | None = None, stage: str | None = None) -> None:
+        if done is None:
+            return
+        self.done = done
+        if stage is not None:  # a stage change, not a copy step
+            return
+        if self.steps < 50:  # bounded, so a restarting copy still ends
+            self.steps += 1
+            with closing(sqlite3.connect(self.db)) as conn, conn:
+                conn.execute("INSERT INTO t VALUES ('during')")
+
+    def advance(self, amount: int) -> None:
+        self.done += amount
+
+
+def test_sqlite_dump_is_not_restarted_by_concurrent_writes(tmp_path):
+    db = tmp_path / "grunt.db"
+    with closing(sqlite3.connect(db)) as conn:
+        conn.execute("PRAGMA page_size = 512")
+        conn.execute("PRAGMA journal_mode = WAL")
+        with conn:
+            conn.execute("CREATE TABLE t (v TEXT)")
+            # well over 4096 pages, so a stepped copy would take several steps
+            conn.executemany("INSERT INTO t VALUES (?)", [("x" * 400,)] * 6000)
+            conn.execute("INSERT INTO t VALUES ('live')")
+    dump = tmp_path / "set.sqlite.zst"
+    progress = _WritingProgress(db)
+
+    SqliteDialect().dump(make_url(f"sqlite:///{db}"), dump, 3, progress)
+
+    assert progress.steps == 1  # one pass, not a copy restarted by each write
+    restored = tmp_path / "restored.sqlite"
+    restored.write_bytes(zstd.decompress(dump.read_bytes()))
+    with closing(sqlite3.connect(restored)) as conn:
+        assert conn.execute("SELECT count(*) FROM t WHERE v = 'live'").fetchone() == (1,)
 
 
 def test_postgres_client_gets_libpq_parameters_only(pg_tools, tmp_path):
