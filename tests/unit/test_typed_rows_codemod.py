@@ -11,6 +11,7 @@ from grunt.utils.attr_codemod import _Classes, _document_attrs
 from grunt.utils.typed_rows_codemod import (
     Result,
     Rewriter,
+    _Controller,
     _Controllers,
     _dependency_roots,
     _Fixer,
@@ -352,3 +353,40 @@ def test_fixer_imports_a_class_the_new_type_names():
     assert fixer.fix(diag)
     out = fixer.result()
     assert "from shop.order import Order\n" in out and "-> list[Order]:" in out
+
+
+def test_fixer_refuses_two_classes_for_one_parameter():
+    source = (
+        "def label(row: dict[str, Any]) -> str: ...\n\n\ndef f(o, i):\n    label(o)\n    label(i)\n"
+    )
+    classes = _Classes()
+    classes.add(ORDER)
+    classes.add(ORDER.replace("class Order", "class Invoice"))
+    fixer = _Fixer(source, {"Order", "Invoice", "Any"}, classes, _document_attrs())
+    arg = (
+        'Argument of type "{}" cannot be assigned to parameter "row" of type "x"'
+        ' in function "label"'
+    )
+    assert fixer.fix(_diag(source, "label(o)", "reportArgumentType", arg.format("Order")))
+    assert fixer.fix(_diag(source, "label(o)", "reportArgumentType", arg.format("Order")))  # same
+    assert not fixer.fix(_diag(source, "label(i)", "reportArgumentType", arg.format("Invoice")))
+    assert "def label(row: Order) -> str:" in fixer.result()
+
+
+def test_a_dependency_app_importing_this_one_back_is_a_cycle(tmp_path: Path):
+    cms = tmp_path / "cms"
+    (cms / "doctypes" / "Page").mkdir(parents=True)
+    (cms / "__init__.py").write_text("")
+    page = cms / "doctypes" / "Page" / "page.py"
+    page.write_text("class Page: ...\n")
+    ctrl = _Controller("Page", "cms.doctypes.Page.page", page, cms, {})
+    reader = tmp_path / "portal" / "reader.py"
+    assert not Rewriter._cycle(reader, "portal.reader", ctrl)
+    assert Rewriter._cycle(tmp_path / "grunt" / "x.py", "grunt.x", ctrl)  # the core never
+    hooks = tmp_path / "cms2"
+    (hooks / "doctypes" / "Page").mkdir(parents=True)
+    (hooks / "__init__.py").write_text("")
+    back = hooks / "doctypes" / "Page" / "page.py"
+    back.write_text("lazy from portal.reader import read\n\n\nclass Page: ...\n")
+    ctrl2 = _Controller("Page", "cms2.doctypes.Page.page", back, hooks, {})
+    assert Rewriter._cycle(reader, "portal.reader", ctrl2)

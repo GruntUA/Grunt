@@ -50,6 +50,7 @@ import subprocess
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 
 from grunt.apps.required import dependencies
@@ -565,9 +566,11 @@ class Rewriter:
         core would import an app)."""
         if module is None:
             return True
-        if module.split(".")[0] != ctrl.module.split(".")[0]:
-            # Another package: an app may import the core, never the other way.
-            return module.startswith("grunt.")
+        package = module.split(".")[0]
+        if package != ctrl.module.split(".")[0]:
+            # Another package: an app may import the core, never the other way;
+            # an app it depends on - unless that one imports this package back.
+            return package == "grunt" or package in _packages_imported(ctrl.top)
         try:
             return codegen._imports_reach(ctrl.top, ctrl.module, module)
         except SyntaxError:
@@ -750,10 +753,21 @@ class _Fixer:
         """Fix the pyright error *d*; ``False`` (nothing recorded): it can't be."""
         edits, bound = len(self.edits), set(self.bound)
         imports = {m: set(n) for m, n in self.imports.items()}
-        if self._fix(d):
+        if self._fix(d) and not self._conflicts(edits):
             return True
         del self.edits[edits:]
         self.bound, self.imports = bound, defaultdict(set, imports)
+        return False
+
+    def _conflicts(self, since: int) -> bool:
+        """Whether an edit from *since* on overlaps an earlier one that is not the
+        same - e.g. one parameter retyped to ``Order`` by one call, ``Invoice`` by
+        another."""
+        done = self.edits[:since]
+        for a, b, t in self.edits[since:]:
+            for c, e, u in done:
+                if (a, b, t) != (c, e, u) and a < e and c < b or (a == b == c == e and t != u):
+                    return True
         return False
 
     def _fix(self, d: dict) -> bool:
@@ -1057,15 +1071,22 @@ def run(
             if not changed:
                 break
         else:
-            fresh = [] if keep_errors else _new_errors(before, _errors(_pyright(pyright, app_root)))
-            for d in fresh:
-                f = Path(d["file"]).resolve()
-                for c in [f] if f in new else _culprits(f, new):
-                    if c in new:
-                        result.reverted.setdefault(str(c.relative_to(app_root)), []).append(
-                            _describe(d)
-                        )
-                        del new[c]
+            # Out of rounds: put back what still fails - and what failed only
+            # with it - until pyright reports nothing new.
+            while not keep_errors and new:
+                put_back = False
+                for d in _new_errors(before, _errors(_pyright(pyright, app_root))):
+                    f = Path(d["file"]).resolve()
+                    for c in [f] if f in new else _culprits(f, new):
+                        if c in new:
+                            result.reverted.setdefault(str(c.relative_to(app_root)), []).append(
+                                _describe(d)
+                            )
+                            del new[c]
+                            write(c, all_sources[c])
+                            put_back = True
+                if not put_back:
+                    break
         if keep_errors:
             for d in _new_errors(before, _errors(_pyright(pyright, app_root))):
                 f = Path(d["file"]).resolve()
@@ -1078,6 +1099,23 @@ def run(
         for p in written:
             p.write_text(all_sources[p])
     return result
+
+
+@cache
+def _packages_imported(top: Path) -> frozenset[str]:
+    """Top-level packages the modules of *top* import (anywhere in a module)."""
+    found: set[str] = set()
+    for p in top.rglob("*.py"):
+        try:
+            tree = ast.parse(p.read_text(encoding="utf-8"))
+        except OSError, SyntaxError:
+            continue
+        for n in ast.walk(tree):
+            if isinstance(n, ast.ImportFrom) and n.module and not n.level:
+                found.add(n.module.split(".")[0])
+            elif isinstance(n, ast.Import):
+                found.update(a.name.split(".")[0] for a in n.names)
+    return frozenset(found)
 
 
 def _importer(path: Path, controllers: _Controllers) -> Callable[[str], str | None]:
