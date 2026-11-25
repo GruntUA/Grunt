@@ -108,16 +108,23 @@ def default_color(name: str) -> str:
 class AppMenu(Document):
     """Controller for AppMenu DocType."""
 
-    label: str
-    icon: str
-    color: str
-    description: str
-    sequence: int
-    is_hidden: bool
-    roles: str
-    app: str
-    home_page: str
-    sidebar_items: list[dict[str, Any]]
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    label: str  # Name
+    icon: str | None = None  # Icon
+    color: str | None = None  # Color
+    description: str | None = None  # Description
+    sequence: int | None = None  # Order
+    is_hidden: bool | None = None  # Hidden
+    roles: str | None = None  # Roles (comma-separated)
+    app: str | None = None  # App
+    home_page: str | None = None  # Home page
+    sidebar_style: str | None = None  # Sidebar style
+    sections: list[dict] = []  # Table: WorkspaceSection
+    sidebar_items: list[dict] = []  # Table: WorkspaceSidebarItem
+
+    # end: auto-generated types
 
     # Maps sidebar item type -> doctype name used by DynamicLink for search.
     # Empty string means no link picker (DynamicLink falls back to plain text).

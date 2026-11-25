@@ -30,6 +30,17 @@ def _aware(value: object) -> datetime | None:
 class Reminder(Document):
     """DocType controller for Reminder."""
 
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    remind_at: datetime  # Remind at
+    description: str | None = None  # Note
+    reference_doctype: str | None = None  # Document type
+    reference_name: str | None = None  # Document
+    notified: bool | None = None  # Sent
+
+    # end: auto-generated types
+
     async def validate(self) -> None:
         when = _aware(self.remind_at)
         if when is None:

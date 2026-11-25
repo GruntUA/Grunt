@@ -103,6 +103,18 @@ class BackgroundWorkerStore(VirtualStore):
 
 
 class BackgroundWorker(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    worker: str | None = None  # Worker
+    status: str | None = None  # Status
+    pending: int | None = None  # Running tasks
+    current_tasks: str | None = None  # Running now
+    last_seen: datetime | None = None  # Last seen
+    last_taken_at: datetime | None = None  # Last task taken
+
+    # end: auto-generated types
+
     store_class = BackgroundWorkerStore
 
 

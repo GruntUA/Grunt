@@ -8,6 +8,21 @@ from grunt.metadata.compiler import STANDARD_COLUMNS
 
 
 class FormTour(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    reference_doctype: str  # Document type
+    view: str | None = None  # Shown in
+    app: str | None = None  # App
+    is_published: bool | None = None  # Published
+    auto_start: bool | None = None  # Start automatically
+    roles: str | None = None  # Roles (comma-separated)
+    is_standard: bool | None = None  # Standard
+    steps: list[dict] = []  # Table: FormTourStep
+
+    # end: auto-generated types
+
     async def validate(self) -> None:
         meta = await self.grunt.get_meta(self.reference_doctype or "")
         if meta is None:

@@ -6,14 +6,19 @@ from grunt.document.base import Document
 class OnboardingStep(Document):
     """DocType controller for OnboardingStep."""
 
-    title: str | None
-    description: str | None
-    action: str | None
-    reference_doctype: str | None
-    form_tour: str | None
-    field: str | None
-    value_to_validate: str | None
-    report: str | None
-    route: str | None
-    action_label: str | None
-    step_id: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    description: str | None = None  # Description
+    action: str | None = None  # Action
+    reference_doctype: str | None = None  # Document type
+    form_tour: str | None = None  # Form tour
+    field: str | None = None  # Field
+    value_to_validate: str | None = None  # Expected value
+    report: str | None = None  # Report
+    route: str | None = None  # Address
+    action_label: str | None = None  # Button label
+    step_id: str | None = None  # Step ID
+
+    # end: auto-generated types
