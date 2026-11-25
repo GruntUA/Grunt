@@ -3,8 +3,9 @@
 Живий план. Оновлюється після кожного кроку: що зроблено, що далі, які рішення прийняті.
 Новий чат з Claude починає звідси.
 
-**Статус (2026-11-24):** план погоджено власником; іде крок 1 (гілка `feat/typed-reads`,
-worktree `/home/grunt/worktrees/typed-reads` — основне дерево не чіпаємо, з нього працює dev2).
+**Статус (2026-11-25):** кроки 1–5 злито, v0.21.0 випущено (#271); далі — типізовані діти
+(worktree-и від `origin/develop` у `/home/grunt/worktrees/…` — основне дерево не чіпаємо, з
+нього працює dev2).
 
 **Рішення власника (2026-11-24):** Q1 — варіант (б); Q2 — прибрати `Document.user` (як
 рекомендовано); Q3 — часткові рядки строгі; Q4 — QuerySet/`.objects` прибрати, якщо не
@@ -238,7 +239,7 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 2. ✅ PR #266 **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
 3. ✅ PR #267 (3a), #269 (3b) **`refactor(core)!: one way per action`** (3a — читання класом, QuerySet, get_all, get_doc_instance з фасаду, load/new; 3b — get_values, get_value("*"), get_single) — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
 4. ✅ PR #270 **`refactor(document)!: drop Document.user`** — R5 (Q2 погоджено). Разом з #268 (регресія `input_data`) і #272 (рев'ю випуску) — у v0.21.0 (PR #271).
-5. **`chore(doctypes): type blocks for core controllers`** — `sync-types` для ~51 контролера без блоку і мінімальні контролери для DocType без класу, які читаються за назвою. `sync-types` не вставляє блок у файл без маркерів — маркери ставимо самі. 2 PR.
+5. ✅ PR #275–#277 **`chore(doctypes): type blocks for core controllers`** — блоки типів для всіх контролерів ядра; JSON-поля → `Any | None`; `codegen.block_imports`; шаблон і scaffold через `build_controller_context`; 5 нових дочірніх контролерів (AssignmentRuleUser, ApiKeyRole, RoleProfileRole, UserGroupMember, UserRoleProfile). Блок описує конструктор, а не збережений документ: required-поле з `read_only`/`default` має тип `| None`.
 6. **`feat(codemod): typed-rows`** — новий `grunt codemod typed-rows` (поруч з `attr-access`, спільна pyright-обв'язка):
    - літерал або модульна константа DocType у `get_doc/find_doc/get_list/db.get_all/db.get_doc/db.get_value(as_dict)` → клас + імпорт. Імпорт лише якщо `import_graph` не бачить нового циклу, інакше рядок лишається і потрапляє у звіт;
    - помилки pyright `reportAssignmentType`/`reportArgumentType`/`reportReturnType` на `dict[str, Any]` / `list[dict…]` / `list[AttrDict]` → тип контролера; для параметрів — `Sequence[Cls]`;
@@ -299,6 +300,11 @@ Q1 — (б); Q2 — прибрати; Q3 — так; Q4 — прибрати п�
 - **Q5.** Типізовані діти — у цьому плані чи пізніше?
 
 ## Журнал
+
+- 2026-11-25 — злито #273 (2-й раунд CodeRabbit до #271: attr-access переписує `.get` лише на
+  `self`, перетин полів для класів-тезок, ADR get_or_create, dump_many), #274 (статус плану),
+  #275–#277 (крок 5). Worktree-и злитих гілок прибрано. Далі: типізовані діти, codemod
+  `typed-rows`, skill.
 
 - 2026-11-25 — злито #268 (`input_data`), #269 (3b), #270 (крок 4, `Document.user` →
   `grunt.session_user()`), #272 (рев'ю CodeRabbit до випуску: `input_data` у `_from_rows`,
