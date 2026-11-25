@@ -110,16 +110,29 @@ class DocumentRegistry:
             if mixin not in mixins and not issubclass(controller, mixin):
                 mixins.append(mixin)
         if not mixins:
-            return controller
+            return self._named(doctype, controller)
         try:
-            return type(
+            composed = type(
                 controller.__name__,
                 (*mixins, controller),
-                {"__module__": controller.__module__, "__qualname__": controller.__qualname__},
+                {
+                    "__module__": controller.__module__,
+                    "__qualname__": controller.__qualname__,
+                    "__doctype__": doctype,
+                },
             )
         except TypeError as e:  # inconsistent MRO, metaclass conflict
             log.error("document.mixins_incompatible", doctype=doctype, error=str(e))
-            return controller
+            return self._named(doctype, controller)
+        self._named(doctype, controller)
+        return composed
+
+    def _named(self, doctype: str, controller: type[Any]) -> type[Any]:
+        """*controller* knowing its DocType (``Document.__doctype__``) - what a class
+        passed to ``Cls.get_list()`` is read as. The base class stays unnamed."""
+        if controller is not _base and controller.__dict__.get("__doctype__") != doctype:
+            controller.__doctype__ = doctype
+        return controller
 
     def use_base(self, base: type[Any]) -> None:
         """Register the base controller every DocType falls back to (for every

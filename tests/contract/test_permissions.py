@@ -91,7 +91,7 @@ async def test_get_all_matches_the_list(ctx, permission_data, db_session, engine
         if expected is None:
             continue
         async with grunt.context(db_session, engine, make_user(email, roles=roles)):
-            got = {d.name for d in await grunt.get_all(CpTask, limit=100)}
+            got = {d.name for d in await CpTask.get_list(limit=100)}
         assert got == expected, (email, roles)
 
 

@@ -272,7 +272,7 @@ async def _get_ws_controller(name: str) -> AppMenu:
     # requires a real implementation for that in a non-stub .py file), so it
     # falls back to a looser `dict[str, Any] | D` union that doesn't narrow here.
 
-    return await documents.get_doc(AppMenu, name)
+    return await AppMenu.get_doc(name)
 
 
 @whitelist()
@@ -290,7 +290,7 @@ async def list_workspaces() -> list[dict[str, Any]]:
     menus = []
     for ws_brief in all_ws:
         try:
-            menus.append(await documents.get_doc(AppMenu, ws_brief["name"]))
+            menus.append(await AppMenu.get_doc(ws_brief["name"]))
         except Exception:
             continue
     visible = await _visible(menus)

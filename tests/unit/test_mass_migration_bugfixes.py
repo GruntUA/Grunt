@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-import grunt
+from grunt.document.api import documents
 from grunt.errors import APIError
 from tests.support import make_user
 
@@ -23,7 +23,7 @@ async def test_get_doc_instance_resolves_real_controller_method(ctx):
     which returns a bound controller instance with real methods."""
     from grunt.auth.doctypes.User.user import User
 
-    user = await User.objects.create(
+    user = await User.create(
         email="doc-method-bugfix@grunt.example.com",
         password="secret",
         first_name="Doc",
@@ -31,7 +31,7 @@ async def test_get_doc_instance_resolves_real_controller_method(ctx):
         is_active=True,
     )
 
-    doc = await grunt.get_doc_instance("User", user.name)
+    doc = await documents.get_doc_instance("User", user.name)
     handler: Any = getattr(doc, "check_password", None)
     assert handler is not None  # calling it below also proves it is callable
     assert await handler("secret") is True
@@ -40,7 +40,7 @@ async def test_get_doc_instance_resolves_real_controller_method(ctx):
 @pytest.mark.asyncio
 async def test_workspace_get_workspace_returns_saved_data(ctx):
     """workspace.py's get_workspace()/_get_ws_controller() now go through
-    typed grunt.get_doc(AppMenu, name) — this exercises the actual dead-code
+    typed AppMenu.get_doc(name) — this exercises the actual dead-code
     path that used to be `if not doc_data: grunt.throw(...)` (unreachable)."""
     from grunt.api.v1.workspace import get_workspace
 

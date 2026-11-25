@@ -127,7 +127,7 @@ async def test_get_doc_by_class_returns_the_extended_controller(ctx, monkeypatch
     document_registry.register_mixins({"MixinTarget": f"{MOD}.FinanceMixin"}, app="crystal")
 
     created = await ctx.new_doc("MixinTarget", {"title": "A"})
-    doc = await ctx.get_doc(MixinTarget, created["name"])
+    doc = await MixinTarget.get_doc(created["name"])
 
     assert isinstance(doc, MixinTarget)
     assert doc.finance_only() == "cf"  # type: ignore[attr-defined]

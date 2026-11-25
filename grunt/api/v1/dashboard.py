@@ -97,7 +97,7 @@ async def _resolve_context_tokens(filters: dict[str, Any]) -> dict[str, Any]:
             and not field.has_trait("sensitive")
             and await permission_checker.check(meta, "read")
         )
-        resolved[key] = await documents.get_single(doctype, fieldname) if allowed else None
+        resolved[key] = await documents.db.get_single_value(doctype, fieldname) if allowed else None
         if resolved[key] is None:
             log.info("dashboard.filter_token_unresolved", token=value)
             resolved[key] = _NO_MATCH
@@ -226,7 +226,7 @@ async def _load_widgets(
     date_to: str | None,
 ) -> tuple[list[dict[str, Any]], datetime | None, datetime | None]:
     """A visible Page's widgets (in row order) and the parsed global date range."""
-    doc = await documents.find_doc(Page, name)
+    doc = await Page.find_doc(name)
     if doc is None:
         throw(_("Page not found"), "NOT_FOUND")
     page = dict(doc.data)

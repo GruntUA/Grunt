@@ -226,7 +226,7 @@ class DataImport(Document):
         """
         file_id = parse_qs(urlparse(self.file).query).get("file_id", [None])[0]
         if file_id:
-            doc = await self.grunt.find_doc(File, file_id)
+            doc = await File.find_doc(file_id)
             if doc and doc.content_hash:
                 path = await blob_path(doc.content_hash)
                 if path.exists():

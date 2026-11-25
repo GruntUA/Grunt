@@ -14,6 +14,7 @@ from typing import Any
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
+from grunt.local import session_user
 from grunt.notification.events import trigger
 from grunt.permissions.groups import group_emails
 from grunt.permissions.rbac import permission_checker
@@ -59,7 +60,7 @@ class SharedWith(Document):
     async def before_delete(self) -> None:
         # Whoever received a share may give it up; anyone else needs to be
         # able to share the document.
-        if self.user is not None and self.data.get("user") == self.user:
+        if session_user() is not None and self.data.get("user") == session_user():
             return
         await self._require_share_on_reference("Read")
 
@@ -73,7 +74,7 @@ class SharedWith(Document):
         elif self.user_group:
             recipients = await group_emails([self.user_group])
         # "Everyone" tells nobody: a notification to every account is noise.
-        recipients = [r for r in recipients if r != self.user]
+        recipients = [r for r in recipients if r != session_user()]
         if not recipients:
             return
         ref = (self.reference_doctype, str(self.reference_id))
@@ -83,7 +84,7 @@ class SharedWith(Document):
             doctype="SharedWith",
             link=ref,
             recipients=recipients,
-            actor=self.user or "",
+            actor=session_user() or "",
             extra={"target": f"{ref[0]} {ref[1]}", "level": self._level_label},
             session=self.session,
         )
@@ -92,10 +93,10 @@ class SharedWith(Document):
         return _("edit") if self.permission == "Write" else _("view")
 
     async def _require_share_on_reference(self, level: str) -> None:
-        if self.user is None:
+        if session_user() is None:
             return
         dt = await self.grunt.get_meta(self.reference_doctype)
-        doc = await self.grunt.db.get_value(self.reference_doctype, self.reference_id, "*")
+        doc = await self.grunt.db.get_doc(self.reference_doctype, self.reference_id)
         if dt is None or doc is None:
             throw(_("Document not found"), "NOT_FOUND")
         if not await permission_checker.can_share(dt, doc, level=level):

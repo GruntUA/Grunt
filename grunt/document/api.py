@@ -20,7 +20,6 @@ from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.db.profiler import profile
 from grunt.document import collection
-from grunt.document.queryset import use_document_api
 from grunt.document.update_side_effects import write_bulk_delete_activity_log
 from grunt.document.validation import refuse_set_once_changes
 from grunt.errors import forbidden, not_found, unprocessable
@@ -49,9 +48,8 @@ from grunt.site.settings import get_system_settings
 from grunt.utils.attr_dict import AttrDict, as_row, as_rows
 from grunt.workflow.registry import get_active_workflow
 lazy from grunt.db.api import aggregate_query, list_query
-lazy from grunt.document.base import Document, load_document, new_document
+lazy from grunt.document.base import Document, load_document, new_document, use_document_api
 lazy from grunt.document.document_list import DocumentList
-lazy from grunt.document.registry import document_registry
 lazy from grunt.permissions import reads
 lazy from grunt.permissions.query import read_predicate
 lazy from grunt.query.aggregates import group_field, parse_aggregation
@@ -171,17 +169,6 @@ class DocumentAPI:
         """By DocType name: the document as an :class:`AttrDict` (``doc.status``)."""
 
     @overload
-    async def get_doc[D: Document](
-        self,
-        doctype: type[D],
-        id_or_name: str | None = None,
-        *,
-        expand: list[str] | None = None,
-        ignore_permissions: bool = False,
-    ) -> D:
-        """By controller class: the document as that class."""
-
-    @overload
     async def get_doc(self, doctype: dict[str, Any]) -> Document:
         """From a document dict: a new, unsaved :class:`Document`."""
 
@@ -190,11 +177,11 @@ class DocumentAPI:
     async def get_doc(self, doctype, id_or_name=None, *, expand=None, ignore_permissions=False):
         """Fetch a single document by id or name.
 
-        Pass a doctype name for the untyped dict result, or a ``Document``
-        subclass for a typed controller instance (mirrors ``grunt.get_all``)::
+        By DocType name - an :class:`AttrDict`, for code that only learns the
+        DocType at run time. The typed read is the controller's own:
+        ``await Order.get_doc(order_id)``::
 
-            order = await grunt.get_doc(Order, order_id)    # typed -> Order
-            order = await grunt.get_doc("Order", order_id)  # dict
+            order = await grunt.get_doc("Order", order_id)
 
         For a singleton DocType the id is optional - there is only one row::
 
@@ -214,20 +201,6 @@ class DocumentAPI:
             _dt, user, _session = await write_guard(target, "create")
             return await self._new(target, copy.deepcopy(doctype), user)
 
-        if isinstance(doctype, type):
-            name: str = getattr(doctype, "doctype", doctype.__name__)
-            dt, user, hidden_fields = await read_guard(name)
-            await fire("before_read", doctype=name, user=user, doc_id=id_or_name)
-            data = (await self._load(name, id_or_name, user, expand)).data
-            await permission_checker.require(dt, "read", data, user=user)
-            data = apply_hidden_fields_to_doc(data, hidden_fields)
-            await fire("after_read", doctype=name, user=user, doc=data)
-            # The registered controller, when it extends the class asked for
-            # (doctype_mixins / override_doctype_class of other apps).
-            controller = document_registry.get(name)
-            cls = controller if issubclass(controller, doctype) else doctype
-            return cls(doctype=name, data=data, session=require_session())
-
         dt, user, hidden_fields = await read_guard(doctype)
         await fire("before_read", doctype=doctype, user=user, doc_id=id_or_name)
         doc = (await self._load(doctype, id_or_name, user, expand)).data
@@ -236,7 +209,6 @@ class DocumentAPI:
         await fire("after_read", doctype=doctype, user=user, doc=doc)
         return doc
 
-    @overload
     async def find_doc(
         self,
         doctype: str,
@@ -244,29 +216,105 @@ class DocumentAPI:
         *,
         expand: list[str] | None = None,
     ) -> AttrDict | None:
-        """By DocType name: the :class:`AttrDict`, or ``None``."""
-
-    @overload
-    async def find_doc[D: Document](
-        self,
-        doctype: type[D],
-        id_or_name: str | None = None,
-        *,
-        expand: list[str] | None = None,
-    ) -> D | None:
-        """By controller class: that class, or ``None``."""
-
-    async def find_doc(self, doctype, id_or_name=None, *, expand=None):
         """Like :meth:`get_doc`, but returns ``None`` instead of raising 404."""
-
         try:
-            if isinstance(doctype, type):
-                return await self.get_doc(doctype, id_or_name, expand=expand)
             return await self.get_doc(doctype, id_or_name, expand=expand)
         except HTTPException as exc:
             if exc.status_code == 404:
                 return None
             raise
+
+    # Reads by controller class - behind Document.get_doc / find_doc / get_list
+
+    @_may_ignore_permissions
+    @profile("grunt.get_doc")
+    async def doc_of[D: Document](
+        self,
+        cls: type[D],
+        id_or_name: str | None = None,
+        *,
+        expand: list[str] | None = None,
+        ignore_permissions: bool = False,
+    ) -> D:
+        """The document *id_or_name* as an instance of *cls* (``Cls.get_doc``)."""
+        name = cls.__doctype__
+        dt, user, hidden_fields = await read_guard(name)
+        await fire("before_read", doctype=name, user=user, doc_id=id_or_name)
+        data = (await self._load(name, id_or_name, user, expand)).data
+        await permission_checker.require(dt, "read", data, user=user)
+        data = apply_hidden_fields_to_doc(data, hidden_fields)
+        await fire("after_read", doctype=name, user=user, doc=data)
+        # The registered controller, when it extends the class asked for
+        # (doctype_mixins / override_doctype_class of other apps).
+        doc = cls._from_rows([data], doctype=name, hidden=hidden_fields)[0]
+        doc.session = require_session()
+        return doc
+
+    async def find_doc_of[D: Document](
+        self, cls: type[D], id_or_name: str | None = None, *, expand: list[str] | None = None
+    ) -> D | None:
+        """Like :meth:`doc_of`, but ``None`` instead of raising 404 (``Cls.find_doc``)."""
+        try:
+            return await self.doc_of(cls, id_or_name, expand=expand)
+        except HTTPException as exc:
+            if exc.status_code == 404:
+                return None
+            raise
+
+    @_may_ignore_permissions
+    @profile("grunt.get_list")
+    async def list_of[D: Document](
+        self,
+        cls: type[D],
+        *,
+        filters: dict[str, Any] | None = None,
+        or_filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int | None = 20,
+        page: int = 1,
+        order_by: str = "modified_at",
+        order: str = "desc",
+        ignore_permissions: bool = False,
+    ) -> list[D]:
+        """Rows of *cls*'s DocType the user may read, as instances of *cls*
+        (``Cls.get_list``) - stored values (datetimes stay datetimes), hidden
+        fields left out, read hooks fired; a row holds only the fields asked
+        for and no child tables."""
+        doctype = cls.__doctype__
+        dt, user, hidden_fields = await read_guard(doctype)
+        offset = max(page - 1, 0) * (limit or 0)
+        await fire(
+            "before_read",
+            doctype=doctype,
+            user=user,
+            filters=filters,
+            fields=fields,
+            limit=limit,
+            offset=offset,
+            order_by=order_by,
+            order=order,
+            method="get_list",
+        )
+        # The row-level gate (match rules, scopes, shares) - as get_list.
+        query = list_query(
+            dt,
+            filters=filters,
+            or_filters=or_filters,
+            fields=fields,
+            limit=limit,
+            offset=offset,
+            order_by=order_by,
+            order=order,
+        )
+        rows = await reads.fetch(query, user=user)
+        apply_hidden_fields_to_rows(rows, hidden_fields)
+        await fire("after_read", doctype=doctype, user=user, data=rows, method="get_list")
+        docs = cls._from_rows(rows, doctype=doctype, partial=True, hidden=hidden_fields)
+        if docs:
+            session = require_session()
+            for doc in docs:
+                doc.__dict__["session"] = session
+        return docs
 
     async def get_doc_instance(self, doctype: str, id_or_name: str) -> Document:
         """Fetch a document and return it as an instantiated controller."""
@@ -444,12 +492,17 @@ class DocumentAPI:
         cursor: str | None = None,
         include_total: bool = True,
         ignore_permissions: bool = False,
-    ) -> DocumentList:
+    ) -> DocumentList[AttrDict]:
         """Fetch a guarded, field-masked page of documents (with pagination meta).
 
         The single read entry point: applies read_guard, before/after_read hooks
-        and hidden-field masking. Returns a :class:`DocumentList` whose
-        ``to_dict()`` carries pagination metadata.
+        and hidden-field masking. Returns a :class:`DocumentList` (``.meta``,
+        ``to_dict()`` - pagination) of :class:`AttrDict` rows shaped for the API:
+        datetimes as ISO strings, Link titles added. For code that only learns
+        the DocType at run time - the typed read is ``await Order.get_list(...)``
+        (stored values, rows of the class)::
+
+            open_orders = await grunt.get_list("Order", filters={"status": "Open"})
 
         ``include_total=False`` skips the pagination ``COUNT(*)`` query for
         call sites that never read ``meta.total`` (e.g. sidebar widgets).
@@ -526,67 +579,6 @@ class DocumentAPI:
         as_rows(result)
         await fire("after_read", doctype=doctype, user=user, data=result)
         return result
-
-    @profile("grunt.get_all")
-    async def get_all[T](
-        self,
-        model_class: type[T],
-        *,
-        filters: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
-        limit: int = 20,
-        page: int = 1,
-        order_by: str = "modified_at",
-        order: str = "desc",
-        search: str | None = None,
-    ) -> list[T]:
-        """Fetch a list of documents and return them as instantiated controllers.
-
-        This method supports typed results using Python generics::
-
-            users = await grunt.get_all(User, filters={"active": True})
-        """
-
-        doctype: str = getattr(model_class, "doctype", model_class.__name__)
-        dt, user, hidden_fields = await read_guard(doctype)
-
-        offset = max(page - 1, 0) * limit
-        await fire(
-            "before_read",
-            doctype=doctype,
-            user=user,
-            filters=filters,
-            fields=fields,
-            limit=limit,
-            offset=offset,
-            order_by=order_by,
-            order=order,
-            search=search,
-            method="get_all",
-        )
-
-        # Same row-level gate get_list applies (match rules, User Permissions,
-        # shares). Without it get_all would return every row the doctype-level
-        # read grant allows, ignoring `match`.
-        query = list_query(
-            dt,
-            filters=filters,
-            fields=fields,
-            limit=limit,
-            offset=offset,
-            order_by=order_by,
-            order=order,
-        )
-        rows = await reads.fetch(query, user=user)
-        apply_hidden_fields_to_rows(rows, hidden_fields)
-        await fire("after_read", doctype=doctype, user=user, data=rows, method="get_all")
-
-        session = require_session()
-        controllers = [
-            model_class(doctype=doctype, data=row, session=session)  # type: ignore[return-value]
-            for row in rows
-        ]
-        return DocumentList(controllers, meta=getattr(rows, "meta", {}))
 
     async def bulk_insert(
         self,
@@ -839,8 +831,6 @@ class DocumentAPI:
             data={"fieldname": fieldname, "value": value},
             method="get_value",
         )
-        if isinstance(value, dict):  # fieldname "*" - the whole row
-            value = apply_hidden_fields_to_doc(value, hidden)
         return value
 
     @_may_ignore_permissions
@@ -886,16 +876,6 @@ class DocumentAPI:
         await permission_checker.require_in_scope(dt, "write", {**row, **changes}, user=user)
         await self.db.set_value(doctype, id_or_name, fieldname, value)
         await self._invalidate_list_cache(doctype, id_or_name)
-
-    async def get_single(self, doctype: str, fieldname: str) -> Any:
-        """Fetch a field value from a Single DocType (singleton document).
-
-        Single DocTypes hold global settings and have no id - they are stored
-        as key/value rows rather than regular documents::
-
-            currency = await grunt.get_single("SystemSettings", "default_currency")
-        """
-        return await self.db.get_single_value(doctype, fieldname)
 
     async def copy_data(self, doctype: str, id_or_name: str) -> dict[str, Any]:
         """The values a copy of a document starts with - what "Duplicate" and

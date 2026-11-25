@@ -35,7 +35,7 @@ from grunt.document.validation import _validate_data, refuse_set_once_changes, v
 from grunt.errors import ApplicationError, not_found, stale_document
 from grunt.events import fire
 from grunt.i18n import _
-from grunt.local import require_session_user, stamp_user
+from grunt.local import require_session_user, session_user, stamp_user
 from grunt.log import log
 from grunt.monitoring import perf
 from grunt.naming.service import naming_service
@@ -90,22 +90,6 @@ class DocumentLifecycleMixin:
 
     def _bind(self) -> None:
         """Provided by :class:`Document`: session/engine from the active context."""
-
-    @classmethod
-    async def load(  # type: ignore[empty-body]  # Document.load
-        cls,
-        doctype: str,
-        name: str | None = None,
-        *,
-        expand: list[str] | None = None,
-        session: Any = None,
-        engine: Any = None,
-    ) -> Any:
-        """Provided by :class:`Document`: load a stored document."""
-
-    @property
-    def user(self) -> str | None:  # type: ignore[empty-body]  # Document: the session user
-        """Provided by :class:`Document`: the session user."""
 
     def _set_grunt_context(self) -> tuple:  # type: ignore[empty-body]
         """Provided by :class:`Document`: bind its session/engine for the hooks."""
@@ -200,13 +184,14 @@ class DocumentLifecycleMixin:
     async def _fire_write_hooks(self, primary_event: str, doc: dict[str, Any]) -> None:
         """Fire the two hook events that follow a successful insert/update."""
         for event in (primary_event, "after_save"):
-            await fire(event, doctype=self.doctype, doc=doc, user=self.user, session=self.session)
+            await fire(
+                event, doctype=self.doctype, doc=doc, user=session_user(), session=self.session
+            )
 
     async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
-        """The stored document *doc_id*, read like ``grunt.get_doc`` reads it."""
-
-        doc = await self.load(self.doctype, doc_id, session=self.session, engine=self.engine)
-        return doc.data
+        """The stored document *doc_id*, read like ``grunt.get_doc`` reads it
+        (``Document`` implements it - this mixin can't import the loader)."""
+        raise NotImplementedError
 
     async def _build_initial_row(
         self, dt: Any, data: dict[str, Any], now: datetime

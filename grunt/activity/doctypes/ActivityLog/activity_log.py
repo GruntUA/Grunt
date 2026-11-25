@@ -3,6 +3,8 @@ from typing import Any
 from grunt.activity import attach_titles, attach_user_names, feed_hidden_doctypes
 from grunt.api.context import whitelist
 from grunt.document.base import Document
+from grunt.local import session_user
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.document.api import documents
 
 
@@ -16,8 +18,8 @@ class ActivityLog(Document):
 
     async def before_insert(self) -> None:
         # Auto-set 'user' field from request context if caller didn't provide it.
-        if not self.data.get("user") and self.user:
-            self.data["user"] = self.user
+        if not self.data.get("user") and session_user():
+            self.data["user"] = session_user()
 
     # Helper Classmethods
 
@@ -46,7 +48,7 @@ class ActivityLog(Document):
         doctype: str,
         doc_id: str,
         limit: int = 100,
-    ) -> list[dict[str, Any]]:
+    ) -> list[AttrDict]:
         """Get activity log for a document (newest first)."""
         return await documents.get_list(
             "ActivityLog",

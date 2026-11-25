@@ -23,20 +23,43 @@ is imported from its own module.
 
 ## Document CRUD
 
+### Reading by the controller class - `Invoice.get_doc` / `find_doc` / `get_list`
+
+Every controller reads its own documents - typed, so the IDE knows the fields of
+what comes back. Each checks the user's `read` permission, hides the fields they
+may not see and fires the read hooks (`before_read`, `after_read`):
+
+```python
+invoice = await Invoice.get_doc("INV-0001")       # Invoice; 404 if missing
+invoice = await Invoice.find_doc("INV-0001")      # Invoice | None
+invoices = await Invoice.get_list(                # list[Invoice]
+    filters={"status": "Open", "amount__gte": 1000},
+    fields=["name", "customer", "amount"],
+    order_by="created_at desc",
+    limit=50,
+)
+invoices[0].customer
+new = await Invoice.create(customer="CUST-1", amount=100)  # saved
+```
+
+`get_list` gives the values as stored (a datetime stays a datetime). A row of a
+list holds only the fields asked for and no child tables: reading a field it
+lacks raises `AttributeError`, and `save()` refuses it - read the document with
+`get_doc` to change it. A field hidden from the reader reads as `None`.
+`ignore_permissions=True` reads as the system (see below).
+
+The `grunt.*` functions below take the DocType **name** and return `AttrDict`
+rows - for code that only learns the DocType at run time (reports, imports,
+generic tools).
+
 ### `grunt.get_doc(doctype, id_or_name)`
 
-Fetch a single document by id or name.
+Fetch a single document by id or name, as an `AttrDict`.
 
 Enforces `read` permission and triggers read hooks (`before_read`, `after_read`).
 
-Pass a doctype name for a plain dict, or a `Document` subclass for a typed
-controller instance — same fields as the class declares, with autocomplete:
-
 ```python
-invoice = await grunt.get_doc("Invoice", "INV-0001")  # dict
-print(invoice["amount"])
-
-invoice = await grunt.get_doc(Invoice, "INV-0001")  # typed Invoice instance
+invoice = await grunt.get_doc("Invoice", "INV-0001")
 print(invoice.amount)
 ```
 
@@ -50,18 +73,6 @@ you're about to branch on, not an error to propagate:
 existing = await grunt.find_doc("Customer", {"email": email})
 if existing is None:
     ...
-```
-
-### `grunt.get_doc_instance(doctype, id_or_name)`
-
-Like the typed form of `get_doc`, but for when the doctype is only known as a
-string at runtime (e.g. a workflow or task operating on a caller-supplied
-doctype name, not a fixed class) — resolves the controller class from the
-doctype registry and returns a bound instance:
-
-```python
-doc = await grunt.get_doc_instance(doctype_name, doc_id)
-await doc.after_save()
 ```
 
 ### `grunt.new_doc(doctype, data)`
@@ -107,54 +118,31 @@ draft = await grunt.copy_doc("Invoice", original_id, overrides={"status": "Draft
 
 ### `grunt.get_list(doctype, *, filters, fields, limit, page, order_by, order, search)`
 
-Fetch a list of documents.
+Fetch a page of documents shaped for the API (the list view, REST): `AttrDict`
+rows with datetimes as ISO strings and Link titles added. Returns a
+`DocumentList` - a list with the pagination in `.meta` (`to_dict()` gives
+`{"data": ..., "meta": ...}`); `search` and `cursor` page like the list view.
 
 Enforces `read` permission and triggers read hooks (`before_read`, `after_read`).
+In application code with a known DocType read with `Order.get_list(...)` instead.
 
 ```python
 open_orders = await grunt.get_list(
     "Order",
     filters={"status": "Open", "amount__gte": "1000"},
-    fields=["id", "name", "customer", "amount"],
+    fields=["name", "customer", "amount"],
     limit=50,
     order_by="created_at",
     order="desc",
 )
+open_orders.meta["total"]
 ```
 
 `order_by` is one field, optionally with its direction: `"created_at"`,
 `"created_at asc"`, `"created_at desc"` (a direction in the string wins over
 `order`). An unknown field, several fields (`"a, b"`) or another word than
 `asc`/`desc` is a 422 - the list is never quietly sorted by something else.
-The same holds for `grunt.get_all`, `grunt.db.get_all`, `.objects.order_by()`
-and the REST list (`sort_by` / `sort_order`).
-
-### `SomeController.objects` — typed query builder
-
-Every `Document` subclass gets a fluent, chainable query builder — a typed
-alternative to `get_list`/`db.get_all` for controller and script code:
-
-```python
-from grunt.auth.doctypes.User.user import User
-
-active_admins = await (
-    User.objects.filter(is_active=True, is_superadmin=True).order_by("-created_at").limit(20).all()
-)
-
-user = await User.objects.filter(email=email).first()  # None if no match
-total = await User.objects.filter(is_active=True).count()
-taken = await User.objects.filter(email=email).exists()
-
-created = await User.objects.create(email=email, first_name="A", last_name="B")
-user, was_created = await User.objects.get_or_create(
-    email=email,
-    defaults={"first_name": "A", "last_name": "B"},
-)
-```
-
-Filter keys accept the same operator suffixes as `get_list`/`db.get_all`:
-`__gt`, `__gte`, `__lt`, `__lte`, `__in`, `__nin`, `__like`, `__ilike`,
-`__isnull`, `__ne`.
+The same holds for `grunt.db.get_all` and the REST list (`sort_by` / `sort_order`).
 
 ### `grunt.count(doctype, *, filters)`
 
@@ -249,9 +237,17 @@ if await grunt.db.exists("Customer", {"email": "a@b.com"}):
 
 ### `grunt.db.get_all(doctype, *, filters, fields, limit, order_by, order)`
 
-Fetch a list of documents as plain dicts (lower-level than `get_list`).
+Fetch a list of rows (lower-level than `get_list`): by controller class rows of
+that class, as `get_list` gives them; by DocType name `AttrDict` rows.
+
+```python
+for order in await grunt.db.get_all(Order, filters={"status": "Open"}, fields=["name", "amount"]):
+    total += order.amount
+```
 
 Low-level direct DB access: no permission checks and no lifecycle/read hooks.
+`grunt.db.get_doc(Order, name)` and `grunt.db.get_value(Order, name, [...], as_dict=True)`
+take the class the same way (a bare row - no child tables).
 
 ---
 
@@ -440,7 +436,7 @@ async def whoami() -> dict:
 
 @grunt.whitelist(perm="grunt.manage_users")
 async def list_users_api() -> list[dict]:
-    return UserPublic.dump_many(await User.objects.limit(1000).all())
+    return UserPublic.dump_many(await User.get_list(limit=1000))
 ```
 
 `Schema` is a straight identity mapping (output key == field name) — it
@@ -507,7 +503,7 @@ user.has_role("Manager", "Accountant")  # bool
 ## Context outside a request
 
 Inside a controller method, hook, or whitelisted call, `grunt.get_doc` /
-`grunt.db` / `User.objects` / etc. already know which session, engine, and
+`grunt.db` / `User.get_list()` / etc. already know which session, engine, and
 user to use — it's set up for you before your code ever runs. Writing a CLI
 command or a background task means setting that context up yourself first:
 
@@ -543,7 +539,8 @@ method) shouldn't take `session` as its own parameter at all. Read it via
 ```python
 async def get_user_by_email(email: str) -> User | None:
     async with grunt.system_context(grunt.get_session()):
-        return await User.objects.filter(email=email).first()
+        found = await User.get_list(filters={"email": email}, limit=1)
+        return found[0] if found else None
 ```
 
 Reserve an explicit `session` parameter for code that's genuinely called

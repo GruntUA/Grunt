@@ -193,9 +193,9 @@ async def test_upload_to_remotes_records_failure_without_raising(ctx, site, tmp_
 
     assert outcome["nas"] is None
     assert outcome["broken"]
-    ok = await ctx.db.get_value("StorageRemote", "nas", "*")
+    ok = await ctx.db.get_doc("StorageRemote", "nas")
     assert ok["last_status"] == "OK" and ok["last_backup_id"] == "20261005-020000"
-    broken = await ctx.db.get_value("StorageRemote", "broken", "*")
+    broken = await ctx.db.get_doc("StorageRemote", "broken")
     assert broken["last_status"] == "Error" and broken["last_error"]
 
 

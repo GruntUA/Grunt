@@ -2,6 +2,7 @@
 
 import csv
 import io
+from collections.abc import Sequence
 from typing import Any
 
 from grunt.io.exporters.registry import Exporter
@@ -28,7 +29,7 @@ class CsvExporter(Exporter):
     async def export(
         self,
         doctype: str,
-        rows: list[dict[str, Any]],
+        rows: Sequence[dict[str, Any]],
         fields: list[DocField],
     ) -> bytes:
         exportable = [f for f in fields if f.is_physical]

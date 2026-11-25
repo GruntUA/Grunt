@@ -106,7 +106,7 @@ async def _inject_top_level_link_labels(meta: Any, doc: dict[str, Any]) -> None:
             continue
 
         title_field = target_dt.get_title_field()
-        row = await _db.get_values(lf.options, raw, [title_field])
+        row = await _db.get_value(lf.options, raw, [title_field], as_dict=True)
         if row:
             doc[f"{lf.fieldname}__label"] = str(row.get(title_field) or raw)
 

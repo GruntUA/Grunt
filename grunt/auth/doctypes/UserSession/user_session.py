@@ -61,7 +61,7 @@ ROTATION_GRACE_SECONDS = 30
 class UserSession(Document):
     """DocType controller for UserSession."""
 
-    # "user" field: read it as self.data["user"] - self.user is the session user.
+    user: str
     refresh_token_hash: str | None
     previous_token_hash: str | None
     rotated_at: datetime | None
@@ -197,7 +197,7 @@ async def open_session(
 
     sid = rows[0].name
     keep = await get_setting("session_login_history", DEFAULT_LOGIN_HISTORY)
-    doc = await documents.get_doc(UserSession, sid, ignore_permissions=True)
+    doc = await UserSession.get_doc(sid, ignore_permissions=True)
     logins = [{key: row.get(key) for key in login} for row in doc.logins or []]
     logins = [*logins, login][-max(int(keep or 1), 1) :]
     await documents.save_doc(

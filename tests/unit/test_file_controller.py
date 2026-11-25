@@ -1,5 +1,5 @@
 """Unit tests for the File controller's whitelisted methods — second reference
-migration onto `Document.objects`/typed `get_doc` after auth/doctypes/User/user.py
+migration onto typed `get_list`/`get_doc` after auth/doctypes/User/user.py
 (see ADR 004). Not covered by test_file_permissions.py/test_file_delete.py, which
 only exercise the DocType permissions and the before_delete hook."""
 

@@ -37,7 +37,9 @@ LINE = {
 def test_attribute_access_reads_and_writes_keys():
     d = AttrDict({"a": 1})
     assert d.a == 1
-    assert d.missing is None
+    with pytest.raises(AttributeError):
+        _ = d.missing
+    assert d.get("missing") is None
     d.b = 2
     assert d.b == 2
     del d.b
@@ -123,10 +125,10 @@ async def test_db_api_returns_attrdicts(orders):
     row = await grunt.db.get_doc("AttrOrder", doc.name)
     assert row is not None and row.title == "Second"
 
-    values = await grunt.db.get_values("AttrOrder", doc.name, ["title"])
+    values = await grunt.db.get_value("AttrOrder", doc.name, ["title"], as_dict=True)
     assert values is not None and values.title == "Second"
 
-    whole = await grunt.db.get_value("AttrOrder", doc.name, "*")
+    whole = await grunt.db.get_doc("AttrOrder", doc.name)
     assert whole is not None and whole.title == "Second"
 
 

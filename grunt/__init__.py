@@ -27,6 +27,7 @@ from grunt.api.messages import msgprint
 from grunt.errors import throw
 from grunt.monitoring.error_log import record_error as log_error
 from grunt.version import framework_version
+from grunt.local import session_user
 
 from grunt.app import grunt as _app  # after the helpers above - see the module docstring
 # isort: on
@@ -46,7 +47,6 @@ reset_context = _app.reset_context
 
 get_doc = _app.documents.get_doc
 find_doc = _app.documents.find_doc
-get_doc_instance = _app.documents.get_doc_instance
 new_doc = _app.documents.new_doc
 save_doc = _app.documents.save_doc
 delete_doc = _app.documents.delete_doc
@@ -55,13 +55,11 @@ copy_doc = _app.documents.copy_doc
 copy_data = _app.documents.copy_data
 submit = _app.submit
 get_list = _app.documents.get_list
-get_all = _app.documents.get_all
 count = _app.documents.count
 aggregate = _app.documents.aggregate
 exists = _app.documents.exists
 get_value = _app.documents.get_value
 set_value = _app.documents.set_value
-get_single = _app.documents.get_single
 bulk_insert = _app.documents.bulk_insert
 bulk_update = _app.documents.bulk_update
 bulk_delete_docs = _app.documents.bulk_delete_docs
@@ -96,15 +94,13 @@ __all__ = [
     "enqueue_doc",
     "exists",
     "find_doc",
-    "get_all",
     "get_doc",
-    "get_doc_instance",
     "get_engine",
     "get_list",
     "get_meta",
     "get_session",
-    "get_single",
     "get_user",
+    "session_user",
     "get_value",
     "has_perm",
     "has_permission",

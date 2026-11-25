@@ -118,7 +118,7 @@ class User(Document):
     def role_names(self) -> list[str]:
         """Role names, whether ``roles`` holds the loaded names (an authenticated
         user) or the UserRole child rows (a document being saved)."""
-        rows = self.role_rows
+        rows = self.data.get("role_rows")  # set by grunt.auth.users, not a field
         if rows is None:
             rows = self.roles or []
         return list(dict.fromkeys(r["role_name"] for r in active_role_rows(rows)))
@@ -264,7 +264,7 @@ class User(Document):
             return
         file_id = m.group(1)
         try:
-            row = await _db.get_values("File", file_id, ["owner", "is_public"])
+            row = await _db.get_value("File", file_id, ["owner", "is_public"], as_dict=True)
             if not row:
                 return
             # SECURITY: publish ONLY a file the saving user owns. Without this an

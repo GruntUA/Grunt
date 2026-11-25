@@ -11,6 +11,7 @@ from grunt.errors import forbidden, throw
 from grunt.i18n import _
 from grunt.permissions.perms import has_perm
 from grunt.permissions.roles import get_roles
+from grunt.utils.attr_dict import AttrDict
 lazy from grunt.auth.doctypes.User.user import User
 lazy from grunt.document.api import documents
 
@@ -96,7 +97,7 @@ async def create_api_key(
 
 
 @whitelist()
-async def list_api_keys(user: User | None = None) -> list[dict[str, Any]]:
+async def list_api_keys(user: User | None = None) -> list[AttrDict]:
     """List API keys (secrets are never returned)."""
     user = user or acting_user()
 
@@ -133,7 +134,7 @@ async def update_api_key(
 ) -> dict[str, Any]:
     """Update label, active state, allowed IPs, or expiry of a key."""
     user = user or acting_user()
-    key_doc = await documents.get_doc(ApiKey, key_id)
+    key_doc = await ApiKey.get_doc(key_id)
     await _require_key_owner(key_doc, user)
 
     updates: dict[str, Any] = {}
@@ -167,7 +168,7 @@ async def update_api_key(
 async def revoke_api_key(key_id: str, user: User | None = None) -> bool:
     """Permanently revoke (delete) an API key."""
     user = user or acting_user()
-    key_doc = await documents.get_doc(ApiKey, key_id)
+    key_doc = await ApiKey.get_doc(key_id)
     await _require_key_owner(key_doc, user)
     await documents.delete_doc("ApiKey", key_id)
     return True

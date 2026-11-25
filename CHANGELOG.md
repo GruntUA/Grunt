@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.21.0 - 2026-11-24
+
+### Breaking changes
+
+- **document:** drop Document.user - the session user is grunt.session_user()
+- **db:** no get_values, get_value("*") or get_single
+- **document:** read by the controller class - one way per action
+- **document:** strict attribute access
+- **document:** typed reads by controller class
+
+### Fixes
+
+- **document:** keep input_data a controller attribute
+- **document:** system fields of a partial row are checked like any other field
+- **document:** no ineffectual statements in typed-read overloads, autoescape in the test
+
+### Other
+
+- autoescape in the Jinja environments of the attribute tests
+
 ## v0.20.0 - 2026-11-24
 
 ### Breaking changes

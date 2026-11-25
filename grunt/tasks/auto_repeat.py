@@ -80,7 +80,7 @@ async def process_rule(name: str, today: date) -> int:
     copy is committed on its own, so one failure keeps the earlier ones.
     """
     session = require_session()
-    rule = await documents.get_doc(AutoRepeat, name)
+    rule = await AutoRepeat.get_doc(name)
     frequency = rule.frequency
     day, last_day = anchor_day(rule.data), bool(rule.repeat_on_last_day)
     end = as_date(rule.end_date)

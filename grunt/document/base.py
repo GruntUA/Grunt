@@ -14,20 +14,19 @@ import annotationlib
 import contextlib
 import copy
 import sys
-from collections.abc import Callable
-from typing import Any, ClassVar, dataclass_transform
+from collections.abc import Callable, Iterable
+from typing import Any, ClassVar, Self, dataclass_transform
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
 from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
-from grunt.document.queryset import QuerySet
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
 from grunt.i18n import _
-from grunt.local import _user_ctx, bind, require_engine, require_session, session_user, unbind
+from grunt.local import _user_ctx, bind, require_engine, require_session, unbind
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import write_guard
@@ -36,9 +35,7 @@ from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
 # Real instance attributes; everything else is routed into self.data.
-_RESERVED = frozenset(
-    {"doctype", "data", "user", "session", "engine", "input_data", "doc_before_save"}
-)
+_RESERVED = frozenset({"doctype", "data", "session", "engine", "input_data", "doc_before_save"})
 
 # Read-only on the controller. Set them through self.data if you really must.
 SYS_FIELDS: frozenset[str] = frozenset(
@@ -57,18 +54,28 @@ SYS_FIELDS: frozenset[str] = frozenset(
 )
 
 
+# The document API (grunt.document.api.documents) behind Cls.get_doc / find_doc /
+# get_list - it registers itself (:func:`use_document_api`): it imports this module.
+_documents: Any = None
+
+
+def use_document_api(api: Any) -> None:
+    """Register the document API the class reads (``Invoice.get_list()``) go through."""
+    global _documents
+    _documents = api
+
+
+def _api() -> Any:
+    if _documents is None:
+        raise RuntimeError("grunt.document.api is not loaded yet")
+    return _documents
+
+
 async def _meta(doctype: str) -> Any:
     dt = await doctype_registry.get_meta(doctype)
     if dt is None:
         raise not_found(_("DocType “%(doctype)s” not found") % {"doctype": doctype})
     return dt
-
-
-class _ObjectsDescriptor:
-    """``Document.objects`` - returns a QuerySet for the controller class."""
-
-    def __get__(self, instance: Any, owner: type[Document]) -> Any:
-        return QuerySet(owner)
 
 
 @dataclass_transform(kw_only_default=True)
@@ -116,18 +123,31 @@ class Document(
     #: all for a virtual DocType).
     store_class: ClassVar[type[Store] | None] = None
 
-    objects: ClassVar[_ObjectsDescriptor] = _ObjectsDescriptor()
+    #: The DocType this controller is for: the class name, a controller's
+    #: subclass keeps its parent's, the registry sets it on what it registers.
+    #: Read lists and documents by the class: ``Invoice.get_list()``.
+    __doctype__: ClassVar[str] = "Document"
 
     doctype: str
     data: dict[str, Any]
     # The mixins assume these are bound, but outside a grunt context _bind()
-    # can leave them None, so they are left untyped here.
-    session: Any
-    engine: Any
-    _ml: Any
+    # can leave them None, so they are left untyped here. The class defaults
+    # serve the documents :meth:`_from_rows` builds without ``__init__``.
+    session: Any = None
+    engine: Any = None
+    _ml: Any = None
+    _dt: Any = None
+    doc_before_save: dict[str, Any] | None = None
+    # A row of a list read: only the columns asked for, no child tables.
+    _partial: bool = False
+    # Fields the reader may not see (removed from ``data``): they read as None.
+    _hidden: frozenset[str] = frozenset()
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
+        if "__doctype__" not in cls.__dict__:
+            parents = (b for b in cls.__mro__[1:] if b is not Document and issubclass(b, Document))
+            cls.__doctype__ = next((b.__doctype__ for b in parents), cls.__name__)
         # `note: str | None = None` / `lines: list[dict] = []` make a field
         # optional in the constructor; as class attributes they would hide
         # self.data (__getattr__ only runs when normal lookup fails).
@@ -142,7 +162,7 @@ class Document(
         # hooks run - as for a document grunt loads. With or without an
         # explicit doctype; `Document("X", ...)` itself stays a bare Document.
         target = cls
-        name: str = doctype or getattr(cls, "doctype", cls.__name__)
+        name: str = doctype or cls.__doctype__
         if cls is not Document:
             controller = document_registry.get(name)
             if controller is not cls and issubclass(controller, cls):
@@ -161,7 +181,7 @@ class Document(
         **fields: Any,
     ) -> None:
         called_as: str | None = self.__dict__.pop("_doctype", None)
-        self.doctype = doctype or called_as or type(self).__name__
+        self.doctype = doctype or called_as or type(self).__doctype__
         if fields:
             data = {**(data or {}), **fields}
         # Kept as given: callers may still hold a reference to it.
@@ -170,14 +190,48 @@ class Document(
         self.engine = engine
         self._ml = None  # MultiLinkService, created in _bind() once there is a session
         self._dt = None
-        self.input_data = {}
+        self.input_data = {}  # what an insert / update was given - the lifecycle sets it
         self.doc_before_save = None
 
-    @property
-    def user(self) -> str | None:
-        """Email of the user the context runs as. A document acts as the session
-        user (as in Frappe) - it carries no user of its own."""
-        return session_user()
+    @classmethod
+    def _from_rows(
+        cls,
+        rows: Iterable[dict[str, Any]],
+        *,
+        doctype: str | None = None,
+        partial: bool = False,
+        hidden: frozenset[str] = frozenset(),
+    ) -> list[Self]:
+        """Rows read from the store as documents of this class - cheaply, without
+        ``__init__`` (a list of thousands of rows). Each row becomes the document's
+        ``data`` as is, not copied.
+
+        The registered controller is used when it extends this class (app
+        mixins / overrides), as for a document grunt loads. *partial* - a row of
+        a list read (only the columns asked for, no child tables): a field it
+        lacks raises instead of reading as None, and it can't be saved.
+        """
+        name = doctype or cls.__doctype__
+        target: type[Self] = cls
+        if cls is not Document:
+            controller = document_registry.get(name)
+            if controller is not cls and issubclass(controller, cls):
+                target = controller
+        new = object.__new__
+        docs: list[Self] = []
+        for row in rows:
+            doc = new(target)
+            state = doc.__dict__
+            state["doctype"] = name
+            state["data"] = row
+            if partial:
+                state["_partial"] = True
+            else:  # a whole document may be saved: its own input_data, as __init__ gives
+                state["input_data"] = {}
+            if hidden:
+                state["_hidden"] = hidden
+            docs.append(doc)
+        return docs
 
     # Attribute routing
 
@@ -186,7 +240,32 @@ class Document(
         # names land here before __init__ has set them (copy, pickle).
         if name.startswith("_") or name in _RESERVED:
             raise AttributeError(name)
-        return self.data.get(name)
+        data = self.data
+        if name in data:
+            return data[name]
+        if name in self._hidden:
+            return None
+        if self._partial:
+            raise AttributeError(
+                f"{self.doctype}.{name} was not read: a row of a list holds only the "
+                f"fields asked for (fields=[...]) and no child tables"
+            )
+        # A field not set yet (a new document, an optional field) reads as None;
+        # a name that is no field at all is a typo.
+        if self._is_field(name):
+            return None
+        raise AttributeError(f"{self.doctype} has no field {name!r}")
+
+    def _is_field(self, name: str) -> bool:
+        """Whether *name* is a field of the DocType: the DocType itself once the
+        document has it (fields of other apps and custom fields too), else the
+        controller's annotations (its generated type block and mixins). A
+        controller without annotations knows no fields - anything goes."""
+        dt = self._dt
+        if dt is not None:
+            return dt.has_field(name)
+        known = _annotated_fields(type(self))
+        return not known or name in known
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in _RESERVED or name.startswith("_"):
@@ -201,47 +280,55 @@ class Document(
 
     # System fields (read-only)
 
+    def _system(self, fieldname: str, default: Any = None) -> Any:
+        data = self.data
+        if fieldname in data:
+            return data[fieldname]
+        if self._partial:  # not read - as for any other field (__getattr__)
+            raise AttributeError(fieldname)
+        return default
+
     @property
     def id(self) -> str | None:
         """Same as ``name``."""
-        return self.data.get("name")
+        return self._system("name")
 
     @property
     def name(self) -> str | None:
-        return self.data.get("name")
+        return self._system("name")
 
     @property
     def owner(self) -> str | None:
-        return self.data.get("owner")
+        return self._system("owner")
 
     @property
     def idx(self) -> int:
         """Row position in the parent's child table."""
-        return self.data.get("idx", 0)
+        return self._system("idx", 0)
 
     @property
     def created_at(self) -> Any:
-        return self.data.get("created_at")
+        return self._system("created_at")
 
     @property
     def modified_at(self) -> Any:
-        return self.data.get("modified_at")
+        return self._system("modified_at")
 
     @property
     def modified_by(self) -> str | None:
-        return self.data.get("modified_by")
+        return self._system("modified_by")
 
     @property
     def parent(self) -> str | None:
-        return self.data.get("parent")
+        return self._system("parent")
 
     @property
     def parentfield(self) -> str | None:
-        return self.data.get("parentfield")
+        return self._system("parentfield")
 
     @property
     def parenttype(self) -> str | None:
-        return self.data.get("parenttype")
+        return self._system("parenttype")
 
     @property
     def grunt(self) -> Any:
@@ -303,8 +390,16 @@ class Document(
             original.update(result)
         self.data = original
 
+    def _require_whole(self, action: str) -> None:
+        if self._partial:
+            raise ValueError(
+                f"Cannot {action} {self.doctype} {self.data.get('name')!r}: it is a row of a "
+                f"list (only some fields) - read the document with grunt.get_doc() first"
+            )
+
     async def insert(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full create pipeline on this document and return the saved row."""
+        self._require_whole("insert")
         original = self.data
         result = await self._insert(ignore_required=ignore_required)
         self._keep(original, result)
@@ -312,6 +407,7 @@ class Document(
 
     async def save(self, *, ignore_required: bool = False) -> dict[str, Any]:
         """Run the full update pipeline on this document and return the saved row."""
+        self._require_whole("save")
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
         original = self.data
@@ -333,30 +429,71 @@ class Document(
         finally:
             self.data = original
 
+    # Reads by class - typed: the IDE knows the fields of what comes back
+
     @classmethod
-    async def load(
+    async def get_doc(
         cls,
-        doctype: str,
         name: str | None = None,
         *,
         expand: list[str] | None = None,
-        session: AsyncSession | None = None,
-        engine: AsyncEngine | None = None,
-    ) -> Document:
-        """Load a document as an instance of its registered controller."""
-        return await load_document(doctype, name, expand=expand, session=session, engine=engine)
+        ignore_permissions: bool = False,
+    ) -> Self:
+        """The document *name* (a singleton needs none) - checks the user's read
+        permission, hides the fields they may not see, raises 404 if missing::
+
+            order = await Order.get_doc(order_id)
+            order.status = "Closed"
+            await order.save()
+        """
+        return await _api().doc_of(cls, name, expand=expand, ignore_permissions=ignore_permissions)
 
     @classmethod
-    async def new(
+    async def find_doc(
+        cls, name: str | None = None, *, expand: list[str] | None = None
+    ) -> Self | None:
+        """Like :meth:`get_doc`, but ``None`` instead of raising 404."""
+        return await _api().find_doc_of(cls, name, expand=expand)
+
+    @classmethod
+    async def get_list(
         cls,
-        doctype: str,
-        data: dict[str, Any],
         *,
-        session: AsyncSession | None = None,
-        engine: AsyncEngine | None = None,
-    ) -> Document:
-        """A new, unsaved instance of *doctype*'s registered controller holding *data*."""
-        return await new_document(doctype, data, session=session, engine=engine)
+        filters: dict[str, Any] | None = None,
+        or_filters: dict[str, Any] | None = None,
+        fields: list[str] | None = None,
+        limit: int | None = 20,
+        page: int = 1,
+        order_by: str = "modified_at",
+        order: str = "desc",
+        ignore_permissions: bool = False,
+    ) -> list[Self]:
+        """Documents the user may read, as rows of this class - permission rules,
+        hidden fields and read hooks apply, values as stored::
+
+            for order in await Order.get_list(filters={"status": "Open"}, fields=["name", "total"]):
+                order.total
+
+        A row holds only the fields asked for and no child tables: a field it
+        lacks raises ``AttributeError``, and it can't be saved - read it with
+        :meth:`get_doc` for that. ``grunt.db.get_all(Order, ...)`` reads without
+        permissions or hooks.
+        """
+        return await _api().list_of(
+            cls,
+            filters=filters,
+            or_filters=or_filters,
+            fields=fields,
+            limit=limit,
+            page=page,
+            order_by=order_by,
+            order=order,
+            ignore_permissions=ignore_permissions,
+        )
+
+    async def _load_existing(self, doc_id: str | None) -> dict[str, Any]:
+        doc = await load_document(self.doctype, doc_id, session=self.session, engine=self.engine)
+        return doc.data
 
     @classmethod
     async def create[**P, T](cls: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
@@ -495,6 +632,25 @@ class Document(
 
 
 document_registry.use_base(Document)
+
+
+_DOCUMENT_MRO = frozenset(Document.__mro__)
+
+
+def _annotated_fields(cls: type) -> frozenset[str]:
+    """Names annotated on *cls* and its bases up to :class:`Document` (cached)."""
+    cached = cls.__dict__.get("_annotated_fields_cache")
+    if cached is not None:
+        return cached
+    names: set[str] = set()
+    for klass in cls.__mro__:
+        if klass in _DOCUMENT_MRO:  # Document itself and its framework mixins
+            continue
+        ann = annotationlib.get_annotations(klass, format=annotationlib.Format.FORWARDREF)
+        names.update(n for n in ann if n[:1] != "_")
+    known = frozenset(names)
+    type.__setattr__(cls, "_annotated_fields_cache", known)
+    return known
 
 
 def controller_class(dt: Any) -> type[Document]:

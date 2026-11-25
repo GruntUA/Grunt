@@ -33,7 +33,7 @@ class PermissionAPI:
         user_email()  # 401 without a user, as before
         doc: dict[str, Any] | None = None
         if doc_id:
-            doc = await GruntDB().get_value(doctype, doc_id, "*")
+            doc = await GruntDB().get_doc(doctype, doc_id)
         return await permission_checker.check(dt.doc, action, doc)
 
     async def has_perm(self, perm: str, *, user: str | None = None) -> bool:

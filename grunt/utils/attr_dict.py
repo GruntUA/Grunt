@@ -1,9 +1,11 @@
 """``AttrDict`` - a dict whose keys are also accessible as attributes.
 
-``d.key`` is equivalent to ``d.get("key")`` and returns ``None`` for missing
-keys (so optional fields read cleanly); ``d.key = 1`` sets ``d["key"]``. It is
-still a ``dict``: ``d["key"]``, ``d.get("key")``, ``**d`` and JSON work as
-before.
+``d.key`` reads ``d["key"]``; a missing key raises ``AttributeError`` (like
+``d["key"]`` raises ``KeyError``), so a typo or a field not asked for in
+``fields=[...]`` fails where it is read - and in Jinja ``d.key is defined`` /
+``d.key | default(...)`` work as for a plain dict. ``d.get("key")`` is there for
+a key that may be absent. ``d.key = 1`` sets ``d["key"]``. It is still a
+``dict``: ``d["key"]``, ``**d`` and JSON work as before.
 
 The documents and rows that ``grunt.get_doc`` / ``new_doc`` / ``save_doc`` /
 ``get_list`` and ``grunt.db.get_all`` / ``get_doc`` / ``get_value(as_dict=True)``
@@ -16,8 +18,8 @@ A field named like a ``dict`` method (``items``, ``values``, ``keys``, ``get``,
 ``update``, ``copy``, ``pop``, ...) reads as that method - use ``d["items"]``.
 """
 
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Any, ClassVar, Protocol, Self
 
 # `dict[str, Any]` for the type checker; a plain `dict` base at run time, so
 # static analysers (CodeQL) still see a container class.
@@ -33,11 +35,10 @@ class AttrDict(_Base):
     __slots__ = ()
 
     def __getattr__(self, key: str) -> Any:
-        # Let dunder lookups (copy, pickle, etc.) fail normally instead of
-        # returning None, which would break those protocols.
-        if key.startswith("__") and key.endswith("__"):
-            raise AttributeError(key)
-        return self.get(key)
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key) from None
 
     def __setattr__(self, key: str, value: Any) -> None:
         self[key] = value
@@ -73,3 +74,26 @@ def as_rows[L: list[Any]](rows: L) -> L:
         if isinstance(item, dict):
             rows[i] = as_row(item)
     return rows
+
+
+class DocumentClass(Protocol):
+    """What the read API needs of a controller class
+    (:class:`grunt.document.base.Document`) - here, so the layers below the
+    document one can take a class without importing it::
+
+        rows = await grunt.db.get_all(Invoice, fields=["name", "total"])  # list[Invoice]
+    """
+
+    __doctype__: ClassVar[str]
+
+    @classmethod
+    def _from_rows(
+        cls,
+        rows: Iterable[dict[str, Any]],
+        *,
+        doctype: str | None = None,
+        partial: bool = False,
+        hidden: frozenset[str] = frozenset(),
+    ) -> list[Self]:
+        """The rows as documents of the class (``Document._from_rows``)."""
+        raise NotImplementedError

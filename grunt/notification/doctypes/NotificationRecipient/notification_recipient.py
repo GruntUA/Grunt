@@ -7,7 +7,7 @@ class NotificationRecipient(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
-    # "user" field: read it as self.data["user"] - self.user is taken by the controller.
+    user: str | None = None  # User
     kind: str | None = None  # Who
     role: str | None = None  # Role
     user_group: str | None = None  # User group

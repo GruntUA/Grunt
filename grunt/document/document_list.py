@@ -3,15 +3,11 @@
 from typing import Any
 
 
-class DocumentList(list):
-    """A list of rows plus pagination meta.
+class DocumentList[T](list[T]):
+    """A list of rows plus pagination meta (``.meta``); ``to_dict()`` gives the
+    ``{"data": ..., "meta": ...}`` response shape."""
 
-    Iterates and indexes like a list, but ``result["data"]`` and
-    ``result["meta"]`` also work, so it can be returned where the
-    ``{"data": ..., "meta": ...}`` response shape is expected.
-    """
-
-    def __init__(self, data: list, meta: dict[str, Any] | None = None) -> None:
+    def __init__(self, data: list[T], meta: dict[str, Any] | None = None) -> None:
         super().__init__(data)
         self.meta = meta or {}
 
@@ -21,17 +17,3 @@ class DocumentList(list):
 
     def to_dict(self) -> dict[str, Any]:
         return {"data": list(self), "meta": self.meta}
-
-    def __getitem__(self, key: Any) -> Any:
-        if key == "data":
-            return list(self)
-        if key == "meta":
-            return self.meta
-        return super().__getitem__(key)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        if key == "data":
-            return list(self)
-        if key == "meta":
-            return self.meta
-        return default
