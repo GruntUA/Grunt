@@ -3,12 +3,20 @@
 # commit (annotated, the message is the changelog section) and publishes the GitHub
 # release. CI already ran on the pull request, and test.yml runs again on the push.
 # A squash merge leaves `chore(release): vX.Y.Z (#N)` - that commit is tagged then.
+#
+# An app repository publishes its releases the same way with
+#   on: { push: { branches: [master] }, workflow_dispatch: }
+#   jobs:
+#     release:
+#       uses: GruntUA/Grunt/.github/workflows/release.yml@develop
+#       permissions: { contents: write }
 name: Release
 
 on:
   push:
     branches: [master]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read # publish raises it to write for the tag and the release

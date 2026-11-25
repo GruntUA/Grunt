@@ -41,6 +41,19 @@
 від нього. Поки PR випуску не злито й тег не поставлено, наступний `grunt release` відмовить.
 
 Репозиторій без `develop` (додатки): коміт випуску йде в гілку `release/vX.Y.Z`, PR — у `master`.
+Тег і GitHub release додатку ставить той самий workflow ядра — у додатку лише виклик:
+
+```yaml
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+jobs:
+  release:
+    uses: GruntUA/Grunt/.github/workflows/release.yml@develop
+    permissions:
+      contents: write
+```
 
 ### Залежності
 
