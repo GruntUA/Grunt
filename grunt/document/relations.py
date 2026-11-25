@@ -1,5 +1,6 @@
 """Child table and MultiLink relationship management for Documents."""
 
+import hashlib
 import re
 from datetime import datetime
 from types import SimpleNamespace
@@ -327,6 +328,28 @@ def apply_field_values(
             row[field.fieldname] = _EMPTY_BY_STORAGE.get(get_storage_class(field.fieldtype), "")
 
 
+def child_row_name(parent_doctype: str, parent: str, fieldname: str, idx: int) -> str:
+    """The name of a child row: unique among the rows of its child DocType, which
+    may serve several fields and several parent DocTypes (whose documents may
+    share a name). Hashed when it would not fit the name column."""
+    name = f"{parent_doctype}-{parent}-{fieldname}-{idx}"
+    if len(name) <= 255:
+        return name
+    digest = hashlib.sha1(name.rsplit("-", 1)[0].encode(), usedforsecurity=False).hexdigest()
+    return f"{digest}-{idx}"
+
+
+def child_rows_of(child_table: Any, parent_doctype: str, parent: str, fieldname: str) -> tuple:
+    """WHERE clauses for the rows of one table field of one document - a child
+    DocType may serve several fields, and several parent DocTypes."""
+    c = child_table.c
+    return (
+        c.parent_name == parent,
+        c.parent_doctype == parent_doctype,
+        c.parent_field == fieldname,
+    )
+
+
 async def _load_child_tables(
     session: AsyncSession,
     dt: DocType,
@@ -346,7 +369,7 @@ async def _load_child_tables(
             cols = [c for c in child_table.c if c.key not in _CHILD_SKIP_COLS and c.key in keep]
             result = await session.execute(
                 select(*cols)
-                .where(child_table.c.parent_name == doc["name"])
+                .where(*child_rows_of(child_table, dt.name, doc["name"], field.fieldname))
                 .order_by(child_table.c.idx)
             )
             rows: list[dict[str, Any]] = [
@@ -384,7 +407,11 @@ async def _save_child_tables(
         child_dt = await doctype_registry.get(field.options)
         child_table = Meta(child_dt).table
         # Delete existing rows for this parent
-        await session.execute(child_table.delete().where(child_table.c.parent_name == parent_id))
+        await session.execute(
+            child_table.delete().where(
+                *child_rows_of(child_table, dt.name, parent_id, field.fieldname)
+            )
+        )
         # Build all rows then insert in one batch
         rows_to_insert: list[dict[str, Any]] = []
         for idx, child_data in enumerate(child_rows):
@@ -396,7 +423,7 @@ async def _save_child_tables(
             # it may carry stale values from a previous save.
             child_idx = idx
             row: dict[str, Any] = {
-                "name": f"{parent_id}-{field.fieldname}-{child_idx}",
+                "name": child_row_name(dt.name, parent_id, field.fieldname, child_idx),
                 "parent_name": parent_id,
                 "parent_doctype": dt.name,
                 "parent_field": field.fieldname,
