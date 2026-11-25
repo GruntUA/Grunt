@@ -6,13 +6,18 @@ from grunt.document.base import Document
 class ServerScript(Document):
     """DocType controller for ServerScript."""
 
-    script_type: str | None
-    ref_doctype: str | None
-    event: str | None
-    api_method: str | None
-    cron: str | None
-    script: str | None
-    is_enabled: bool | None
-    allow_guest: bool | None
-    is_standard: bool | None
-    app: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    script_type: str  # Type
+    ref_doctype: str | None = None  # Document type
+    event: str | None = None  # Event
+    api_method: str | None = None  # API method
+    cron: str | None = None  # Cron expression
+    script: str  # Script (Python)
+    is_enabled: bool | None = None  # Active
+    allow_guest: bool | None = None  # Allow guests
+    is_standard: bool | None = None  # Standard
+    app: str | None = None  # App
+
+    # end: auto-generated types

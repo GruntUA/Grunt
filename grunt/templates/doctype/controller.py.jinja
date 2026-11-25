@@ -14,34 +14,30 @@ Access fields:
   self.field_name = value  — set field value
   self.data                — full document dict
   self.doctype             — DocType name ("{{ name }}")
-  self.user                — current User (or None)
+  grunt.session_user()     — the session user's email
   self.session             — async SQLAlchemy session (for advanced queries)
 """
 
-{% set date_types = physical_fields | selectattr('fieldtype', 'in', ['Date', 'Datetime', 'Time']) | list -%}
-{% if date_types -%}
-from datetime import {{ date_types | map(attribute='fieldtype') | unique | map('lower') | join(', ') }}
+{% for line in imports %}
+{{ line }}
+{% endfor %}
+{% if imports %}
 
-{% endif -%}
-from grunt.document.base import Document
+{% endif %}
+{% for line in first_party_imports %}
+{{ line }}
+{% endfor %}
+{% if type_checking_imports %}
+
+if TYPE_CHECKING:
+{% for line in type_checking_imports %}
+    {{ line }}
+{% endfor %}
+{% endif %}
 
 
 class {{ name }}(Document):
-
-    # begin: auto-generated types
-    # This code is auto-generated. Do not modify anything in this block.
-
-{% for field in physical_fields %}
-    {{ field.fieldname }}: {{ field.py_type }}{{ " = None" if field.py_type.endswith(" | None") else "" }}{{ ("  # " ~ field.label) if (field.label and field.label != field.fieldname) else "" }}
-{% endfor %}
-{% for field in table_fields %}
-    {{ field.fieldname }}: list[dict]{{ "" if field.required else " = []" }}  # Table: {{ field.options or "?" }}
-{% endfor %}
-{% if not physical_fields and not table_fields %}
-    pass
-{% endif %}
-
-    # end: auto-generated types
+{{ type_block }}
 
     async def validate(self) -> None:
         """Runs before every save — raise an exception to block."""

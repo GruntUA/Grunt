@@ -436,7 +436,10 @@ async def whoami() -> dict:
 
 @grunt.whitelist(perm="grunt.manage_users")
 async def list_users_api() -> list[dict]:
-    return UserPublic.dump_many(await User.get_list(limit=1000))
+    # A list row holds only the fields asked for and no child tables (`roles`),
+    # so the schema reads whole documents - one read per user, keep the page small.
+    rows = await User.get_list(fields=["name"], limit=50)
+    return UserPublic.dump_many([await User.get_doc(r.name) for r in rows])
 ```
 
 `Schema` is a straight identity mapping (output key == field name) — it

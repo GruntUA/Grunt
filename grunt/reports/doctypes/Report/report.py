@@ -38,28 +38,34 @@ from grunt.reports.joins import report_fields
 class Report(Document):
     """DocType controller for Report."""
 
-    report_name: str | None
-    report_type: str | None
-    ref_doctype: str | None
-    columns: dict | None
-    filters_config: dict | None
-    chart_config: dict | None
-    conditions: dict | None
-    sort_by: str | None
-    sort_order: str | None
-    row_limit: int | None
-    query: str | None
-    script: str | None
-    is_standard: bool | None
-    app: str | None
-    schedule_frequency: str | None
-    schedule_recipients: str | None
-    schedule_filters: dict | None
-    last_sent_at: datetime | None
-    disabled: bool | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    report_name: str  # Name
+    report_type: str  # Type
+    ref_doctype: str | None = None  # Document type
+    columns: Any | None = None  # Columns (JSON)
+    filters_config: Any | None = None  # Filter configuration (JSON)
+    chart_config: Any | None = None  # Chart configuration (JSON)
+    conditions: Any | None = None  # Conditions
+    sort_by: str | None = None  # Sort by
+    sort_order: str | None = None  # Sort order
+    row_limit: int | None = None  # Row limit
+    query: str | None = None  # SQL
+    script: str | None = None  # Script
+    is_standard: bool | None = None  # Standard
+    app: str | None = None  # App
+    disabled: bool | None = None  # Disabled
+    prepared_report: bool | None = None  # Prepared report
+    timeout: int | None = None  # Timeout, sec
+    schedule_frequency: str | None = None  # Send
+    schedule_recipients: str | None = None  # Recipients
+    schedule_filters: Any | None = None  # Filters
+    last_sent_at: datetime | None = None  # Last sent
+
+    # end: auto-generated types
+
     roles: list[str] | None
-    prepared_report: bool | None
-    timeout: int | None
 
 
 @whitelist()

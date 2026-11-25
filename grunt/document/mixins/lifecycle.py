@@ -98,6 +98,15 @@ class DocumentLifecycleMixin:
     def _reset_grunt_context(tokens: tuple) -> None:
         """Provided by :class:`Document`: undo :meth:`_set_grunt_context`."""
 
+    def _wrap_children(self, only: str | None = None) -> None:
+        """Provided by :class:`Document`: child rows as child documents."""
+
+    def _unwrap_children(self) -> None:
+        """Provided by :class:`Document`: child documents back to their rows."""
+
+    def _rows(self) -> dict[str, Any]:  # type: ignore[empty-body]
+        """Provided by :class:`Document`: ``self.data`` with child rows as dicts."""
+
     # Pipeline steps
 
     def _store_for(self, dt: Any) -> Store:
@@ -159,12 +168,18 @@ class DocumentLifecycleMixin:
         A ``throw()`` from any hook becomes an HTTP error with the status
         its code maps to - the one place that translates "controller rejected
         the save" into HTTP, shared by insert/update/delete.
+
+        The hooks see child rows as documents of the child controller; the
+        pipeline around them, rows.
         """
+        self._wrap_children()
         try:
             for hook_name in hook_names:
                 await getattr(self, hook_name)()
         except ApplicationError as e:
             raise e.to_api_error() from e
+        finally:
+            self._unwrap_children()
 
     @staticmethod
     async def _refuse_hidden_writes(
@@ -240,7 +255,7 @@ class DocumentLifecycleMixin:
         """
         self._bind()
         user = require_session_user()
-        data = strip_file_signatures(self.data)
+        data = strip_file_signatures(self._rows())
         await fire(
             "before_save", doctype=self.doctype, doc=dict(data), user=user, session=self.session
         )
@@ -318,7 +333,7 @@ class DocumentLifecycleMixin:
         """
         self._bind()
         user = require_session_user()
-        data = strip_file_signatures(data)
+        data = strip_file_signatures(plain(data))
         # Optimistic locking: the `modified_at` the edit was based on - sent
         # explicitly by offline replays, otherwise the one the document carries
         # (the form and ``doc.save()`` send the whole document). A newer stored
@@ -333,7 +348,7 @@ class DocumentLifecycleMixin:
         # exist yet, create it now (named after the DocType).
         store = self._store_for(dt)
         if dt.is_singleton and not await self._singleton_exists(dt, store):
-            self.data = {**data, "name": dt.name}
+            self.data = {**data, "name": dt.name}  # rows: _update's data
             return await self._insert(ignore_required=ignore_required)
 
         await fire(
@@ -507,3 +522,30 @@ class DocumentLifecycleMixin:
             user=user,
             session=self.session,
         )
+
+
+def _has_documents(data: dict[str, Any]) -> bool:
+    return any(
+        type(value) is list and any(isinstance(v, DocumentLifecycleMixin) for v in value)
+        for value in data.values()
+    )
+
+
+def row_of(value: Any) -> Any:
+    """A child document as its row dict - the document's own ``data``, or a copy
+    of it when it holds child documents of its own."""
+    if isinstance(value, DocumentLifecycleMixin):
+        data = value.data
+        return plain(data) if _has_documents(data) else data
+    return value
+
+
+def plain(data: dict[str, Any]) -> dict[str, Any]:
+    """A shallow copy of *data* with child documents as their row dicts - the
+    rows themselves are not copied."""
+    return {
+        key: [row_of(v) for v in value]
+        if type(value) is list and any(isinstance(v, DocumentLifecycleMixin) for v in value)
+        else value
+        for key, value in data.items()
+    }

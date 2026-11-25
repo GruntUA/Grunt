@@ -9,6 +9,8 @@ profile rebuilds them for each of its users.
 from collections.abc import Sequence
 from typing import Any
 
+from grunt.auth.doctypes.RoleProfileRole.role_profile_role import RoleProfileRole
+from grunt.auth.doctypes.UserRole.user_role import UserRole
 from grunt.db.api import GruntDB
 from grunt.document.base import Document
 from grunt.errors import throw
@@ -21,7 +23,7 @@ _db = GruntDB()  # stateless: reads through the context's session
 _KEY_FIELDS = ("role_name", "scope_doctype", "scope_value")
 
 
-def _key(row: dict[str, Any]) -> tuple[str, ...]:
+def _key(row: dict[str, Any] | Document) -> tuple[str, ...]:
     return tuple(str(row.get(f) or "") for f in _KEY_FIELDS)
 
 
@@ -31,20 +33,20 @@ class RoleProfile(Document):
 
     profile_name: str  # Name
     description: str | None = None  # Description
-    roles: list[dict] = []  # Table: RoleProfileRole
+    roles: list[RoleProfileRole] = []  # Roles
 
     # end: auto-generated types
 
     async def validate(self) -> None:
         seen: set[tuple[str, ...]] = set()
-        rows: list[dict[str, Any]] = []
+        rows: list[RoleProfileRole] = []
         for row in self.roles or []:
-            if not isinstance(row, dict) or not row.get("role_name"):
+            if not row.role_name:
                 continue
-            if bool(row.get("scope_doctype")) != bool(row.get("scope_value")):
+            if bool(row.scope_doctype) != bool(row.scope_value):
                 throw(
                     _("Role “%(role)s”: a scope needs both the document type and the document")
-                    % {"role": _(row["role_name"])},
+                    % {"role": _(row.role_name)},
                     "VALIDATION_ERROR",
                 )
             if _key(row) not in seen:  # the same role twice adds nothing
@@ -97,15 +99,16 @@ async def resync_users(profile: str) -> None:
 
 
 async def with_profile_roles(
-    roles: Sequence[dict[str, Any]], profiles: list[str]
-) -> list[dict[str, Any]]:
+    roles: Sequence[UserRole | dict[str, Any]], profiles: list[str]
+) -> list[UserRole]:
     """The user's role rows: those assigned by hand (no ``role_profile``) and
     then the roles of *profiles*, in order - a role the user already holds by
     hand in the same scope, without a period, isn't added again. One held for
     a period (``valid_from``/``valid_to``) is: the profile's grant stays when
     the period is over."""
-    manual = [r for r in roles if isinstance(r, dict) and not r.get("role_profile")]
-    held = {_key(r) for r in manual if not r.get("valid_from") and not r.get("valid_to")}
+    manual = [r if isinstance(r, UserRole) else UserRole(**r) for r in roles]
+    manual = [r for r in manual if not r.role_profile]
+    held = {_key(r) for r in manual if not r.valid_from and not r.valid_to}
     out = list(manual)
     if not profiles:
         return out
@@ -123,11 +126,11 @@ async def with_profile_roles(
                 continue
             held.add(_key(row))
             out.append(
-                {
-                    "role_name": row.role_name,
-                    "scope_doctype": row.scope_doctype or None,
-                    "scope_value": row.scope_value or None,
-                    "role_profile": profile,
-                }
+                UserRole(
+                    role_name=row.role_name,
+                    scope_doctype=row.scope_doctype or None,
+                    scope_value=row.scope_value or None,
+                    role_profile=profile,
+                )
             )
     return out

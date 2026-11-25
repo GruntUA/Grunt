@@ -4,17 +4,22 @@ from grunt.i18n import _
 
 
 class Address(Document):
-    address_type: str | None
-    country: str | None
-    region: str | None
-    city: str | None
-    city_text: str | None
-    zip_code: str | None
-    street: str | None
-    building: str | None
-    apartment: str | None
-    full_address: str | None
-    notes: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    address_type: str | None = None  # Address type
+    country: str  # Country
+    region: str | None = None  # Region / Oblast
+    city: str | None = None  # City (directory)
+    city_text: str | None = None  # City (text)
+    zip_code: str | None = None  # Postal code
+    street: str | None = None  # Street
+    building: str | None = None  # Building
+    apartment: str | None = None  # Apartment / Office
+    full_address: str | None = None  # Full address
+    notes: str | None = None  # Notes
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         if not self.city and not self.city_text:

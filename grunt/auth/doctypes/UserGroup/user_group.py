@@ -7,6 +7,7 @@ notification rules); user administrators manage them, and a group's
 ``manager`` may change who is in it.
 """
 
+from grunt.auth.doctypes.UserGroupMember.user_group_member import UserGroupMember
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
@@ -22,7 +23,7 @@ class UserGroup(Document):
     group_name: str  # Name
     manager: str | None = None  # Manager
     description: str | None = None  # Description
-    users: list[dict] = []  # Table: UserGroupMember
+    users: list[UserGroupMember] = []  # Members
 
     # end: auto-generated types
 
@@ -39,9 +40,8 @@ class UserGroup(Document):
                 _("A group name is at most %(count)d characters") % {"count": MAX_GROUP_NAME},
                 "VALIDATION_ERROR",
             )
-        members = [r for r in self.users or [] if isinstance(r, dict) and r.get("user")]
-        unique = list({r["user"]: r for r in members}.values())  # the same person once
-        self.users = unique
+        unique = {r.user: r for r in self.users or [] if r.user}  # the same person once
+        self.users = list(unique.values())
         before = self.doc_before_save or {}
         if (before.get("manager") or None) != (self.manager or None) and not await _admin():
             throw(_("Only user administrators appoint the group's manager"), "FORBIDDEN")

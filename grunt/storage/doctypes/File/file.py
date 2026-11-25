@@ -35,20 +35,25 @@ class File(Document):
     (grunt.storage.gc) once nothing - trash included - refers to it.
     """
 
-    file_name: str
-    file_url: str
-    content_type: str
-    content_hash: str
-    file_size: int
-    uploaded_by: str
-    is_public: bool
-    thumbnail_url: str | None
-    attached_to_doctype: str | None
-    attached_to_id: str | None
-    folder: str | None
-    storage_remote: str | None
-    is_compressed: bool
-    original_size: int | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    file_name: str  # File name
+    folder: str | None = None  # Folder
+    file_url: str | None = None  # File URL
+    thumbnail_url: str | None = None  # Thumbnail
+    file_size: int | None = None  # Size
+    content_type: str | None = None  # Content type
+    is_compressed: bool | None = None  # Compressed
+    original_size: int | None = None  # Original size (bytes)
+    content_hash: str | None = None  # Content hash (SHA-256)
+    uploaded_by: str | None = None  # Uploaded by
+    is_public: bool | None = None  # Public
+    storage_remote: str | None = None  # In cloud storage
+    attached_to_doctype: str | None = None  # Document DocType
+    attached_to_id: str | None = None  # Document ID
+
+    # end: auto-generated types
 
     _prev_folder: str | None = None
 

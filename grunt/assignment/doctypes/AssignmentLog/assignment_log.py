@@ -1,5 +1,6 @@
 """AssignmentLog DocType controller."""
 
+from datetime import datetime
 from typing import Any
 
 from grunt.api.context import whitelist
@@ -10,6 +11,21 @@ lazy from grunt.document.api import documents
 
 class AssignmentLog(Document):
     """AssignmentLog DocType controller."""
+
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    rule_id: str | None = None  # Rule ID
+    doctype_affected: str  # DocType Affected
+    document_id: str  # Document ID
+    assigned_to: str  # Assigned To
+    assignment_method: str  # Assignment Method
+    status: str | None = None  # Status
+    error_message: str | None = None  # Error Message
+    filters_matched: bool | None = None  # Filters Matched
+    timestamp: datetime | None = None  # Timestamp
+
+    # end: auto-generated types
 
     @classmethod
     async def record(

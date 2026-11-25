@@ -6,5 +6,10 @@ from grunt.document.base import Document
 class NamingSeries(Document):
     """DocType controller for NamingSeries."""
 
-    prefix: str | None
-    current: int | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    prefix: str  # Prefix
+    current: int | None = None  # Current value
+
+    # end: auto-generated types

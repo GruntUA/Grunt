@@ -6,10 +6,15 @@ from grunt.document.base import Document
 class NotificationLog(Document):
     """DocType controller for NotificationLog."""
 
-    user: str
-    subject: str | None
-    message: str | None
-    ref_doctype: str | None
-    doc_id: str | None
-    is_read: bool | None
-    notification: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    user: str  # User
+    subject: str  # Subject
+    message: str  # Message
+    ref_doctype: str | None = None  # Document type
+    doc_id: str | None = None  # Document ID
+    is_read: bool | None = None  # Read
+    notification: str | None = None  # Notification
+
+    # end: auto-generated types

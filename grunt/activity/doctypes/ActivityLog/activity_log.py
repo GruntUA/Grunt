@@ -11,10 +11,17 @@ lazy from grunt.document.api import documents
 class ActivityLog(Document):
     # NOTE: 'user' is a reserved name in the Document base class.
     # Access this field via self.data.get("user").
-    ref_doctype: str
-    doc_id: str
-    action: str
-    details: dict
+
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    ref_doctype: str  # Document type
+    doc_id: str  # Document ID
+    user: str  # User
+    action: str  # Action
+    details: Any | None = None  # Details
+
+    # end: auto-generated types
 
     async def before_insert(self) -> None:
         # Auto-set 'user' field from request context if caller didn't provide it.

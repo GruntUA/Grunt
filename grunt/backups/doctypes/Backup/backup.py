@@ -58,4 +58,18 @@ class BackupStore(VirtualStore):
 class Backup(Document):
     """The backup sets on disk - made by the scheduler or «Створити зараз»."""
 
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    total_size: str | None = None  # Size
+    database_size: str | None = None  # Database
+    files_size: str | None = None  # Files
+    has_config: bool | None = None  # Configuration
+    in_cloud: str | None = None  # In cloud storage
+    database_url: str | None = None
+    files_url: str | None = None
+    config_url: str | None = None
+
+    # end: auto-generated types
+
     store_class = BackupStore

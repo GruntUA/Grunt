@@ -8,23 +8,40 @@ title and kept (and exported with the record) when the title changes later.
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
+from grunt.site.doctypes.OnboardingStep.onboarding_step import OnboardingStep
 from grunt.utils.slug import slugify
 
 
 class ModuleOnboarding(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    subtitle: str | None = None  # Subtitle
+    app: str | None = None  # App
+    is_published: bool | None = None  # Published
+    roles: str | None = None  # Roles (comma-separated)
+    progress_scope: str | None = None  # Progress
+    success_message: str | None = None  # Success message
+    documentation_url: str | None = None  # Documentation URL
+    is_standard: bool | None = None  # Standard
+    steps: list[OnboardingStep] = []  # Steps
+
+    # end: auto-generated types
+
     async def validate(self) -> None:
         taken: set[str] = set()
         for step in self.steps or []:
-            step_id = step.get("step_id") or slugify(step.get("title") or "")
+            step_id = step.step_id or slugify(step.title or "")
             base, n = step_id, 2
             while step_id in taken:
                 step_id, n = f"{base}-{n}", n + 1
-            step["step_id"] = step_id
+            step.step_id = step_id
             taken.add(step_id)
 
-            doctype = step.get("reference_doctype")
+            doctype = step.reference_doctype
             if doctype and await self.grunt.get_meta(doctype) is None:
                 throw(
                     _("Step “%(step)s”: DocType “%(doctype)s” not found")
-                    % {"step": step.get("title"), "doctype": doctype}
+                    % {"step": step.title, "doctype": doctype}
                 )

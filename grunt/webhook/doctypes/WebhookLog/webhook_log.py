@@ -6,12 +6,17 @@ from grunt.document.base import Document
 class WebhookLog(Document):
     """DocType controller for WebhookLog."""
 
-    webhook: str | None
-    event: str | None
-    url: str | None
-    status_code: int | None
-    success: bool | None
-    duration_ms: int | None
-    response_body: str | None
-    error: str | None
-    is_test: bool | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    webhook: str | None = None  # Webhook
+    event: str | None = None  # Event
+    url: str | None = None  # URL
+    status_code: int | None = None  # HTTP status
+    success: bool | None = None  # Success
+    duration_ms: int | None = None  # Time (ms)
+    response_body: str | None = None  # Response
+    error: str | None = None  # Error
+    is_test: bool | None = None  # Test
+
+    # end: auto-generated types

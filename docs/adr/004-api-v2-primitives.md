@@ -58,7 +58,14 @@ order = await grunt.get_doc("Order", order_id)  # -> dict, як і раніше
 ## Рішення 2: `Document.objects` — query builder
 
 > **Скасовано (2026-11-24, TYPED_ROWS_PLAN.md крок 3):** `Document.objects`/`QuerySet` і
-> `grunt.get_all` прибрано — їх покриває `Cls.get_list(…)` (типізовані рядки класу).
+> `grunt.get_all` прибрано. Читання покриває `Cls.get_list(…)` (типізовані рядки класу),
+> підрахунок — `grunt.count`. `get_list` лише читає; `get_or_create` замінюють два рядки
+> на місці — пошук і `Cls.create(…)` (створює з перевіркою права `create`):
+>
+> ```python
+> found = await User.get_list(filters={"email": email}, fields=["name"], limit=1)
+> user = await User.get_doc(found[0].name) if found else await User.create(email=email, ...)
+> ```
 
 Тонка fluent-обгортка над тим, що вже існувало (`grunt.get_all`/`grunt.count`/
 `grunt.new_doc`, `db.build_clauses` із Django-стилем `__gt/__in/...`) — не нова SQL-логіка:

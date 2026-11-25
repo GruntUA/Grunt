@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.22.0 - 2026-11-25
+
+### Breaking changes
+
+- **document:** child rows as child controller documents
+
+### Features
+
+- **codegen:** list[ChildCls] in types blocks
+
+### Fixes
+
+- **document:** review of typed child tables
+- **document:** child rows by parent DocType and field
+- **codegen:** a bare typing.Any import even next to an aliased or multi-line one
+- **codemod:** attr-access keeps .get on a possible partial row; docs from #271 review
+- **document:** review of v0.21.0 - input_data on factory documents, safe codemod, docs
+
+### Other
+
+- **typed-rows:** typed child tables (#278), child rows fix (#279)
+- **doctypes:** typed child tables in core controllers
+- **typed-rows:** step 5 done (#275-#277)
+- **doctypes:** type blocks for core controllers (2/3)
+- **doctypes:** type blocks for core controllers (3/3)
+- **doctypes:** type blocks for core controllers (1/3), JSON fields typed Any
+- **typed-rows:** v0.21.0 released, second review round in #273
+- **typed-rows:** steps 3-4 done, app first pass merged, journal 25.11
+
 ## v0.21.0 - 2026-11-24
 
 ### Breaking changes

@@ -104,6 +104,23 @@ class BackgroundJobStore(VirtualStore):
 
 
 class BackgroundJob(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    task_name: str | None = None  # Task
+    task_id: str | None = None  # Task ID
+    progress: int | None = None  # Progress, %
+    stage: str | None = None  # Stage
+    processed: str | None = None  # Processed
+    cancellable: bool | None = None  # Can be cancelled
+    consumer: str | None = None  # Worker
+    queued_at: datetime | None = None  # Queued since
+    idle_ms: float | None = None  # Without ack
+    delivery_count: int | None = None  # Delivery attempts
+    arguments: Any | None = None  # Arguments
+
+    # end: auto-generated types
+
     store_class = BackgroundJobStore
 
 

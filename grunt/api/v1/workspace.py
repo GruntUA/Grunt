@@ -10,6 +10,7 @@ from grunt.api.context import whitelist
 from grunt.api.v1.dashboard import page_visible
 from grunt.apps.manifest import extenders
 from grunt.auth.current import acting_user
+from grunt.document.base import Document
 from grunt.document.titles import resolve_reference_titles
 from grunt.errors import forbidden
 from grunt.i18n import _
@@ -141,7 +142,7 @@ async def _visible(menus: Iterable[Any]) -> _Visible:
     visible = _Visible(manager, frozenset(user.role_names), await _visible_pages())
     if manager:
         return visible
-    items = [i for ws in menus for i in ws.get("sidebar_items") or []]
+    items = [i for ws in menus for i in _rows(ws, "sidebar_items")]
     targets = {
         kind: {i["link_to"] for i in items if i.get("type") == kind and i.get("link_to")}
         for kind in ("DocType", "Report", "Page")
@@ -205,12 +206,18 @@ def _drop_stray_dividers(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def _rows(menu: Any, fieldname: str) -> list[dict[str, Any]]:
+    """The rows of a menu's child table as dicts - a menu read by its class
+    (``AppMenu.get_doc``) holds them as documents."""
+    return [r.data if isinstance(r, Document) else r for r in menu.get(fieldname) or []]
+
+
 async def _workspace_to_dict(ws_data: Any, visible: _Visible) -> dict[str, Any]:
     """Convert AppMenu document data to dict, with only the items the user may open."""
 
     items = []
-    sidebar_items = ws_data.get("sidebar_items") or []
-    for position, item in enumerate(order_menu(sidebar_items, ws_data.get("sections") or [])):
+    sidebar_items = _rows(ws_data, "sidebar_items")
+    for position, item in enumerate(order_menu(sidebar_items, _rows(ws_data, "sections"))):
         if not visible.item(item):
             continue
         item_roles = item.get("roles", "")

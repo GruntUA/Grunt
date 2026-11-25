@@ -14,13 +14,11 @@ from pathlib import Path
 from typing import Any
 
 from grunt.config import settings
-from grunt.document.base import SYS_FIELDS, is_shadowed_field
 from grunt.log import log
-from grunt.metadata.field import DocField, has_trait, is_physical_fieldtype
+from grunt.metadata.field import DocField
 from grunt.site.manager import site_manager
 from grunt.utils.codegen import (
-    field_type,
-    is_required_on_create,
+    build_controller_context,
     render_template,
     sync_controller_types,
 )
@@ -30,50 +28,11 @@ lazy from grunt.metadata.doctype import DocType
 lazy from grunt.metadata.extensions import export_extensions, without_extensions
 
 
-def _build_scaffold_context(doctype_name: str, fields: list[DocField]) -> dict:
-    """Build Jinja template context for a new DocType controller.
-
-    ``fields`` is always ``DocType.fields`` from its one caller below - always
-    real ``DocField`` instances, never raw dicts (this used to also accept a
-    dict per field with silently different defaulting/error behavior, but
-    nothing ever called it that way).
-    """
-    physical_fields = []
-    table_fields = []
-
-    for field in fields:
-        fieldname = field.fieldname
-        fieldtype = field.fieldtype
-        label = field.label or ""
-        options = field.options
-
-        # A field the controller hides (doc.user, doc.delete) is read via self.data.
-        if fieldname in SYS_FIELDS or is_shadowed_field(fieldname):
-            continue
-
-        if has_trait(fieldtype, "table"):
-            table_fields.append(
-                {
-                    "fieldname": fieldname,
-                    "options": options,
-                    "required": is_required_on_create(field.model_dump()),
-                }
-            )
-        elif is_physical_fieldtype(fieldtype):
-            physical_fields.append(
-                {
-                    "fieldname": fieldname,
-                    "py_type": field_type(field.model_dump()),
-                    "label": label,
-                    "fieldtype": fieldtype,
-                }
-            )
-
-    return {
-        "name": doctype_name,
-        "physical_fields": physical_fields,
-        "table_fields": table_fields,
-    }
+def _build_scaffold_context(
+    doctype_name: str, fields: list[DocField], py_path: Path | None = None
+) -> dict:
+    """Jinja context for a new DocType controller - the same types block ``sync-types`` writes."""
+    return build_controller_context(doctype_name, [f.model_dump() for f in fields], py_path)
 
 
 # Helpers
@@ -189,7 +148,7 @@ def export_doctype_files(dt: DocType, app_name: str | None = None) -> str | None
     if py_file.exists():
         sync_controller_types(py_file, dt.name, [f.model_dump() for f in dt.fields])
     else:
-        context = _build_scaffold_context(dt.name, dt.fields)
+        context = _build_scaffold_context(dt.name, dt.fields, py_file)
         py_file.write_text(
             render_template("doctype/controller.py.jinja", context),
         )

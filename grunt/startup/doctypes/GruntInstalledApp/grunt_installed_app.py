@@ -15,6 +15,16 @@ lazy from grunt.document.api import documents
 class GruntInstalledApp(Document):
     """GruntInstalledApp DocType controller."""
 
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    version: str | None = None  # Version
+    installed_at: datetime | None = None  # Installed
+    modules: Any | None = None  # Modules
+
+    # end: auto-generated types
+
     async def before_insert(self) -> None:
         if not self.installed_at:
             self.installed_at = datetime.now(UTC)

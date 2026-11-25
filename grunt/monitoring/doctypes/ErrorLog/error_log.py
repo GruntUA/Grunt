@@ -11,17 +11,22 @@ from grunt.document.base import Document
 
 
 class ErrorLog(Document):
-    title: str
-    error_type: str | None
-    context: str | None
-    app: str | None
-    method: str | None
-    user: str | None
-    http_status: int | None
-    request_method: str | None
-    request_path: str | None
-    request_id: str | None
-    reference_doctype: str | None
-    reference_name: str | None
-    error_message: str | None
-    traceback: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str | None = None  # Error
+    error_type: str | None = None  # Type
+    context: str | None = None  # Context
+    app: str | None = None  # App
+    method: str | None = None  # Method / route
+    user: str | None = None  # User
+    request_method: str | None = None  # HTTP method
+    http_status: int | None = None  # Response code
+    request_path: str | None = None  # Path
+    request_id: str | None = None  # Request ID
+    reference_doctype: str | None = None  # Document type
+    reference_name: str | None = None  # Document
+    error_message: str | None = None  # Message
+    traceback: str | None = None  # Stack trace
+
+    # end: auto-generated types

@@ -403,7 +403,10 @@ async def _rename_child_and_link_refs(
             child_table = other_meta.table
             await session.execute(
                 child_table.update()
-                .where(child_table.c.parent_name == old_id)
+                .where(
+                    child_table.c.parent_name == old_id,
+                    child_table.c.parent_doctype == doctype_name,
+                )
                 .values(parent_name=new_id)
             )
 

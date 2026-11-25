@@ -27,12 +27,20 @@ _STRIP_ON_RESTORE = frozenset({"_seen", "owner", "created_at", "modified_at", "m
 
 
 class DeletedDocument(Document):
-    deleted_doctype: str
-    deleted_name: str
-    title: str
-    deleted_by: str
-    restored: bool
-    data: dict
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    # "data" field: read it as self.data["data"] - self.data is taken by the controller.
+    deleted_doctype: str | None = None  # Document type
+    deleted_name: str | None = None  # Document ID
+    title: str | None = None  # Name
+    deleted_by: str | None = None  # Deleted by
+    deleted_at: datetime | None = None  # Deleted at
+    restored: bool | None = None  # Restored
+    restored_at: datetime | None = None  # Restored at
+    restored_to: str | None = None  # Restored as
+
+    # end: auto-generated types
 
 
 # RPC
@@ -76,7 +84,7 @@ async def restore(name: str, allow_rename: bool = False) -> dict[str, Any]:
             code="ALREADY_RESTORED",
         )
 
-    target_dt = snap.deleted_doctype
+    target_dt = snap.deleted_doctype or ""  # required; empty fails the lookup below
     try:
         await doctype_registry.get(target_dt)
     except Exception:

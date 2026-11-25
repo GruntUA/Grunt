@@ -8,8 +8,14 @@ from grunt.permissions.rbac import permission_checker
 
 
 class DocLike(Document):
-    reference_doctype: str
-    reference_id: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    reference_doctype: str  # Document type
+    reference_id: str  # Document
+    user: str | None = None  # User
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         # ``user`` is a field here, but ``self.user`` is the acting user.

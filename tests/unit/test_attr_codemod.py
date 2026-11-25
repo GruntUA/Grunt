@@ -107,12 +107,43 @@ def test_accepts_by_receiver_type():
     assert not accepts(_cand("sub", "status"), "dict[str, Any]", classes, attrs)
     assert not accepts(_cand("sub", "status"), "Any", classes, attrs)
 
-    assert accepts(_cand("get", "title"), "Order", classes, attrs)
-    assert accepts(_cand("get", "note"), "Self@Order", classes, attrs)
-    assert not accepts(_cand("get", "total"), "Order", classes, attrs)  # class attribute
-    assert not accepts(_cand("get", "recalc"), "Order", classes, attrs)  # method
-    assert accepts(_cand("get", "user"), "Order", classes, attrs)  # a field like any other
-    assert not accepts(_cand("get", "status"), "Order", classes, attrs)  # not declared
+    me = "Self@Order"
+    assert accepts(_cand("get", "title"), me, classes, attrs)
+    assert accepts(_cand("dataget", "note"), me, classes, attrs)
+    assert not accepts(_cand("get", "total"), me, classes, attrs)  # class attribute
+    assert not accepts(_cand("get", "recalc"), me, classes, attrs)  # method
+    assert accepts(_cand("get", "user"), me, classes, attrs)  # a field like any other
+    assert not accepts(_cand("get", "status"), me, classes, attrs)  # not declared
+    assert not accepts(_cand("dataget", "status"), me, classes, attrs)  # not declared
+    assert accepts(_cand("get", "name"), me, classes, attrs)  # same value, read only
     assert accepts(_cand("datasub", "status"), "Order", classes, attrs)  # raises either way
-    assert not accepts(_cand("dataget", "status"), "Order", classes, attrs)  # not declared
-    assert accepts(_cand("get", "name"), "Order", classes, attrs)  # same value, read only
+
+
+def test_get_on_another_receiver_stays_it_may_be_a_partial_row():
+    """``Order.get_list()`` rows hold only the fields asked for: ``row.get("title")``
+    gives None for an unloaded field, ``row.title`` raises - so only ``self`` is rewritten."""
+    classes = _Classes()
+    classes.add("class Document: ...\nclass Order(Document):\n    title: str\n")
+    attrs = _document_attrs()
+
+    for kind in ("get", "dataget"):
+        assert not accepts(_cand(kind, "title"), "Order", classes, attrs)
+        assert not accepts(_cand(kind, "name"), "Order", classes, attrs)
+    assert accepts(_cand("datasub", "title"), "Order", classes, attrs)
+
+
+def test_two_classes_of_one_name_share_only_common_fields():
+    """An inherited field counts only if every definition of the name has it."""
+    classes = _Classes()
+    classes.add(
+        "class Document: ...\n"
+        "class Left(Document):\n    title: str\n    code: str\n"
+        "class Right(Document):\n    code: str\n"
+    )
+    classes.add("class Order(Left):\n    note: str\n")
+    classes.add("class Order(Right):\n    note: str\n")
+    attrs = _document_attrs()
+
+    assert classes.fields("Order") == {"note", "code"}
+    assert not accepts(_cand("get", "title"), "Self@Order", classes, attrs)
+    assert accepts(_cand("get", "code"), "Self@Order", classes, attrs)

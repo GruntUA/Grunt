@@ -81,7 +81,7 @@ async def process_rule(name: str, today: date) -> int:
     """
     session = require_session()
     rule = await AutoRepeat.get_doc(name)
-    frequency = rule.frequency
+    frequency = rule.frequency or "Monthly"  # the field default
     day, last_day = anchor_day(rule.data), bool(rule.repeat_on_last_day)
     end = as_date(rule.end_date)
     next_on = as_date(rule.next_schedule_date)

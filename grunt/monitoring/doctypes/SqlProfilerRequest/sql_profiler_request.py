@@ -9,6 +9,8 @@ from typing import Any
 from grunt.db.profiler import get_recent_requests
 from grunt.document.base import Document
 from grunt.i18n import N_
+from grunt.monitoring.doctypes.SqlProfilerQuery.sql_profiler_query import SqlProfilerQuery
+from grunt.monitoring.doctypes.SqlProfilerSpan.sql_profiler_span import SqlProfilerSpan
 from grunt.query.query import Query
 from grunt.store.virtual import VirtualStore
 
@@ -55,4 +57,20 @@ class SqlProfilerRequestStore(VirtualStore):
 
 
 class SqlProfilerRequest(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    method: str | None = None  # Method
+    path: str | None = None  # Path
+    status_code: int | None = None  # Status
+    duration_ms: float | None = None  # Duration (ms)
+    query_count: int | None = None  # DB queries
+    total_query_ms: float | None = None  # DB time (ms)
+    slow_query_count: int | None = None  # Slow
+    slow: bool | None = None  # Slow
+    spans: list[SqlProfilerSpan] = []  # Method spans
+    queries: list[SqlProfilerQuery] = []  # SQL queries
+
+    # end: auto-generated types
+
     store_class = SqlProfilerRequestStore

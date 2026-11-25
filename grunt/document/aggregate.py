@@ -21,6 +21,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.document.meta import Meta
+from grunt.document.relations import child_rows_of
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 lazy from grunt.metadata.doctype import DocType
@@ -84,7 +85,7 @@ async def compute_aggregations(
             stmt = (
                 select(func.count())
                 .select_from(child_table)
-                .where(child_table.c.parent_name == parent_id)
+                .where(*child_rows_of(child_table, dt.name, parent_id, table_fieldname))
             )
         else:
             if not child_col or child_col not in child_table.c:
@@ -112,7 +113,9 @@ async def compute_aggregations(
                 )
                 continue
 
-            stmt = select(agg_func(col)).where(child_table.c.parent_name == parent_id)
+            stmt = select(agg_func(col)).where(
+                *child_rows_of(child_table, dt.name, parent_id, table_fieldname)
+            )
 
         try:
             row = (await session.execute(stmt)).one()
