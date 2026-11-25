@@ -4,7 +4,7 @@ Both ``grunt.api.context`` and ``grunt.app`` import these objects so that
 setting session / engine / user in one place is immediately visible everywhere.
 """
 
-from collections.abc import AsyncIterator, Iterable, Iterator
+from collections.abc import AsyncIterator, Iterable, Iterator, Mapping
 from contextlib import asynccontextmanager, contextmanager
 from contextvars import ContextVar
 from datetime import date, datetime
@@ -118,6 +118,8 @@ def session_role_rows() -> list[dict[str, Any]]:
     rows = data.get("role_rows") if isinstance(data, dict) else None
     if rows is None:
         rows = getattr(user, "roles", None) or []
+        # A User document holds its UserRole rows as documents: their rows.
+        rows = [r if isinstance(r, str | Mapping) else getattr(r, "data", r) for r in rows]
     return active_role_rows(rows)
 
 

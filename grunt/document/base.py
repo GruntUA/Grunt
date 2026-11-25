@@ -14,6 +14,7 @@ import annotationlib
 import contextlib
 import copy
 import sys
+import typing
 from collections.abc import Callable, Iterable
 from typing import Any, ClassVar, Self, dataclass_transform
 
@@ -21,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from grunt.document import pipeline
 from grunt.document.formula import evaluate_read_formulas
-from grunt.document.mixins.lifecycle import DocumentLifecycleMixin
+from grunt.document.mixins.lifecycle import DocumentLifecycleMixin, plain, row_of
 from grunt.document.registry import document_registry
 from grunt.document.serde import to_json, with_doctype
 from grunt.errors import not_found
@@ -91,11 +92,13 @@ class Document(
             amount: float
             customer: str
             note: str | None = None
-            lines: list[dict] = []
+            lines: list[InvoiceLine] = []
 
             async def validate(self) -> None:
                 if self.amount <= 0:
                     throw("Сума повинна бути більше нуля")
+                for line in self.lines or []:
+                    line.total = line.qty * line.price  # stored with the invoice
 
     The field annotations (``grunt doctype sync-types`` writes them) also
     type the constructor, as for a dataclass - a field without ``= None`` /
@@ -108,6 +111,12 @@ class Document(
 
     The defaults are for the type checker only: the class keeps none of them,
     a field is always read from ``self.data``.
+
+    A child table typed ``list[ChildCls]`` holds documents of *ChildCls* while
+    the controller holds the document - each over its row in ``self.data``, so
+    a field set on a child is stored; ``append`` / ``remove`` / assigning the
+    list are stored too. Validation, the store, the API and event handlers see
+    the rows as dicts. A table typed ``list[dict]`` keeps dicts.
 
     A DocType whose documents aren't rows of its table names its store::
 
@@ -148,7 +157,7 @@ class Document(
         if "__doctype__" not in cls.__dict__:
             parents = (b for b in cls.__mro__[1:] if b is not Document and issubclass(b, Document))
             cls.__doctype__ = next((b.__doctype__ for b in parents), cls.__name__)
-        # `note: str | None = None` / `lines: list[dict] = []` make a field
+        # `note: str | None = None` / `lines: list[InvoiceLine] = []` make a field
         # optional in the constructor; as class attributes they would hide
         # self.data (__getattr__ only runs when normal lookup fails).
         own = cls.__dict__
@@ -192,6 +201,7 @@ class Document(
         self._dt = None
         self.input_data = {}  # what an insert / update was given - the lifecycle sets it
         self.doc_before_save = None
+        self._wrap_children()
 
     @classmethod
     def _from_rows(
@@ -230,8 +240,51 @@ class Document(
                 state["input_data"] = {}
             if hidden:
                 state["_hidden"] = hidden
+            if _child_tables(target):
+                doc._wrap_children()
             docs.append(doc)
         return docs
+
+    # Child rows - documents of the child controller
+
+    def _wrap_children(self, only: str | None = None) -> None:
+        """The rows of each child table typed ``list[ChildCls]`` in the types block
+        as documents of *ChildCls* - each over its row dict, not a copy, so a field
+        set on the child is set on the row. The list itself is a new one: whoever
+        else holds the old list (a request payload, a returned row) keeps dicts."""
+        tables = _child_tables(type(self))
+        if not tables:
+            return
+        data = self.data
+        for fieldname, child in tables.items():
+            if only is not None and fieldname != only:
+                continue
+            rows = data.get(fieldname)
+            if type(rows) is not list or not rows:
+                continue
+            dicts = [r for r in rows if isinstance(r, dict)]
+            if not dicts:
+                continue
+            if isinstance(child, str):
+                made = iter(document_registry.get(child)._from_rows(dicts, doctype=child))
+            else:
+                made = iter(child._from_rows(dicts))
+            data[fieldname] = [next(made) if isinstance(r, dict) else r for r in rows]
+
+    def _rows(self) -> dict[str, Any]:
+        """``self.data`` with child documents as their rows (a shallow copy)."""
+        return plain(self.data)
+
+    def _unwrap_children(self) -> None:
+        """Child documents in ``self.data`` back to their row dicts - what the
+        pipeline below the controller (validation, the store, hooks of other
+        apps, the API) reads."""
+        if not _child_tables(type(self)):
+            return  # _insert / _update take a copy without them (plain) anyway
+        data = self.data
+        for key, value in data.items():
+            if type(value) is list and any(isinstance(v, Document) for v in value):
+                data[key] = [row_of(v) for v in value]
 
     # Attribute routing
 
@@ -277,6 +330,8 @@ class Document(
             )
         else:
             self.data[name] = value
+            if type(value) is list and name in _child_tables(type(self)):
+                self._wrap_children(only=name)
 
     # System fields (read-only)
 
@@ -339,7 +394,7 @@ class Document(
 
     def as_dict(self) -> dict[str, Any]:
         """The document as a JSON object naming its DocType - child rows included."""
-        return copy.deepcopy(with_doctype(self.doctype, self.data))
+        return copy.deepcopy(with_doctype(self.doctype, plain(self.data)))
 
     def as_json(self, *, indent: int | None = 2) -> str:
         return to_json(self.as_dict(), indent=indent)
@@ -403,6 +458,7 @@ class Document(
         original = self.data
         result = await self._insert(ignore_required=ignore_required)
         self._keep(original, result)
+        self._wrap_children()
         return result
 
     async def save(self, *, ignore_required: bool = False) -> dict[str, Any]:
@@ -411,8 +467,9 @@ class Document(
         if self.id is None:
             raise ValueError(f"Cannot save {self.doctype}: document has no name")
         original = self.data
-        result = await self._update(self.id, dict(original), ignore_required=ignore_required)
+        result = await self._update(self.id, plain(original), ignore_required=ignore_required)
         self._keep(original, result)
+        self._wrap_children()
         return result
 
     async def delete(self, *, replace_with: str | None = None) -> None:
@@ -653,6 +710,30 @@ def _annotated_fields(cls: type) -> frozenset[str]:
     return known
 
 
+def _child_tables(cls: type) -> dict[str, Any]:
+    """``fieldname -> child controller`` (or its DocType name, when the class is
+    only named - ``list["Child"]``, an import under TYPE_CHECKING) for each field
+    *cls* annotates ``list[ChildCls]`` (cached)."""
+    cached = cls.__dict__.get("_child_tables_cache")
+    if cached is not None:
+        return cached
+    tables: dict[str, Any] = {}
+    for klass in reversed(cls.__mro__):
+        if klass in _DOCUMENT_MRO:
+            continue
+        ann = annotationlib.get_annotations(klass, format=annotationlib.Format.FORWARDREF)
+        for name, hint in ann.items():
+            if name[:1] == "_" or typing.get_origin(hint) is not list:
+                continue
+            (arg,) = typing.get_args(hint) or (None,)
+            if isinstance(arg, type) and issubclass(arg, Document):
+                tables[name] = arg
+            elif isinstance(arg, str | annotationlib.ForwardRef):
+                tables[name] = arg if isinstance(arg, str) else arg.__forward_arg__
+    type.__setattr__(cls, "_child_tables_cache", tables)
+    return tables
+
+
 def controller_class(dt: Any) -> type[Document]:
     """The controller of the DocType *dt*."""
     return document_registry.get(dt.name)
@@ -697,7 +778,12 @@ async def load_document(
         await evaluate_read_formulas(dt.doc, data)
     doc.data = data
     if type(doc).on_load is not Document.on_load:
-        await doc.on_load()
+        doc._wrap_children()
+        try:
+            await doc.on_load()
+        finally:
+            doc._unwrap_children()
+    # ``data`` stays rows: the readers by name return it, the update compares with it.
     doc.data = with_doctype(doctype, doc.data)
     return doc
 

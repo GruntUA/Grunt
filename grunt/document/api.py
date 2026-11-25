@@ -322,6 +322,7 @@ class DocumentAPI:
         doc = await self._load(doctype, id_or_name, user)
         await permission_checker.require(dt, "read", doc.data, user=user)
         doc.data = apply_hidden_fields_to_doc(doc.data, hidden_fields)
+        doc._wrap_children()
         return doc
 
     @_may_ignore_permissions
