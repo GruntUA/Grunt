@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from grunt.document.base import Document
@@ -27,4 +28,17 @@ class SystemHealthReportStore(VirtualStore):
 
 
 class SystemHealthReport(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    overall_status: str | None = None  # Overall status
+    checked_at: datetime | None = None  # Checked
+    sections: Any | None = None  # Sections
+    report: str | None = None  # Checks
+    top_errors: str | None = None  # Most frequent errors (7 days)
+    largest_tables: str | None = None  # Largest tables
+    browser_report: str | None = None  # Checks of this browser
+
+    # end: auto-generated types
+
     store_class = SystemHealthReportStore

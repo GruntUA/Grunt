@@ -55,4 +55,20 @@ class SqlProfilerRequestStore(VirtualStore):
 
 
 class SqlProfilerRequest(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    method: str | None = None  # Method
+    path: str | None = None  # Path
+    status_code: int | None = None  # Status
+    duration_ms: float | None = None  # Duration (ms)
+    query_count: int | None = None  # DB queries
+    total_query_ms: float | None = None  # DB time (ms)
+    slow_query_count: int | None = None  # Slow
+    slow: bool | None = None  # Slow
+    spans: list[dict] = []  # Table: SqlProfilerSpan
+    queries: list[dict] = []  # Table: SqlProfilerQuery
+
+    # end: auto-generated types
+
     store_class = SqlProfilerRequestStore

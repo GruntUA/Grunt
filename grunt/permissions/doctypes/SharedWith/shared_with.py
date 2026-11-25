@@ -24,9 +24,20 @@ SHARE_EVENT = "grunt.share.created"
 
 
 class SharedWith(Document):
-    reference_doctype: str
-    reference_id: str
-    permission: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    reference_doctype: str  # Document type
+    reference_id: str  # Document ID
+    user: str | None = None  # User
+    role: str | None = None  # Role
+    user_group: str | None = None  # User group
+    everyone: bool | None = None  # Everyone
+    permission: str | None = None  # Permission
+    can_reshare: bool | None = None  # Can share further
+    valid_to: date | None = None  # Valid until
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         # ``user`` is a field here, but ``self.user`` is the acting user.

@@ -15,8 +15,25 @@ _SYSTEM_DATES = ("created_at", "modified_at")
 class ServiceLevel(Document):
     """DocType controller for ServiceLevel."""
 
-    ref_doctype: str
-    target: int
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    title: str  # Title
+    ref_doctype: str  # Document type
+    is_enabled: bool | None = None  # Enabled
+    condition: str | None = None  # Applies when
+    target: int  # Time allowed
+    target_unit: str | None = None  # Unit
+    start_field: str | None = None  # Count from field
+    due_field: str | None = None  # Deadline field
+    warn_before: int | None = None  # Warn hours before
+    done_states: str | None = None  # Done statuses
+    done_condition: str | None = None  # Or done when
+    notify: str | None = None  # Notify
+    escalate_to: str | None = None  # Escalate to
+    channel: str | None = None  # Channel
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         meta = await doctype_registry.get_meta(self.ref_doctype)

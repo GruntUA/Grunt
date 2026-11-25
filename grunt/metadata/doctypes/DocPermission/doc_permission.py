@@ -6,8 +6,13 @@ from grunt.document.base import Document
 class DocPermission(Document):
     """DocType controller for DocPermission."""
 
-    role: str | None
-    actions: list[str] | None
-    match: str | None
-    hidden_fields: str | None
-    readonly_fields: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    role: str  # Role
+    actions: list[str] | None = None  # Actions
+    match: str | None = None  # Row condition
+    hidden_fields: str | None = None  # Hidden fields (comma-separated)
+    readonly_fields: str | None = None  # Read-only fields (comma-separated)
+
+    # end: auto-generated types

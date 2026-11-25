@@ -133,4 +133,27 @@ class PerfTrendStore(VirtualStore):
 
 
 class PerfTrend(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    period: str | None = None  # Period
+    kind: str | None = None  # Kind
+    endpoint: str | None = None  # Endpoint
+    ref_doctype: str | None = None  # DocType
+    calls: int | None = None  # Calls
+    errors: int | None = None  # Errors
+    total_ms: float | None = None  # Total, ms
+    avg_ms: float | None = None  # Average, ms
+    p95_ms: float | None = None  # p95, ms
+    avg_sql: float | None = None  # SQL per call
+    prev_calls: int | None = None  # Calls
+    prev_avg_ms: float | None = None  # Average, ms
+    prev_p95_ms: float | None = None  # p95, ms
+    prev_avg_sql: float | None = None  # SQL per call
+    avg_change: float | None = None  # Average change, %
+    p95_change: float | None = None  # p95 change, %
+    sql_change: float | None = None  # SQL per call change
+
+    # end: auto-generated types
+
     store_class = PerfTrendStore

@@ -6,6 +6,12 @@ from grunt.document.base import Document
 class NotificationChannel(Document):
     """DocType controller for NotificationChannel."""
 
-    channel: str
-    subject: str | None
-    message: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    channel: str  # Channel
+    webhook: str | None = None  # Webhook
+    subject: str | None = None  # Subject
+    message: str | None = None  # Message
+
+    # end: auto-generated types
