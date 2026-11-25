@@ -6,6 +6,7 @@ from typing import Any
 from grunt.api.context import whitelist
 from grunt.auth.api_key_service import generate_api_key
 from grunt.auth.current import acting_user
+from grunt.auth.doctypes.ApiKeyRole.api_key_role import ApiKeyRole
 from grunt.document.base import Document
 from grunt.errors import forbidden, throw
 from grunt.i18n import _
@@ -31,14 +32,14 @@ class ApiKey(Document):
     expires_at: datetime | None = None  # Valid until
     allowed_ips: str | None = None  # Allowed IPs (comma-separated)
     read_only: bool | None = None  # Read only
-    roles: list[dict] = []  # Table: ApiKeyRole
+    roles: list[ApiKeyRole] = []  # Roles
 
     # end: auto-generated types
 
     async def validate(self) -> None:
         """A key acts with some of its user's roles, never others - one the
         user doesn't hold would hand the key more than the user has."""
-        wanted = [str(r["role_name"]) for r in self.roles or [] if r.get("role_name")]
+        wanted = [r.role_name for r in self.roles or [] if r.role_name]
         if not wanted:
             return
         held = set(await get_roles(await self._user_email()))

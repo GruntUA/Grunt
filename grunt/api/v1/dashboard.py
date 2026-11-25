@@ -229,7 +229,7 @@ async def _load_widgets(
     doc = await Page.find_doc(name)
     if doc is None:
         throw(_("Page not found"), "NOT_FOUND")
-    page = dict(doc.data)
+    page = doc.as_dict()  # the widget rows as dicts
 
     if not page_visible(
         page, acting_user().role_names, manager=await has_perm("grunt.manage_desk")

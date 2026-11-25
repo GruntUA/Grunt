@@ -10,6 +10,7 @@ from grunt.api.context import whitelist
 from grunt.api.v1.dashboard import page_visible
 from grunt.apps.manifest import extenders
 from grunt.auth.current import acting_user
+from grunt.document.base import Document
 from grunt.document.titles import resolve_reference_titles
 from grunt.errors import forbidden
 from grunt.i18n import _
@@ -141,7 +142,12 @@ async def _visible(menus: Iterable[Any]) -> _Visible:
     visible = _Visible(manager, frozenset(user.role_names), await _visible_pages())
     if manager:
         return visible
-    items = [i for ws in menus for i in ws.get("sidebar_items") or []]
+    # A menu read by its class holds its items as documents: their rows.
+    items = [
+        i.data if isinstance(i, Document) else i
+        for ws in menus
+        for i in ws.get("sidebar_items") or []
+    ]
     targets = {
         kind: {i["link_to"] for i in items if i.get("type") == kind and i.get("link_to")}
         for kind in ("DocType", "Report", "Page")

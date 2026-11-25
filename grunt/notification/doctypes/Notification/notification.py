@@ -9,6 +9,10 @@ from grunt.metadata.registry import doctype_registry
 from grunt.notification import rules
 from grunt.notification.channels import get_channel
 from grunt.notification.date_rules import DATE_EVENTS, MINUTE_EVENTS
+from grunt.notification.doctypes.NotificationChannel.notification_channel import NotificationChannel
+from grunt.notification.doctypes.NotificationRecipient.notification_recipient import (
+    NotificationRecipient,
+)
 from grunt.notification.events import get_event
 from grunt.standard_records import mark_customized
 
@@ -52,8 +56,8 @@ class Notification(Document):
     is_standard: bool | None = None  # Standard
     app: str | None = None  # App
     is_customized: bool | None = None  # Changed on this site
-    recipients: list[dict]  # Table: NotificationRecipient
-    channels: list[dict]  # Table: NotificationChannel
+    recipients: list[NotificationRecipient]  # Recipients
+    channels: list[NotificationChannel]  # Channels
 
     # end: auto-generated types
 
@@ -136,14 +140,14 @@ class Notification(Document):
         for row in self.recipients or []:
             # ``mandatory_depends_on`` holds in the form only - a row without
             # its target would silently notify nobody.
-            field = _RECIPIENT_TARGET.get(row.get("kind") or "")
+            field = _RECIPIENT_TARGET.get(row.kind or "")
             if field and not str(row.get(field) or "").strip():
                 throw(
-                    _("Recipient “%(kind)s”: choose whom it means") % {"kind": _(row["kind"])},
+                    _("Recipient “%(kind)s”: choose whom it means") % {"kind": _(row.kind or "")},
                     "VALIDATION_ERROR",
                 )
         if self.event != "code" and any(
-            row.get("kind") == "Event recipients" for row in self.recipients or []
+            row.kind == "Event recipients" for row in self.recipients or []
         ):
             # Only code names them - on a document event the row would reach nobody.
             throw(
@@ -151,26 +155,26 @@ class Notification(Document):
                 "VALIDATION_ERROR",
             )
         for row in self.channels or []:
-            if get_channel(row.get("channel") or "") is None:
+            if get_channel(row.channel or "") is None:
                 throw(
-                    _("Unknown channel “%(channel)s”") % {"channel": row.get("channel")},
+                    _("Unknown channel “%(channel)s”") % {"channel": row.channel},
                     "VALIDATION_ERROR",
                 )
-            if row.get("channel") == "webhook" and not row.get("webhook"):
+            if row.channel == "webhook" and not row.webhook:
                 throw(_("Choose the webhook for the Webhook channel"), "VALIDATION_ERROR")
         templates = [
             (_("Subject"), self.subject_template),
             (_("Message"), self.message_template),
         ]
         for row in self.channels or []:
-            templates += [(_("Subject"), row.get("subject")), (_("Message"), row.get("message"))]
+            templates += [(_("Subject"), row.subject), (_("Message"), row.message)]
         for label, template in templates:
             if template and (error := await rules.check_template(template)):
                 throw(
                     _("%(field)s: template error - %(error)s") % {"field": label, "error": error},
                     "VALIDATION_ERROR",
                 )
-        conditions = [self.condition] + [row.get("condition") for row in self.recipients or []]
+        conditions = [self.condition] + [row.condition for row in self.recipients or []]
         for condition in conditions:
             if condition and condition.strip():
                 try:

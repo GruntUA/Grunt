@@ -5,6 +5,7 @@ from typing import Any
 
 from grunt.api.context import whitelist
 from grunt.assignment.conditions import matches
+from grunt.assignment.doctypes.AssignmentRuleUser.assignment_rule_user import AssignmentRuleUser
 from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
@@ -38,7 +39,7 @@ class AssignmentRule(Document):
     due_date_field: str | None = None  # Due date from
     last_user: str | None = None  # Last assigned
     description: str | None = None  # Description
-    users: list[dict] = []  # Table: AssignmentRuleUser
+    users: list[AssignmentRuleUser] = []  # Users
 
     # end: auto-generated types
 
@@ -96,7 +97,7 @@ class AssignmentRule(Document):
 
         will_assign_to: list[str] = []
         if matched:
-            rule = {**self.data, "filters": filters}
+            rule = {**self.as_dict(), "filters": filters}  # the user rows as dicts
             # Without moving a round robin's turn.
             will_assign_to = await assignment_service.pick(
                 self.doctype_target or "", rule, test_doc, persist=False

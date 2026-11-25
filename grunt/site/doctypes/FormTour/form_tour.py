@@ -5,6 +5,7 @@ from grunt.document.base import Document
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.metadata.compiler import STANDARD_COLUMNS
+from grunt.site.doctypes.FormTourStep.form_tour_step import FormTourStep
 
 
 class FormTour(Document):
@@ -19,7 +20,7 @@ class FormTour(Document):
     auto_start: bool | None = None  # Start automatically
     roles: str | None = None  # Roles (comma-separated)
     is_standard: bool | None = None  # Standard
-    steps: list[dict] = []  # Table: FormTourStep
+    steps: list[FormTourStep] = []  # Steps
 
     # end: auto-generated types
 
@@ -29,9 +30,9 @@ class FormTour(Document):
             throw(_("DocType “%(doctype)s” not found") % {"doctype": self.reference_doctype})
         columns = STANDARD_COLUMNS if self.view == "List" else ()
         for step in self.steps or []:
-            fieldname = step.get("fieldname")
+            fieldname = step.fieldname
             if fieldname and not meta.has_field(fieldname) and fieldname not in columns:
                 throw(
                     _("Step “%(step)s”: field “%(field)s” not found")
-                    % {"step": step.get("title"), "field": fieldname}
+                    % {"step": step.title, "field": fieldname}
                 )

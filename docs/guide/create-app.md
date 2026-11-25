@@ -244,6 +244,26 @@ class Customer(Document):
         )
 ```
 
+`grunt doctype sync-types Customer --app my_crm` writes the fields into the
+class (the block between `# begin/end: auto-generated types`). A child table
+whose DocType has a controller is typed with its class, and its rows are
+documents of that class in the controller:
+
+```python
+class Deal(Document):
+    items: list[DealItem] = []  # Items
+
+    async def validate(self) -> None:
+        for item in self.items or []:
+            item.amount = (item.qty or 0) * (item.rate or 0)  # stored with the deal
+        self.items = [*(self.items or []), DealItem(item_code="FEE", qty=1, rate=10)]  # a new row
+```
+
+`Deal.get_doc(name)` gives the same. Below the controller - validation, the
+store, `grunt.get_doc("Deal", ...)`, the API, event handlers - the rows are
+dicts. A child imported by the parent's module that itself imports the parent
+is imported under `if TYPE_CHECKING:`.
+
 ## Registering hooks
 
 ```python title="my_crm/hooks.py"

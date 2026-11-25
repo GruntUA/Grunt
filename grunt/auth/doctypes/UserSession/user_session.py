@@ -28,6 +28,7 @@ from starlette.requests import HTTPConnection
 
 from grunt.api.context import whitelist
 from grunt.auth.current import acting_user
+from grunt.auth.doctypes.UserSessionLogin.user_session_login import UserSessionLogin
 from grunt.auth.ip_policy import CLOUDFLARE_RANGES, ip_allowed
 from grunt.config import settings
 from grunt.db.api import GruntDB
@@ -73,7 +74,7 @@ class UserSession(Document):
     user_agent: str | None = None  # Browser / client
     last_active_at: datetime | None = None  # Last activity
     is_active: bool | None = None  # Active
-    logins: list[dict] = []  # Table: UserSessionLogin
+    logins: list[UserSessionLogin] = []  # Sign-ins
 
     # end: auto-generated types
 

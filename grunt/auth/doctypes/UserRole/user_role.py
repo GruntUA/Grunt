@@ -35,7 +35,7 @@ class UserRole(Document):
     # end: auto-generated types
 
 
-def plain_role_row(row: dict[str, Any]) -> dict[str, Any]:
+def plain_role_row(row: dict[str, Any] | Document) -> dict[str, Any]:
     """*row* with only :data:`ROLE_ROW_FIELDS`, dates as ISO strings - safe to
     cache with the user (``doc_cache`` serialises it)."""
     out: dict[str, Any] = {}

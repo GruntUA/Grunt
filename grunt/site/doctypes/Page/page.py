@@ -1,6 +1,7 @@
 """Controller for the ``Page`` DocType."""
 
 from grunt.document.base import Document
+from grunt.site.doctypes.PageWidget.page_widget import PageWidget
 
 
 class Page(Document):
@@ -15,6 +16,6 @@ class Page(Document):
     roles: str | None = None  # Roles (comma-separated)
     is_standard: bool | None = None  # Standard
     app: str | None = None  # App
-    widgets: list[dict] = []  # Table: PageWidget
+    widgets: list[PageWidget] = []  # Widgets
 
     # end: auto-generated types
