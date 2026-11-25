@@ -13,8 +13,8 @@ import grunt.hooks as hooks
 from grunt.document.base import Document
 from grunt.i18n import N_
 from grunt.query.query import Query
+from grunt.scripting.doctypes.ServerScript.server_script import ServerScript
 from grunt.store.virtual import VirtualStore
-lazy from grunt.document.api import documents
 
 
 def _handler_name(handler: Any) -> str:
@@ -62,8 +62,7 @@ async def _collect_server_scripts() -> list[dict[str, Any]]:
     """Gather enabled Server Scripts registered as event/API hooks."""
     rows: list[dict[str, Any]] = []
     try:
-        scripts = await documents.get_list(
-            "ServerScript",
+        scripts = await ServerScript.get_list(
             filters={"disabled": False},
             fields=["event", "script_type", "api_method", "name", "reference_doctype"],
             limit=1000,
@@ -75,12 +74,12 @@ async def _collect_server_scripts() -> list[dict[str, Any]]:
         return rows
 
     for s in scripts:
-        is_doc_event = s["script_type"] == "DocType Event"
+        is_doc_event = s.script_type == "DocType Event"
         rows.append(
             {
                 "source": "Database (Server Script)",
-                "event": s["event"] if is_doc_event else (s.get("api_method") or "Global"),
-                "handler": s["name"],
+                "event": s.event if is_doc_event else (s.get("api_method") or "Global"),
+                "handler": s.name,
                 "priority": 10,
                 "reference_doctype": s.get("reference_doctype") if is_doc_event else "*",
             }

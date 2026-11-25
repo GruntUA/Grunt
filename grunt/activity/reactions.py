@@ -9,6 +9,7 @@ from typing import Any
 
 from grunt.api.context import whitelist
 from grunt.db.api import GruntDB
+from grunt.document.doctypes.Comment.comment import Comment
 from grunt.errors import throw
 from grunt.i18n import _
 from grunt.local import system_context, user_email
@@ -75,9 +76,7 @@ async def reactions_for(comment_ids: list[str]) -> dict[str, list[dict[str, Any]
 @whitelist()
 async def toggle_reaction(comment: str, emoji: str) -> list[dict[str, Any]]:
     """Add the reaction, or take it back. Returns the comment's reactions afterwards."""
-    ref = await _db.get_value(
-        "Comment", comment, ["reference_doctype", "reference_id"], as_dict=True
-    )
+    ref = await _db.get_value(Comment, comment, ["reference_doctype", "reference_id"], as_dict=True)
     if ref is None:
         throw(_("Comment not found"), "NOT_FOUND")
     await doc_guard(ref.reference_doctype, ref.reference_id)

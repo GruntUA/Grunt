@@ -23,6 +23,8 @@ from grunt.i18n import _
 from grunt.i18n.meta import translate_record
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.perms import has_perm
+from grunt.site.doctypes.ModuleOnboarding.module_onboarding import ModuleOnboarding
+from grunt.site.doctypes.OnboardingProgress.onboarding_progress import OnboardingProgress
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -46,7 +48,7 @@ async def _progress(onboarding: dict[str, Any], user: str) -> tuple[dict[str, st
     """``({step_id: status}, hidden)`` for *user*."""
     me = user
     rows = await _db.get_all(
-        "OnboardingProgress",
+        OnboardingProgress,
         filters={
             "onboarding": onboarding["name"],
             "user__in": list({me, _scope_user(onboarding, user)}),
@@ -117,7 +119,7 @@ async def _visible(app: str | None, roles: list[str], manager: bool) -> list[dic
     if app:
         filters["app"] = app
     rows = await _db.get_all(
-        "ModuleOnboarding", filters=filters, fields=["name"], order_by="name", limit=None
+        ModuleOnboarding, filters=filters, fields=["name"], order_by="name", limit=None
     )
     docs = [
         await documents.get_doc("ModuleOnboarding", r.name, ignore_permissions=True) for r in rows

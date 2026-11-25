@@ -7,6 +7,7 @@ Entries are single addresses or CIDR networks, separated by commas or newlines.
 import ipaddress
 import re
 
+from grunt.auth.doctypes.Role.role import Role
 from grunt.db.api import GruntDB
 lazy from grunt.auth.doctypes.User.user import User
 
@@ -75,7 +76,7 @@ async def role_ip_allowlist(user: User) -> set[str] | None:
     if not roles:
         return None
     rows = await _db.get_all(
-        "Role",
+        Role,
         filters={"name__in": roles},
         fields=["allowed_ips"],
         limit=None,

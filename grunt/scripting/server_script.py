@@ -35,6 +35,7 @@ from typing import Any, NoReturn, TypeVar
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.log import log
+from grunt.scripting.doctypes.ServerScript.server_script import ServerScript
 from grunt.scripting.safe_globals import build_safe_globals, compile_script, validate_script
 from grunt.utils.attr_dict import AttrDict
 lazy from grunt.db.api import GruntDB
@@ -451,7 +452,7 @@ class ServerScriptRunner:
         token = _session_ctx.set(session)
         try:
             rows = await GruntDB().get_all(
-                "ServerScript",
+                ServerScript,
                 filters={
                     "script_type": "DocType Event",
                     "ref_doctype": doctype,
@@ -521,7 +522,7 @@ class ServerScriptRunner:
         token = _session_ctx.set(session)
         try:
             rows = await GruntDB().get_all(
-                "ServerScript",
+                ServerScript,
                 filters={"script_type": "Scheduler Event", "is_enabled": True},
                 fields=["name", "script", "cron"],
                 limit=10_000,

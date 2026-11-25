@@ -20,6 +20,7 @@ from grunt.metadata.dump import dump_doctype
 from grunt.metadata.registry import doctype_registry
 from grunt.metadata.scaffold import export_to_app
 from grunt.permissions import audit
+from grunt.startup.doctypes.GruntInstalledApp.grunt_installed_app import GruntInstalledApp
 
 _db = GruntDB()  # stateless: reads through the context's session
 
@@ -34,7 +35,7 @@ async def _dump_doctype(dt: DocType, *, translate: bool = False) -> dict[str, An
 
 async def _get_app_name_for_module(module: str) -> str | None:
     """Return the installed app name that owns *module*, or None."""
-    rows = await _db.get_all("GruntInstalledApp", fields=["name", "modules"])
+    rows = await _db.get_all(GruntInstalledApp, fields=["name", "modules"])
     for row in rows:
         if module in (row.modules or []):
             return row.name

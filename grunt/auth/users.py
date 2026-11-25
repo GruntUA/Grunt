@@ -8,7 +8,7 @@ HTTP endpoints in ``grunt.auth.user_api``, password hashing in
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from grunt.auth.doctypes.UserRole.user_role import get_user_role_rows
+from grunt.auth.doctypes.UserRole.user_role import UserRole, get_user_role_rows
 from grunt.auth.passwords import verify_password
 from grunt.config import settings
 from grunt.db.api import GruntDB
@@ -319,7 +319,7 @@ async def _assign_default_role(user_id: str | None) -> None:
     changes: dict[str, Any] = {}
     if role and await _db.exists("Role", {"role_name": role}):
         current = await _db.get_all(
-            "UserRole",
+            UserRole,
             filters={"parent_name": user_id, "parent_doctype": "User"},
             fields=["role_name"],
             limit=100,

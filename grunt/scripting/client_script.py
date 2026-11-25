@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from grunt.app import GruntDB
 from grunt.local import _session_ctx
 from grunt.log import log
+from grunt.scripting.doctypes.ClientScript.client_script import ClientScript
 
 
 async def get_client_scripts(
@@ -24,7 +25,7 @@ async def get_client_scripts(
     token = _session_ctx.set(session)
     try:
         rows = await GruntDB().get_all(
-            "ClientScript",
+            ClientScript,
             filters={"ref_doctype": doctype, "is_enabled": True},
             fields=["name", "script"],
             limit=10_000,
