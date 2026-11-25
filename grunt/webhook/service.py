@@ -47,7 +47,7 @@ class WebhookService:
         try:
             async with system_context(session):
                 webhooks = await _db.get_all(
-                    "OutgoingWebhook",
+                    OutgoingWebhook,
                     filters={"doctype_name": doctype, "event": event, "is_enabled": True},
                     limit=100,
                 )
@@ -73,13 +73,13 @@ class WebhookService:
                 try:
                     from simpleeval import simple_eval
 
-                    if not simple_eval(wh["condition"], names={"doc": doc}):
+                    if not simple_eval(wh.condition, names={"doc": doc}):
                         continue
                 except Exception:
                     log.warning(
                         "webhook.condition_eval_error",
                         webhook=str(wh.get("name") or ""),
-                        condition=wh["condition"],
+                        condition=wh.condition,
                     )
                     continue
 

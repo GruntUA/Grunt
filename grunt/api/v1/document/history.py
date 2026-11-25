@@ -13,6 +13,7 @@ from fastapi import HTTPException
 from grunt.activity import record_activity
 from grunt.api.context import whitelist
 from grunt.document.versioning import version_service
+from grunt.email.doctypes.EmailAttachment.email_attachment import EmailAttachment
 from grunt.errors import not_found
 from grunt.i18n import _
 from grunt.local import require_session, user_email
@@ -136,14 +137,13 @@ async def _email_items(doctype: str, doc_id: str) -> list[dict[str, Any]]:
     )
     files: dict[str, list[dict[str, Any]]] = {}
     if rows:
-        for a in await documents.get_list(
-            "EmailAttachment",
+        for a in await EmailAttachment.get_list(
             filters={"parent_name__in": [str(r["name"]) for r in rows]},
             fields=["parent_name", "filename", "file"],
             limit=5000,
             ignore_permissions=True,
         ):
-            files.setdefault(str(a["parent_name"]), []).append(
+            files.setdefault(str(a.parent_name), []).append(
                 {"filename": a.get("filename"), "file": a.get("file")}
             )
     items = []

@@ -6,6 +6,7 @@ accepted-language set in sync with the ``geo.Language`` table.
 
 from grunt.cache.bus import fanout
 from grunt.db.api import GruntDB
+from grunt.geo.doctypes.Language.language import Language
 from grunt.i18n import translation_service
 from grunt.log import log
 
@@ -21,7 +22,7 @@ async def refresh_supported_languages(**_kwargs: object) -> None:
     """
     try:
         rows = await _db.get_all(
-            "Language", filters={"is_active": True}, fields=["code", "native_name"], limit=None
+            Language, filters={"is_active": True}, fields=["code", "native_name"], limit=None
         )
     except Exception as e:  # noqa: BLE001
         log.debug("i18n.refresh_languages_skipped", error=str(e))

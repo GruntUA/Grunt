@@ -17,6 +17,8 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.db.api import GruntDB
+from grunt.email.doctypes.EmailAccount.email_account import EmailAccount
+from grunt.email.doctypes.EmailMessage.email_message import EmailMessage
 from grunt.email.service import EmailService, email_service
 from grunt.local import require_session, system_context
 
@@ -71,7 +73,7 @@ async def account_for(doctype: str, name: str) -> str | None:
     correspondence came through, else the one creating such documents, else the
     site's default outgoing mailbox."""
     last = await _db.get_all(
-        "EmailMessage",
+        EmailMessage,
         filters={"ref_doctype": doctype, "ref_name": name, "email_account__is": "set"},
         fields=["email_account"],
         order_by="created_at",
@@ -81,7 +83,7 @@ async def account_for(doctype: str, name: str) -> str | None:
     if last:
         return str(last[0].email_account)
     own = await _db.get_all(
-        "EmailAccount",
+        EmailAccount,
         filters={"append_to": doctype, "enable_outgoing": True},
         fields=["name"],
         limit=1,

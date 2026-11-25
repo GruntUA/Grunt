@@ -23,6 +23,7 @@ from grunt.db.api import GruntDB
 from grunt.db.write_intent import write_intent
 from grunt.local import system_context
 from grunt.log import log
+from grunt.tasks.doctypes.ScheduledJobState.scheduled_job_state import ScheduledJobState
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -128,7 +129,7 @@ async def _update_state(
 ) -> None:
 
     counts = await _db.get_value(
-        "ScheduledJobState", job_name, ["run_count", "failure_count"], as_dict=True
+        ScheduledJobState, job_name, ["run_count", "failure_count"], as_dict=True
     )
     run_count = (counts.run_count or 0) if counts else 0
     failure_count = (counts.failure_count or 0) if counts else 0

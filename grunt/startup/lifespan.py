@@ -23,6 +23,7 @@ from grunt.auth.current import user_context
 from grunt.cache import bus
 from grunt.config import settings
 from grunt.db.api import GruntDB
+from grunt.geo.doctypes.Language.language import Language
 from grunt.i18n import translation_service
 from grunt.log import log
 from grunt.logging_config import configure_logging
@@ -98,14 +99,14 @@ async def _seed_supported_languages() -> None:
             async with maker() as session, user_context(session):
                 translation_service.set_default(await get_setting("language"))
                 rows = await _db.get_all(
-                    "Language",
+                    Language,
                     filters={"is_active": True},
                     fields=["code", "native_name"],
                     limit=None,
                 )
-            codes.update(r["code"] for r in rows if r.get("code"))
+            codes.update(r.code for r in rows if r.get("code"))
             translation_service.set_language_names(
-                {r["code"]: r.get("native_name") or "" for r in rows if r.get("code")}
+                {r.code: r.get("native_name") or "" for r in rows if r.get("code")}
             )
         except Exception as e:  # noqa: BLE001 - table may not exist yet
             log.debug("i18n.seed_languages_skipped", site=site, error=str(e))
