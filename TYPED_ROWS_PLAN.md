@@ -236,9 +236,9 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 
 1. ✅ PR #265 **`feat(document)!: typed reads by controller class`** — R1, R2, R3, R6, R7. Тести: типи (`reveal_type` через pyright у тесті), часткові рядки, JSON, Jinja, нащадок з реєстру, 1000+ рядків. ~15 файлів.
 2. ✅ PR #266 **`refactor(document)!: strict attribute access`** — R4. Виправити мок у `test_mfa` і тест AttrDict. ~6 файлів.
-3. 🔄 PR #267 ✅ (3a), 3b — гілка `refactor/one-way-values` **`refactor(core)!: one way per action`** (3a — читання класом, QuerySet, get_all, get_doc_instance з фасаду, load/new; 3b — get_values, get_value("*"), get_single) — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
-4. **`refactor(document)!: drop Document.user`** — R5, якщо власник погодиться (Q2).
-5. **`chore(doctypes): type blocks for core controllers`** — `sync-types` для ~51 контролера без блоку і мінімальні контролери для DocType без класу, які читаються за назвою. 2 PR.
+3. ✅ PR #267 (3a), #269 (3b) **`refactor(core)!: one way per action`** (3a — читання класом, QuerySet, get_all, get_doc_instance з фасаду, load/new; 3b — get_values, get_value("*"), get_single) — §6, крім `Document.user`: переписати 15 місць `.objects`, 4 — `get_doc_instance`, `get_single`, `get_values` у ядрі. ~25 файлів.
+4. ✅ PR #270 **`refactor(document)!: drop Document.user`** — R5 (Q2 погоджено). Разом з #268 (регресія `input_data`) і #272 (рев'ю випуску) — у v0.21.0 (PR #271).
+5. **`chore(doctypes): type blocks for core controllers`** — `sync-types` для ~51 контролера без блоку і мінімальні контролери для DocType без класу, які читаються за назвою. `sync-types` не вставляє блок у файл без маркерів — маркери ставимо самі. 2 PR.
 6. **`feat(codemod): typed-rows`** — новий `grunt codemod typed-rows` (поруч з `attr-access`, спільна pyright-обв'язка):
    - літерал або модульна константа DocType у `get_doc/find_doc/get_list/db.get_all/db.get_doc/db.get_value(as_dict)` → клас + імпорт. Імпорт лише якщо `import_graph` не бачить нового циклу, інакше рядок лишається і потрапляє у звіт;
    - помилки pyright `reportAssignmentType`/`reportArgumentType`/`reportReturnType` на `dict[str, Any]` / `list[dict…]` / `list[AttrDict]` → тип контролера; для параметрів — `Sequence[Cls]`;
@@ -253,9 +253,11 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 
 ### Застосунки
 
-Кожен — PR з `required_grunt`, після випуску ядра:
+Перший прохід (класова форма, get_values/get_single/"*", `session_user()`, `required_grunt>=0.21`) — ✅ злито 24–25.11: hrm#3, hromada_it#1, translate#1, cms#2, letter#3, esign#3, crystal_finance#3, inventory#3, mlt_portal#14 (зливалися раніше за випуск ядра). tsnap і opendata — локальні гілки `refactor/typed-reads` без remote, злити в master локально.
 
-- **mlt_portal** — спершу влити `refactor/attr-access-rows`, потім codemod (53 літеральні виклики).
+Другий прохід — codemod `typed-rows`, кожен PR з `required_grunt`, після випуску ядра:
+
+- **mlt_portal** — codemod (53 літеральні виклики).
 - **tsnap** — 67 викликів.
 - **hrm** — 47 викликів.
 - **inventory** — 70 викликів; поле `items` на контролері вже не перекрите.
@@ -286,7 +288,9 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 2. **Подвійний прохід `as_rows`.** SqlStore уже будує AttrDict, а `as_rows` ще раз обходить усі значення кожного рядка в пошуках дітей: 0,62 мс проти 0,10 для `dict` на 1000 рядків. Будувати дітей як AttrDict одразу в сховищі й пропускати `as_rows`, коли таблиць у `fields` немає. Виграш ~0,5 мс/1000 рядків на кожному `db.get_all`.
 3. **`get_list` удвічі повільніший** за `db.get_all` на 2000 рядків (27 проти 14 мс). Причину не профілював; варто зняти профіль (`grunt.db.profiler`), перш ніж щось міняти.
 
-## 9. Відкриті питання до власника
+## 9. Питання до власника — вирішено 24.11
+
+Q1 — (б); Q2 — прибрати; Q3 — так; Q4 — прибрати повністю; Q5 — у цьому плані.
 
 - **Q1.** Варіант (б) як основний? Альтернативи — (г1) Protocol-рядок або (в) QuerySet.
 - **Q2.** Прибрати `Document.user` (R5)?
@@ -295,6 +299,13 @@ opendata + crystal_finance + hromada_it + lagoo. У дужках — скіль�
 - **Q5.** Типізовані діти — у цьому плані чи пізніше?
 
 ## Журнал
+
+- 2026-11-25 — злито #268 (`input_data`), #269 (3b), #270 (крок 4, `Document.user` →
+  `grunt.session_user()`), #272 (рев'ю CodeRabbit до випуску: `input_data` у `_from_rows`,
+  codemod `.get` лише для оголошених полів); випуск v0.21.0 — PR #271 (злито, тег v0.21.0). Другий раунд CodeRabbit на #271
+  прийшов до злиття — виправлення в #273 (наступний випуск).
+  Застосунки першого проходу злито (див. §7). Worktree-и кроків 1–4 і застосунків прибрано.
+  Далі: крок 5, діти, codemod `typed-rows`, skill.
 
 - 2026-11-24 — регресія #265: `Document.input_data` прибрано як «невикористаний», а його
   ставить життєвий цикл (`self.input_data = data`) і читає hromada_it (IndexValue.validate) →
