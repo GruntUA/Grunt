@@ -117,6 +117,10 @@ def test_accepts_by_receiver_type():
     assert not accepts(_cand("dataget", "status"), me, classes, attrs)  # not declared
     assert accepts(_cand("get", "name"), me, classes, attrs)  # same value, read only
     assert accepts(_cand("datasub", "status"), "Order", classes, attrs)  # raises either way
+    # a controller has no __getitem__ (a typed child row): x["k"] -> x.k
+    assert accepts(_cand("sub", "title"), "Order", classes, attrs)
+    assert not accepts(_cand("sub", "recalc"), "Order", classes, attrs)  # method
+    assert accepts(_cand("sub", "name"), "Order", classes, attrs)  # same value
 
 
 def test_get_on_another_receiver_stays_it_may_be_a_partial_row():

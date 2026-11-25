@@ -12,8 +12,10 @@ Left alone on purpose:
 * a key that is not an identifier, starts with ``_``, or is a keyword;
 * on an ``AttrDict`` - a key named like a ``dict`` attribute (``items``, ``get``...),
   and ``x.get("k")`` at all: ``x.k`` raises for a missing key, ``get`` gives ``None``;
-* on a controller - a key taken by a controller attribute (a method, a
-  property...), except reading ``name``/``owner``/... (same value); and
+* on a controller (``x["k"]`` fails on one at run time - a typed child row
+  of ``list[ChildCls]``, say - and is rewritten) - a key taken by a controller
+  attribute (a method, a property...), except reading ``name``/``owner``/...
+  (same value); and
   ``x.get("k")`` / ``x.data.get("k")`` unless ``x`` is ``self`` in the
   controller's own methods and ``k`` a declared field (an annotation of the class
   or its bases, in every definition of that name) - any other name raises on a
@@ -285,15 +287,16 @@ def accepts(c: Candidate, receiver: str, classes: _Classes, doc_attrs: frozenset
     if receiver == "AttrDict":
         # x["k"] and x.k both raise for a missing key; x.get("k") gives None.
         return c.kind == "sub" and c.key not in _DICT_ATTRS
-    if classes.is_controller(receiver) and c.kind in ("get", "datasub", "dataget"):
+    if classes.is_controller(receiver) and c.kind in ("sub", "get", "datasub", "dataget"):
         # .get() reads None for anything, x.k raises for a field a partial row did
         # not load - and any receiver but self may be a partial row from a list read.
-        if c.kind != "datasub" and not own:
+        if c.kind in ("get", "dataget") and not own:
             return False
         if c.key in doc_attrs | classes.members(receiver):
             return not c.store and c.key in _READABLE_SYS
-        # x.data["k"] raises either way; .get() - only for a declared field.
-        return c.kind == "datasub" or c.key in classes.fields(receiver)
+        # x["k"] (a controller has no __getitem__ - a typed child row, say) and
+        # x.data["k"] raise either way; .get() - only for a declared field.
+        return c.kind in ("sub", "datasub") or c.key in classes.fields(receiver)
     return False
 
 
