@@ -19,16 +19,21 @@ lazy from grunt.document.api import documents
 class ApiKey(Document):
     """DocType controller for API keys."""
 
-    label: str
-    user_id: str
-    key_prefix: str
-    key_hash: str
-    is_active: bool
-    last_used_at: datetime | None
-    expires_at: datetime | None
-    allowed_ips: str | None
-    read_only: bool | None
-    roles: list[dict[str, Any]] | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    label: str  # Name
+    user_id: str  # User
+    key_prefix: str | None = None  # Key prefix
+    key_hash: str | None = None  # Key hash
+    is_active: bool | None = None  # Active
+    last_used_at: datetime | None = None  # Last used
+    expires_at: datetime | None = None  # Valid until
+    allowed_ips: str | None = None  # Allowed IPs (comma-separated)
+    read_only: bool | None = None  # Read only
+    roles: list[dict] = []  # Table: ApiKeyRole
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         """A key acts with some of its user's roles, never others - one the

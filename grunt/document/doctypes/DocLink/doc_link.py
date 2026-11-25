@@ -6,8 +6,13 @@ from grunt.document.base import Document
 class DocLink(Document):
     """DocType controller for DocLink."""
 
-    source_doctype: str | None
-    source_id: str | None
-    target_doctype: str | None
-    target_id: str | None
-    link_fieldname: str | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    source_doctype: str  # Source type
+    source_id: str  # Source ID
+    target_doctype: str  # Target type
+    target_id: str  # Target ID
+    link_fieldname: str  # Link field
+
+    # end: auto-generated types

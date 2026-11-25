@@ -9,8 +9,14 @@ from grunt.permissions.rbac import permission_checker
 
 
 class CommentReaction(Document):
-    comment: str
-    emoji: str
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    comment: str  # Comment
+    emoji: str  # Reaction
+    user: str | None = None  # User
+
+    # end: auto-generated types
 
     async def validate(self) -> None:
         # ``user`` is a field here, but ``self.user`` is the acting user.

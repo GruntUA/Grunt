@@ -61,16 +61,21 @@ ROTATION_GRACE_SECONDS = 30
 class UserSession(Document):
     """DocType controller for UserSession."""
 
-    user: str
-    refresh_token_hash: str | None
-    previous_token_hash: str | None
-    rotated_at: datetime | None
-    device_id: str | None
-    ip_address: str | None
-    user_agent: str | None
-    last_active_at: datetime | None
-    is_active: bool | None
-    logins: list[dict[str, Any]]  # Table: UserSessionLogin
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    user: str  # User
+    refresh_token_hash: str | None = None  # Refresh token hash
+    previous_token_hash: str | None = None  # Previous token hash
+    rotated_at: datetime | None = None  # Token rotated at
+    device_id: str | None = None  # Device ID
+    ip_address: str | None = None  # IP address
+    user_agent: str | None = None  # Browser / client
+    last_active_at: datetime | None = None  # Last activity
+    is_active: bool | None = None  # Active
+    logins: list[dict] = []  # Table: UserSessionLogin
+
+    # end: auto-generated types
 
 
 def _hash(token: str) -> str:

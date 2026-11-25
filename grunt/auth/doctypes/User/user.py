@@ -90,7 +90,7 @@ class User(Document):
     storage_quota_mb: int | None = None  # Personal space quota, MB
     mfa_enabled: bool | None = None  # MFA enabled
     mfa_secret: str | None = None  # MFA secret
-    mfa_backup_codes: dict | None = None  # Backup code hashes
+    mfa_backup_codes: Any | None = None  # Backup code hashes
     mfa_backup_display: str | None = None  # Backup codes
     login_attempts: int | None = None  # Failed login attempts
     locked_until: datetime | None = None  # Account locked until

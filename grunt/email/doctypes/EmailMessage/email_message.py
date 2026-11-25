@@ -1,7 +1,6 @@
 """Controller for the ``EmailMessage`` DocType."""
 
 from datetime import datetime
-from typing import Any
 
 from grunt.document.base import Document
 
@@ -9,28 +8,33 @@ from grunt.document.base import Document
 class EmailMessage(Document):
     """DocType controller for EmailMessage."""
 
-    direction: str | None
-    message_date: datetime | None
-    status: str | None
-    email_account: str | None
-    subject: str | None
-    sender: str | None
-    recipients: str | None
-    cc: str | None
-    body_html: str | None
-    body_text: str | None
-    has_attachments: bool | None
-    attachments: list[dict[str, Any]]  # Table: EmailAttachment
-    error_message: str | None
-    delivered_at: datetime | None
-    read_at: datetime | None
-    request_receipt: bool | None
-    delivery_detail: str | None
-    ref_doctype: str | None
-    ref_name: str | None
-    message_id: str | None
-    in_reply_to: str | None
-    message_references: str | None
-    unreplied_checked: bool | None
-    is_auto_reply: bool | None
-    is_read: bool | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    direction: str | None = None  # Direction
+    message_date: datetime | None = None  # Date / time
+    status: str | None = None  # Status
+    email_account: str | None = None  # Account
+    subject: str | None = None  # Subject
+    sender: str | None = None  # From
+    recipients: str | None = None  # To
+    cc: str | None = None  # Cc
+    body_html: str | None = None  # HTML
+    body_text: str | None = None  # Text
+    has_attachments: bool | None = None  # Has attachments
+    error_message: str | None = None  # Error text
+    delivered_at: datetime | None = None  # Delivered at
+    read_at: datetime | None = None  # Read by recipient at
+    request_receipt: bool | None = None  # Read receipt requested
+    delivery_detail: str | None = None  # Delivery details / diagnostics
+    ref_doctype: str | None = None  # Source — type
+    ref_name: str | None = None  # Source — record
+    message_id: str | None = None  # Message-ID
+    in_reply_to: str | None = None  # In-Reply-To
+    message_references: str | None = None  # References
+    unreplied_checked: bool | None = None  # Checked for a reply
+    is_auto_reply: bool | None = None  # Auto-reply
+    is_read: bool | None = None  # Read
+    attachments: list[dict] = []  # Table: EmailAttachment
+
+    # end: auto-generated types

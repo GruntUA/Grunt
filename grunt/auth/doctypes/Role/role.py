@@ -26,10 +26,6 @@ class Role(Document):
 
     """DocType controller for Role."""
 
-    role_name: str
-    description: str | None
-    permissions: list[str] | None
-
     async def validate(self) -> None:
         if self.name in PROTECTED_ROLES and (self.disabled or self.site_only):
             throw(

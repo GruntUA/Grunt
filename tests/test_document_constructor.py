@@ -153,6 +153,7 @@ def test_scaffold_types_required_fields_like_sync_types():
             DocField(fieldname="lines", fieldtype="Table", options="Line", required=True),
         ],
     )
-    types = {f["fieldname"]: f["py_type"] for f in ctx["physical_fields"]}
-    assert types == {"title": "str", "note": "str | None"}
-    assert ctx["table_fields"][0]["required"] is True
+    block = ctx["type_block"]
+    assert "    title: str\n" in block
+    assert "    note: str | None = None\n" in block
+    assert "    lines: list[dict]  # Table: Line\n" in block  # required: no default
