@@ -26,12 +26,36 @@ _RECIPIENT_TARGET = {
 class Notification(Document):
     """DocType controller for Notification."""
 
-    ref_doctype: str
-    event: str
-    condition: str | None
-    subject_template: str | None
-    message_template: str | None
-    notify_actor: bool | None
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    ref_doctype: str | None = None  # Document type
+    event: str  # Event
+    event_key: str | None = None  # Code event
+    workflow_actions: str | None = None  # Workflow actions
+    date_field: str | None = None  # Date field
+    days: int | None = None  # Days
+    minutes: int | None = None  # Minutes
+    every_year: bool | None = None  # Every year
+    condition: str | None = None  # Condition
+    notify_actor: bool | None = None  # Also notify who did it
+    subject_template: str | None = None  # Subject
+    message_template: str | None = None  # Message
+    attach_print: bool | None = None  # Attach the document as PDF
+    print_format: str | None = None  # Print format
+    attach_files: bool | None = None  # Attach the document's files
+    email_account: str | None = None  # Send from
+    set_field: str | None = None  # Set field
+    set_value: str | None = None  # To value
+    is_enabled: bool | None = None  # Active
+    is_mandatory: bool | None = None  # Mandatory
+    is_standard: bool | None = None  # Standard
+    app: str | None = None  # App
+    is_customized: bool | None = None  # Changed on this site
+    recipients: list[dict]  # Table: NotificationRecipient
+    channels: list[dict]  # Table: NotificationChannel
+
+    # end: auto-generated types
 
     async def _validate_set_field(self) -> None:
         """The "after sending" field must be a field of the document."""

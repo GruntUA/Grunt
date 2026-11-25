@@ -101,4 +101,15 @@ class HookStore(VirtualStore):
 
 
 class Hook(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    source: str | None = None  # Source
+    reference_doctype: str | None = None  # DocType
+    event: str | None = None  # Event
+    handler: str | None = None  # Handler / Script
+    priority: int | None = None  # Priority
+
+    # end: auto-generated types
+
     store_class = HookStore

@@ -21,6 +21,22 @@ from grunt.storage.files import store
 class DataExport(Document):
     """DocType controller for DataExport."""
 
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    doctype_name: str  # Document type
+    label: str | None = None  # Name
+    export_format: str | None = None  # Format
+    fields_to_export: Any | None = None  # Fields to export
+    filters: Any | None = None  # Filters
+    limit: int | None = None  # Max rows
+    status: str | None = None  # Status
+    exported_rows: int | None = None  # Rows exported
+    file: str | None = None  # Result file
+    error: str | None = None  # Error
+
+    # end: auto-generated types
+
     async def validate(self) -> None:
         await doctype_guard(self.doctype_name, "export")
 

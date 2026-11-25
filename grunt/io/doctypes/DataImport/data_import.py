@@ -19,6 +19,24 @@ lazy from grunt.storage.doctypes.File.file import File
 class DataImport(Document):
     """DocType controller for DataImport."""
 
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    doctype_name: str  # Document type
+    file: str  # File (CSV / XLSX)
+    import_type: str | None = None  # Import type
+    update_key: str | None = None  # Update key
+    mapping: dict[str, str] | None = None  # Column mapping
+    dry_run: bool | None = None  # Validate only (no writes)
+    skip_required_validation: bool | None = None  # Skip required fields
+    status: str | None = None  # Status
+    total_rows: int | None = None  # Total rows
+    processed_rows: int | None = None  # Processed
+    error_count: int | None = None  # Errors
+    error_log: Any | None = None  # Error log
+
+    # end: auto-generated types
+
     async def validate(self) -> None:
         # The import runs as SYSTEM_USER: whoever sets it up needs `import`.
         await doctype_guard(self.doctype_name, "import")
