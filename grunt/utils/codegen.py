@@ -188,18 +188,27 @@ def _ensure_import(source: str, module: str, needed: list[str]) -> str:
         return source
     lines = source.splitlines(keepends=True)
 
-    for node in tree.body:
-        if isinstance(node, ast.ImportFrom) and node.module == module and not node.level:
-            have = [a.name for a in node.names]
-            if all(n in have for n in needed):
-                return source
-            if node.end_lineno != node.lineno or any(a.asname for a in node.names):
-                return source
-            merged = sorted({*have, *needed}, key=_import_key)
+    imports = [
+        n for n in tree.body if isinstance(n, ast.ImportFrom) and n.module == module and not n.level
+    ]
+    # Only an unaliased import binds the bare name the block annotates with.
+    bound = {a.name for n in imports for a in n.names if a.asname in (None, a.name)}
+    missing = [n for n in needed if n not in bound]
+    if not missing:
+        return source
+
+    stmt = f"from {module} import {', '.join(missing)}\n"
+    for node in imports:
+        if node.end_lineno == node.lineno and not any(a.asname for a in node.names):
+            merged = sorted({*(a.name for a in node.names), *missing}, key=_import_key)
             lines[node.lineno - 1] = f"from {module} import {', '.join(merged)}\n"
             return "".join(lines)
+    if imports:
+        # Multi-line or aliased: leave it as it is, add the names on a line of their own.
+        end = imports[-1].end_lineno or imports[-1].lineno
+        lines.insert(end, stmt)
+        return "".join(lines)
 
-    stmt = f"from {module} import {', '.join(needed)}\n"
     for node in tree.body:
         if (
             isinstance(node, ast.Import | ast.ImportFrom)

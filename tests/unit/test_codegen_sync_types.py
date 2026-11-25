@@ -114,6 +114,24 @@ def test_sync_adds_missing_datetime_import(tmp_path):
     assert sync_controller_types(py, "Widget", fields) is False
 
 
+def test_sync_adds_any_next_to_an_import_it_cannot_amend(tmp_path):
+    """A multi-line or aliased ``from typing import`` stays as it is; the bare
+    ``Any`` the block annotates with gets an import of its own."""
+    fields = [{"fieldname": "extra", "fieldtype": "JSON"}]
+    for head in (
+        "from typing import (\n    ClassVar,\n    Literal,\n)\n",
+        "from typing import Any as TypingAny\n",
+    ):
+        py = tmp_path / "widget.py"
+        future = "from __future__ import annotations\n"
+        py.write_text(_CONTROLLER.replace(future, future + "\n" + head))
+        sync_controller_types(py, "Widget", fields)
+        src = py.read_text()
+        assert head + "from typing import Any\n" in src, src
+        ast.parse(src)
+        assert sync_controller_types(py, "Widget", fields) is False
+
+
 def test_fields_hidden_by_controller_attributes_are_not_annotated(tmp_path):
     """``doc.delete`` is a method: annotating such a field would tell the type
     checker the opposite of what happens. ``user`` is a plain field (the session
