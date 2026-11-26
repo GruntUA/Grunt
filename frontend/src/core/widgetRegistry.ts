@@ -39,6 +39,7 @@ export type WidgetConfigSection =
   | 'gaugeRange'
   | 'aggregation'
   | 'groupBy'
+  | 'listOptions'
   | 'dateRange'
   | 'width'
   | 'color'

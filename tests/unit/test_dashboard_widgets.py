@@ -115,6 +115,60 @@ async def test_list_widget_returns_items_and_title_field(ctx, widget_source):
     result = await _compute_widget_data(_widget("list"))
     assert len(result["items"]) == 3
     assert "title_field" in result
+    assert result["date_field"] == "modified_at"
+    assert result["end_date_field"] is None
+
+
+@pytest.mark.asyncio
+async def test_list_widget_sorts_limits_and_picks_date_field(ctx, widget_source):
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    result = await _compute_widget_data(
+        _widget("list", sort_by="amount", sort_order="asc", row_limit=2, date_field="created_at")
+    )
+    assert [r["title"] for r in result["items"]] == ["C", "A"]
+    assert result["date_field"] == "created_at"
+
+    result = await _compute_widget_data(_widget("list", sort_by="amount"))
+    assert [r["title"] for r in result["items"]] == ["B", "A", "C"]
+
+
+@pytest.mark.asyncio
+async def test_list_widget_shows_calendar_span(ctx):
+    from grunt.api.v1.dashboard import _compute_widget_data
+    from grunt.api.v1.meta import save_doctype
+
+    await save_doctype(
+        doctype_data={
+            "name": "WidgetSpanItem",
+            "label": "Widget Span Item",
+            "module": "core",
+            "calendar_date_field": "from_date",
+            "calendar_end_date_field": "to_date",
+            "fields": [
+                {"fieldname": "from_date", "label": "From", "fieldtype": "Date"},
+                {"fieldname": "to_date", "label": "To", "fieldtype": "Date"},
+            ],
+            "__is_new": True,
+        }
+    )
+    await ctx.new_doc("WidgetSpanItem", {"from_date": "2026-11-20", "to_date": "2026-11-24"})
+    await ctx.new_doc("WidgetSpanItem", {"from_date": "2026-11-16", "to_date": "2026-11-20"})
+    await ctx.db._session().commit()
+
+    widget = {**_widget("list", sort_by="from_date", sort_order="asc", date_field="from_date")}
+    widget["ref_doctype"] = "WidgetSpanItem"
+    result = await _compute_widget_data(widget)
+    assert [str(r["from_date"])[:10] for r in result["items"]] == ["2026-11-16", "2026-11-20"]
+    assert result["end_date_field"] == "to_date"
+
+
+@pytest.mark.asyncio
+async def test_list_widget_unknown_sort_field_is_empty(ctx, widget_source):
+    from grunt.api.v1.dashboard import _compute_widget_data
+
+    result = await _compute_widget_data(_widget("list", sort_by="no_such_field"))
+    assert result["items"] == []
 
 
 @pytest.mark.asyncio

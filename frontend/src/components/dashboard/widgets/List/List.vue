@@ -2,12 +2,19 @@
 import type { DashboardWidget } from '@/types'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { formatDate as fmtDate } from '@/core/datetime'
+import { formatDate as fmtDate, formatDayMonth } from '@/core/datetime'
 import { docUrl } from '@/core/workspaceUrl'
 
 const props = defineProps<{
   widget: DashboardWidget
-  data: { items: Record<string, unknown>[]; title_field: string | null } | null
+  data: {
+    items: Record<string, unknown>[]
+    title_field: string | null
+    /** The date shown on each row (`modified_at` by default). */
+    date_field?: string
+    /** With a calendar DocType: the row shows the span up to this field. */
+    end_date_field?: string | null
+  } | null
   loading?: boolean
   workspaceName?: string
 }>()
@@ -15,9 +22,13 @@ const props = defineProps<{
 const router = useRouter()
 const { t } = useI18n()
 
-function formatDate(val: unknown): string {
-  if (!val) return ''
-  return fmtDate(val as string)
+function rowDate(item: Record<string, unknown>): string {
+  const start = item[props.data?.date_field || 'modified_at']
+  if (!start) return ''
+  const endField = props.data?.end_date_field
+  const end = endField ? item[endField] : null
+  if (end && end !== start) return `${formatDayMonth(start as string)} – ${formatDayMonth(end as string)}`
+  return fmtDate(start as string)
 }
 
 function getTitle(item: Record<string, unknown>): string {
@@ -61,7 +72,7 @@ function open(item: Record<string, unknown>) {
       >
         <span class="font-medium truncate max-w-[70%] text-foreground">{{ getTitle(item) }}</span>
         <span class="text-muted-foreground tabular-nums shrink-0">
-          {{ formatDate(item.modified_at) }}
+          {{ rowDate(item) }}
         </span>
       </div>
     </div>
