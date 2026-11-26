@@ -83,21 +83,22 @@ async def _owner_of(doctype: str, item: AttrDict) -> tuple[str, str] | None:
     """The document whose timeline shows *item*: (DocType, id), or None."""
     match doctype:
         case "Comment" | "ToDo":
-            owner = (item.reference_doctype, item.reference_id)
+            return _ref(item.reference_doctype, item.reference_id)
         case "File":
-            owner = (item.attached_to_doctype, item.attached_to_id)
+            return _ref(item.attached_to_doctype, item.attached_to_id)
         case "EmailMessage":
-            owner = (item.ref_doctype, item.ref_name)
+            return _ref(item.ref_doctype, item.ref_name)
         case "CommentReaction":
             comment = await _db.get_value(
                 Comment, item.comment, ["reference_doctype", "reference_id"], as_dict=True
             )
-            if comment is None:
-                return None
-            owner = (comment.reference_doctype, comment.reference_id)
+            return _ref(comment.reference_doctype, comment.reference_id) if comment else None
         case _:
             return None
-    ref_doctype, ref_id = owner
+
+
+def _ref(ref_doctype: Any, ref_id: Any) -> tuple[str, str] | None:
+    """(DocType, id) of a reference, or None when it points nowhere."""
     if not ref_doctype or not ref_id:
         return None
     return str(ref_doctype), str(ref_id)
