@@ -88,6 +88,25 @@ CASES: list[tuple[dict, set[str]]] = [
 ]
 
 
+# Relative days (``grunt.utils.dates``) with today = 1 January 2026 in Kyiv
+# (UTC+2, the ``frozen_today`` fixture): C04's moment, 2025-12-31 23:00 UTC, is
+# already 1 January there.
+RELATIVE_CASES: list[tuple[dict, set[str]]] = [
+    ({"due": "today"}, {"C07"}),
+    ({"due__lt": "today"}, {"C04"}),
+    ({"due__lte": "today-1"}, {"C04"}),
+    ({"due__gte": "Today + 14"}, ALL - {"C03", "C04", "C07"}),
+    ({"at": "today"}, {"C04", "C07"}),
+    ({"at__lt": "today"}, set()),
+    ({"at__lte": "today"}, {"C04", "C07"}),
+    ({"at__gt": "today"}, ALL - {"C03", "C04", "C07"}),
+    ({"at__ne": "today"}, ALL - {"C03", "C04", "C07"}),  # NULL (C03) excluded
+    ({"at__gte": "today+14"}, ALL - {"C03", "C04", "C07"}),
+    # Not a date field - the token is plain text
+    ({"title": "today"}, set()),
+]
+
+
 def _id(case: tuple[dict, set[str]]) -> str:
     return ",".join(f"{k}={v!r}" for k, v in case[0].items())
 
@@ -99,3 +118,11 @@ async def test_filter(ctx, dataset, case):
     rows = await ctx.get_list("ContractItem", filters=filters, fields=["name"], limit=100)
     assert {r["name"] for r in rows} == expected
     assert await ctx.count("ContractItem", filters=filters) == len(expected)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("case", RELATIVE_CASES, ids=[_id(c) for c in RELATIVE_CASES])
+async def test_relative_date_filter(ctx, dataset, frozen_today, case):
+    filters, expected = case
+    rows = await ctx.get_list("ContractItem", filters=filters, fields=["name"], limit=100)
+    assert {r["name"] for r in rows} == expected

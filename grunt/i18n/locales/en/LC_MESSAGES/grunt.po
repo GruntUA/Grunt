@@ -379,6 +379,10 @@ msgid ""
 "everyone (only to apply; the owner changes and deletes it)."
 msgstr ""
 
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "A negative number - days ago"
+msgstr ""
+
 #: grunt/grunt/workflow/guard.py
 msgid "A new document starts in the “%(state)s” state"
 msgstr ""
@@ -3562,6 +3566,10 @@ msgstr ""
 msgid "Date field that enables the date picker in the tree panel"
 msgstr ""
 
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "Date filter kind"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Date for the name"
 msgstr ""
@@ -3620,6 +3628,10 @@ msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Days cannot be negative"
+msgstr ""
+
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "Days from today"
 msgstr ""
 
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
@@ -5936,6 +5948,10 @@ msgstr ""
 #: grunt/grunt/metadata/doctypes/WorkflowTransition/WorkflowTransition.json
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "From state"
+msgstr ""
+
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "From today"
 msgstr ""
 
 #: grunt/frontend/src/components/dashboard/sections/WidthSection.vue
@@ -9159,6 +9175,10 @@ msgstr ""
 msgid "On any computer with a browser install rclone"
 msgstr ""
 
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "On date"
+msgstr ""
+
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid ""
 "On entering this state, write “Field value” into this field of the document "
@@ -11228,10 +11248,6 @@ msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Run `grunt update`."
-msgstr ""
-
-#: grunt/grunt/monitoring/updates.py
-msgid "The weekly dependency pull request (.github/workflows/deps.yml) brings them."
 msgstr ""
 
 #: grunt/grunt/monitoring/updates.py
@@ -13909,6 +13925,11 @@ msgstr ""
 msgid "The version does not belong to this document"
 msgstr ""
 
+#: grunt/grunt/monitoring/updates.py
+msgid ""
+"The weekly dependency pull request (.github/workflows/deps.yml) brings them."
+msgstr ""
+
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
 msgid "The “%(field)s” field must contain valid JSON."
 msgstr ""
@@ -15868,6 +15889,10 @@ msgstr ""
 
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgid "database_url"
+msgstr ""
+
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "days"
 msgstr ""
 
 #: grunt/grunt/monitoring/health.py

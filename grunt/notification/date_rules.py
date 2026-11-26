@@ -18,17 +18,16 @@ the delivery log keeps a document from being notified twice.
 """
 
 import calendar
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
-from zoneinfo import ZoneInfo
 
-from grunt.config import settings
 from grunt.db.api import GruntDB
 from grunt.local import require_session, system_context
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.tasks.broker import retryable_task
 from grunt.utils.attr_dict import AttrDict
+from grunt.utils.dates import local_day_start, local_today, site_timezone
 lazy from grunt.notification.service import notification_service
 lazy from grunt.site.manager import site_manager
 
@@ -40,17 +39,9 @@ MINUTE_WINDOW = timedelta(minutes=10)
 MAX_DOCS_PER_RULE = 100_000
 
 
-def _tz() -> ZoneInfo:
-    return ZoneInfo(settings.default_timezone)
-
-
-def local_today() -> date:
-    return datetime.now(_tz()).date()
-
-
 def _day_bounds(day: date) -> tuple[datetime, datetime]:
     """The local calendar *day* as a [start, end) UTC range."""
-    start = datetime.combine(day, time.min, tzinfo=_tz()).astimezone(UTC)
+    start = local_day_start(day)
     return start, start + timedelta(days=1)
 
 
@@ -69,7 +60,7 @@ def _as_local_date(value: Any) -> date | None:
         return None
     if isinstance(value, datetime):
         aware = value if value.tzinfo else value.replace(tzinfo=UTC)
-        return aware.astimezone(_tz()).date()
+        return aware.astimezone(site_timezone()).date()
     if isinstance(value, date):
         return value
     text = str(value)

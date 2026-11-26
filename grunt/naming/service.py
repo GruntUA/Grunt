@@ -22,12 +22,10 @@ or the document's own date when the DocType sets ``naming_date_field``.
 from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from grunt.config import settings
 from grunt.errors import not_found, throw
 from grunt.i18n import _
 from grunt.log import log
@@ -42,17 +40,13 @@ from grunt.naming.patterns import (
     resolve_simple,
 )
 from grunt.naming.rules import matching_rule
+from grunt.utils.dates import local_today, site_timezone
 
 NAMING_SERIES = "naming_series:"
 SERIES_FIELD = "naming_series"
 
 # Taken names skipped in a row before giving up (a counter set far behind).
 _MAX_SKIPS = 1000
-
-
-def local_today() -> date:
-    """Today in the site's time zone - the date a name gets by default."""
-    return datetime.now(ZoneInfo(settings.default_timezone)).date()
 
 
 def naming_date(dt: Any, data: dict[str, Any]) -> date:
@@ -77,7 +71,7 @@ def _local_date(value: Any) -> date:
     a datetime without a zone is UTC, like the stored ones."""
     if isinstance(value, datetime):
         aware = value if value.tzinfo else value.replace(tzinfo=UTC)
-        return aware.astimezone(ZoneInfo(settings.default_timezone)).date()
+        return aware.astimezone(site_timezone()).date()
     if isinstance(value, date):
         return value
     text = str(value).strip()

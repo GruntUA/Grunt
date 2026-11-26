@@ -2,7 +2,8 @@
 
 The same answers as :mod:`grunt.query.compile_sql` (``tests/contract``): values
 compared in one type, NULL never matching a comparison, LIKE patterns with
-``%`` and ``_``, text case ignored.
+``%`` and ``_``, text case ignored, a relative day (``today-30``) against a
+date - or the local day of a date-and-time - as the whole day.
 """
 
 from collections.abc import Awaitable, Callable
@@ -26,6 +27,7 @@ from grunt.query.nodes import (
     Year,
 )
 from grunt.query.parse import is_truthy
+from grunt.utils.dates import relative_date, site_timezone
 
 
 def is_empty(raw: Any) -> bool:
@@ -93,7 +95,23 @@ _CMP: dict[str, Callable[[Any, Any], bool]] = {
 }
 
 
+def _day_of(raw: Any) -> date | None:
+    """The local calendar day of a date, a date-and-time or its ISO text; ``None``
+    for anything else (a text field compares a ``today`` value as text)."""
+    if isinstance(raw, str):
+        try:
+            text = raw.replace(" ", "T")
+            raw = datetime.fromisoformat(text) if len(text) > 10 else date.fromisoformat(text)
+        except ValueError:
+            return None
+    if isinstance(raw, datetime):
+        return raw.astimezone(site_timezone()).date() if raw.tzinfo else raw.date()
+    return raw if isinstance(raw, date) else None
+
+
 def _compare(op: str, raw: Any, val: Any) -> bool:
+    if (day := relative_date(val)) is not None and (raw_day := _day_of(raw)) is not None:
+        return _CMP[op](raw_day, day)
     pair = _pair(raw, val)
     if pair is None:
         return False

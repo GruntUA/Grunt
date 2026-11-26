@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { DocField } from '@/types'
 import { DatePicker } from '@/components/common/date-picker'
+import RelativeDateFilter from '@/components/common/RelativeDateFilter.vue'
 
 const props = defineProps<{
   field: DocField
@@ -34,5 +35,13 @@ const date = computed<Date | null>({
 </script>
 
 <template>
-  <DatePicker v-model="date" show-time class="w-full" />
+  <!-- A fixed date, or days from today (`today-30`) the server resolves on every apply. -->
+  <RelativeDateFilter
+    :model-value="props.modelValue"
+    @update:model-value="emit('update:modelValue', $event)"
+  >
+    <template #absolute>
+      <DatePicker v-model="date" show-time class="w-full" />
+    </template>
+  </RelativeDateFilter>
 </template>

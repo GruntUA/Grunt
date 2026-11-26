@@ -15,7 +15,7 @@ from grunt.query.sql import filter_expr
 from grunt.store.virtual import VirtualStore
 
 from .conftest import TEXT_ORDER
-from .test_filters import CASES
+from .test_filters import CASES, RELATIVE_CASES
 
 ROW_FIELDS = ["name", "title", "note", "qty", "price", "done", "due", "at", "kind", "grp"]
 SQL_ONLY = ("tags",)
@@ -52,6 +52,18 @@ IN_MEMORY_CASES = [c for c in CASES if not any(k.split("__")[0] in SQL_ONLY for 
     ids=[",".join(f"{k}={v!r}" for k, v in c[0].items()) for c in IN_MEMORY_CASES],
 )
 async def test_filter_in_memory(store, case):
+    filters, expected = case
+    where = filter_expr(filters, store.meta.columns, store.meta)
+    assert set(await _names(store, where=where)) == expected
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "case",
+    RELATIVE_CASES,
+    ids=[",".join(f"{k}={v!r}" for k, v in c[0].items()) for c in RELATIVE_CASES],
+)
+async def test_relative_date_filter_in_memory(store, frozen_today, case):
     filters, expected = case
     where = filter_expr(filters, store.meta.columns, store.meta)
     assert set(await _names(store, where=where)) == expected
