@@ -2,12 +2,11 @@
 
 Values are typed by the column here (``"5"`` for an Int column is ``5`` - SQLite
 compares either way, PostgreSQL refuses ``int = '5'``); the AST keeps them as
-given. A relative day (``today``, ``today-30`` - :mod:`grunt.utils.dates`) on a
-date column is that day; on a date-and-time column it is the whole local day.
+given.
 """
 
 from collections.abc import Mapping
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -29,7 +28,6 @@ from grunt.query.nodes import (
     Raw,
     Year,
 )
-from grunt.utils.dates import local_day_start, relative_date
 lazy from grunt.metadata.compiler import MULTI_LINK_TABLE
 
 _NUMBER_TYPES = (int, float, Decimal)
@@ -37,12 +35,9 @@ _NUMBER_TYPES = (int, float, Decimal)
 
 def typed_value(col: Any, value: Any) -> Any:
     """A number typed as a string (a query string, a CSV list) as a number for a
-    numeric column, a relative day as a date for a date column (a date-and-time
-    one: the day's local midnight). Any other value stays as it is."""
+    numeric column. A value that isn't a number stays as it is."""
     if not isinstance(value, str):
         return value
-    if isinstance(col.type, (IsoDate, UtcDateTime)) and (day := relative_date(value)):
-        return local_day_start(day) if isinstance(col.type, UtcDateTime) else day
     try:
         python_type = col.type.python_type
     except NotImplementedError:
@@ -87,24 +82,6 @@ _CMP = {
 }
 
 
-def _relative_day(col: Any, op: str, day: date) -> Any:
-    """A comparison with a relative *day* on a date-and-time column, as the whole
-    local day: ``= today`` - any moment of today, ``<= today`` - up to its end."""
-    lo, hi = local_day_start(day), local_day_start(day + timedelta(days=1))
-    match op:
-        case "eq":
-            return and_(col >= lo, col < hi)
-        case "ne":
-            return or_(col < lo, col >= hi)
-        case "gt":
-            return col >= hi
-        case "gte":
-            return col >= lo
-        case "lt":
-            return col < lo
-    return col < hi  # lte
-
-
 def to_sql(
     expr: Expr,
     table: Any,
@@ -147,8 +124,6 @@ def to_sql(
     col = table.c[expr.field]
     match expr:
         case Cmp(op=op, value=value):
-            if isinstance(col.type, UtcDateTime) and (day := relative_date(value)):
-                return _relative_day(col, op, day)
             return _CMP[op](col, typed_value(col, value))
         case Like(pattern=pattern, negate=False):
             return _as_text(col).ilike(pattern)

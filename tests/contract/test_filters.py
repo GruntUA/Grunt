@@ -102,6 +102,12 @@ RELATIVE_CASES: list[tuple[dict, set[str]]] = [
     ({"at__gt": "today"}, ALL - {"C03", "C04", "C07"}),
     ({"at__ne": "today"}, ALL - {"C03", "C04", "C07"}),  # NULL (C03) excluded
     ({"at__gte": "today+14"}, ALL - {"C03", "C04", "C07"}),
+    ({"at__in": ["today"]}, {"C04", "C07"}),
+    ({"at__nin": ["today"]}, ALL - {"C03", "C04", "C07"}),  # NULL (C03) excluded
+    ({"at__in": ["today", "2026-10-10T15:00:00+00:00"]}, {"C04", "C06", "C07"}),
+    ({"due__in": ["today", "2026-01-15"]}, {"C01", "C07"}),
+    ({"due__nin": ["today-1"]}, ALL - {"C03", "C04"}),
+    ({"due__lte_or_null": "today-1"}, {"C03", "C04"}),
     # Not a date field - the token is plain text
     ({"title": "today"}, set()),
 ]

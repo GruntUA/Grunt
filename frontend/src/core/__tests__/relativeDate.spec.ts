@@ -19,6 +19,8 @@ describe('relative date values', () => {
     expect(relativeDateValue(-30)).toBe('today-30')
     expect(relativeDateValue(7)).toBe('today+7')
     expect(relativeDateValue(Number.NaN)).toBe('today')
+    expect(relativeDateValue(100000)).toBe('today+99999')
+    expect(relativeDateValue(-100000)).toBe('today-99999')
   })
 })
 
@@ -41,5 +43,14 @@ describe('RelativeDateFilter', () => {
     expect(w.find('[data-test="picker"]').exists()).toBe(false)
     await days.setValue('7')
     expect(w.emitted('update:modelValue')?.at(-1)).toEqual(['today+7'])
+  })
+
+  it('follows a fixed date set from outside, keeps the mode for an empty value', async () => {
+    const w = mount(RelativeDateFilter, { props: { modelValue: 'today-30' }, slots, global })
+    await w.setProps({ modelValue: '' })
+    expect(w.find('input[type="number"]').exists()).toBe(true)
+    await w.setProps({ modelValue: '2026-01-15' })
+    expect(w.find('[data-test="picker"]').exists()).toBe(true)
+    expect(w.find('input[type="number"]').exists()).toBe(false)
   })
 })

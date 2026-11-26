@@ -14,9 +14,13 @@ export function parseRelativeDays(value: string | null | undefined): number | nu
   return m[1] === '-' ? -days : days
 }
 
-/** The filter value for *days* from today: `0` -> `today`, `-30` -> `today-30`. */
+/** The most days a value may hold - five digits, as both parsers read it. */
+export const MAX_RELATIVE_DAYS = 99999
+
+/** The filter value for *days* from today: `0` -> `today`, `-30` -> `today-30`
+ * (kept within ±{@link MAX_RELATIVE_DAYS}). */
 export function relativeDateValue(days: number): string {
-  const n = Math.trunc(days) || 0
+  const n = Math.max(-MAX_RELATIVE_DAYS, Math.min(MAX_RELATIVE_DAYS, Math.trunc(days) || 0))
   if (n === 0) return 'today'
   return n < 0 ? `today-${-n}` : `today+${n}`
 }

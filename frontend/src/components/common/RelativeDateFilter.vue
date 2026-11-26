@@ -6,7 +6,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
-import { parseRelativeDays, relativeDateValue } from '@/core/relativeDate'
+import { MAX_RELATIVE_DAYS, parseRelativeDays, relativeDateValue } from '@/core/relativeDate'
 
 const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -14,8 +14,10 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const { t } = useI18n()
 
 const relative = ref(parseRelativeDays(props.modelValue) !== null)
+// A value set from outside (a saved filter, a reset) decides the mode; an empty
+// one - the days input cleared - keeps it.
 watch(() => props.modelValue, (v) => {
-  if (parseRelativeDays(v) !== null) relative.value = true
+  if (v) relative.value = parseRelativeDays(v) !== null
 })
 
 const mode = computed({
@@ -48,6 +50,8 @@ const days = computed({
         v-model="days"
         type="number"
         step="1"
+        :min="-MAX_RELATIVE_DAYS"
+        :max="MAX_RELATIVE_DAYS"
         inputmode="numeric"
         :aria-label="t('Days from today')"
         :title="t('A negative number - days ago')"
