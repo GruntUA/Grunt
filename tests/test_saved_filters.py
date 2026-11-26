@@ -89,3 +89,69 @@ async def test_roles_sharing_needs_roles(ctx, db_session, engine):
         with pytest.raises(HTTPException) as excinfo:
             await save_saved_filter(DOCTYPE, "Clerks", FILTERS, "Roles", [])
     assert excinfo.value.status_code == 422
+
+
+@pytest.fixture
+def demo_app(tmp_path, monkeypatch):
+    """A bench with one app ``demo`` (module ``demo``)."""
+    from grunt.site.manager import site_manager
+    from grunt.testkit import write_app_manifest
+
+    module = tmp_path / "apps" / "demo" / "demo"
+    module.mkdir(parents=True)
+    write_app_manifest(tmp_path / "apps" / "demo")
+    monkeypatch.setattr(site_manager, "bench_dir", tmp_path)
+    monkeypatch.setattr(site_manager, "get_all_installed_apps", lambda: {"demo"})
+    return module / "records" / "saved_filter"
+
+
+def _ship(records_dir, slug: str, **values) -> None:
+    import json
+
+    folder = records_dir / slug
+    folder.mkdir(parents=True)
+    record = {"doctype": "SavedFilter", "ref_doctype": DOCTYPE, "filters": FILTERS, **values}
+    (folder / f"{slug}.json").write_text(json.dumps(record))
+
+
+@pytest.mark.asyncio
+async def test_an_app_ships_filters(ctx, demo_app, db_session, engine):
+    from grunt.standard_records import apply_records
+
+    if await ctx.db.exists("GruntInstalledApp", "demo") is None:
+        await ctx.new_doc("GruntInstalledApp", {"name": "demo", "title": "Demo"})
+    _ship(
+        demo_app,
+        "overdue",
+        name="demo-overdue",
+        title="Overdue",
+        shared_with="Roles",
+        roles=["Clerk"],
+    )
+    _ship(demo_app, "all", name="demo-all", title="All shipped", shared_with="Everyone")
+    _ship(demo_app, "hidden", name="demo-hidden", title="Hidden", shared_with="Nobody")
+    _ship(demo_app, "no-roles", name="demo-no-roles", title="No roles", shared_with="Roles")
+
+    # The unshared one and the one without roles are refused (nobody would
+    # see them); the rest go in.
+    assert await apply_records("demo", db_session, engine) == 2
+    await db_session.commit()
+
+    async with grunt.context(db_session, engine, CLERK):
+        shipped = {f["title"]: f for f in await list_saved_filters(DOCTYPE)}
+    assert set(shipped) == {"Overdue", "All shipped"}
+    assert shipped["Overdue"]["standard"] and shipped["Overdue"]["app"] == "demo"
+    assert not shipped["Overdue"]["mine"]
+    assert await _titles(db_session, engine, OTHER) == {"All shipped": False}
+
+    # Nobody deletes the app's filter from the list.
+    async with grunt.context(db_session, engine, CLERK):
+        with pytest.raises(HTTPException):
+            await delete_saved_filter("demo-overdue")
+
+
+@pytest.mark.asyncio
+async def test_own_filters_are_not_standard(ctx, db_session, engine):
+    async with grunt.context(db_session, engine, OWNER):
+        saved = await save_saved_filter(DOCTYPE, "Mine", FILTERS)
+    assert (saved["standard"], saved["app"]) == (False, None)

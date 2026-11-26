@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Filter, X, Bookmark, Plus, Users } from '@lucide/vue'
+import { Filter, X, Bookmark, Plus, Users, Package } from '@lucide/vue'
 import type { DocField, ActiveFilter } from '@/types'
 import { getFilterConfig } from '@/core/filterRegistry'
 import { isFilterableType } from '@/core/fieldRegistry'
@@ -337,13 +337,14 @@ function keepOpenForLinkDropdown(e: CustomEvent<{ originalEvent?: Event }>) {
           <div class="flex flex-wrap gap-1">
             <Badge
               v-for="preset in savedPresets" :key="preset.name"
-              variant="outline" class="cursor-pointer hover:bg-accent" :class="preset.mine && 'pr-1'"
-              :title="preset.shared_with !== 'Nobody' ? t('Shared filter') : undefined"
+              variant="outline" class="cursor-pointer hover:bg-accent" :class="preset.mine && !preset.standard && 'pr-1'"
+              :title="preset.standard ? t('Filter from the app') : preset.shared_with !== 'Nobody' ? t('Shared filter') : undefined"
               @click="applyPreset(preset)"
             >
-              <Users v-if="preset.shared_with !== 'Nobody'" class="text-muted-foreground" />
+              <Package v-if="preset.standard" class="text-muted-foreground" />
+              <Users v-else-if="preset.shared_with !== 'Nobody'" class="text-muted-foreground" />
               {{ preset.title }}
-              <button v-if="preset.mine" type="button" class="hover:text-destructive" :aria-label="t('Remove')" @click.stop="deletePreset(preset)">
+              <button v-if="preset.mine && !preset.standard" type="button" class="hover:text-destructive" :aria-label="t('Remove')" @click.stop="deletePreset(preset)">
                 <X />
               </button>
             </Badge>

@@ -1,9 +1,10 @@
 {
   "name": "SavedFilter",
   "label": "Saved filter",
-  "description": "A named set of list filters - its owner's, or shared with roles or with everyone (only to apply; the owner changes and deletes it).",
+  "description": "A named set of list filters - its owner's, or shared with roles or with everyone (only to apply; the owner changes and deletes it). An app ships its own as standard records.",
   "module": "site",
   "autoname": "hash",
+  "standard_records": true,
   "title_field": "title",
   "track_activity": false,
   "hide_from_activity_feed": true,
@@ -45,6 +46,21 @@
       "fieldtype": "JSON",
       "description": "Role names, when shared with roles",
       "depends_on": "eval:doc.shared_with == 'Roles'"
+    },
+    {
+      "fieldname": "is_standard",
+      "label": "Standard",
+      "fieldtype": "Check",
+      "in_filter": true,
+      "description": "Ships with the app as JSON files - edits are saved to the app"
+    },
+    {
+      "fieldname": "app",
+      "label": "App",
+      "fieldtype": "Link",
+      "options": "GruntInstalledApp",
+      "depends_on": "is_standard",
+      "mandatory_depends_on": "is_standard"
     }
   ],
   "permissions": [

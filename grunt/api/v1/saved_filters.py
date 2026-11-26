@@ -7,6 +7,11 @@ A ``SavedFilter`` is its owner's (the DocType's rule ``owner == user``: only
 they change or delete it). ``shared_with`` lets others apply it too: ``Roles``
 - the users holding one of ``roles``, ``Everyone`` - every user who can read
 the DocType. Sharing with single users isn't there (yet).
+
+An app ships filters of its own as standard records
+(``<app>/<module>/records/saved_filter/<title>/<title>.json``, applied by
+``grunt migrate``): shared with roles or everyone, owned by no user - nobody
+deletes them from the list.
 """
 
 from typing import Any
@@ -25,7 +30,7 @@ _db = GruntDB()  # stateless: reads through the context's session
 
 _DOCTYPE = "SavedFilter"
 SHARING = ("Nobody", "Roles", "Everyone")
-_FIELDS = ["name", "title", "filters", "shared_with", "roles", "owner"]
+_FIELDS = ["name", "title", "filters", "shared_with", "roles", "owner", "is_standard", "app"]
 
 
 def _shape(row: dict[str, Any], user: str) -> dict[str, Any]:
@@ -36,6 +41,8 @@ def _shape(row: dict[str, Any], user: str) -> dict[str, Any]:
         "shared_with": row.get("shared_with") or "Nobody",
         "roles": row.get("roles") or [],
         "mine": row.get("owner") == user,
+        "standard": bool(row.get("is_standard")),
+        "app": row.get("app") if row.get("is_standard") else None,
     }
 
 
