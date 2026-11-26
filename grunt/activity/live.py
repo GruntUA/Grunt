@@ -81,20 +81,18 @@ async def announce_moved(*, doctype: str, doc: dict[str, Any], **_: Any) -> None
 
 async def _owner_of(doctype: str, item: AttrDict) -> tuple[str, str] | None:
     """The document whose timeline shows *item*: (DocType, id), or None."""
-    match doctype:
-        case "Comment" | "ToDo":
-            return _ref(item.reference_doctype, item.reference_id)
-        case "File":
-            return _ref(item.attached_to_doctype, item.attached_to_id)
-        case "EmailMessage":
-            return _ref(item.ref_doctype, item.ref_name)
-        case "CommentReaction":
-            comment = await _db.get_value(
-                Comment, item.comment, ["reference_doctype", "reference_id"], as_dict=True
-            )
-            return _ref(comment.reference_doctype, comment.reference_id) if comment else None
-        case _:
-            return None
+    if doctype in ("Comment", "ToDo"):
+        return _ref(item.reference_doctype, item.reference_id)
+    if doctype == "File":
+        return _ref(item.attached_to_doctype, item.attached_to_id)
+    if doctype == "EmailMessage":
+        return _ref(item.ref_doctype, item.ref_name)
+    if doctype == "CommentReaction":
+        comment = await _db.get_value(
+            Comment, item.comment, ["reference_doctype", "reference_id"], as_dict=True
+        )
+        return _ref(comment.reference_doctype, comment.reference_id) if comment else None
+    return None
 
 
 def _ref(ref_doctype: Any, ref_id: Any) -> tuple[str, str] | None:
