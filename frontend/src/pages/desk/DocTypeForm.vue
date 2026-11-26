@@ -78,6 +78,7 @@ const {
   sidebarHidden,
   dashboard,
   presenceUsers,
+  timelineRefreshKey,
   fieldLocks,
   focusField,
   blurField,
@@ -239,7 +240,7 @@ async function setSidebarImage(url: string | null) {
               <span class="flex-1 text-left">{{ t('Activity') }}</span>
             </div>
             <div class="form-section-body p-4!">
-              <SidebarTimeline :doctype="dt" :document="document as GruntDocument" @restored="onVersionRestored" />
+              <SidebarTimeline :doctype="dt" :document="document as GruntDocument" :refresh-key="timelineRefreshKey" @restored="onVersionRestored" />
             </div>
           </div>
         </div>
