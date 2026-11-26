@@ -91,6 +91,12 @@ const blocks = computed<Block[]>(() => {
   }
   return out
 })
+/** Tinted tile + coloured icon, as on the desk cards (AppCard). */
+function tileStyle(color?: string | null) {
+  const c = color || 'var(--primary)'
+  return { backgroundColor: `color-mix(in srgb, ${c} 15%, transparent)`, color: c }
+}
+
 function sectionIcon(section: string) {
   return appStore.active?.sections?.find((s) => s.section === section)?.icon ?? ''
 }
@@ -110,7 +116,10 @@ watch(() => appStore.active?.name, () => { drill.value = null })
           <Popover v-model:open="switcherOpen">
             <PopoverTrigger as-child>
               <SidebarMenuButton size="lg" class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                <div class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <div
+                  class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
+                  :style="appStore.active?.color ? { backgroundColor: appStore.active.color, color: 'white' } : undefined"
+                >
                   <AppIcon :icon="appStore.active?.icon || 'folder'" class="size-4" />
                 </div>
                 <div class="grid flex-1 text-left leading-tight">
@@ -134,8 +143,9 @@ watch(() => appStore.active?.name, () => { drill.value = null })
                         @select="openApp(ws.name)"
                       >
                         <div
-                          class="flex size-9 items-center justify-center rounded-md border bg-background"
+                          class="flex size-9 items-center justify-center rounded-md"
                           :class="ws.name === appStore.active?.name && 'ring-2 ring-ring'"
+                          :style="tileStyle(ws.color)"
                         >
                           <AppIcon :icon="ws.icon" class="size-4" />
                         </div>
