@@ -21,7 +21,7 @@ from grunt.query import nodes as q
 from grunt.query.evaluate import iso, matches
 from grunt.query.query import Query, Sort
 from grunt.search.terms import matches_text
-from grunt.store.base import Store
+from grunt.store.base import AUDIT_COLUMNS, Store
 from grunt.store.lookup import store_for
 
 
@@ -88,6 +88,11 @@ def equals(query: Query, field: str) -> Any:
     return None
 
 
+def _standard(row: dict[str, Any]) -> dict[str, Any]:
+    """*row* with the audit columns a source that knows none of them lacks (None)."""
+    return dict.fromkeys(AUDIT_COLUMNS) | row
+
+
 class VirtualStore(Store):
     """Rows from :meth:`rows`, queried in memory.
 
@@ -121,7 +126,8 @@ class VirtualStore(Store):
 
     async def _matching(self, query: Query) -> list[dict[str, Any]]:
         expr = await resolve_linked(query.where)
-        rows = [dict(r) for r in await self.rows(query) if matches(expr, r)]
+        rows = [_standard(r) for r in await self.rows(query)]
+        rows = [r for r in rows if matches(expr, r)]
         if query.search:
             fields = [f for f in self._search_fields() if f not in query.search_exclude]
             rows = [r for r in rows if matches_text(query.search, (r.get(f) for f in fields))]
@@ -158,7 +164,7 @@ class VirtualStore(Store):
             rows = await self.rows(Query(self.doctype, where=q.Cmp("name", "eq", name)))
         except Unavailable:
             return None
-        return next((dict(r) for r in rows if str(r.get("name")) == name), None)
+        return next((_standard(r) for r in rows if str(r.get("name")) == name), None)
 
 
 __all__ = ["Unavailable", "VirtualStore", "equals", "resolve_linked", "sort_rows"]

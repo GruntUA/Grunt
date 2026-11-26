@@ -260,10 +260,16 @@ async def test_is_overdue_virtual_field(ctx):
         p = await ctx.get_doc("ToDo", past["name"])
         f = await ctx.get_doc("ToDo", future["name"])
         d = await ctx.get_doc("ToDo", done["name"])
+        # A typed whole row holds the virtual field too.
+        from grunt.tasks.doctypes.ToDo.to_do import ToDo
+
+        names = [past["name"], future["name"], done["name"]]
+        typed = {t.name: t.is_overdue for t in await ToDo.get_list(filters={"name__in": names})}
 
     assert p["is_overdue"]
     assert not f["is_overdue"]
     assert not d["is_overdue"]
+    assert typed == {past["name"]: True, future["name"]: False, done["name"]: False}
 
 
 @pytest.mark.asyncio

@@ -19,6 +19,7 @@ from grunt.cache.bus import fanout
 from grunt.db.api import GruntDB
 from grunt.log import log
 from grunt.site.manager import current_site
+lazy from grunt.activity.doctypes.Milestone.milestone import Milestone
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -174,12 +175,11 @@ async def seed(doctype: str, field: str) -> int:
     return created
 
 
-async def history(doctype: str, name: str) -> list[dict[str, Any]]:
+async def history(doctype: str, name: str) -> list[Milestone]:
     """A document's milestones, oldest first - for the form sidebar."""
     if not await tracked_fields(doctype):
         return []
-    rows = await documents.get_list(
-        MILESTONE,
+    return await Milestone.get_list(
         filters={"ref_doctype": doctype, "ref_name": name},
         fields=[
             "name",
@@ -193,6 +193,4 @@ async def history(doctype: str, name: str) -> list[dict[str, Any]]:
         order_by="entered_at",
         order="asc",
         limit=200,
-        include_total=False,
     )
-    return [dict(r) for r in rows]

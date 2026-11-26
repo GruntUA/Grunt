@@ -129,6 +129,9 @@ async def test_sidebar_opens_without_owner(ctx, notes):
 
     out = await meta_api.get_sidebar(doctype=DOCTYPE, doc_id="b")
     assert out["people"] == {}
+    # The audit columns read as None - in a list too.
+    row = (await ctx.get_list(DOCTYPE, filters={"name": "b"}))[0]
+    assert (row.owner, row.modified_by, row.created_at) == (None, None, None)
 
 
 @pytest.mark.asyncio
