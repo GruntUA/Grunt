@@ -368,7 +368,8 @@ msgstr ""
 #: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 msgid ""
 "A named set of list filters - its owner's, or shared with roles or with "
-"everyone (only to apply; the owner changes and deletes it)."
+"everyone (only to apply; the owner changes and deletes it). An app ships its"
+" own as standard records."
 msgstr ""
 
 #: grunt/frontend/src/components/common/RelativeDateFilter.vue
@@ -457,6 +458,10 @@ msgstr ""
 
 #: grunt/frontend/src/components/fields/Password/Password.vue
 msgid "A special character"
+msgstr ""
+
+#: grunt/grunt/site/doctypes/SavedFilter/saved_filter.py
+msgid "A standard filter must be shared with roles or with everyone"
 msgstr ""
 
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
@@ -1183,6 +1188,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/AppMenu/AppMenu.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/monitoring/doctypes/ErrorLog/ErrorLog.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
@@ -5603,6 +5609,10 @@ msgstr ""
 
 #: grunt/grunt/reports/doctypes/Report/Report.json
 msgid "Filter configuration (JSON)"
+msgstr ""
+
+#: grunt/frontend/src/components/views/FilterBar.vue
+msgid "Filter from the app"
 msgstr ""
 
 #: grunt/frontend/src/components/fields/Link/Link.vue
@@ -12182,6 +12192,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json
@@ -12632,6 +12643,7 @@ msgstr ""
 #: grunt/grunt/site/doctypes/Page/Page.json
 #: grunt/grunt/site/doctypes/FormTour/FormTour.json
 #: grunt/grunt/site/doctypes/ModuleOnboarding/ModuleOnboarding.json
+#: grunt/grunt/site/doctypes/SavedFilter/SavedFilter.json
 #: grunt/grunt/notification/doctypes/Notification/Notification.json
 #: grunt/grunt/print/doctypes/PrintFormat/PrintFormat.json
 #: grunt/grunt/scripting/doctypes/ClientScript/ClientScript.json

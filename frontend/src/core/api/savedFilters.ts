@@ -12,6 +12,9 @@ export interface SavedFilter {
   roles: string[]
   /** The current user's own - only they change or delete it. */
   mine: boolean
+  /** Shipped by an app (`app`) as a standard record - nobody deletes it from the list. */
+  standard?: boolean
+  app?: string | null
 }
 
 const M = '/api/v1/method/grunt.api.v1.saved_filters'
