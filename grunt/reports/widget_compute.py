@@ -244,16 +244,29 @@ async def _widget_donut(widget, dt, doctype_name, since, until, days, base_filte
 
 
 async def _widget_list(widget, dt, doctype_name, since, until, days, base_filters) -> Any:
-    """list - most recently modified documents."""
+    """list - documents in ``sort_by`` order (most recently modified by default).
+
+    ``date_field`` picks the date shown next to each row (``modified_at`` by
+    default); when it is the DocType's ``calendar_date_field``, the row shows the
+    span up to ``calendar_end_date_field``. ``row_limit`` - rows (default 8).
+    """
+    date_field = widget.get("date_field") or "modified_at"
+    end_field = dt.calendar_end_date_field if date_field == dt.calendar_date_field else None
     try:
         items = await documents.get_list(
             doctype_name,
             filters=base_filters or None,
-            order_by="modified_at",
-            order="desc",
-            limit=8,
+            order_by=widget.get("sort_by") or "modified_at",
+            order="asc" if widget.get("sort_order") == "asc" else "desc",
+            limit=min(max(int(widget.get("row_limit") or 8), 1), 50),
+            include_total=False,
         )
-        return {"items": items, "title_field": dt.title_field}
+        return {
+            "items": items,
+            "title_field": dt.title_field,
+            "date_field": date_field,
+            "end_date_field": end_field,
+        }
     except Exception:
         _log_widget_failed(doctype_name, "list")
         return {"items": [], "title_field": None}

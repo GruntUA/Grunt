@@ -18,6 +18,8 @@ class PageWidget(Document):
     field: str | None = None  # Field
     value_label: str | None = None  # Value label
     row_limit: int | None = None  # Rows
+    sort_by: str | None = None  # Sort by
+    sort_order: str | None = None  # Sort order
     group_by: str | None = None  # Group by
     date_field: str | None = None  # Date field
     period: str | None = None  # Period

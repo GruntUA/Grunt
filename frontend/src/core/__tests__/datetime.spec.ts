@@ -3,6 +3,7 @@ import { siteConfigState } from '@/core/composables/useSiteConfig'
 import {
   formatDate,
   formatDateTime,
+  formatDayMonth,
   formatTime,
   dateFormatSpec,
   formatAge,
@@ -52,6 +53,14 @@ describe('core/datetime', () => {
     expect(formatDate(lateNight)).toBe('07.03.2026')
     setConfig({ timezone: 'Europe/Kyiv' })
     expect(formatDate(lateNight)).toBe('08.03.2026')
+  })
+
+  it('shows a bare date (Date field) as that day in any timezone', () => {
+    setConfig({ timezone: 'America/New_York' })
+    expect(formatDate('2026-11-16')).toBe('16.11.2026')
+    expect(formatDayMonth('2026-11-16')).toMatch(/^16 /)
+    // an instant still follows the zone
+    expect(formatDate('2026-11-16T02:00:00Z')).toBe('15.11.2026')
   })
 
   it('formatDateTime appends 24h time', () => {

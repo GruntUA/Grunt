@@ -81,9 +81,18 @@ function timeZone(): string | undefined {
   return siteConfigState().timezone || undefined
 }
 
-function partsOf(d: Date, opts: Intl.DateTimeFormatOptions): Record<string, string> {
+/**
+ * The zone to show *value* in. A bare `YYYY-MM-DD` (a Date field) is a day,
+ * not an instant: `new Date()` reads it as midnight UTC, so it is shown in UTC -
+ * in the site zone it would turn into the previous day west of Greenwich.
+ */
+function zoneOf(value: DateInput): string | undefined {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim()) ? 'UTC' : timeZone()
+}
+
+function partsOf(d: Date, opts: Intl.DateTimeFormatOptions, zone = timeZone()): Record<string, string> {
   const out: Record<string, string> = {}
-  for (const p of new Intl.DateTimeFormat('en-GB', { timeZone: timeZone(), ...opts }).formatToParts(d)) {
+  for (const p of new Intl.DateTimeFormat('en-GB', { timeZone: zone, ...opts }).formatToParts(d)) {
     out[p.type] = p.value
   }
   return out
@@ -98,7 +107,7 @@ export function formatDate(value: DateInput, opts: { time?: boolean } = {}): str
     month: '2-digit',
     day: '2-digit',
     ...(opts.time ? { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' } : {}),
-  })
+  }, zoneOf(value))
 
   const { year: y, month: m, day } = p
   let datePart: string
@@ -137,7 +146,7 @@ export function formatDayMonth(value: DateInput): string {
   const d = toDate(value)
   if (!d) return EMPTY_DATE
   return new Intl.DateTimeFormat(localeTag(), {
-    timeZone: timeZone(),
+    timeZone: zoneOf(value),
     day: 'numeric',
     month: 'short',
   }).format(d)
@@ -146,7 +155,7 @@ export function formatDayMonth(value: DateInput): string {
 export function formatWeekday(value: DateInput, style: 'long' | 'short' = 'long'): string {
   const d = toDate(value)
   if (!d) return EMPTY_DATE
-  return new Intl.DateTimeFormat(localeTag(), { timeZone: timeZone(), weekday: style }).format(d)
+  return new Intl.DateTimeFormat(localeTag(), { timeZone: zoneOf(value), weekday: style }).format(d)
 }
 
 /** Long, locale-formatted - for export headers and share banners. */
@@ -154,7 +163,7 @@ export function formatFull(value: DateInput): string {
   const d = toDate(value)
   if (!d) return EMPTY_DATE
   return new Intl.DateTimeFormat(localeTag(), {
-    timeZone: timeZone(),
+    timeZone: zoneOf(value),
     dateStyle: 'long',
     timeStyle: 'short',
   }).format(d)
@@ -185,7 +194,7 @@ export function dateFormatSpec(): DateFormatSpec {
 export function formatIntl(value: DateInput, opts: Intl.DateTimeFormatOptions): string {
   const d = toDate(value)
   if (!d) return EMPTY_DATE
-  return new Intl.DateTimeFormat(localeTag(), { timeZone: timeZone(), ...opts }).format(d)
+  return new Intl.DateTimeFormat(localeTag(), { timeZone: zoneOf(value), ...opts }).format(d)
 }
 
 const REL_STEPS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
