@@ -48,7 +48,7 @@ import json
 import re
 import subprocess
 from collections import Counter, defaultdict
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
@@ -429,6 +429,10 @@ class Rewriter:
         self.classes = classes
         self.controllers = controllers
         self.doc_attrs = _document_attrs()
+        # Imports this run adds (module -> modules): two files rewritten in one
+        # run must not import each other - the import graph on disk has neither
+        # yet. Kept for a file put back later too (a cycle is only missed, not made).
+        self.added: defaultdict[str, set[str]] = defaultdict(set)
 
     def plan(self, site: Site, tree: ast.Module, parents: dict, result: Result) -> _Plan | None:
         def skip(reason: str) -> None:
@@ -544,12 +548,13 @@ class Rewriter:
             elif have != "missing":
                 result.skipped["class name taken"] += 1
                 continue
-            elif self._cycle(path, module, ctrl):
+            elif module is None or self._cycle(path, module, ctrl, self.added):
                 result.cycles.append(f"{path}:{s.call.lineno} {ctrl.name}")
                 result.skipped["import cycle"] += 1
                 continue
             else:
                 imports[ctrl.module].add(ctrl.name)
+                self.added[module].add(ctrl.module)
             edits += self.edits(plan, text)
             used.add(ctrl.name)
             n += 1
@@ -561,9 +566,14 @@ class Rewriter:
         return out, n, used
 
     @staticmethod
-    def _cycle(path: Path, module: str | None, ctrl: _Controller) -> bool:
+    def _cycle(
+        path: Path,
+        module: str | None,
+        ctrl: _Controller,
+        added: Mapping[str, Iterable[str]] | None = None,
+    ) -> bool:
         """Whether importing *ctrl* into *path* closes an import cycle (or the
-        core would import an app)."""
+        core would import an app). *added*: imports added earlier in this run."""
         if module is None:
             return True
         package = module.split(".")[0]
@@ -572,7 +582,7 @@ class Rewriter:
             # an app it depends on - unless that one imports this package back.
             return package == "grunt" or package in _packages_imported(ctrl.top)
         try:
-            return codegen._imports_reach(ctrl.top, ctrl.module, module)
+            return codegen._imports_reach(ctrl.top, ctrl.module, module, added)
         except SyntaxError:
             return True
 
@@ -1048,7 +1058,7 @@ def run(
                     set(_bound_names(ast.parse(current))) | classes_in.get(f, set()),
                     classes,
                     doc_attrs,
-                    importer=_importer(f, controllers),
+                    importer=_importer(f, controllers, rewriter.added),
                 )
                 if keep_errors:
                     if [d for d in errs if fixer.fix(d)]:
@@ -1118,14 +1128,20 @@ def _packages_imported(top: Path) -> frozenset[str]:
     return frozenset(found)
 
 
-def _importer(path: Path, controllers: _Controllers) -> Callable[[str], str | None]:
-    """Controller class -> the module *path* may import it from (no cycle)."""
+def _importer(
+    path: Path, controllers: _Controllers, added: defaultdict[str, set[str]]
+) -> Callable[[str], str | None]:
+    """Controller class -> the module *path* may import it from (no cycle with
+    the imports on disk and those *added* in this run - recorded there)."""
     module = _module_of(path)
 
     def find(name: str) -> str | None:
         ctrl = controllers.get(name)
-        if ctrl is None or ctrl.path.resolve() == path or Rewriter._cycle(path, module, ctrl):
+        if ctrl is None or ctrl.path.resolve() == path or module is None:
             return None
+        if Rewriter._cycle(path, module, ctrl, added):
+            return None
+        added[module].add(ctrl.module)
         return ctrl.module
 
     return find

@@ -362,11 +362,25 @@ Q1 — (б); Q2 — прибрати; Q3 — так; Q4 — прибрати п�
   доведення: `assert row.name` для збережених рядків, `copy_file` в `archive/common.py`
   замість трьох копій `files.create_file`. `www/` додано в `include` pyright (виклики з
   `www/` codemod інакше не бачить — так зламався `get_form` у cms).
+- **6d. `fix(codemod): no import cycle between files of one run`** — знайдено на прогоні
+  hrm: за один прогін codemod додав імпорти в обидва боки (Department ↔ Employee,
+  Employee ↔ HromsStaffingTablePosition) — граф імпортів з диска ще не має жодного з них.
+  Тепер `Rewriter.added` (і fixer через `_importer`) веде імпорти, додані в цьому прогоні,
+  `codegen._imports_reach(..., extra=)` враховує їх.
+  Застосунки, другий прохід: hrm — 13 з 45 сайтів, inventory — 7 з 29 (+ `sync-types`
+  усіх контролерів, `self.grunt.` → `grunt.`: `Document.grunt` типізовано `Any`, і
+  codemod не бачив 13 сайтів hrm). Ручне доведення — діти-документи в хуках, яких pyright
+  не бачить (`self.get("items")` → `Any`): `dict(it)`, `{**r}`, `r.items()`, `it["k"]`;
+  супутньо crystal_finance (`{**r}` над рядками `movement_history` Asset).
 - **6b (необов'язково).** `grunt lint`: попередження на фасад з назвою-літералом, для якої є
   контролер, — «читай класом».
 - Skill: правило вище одним рядком.
 
 ## Журнал
+
+- 2026-11-26 — cms#3, mlt_portal#17, skills#2 злито. 6d (цикл імпортів у межах прогону) і
+  другий прохід hrm, inventory (+ crystal_finance): pyright 0, тести 10 / 33 / 40 passed;
+  letter, hromada_it, idoc, opendata проти нового hrm — зелені.
 
 - 2026-11-25 — #284, #285 злито (CodeRabbit не рев'юїв — ліміт). 6c (доробка codemod) і
   прогін cms, mlt_portal: pyright 0, тести 41 / 110 passed. Пастка: worktree-и в

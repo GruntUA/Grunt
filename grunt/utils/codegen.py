@@ -10,6 +10,7 @@ import ast
 import re
 import sys
 from collections import deque
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -214,12 +215,18 @@ def _graph(top: Path) -> import_graph.ImportGraph:
     return cached[1]
 
 
-def _imports_reach(top: Path, start: str, target: str) -> bool:
-    """Whether *start* already imports *target*, directly or through other modules."""
+def _imports_reach(
+    top: Path, start: str, target: str, extra: Mapping[str, Iterable[str]] | None = None
+) -> bool:
+    """Whether *start* already imports *target*, directly or through other modules.
+    *extra*: imports not on disk yet (module -> modules), e.g. the ones a codemod
+    has added earlier in the same run."""
     edges = _graph(top).edges
+    extra = extra or {}
     seen, queue = {start}, deque([start])
     while queue:
-        for nxt in edges.get(queue.popleft(), {}):
+        cur = queue.popleft()
+        for nxt in [*edges.get(cur, {}), *extra.get(cur, ())]:
             if nxt == target:
                 return True
             if nxt not in seen:

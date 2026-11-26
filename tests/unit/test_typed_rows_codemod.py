@@ -390,3 +390,36 @@ def test_a_dependency_app_importing_this_one_back_is_a_cycle(tmp_path: Path):
     back.write_text("lazy from portal.reader import read\n\n\nclass Page: ...\n")
     ctrl2 = _Controller("Page", "cms2.doctypes.Page.page", back, hooks, {})
     assert Rewriter._cycle(reader, "portal.reader", ctrl2)
+
+
+def test_two_files_of_one_run_do_not_import_each_other(app: Path):
+    """The import graph on disk has neither import yet: the first one added in
+    the run makes the second a cycle."""
+    folder = app / "doctypes" / "Invoice"
+    folder.mkdir()
+    invoice = folder / "invoice.py"
+    invoice.write_text(ORDER.replace("Order", "Invoice"))
+    (folder / "Invoice.json").write_text(json.dumps({**ORDER_JSON, "name": "Invoice"}))
+    order = app / "doctypes" / "Order" / "order.py"
+    classes = _Classes()
+    classes.add(ORDER)
+    classes.add(ORDER.replace("Order", "Invoice"))
+    rewriter = Rewriter(classes, _Controllers([app]))
+    result = Result()
+
+    def rewrite(path: Path, other: str) -> str | None:
+        source = path.read_text() + (
+            f"\n\nasync def peer(n: str):\n    return (await grunt.get_doc({other!r}, n)).status\n"
+        )
+        source = "import grunt\n" + source
+        tree = ast.parse(source)
+        sites = find_sites(path, tree, 0)
+        types = {s.id: 'Module("grunt")' for s in sites}
+        out, _, _ = rewriter.rewrite_file(path, source, tree, sites, types, result)
+        return out
+
+    first = rewrite(order, "Invoice")
+    assert first is not None and "from shop.doctypes.Invoice.invoice import Invoice" in first
+    assert rewrite(invoice, "Order") is None
+    assert result.skipped["import cycle"] == 1
+    assert result.cycles[0].endswith("Order")
