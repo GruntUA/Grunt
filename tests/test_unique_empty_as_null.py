@@ -68,3 +68,21 @@ async def test_child_rows_leave_an_absent_unique_field_null(ctx, card_doctype):
     await ctx.new_doc("UqCard", {"title": "b", "lines": [{"item": "z", "serial": ""}]})
     rows = await ctx.db._session().execute(text("SELECT serial FROM grunt_core_uq_line"))
     assert [r[0] for r in rows] == [None, None, None]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("filled_first", [True, False])
+async def test_child_rows_keep_a_filled_unique_value_next_to_an_absent_one(
+    ctx, card_doctype, filled_first
+):
+    """One batch insert takes its columns from the first row: an absent unique
+    field must still be written (NULL), or a filled one in another row is lost
+    or the save fails."""
+    lines = [{"item": "x"}, {"item": "y", "serial": "S-1"}]
+    if filled_first:
+        lines.reverse()
+    await ctx.new_doc("UqCard", {"title": "a", "lines": lines})
+    rows = await ctx.db._session().execute(
+        text("SELECT item, serial FROM grunt_core_uq_line ORDER BY item")
+    )
+    assert [tuple(r) for r in rows] == [("x", None), ("y", "S-1")]
