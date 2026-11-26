@@ -238,6 +238,12 @@ export function createFormProxy(
   return proxy
 }
 
+/** The current page as a same-origin path (path, query and hash). */
+function currentPagePath(): string {
+  const { pathname, search, hash } = window.location
+  return pathname + search + hash
+}
+
 /** Placeholder until a registry is attached (tests, detached proxies). */
 function noActions<C>(): ActionsApi<C> {
   return {
@@ -372,9 +378,11 @@ export function createGruntProxy(
 
     async impersonate(userId: string) {
       const auth = useAuthStore()
-      await auth.startImpersonation(userId)
-      // Full reload so every store re-initialises under the new identity.
-      window.location.href = '/'
+      const here = currentPagePath()
+      await auth.startImpersonation(userId, here)
+      // Full reload of the same page so every store re-initialises under the
+      // new identity. Without access the page shows its usual 403/404.
+      window.location.reload()
     },
 
     async call(methodOrOpts: string | { method: string; args?: Record<string, unknown> }, argsArg?: Record<string, unknown>) {

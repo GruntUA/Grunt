@@ -245,8 +245,9 @@ export interface GruntProxy {
   }
   /**
    * System Manager only: open a short-lived session as another user to verify
-   * their access, then reload the app. Return to your own account from the
-   * banner at the top of the screen. Rejects for non-System-Managers.
+   * their access, then reload the current page. Return to your own account
+   * (and to the page you started on) from the banner at the top of the screen.
+   * Rejects for non-System-Managers.
    */
   impersonate: (userId: string) => Promise<void>
   /** Whether the current user holds permission `name` (e.g. `grunt.manage_permissions`). */
