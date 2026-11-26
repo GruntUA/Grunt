@@ -6,6 +6,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import type { DocType, DocField } from '@/types'
 import { docsApi } from '@/core/api/docs'
 import { parseSelectValues, selectOptionLabel } from '@/lib/selectOptions'
+import { statusDotClass } from '@/core/status'
 
 import { Plus, Calendar, Ellipsis } from '@lucide/vue'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -34,28 +35,9 @@ const statusIndicatorMap = computed(() => {
   return m
 })
 
-const dotClass: Record<string, string> = {
-  default: 'bg-slate-400',
-  secondary: 'bg-slate-400',
-  success: 'bg-green-500',
-  info: 'bg-blue-400',
-  warn: 'bg-amber-400',
-  danger: 'bg-red-500',
-  contrast: 'bg-zinc-900 dark:bg-zinc-100',
-  // Legacy colors for backward compatibility.
-  gray: 'bg-slate-400',
-  blue: 'bg-blue-400',
-  green: 'bg-green-500',
-  yellow: 'bg-amber-400',
-  orange: 'bg-amber-400',
-  red: 'bg-red-500',
-  purple: 'bg-violet-400',
-  pink: 'bg-pink-400',
-}
-
 function columnDot(col: string) {
   const ind = statusIndicatorMap.value?.get(col)
-  return dotClass[ind?.color ?? ''] || dotClass.secondary
+  return statusDotClass(ind?.color)
 }
 
 function columnLabel(col: string) {

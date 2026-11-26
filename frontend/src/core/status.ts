@@ -35,6 +35,31 @@ export function statusToneClass(color: string | null | undefined): string {
   return TONE_CLASSES[color ?? ''] ?? NEUTRAL
 }
 
+// Solid dot per indicator colour - kanban column headers, calendar events.
+const DOT_CLASSES: Record<string, string> = {
+  default: 'bg-slate-400',
+  secondary: 'bg-slate-400',
+  success: 'bg-green-500',
+  info: 'bg-blue-400',
+  warn: 'bg-amber-400',
+  danger: 'bg-red-500',
+  contrast: 'bg-zinc-900 dark:bg-zinc-100',
+  // Legacy colour names.
+  gray: 'bg-slate-400',
+  blue: 'bg-blue-400',
+  green: 'bg-green-500',
+  yellow: 'bg-amber-400',
+  orange: 'bg-amber-400',
+  red: 'bg-red-500',
+  purple: 'bg-violet-400',
+  pink: 'bg-pink-400',
+}
+
+/** Solid dot class for an indicator colour; unknown/empty -> neutral. */
+export function statusDotClass(color: string | null | undefined): string {
+  return DOT_CLASSES[color ?? ''] ?? DOT_CLASSES.secondary
+}
+
 export interface StatusBadge {
   label: string
   class: string
