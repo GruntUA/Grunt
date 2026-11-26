@@ -333,7 +333,7 @@ Q1 — (б); Q2 — прибрати; Q3 — так; Q4 — прибрати п�
 
 ### Кроки
 
-- **6a. `fix(document): class list reads apply list rules`** — `list_filter_extra` і
+- ✅ PR #283 **6a. `fix(document): class list reads apply list rules`** — `list_filter_extra` і
   `__child_of` у `Cls.get_list`; тести на sqlite/postgres.
 - **6. codemod `typed-rows`** (§7) — `get_list` за літералом переписується лише там, де рядки
   вживаються локально (не повертаються, не передаються далі; без ключів `__label` і

@@ -9,6 +9,7 @@ case holds on both. See DB_LAYERS_PLAN.md, step 2.
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
+import pytest
 import pytest_asyncio
 
 PERMS = [{"role": "All", "actions": ["read", "write", "create", "delete"]}]
@@ -210,3 +211,10 @@ async def permission_data(ctx):
     from tests.contract.permission_data import seed
 
     await seed(ctx)
+
+
+@pytest.fixture
+def frozen_today(monkeypatch):
+    """Today is 1 January 2026 in Kyiv - for relative dates (``today-30``)."""
+    monkeypatch.setattr("grunt.config.settings.default_timezone", "Europe/Kyiv")
+    monkeypatch.setattr("grunt.utils.dates.local_today", lambda: date(2026, 1, 1))

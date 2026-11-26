@@ -12,7 +12,12 @@ from grunt.metadata.compiler import (
     compile_doctype_to_table,
     get_table_name,
 )
-from grunt.metadata.field import DocField, get_field_type_class, get_registered_fieldtypes
+from grunt.metadata.field import (
+    DocField,
+    get_field_type_class,
+    get_registered_fieldtypes,
+    get_storage_class,
+)
 from grunt.metadata.permission import DocPermission
 lazy from grunt.db.dialects import dialect_for
 lazy from grunt.db.schema import DropColumn, diff, read_actual
@@ -50,6 +55,7 @@ class Meta:
     _list_view_fields: list[DocField] | None = None
     _numeric_fieldnames: set[str] | None = None
     _searchable_fields: list[DocField] | None = None
+    _date_fields: dict[str, str] | None = None
 
     def __init__(self, doctype_obj: DocType) -> None:
         self.doc = doctype_obj
@@ -177,6 +183,20 @@ class Meta:
             else:
                 self._columns = frozenset(self.table.c.keys())
         return self._columns
+
+    @property
+    def date_fields(self) -> dict[str, str]:
+        """Field name -> ``"date"`` / ``"datetime"`` for the columns holding a date
+        or a moment, system timestamps included - where a filter's relative day
+        (``today-30``) means a day."""
+        if self._date_fields is None:
+            kinds = {"created_at": "datetime", "modified_at": "datetime"}
+            for f in self.get_physical_fields():
+                storage = get_storage_class(f.fieldtype)
+                if storage in ("date", "datetime"):
+                    kinds[f.fieldname] = storage
+            self._date_fields = kinds
+        return self._date_fields
 
     def get_valid_columns(self) -> list[str]:
         """Return all valid physical database columns - exactly the compiled table's."""
