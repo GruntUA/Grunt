@@ -123,6 +123,15 @@ async def test_get_doc_reads_the_store(ctx, notes):
 
 
 @pytest.mark.asyncio
+async def test_sidebar_opens_without_owner(ctx, notes):
+    """A virtual row has no owner / modified_by - the sidebar must not 500."""
+    from grunt.api.v1.document import meta as meta_api
+
+    out = await meta_api.get_sidebar(doctype=DOCTYPE, doc_id="b")
+    assert out["people"] == {}
+
+
+@pytest.mark.asyncio
 async def test_create_update_delete_go_to_the_store(ctx, notes, events):
     created = await ctx.new_doc(DOCTYPE, {"name": "d", "title": "Delta"})
     assert created["title"] == "Delta"

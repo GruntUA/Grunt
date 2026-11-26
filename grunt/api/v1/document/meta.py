@@ -272,7 +272,8 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
 
     # Resolve display names/avatars for everyone referenced in the sidebar.
     emails: set[str] = set()
-    for value in (doc.owner, doc.modified_by):
+    # .get: a virtual DocType's row has no owner / modified_by.
+    for value in (doc.get("owner"), doc.get("modified_by")):
         if value:
             emails.add(value)
     for row in assignees:
