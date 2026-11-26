@@ -26,9 +26,12 @@ def filter_expr(
     """*filters* (a dict, or a bare string - the ``name``) as an expression on
     rows with *columns* (``meta.columns``, or a selectable's ``c.keys()``).
     Unknown columns are skipped; ``meta`` (the DocType's
-    :class:`~grunt.document.meta.Meta`) enables MultiLink filters."""
-    multilinks = {f.fieldname for f in meta.get_multilink_fields()} if meta is not None else ()
-    return parse_filters(filters, fields=columns, multilinks=multilinks)
+    :class:`~grunt.document.meta.Meta`) enables MultiLink filters and relative
+    days (``today-30``) on its date fields."""
+    if meta is None:
+        return parse_filters(filters, fields=columns)
+    multilinks = {f.fieldname for f in meta.get_multilink_fields()}
+    return parse_filters(filters, fields=columns, multilinks=multilinks, dates=meta.date_fields)
 
 
 async def linked_tables(expr: Expr) -> dict[str, Table]:

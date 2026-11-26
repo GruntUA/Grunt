@@ -110,6 +110,55 @@ async def test_unique_leaves_empty_values_out(engine):
     assert f"uq_{NAME}_code" in (await _actual(engine)).unique_indexes
 
 
+async def _bare_table_with_rows(engine, *names: str) -> None:
+    """The table before ``code``/``status`` existed (as a field added by an app's
+    ``doctype_ext`` to a table that already has rows)."""
+    meta = sa.MetaData()
+    sa.Table(NAME, meta, sa.Column("name", sa.String(255), primary_key=True))
+    async with engine.begin() as conn:
+        await conn.run_sync(meta.create_all)
+        for n in names:
+            await conn.execute(sa.text(f"INSERT INTO {NAME} (name) VALUES ('{n}')"))
+
+
+@pytest.mark.asyncio
+async def test_unique_on_a_column_added_by_the_same_migrate(engine):
+    """The duplicate check used to query the column before it was added."""
+    await _bare_table_with_rows(engine, "a", "b")
+    await _sync(engine, _table(index=False))
+    assert f"uq_{NAME}_code" in (await _actual(engine)).unique_indexes
+
+
+def _backfilled_unique(value: str) -> sa.Table:
+    meta = sa.MetaData()
+    code = sa.Column("code", sa.String(140))
+    code.info["backfill_default"] = value
+    return sa.Table(
+        NAME,
+        meta,
+        sa.Column("name", sa.String(255), primary_key=True),
+        code,
+        sa.UniqueConstraint("code", name=f"uq_{NAME}_code"),
+    )
+
+
+@pytest.mark.asyncio
+async def test_unique_new_column_backfilled_into_several_rows_is_refused(engine):
+    await _bare_table_with_rows(engine, "a", "b")
+    with pytest.raises(DuplicateDataError) as exc:
+        await _sync(engine, _backfilled_unique("X"))
+    assert exc.value.duplicates[0]["value"] == "X"
+    assert sorted(exc.value.duplicates[0]["ids"].split(",")) == ["a", "b"]
+    assert "code" not in (await _actual(engine)).columns
+
+
+@pytest.mark.asyncio
+async def test_unique_new_column_backfilled_into_one_row_is_fine(engine):
+    await _bare_table_with_rows(engine, "a")
+    await _sync(engine, _backfilled_unique("X"))
+    assert await _rows(engine, f"SELECT code FROM {NAME}") == [("X",)]
+
+
 @pytest.mark.asyncio
 async def test_stale_index_is_dropped_only_when_asked(engine):
     old = sa.Column("old", sa.Integer)

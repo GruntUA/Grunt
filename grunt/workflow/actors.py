@@ -14,6 +14,7 @@ Used by the ``Previous actor`` / ``Next actors`` recipient rows of a
 
 from typing import Any
 
+from grunt.activity.doctypes.ActivityLog.activity_log import ActivityLog
 from grunt.db.api import GruntDB
 from grunt.i18n import N_
 from grunt.local import require_session, system_context
@@ -108,7 +109,7 @@ async def previous_actor(doctype: str, doc_id: str) -> str | None:
     session = require_session()
     async with system_context(session):
         rows = await _db.get_all(
-            "ActivityLog",
+            ActivityLog,
             filters={"ref_doctype": doctype, "doc_id": doc_id, "action": "Workflow"},
             fields=["user"],
             order_by="created_at",

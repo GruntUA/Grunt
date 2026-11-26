@@ -30,10 +30,10 @@ from typing import Any
 from grunt.assignment.conditions import EVERYONE, matches
 from grunt.db.api import GruntDB
 from grunt.log import log
+from grunt.utils.dates import local_today
 lazy from grunt.assignment.doctypes.AssignmentLog.assignment_log import AssignmentLog
 lazy from grunt.document.api import documents
 lazy from grunt.metadata.registry import doctype_registry
-lazy from grunt.notification.date_rules import local_today
 lazy from grunt.permissions.groups import group_emails
 lazy from grunt.permissions.scopes import holders_for
 lazy from grunt.tasks.doctypes.ToDo.to_do import auto_assign_note

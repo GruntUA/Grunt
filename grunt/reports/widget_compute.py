@@ -24,6 +24,7 @@ from grunt.auth.current import acting_user
 from grunt.document.meta import Meta
 from grunt.local import require_session
 from grunt.log import log
+from grunt.reports.doctypes.Report.report import Report
 from grunt.reports.engine import report_engine
 lazy from grunt.document.api import documents
 
@@ -94,8 +95,8 @@ async def _widget_report_series(widget: Any) -> Any:
         user = acting_user()
         session = require_session()
 
-        cfg_rows = await documents.get_list(
-            "Report", filters={"report_name": report_name}, fields=["chart_config"], limit=1
+        cfg_rows = await Report.get_list(
+            filters={"report_name": report_name}, fields=["chart_config"], limit=1
         )
         cfg = cfg_rows[0].get("chart_config") if cfg_rows else None
         if isinstance(cfg, str):

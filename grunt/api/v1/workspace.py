@@ -291,13 +291,13 @@ async def list_workspaces() -> list[dict[str, Any]]:
     # with its own SELECT.
     await doctype_registry.list_all()
 
-    all_ws = await documents.get_list("AppMenu", fields=["name"], order_by="sequence")
+    all_ws = await AppMenu.get_list(fields=["name"], order_by="sequence")
     if not acting_user():
         return []
     menus = []
     for ws_brief in all_ws:
         try:
-            menus.append(await AppMenu.get_doc(ws_brief["name"]))
+            menus.append(await AppMenu.get_doc(ws_brief.name))
         except Exception:
             continue
     visible = await _visible(menus)

@@ -316,6 +316,7 @@ class TestGruntAppLayerPermissions:
         dt.name = "Invoice"
         dt.columns = frozenset({"name"})
         dt.get_multilink_fields = Mock(return_value=[])
+        dt.date_fields = {}
         user = Mock()
 
         with (

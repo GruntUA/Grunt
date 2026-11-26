@@ -7,9 +7,16 @@ conditions are ANDed. A bare string filter means ``name == <string>``.
 Given *multilinks* (the DocType's MultiLink fields - no column of their own),
 ``tags=a`` / ``tags__in`` match documents linking any of the values, ``__ne`` /
 ``__nin`` those linking none of them, ``__is`` / ``__isnull`` - having any link.
+
+Given *dates* (field -> ``"date"`` / ``"datetime"``), a relative day
+(``today``, ``today-30`` - :mod:`grunt.utils.dates`) on such a field is resolved
+here, so SQL and rows in memory get the same values: on a date - that day; on a
+date-and-time - the whole local day (``= today`` any moment of today, ``<= today``
+up to its end, ``__in`` - within one of the days).
 """
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
+from datetime import date, timedelta
 from typing import Any
 
 from grunt.query.nodes import (
@@ -25,6 +32,7 @@ from grunt.query.nodes import (
     and_,
     or_,
 )
+from grunt.utils.dates import local_day_start, relative_date
 
 # Operators a filter key may end with (``field__<op>``; no suffix = ``eq``).
 # Ordered longest-first so multi-word suffixes (``__lte_or_null``) win over
@@ -135,6 +143,61 @@ def _leaf(field: str, op: str, value: Any) -> Expr:
     raise NotImplementedError(f"Filter operator {op!r} not supported")
 
 
+def _day_bounds(day: date) -> tuple[Any, Any]:
+    return local_day_start(day), local_day_start(day + timedelta(days=1))
+
+
+def _within(field: str, day: date) -> Expr:
+    lo, hi = _day_bounds(day)
+    return and_(Cmp(field, "gte", lo), Cmp(field, "lt", hi))
+
+
+def _outside(field: str, day: date) -> Expr:
+    """NULL is outside nothing - as SQL ``NOT IN`` / ``!=``."""
+    lo, hi = _day_bounds(day)
+    return or_(Cmp(field, "lt", lo), Cmp(field, "gte", hi))
+
+
+def _relative_day(field: str, op: str, value: Any, kind: str) -> Expr | None:
+    """A relative day on a date (*kind* ``"date"``) or date-and-time field;
+    ``None`` - not a relative value (or an operator it means nothing to)."""
+    if op in ("in", "nin"):
+        values = as_list(value)
+        days = [relative_date(v) for v in values]
+        if not any(days):
+            return None
+        if kind == "date":
+            resolved = tuple(d or v for d, v in zip(days, values, strict=True))
+            return In(field, resolved, negate=op == "nin")
+        fixed = tuple(v for d, v in zip(days, values, strict=True) if d is None)
+        relative = [d for d in days if d is not None]
+        if op == "in":
+            exact = [In(field, fixed)] if fixed else []
+            return or_(*(_within(field, d) for d in relative), *exact)
+        exact = [In(field, fixed, negate=True)] if fixed else []
+        return and_(*(_outside(field, d) for d in relative), *exact)
+    day = relative_date(value)
+    if day is None or op not in ("eq", "ne", "neq", "gt", "gte", "lt", "lte", "lte_or_null"):
+        return None
+    if kind == "date":
+        return _leaf(field, op, day)
+    lo, hi = _day_bounds(day)
+    match op:
+        case "eq":
+            return _within(field, day)
+        case "ne" | "neq":
+            return _outside(field, day)
+        case "gt":
+            return Cmp(field, "gte", hi)
+        case "gte":
+            return Cmp(field, "gte", lo)
+        case "lt":
+            return Cmp(field, "lt", lo)
+        case "lte":
+            return Cmp(field, "lt", hi)
+    return or_(Cmp(field, "lt", hi), Null(field))  # lte_or_null
+
+
 def _multilink(field: str, op: str, value: Any) -> Expr | None:
     """``None`` - an operator a MultiLink field doesn't support (skipped)."""
     match op:
@@ -156,6 +219,7 @@ def parse_filters(
     *,
     fields: Collection[str] | None = None,
     multilinks: Collection[str] = (),
+    dates: Mapping[str, str] | None = None,
 ) -> Expr:
     """The filters as one expression (``TRUE`` for none).
 
@@ -177,6 +241,10 @@ def parse_filters(
             if "__" in field:
                 raise ValueError(f"Unsupported filter operator in {key!r}")
         elif field not in fields:
+            continue
+        node = _relative_day(field, op, value, dates[field]) if dates and field in dates else None
+        if node is not None:
+            items.append(node)
             continue
         items.append(_leaf(field, op, value))
     return and_(*items)

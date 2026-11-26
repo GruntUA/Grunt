@@ -9,6 +9,7 @@ from grunt.errors import throw
 from grunt.i18n import _
 from grunt.notification import preferences
 from grunt.notification.channels import channel_options, get_channel, list_channels
+from grunt.notification.doctypes.NotificationLog.notification_log import NotificationLog
 from grunt.site.settings import get_setting
 from grunt.webpush.service import webpush_service
 lazy from grunt.document.api import documents
@@ -146,7 +147,7 @@ async def mute_like(notification_id: str) -> str:
     sent the current user's *notification_id*. Returns the rule's name."""
     user = acting_user()
     rows = await _db.get_all(
-        "NotificationLog",
+        NotificationLog,
         filters={"name": notification_id, "user": user.email},
         fields=["notification"],
         limit=1,

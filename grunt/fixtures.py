@@ -235,7 +235,7 @@ async def apply_doctype_fixture(
                         payload[field.fieldname],
                     )
                 elif field.default is not None:
-                    payload[field.fieldname] = _coerce_fixture_value(field.fieldtype, field.default)
+                    payload[field.fieldname] = field.default_value()
 
             # A savepoint per record: an IntegrityError rolls back this insert
             # only, not everything the caller did earlier in the session.

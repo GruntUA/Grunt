@@ -65,33 +65,52 @@ class DuplicateDataError(Exception):
         return "\n".join(lines)
 
 
-def _duplicates(connection: Any, dialect: Dialect, change: AddUnique) -> list[dict[str, object]]:
+def _duplicates(
+    connection: Any, dialect: Dialect, change: AddUnique, added: dict[str, Any]
+) -> list[dict[str, object]]:
+    """Rows *change* would refuse. *added* - the columns of its table this same
+    migrate adds (name -> backfill): they are not in the table yet, so they are
+    not queried - a new column holds its backfill in every row, or nothing."""
+    backfills = {c: added[c] for c in change.columns if c in added}
+    if any(v is None or v == "" for v in backfills.values()):
+        return []  # empty in every row - the partial index leaves those out
+    existing = [c for c in change.columns if c not in backfills]
     q = dialect.quote
-    cols = ", ".join(q(connection, c) for c in change.columns)
-    nonempty = " AND ".join(
-        f"({q(connection, c)} IS NOT NULL AND {q(connection, c)} != '')" for c in change.columns
-    )
-    rows = connection.execute(
-        text(
-            f"SELECT {cols}, {dialect.group_concat_sql(q(connection, 'name'))} AS ids "
-            f"FROM {q(connection, change.table.name)} WHERE {nonempty} "
+    ids = f"{dialect.group_concat_sql(q(connection, 'name'))} AS ids"
+    table = q(connection, change.table.name)
+    if existing:
+        cols = ", ".join(q(connection, c) for c in existing)
+        nonempty = " AND ".join(
+            f"({q(connection, c)} IS NOT NULL AND {q(connection, c)} != '')" for c in existing
+        )
+        sql = (
+            f"SELECT {cols}, {ids} FROM {table} WHERE {nonempty} "
             f"GROUP BY {cols} HAVING COUNT(*) > 1"
         )
-    ).fetchall()
-    width = len(change.columns)
-    return [
-        {"value": row[0] if width == 1 else tuple(row[:width]), "ids": row[width]} for row in rows
-    ]
+    else:  # one static value in every row: duplicates as soon as there are two
+        sql = f"SELECT {ids} FROM {table} HAVING COUNT(*) > 1"
+    rows = connection.execute(text(sql)).fetchall()
+
+    def value(row: Any) -> object:
+        own = iter(row[: len(existing)])
+        values = [backfills[c] if c in backfills else next(own) for c in change.columns]
+        return values[0] if len(values) == 1 else tuple(values)
+
+    return [{"value": value(row), "ids": row[len(existing)]} for row in rows]
 
 
 def check(connection: Any, dialect: Dialect, changes: list[Change]) -> list[Change]:
     """*changes* that the data allows - raises :class:`DuplicateDataError` for a
     unique index over duplicates; leaves out a VARCHAR shortening that would cut
     stored values (logged)."""
+    added: dict[str, dict[str, Any]] = {}
+    for change in changes:
+        if isinstance(change, AddColumn):
+            added.setdefault(change.table.name, {})[change.column.name] = change.backfill
     allowed: list[Change] = []
     for change in changes:
         if isinstance(change, AddUnique):
-            duplicates = _duplicates(connection, dialect, change)
+            duplicates = _duplicates(connection, dialect, change, added.get(change.table.name, {}))
             if duplicates:
                 raise DuplicateDataError(
                     change.table.name, change.name, list(change.columns), duplicates

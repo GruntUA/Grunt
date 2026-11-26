@@ -3,28 +3,16 @@
 * ``conditions`` - ``[{"fieldname", "op", "value"}]`` always applied to the
   report (unlike ``filters_config``, which only offers filters to the viewer).
   Operators use the filter-bar vocabulary; a date value may be relative:
-  ``today``, ``today-30``, ``today+7`` (days).
+  ``today``, ``today-30``, ``today+7`` (days) - kept as given, the query
+  resolves it by the column (:mod:`grunt.utils.dates`).
 * ``date_group`` on a grouping column - ``day`` / ``month`` / ``quarter`` /
   ``year``: rows are grouped by that period, labelled ``2026-09-23``,
   ``2026-09``, ``2026-Q3``, ``2026``.
 """
 
-import re
-from datetime import date, timedelta
 from typing import Any
 
 from grunt.query.parse import DISPLAY_OPS
-
-_RELATIVE_DATE = re.compile(r"^today(?:([+-])(\d+))?$", re.IGNORECASE)
-
-
-def _resolve_value(value: Any) -> Any:
-    if isinstance(value, str):
-        m = _RELATIVE_DATE.match(value.strip())
-        if m:
-            days = int(m.group(2) or 0) * (-1 if m.group(1) == "-" else 1)
-            return (date.today() + timedelta(days=days)).isoformat()
-    return value
 
 
 def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
@@ -42,8 +30,6 @@ def compile_conditions(conditions: list[dict[str, Any]] | None) -> list[dict[str
         if op in ("in", "not in"):
             items = value if isinstance(value, list) else str(value or "").split(",")
             value = [str(v).strip() for v in items if str(v).strip()]
-        else:
-            value = _resolve_value(value)
         if value in (None, "", []):
             continue
         out.append({f"{field}__{DISPLAY_OPS[op]}": value})

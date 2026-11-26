@@ -18,6 +18,7 @@ from grunt.i18n import _
 from grunt.local import require_session_user
 from grunt.permissions.guards import read_guard
 from grunt.permissions.roles import get_roles
+from grunt.site.doctypes.SavedFilter.saved_filter import SavedFilter
 lazy from grunt.document.api import documents
 
 _db = GruntDB()  # stateless: reads through the context's session
@@ -94,14 +95,12 @@ async def save_saved_filter(
     user = require_session_user()
     if name is None:
         # As the user: the rule owner == user finds only their own.
-        same = await documents.get_list(
-            _DOCTYPE,
+        same = await SavedFilter.get_list(
             filters={"ref_doctype": doctype, "title": title},
             fields=["name"],
             limit=1,
-            include_total=False,
         )
-        name = same[0]["name"] if same else None
+        name = same[0].name if same else None
     if name:
         row = await documents.save_doc(_DOCTYPE, name, values)
     else:

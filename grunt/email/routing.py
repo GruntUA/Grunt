@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grunt.db.api import GruntDB
 from grunt.email.compose import reply_subject, send_on_document, thread_headers, with_signature
+from grunt.email.doctypes.EmailMessage.email_message import EmailMessage
 from grunt.email.inbound import sender_address
 from grunt.email.service import EmailService
 from grunt.i18n import _
@@ -45,7 +46,7 @@ async def thread_document(email_data: dict[str, Any]) -> tuple[str, str] | None:
     if not ids:
         return None
     rows = await _db.get_all(
-        "EmailMessage",
+        EmailMessage,
         filters={"message_id__in": ids, "ref_doctype__is": "set", "ref_name__is": "set"},
         fields=["ref_doctype", "ref_name"],
         order_by="created_at",

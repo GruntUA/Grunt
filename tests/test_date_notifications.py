@@ -94,8 +94,9 @@ async def test_days_before_a_date(ctx, contracts):
 async def test_days_after_a_datetime_uses_the_local_day(ctx, contracts):
     today = date_rules.local_today()
     rule = await _rule(ctx, event="days_after", date_field="signed_at", days=0)
-    late_evening = datetime.combine(today, time(23, 30), tzinfo=date_rules._tz())
-    yesterday = datetime.combine(today - timedelta(days=1), time(23, 30), tzinfo=date_rules._tz())
+    tz = date_rules.site_timezone()
+    late_evening = datetime.combine(today, time(23, 30), tzinfo=tz)
+    yesterday = datetime.combine(today - timedelta(days=1), time(23, 30), tzinfo=tz)
     await _contract(ctx, "Tonight", signed_at=late_evening)
     await _contract(ctx, "Yesterday", signed_at=yesterday)
 

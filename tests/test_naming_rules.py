@@ -100,7 +100,7 @@ def test_naming_date_is_local(monkeypatch):
         def now(cls, tz=None):
             return datetime(2026, 12, 31, 23, 30, tzinfo=UTC).astimezone(tz)
 
-    monkeypatch.setattr("grunt.naming.service.datetime", _Now)
+    monkeypatch.setattr("grunt.utils.dates.datetime", _Now)
     assert local_today() == date(2027, 1, 1)
 
 

@@ -7,6 +7,7 @@ One instance, :data:`documents`, with the query and document caches: the
 """
 
 import copy
+import dataclasses
 import functools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -52,6 +53,7 @@ lazy from grunt.document.base import Document, load_document, new_document, use_
 lazy from grunt.document.document_list import DocumentList
 lazy from grunt.permissions import reads
 lazy from grunt.permissions.query import read_predicate
+lazy from grunt.query import nodes as q
 lazy from grunt.query.aggregates import group_field, parse_aggregation
 lazy from grunt.query.nodes import linked_doctypes
 lazy from grunt.query.parse import FILTER_OPS
@@ -295,10 +297,11 @@ class DocumentAPI:
             order=order,
             method="get_list",
         )
-        # The row-level gate (match rules, scopes, shares) - as get_list.
+        # The list's own rules - the controller's list_filter_extra, __child_of
+        # subtrees - as get_list; the row-level gate (match rules, scopes,
+        # shares) comes with reads.fetch.
         query = list_query(
             dt,
-            filters=filters,
             or_filters=or_filters,
             fields=fields,
             limit=limit,
@@ -306,6 +309,8 @@ class DocumentAPI:
             order_by=order_by,
             order=order,
         )
+        rules = await collection.list_where(require_session(), dt, filters)
+        query = dataclasses.replace(query, where=q.and_(rules, query.where))
         rows = await reads.fetch(query, user=user)
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_list")

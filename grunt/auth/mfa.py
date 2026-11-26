@@ -133,7 +133,7 @@ async def confirm_mfa_setup(user: User, code: str) -> list[str]:
     Returns a list of plain-text backup codes that the user should save.
     Raises HTTP 422 if the code is wrong or no secret is pending.
     """
-    rows = await _db.get_all("User", filters={"name": user.id}, fields=["mfa_secret"], limit=1)
+    rows = await _db.get_all(User, filters={"name": user.id}, fields=["mfa_secret"], limit=1)
     if not rows or not rows[0].mfa_secret:
         raise HTTPException(422, detail=_("MFA is not set up. Run the setup first."))
 

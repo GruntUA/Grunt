@@ -13,6 +13,8 @@ import {
   eachDate,
   isoWeek,
   formatMonthYear,
+  todayISO,
+  resolveDefault,
 } from '@/core/datetime'
 import { CalendarDate } from '@internationalized/date'
 
@@ -145,5 +147,26 @@ describe('core/datetime calendar dates', () => {
 
   it('formats month and year without the "р." suffix', () => {
     expect(formatMonthYear(D(2026, 10, 1))).toBe('жовтень 2026')
+  })
+})
+
+describe('core/datetime "Today" defaults', () => {
+  // 23:30 UTC on 7 March is already 8 March in Kyiv (UTC+2).
+  const LATE = new Date('2026-03-07T23:30:00Z')
+
+  it('takes the day in the site time zone, not UTC', () => {
+    setConfig({ timezone: 'Europe/Kyiv' })
+    expect(todayISO(LATE)).toBe('2026-03-08')
+    setConfig({ timezone: 'UTC' })
+    expect(todayISO(LATE)).toBe('2026-03-07')
+  })
+
+  it('resolves Today/Now per field type and leaves the rest alone', () => {
+    expect(resolveDefault('Date', 'Today')).toBe(todayISO())
+    expect(resolveDefault('Date', 'now')).toBe(todayISO())
+    expect(resolveDefault('Datetime', 'Now')).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/)
+    expect(resolveDefault('Data', 'Today')).toBe('Today')
+    expect(resolveDefault('Date', '2026-01-02')).toBe('2026-01-02')
+    expect(resolveDefault('Int', 5)).toBe(5)
   })
 })

@@ -101,13 +101,15 @@ def field_type(f: dict) -> str:
     return py_type
 
 
-def _from_import(module: str, names: list[str]) -> str:
-    """``from <module> import <names>`` - wrapped as ruff format does past 100 columns."""
-    line = f"from {module} import {', '.join(names)}"
+def _from_import(module: str, names: list[str], lazy: bool = False) -> str:
+    """``from <module> import <names>`` (``lazy from …`` with *lazy*) - wrapped
+    as ruff format does past 100 columns."""
+    head = f"{'lazy ' if lazy else ''}from {module} import"
+    line = f"{head} {', '.join(names)}"
     if len(line) <= 100:
         return line
     body = "".join(f"    {n},\n" for n in names)
-    return f"from {module} import (\n{body})"
+    return f"{head} (\n{body})"
 
 
 def _import_key(name: str) -> tuple[int, str]:
@@ -400,10 +402,12 @@ def _ensure_import(source: str, module: str, needed: list[str]) -> str:
         return source
 
     stmt = _from_import(module, missing) + "\n"
-    for node in imports:
+    # An eager import first; merged into a `lazy from`, the names stay lazy.
+    for node in sorted(imports, key=lambda n: getattr(n, "is_lazy", False)):
         if node.end_lineno == node.lineno and not any(a.asname for a in node.names):
             merged = sorted({*(a.name for a in node.names), *missing}, key=_import_key)
-            lines[node.lineno - 1] = _from_import(module, merged) + "\n"
+            lazy = bool(getattr(node, "is_lazy", False))
+            lines[node.lineno - 1] = _from_import(module, merged, lazy) + "\n"
             return "".join(lines)
     if imports:
         # Multi-line or aliased: leave it as it is, add the names on a line of their own.

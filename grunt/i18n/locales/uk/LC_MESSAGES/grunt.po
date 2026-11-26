@@ -404,6 +404,10 @@ msgstr ""
 "Іменований набір фільтрів списку — власника або спільний для ролей чи для "
 "всіх (інші лише застосовують; змінює й видаляє власник)."
 
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "A negative number - days ago"
+msgstr "Від'ємне число - днів тому"
+
 #: grunt/grunt/workflow/guard.py
 msgid "A new document starts in the “%(state)s” state"
 msgstr "Новий документ створюється у стані «%(state)s»"
@@ -3704,6 +3708,10 @@ msgstr "Поле дати"
 msgid "Date field that enables the date picker in the tree panel"
 msgstr "Date-поле, що вмикає вибір дати в панелі дерева"
 
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "Date filter kind"
+msgstr "Вид фільтра дати"
+
 #: grunt/grunt/metadata/doctypes/DocType/DocType.json
 msgid "Date for the name"
 msgstr "Дата для назви"
@@ -3765,6 +3773,10 @@ msgstr "Дні"
 #: grunt/grunt/notification/doctypes/Notification/notification.py
 msgid "Days cannot be negative"
 msgstr "Кількість днів не може бути від'ємною"
+
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "Days from today"
+msgstr "Днів від сьогодні"
 
 #: grunt/grunt/monitoring/doctypes/PerfTrend/PerfTrend.json
 msgid "Days in each compared period."
@@ -6169,6 +6181,10 @@ msgstr "З профілю"
 #: grunt/frontend/src/components/workflow/WorkflowGraphTab.vue
 msgid "From state"
 msgstr "З стану"
+
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "From today"
+msgstr "Від сьогодні"
 
 #: grunt/frontend/src/components/dashboard/sections/WidthSection.vue
 msgid "Full"
@@ -9525,6 +9541,10 @@ msgstr "Старші за, днів"
 msgid "On any computer with a browser install rclone"
 msgstr "На будь-якому комп'ютері з браузером встановіть rclone"
 
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "On date"
+msgstr "На дату"
+
 #: grunt/grunt/metadata/doctypes/WorkflowState/WorkflowState.json
 msgid ""
 "On entering this state, write “Field value” into this field of the document "
@@ -11707,11 +11727,6 @@ msgstr "Виконайте `grunt app deps`. Бракує:"
 #: grunt/grunt/monitoring/updates.py
 msgid "Run `grunt update`."
 msgstr "Запустіть `grunt update`."
-
-#: grunt/grunt/monitoring/updates.py
-msgid "The weekly dependency pull request (.github/workflows/deps.yml) brings them."
-msgstr ""
-"Їх принесе щотижневий PR оновлення залежностей (.github/workflows/deps.yml)."
 
 #: grunt/grunt/monitoring/updates.py
 msgid "Run `sudo apt upgrade`."
@@ -14524,6 +14539,12 @@ msgstr "Значення, яке має містити поле статусу (
 msgid "The version does not belong to this document"
 msgstr "Версія не належить цьому документу"
 
+#: grunt/grunt/monitoring/updates.py
+msgid ""
+"The weekly dependency pull request (.github/workflows/deps.yml) brings them."
+msgstr ""
+"Їх принесе щотижневий PR оновлення залежностей (.github/workflows/deps.yml)."
+
 #: grunt/grunt/assignment/doctypes/AssignmentRule/assignment_rule.py
 msgid "The “%(field)s” field must contain valid JSON."
 msgstr "Поле «%(field)s» має містити коректний JSON."
@@ -16590,6 +16611,10 @@ msgstr "економія трафіку"
 #: grunt/grunt/backups/doctypes/Backup/Backup.json
 msgid "database_url"
 msgstr "База даних (посилання)"
+
+#: grunt/frontend/src/components/common/RelativeDateFilter.vue
+msgid "days"
+msgstr "дн."
 
 #: grunt/grunt/monitoring/health.py
 msgid "default"

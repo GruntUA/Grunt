@@ -2,8 +2,10 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from grunt.activity.doctypes.ViewLog.view_log import ViewLog
 from grunt.api.context import whitelist
 from grunt.auth.constants import GUEST_USER_EMAIL
+from grunt.auth.doctypes.User.user import User
 from grunt.db.api import GruntDB
 from grunt.db.commit import on_commit
 from grunt.document.titles import resolve_reference_titles
@@ -73,14 +75,13 @@ async def attach_user_names(entries: Sequence[dict[str, Any]]) -> None:
     if not emails:
         return
 
-    rows = await documents.get_list(
-        "User",
+    rows = await User.get_list(
         filters={"name__in": list(emails)},
         fields=["name", "full_name"],
         limit=len(emails),
         ignore_permissions=True,
     )
-    names = {r["name"]: r["full_name"] for r in rows if r.get("full_name")}
+    names = {r.name: r.full_name for r in rows if r.get("full_name")}
 
     for e in entries:
         email = e.get("user") or ""
@@ -159,15 +160,14 @@ async def _broadcast_activity(
             # System context: the "All" role can only read its own User row
             # (match: name == user) - the broadcaster must resolve the
             # *acting* user's name regardless of who ends up viewing the feed.
-            rows = await documents.get_list(
-                "User",
+            rows = await User.get_list(
                 filters={"name": user_email},
                 fields=["full_name"],
                 limit=1,
                 ignore_permissions=True,
             )
             if rows and rows[0].get("full_name"):
-                user_name = rows[0]["full_name"]
+                user_name = rows[0].full_name
         except Exception:
             pass  # the feed shows the email instead of the name
 
@@ -288,7 +288,7 @@ async def record_view(
         try:
             async with system_context(session):
                 recent = await _db.get_all(
-                    "ViewLog",
+                    ViewLog,
                     filters={
                         "ref_doctype": doctype,
                         "doc_id": str(doc_id),
@@ -331,7 +331,7 @@ async def get_view_info(doctype: str, doc_id: str) -> dict[str, Any]:
 
     if dt.track_views:
         rows = await _db.get_all(
-            "ViewLog",
+            ViewLog,
             filters={"ref_doctype": doctype, "doc_id": str(doc_id)},
             fields=["viewed_by"],
             limit=100000,

@@ -8,7 +8,7 @@ import pytest
 
 from grunt.api.v1.meta import save_doctype
 from grunt.assignment.service import DAYS
-from grunt.notification.date_rules import local_today
+from grunt.utils.dates import local_today
 
 USERS = ["ann@grunt.example.com", "bob@grunt.example.com", "cid@grunt.example.com"]
 
