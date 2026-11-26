@@ -56,9 +56,10 @@ const { languages } = useSiteConfig()
 async function onLanguageChange(lang: unknown) { await auth.setLanguage(String(lang)) }
 async function handleLogout() { await auth.logout(); router.push('/login') }
 async function exitImpersonation() {
-  await auth.stopImpersonation()
-  // Full reload so every store re-initialises under the System Manager identity.
-  window.location.href = '/'
+  const from = await auth.stopImpersonation()
+  // Full reload so every store re-initialises under the System Manager
+  // identity - back on the page the impersonation started from.
+  window.location.href = from || '/'
 }
 
 useEventListener(window, 'grunt_recent_docs_changed', () => appStore.refreshCounts())

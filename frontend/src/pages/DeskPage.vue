@@ -41,8 +41,10 @@ const { t } = useI18n()
 
 const auth = useAuthStore()
 async function exitImpersonation() {
-  await auth.stopImpersonation()
-  window.location.href = '/'
+  const from = await auth.stopImpersonation()
+  // Full reload so every store re-initialises under the System Manager
+  // identity - back on the page the impersonation started from.
+  window.location.href = from || '/'
 }
 const appStore = useAppStore()
 const uiStore = useUIStore()
