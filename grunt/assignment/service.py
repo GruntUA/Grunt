@@ -247,7 +247,7 @@ class AssignmentService:
         unassign = _json(rule.get("unassign_condition"), {})
         status = "Closed" if close and matches(close, doc) else None
         if status is None and unassign and matches(unassign, doc):
-            status = "Cancel"
+            status = "Cancelled"
         if status is None:
             return True
         for todo in open_todos:

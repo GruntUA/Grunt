@@ -137,7 +137,7 @@ async def test_assigns_on_save_once_then_closes_or_unassigns(ctx, setup):
     other = await _ticket(ctx)
     await ctx.save_doc("Ticket", other, {"status": "Cancelled"})
     await ctx.db._session().commit()
-    assert await _assignees(ctx, other, "Cancel") == [b]
+    assert await _assignees(ctx, other, "Cancelled") == [b]
 
 
 @pytest.mark.asyncio
