@@ -30,3 +30,6 @@ class SavedFilter(Document):
                 _("A standard filter must be shared with roles or with everyone"),
                 "VALIDATION_ERROR",
             )
+        # Shared with roles but none named: it would reach nobody.
+        if self.shared_with == "Roles" and not self.roles:
+            throw(_("Choose at least one role"), "VALIDATION_ERROR")

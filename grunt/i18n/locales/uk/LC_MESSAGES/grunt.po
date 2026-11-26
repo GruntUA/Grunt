@@ -403,8 +403,8 @@ msgid ""
 " own as standard records."
 msgstr ""
 "Іменований набір фільтрів списку — власника або спільний для ролей чи для "
-"всіх (інші лише застосовують; змінює й видаляє власник). Застосунок постачає "
-"власні як стандартні записи."
+"всіх (інші лише застосовують; змінює й видаляє власник). Застосунок постачає"
+" власні як стандартні записи."
 
 #: grunt/frontend/src/components/common/RelativeDateFilter.vue
 msgid "A negative number - days ago"
@@ -2532,6 +2532,7 @@ msgid "Choose at least one part to back up"
 msgstr "Оберіть хоча б одну частину для резервної копії"
 
 #: grunt/grunt/api/v1/saved_filters.py
+#: grunt/grunt/site/doctypes/SavedFilter/saved_filter.py
 msgid "Choose at least one role"
 msgstr "Виберіть хоча б одну роль"
 

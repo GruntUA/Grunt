@@ -130,8 +130,10 @@ async def test_an_app_ships_filters(ctx, demo_app, db_session, engine):
     )
     _ship(demo_app, "all", name="demo-all", title="All shipped", shared_with="Everyone")
     _ship(demo_app, "hidden", name="demo-hidden", title="Hidden", shared_with="Nobody")
+    _ship(demo_app, "no-roles", name="demo-no-roles", title="No roles", shared_with="Roles")
 
-    # The unshared one is refused (nobody would see it); the rest go in.
+    # The unshared one and the one without roles are refused (nobody would
+    # see them); the rest go in.
     assert await apply_records("demo", db_session, engine) == 2
     await db_session.commit()
 
