@@ -53,10 +53,19 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.activity.follow.notify_followers_of_comment",
             "grunt.activity.follow.follow_commented",
         ],
+        # Moved to another document: its old timeline refreshes too.
+        "before_save": ["grunt.activity.live.announce_moved"],
     },
     "ToDo": {
         "after_insert": ["grunt.activity.follow.follow_assigned"],
         "after_save": ["grunt.activity.follow.follow_assigned"],
+        "before_save": ["grunt.activity.live.announce_moved"],
+    },
+    "File": {
+        "before_save": ["grunt.activity.live.announce_moved"],
+    },
+    "EmailMessage": {
+        "before_save": ["grunt.activity.live.announce_moved"],
     },
     "SharedWith": {
         "after_insert": ["grunt.activity.follow.follow_shared"],

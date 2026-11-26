@@ -5,7 +5,7 @@ import i18n from '@/plugins/i18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { DocType, GruntDocument } from '@/types'
 
-const api = vi.hoisted(() => ({ getTimeline: vi.fn() }))
+const api = vi.hoisted(() => ({ getTimeline: vi.fn(), getReactionChoices: vi.fn(async () => []) }))
 vi.mock('@/core/api/docs', async (orig) => ({
   ...(await orig<typeof import('@/core/api/docs')>()),
   docsApi: api,
@@ -65,5 +65,34 @@ describe('SidebarTimeline - refresh', () => {
     state.document = { ...state.document, modified_at: '2026-11-26T10:06:00Z' } as GruntDocument
     await settle()
     expect(api.getTimeline).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the comment box on a refresh of an empty timeline', async () => {
+    const state = mountTimeline()
+    await settle()
+    let resolve!: (v: unknown[]) => void
+    api.getTimeline.mockReturnValueOnce(new Promise((r) => { resolve = r }))
+    state.refreshKey++
+    await settle()
+    expect(w!.find('textarea').exists()).toBe(true)
+    resolve([])
+    await flushPromises()
+  })
+
+  it('drops an older answer that arrives after a newer one', async () => {
+    const state = mountTimeline()
+    await settle()
+    let resolveOld!: (v: unknown[]) => void
+    api.getTimeline.mockReturnValueOnce(new Promise((r) => { resolveOld = r }))
+    state.refreshKey++
+    await settle()
+    const fresh = [{ type: 'comment', id: 'c2', content: 'нове', user: 'me@x', created_at: '2026-11-26T10:07:00Z' }]
+    api.getTimeline.mockResolvedValueOnce(fresh)
+    state.refreshKey++
+    await settle()
+    resolveOld([{ type: 'comment', id: 'c1', content: 'старе', user: 'me@x', created_at: '2026-11-26T10:06:00Z' }])
+    await flushPromises()
+    expect(w!.text()).toContain('нове')
+    expect(w!.text()).not.toContain('старе')
   })
 })

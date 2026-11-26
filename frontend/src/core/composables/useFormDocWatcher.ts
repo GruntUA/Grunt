@@ -19,11 +19,23 @@ interface UseFormDocWatcherParams {
   userEmail: () => string | null | undefined
 }
 
-/** Two timestamps of the same instant (`+00:00` vs `Z`, micro- vs milliseconds). */
+/**
+ * An ISO timestamp as [whole seconds since the epoch, microseconds] - the
+ * server keeps microseconds, `Date.parse` alone would round them away.
+ */
+function instantOf(iso: string): [number, number] | null {
+  const fraction = /\.(\d+)/.exec(iso)
+  const seconds = Date.parse(fraction ? iso.replace(fraction[0], '') : iso)
+  if (Number.isNaN(seconds)) return null
+  return [seconds, Number((fraction?.[1] ?? '').slice(0, 6).padEnd(6, '0'))]
+}
+
+/** Two timestamps of the same instant (`+00:00` vs `Z`, trailing zeros), to the microsecond. */
 function sameInstant(a: unknown, b: unknown): boolean {
   if (typeof a !== 'string' || typeof b !== 'string') return false
-  const x = Date.parse(a)
-  return !Number.isNaN(x) && x === Date.parse(b)
+  const x = instantOf(a)
+  const y = instantOf(b)
+  return !!x && !!y && x[0] === y[0] && x[1] === y[1]
 }
 
 /**

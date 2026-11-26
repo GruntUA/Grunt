@@ -60,6 +60,28 @@ async def announce_change(**kwargs: Any) -> None:
         log.exception("live.announce_failed", doctype=doctype)
 
 
+async def announce_moved(**kwargs: Any) -> None:
+    """``before_save`` of a timeline item: an update that points it at another
+    document tells the previous one too (after the commit, like the rest)."""
+    doctype = kwargs.get("doctype")
+    doc = kwargs.get("doc")
+    refs = TIMELINE_REFS.get(doctype or "")
+    if refs is None or not isinstance(doc, dict) or not doc.get("id"):
+        return  # an insert has no previous document
+    if refs[0] not in doc and refs[1] not in doc:
+        return
+    try:
+        rows = await _db.get_all(doctype, filters={"name": doc["id"]}, fields=list(refs), limit=1)
+        if not rows:
+            return
+        old = (rows[0].get(refs[0]), rows[0].get(refs[1]))
+        new = (doc.get(refs[0], old[0]), doc.get(refs[1], old[1]))
+        if old != new and old[0] and old[1]:
+            _queue(str(old[0]), str(old[1]), "timeline_change", {"source": doctype})
+    except Exception:
+        log.exception("live.announce_failed", doctype=doctype)
+
+
 # Timeline items and reactions are announced to their document; never as themselves.
 _SKIP = frozenset({*TIMELINE_REFS, "CommentReaction"})
 

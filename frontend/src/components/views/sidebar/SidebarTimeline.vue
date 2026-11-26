@@ -46,13 +46,22 @@ const dialog = useDialog()
 const timeline = ref<TimelineItem[]>([])
 const timelineLoading = ref(false)
 
+// The spinner only until the first load - a refresh swaps the items in place
+// (the comment box stays mounted while the user types). Only the latest
+// request's answer is applied: an older one arriving late is dropped.
+let loaded = false
+let latestLoad = 0
 async function loadTimeline() {
-  // The spinner only for the first load - a refresh swaps the items in place.
-  timelineLoading.value = !timeline.value.length
+  const load = ++latestLoad
+  timelineLoading.value = !loaded
   try {
-    timeline.value = await docsApi.getTimeline(props.doctype.name, props.document.name)
+    const items = await docsApi.getTimeline(props.doctype.name, props.document.name)
+    if (load === latestLoad) {
+      timeline.value = items
+      loaded = true
+    }
   } catch { /* silent */ }
-  finally { timelineLoading.value = false }
+  finally { if (load === latestLoad) timelineLoading.value = false }
 }
 
 // The document was saved, reloaded or moved through the workflow (a new

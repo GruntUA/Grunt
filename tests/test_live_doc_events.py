@@ -101,6 +101,30 @@ async def test_timeline_items_go_to_their_document(ctx, sent):
 
 
 @pytest.mark.asyncio
+async def test_moved_comment_tells_both_documents(ctx, sent):
+    first = await ctx.new_doc("LiveItem", {"title": "A"})
+    second = await ctx.new_doc("LiveItem", {"title": "B"})
+    comment = await ctx.new_doc(
+        "Comment",
+        {"reference_doctype": "LiveItem", "reference_id": first.name, "content": "hi"},
+    )
+    await _commit(ctx)
+    sent.clear()
+
+    await ctx.save_doc("Comment", comment.name, {"reference_id": second.name})
+    await _commit(ctx)
+    assert [e for e, _ in _of(sent, "LiveItem", first.name)] == ["timeline_change"]
+    assert [e for e, _ in _of(sent, "LiveItem", second.name)] == ["timeline_change"]
+
+    # An edit that keeps the reference tells only its document.
+    sent.clear()
+    await ctx.save_doc("Comment", comment.name, {"content": "edited"})
+    await _commit(ctx)
+    assert _of(sent, "LiveItem", first.name) == []
+    assert [e for e, _ in _of(sent, "LiveItem", second.name)] == ["timeline_change"]
+
+
+@pytest.mark.asyncio
 async def test_reaction_goes_to_the_comments_document(ctx, sent):
     from grunt.activity.reactions import toggle_reaction
 

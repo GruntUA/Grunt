@@ -33,9 +33,15 @@ describe('useFormDocWatcher', () => {
 
   it('skips the save the form already shows (its own)', () => {
     const s = setup()
-    s.emit('doc_change', { source: 'save', modified_at: '2026-11-26T10:00:00.123456Z', modified_by: 'me@x' })
+    s.emit('doc_change', { source: 'save', modified_at: '2026-11-26T10:00:00.123000Z', modified_by: 'me@x' })
     expect(s.invalidateQueries).not.toHaveBeenCalled()
     expect(s.timelineRefreshKey.value).toBe(1)
+  })
+
+  it('tells saves apart to the microsecond', () => {
+    const s = setup()
+    s.emit('doc_change', { source: 'save', modified_at: '2026-11-26T10:00:00.123400+00:00', modified_by: 'boss@x' })
+    expect(s.invalidateQueries).toHaveBeenCalledOnce()
   })
 
   it('reloads its own save from another tab without a toast', () => {
