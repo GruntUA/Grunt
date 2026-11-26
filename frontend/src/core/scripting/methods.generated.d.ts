@@ -204,7 +204,7 @@ interface GruntMethods {
   /** Remove a custom page registration. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.pages.delete_page": { args: { route: string }; result: boolean }
   /** List all registered custom pages. */
-  "grunt.api.v1.pages.list_pages": { args: {}; result: Record<string, any>[] }
+  "grunt.api.v1.pages.list_pages": { args: {}; result: any[] }
   /** Register or update a custom page from an app. Admin only. Permission: grunt.manage_desk. */
   "grunt.api.v1.pages.register_page": { args: { page_data: Record<string, any> }; result: Record<string, any> }
   /** Whether *user* (an email or a User id) may perform *action* on *doctype* - or on its document *name* - and the rules, shares and followed documents behind the answer. Permission: grunt.manage_permissions. */
@@ -281,7 +281,7 @@ interface GruntMethods {
   /** Create a new API key for the current user. */
   "grunt.auth.doctypes.ApiKey.api_key.create_api_key": { args: { label: string; expires_at?: string | null; allowed_ips?: string | null; read_only?: boolean; roles?: string[] | null }; result: Record<string, any> }
   /** List API keys (secrets are never returned). */
-  "grunt.auth.doctypes.ApiKey.api_key.list_api_keys": { args: {}; result: Record<string, any>[] }
+  "grunt.auth.doctypes.ApiKey.api_key.list_api_keys": { args: {}; result: any[] }
   /** Permanently revoke (delete) an API key. */
   "grunt.auth.doctypes.ApiKey.api_key.revoke_api_key": { args: { key_id: string }; result: boolean }
   /** Update label, active state, allowed IPs, or expiry of a key. */
@@ -315,7 +315,7 @@ interface GruntMethods {
   /** The people directory for any signed-in user: active accounts with just what a picker shows (sharing, assigning) - no roles, no account state. */
   "grunt.auth.user_api.list_colleagues_api": { args: {}; result: Record<string, any>[] }
   /** Self-registered users awaiting approval. System Manager only. Permission: grunt.manage_users. */
-  "grunt.auth.user_api.list_pending_users_api": { args: {}; result: Record<string, any>[] }
+  "grunt.auth.user_api.list_pending_users_api": { args: {}; result: any[] }
   /** List all users with fields needed by the admin REST endpoint. Permission: grunt.manage_users. */
   "grunt.auth.user_api.list_users_detailed_api": { args: {}; result: Record<string, any>[] }
   /** Authenticate a user and issue auth tokens or MFA challenge token. Allowed for guests. */
