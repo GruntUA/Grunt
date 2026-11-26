@@ -304,7 +304,16 @@ export function useFormController(
   })
 
   // WebSocket doc-change watcher
-  useFormDocWatcher({ lastMessage, isDirty, doctype, id, queryClient, toast })
+  const { timelineRefreshKey } = useFormDocWatcher({
+    onEvent: docWs.onEvent,
+    isDirty,
+    doctype,
+    id,
+    queryClient,
+    toast,
+    document,
+    userEmail: () => auth.user?.email,
+  })
 
   // Save
   const { handleSave } = useFormSave({
@@ -465,6 +474,7 @@ export function useFormController(
 
     // Presence / Real-time
     presenceUsers,
+    timelineRefreshKey,
     fieldLocks,
     focusField,
     blurField,

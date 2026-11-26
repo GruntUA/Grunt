@@ -77,6 +77,8 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.notification.sla.on_document_saved",
             # Time-in-status history (no-op without a MilestoneTracker).
             "grunt.activity.milestones.on_document_saved",
+            # Realtime: the open form and its timeline refresh themselves.
+            "grunt.activity.live.announce_change",
         ],
         "after_rename": ["grunt.standard_records.sync_files"],
         # Snapshot the doc first (restorable trash bin), then log the delete.
@@ -89,6 +91,7 @@ doc_events: dict[str, dict[str, list[str]]] = {
             "grunt.standard_records.sync_files",
             "grunt.notification.sla.on_document_deleted",
             "grunt.activity.milestones.on_document_deleted",
+            "grunt.activity.live.announce_change",
         ],
         # Record per-user "seen" state / ViewLog for DocTypes that opt in via
         # track_seen / track_views (no-op for everything else).

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ArrowRight, Trash2, Send, Reply, Users, Mail, Paperclip } from '@lucide/vue'
 import { docsApi, type TimelineItem, type DocVersionChange, type EmailComposeContext } from '@/core/api/docs'
 import { authApi } from '@/core/api/auth-admin'
@@ -27,9 +27,13 @@ import { useLocalStorage } from '@vueuse/core'
 
 const { t } = useI18n()
 
+const REFRESH_DEBOUNCE_MS = 300
+
 const props = defineProps<{
   doctype: DocType
   document: GruntDocument
+  /** Bumped when the document's room says its timeline changed (comment, file, ...). */
+  refreshKey?: number
 }>()
 
 const emit = defineEmits<{
@@ -43,12 +47,24 @@ const timeline = ref<TimelineItem[]>([])
 const timelineLoading = ref(false)
 
 async function loadTimeline() {
-  timelineLoading.value = true
+  // The spinner only for the first load - a refresh swaps the items in place.
+  timelineLoading.value = !timeline.value.length
   try {
     timeline.value = await docsApi.getTimeline(props.doctype.name, props.document.name)
   } catch { /* silent */ }
   finally { timelineLoading.value = false }
 }
+
+// The document was saved, reloaded or moved through the workflow (a new
+// version, a transition comment), or its room announced a timeline change:
+// refresh. Debounced - a burst of events is one request.
+let refreshTimer: ReturnType<typeof setTimeout> | undefined
+function scheduleRefresh() {
+  clearTimeout(refreshTimer)
+  refreshTimer = setTimeout(() => { void loadTimeline() }, REFRESH_DEBOUNCE_MS)
+}
+watch(() => [props.document.modified_at, props.refreshKey], scheduleRefresh)
+onUnmounted(() => clearTimeout(refreshTimer))
 
 // A Date/Datetime "change" that is the same instant in another timezone
 // notation (e.g. +00:00 -> +03:00) is not a change for the reader.
