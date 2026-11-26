@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.24.0 - 2026-11-26
+
+### Features
+
+- **filters:** relative dates (today, today-30) in date filters
+
+### Fixes
+
+- **filters:** resolve relative days by field type, in one place
+- "Today" date defaults on the server, unique on a column added by the same migrate (#288)
+
 ## v0.23.0 - 2026-11-25
 
 ### Features
