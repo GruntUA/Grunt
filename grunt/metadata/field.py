@@ -491,8 +491,14 @@ class DocField(BaseModel):
     model_config = {"use_enum_values": True}
 
     def coerce(self, value: Any) -> Any:
-        """Convert a raw value to the appropriate Python type for this field."""
-        return get_field_type_class(self.fieldtype).coerce_field(self, value)
+        """Convert a raw value to the appropriate Python type for this field.
+
+        A unique field stores an empty value as NULL: two cleared ``''`` would
+        collide on the unique index (MySQL has no partial indexes, and a table
+        created from scratch declares the constraint inline), many NULLs don't.
+        """
+        value = get_field_type_class(self.fieldtype).coerce_field(self, value)
+        return None if self.unique and value == "" else value
 
     def default_value(self) -> Any:
         """The field's default for a new document, coerced (None without one).

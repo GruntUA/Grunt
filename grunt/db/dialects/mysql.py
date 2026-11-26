@@ -85,7 +85,8 @@ class MysqlDialect(Dialect):
         self, connection: Any, table_name: str, name: str, columns: tuple[str, ...]
     ) -> None:
         """MySQL has no partial indexes: a plain unique index. Many NULLs pass it,
-        but two empty strings collide - store a cleared value as NULL."""
+        but two empty strings collide - a unique field stores a cleared value as
+        NULL (``DocField.coerce``)."""
         q = self.quote
         cols = ", ".join(q(connection, c) for c in columns)
         connection.execute(

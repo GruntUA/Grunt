@@ -312,8 +312,9 @@ def apply_field_values(
     For each physical field, the value is taken from *data* (coerced), falling
     back to the field default. With ``fill_empty=True`` every physical column is
     written with a type-appropriate empty value when absent from *data* (used for
-    child rows to avoid NOT NULL violations); otherwise only Check fields get a
-    default ``False``.
+    child rows to avoid NOT NULL violations) - a unique field as NULL, so rows
+    don't collide on ``''``; otherwise only Check fields get a default
+    ``False``.
     """
     for field in fields:
         if not field.is_physical:
@@ -325,7 +326,13 @@ def apply_field_values(
         elif field.fieldtype == "Check":
             row[field.fieldname] = False
         elif fill_empty:
-            row[field.fieldname] = _EMPTY_BY_STORAGE.get(get_storage_class(field.fieldtype), "")
+            # A unique field stays NULL, but its key is written: child rows go in
+            # as one batch insert, whose columns come from the first row.
+            row[field.fieldname] = (
+                None
+                if field.unique
+                else _EMPTY_BY_STORAGE.get(get_storage_class(field.fieldtype), "")
+            )
 
 
 def child_row_name(parent_doctype: str, parent: str, fieldname: str, idx: int) -> str:
