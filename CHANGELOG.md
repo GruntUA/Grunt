@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.25.0 - 2026-11-27
+
+### Features
+
+- **AppSidebar:** add tileStyle function for dynamic tile styling
+- **auth:** impersonation stays on the current page
+- **filters:** standard saved filters shipped by apps
+- **dashboard:** list widget sort, row limit and date field
+- **activity:** document timeline and form refresh live
+- **calendar:** colour events by status_indicators
+
+### Fixes
+
+- **form:** the first loaded copy always fills the form
+- update result type for list_pages, list_api_keys, and list_pending_users to any[]
+- **meta:** handle virtual DocType owner and modified_by in sidebar
+- **formula:** a field a new document left out reads as None
+- **assignment:** unassign by rule sets status Cancelled
+- **activity:** _owner_of as an if chain with an explicit return
+- **activity:** return from each case of _owner_of
+- **saved-filters:** refuse a filter shared with roles but no roles
+- **activity:** address review of live timeline refresh
+- **datetime:** show a bare date as that day in any timezone
+- **document:** write an absent unique field of a child row as NULL
+- **fields:** a unique field stores an empty value as NULL
+
+### Other
+
+- Update FRAPPE_GAP_PLAN.md and IDEAS.md; add USER_NEEDS_REPORT.md
+- **meta:** typed rows in the sidebar, no .get on documents
+- **activity:** live timeline events read fields as attributes
+
+### Database migrations
+
+- `0030_todo_cancelled_status`
+
 ## v0.24.0 - 2026-11-26
 
 ### Features
