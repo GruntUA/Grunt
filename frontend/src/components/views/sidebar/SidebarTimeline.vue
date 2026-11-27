@@ -305,11 +305,12 @@ async function sendComment() {
 async function deleteComment(item: TimelineItem) {
   try {
     await docsApi.deleteComment(props.doctype.name, props.document.name, item.id)
-    // A refresh started before the delete would bring the comment back.
-    latestLoad++
-    timelineLoading.value = false
     // A deleted root takes its replies along.
     timeline.value = timeline.value.filter(t => t.id !== item.id && t.parent_comment !== item.id)
+    // A refresh started before the delete would bring the comment back: a new
+    // one supersedes it and still brings what was added meanwhile (a comment
+    // sent while the delete was in flight).
+    void loadTimeline()
   } catch { /* silent */ }
 }
 

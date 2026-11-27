@@ -70,4 +70,17 @@ describe('useDocument - refetched copy', () => {
     expect(api().form.value.title).toBe('B')
     expect(api().isDirty.value).toBe(false)
   })
+
+  it('reload() keeps the edits and throws when the request fails', async () => {
+    get.mockResolvedValueOnce({ id: 'C-1', title: 'A' })
+    const { api } = setup()
+    await flushPromises()
+    api().form.value = { ...api().form.value, title: 'my edit' }
+    await nextTick()
+    // The query still holds copy A after the failure - not the stored document.
+    get.mockRejectedValueOnce(new Error('offline'))
+    await expect(api().reload()).rejects.toThrow('offline')
+    expect(api().form.value.title).toBe('my edit')
+    expect(api().isDirty.value).toBe(true)
+  })
 })

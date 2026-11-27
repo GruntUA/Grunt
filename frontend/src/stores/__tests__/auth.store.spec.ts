@@ -168,7 +168,13 @@ describe('useAuthStore', () => {
       expect(await auth.stopImpersonation()).toBeNull()
     })
 
-    it.each([String.raw`/\evil.example/x`, '/\t/evil.example/x', '/\n/evil.example'])(
+    it.each([
+      String.raw`/\evil.example/x`,
+      '/\t/evil.example/x',
+      '/\n/evil.example',
+      // dot segments normalise it to `//pivot.example//evil.example/x`
+      '/.//pivot.example//evil.example/x',
+    ])(
       'ignores a return page the URL parser takes off the origin: %j',
       async (from) => {
         mockSessions()
@@ -201,6 +207,12 @@ describe('useAuthStore', () => {
       reloadAt('/app/grunt/User/usr-3')
       expect(reload).not.toHaveBeenCalled()
       expect(loc.href).toBe('/app/grunt/User/usr-3')
+    })
+
+    it('goes home instead of a path that would leave the origin', () => {
+      const loc = window.location
+      reloadAt('/.//pivot.example//evil.example/x')
+      expect(loc.href).toBe('/')
     })
   })
 

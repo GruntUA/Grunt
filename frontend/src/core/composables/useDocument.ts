@@ -53,9 +53,12 @@ export function useDocument(doctype: string, id: string | null) {
 
   /** Drop the edits (and their draft) and load the stored document again -
    *  after a save was refused as based on an outdated copy. The form is set
-   *  here, not by the watcher: an unchanged refetch would not trigger it. */
+   *  here, not by the watcher: an unchanged refetch would not trigger it.
+   *  A failed request keeps the edits and throws: the query still holds the
+   *  last good copy, which is not the stored document. */
   const reload = async () => {
-    const { data: fresh } = await refetch()
+    const { data: fresh, error } = await refetch()
+    if (error) throw error
     if (!fresh) return
     form.value = { ...fresh }
     savedBaseline.value = JSON.stringify(fresh)

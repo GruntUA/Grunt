@@ -75,13 +75,16 @@ function _writeImpersonation(value: Impersonation | null) {
 
 /** `path` if it is a same-origin path, else null. Not `//host`, a full URL,
  *  or `/\host` (the URL parser reads `\` as `/`); no control characters
- *  (the parser drops tabs and newlines). The parsed URL must stay on this origin. */
+ *  (the parser drops tabs and newlines). The parsed URL must stay on this origin,
+ *  and its normalised path must not start with `//`. */
 function _localPath(path: string | undefined): string | null {
   if (!path || !path.startsWith('/') || path.includes('\\')) return null
   if ([...path].some((ch) => ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) === 0x7f)) return null
   try {
     const url = new URL(path, window.location.origin)
-    return url.origin === window.location.origin ? url.pathname + url.search + url.hash : null
+    // Dot segments may normalise `/.//host/x` to `//host/x` - another host once reparsed.
+    if (url.origin !== window.location.origin || url.pathname.startsWith('//')) return null
+    return url.pathname + url.search + url.hash
   } catch {
     return null
   }
@@ -90,7 +93,7 @@ function _localPath(path: string | undefined): string | null {
 /** Full reload at `path` (or `/`) - also when only its `#fragment` differs
  *  from the current page, which would otherwise not reload. */
 export function reloadAt(path: string | null) {
-  const url = new URL(path || '/', window.location.origin)
+  const url = new URL(_localPath(path ?? undefined) ?? '/', window.location.origin)
   const here = window.location
   if (url.pathname === here.pathname && url.search === here.search) {
     history.replaceState(history.state, '', url.pathname + url.search + url.hash)

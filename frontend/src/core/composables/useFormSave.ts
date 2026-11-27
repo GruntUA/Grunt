@@ -157,7 +157,8 @@ export function useFormSave(params: UseFormSaveParams) {
             action: {
               label: t('Reload'),
               onClick: () => {
-                void params.reload()
+                // A failed reload keeps the edits; say so.
+                params.reload().catch(() => params.toast.error(t('Load error')))
               },
             },
           },
