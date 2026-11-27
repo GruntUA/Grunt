@@ -5,7 +5,11 @@ import i18n from '@/plugins/i18n'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { DocType, GruntDocument } from '@/types'
 
-const api = vi.hoisted(() => ({ getTimeline: vi.fn(), getReactionChoices: vi.fn(async () => []) }))
+const api = vi.hoisted(() => ({
+  getTimeline: vi.fn(),
+  getReactionChoices: vi.fn(async () => []),
+  deleteComment: vi.fn(async () => undefined),
+}))
 vi.mock('@/core/api/docs', async (orig) => ({
   ...(await orig<typeof import('@/core/api/docs')>()),
   docsApi: api,
@@ -94,5 +98,29 @@ describe('SidebarTimeline - refresh', () => {
     await flushPromises()
     expect(w!.text()).toContain('нове')
     expect(w!.text()).not.toContain('старе')
+  })
+
+  it('drops a refresh that started before a comment was deleted, refreshes again', async () => {
+    const mine = { type: 'comment', id: 'c1', content: 'видалити', user: 'me@x', created_at: '2026-11-26T10:06:00Z' }
+    api.getTimeline.mockResolvedValue([mine])
+    const state = mountTimeline()
+    await settle()
+    expect(w!.text()).toContain('видалити')
+
+    let resolveOld!: (v: unknown[]) => void
+    api.getTimeline.mockReturnValueOnce(new Promise((r) => { resolveOld = r }))
+    state.refreshKey++
+    await settle()
+    // Meanwhile someone added a comment: the refresh after the delete brings it.
+    const added = { type: 'comment', id: 'c2', content: 'нове', user: 'you@x', created_at: '2026-11-26T10:07:00Z' }
+    api.getTimeline.mockResolvedValue([added])
+    await w!.find('button[aria-label="Delete comment"]').trigger('click')
+    await flushPromises()
+    expect(w!.text()).not.toContain('видалити')
+    expect(w!.text()).toContain('нове')
+    resolveOld([mine])
+    await flushPromises()
+    expect(w!.text()).not.toContain('видалити')
+    expect(w!.text()).toContain('нове')
   })
 })

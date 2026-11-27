@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
+import { reloadAt, useAuthStore } from '@/stores/auth'
 import i18n from '@/plugins/i18n'
 import { useAppStore, type SidebarGroup as SidebarGroupT } from '@/stores/app'
 import AppIcon from '@/components/AppIcon.vue'
@@ -59,7 +59,7 @@ async function exitImpersonation() {
   const from = await auth.stopImpersonation()
   // Full reload so every store re-initialises under the System Manager
   // identity - back on the page the impersonation started from.
-  window.location.href = from || '/'
+  reloadAt(from)
 }
 
 useEventListener(window, 'grunt_recent_docs_changed', () => appStore.refreshCounts())

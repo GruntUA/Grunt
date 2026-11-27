@@ -130,7 +130,15 @@ export function useFormController(
       dtStore.invalidate(doctype)
       dt.value = await dtStore.get(doctype)
     }
-    if (id) await queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })
+    if (id) await reloadStored()
+  }
+
+  /** Explicit: the stored copy replaces unsaved edits too (the watcher in
+   *  useDocument keeps them on a background refetch) - and the offer to
+   *  restore their draft, which would bring them back over it. */
+  async function reloadStored() {
+    await reloadDocument()
+    pendingDraft.value = null
   }
 
   const LAYOUT_TYPES = getLayoutTypeSet()
@@ -324,7 +332,7 @@ export function useFormController(
     form,
     validationErrors,
     save,
-    reload: reloadDocument,
+    reload: reloadStored,
     runScriptEvent,
     validateForm,
     focusFirstError,
