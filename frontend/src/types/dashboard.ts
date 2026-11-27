@@ -45,8 +45,12 @@ export interface DashboardWidget {
   description?: string | null
   /** table: heading of the value column instead of the aggregation name. */
   value_label?: string | null
-  /** table: how many rows to show (default 20). */
+  /** table/list: how many rows to show (table 20, list 8 by default). */
   row_limit?: number | null
+  /** list: field to sort by (default `modified_at`). */
+  sort_by?: string | null
+  /** list: `desc` (default) or `asc`. */
+  sort_order?: 'asc' | 'desc' | null
   /** For chart_bar/chart_area/donut: draw data from this saved Report (report_name) instead of a doctype aggregate. */
   report?: string | null
   content?: string | null

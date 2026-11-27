@@ -51,6 +51,8 @@ const IMPERSONATION_KEY = 'grunt_impersonation'
 interface Impersonation {
   token: string
   by: Impersonator
+  /** The page the System Manager started from - where switching back returns. */
+  from?: string
 }
 
 function _readImpersonation(): Impersonation | null {
@@ -71,6 +73,11 @@ function _writeImpersonation(value: Impersonation | null) {
   }
 }
 
+/** `path` if it is a same-origin path (not `//host` or a full URL), else null. */
+function _localPath(path: string | undefined): string | null {
+  return path && path.startsWith('/') && !path.startsWith('//') ? path : null
+}
+
 // Tabs tell each other about a sign-in or sign-out: they share the session cookie.
 type AuthMessage = { type: 'login' } | { type: 'logout' }
 
@@ -86,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Set while a System Manager is viewing the system as another user.
   const impersonatedBy = ref<Impersonator | null>(null)
   const isImpersonating = computed(() => !!impersonatedBy.value)
+  let _impFrom: string | null = null
   let _impTimer: ReturnType<typeof setTimeout> | null = null
 
   // Signed in, or offline with the profile the service worker cached: the
@@ -130,6 +138,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (imp && !isJwtExpired(imp.token)) {
         token.value = imp.token
         impersonatedBy.value = imp.by
+        _impFrom = _localPath(imp.from)
         _scheduleImpersonationExpiry()
         await fetchMe()
         return
@@ -204,7 +213,7 @@ export const useAuthStore = defineStore('auth', () => {
    * access token has no refresh - it just expires; the System Manager's own
    * session stays in the cookie for `stopImpersonation()`.
    */
-  async function startImpersonation(userId: string): Promise<void> {
+  async function startImpersonation(userId: string, from?: string): Promise<void> {
     const { authAdminApi } = await import('@/core/api/auth-admin')
     const data = await authAdminApi.startImpersonation(userId)
 
@@ -212,16 +221,21 @@ export const useAuthStore = defineStore('auth', () => {
       email: data.impersonated_by.email,
       full_name: data.impersonated_by.full_name,
     }
-    _writeImpersonation({ token: data.access_token, by })
+    _writeImpersonation({ token: data.access_token, by, from })
     impersonatedBy.value = by
+    _impFrom = _localPath(from)
     _adopt({ access_token: data.access_token, user: data.user as User })
     _scheduleImpersonationExpiry()
   }
 
-  /** Leave an impersonation session and go back to the System Manager's own session. */
-  async function stopImpersonation(): Promise<void> {
+  /**
+   * Leave an impersonation session and go back to the System Manager's own
+   * session. Returns the page the impersonation started from, if known.
+   */
+  async function stopImpersonation(): Promise<string | null> {
     if (_impTimer) { clearTimeout(_impTimer); _impTimer = null }
-    if (!isImpersonating.value) return
+    if (!isImpersonating.value) return null
+    const from = _impFrom
 
     try {
       const { authAdminApi } = await import('@/core/api/auth-admin')
@@ -232,9 +246,11 @@ export const useAuthStore = defineStore('auth', () => {
 
     _writeImpersonation(null)
     impersonatedBy.value = null
+    _impFrom = null
     token.value = null
     user.value = null
     if (!(await refresh())) _logout()
+    return from
   }
 
   async function loginWithPasskey(

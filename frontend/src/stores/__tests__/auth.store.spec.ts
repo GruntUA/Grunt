@@ -119,6 +119,56 @@ describe('useAuthStore', () => {
     })
   })
 
+  describe('impersonation', () => {
+    const START = '/api/v1/method/grunt.auth.user_api.start_impersonation_api'
+    const STOP = '/api/v1/method/grunt.auth.user_api.stop_impersonation_api'
+
+    function mockSessions() {
+      mockPost.mockImplementation((url: string) => {
+        if (url === START) {
+          return Promise.resolve({ data: envelope({
+            access_token: jwt(600),
+            user: { ...fakeUser, email: 'member@grunt.local' },
+            impersonated_by: { id: 'usr-1', email: 'boss@grunt.local', full_name: 'Boss' },
+          }) })
+        }
+        if (url === STOP) return Promise.resolve({ data: { success: true } })
+        return Promise.resolve({ data: envelope(fakeTokenResponse) })
+      })
+    }
+
+    it('returns to the page the impersonation started from', async () => {
+      mockSessions()
+      const auth = useAuthStore()
+      await auth.startImpersonation('usr-2', '/app/grunt/User/usr-2?tab=roles')
+      expect(JSON.parse(sessionStorage.getItem('grunt_impersonation')!).from)
+        .toBe('/app/grunt/User/usr-2?tab=roles')
+      expect(await auth.stopImpersonation()).toBe('/app/grunt/User/usr-2?tab=roles')
+      expect(auth.isImpersonating).toBe(false)
+      expect(sessionStorage.getItem('grunt_impersonation')).toBeNull()
+    })
+
+    it('keeps the return page across a reload of the tab', async () => {
+      sessionStorage.setItem('grunt_impersonation', JSON.stringify({
+        token: jwt(600),
+        by: { email: 'boss@grunt.local', full_name: 'Boss' },
+        from: '/app/grunt/User/usr-2',
+      }))
+      mockGet.mockResolvedValueOnce({ data: envelope(fakeUser) })
+      mockSessions()
+      const auth = useAuthStore()
+      await auth.restore()
+      expect(await auth.stopImpersonation()).toBe('/app/grunt/User/usr-2')
+    })
+
+    it('ignores a return page that is not a local path', async () => {
+      mockSessions()
+      const auth = useAuthStore()
+      await auth.startImpersonation('usr-2', '//evil.example/x')
+      expect(await auth.stopImpersonation()).toBeNull()
+    })
+  })
+
   describe('login', () => {
     it('sets token and user on success', async () => {
       mockPost.mockResolvedValueOnce({ data: envelope(fakeTokenResponse) })

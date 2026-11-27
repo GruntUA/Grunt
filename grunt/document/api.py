@@ -51,6 +51,7 @@ from grunt.workflow.registry import get_active_workflow
 lazy from grunt.db.api import aggregate_query, list_query
 lazy from grunt.document.base import Document, load_document, new_document, use_document_api
 lazy from grunt.document.document_list import DocumentList
+lazy from grunt.document.formula import evaluate_read_formulas
 lazy from grunt.permissions import reads
 lazy from grunt.permissions.query import read_predicate
 lazy from grunt.query import nodes as q
@@ -312,6 +313,10 @@ class DocumentAPI:
         rules = await collection.list_where(require_session(), dt, filters)
         query = dataclasses.replace(query, where=q.and_(rules, query.where))
         rows = await reads.fetch(query, user=user)
+        if fields is None:
+            # A whole row holds its virtual fields too (ToDo.is_overdue), as get_list.
+            for row in rows:
+                await evaluate_read_formulas(dt.doc, row)
         apply_hidden_fields_to_rows(rows, hidden_fields)
         await fire("after_read", doctype=doctype, user=user, data=rows, method="get_list")
         docs = cls._from_rows(rows, doctype=doctype, partial=True, hidden=hidden_fields)

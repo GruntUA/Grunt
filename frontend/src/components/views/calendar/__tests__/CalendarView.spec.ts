@@ -76,3 +76,36 @@ describe('CalendarView week start', () => {
     })
   })
 })
+
+describe('CalendarView status colours', () => {
+  const indicators = [
+    { value: 'Відпустка', color: 'success', label: 'Відпустка' },
+    { value: 'Лікарняний', color: 'danger', label: 'Лікарняний' },
+  ]
+
+  it('colours DocType events by their status indicator', async () => {
+    list.mockResolvedValue({
+      data: [
+        { id: 'a1', name: 'a1', employee: 'Іваненко', from_date: '2026-11-10', absence_type: 'Відпустка' },
+        { id: 'a2', name: 'a2', employee: 'Петренко', from_date: '2026-11-11', absence_type: 'Лікарняний' },
+        { id: 'a3', name: 'a3', employee: 'Сидоренко', from_date: '2026-11-12', absence_type: 'Інше' },
+      ],
+    })
+    w = mount(CalendarView, {
+      props: { doctype: dt({ status_field: 'absence_type', status_indicators: indicators }), dateField: 'from_date' },
+      global: { plugins: [i18n] },
+    })
+    await flushPromises()
+    expect(list.mock.calls[0][1].fields.split(',')).toContain('absence_type')
+    const dotOf = (title: string) => w!.findAll('[draggable="true"]')
+      .find(el => el.text() === title)!.find('span').classes()
+    expect(dotOf('Іваненко')).toContain('bg-green-500')
+    expect(dotOf('Петренко')).toContain('bg-red-500')
+    expect(dotOf('Сидоренко')).toContain('bg-primary')
+  })
+
+  it('does not fetch the status field without indicators', async () => {
+    await mountView(dt({ status_field: 'absence_type' }))
+    expect(list.mock.calls[0][1].fields.split(',')).not.toContain('absence_type')
+  })
+})

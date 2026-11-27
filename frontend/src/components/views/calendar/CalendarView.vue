@@ -27,6 +27,8 @@ import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/compon
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import { docUrl } from '@/core/workspaceUrl'
+import { statusBadgeFor, statusDotClass, type StatusBadge } from '@/core/status'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 
@@ -68,7 +70,11 @@ interface CalendarEvent {
   date: string
   end_date?: string
   doctype: string
+  /** CSS colour of a `calendar_sources` event. */
   color?: string
+  /** Dot class and badge from the DocType's `status_indicators`. */
+  dotClass?: string
+  status?: StatusBadge | null
   recurring?: boolean
   event_type?: 'default' | 'birthday'
 }
@@ -76,6 +82,15 @@ interface CalendarEvent {
 const events = ref<CalendarEvent[]>([])
 const draggedEvent = ref<CalendarEvent | null>(null)
 const dragOverDay = ref<string | null>(null)
+
+// A source event has its own CSS colour; a DocType event takes its status
+// indicator's colour, else the primary one.
+function eventDotClass(event: CalendarEvent) {
+  return event.color ? undefined : (event.dotClass ?? 'bg-primary')
+}
+function eventDotStyle(event: CalendarEvent) {
+  return event.color ? { background: event.color } : undefined
+}
 
 // Popover for event details
 const isOpen = ref(false)
@@ -115,6 +130,9 @@ async function loadDocuments() {
     const primaryTitleField = props.doctype.calendar_title_field || props.doctype.title_field || 'name'
     const primaryFields = new Set(['name', props.dateField, primaryTitleField])
     if (endField) primaryFields.add(endField)
+    // Events take the colour of their status indicator (e.g. leave type).
+    const statusField = props.doctype.status_indicators?.length ? props.doctype.status_field : null
+    if (statusField) primaryFields.add(statusField)
     // Only documents overlapping the visible grid: without a lower bound a DocType with
     // years of history filled the page with old rows and the current month came up short.
     const listPrimary = (window: Record<string, string>) =>
@@ -164,6 +182,10 @@ async function loadDocuments() {
         const d_start = doc[props.dateField]
         const d_end = endField ? doc[endField] : undefined
         if (overlaps(d_start, d_end)) {
+          const value = statusField ? doc[statusField] : null
+          const indicator = value != null && value !== ''
+            ? props.doctype.status_indicators?.find(i => i.value === String(value))
+            : undefined
           allEvents.push({
             id: doc.id,
             name: doc.name,
@@ -171,6 +193,8 @@ async function loadDocuments() {
             date: d_start,
             end_date: d_end,
             doctype: props.doctype.name,
+            dotClass: indicator ? statusDotClass(indicator.color) : undefined,
+            status: statusField ? statusBadgeFor(props.doctype, value) : null,
           })
         }
       })
@@ -449,7 +473,7 @@ const weekDays = computed(() => {
               @dragend="onDragEnd"
               @contextmenu.prevent="showEventDetails(event, $event.target)"
             >
-              <span class="size-1.5 rounded-full shrink-0" :style="{ background: event.color || 'var(--primary)' }" />
+              <span class="size-1.5 rounded-full shrink-0" :class="eventDotClass(event)" :style="eventDotStyle(event)" />
               <span class="truncate">{{ event.title }}</span>
             </div>
 
@@ -475,7 +499,7 @@ const weekDays = computed(() => {
                     class="flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-left outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground"
                     @click="navigateToDoc(event)"
                   >
-                    <span class="size-1.5 shrink-0 rounded-full" :style="{ background: event.color || 'var(--primary)' }" />
+                    <span class="size-1.5 shrink-0 rounded-full" :class="eventDotClass(event)" :style="eventDotStyle(event)" />
                     <span class="truncate">{{ event.title }}</span>
                   </button>
                 </div>
@@ -502,6 +526,9 @@ const weekDays = computed(() => {
           <div class="flex items-center gap-2 text-muted-foreground border-t border-border/40 pt-2">
             <CalendarIcon class="size-3.5" />
             <span>{{ fmtDate(selectedEvent.date) }}</span>
+            <Badge v-if="selectedEvent.status" variant="outline" class="ml-auto" :class="selectedEvent.status.class">
+              {{ selectedEvent.status.label }}
+            </Badge>
           </div>
 
           <Button size="sm" class="w-full" @click="navigateToDoc(selectedEvent)">{{ t('Open') }}</Button>

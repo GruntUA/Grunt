@@ -14,6 +14,7 @@ registerWidgetSection('links', () => import('./LinksSection.vue').then(m => m.de
 registerWidgetSection('gaugeRange', () => import('./GaugeRangeSection.vue').then(m => m.default))
 registerWidgetSection('aggregation', () => import('./AggregationSection.vue').then(m => m.default))
 registerWidgetSection('groupBy', () => import('./GroupBySection.vue').then(m => m.default))
+registerWidgetSection('listOptions', () => import('./ListOptionsSection.vue').then(m => m.default))
 registerWidgetSection('dateRange', () => import('./DateRangeSection.vue').then(m => m.default))
 registerWidgetSection('width', () => import('./WidthSection.vue').then(m => m.default))
 registerWidgetSection('color', () => import('./ColorSection.vue').then(m => m.default))

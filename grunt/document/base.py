@@ -33,7 +33,7 @@ from grunt.local import _user_ctx, bind, require_engine, require_session, unbind
 from grunt.log import log
 from grunt.metadata.registry import doctype_registry
 from grunt.permissions.guards import write_guard
-from grunt.store.base import Store
+from grunt.store.base import AUDIT_COLUMNS, Store
 from grunt.store.lookup import store_for
 lazy from grunt.document.multi_link import MultiLinkService
 
@@ -810,6 +810,8 @@ async def load_document(
     data = await store_for(dt, doc.session).get(name or doctype, expand=expand)
     if data is None:
         raise not_found(_("Document “%(name)s” not found") % {"name": name or dt.name})
+    # A virtual / singleton source may lack the audit columns a table row has.
+    data = dict.fromkeys(AUDIT_COLUMNS) | data
     if expand is None or any(expand):
         await evaluate_read_formulas(dt.doc, data)
     doc.data = data

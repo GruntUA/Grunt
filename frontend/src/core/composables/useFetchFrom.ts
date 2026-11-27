@@ -53,7 +53,8 @@ export function useFetchFrom({ doctype, modelValue, updateField }: UseFetchFromP
                 prevLinkValues.set(linkField, linkValue)
 
                 // Fetch on initial load for every unique link field that has a value
-                if (!seen.has(linkField)) {
+                // (an empty one clears nothing - the document may not be loaded yet)
+                if (linkValue && !seen.has(linkField)) {
                     seen.add(linkField)
                     applyFetchFrom(dt, linkField, linkValue)
                 }

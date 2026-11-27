@@ -6,6 +6,7 @@ RPC: grunt.api.v1.document.meta.get_preview
 RPC: grunt.api.v1.document.meta.get_field_years
 """
 
+from datetime import date
 from typing import Any
 
 from fastapi import HTTPException
@@ -15,20 +16,29 @@ from grunt.auth.current import acting_user
 from grunt.i18n import _
 from grunt.local import require_session, user_email
 from grunt.metadata.registry import doctype_registry
+lazy from grunt.activity.doctypes.DocFollow.doc_follow import DocFollow
 lazy from grunt.activity.milestones import history as milestone_history
 lazy from grunt.auth.users import get_users_by_emails
 lazy from grunt.document import collection
 lazy from grunt.document.api import documents
+lazy from grunt.document.doctypes.DocTag.doc_tag import DocTag
 lazy from grunt.document.links import link_service
 lazy from grunt.document.sidebar import collect_sections
 lazy from grunt.document.titles import resolve_reference_titles
+lazy from grunt.permissions.doctypes.SharedWith.shared_with import SharedWith
 lazy from grunt.permissions.guards import doc_guard, read_guard
 lazy from grunt.permissions.rbac import permission_checker
 lazy from grunt.permissions.types import PermissionAction
+lazy from grunt.site.doctypes.Bookmark.bookmark import Bookmark
+lazy from grunt.tasks.doctypes.Reminder.reminder import Reminder
+lazy from grunt.tasks.doctypes.ToDo.to_do import ToDo
 
 
 def _iso(value: Any) -> str | None:
-    return str(value) if value else None
+    """A typed row's date / datetime (stored values) as the API's ISO string."""
+    if not value:
+        return None
+    return value.isoformat() if isinstance(value, date) else str(value)
 
 
 async def _optional(coro: Any, fallback: Any) -> Any:
@@ -114,10 +124,23 @@ async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
     if meta is None or not meta.doc.show_preview_popup:
         return None
 
-    physical = [f for f in meta.get_physical_fields() if not f.has_trait("sensitive")]
+    guard = await _optional(read_guard(doctype), None)
+    if guard is None:
+        return None
+    hidden: frozenset[str] = guard[2]
+    # Only what the reader may see is asked for, so the row holds every field named.
+    physical = [
+        f
+        for f in meta.get_physical_fields()
+        if not f.has_trait("sensitive") and f.fieldname not in hidden
+    ]
     fields = [f for f in physical if f.in_preview] or [f for f in physical if f.required]
     title_field = meta.get_title_field()
+    if title_field in hidden:
+        title_field = "name"
     image_field = meta.get_image_field()
+    if image_field in hidden:
+        image_field = None
     fieldnames = {"name", title_field, *(f.fieldname for f in fields)}
     if image_field:
         fieldnames.add(image_field)
@@ -134,12 +157,12 @@ async def get_preview(doctype: str, doc_id: str) -> dict[str, Any] | None:
     )
     if not rows:
         return None
-    row = dict(rows[0])
+    row = rows[0]
     return {
-        "name": str(row.get("name") or doc_id),
-        "title": str(row.get(title_field) or doc_id),
-        "image": row.get(image_field) if image_field else None,
-        "row": row,
+        "name": str(row.name or doc_id),
+        "title": str(row[title_field] or doc_id),
+        "image": row[image_field] if image_field else None,
+        "row": dict(row),
         "fields": [
             {
                 "fieldname": f.fieldname,
@@ -173,67 +196,34 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     # (asyncio.gather here would race two queries onto the same session
     # and raise IllegalStateChangeError under load) - so fetch them one
     # at a time. A viewer who can't read one of these system DocTypes
-    # just gets an empty section, not a broken sidebar. None of these
-    # need pagination totals, so include_total is off to skip the extra
-    # COUNT(*) per section.
+    # just gets an empty section, not a broken sidebar. Typed rows: a field
+    # hidden from the reader reads as None, and no COUNT(*) per section.
     assignees = await _optional(
-        documents.get_list(
-            "ToDo",
+        ToDo.get_list(
             filters={**ref, "status__in": ["Open", "In Progress"]},
             order_by="created_at",
             order="asc",
             limit=100,
-            include_total=False,
         ),
         [],
     )
     shares = await _optional(
-        documents.get_list(
-            "SharedWith",
-            filters=ref,
-            order_by="created_at",
-            order="asc",
-            limit=100,
-            include_total=False,
-        ),
-        [],
+        SharedWith.get_list(filters=ref, order_by="created_at", order="asc", limit=100), []
     )
     tags = await _optional(
-        documents.get_list(
-            "DocTag",
-            filters=ref,
-            order_by="created_at",
-            order="asc",
-            limit=100,
-            include_total=False,
-        ),
-        [],
+        DocTag.get_list(filters=ref, order_by="created_at", order="asc", limit=100), []
     )
     bookmarks = await _optional(
-        documents.get_list(
-            "Bookmark",
-            filters={**ref, "owner": user_email()},
-            limit=1,
-            include_total=False,
-        ),
-        [],
+        Bookmark.get_list(filters={**ref, "owner": user_email()}, limit=1), []
     )
-
     follows = await _optional(
-        documents.get_list(
-            "DocFollow",
-            filters={**ref, "user": user_email()},
-            limit=1,
-            include_total=False,
-        ),
-        [],
+        DocFollow.get_list(filters={**ref, "user": user_email()}, fields=["name"], limit=1), []
     )
 
     milestones = await _optional(milestone_history(doctype, doc_id), [])
 
     reminders = await _optional(
-        documents.get_list(
-            "Reminder",
+        Reminder.get_list(
             filters={
                 "reference_doctype": doctype,
                 "reference_name": doc_id,
@@ -244,7 +234,6 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
             order_by="remind_at",
             order="asc",
             limit=20,
-            include_total=False,
         ),
         [],
     )
@@ -266,21 +255,18 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
     }
     collected = await collect_sections(doctype, doc_id, doc)
 
-    bookmark = dict(bookmarks[0]) if bookmarks else None
-    if bookmark and bookmark.get("created_at"):
-        bookmark["created_at"] = _iso(bookmark["created_at"])
+    bookmark = (
+        {**bookmarks[0].data, "created_at": _iso(bookmarks[0].created_at)} if bookmarks else None
+    )
 
     # Resolve display names/avatars for everyone referenced in the sidebar.
-    emails: set[str] = set()
-    for value in (doc.owner, doc.modified_by):
-        if value:
-            emails.add(value)
-    for row in assignees:
-        if row.get("assigned_to"):
-            emails.add(row["assigned_to"])
-    for row in shares:
-        if row.get("user"):
-            emails.add(row["user"])
+    referenced = [
+        doc.owner,
+        doc.modified_by,
+        *(r.assigned_to for r in assignees),
+        *(r.user for r in shares),
+    ]
+    emails = {e for e in referenced if e}
 
     people: dict[str, dict[str, Any]] = {}
     if emails:
@@ -288,61 +274,61 @@ async def get_sidebar(doctype: str, doc_id: str) -> dict[str, Any]:
         for u in users:
             email = u.email
             people[email] = {
-                "name": getattr(u, "full_name", None) or email,
+                "name": u.full_name or email,
                 "avatar": u.avatar or None,
             }
 
     return {
         "assignees": [
             {
-                "name": str(r["name"]),
-                "assigned_to": r.get("assigned_to"),
-                "description": r.get("description"),
-                "created_at": _iso(r.get("created_at")),
-                "status": r.get("status"),
-                "priority": r.get("priority"),
-                "due_date": r.get("due_date"),
-                "is_overdue": bool(r.get("is_overdue")),
+                "name": str(r.name),
+                "assigned_to": r.assigned_to,
+                "description": r.description,
+                "created_at": _iso(r.created_at),
+                "status": r.status,
+                "priority": r.priority,
+                "due_date": r.due_date,
+                "is_overdue": bool(r.is_overdue),
             }
             for r in assignees
         ],
         "shares": [
             {
-                "name": str(r["name"]),
-                "user": r.get("user"),
-                "role": r.get("role"),
-                "user_group": r.get("user_group") or None,
-                "everyone": bool(r.get("everyone")),
-                "permission": r.get("permission"),
-                "can_reshare": bool(r.get("can_reshare")),
-                "valid_to": _iso(r.get("valid_to")),
+                "name": str(r.name),
+                "user": r.user,
+                "role": r.role,
+                "user_group": r.user_group or None,
+                "everyone": bool(r.everyone),
+                "permission": r.permission,
+                "can_reshare": bool(r.can_reshare),
+                "valid_to": _iso(r.valid_to),
             }
             for r in shares
         ],
-        "tags": [{"name": str(r["name"]), "tag": r.get("tag")} for r in tags],
+        "tags": [{"name": str(r.name), "tag": r.tag} for r in tags],
         "bookmark": bookmark,
-        "follow": {"name": str(follows[0]["name"])} if follows else None,
+        "follow": {"name": str(follows[0].name)} if follows else None,
         "people": people,
         "perms": perms,
         "properties": collected["properties"],
         "sections": collected["sections"],
         "reminders": [
             {
-                "name": str(r["name"]),
-                "remind_at": _iso(r.get("remind_at")),
-                "description": r.get("description"),
+                "name": str(r.name),
+                "remind_at": _iso(r.remind_at),
+                "description": r.description,
             }
             for r in reminders
         ],
         "milestones": [
             {
-                "name": str(m["name"]),
-                "field": m.get("track_field"),
-                "value": m.get("value"),
-                "entered_at": _iso(m.get("entered_at")),
-                "left_at": _iso(m.get("left_at")),
-                "duration_hours": m.get("duration_hours"),
-                "approximate": bool(m.get("approximate")),
+                "name": str(m.name),
+                "field": m.track_field,
+                "value": m.value,
+                "entered_at": _iso(m.entered_at),
+                "left_at": _iso(m.left_at),
+                "duration_hours": m.duration_hours,
+                "approximate": bool(m.approximate),
             }
             for m in milestones
         ],

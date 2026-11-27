@@ -38,6 +38,12 @@ BULK = "bulk"
 SQL = "sql"
 
 
+# The audit columns every table row has. A virtual source that knows none of them
+# still reads as rows with them (None) - VirtualStore lists them, load_document
+# fills one document - so doc.owner works for any DocType.
+AUDIT_COLUMNS: tuple[str, ...] = ("owner", "created_at", "modified_at", "modified_by")
+
+
 class Store:
     """The rows of one DocType, read and written in *session*.
 
@@ -136,6 +142,7 @@ class Store:
 
 __all__ = [
     "AGGREGATE",
+    "AUDIT_COLUMNS",
     "BULK",
     "DELETE",
     "HISTORY",

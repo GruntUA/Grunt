@@ -168,6 +168,12 @@ async def _evaluate_formulas(dt: DocType, row: dict[str, Any], attr: str) -> dic
         "now": _now,
         "today": _now.date(),
     }
+    if attr == "formula":
+        # A write is the whole document, but a new one carries only the fields
+        # given: an empty one reads as None, not as a NameError. (A list read is
+        # only its columns - a read_formula there keeps failing loudly.)
+        for field in meta.get_data_fields():
+            ns.setdefault(field.fieldname, None)
     numeric_fields = meta.get_numeric_fieldnames()
     for k, v in row.items():
         ns[k] = _to_number_if_possible(v) if k in numeric_fields else v

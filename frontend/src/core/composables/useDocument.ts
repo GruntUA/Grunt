@@ -16,16 +16,23 @@ export function useDocument(doctype: string, id: string | null) {
   const form = ref<Record<string, unknown>>({})
   const savedBaseline = ref<string>(JSON.stringify({}))
 
+  const isDirty = computed(() =>
+    JSON.stringify(form.value) !== savedBaseline.value
+  )
+
+  // A refetched copy (another user's save) never overwrites unsaved edits -
+  // also the ones made while the request was in flight. Saving them over the
+  // outdated copy is refused, and `reload()` brings the stored document.
+  // The first copy always lands: before it the form holds no user edits, only
+  // what the form wrote while it loaded (e.g. fetch_from clearing its fields).
+  let loaded = false
   watch(document, (doc) => {
-    if (doc) {
+    if (doc && (!loaded || !isDirty.value)) {
+      loaded = true
       form.value = { ...doc }
       savedBaseline.value = JSON.stringify(doc)
     }
   }, { immediate: true })
-
-  const isDirty = computed(() =>
-    JSON.stringify(form.value) !== savedBaseline.value
-  )
 
   const markClean = () => {
     savedBaseline.value = JSON.stringify(form.value)
