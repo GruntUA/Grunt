@@ -73,9 +73,36 @@ function _writeImpersonation(value: Impersonation | null) {
   }
 }
 
-/** `path` if it is a same-origin path (not `//host` or a full URL), else null. */
+/** `path` if it is a same-origin path, else null. Not `//host`, a full URL,
+ *  or `/\host` (the URL parser reads `\` as `/`); no control characters
+ *  (the parser drops tabs and newlines). The parsed URL must stay on this origin. */
 function _localPath(path: string | undefined): string | null {
-  return path && path.startsWith('/') && !path.startsWith('//') ? path : null
+  if (!path || !path.startsWith('/') || path.includes('\\')) return null
+  if ([...path].some((ch) => ch.charCodeAt(0) < 0x20 || ch.charCodeAt(0) === 0x7f)) return null
+  try {
+    const url = new URL(path, window.location.origin)
+    return url.origin === window.location.origin ? url.pathname + url.search + url.hash : null
+  } catch {
+    return null
+  }
+}
+
+/** Full reload at `path` (or `/`) - also when only its `#fragment` differs
+ *  from the current page, which would otherwise not reload. */
+export function reloadAt(path: string | null) {
+  const url = new URL(path || '/', window.location.origin)
+  const here = window.location
+  if (url.pathname === here.pathname && url.search === here.search) {
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash)
+    here.reload()
+  } else {
+    here.href = url.pathname + url.search + url.hash
+  }
+}
+
+/** The HTTP status of a failed request, if it got an answer. */
+function _httpStatus(err: unknown): number | undefined {
+  return (err as { response?: { status?: number } } | null)?.response?.status
 }
 
 // Tabs tell each other about a sign-in or sign-out: they share the session cookie.
@@ -161,8 +188,11 @@ export const useAuthStore = defineStore('auth', () => {
     password_change_token?: string
   }
 
-  function _loginStep(data: any): LoginStep {
-    if (data.access_token) adoptLogin(data)
+  /** A sign-in answer: the session (`access_token` + `user`) or the next step. */
+  type LoginAnswer = Partial<LoginPayload> & Partial<LoginStep>
+
+  function _loginStep(data: LoginAnswer): LoginStep {
+    if (data.access_token) adoptLogin(data as LoginPayload)
     return {
       mfa_required: !!data.mfa_required,
       approval_pending: !!data.approval_pending,
@@ -274,9 +304,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (data.approval_pending) throw new Error('approval_pending')
     if (data.mfa_required) {
       // Rare: user has MFA on top of a passkey - hand back to the MFA step.
-      const err: any = new Error('mfa_required')
-      err.mfa = { mfa_token: data.mfa_token, user: data.user }
-      throw err
+      throw Object.assign(new Error('mfa_required'), {
+        mfa: { mfa_token: data.mfa_token, user: data.user },
+      })
     }
     adoptLogin(data)
   }
@@ -332,8 +362,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: body } = await client.post('/api/v1/method/grunt.auth.user_api.refresh_api')
       _adopt(body.data)
       return 'ok'
-    } catch (err: any) {
-      const status = err?.response?.status
+    } catch (err: unknown) {
+      const status = _httpStatus(err)
       // Only log out on auth errors (401/403), not on network/server errors
       if (status === 401 || status === 403) {
         _logout()
@@ -356,10 +386,11 @@ export const useAuthStore = defineStore('auth', () => {
           user.value = u
           applyUserPreferences(u)
         })
-        .catch((err: any) => {
+        .catch((err: unknown) => {
+          const status = _httpStatus(err)
           if (isImpersonating.value) {
             void stopImpersonation()
-          } else if (err?.response?.status === 401 || err?.response?.status === 403) {
+          } else if (status === 401 || status === 403) {
             // Only log out on auth errors (401/403), not on network/server errors
             _logout()
           }

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useAuthStore } from '@/stores/auth'
+import { reloadAt, useAuthStore } from '@/stores/auth'
 import { accessToken } from '@/core/accessToken'
 
 // Mocks
@@ -166,6 +166,41 @@ describe('useAuthStore', () => {
       const auth = useAuthStore()
       await auth.startImpersonation('usr-2', '//evil.example/x')
       expect(await auth.stopImpersonation()).toBeNull()
+    })
+
+    it.each([String.raw`/\evil.example/x`, '/\t/evil.example/x', '/\n/evil.example'])(
+      'ignores a return page the URL parser takes off the origin: %j',
+      async (from) => {
+        mockSessions()
+        const auth = useAuthStore()
+        await auth.startImpersonation('usr-2', from)
+        expect(await auth.stopImpersonation()).toBeNull()
+      },
+    )
+  })
+
+  describe('reloadAt', () => {
+    let reload: ReturnType<typeof vi.fn>
+    beforeEach(() => {
+      history.replaceState(null, '', '/app/grunt/User/usr-2')
+      reload = vi.fn()
+      vi.spyOn(window, 'location', 'get').mockReturnValue({
+        ...window.location, pathname: window.location.pathname, search: '', origin: window.location.origin, reload,
+      } as Location)
+    })
+    afterEach(() => { vi.restoreAllMocks() })
+
+    it('reloads the page when only the fragment differs', () => {
+      reloadAt('/app/grunt/User/usr-2#roles')
+      expect(reload).toHaveBeenCalledTimes(1)
+      expect(history.state).toBeNull()
+    })
+
+    it('navigates to another page', () => {
+      const loc = window.location
+      reloadAt('/app/grunt/User/usr-3')
+      expect(reload).not.toHaveBeenCalled()
+      expect(loc.href).toBe('/app/grunt/User/usr-3')
     })
   })
 

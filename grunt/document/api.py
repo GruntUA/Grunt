@@ -313,8 +313,9 @@ class DocumentAPI:
         rules = await collection.list_where(require_session(), dt, filters)
         query = dataclasses.replace(query, where=q.and_(rules, query.where))
         rows = await reads.fetch(query, user=user)
-        if fields is None:
-            # A whole row holds its virtual fields too (ToDo.is_overdue), as get_list.
+        if query.fields is None:
+            # A whole row (fields None or []) holds its virtual fields too
+            # (ToDo.is_overdue), as get_list.
             for row in rows:
                 await evaluate_read_formulas(dt.doc, row)
         apply_hidden_fields_to_rows(rows, hidden_fields)

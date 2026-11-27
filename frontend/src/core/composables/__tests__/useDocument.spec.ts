@@ -5,6 +5,7 @@ import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 
 const get = vi.hoisted(() => vi.fn())
 vi.mock('@/core/api/docs', () => ({ docsApi: { get } }))
+vi.mock('@/core/composables/useFormDraft', () => ({ clearFormDraft: vi.fn() }))
 
 import { useDocument } from '../useDocument'
 
@@ -56,5 +57,17 @@ describe('useDocument - refetched copy', () => {
     await flushPromises()
     expect(api().form.value.title).toBe('my edit')
     expect(api().isDirty.value).toBe(true)
+  })
+
+  it('reload() replaces unsaved edits (frm.reload, «Оновити»)', async () => {
+    get.mockResolvedValueOnce({ id: 'C-1', title: 'A' })
+    const { api } = setup()
+    await flushPromises()
+    api().form.value = { ...api().form.value, title: 'my edit' }
+    await nextTick()
+    get.mockResolvedValueOnce({ id: 'C-1', title: 'B' })
+    await api().reload()
+    expect(api().form.value.title).toBe('B')
+    expect(api().isDirty.value).toBe(false)
   })
 })

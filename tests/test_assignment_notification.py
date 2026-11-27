@@ -265,11 +265,17 @@ async def test_is_overdue_virtual_field(ctx):
 
         names = [past["name"], future["name"], done["name"]]
         typed = {t.name: t.is_overdue for t in await ToDo.get_list(filters={"name__in": names})}
+        # fields=[] is a whole row as well.
+        empty = {
+            t.name: t.is_overdue
+            for t in await ToDo.get_list(filters={"name__in": names}, fields=[])
+        }
 
     assert p["is_overdue"]
     assert not f["is_overdue"]
     assert not d["is_overdue"]
     assert typed == {past["name"]: True, future["name"]: False, done["name"]: False}
+    assert empty == typed
 
 
 @pytest.mark.asyncio

@@ -130,7 +130,9 @@ export function useFormController(
       dtStore.invalidate(doctype)
       dt.value = await dtStore.get(doctype)
     }
-    if (id) await queryClient.invalidateQueries({ queryKey: ['document', doctype, id] })
+    // Explicit: the stored copy replaces unsaved edits too (the watcher in
+    // useDocument keeps them on a background refetch).
+    if (id) await reloadDocument()
   }
 
   const LAYOUT_TYPES = getLayoutTypeSet()

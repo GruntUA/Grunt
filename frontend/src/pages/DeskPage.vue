@@ -2,7 +2,7 @@
 import { formatNumber } from '@/core/currency'
 import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { reloadAt, useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import { useUIStore } from '@/stores/ui'
 import { workspaceApi } from '@/core/api/workspace'
@@ -44,7 +44,7 @@ async function exitImpersonation() {
   const from = await auth.stopImpersonation()
   // Full reload so every store re-initialises under the System Manager
   // identity - back on the page the impersonation started from.
-  window.location.href = from || '/'
+  reloadAt(from)
 }
 const appStore = useAppStore()
 const uiStore = useUIStore()
